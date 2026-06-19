@@ -24,6 +24,7 @@ reference anchor, but the CMP package is not merely an extension of it.
 | `06-cmp-g4-matter-runtime-report.md` | Records the executable CMP-G4 Matter Core API slice, CRM/Intake clearance dependency, People staffing boundary, tests, validator, and no-premature-R4 boundary. |
 | `07-cmp-g5-vault-dms-runtime-report.md` | Records the executable CMP-G5 Vault/DMS API slice, permission-before-search guardrail, Vault write/search/share audit evidence, tests, validator, and no-premature-R4 boundary. |
 | `08-cmp-g6-crm-intake-runtime-report.md` | Records the executable CMP-G6 CRM/Intake clearance API slice, Opportunity-to-Intake-only guardrail, conflict/engagement gate tests, tests, validator, and no-premature-R4 boundary. |
+| `09-cmp-g7-revenue-finance-runtime-report.md` | Records the executable CMP-G7 Revenue/Finance API slice, Employee+Matter cost basis guardrail, WIP/PreBill/invoice/payment/settlement flows, tests, validator, and no-premature-R4 boundary. |
 
 ## Baseline Rule
 

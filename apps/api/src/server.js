@@ -45,6 +45,12 @@ import {
   handleCrmIntakeApiRequest,
   isCrmIntakePath,
 } from "./crm-intake-runtime-context.js";
+import {
+  REVENUE_FINANCE_BOUNDED_CONTEXT,
+  createRevenueFinanceRuntimeContext,
+  handleRevenueFinanceApiRequest,
+  isRevenueFinancePath,
+} from "./revenue-finance-runtime-context.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
@@ -54,6 +60,7 @@ const PARTY_MASTER_RUNTIME = createPartyMasterRuntimeContext();
 const MATTER_RUNTIME = createMatterRuntimeContext();
 const VAULT_DMS_RUNTIME = createVaultDmsRuntimeContext();
 const CRM_INTAKE_RUNTIME = createCrmIntakeRuntimeContext();
+const REVENUE_FINANCE_RUNTIME = createRevenueFinanceRuntimeContext();
 
 export const SERVICE_DESCRIPTOR = Object.freeze({
   service: "@law-firm-os/api",
@@ -66,6 +73,7 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
     MATTER_CORE_BOUNDED_CONTEXT,
     VAULT_DMS_BOUNDED_CONTEXT,
     CRM_INTAKE_CLEARANCE_BOUNDED_CONTEXT,
+    REVENUE_FINANCE_BOUNDED_CONTEXT,
   ]),
   permission_gate: Object.freeze({
     contract_ref: "contracts/permission-kernel-contract.json",
@@ -120,6 +128,7 @@ async function handle(req, res) {
   const isMatterCorePath = isMatterPath(pathname);
   const isVaultDmsRuntimePath = isVaultDmsPath(pathname);
   const isCrmIntakeRuntimePath = isCrmIntakePath(pathname);
+  const isRevenueFinanceRuntimePath = isRevenueFinancePath(pathname);
   const knownPath =
     pathname === "/api/health" ||
     pathname === "/master-data/records" ||
@@ -130,13 +139,23 @@ async function handle(req, res) {
     isMatterCorePath ||
     isVaultDmsRuntimePath ||
     isCrmIntakeRuntimePath ||
+    isRevenueFinanceRuntimePath ||
     isHrxPath;
 
   if (!knownPath) {
     sendJson(res, 404, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "not_found" });
     return;
   }
-  if (!isHrxPath && !isTrustPath && !isPartyPath && !isMatterCorePath && !isVaultDmsRuntimePath && !isCrmIntakeRuntimePath && req.method !== "GET") {
+  if (
+    !isHrxPath &&
+    !isTrustPath &&
+    !isPartyPath &&
+    !isMatterCorePath &&
+    !isVaultDmsRuntimePath &&
+    !isCrmIntakeRuntimePath &&
+    !isRevenueFinanceRuntimePath &&
+    req.method !== "GET"
+  ) {
     sendJson(res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
@@ -170,6 +189,13 @@ async function handle(req, res) {
   if (isCrmIntakeRuntimePath) {
     const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
     const result = await handleCrmIntakeApiRequest({ pathname, method: req.method, query, body, context: CRM_INTAKE_RUNTIME });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isRevenueFinanceRuntimePath) {
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
+    const result = await handleRevenueFinanceApiRequest({ pathname, method: req.method, query, body, context: REVENUE_FINANCE_RUNTIME });
     sendJson(res, result.status, { request_id: requestId, ...result.body });
     return;
   }
