@@ -74,6 +74,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `29-g3-a-crm-schema-report.md` | Records the G3-A Lead, Opportunity, CRMActivity, Proposal, Referral, and Campaign schema slice. |
 | `30-g3-b-crm-service-ui-closeout-report.md` | Records the G3-B CRM pipeline, permission trimming, summary UI, Opportunity-to-Intake, KeyClientPlan, and partial closeout slice. |
 | `31-g3-c-intake-conflict-schema-report.md` | Records the G3-C IntakeRequest, ConflictCheck, and ConflictHit schema slice. |
+| `32-g3-d-conflict-engagement-workflow-report.md` | Records the G3-D conflict search, decision, waiver, engagement, FeeTerms, risk approval, and clearance-token workflow slice. |
 
 ## Execution Order
 
@@ -118,6 +119,7 @@ npm run client-matter:g3:plan:validate
 npm run client-matter:g3a:validate
 npm run client-matter:g3b:validate
 npm run client-matter:g3c:validate
+npm run client-matter:g3d:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -185,6 +187,12 @@ The G3-C validator checks IntakeRequest required Party references,
 pre-clearance Matter blocking, ConflictCheck immutable snapshot evidence,
 ConflictHit source/audit evidence, test coverage, and the open
 runtime-readiness boundary.
+
+The G3-D validator checks conflict search source coverage, reviewer-required
+decision workflow, waiver consent document evidence, engagement legal
+client/scope requirements, hourly/fixed/cap/retainer FeeTerms, risk approval
+audit evidence, expired or stale clearance-token blocking, test coverage, and
+the open runtime-readiness boundary.
 
 ## Non-Goals
 
