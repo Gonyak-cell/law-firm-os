@@ -398,6 +398,10 @@ export const MASTER_DATA_PROGRAM_CONTRACT = Object.freeze({
     "duplicate_identity",
     "relationship_direction_error",
     "client_group_leakage",
+    "client_group_primary_party_missing",
+    "relationship_party_endpoint_error",
+    "contact_point_type_error",
+    "billing_profile_client_reference_error",
     "missing_matter_trace_when_matter_or_document_touched",
     "ownership_drift",
   ]),
@@ -419,6 +423,8 @@ export const MASTER_DATA_PARTY_TYPES = Object.freeze(["person", "organization"])
 export const MASTER_DATA_PARTY_ALIAS_TYPES = Object.freeze(["legal_name", "localized_name", "former_name", "search_name"]);
 
 export const MASTER_DATA_PARTY_IDENTIFIER_TYPES = Object.freeze(["business_number", "lei", "registration_id"]);
+
+export const MASTER_DATA_CONTACT_POINT_TYPES = Object.freeze(["email", "phone", "address", "billing_email"]);
 
 export const MASTER_DATA_RELATIONSHIP_DIRECTIONS = Object.freeze([
   "person_to_organization",
@@ -527,7 +533,14 @@ export const MASTER_DATA_MODEL_DEFINITIONS = Object.freeze({
     tenant_field: "tenant_id",
     owner_module: "MasterData",
     required_fields: Object.freeze(["client_group_id", "tenant_id", "display_name", "status", "owner_user_id"]),
-    optional_fields: Object.freeze(["matter_id", "member_entity_ids", "billing_profile_id", "confidentiality"]),
+    optional_fields: Object.freeze([
+      "matter_id",
+      "member_entity_ids",
+      "member_party_ids",
+      "primary_party_id",
+      "billing_profile_id",
+      "confidentiality",
+    ]),
     lifecycle_statuses: MASTER_DATA_LIFECYCLE_STATUSES,
     pre_matter_allowed: true,
     matter_trace_policy: "required_when_workflow_touches_matter_or_document",
@@ -547,7 +560,7 @@ export const MASTER_DATA_MODEL_DEFINITIONS = Object.freeze({
       "status",
       "owner_user_id",
     ]),
-    optional_fields: Object.freeze(["matter_id", "permission_ref", "audit_hint_ref", "reporting_ref"]),
+    optional_fields: Object.freeze(["matter_id", "permission_ref", "audit_hint_ref", "from_party_id", "to_party_id", "reporting_ref"]),
     lifecycle_statuses: MASTER_DATA_LIFECYCLE_STATUSES,
     pre_matter_allowed: true,
     matter_trace_policy: "required_when_workflow_touches_matter_or_document",
@@ -558,7 +571,7 @@ export const MASTER_DATA_MODEL_DEFINITIONS = Object.freeze({
     tenant_field: "tenant_id",
     owner_module: "MasterData",
     required_fields: Object.freeze(["contact_point_id", "tenant_id", "owner_entity_id", "contact_type", "value", "status", "owner_user_id"]),
-    optional_fields: Object.freeze(["matter_id", "permission_ref", "audit_hint_ref"]),
+    optional_fields: Object.freeze(["matter_id", "permission_ref", "audit_hint_ref", "owner_party_id", "is_primary", "verified", "verification_status"]),
     lifecycle_statuses: MASTER_DATA_LIFECYCLE_STATUSES,
     pre_matter_allowed: true,
     matter_trace_policy: "required_when_workflow_touches_matter_or_document",
@@ -569,7 +582,15 @@ export const MASTER_DATA_MODEL_DEFINITIONS = Object.freeze({
     tenant_field: "tenant_id",
     owner_module: "MasterData",
     required_fields: Object.freeze(["billing_profile_id", "tenant_id", "billing_entity_id", "display_name", "status", "owner_user_id"]),
-    optional_fields: Object.freeze(["matter_id", "client_group_id", "tax_profile_ref", "external_account_ref"]),
+    optional_fields: Object.freeze([
+      "matter_id",
+      "client_group_id",
+      "legal_client_party_id",
+      "billing_client_party_id",
+      "billing_contact_point_id",
+      "tax_profile_ref",
+      "external_account_ref",
+    ]),
     lifecycle_statuses: MASTER_DATA_LIFECYCLE_STATUSES,
     pre_matter_allowed: true,
     matter_trace_policy: "required_when_workflow_touches_matter_or_document",

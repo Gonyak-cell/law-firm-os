@@ -1,4 +1,5 @@
 import {
+  MASTER_DATA_CONTACT_POINT_TYPES,
   MASTER_DATA_CP156_NO_WRITE_ATTESTATION,
   MASTER_DATA_CP156_PACK_BINDING,
   MASTER_DATA_CP157_NO_WRITE_ATTESTATION,
@@ -163,12 +164,50 @@ export function validateMasterDataRecord(modelType, record, options = {}) {
         errors.push("Relationship cannot point from and to the same entity");
         pushUnique(blocked_claims, "relationship_direction_error");
       }
+      if (record?.from_party_id && record?.to_party_id && record.from_party_id === record.to_party_id) {
+        errors.push("Relationship cannot point from and to the same party");
+        pushUnique(blocked_claims, "relationship_party_endpoint_error");
+      }
+      if (options.party_types_by_id && record?.from_party_id && record?.to_party_id) {
+        const fromType = options.party_types_by_id[record.from_party_id];
+        const toType = options.party_types_by_id[record.to_party_id];
+        const expectedPair = record.direction?.split("_to_") ?? [];
+        if (expectedPair.length === 2 && fromType && toType && (fromType !== expectedPair[0] || toType !== expectedPair[1])) {
+          errors.push("Relationship party endpoint types must match direction");
+          pushUnique(blocked_claims, "relationship_direction_error");
+        }
+      }
     }
-    if (modelType === "ClientGroup" && Array.isArray(options.member_tenant_ids)) {
-      const leaked = options.member_tenant_ids.some((tenantId) => tenantId !== record?.tenant_id);
-      if (leaked) {
-        errors.push("ClientGroup member tenant IDs must not cross tenant scope");
-        pushUnique(blocked_claims, "client_group_leakage");
+    if (modelType === "ClientGroup") {
+      if (Array.isArray(options.member_tenant_ids)) {
+        const leaked = options.member_tenant_ids.some((tenantId) => tenantId !== record?.tenant_id);
+        if (leaked) {
+          errors.push("ClientGroup member tenant IDs must not cross tenant scope");
+          pushUnique(blocked_claims, "client_group_leakage");
+        }
+      }
+      if (record?.primary_party_id && Array.isArray(record.member_party_ids) && !record.member_party_ids.includes(record.primary_party_id)) {
+        errors.push("ClientGroup primary_party_id must be included in member_party_ids");
+        pushUnique(blocked_claims, "client_group_primary_party_missing");
+      }
+    }
+    if (modelType === "ContactPoint" && record?.contact_type && !MASTER_DATA_CONTACT_POINT_TYPES.includes(record.contact_type)) {
+      errors.push(`ContactPoint type must be one of ${MASTER_DATA_CONTACT_POINT_TYPES.join(", ")}`);
+      pushUnique(blocked_claims, "contact_point_type_error");
+    }
+    if (modelType === "BillingProfile") {
+      if (options.require_legal_and_billing_client_refs === true && (!record?.legal_client_party_id || !record?.billing_client_party_id)) {
+        errors.push("BillingProfile requires legal_client_party_id and billing_client_party_id for G2-B evidence");
+        pushUnique(blocked_claims, "billing_profile_client_reference_error");
+      }
+      if (
+        options.require_distinct_billing_client === true &&
+        record?.legal_client_party_id &&
+        record?.billing_client_party_id &&
+        record.legal_client_party_id === record.billing_client_party_id
+      ) {
+        errors.push("BillingProfile billing_client_party_id must be distinct from legal_client_party_id for this workflow");
+        pushUnique(blocked_claims, "billing_profile_client_reference_error");
       }
     }
   }
@@ -189,7 +228,11 @@ export function validateMasterDataRecord(modelType, record, options = {}) {
       "duplicate_alias_review",
       "duplicate_identifier_review",
       "relationship_direction",
+      "relationship_party_endpoints",
       "client_group_leakage",
+      "client_group_primary_party",
+      "contact_point_type",
+      "billing_profile_client_references",
     ]),
     errors: Object.freeze(errors),
     blocked_claims: Object.freeze(blocked_claims),

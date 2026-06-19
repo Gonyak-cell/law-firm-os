@@ -50,6 +50,10 @@
     "duplicate_identity",
     "relationship_direction_error",
     "client_group_leakage",
+    "client_group_primary_party_missing",
+    "relationship_party_endpoint_error",
+    "contact_point_type_error",
+    "billing_profile_client_reference_error",
     "missing_matter_trace_when_matter_or_document_touched",
     "ownership_drift"
   ],
@@ -421,6 +425,7 @@
     "MASTER_DATA_CP175_PACK_BINDING",
     "MASTER_DATA_CP176_NO_WRITE_ATTESTATION",
     "MASTER_DATA_CP176_PACK_BINDING",
+    "MASTER_DATA_CONTACT_POINT_TYPES",
     "MASTER_DATA_ENTITY_KINDS",
     "MASTER_DATA_EVIDENCE_REVIEW_UI_READINESS_BRIDGE",
     "MASTER_DATA_FAILURE_EVIDENCE_REVIEW_HANDOFF_BRIDGE",

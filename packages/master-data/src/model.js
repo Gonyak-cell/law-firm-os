@@ -1,4 +1,5 @@
 import {
+  MASTER_DATA_CONTACT_POINT_TYPES,
   MASTER_DATA_ENTITY_KINDS,
   MASTER_DATA_LIFECYCLE_STATUSES,
   MASTER_DATA_MODEL_DEFINITIONS,
@@ -147,6 +148,8 @@ export function createMasterDataClientGroup(input) {
     client_group_id: input.client_group_id,
     display_name: input.display_name,
     member_entity_ids: Object.freeze([...(input.member_entity_ids ?? [])]),
+    member_party_ids: Object.freeze([...(input.member_party_ids ?? [])]),
+    primary_party_id: input.primary_party_id ?? null,
     billing_profile_id: input.billing_profile_id ?? null,
     confidentiality: input.confidentiality ?? "confidential",
   });
@@ -161,6 +164,8 @@ export function createMasterDataRelationship(input) {
     relationship_id: input.relationship_id,
     from_entity_id: input.from_entity_id,
     to_entity_id: input.to_entity_id,
+    from_party_id: input.from_party_id ?? null,
+    to_party_id: input.to_party_id ?? null,
     relationship_type: input.relationship_type,
     direction: input.direction,
     reporting_ref: input.reporting_ref ?? null,
@@ -168,12 +173,19 @@ export function createMasterDataRelationship(input) {
 }
 
 export function createMasterDataContactPoint(input) {
+  if (!MASTER_DATA_CONTACT_POINT_TYPES.includes(input.contact_type)) {
+    throw new Error(`ContactPoint type must be one of ${MASTER_DATA_CONTACT_POINT_TYPES.join(", ")}`);
+  }
   return freezeRecord({
     ...baseRecord("ContactPoint", input),
     contact_point_id: input.contact_point_id,
     owner_entity_id: input.owner_entity_id,
+    owner_party_id: input.owner_party_id ?? null,
     contact_type: input.contact_type,
     value: input.value,
+    is_primary: input.is_primary ?? false,
+    verified: input.verified ?? false,
+    verification_status: input.verification_status ?? (input.verified === true ? "verified" : "unverified"),
   });
 }
 
@@ -184,6 +196,9 @@ export function createMasterDataBillingProfile(input) {
     billing_entity_id: input.billing_entity_id,
     display_name: input.display_name,
     client_group_id: input.client_group_id ?? null,
+    legal_client_party_id: input.legal_client_party_id ?? null,
+    billing_client_party_id: input.billing_client_party_id ?? null,
+    billing_contact_point_id: input.billing_contact_point_id ?? null,
     tax_profile_ref: input.tax_profile_ref ?? null,
     external_account_ref: input.external_account_ref ?? null,
   });
