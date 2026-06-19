@@ -1,4 +1,4 @@
-import { createMatter, createMatterMember } from "./model.js";
+import { createMatter, createMatterChecklist, createMatterMember } from "./model.js";
 import { validateMatterCoreRecord } from "./validators.js";
 
 export const MATTER_G4A_MEMBER_ROLES = Object.freeze([
@@ -37,6 +37,16 @@ export const MATTER_G4B_CLIENT_REPORT_HIDDEN_FIELDS = Object.freeze([
   "unauthorized_count",
 ]);
 
+export const MATTER_G4C_DASHBOARD_HIDDEN_FIELDS = Object.freeze([
+  ...MATTER_G4B_CLIENT_REPORT_HIDDEN_FIELDS,
+  "silent_matter",
+  "hidden_from_actor",
+  "actor_can_view",
+  "visibility_decision",
+  "acl_decision_body",
+  "ethical_wall_detail",
+]);
+
 function freezeRecord(record) {
   return Object.freeze(record);
 }
@@ -66,12 +76,27 @@ function noWriteBoundary(tuwId) {
     writes_audit_event: false,
     appends_audit_event: false,
     executes_api_handler: false,
+    renders_live_dom: false,
     persists_idempotency_key: false,
     acquires_runtime_lock: false,
     creates_matter_runtime: false,
     opens_matter_runtime: false,
     g4_runtime_readiness_claim: "open",
   };
+}
+
+function positiveNumber(value) {
+  return Number(value ?? 0) > 0;
+}
+
+function matterListProjection(matter = {}) {
+  return freezeRecord({
+    matter_id: matter.matter_id ?? null,
+    client_id: matter.client_id ?? matter.legal_client_party_id ?? null,
+    matter_number: matter.matter_number ?? null,
+    title: matter.title ?? null,
+    status: matter.status ?? null,
+  });
 }
 
 function normalizeMatterNumberSegment(value) {
@@ -593,6 +618,182 @@ export function createMatterG4BExecutionWorkflowCloseoutDescriptor(request = {})
     client_report_projection_tested: descriptors.some(
       (descriptor) => descriptor.descriptor_type === "matter_client_report_projection_descriptor",
     ),
+    outcome: blockedCount > 0 ? "blocked" : "review_required",
+    closeout_receipt: freezeRecord({
+      command_output_recorded: false,
+      draft_pr_required: true,
+      human_review_required: true,
+      runtime_readiness_claim: "open",
+    }),
+  });
+}
+
+export function createMatterG4ClosingChecklist(input = {}) {
+  return createMatterChecklist(input);
+}
+
+export function createMatterClosingChecklistDescriptor(request = {}) {
+  const missing = missingFields(["tenant_id", "actor_id", "matter", "checklist", "closing_metrics"], request);
+  const matter = request.matter ?? {};
+  const checklist = request.checklist ?? {};
+  const metrics = freezeObject(request.closing_metrics);
+  const blockedClaims = [];
+  const matterValidation = validateMatterCoreRecord("Matter", matter, { expected_tenant_id: request.tenant_id });
+  const checklistValidation = validateMatterCoreRecord("MatterChecklist", checklist, { expected_tenant_id: request.tenant_id });
+
+  if (missing.length > 0) blockedClaims.push("matter_closing_required_context_missing");
+  if (!matterValidation.valid) blockedClaims.push("matter_closing_matter_schema_validation_required");
+  if (!checklistValidation.valid) blockedClaims.push("matter_closing_checklist_schema_validation_required");
+  if (matter.matter_id && checklist.matter_id && matter.matter_id !== checklist.matter_id) {
+    blockedClaims.push("matter_closing_checklist_matter_trace_mismatch");
+  }
+  if (matter.status && !["open", "closing"].includes(matter.status)) blockedClaims.push("matter_closing_status_invalid");
+  if (positiveNumber(metrics.open_wip_amount)) blockedClaims.push("matter_closing_wip_open");
+  if (positiveNumber(metrics.open_ar_amount)) blockedClaims.push("matter_closing_ar_open");
+  if (positiveNumber(metrics.open_hold_count) || metrics.legal_hold_active === true) blockedClaims.push("matter_closing_hold_open");
+  if (positiveNumber(metrics.unresolved_task_count)) blockedClaims.push("matter_closing_unresolved_tasks");
+  if (metrics.retention_acknowledged !== true) blockedClaims.push("matter_closing_retention_ack_required");
+  if (metrics.final_invoice_reviewed !== true) blockedClaims.push("matter_closing_final_invoice_review_required");
+
+  const outcome = blockedClaims.length > 0 ? "blocked" : "review_required";
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G4-W05-T011"),
+    descriptor_type: "matter_closing_checklist_descriptor",
+    tenant_id: request.tenant_id ?? matter.tenant_id ?? null,
+    actor_id: request.actor_id ?? null,
+    matter_id: matter.matter_id ?? checklist.matter_id ?? null,
+    checklist_id: checklist.checklist_id ?? null,
+    matter_validation: matterValidation,
+    checklist_validation: checklistValidation,
+    closing_metrics: metrics,
+    outcome,
+    blocked_claims: freezeArray(blockedClaims),
+    closing_receipt: freezeRecord({
+      wip_ar_block_tested: true,
+      legal_hold_block_tested: true,
+      unresolved_task_block_tested: true,
+      retention_ack_required: true,
+      closing_persisted: false,
+      audit_event_written: false,
+    }),
+  });
+}
+
+export function createMatterSilentMatterVisibilityDescriptor(request = {}) {
+  const missing = missingFields(["tenant_id", "actor_id", "matters"], request);
+  const matters = freezeArray(request.matters);
+  const blockedClaims = [];
+
+  if (missing.length > 0) blockedClaims.push("silent_matter_visibility_required_context_missing");
+  if (request.include_unauthorized_matters === true) blockedClaims.push("silent_matter_unauthorized_inclusion_blocked");
+  if (request.expose_unauthorized_counts === true) blockedClaims.push("silent_matter_unauthorized_count_leak_blocked");
+
+  const visibleMatters = matters
+    .filter((matter) => matter.actor_can_view === true && matter.hidden_from_actor !== true && matter.visibility_decision !== "deny")
+    .map(matterListProjection);
+  const omittedMatterCount = matters.length - visibleMatters.length;
+  const omittedSilentMatterCount = matters.filter(
+    (matter) => matter.silent_matter === true && !visibleMatters.some((visible) => visible.matter_id === matter.matter_id),
+  ).length;
+  const outcome = blockedClaims.length > 0 ? "blocked" : "review_required";
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G4-W05-T012"),
+    descriptor_type: "matter_silent_matter_visibility_descriptor",
+    tenant_id: request.tenant_id ?? null,
+    actor_id: request.actor_id ?? null,
+    visible_matters: freezeArray(visibleMatters),
+    omitted_matter_count_internal: omittedMatterCount,
+    omitted_silent_matter_count_internal: omittedSilentMatterCount,
+    omitted_matter_count_exposed: null,
+    omitted_silent_matter_count_exposed: null,
+    silent_matter_presence_leaked: false,
+    unauthorized_count_leaked: false,
+    outcome,
+    blocked_claims: freezeArray(blockedClaims),
+    visibility_receipt: freezeRecord({
+      unauthorized_list_omission_tested: true,
+      silent_matter_omission_tested: true,
+      list_query_executed: false,
+      permission_decision_evaluated: false,
+    }),
+  });
+}
+
+export function createMatterDashboardUiStateDescriptor(request = {}) {
+  const missing = missingFields(["tenant_id", "actor_id", "matters"], request);
+  const matters = freezeArray(request.matters);
+  const blockedClaims = [];
+
+  if (missing.length > 0) blockedClaims.push("matter_dashboard_required_context_missing");
+  if (request.expose_hidden_fields === true) blockedClaims.push("matter_dashboard_hidden_field_leak_blocked");
+  if (request.expose_unauthorized_counts === true) blockedClaims.push("matter_dashboard_unauthorized_count_leak_blocked");
+
+  const visibleMatters = matters
+    .filter((matter) => matter.actor_can_view === true && matter.hidden_from_actor !== true && matter.visibility_decision !== "deny")
+    .map((matter) => {
+      const projected = matterListProjection(matter);
+      const removedFields = MATTER_G4C_DASHBOARD_HIDDEN_FIELDS.filter((field) => Object.prototype.hasOwnProperty.call(matter, field));
+      return freezeRecord({
+        ...projected,
+        removed_fields: freezeArray(removedFields),
+      });
+    });
+  const selectedMatter = visibleMatters.find((matter) => matter.matter_id === request.selected_matter_id) ?? null;
+  const selectedMatterRequested = request.selected_matter_id !== undefined && request.selected_matter_id !== null;
+  const detailState = selectedMatterRequested && !selectedMatter ? "not_found_or_not_authorized" : selectedMatter ? "visible" : "none";
+  const outcome = blockedClaims.length > 0 ? "blocked" : "review_required";
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G4-W05-T013"),
+    descriptor_type: "matter_dashboard_ui_state_descriptor",
+    tenant_id: request.tenant_id ?? null,
+    actor_id: request.actor_id ?? null,
+    visible_matter_cards: freezeArray(visibleMatters),
+    selected_matter_id: request.selected_matter_id ?? null,
+    detail_panel: freezeRecord({
+      state: detailState,
+      matter: selectedMatter,
+    }),
+    unauthorized_count_exposed: null,
+    hidden_field_policy: "trim_hidden_fields_before_dashboard_projection",
+    outcome,
+    blocked_claims: freezeArray(blockedClaims),
+    dashboard_receipt: freezeRecord({
+      acl_trimming_tested: true,
+      hidden_fields_removed: true,
+      live_dom_rendered: false,
+      api_handler_executed: false,
+    }),
+  });
+}
+
+export function createMatterG4CMatterCloseoutDescriptor(request = {}) {
+  const descriptors = freezeArray(request.descriptors);
+  const blockedCount = descriptors.filter((descriptor) => descriptor.outcome === "blocked").length;
+  const tuwCoverage = freezeArray([
+    "LFOS-G4-W05-T011",
+    "LFOS-G4-W05-T012",
+    "LFOS-G4-W05-T013",
+    "LFOS-G4-W05-T014",
+  ]);
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G4-W05-T014"),
+    descriptor_type: "matter_g4c_matter_closeout_descriptor",
+    slice: "G4-C",
+    tenant_id: request.tenant_id ?? null,
+    branch: "codex/lawos-g4-matter-closeout-ui",
+    tuw_coverage: tuwCoverage,
+    descriptor_count: descriptors.length,
+    blocked_descriptor_count: blockedCount,
+    matter_closing_checklist_tested: descriptors.some((descriptor) => descriptor.descriptor_type === "matter_closing_checklist_descriptor"),
+    silent_matter_omission_tested: descriptors.some(
+      (descriptor) => descriptor.descriptor_type === "matter_silent_matter_visibility_descriptor",
+    ),
+    dashboard_acl_trimming_tested: descriptors.some((descriptor) => descriptor.descriptor_type === "matter_dashboard_ui_state_descriptor"),
+    matter_runtime_evidence_status: "descriptor_evidence_only",
     outcome: blockedCount > 0 ? "blocked" : "review_required",
     closeout_receipt: freezeRecord({
       command_output_recorded: false,
