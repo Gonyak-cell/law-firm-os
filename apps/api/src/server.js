@@ -27,12 +27,19 @@ import {
   handlePartyMasterApiRequest,
   isPartyMasterPath,
 } from "./party-runtime-context.js";
+import {
+  MATTER_CORE_BOUNDED_CONTEXT,
+  createMatterRuntimeContext,
+  handleMatterApiRequest,
+  isMatterPath,
+} from "./matter-runtime-context.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
 const HRX_RUNTIME = createHrxRuntimeContext();
 const TRUST_FOUNDATION_RUNTIME = createTrustFoundationRuntime();
 const PARTY_MASTER_RUNTIME = createPartyMasterRuntimeContext();
+const MATTER_RUNTIME = createMatterRuntimeContext();
 
 export const SERVICE_DESCRIPTOR = Object.freeze({
   service: "@law-firm-os/api",
@@ -42,6 +49,7 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
     TRUST_FOUNDATION_BOUNDED_CONTEXT,
     PARTY_MASTER_BOUNDED_CONTEXT,
     PEOPLE_HRX_BOUNDED_CONTEXT,
+    MATTER_CORE_BOUNDED_CONTEXT,
   ]),
   permission_gate: Object.freeze({
     contract_ref: "contracts/permission-kernel-contract.json",
@@ -93,6 +101,7 @@ async function handle(req, res) {
   const isHrxPath = pathname.startsWith("/api/hrx");
   const isTrustPath = isTrustFoundationPath(pathname);
   const isPartyPath = isPartyMasterPath(pathname);
+  const isMatterCorePath = isMatterPath(pathname);
   const knownPath =
     pathname === "/api/health" ||
     pathname === "/master-data/records" ||
@@ -100,13 +109,14 @@ async function handle(req, res) {
     clientGroupMatch !== null ||
     isTrustPath ||
     isPartyPath ||
+    isMatterCorePath ||
     isHrxPath;
 
   if (!knownPath) {
     sendJson(res, 404, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "not_found" });
     return;
   }
-  if (!isHrxPath && !isTrustPath && !isPartyPath && req.method !== "GET") {
+  if (!isHrxPath && !isTrustPath && !isPartyPath && !isMatterCorePath && req.method !== "GET") {
     sendJson(res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
@@ -119,6 +129,13 @@ async function handle(req, res) {
   if (isHrxPath) {
     const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
     const result = await handleHrxApiRequest({ pathname, method: req.method, query, body, context: HRX_RUNTIME });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isMatterCorePath) {
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
+    const result = await handleMatterApiRequest({ pathname, method: req.method, query, body, context: MATTER_RUNTIME });
     sendJson(res, result.status, { request_id: requestId, ...result.body });
     return;
   }

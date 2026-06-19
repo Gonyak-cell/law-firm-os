@@ -21,6 +21,7 @@ reference anchor, but the CMP package is not merely an extension of it.
 | `03-cmp-g1-trust-foundation-runtime-report.md` | Records the first executable CMP-G1 trust foundation API slice, tests, validator, and no-premature-R4 boundary. |
 | `04-cmp-g2-party-runtime-report.md` | Records the executable CMP-G2 Party Master API slice, tests, validator, G1 dependency, and no-premature-R4 boundary. |
 | `05-cmp-g3-people-hrx-runtime-report.md` | Records the executable CMP-G3 People/HRX boundary API slice, People UI refs, tests, validator, G1/G2 dependencies, and no-premature-R4 boundary. |
+| `06-cmp-g4-matter-runtime-report.md` | Records the executable CMP-G4 Matter Core API slice, CRM/Intake clearance dependency, People staffing boundary, tests, validator, and no-premature-R4 boundary. |
 
 ## Baseline Rule
 
