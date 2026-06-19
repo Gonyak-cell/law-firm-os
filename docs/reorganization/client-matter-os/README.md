@@ -90,6 +90,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `45-g5-d-payment-ar-foundation-report.md` | Records the G5-D Payment import, duplicate import idempotency, partial matching, ARBalance, and AR aging foundation slice. |
 | `46-g5-e-accounting-tax-export-report.md` | Records the G5-E JournalEntry, accounting export, and VAT/tax export slice. |
 | `47-g5-f-settlement-finance-ui-closeout-report.md` | Records the G5-F SettlementRun, OriginationCredit, WorkingCredit, settlement approval, Finance UI masking, and G5 Finance closeout slice. |
+| `48-g6-analytics-ai-portal-entry-plan.md` | Opens the G6 Analytics, AI Governance, AI Legal Workflows, Client Portal, and Data Room planning lane. |
 
 ## Execution Order
 
@@ -150,6 +151,7 @@ npm run client-matter:g5c:validate
 npm run client-matter:g5d:validate
 npm run client-matter:g5e:validate
 npm run client-matter:g5f:validate
+npm run client-matter:g6:plan:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -303,6 +305,12 @@ allocation-sum evidence, WorkingCredit role-allocation evidence, posted
 settlement run direct-edit blocking, Finance UI permission masking,
 invoice-to-payment closeout evidence, test coverage, RP14 descriptor-only
 contract boundary, and the open runtime-readiness boundary.
+
+The G6 plan validator checks all 32 G6 TUWs, Analytics, Governance/DLP, AI
+Governance, AI Legal Workflows, Client Portal, and Data Room descriptor
+evidence, R-005/R-007/R-009/R-015 controls, G5 Finance handoff requirements
+before analytics/AI/portal runtime, required validation scripts, and the open
+runtime-readiness boundary.
 
 ## Non-Goals
 
