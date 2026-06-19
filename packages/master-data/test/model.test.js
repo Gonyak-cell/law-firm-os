@@ -131,6 +131,9 @@ import {
   createMasterDataApiReferenceFixture,
   createMasterDataBillingProfile,
   createMasterDataClientGroup,
+  createMasterDataParty,
+  createMasterDataPartyAlias,
+  createMasterDataPartyIdentifier,
   createMasterDataCp156ClaudeReviewPacket,
   createMasterDataCp156CloseoutHandoff,
   createMasterDataCp156HermesEvidencePacket,
@@ -308,11 +311,14 @@ test("CP00-156 binds RP04 master data foundation model registry pack", () => {
 test("master data registry exposes ownership lifecycle and conditional Matter trace boundaries", () => {
   const result = validateMasterDataRegistry();
   assert.equal(result.valid, true);
-  assert.equal(result.model_count, 7);
+  assert.equal(result.model_count, 10);
   assert.deepEqual(listMasterDataModelTypes(), [
+    "Party",
     "Entity",
     "Person",
     "Organization",
+    "PartyAlias",
+    "PartyIdentifier",
     "ClientGroup",
     "Relationship",
     "ContactPoint",
@@ -324,6 +330,146 @@ test("master data registry exposes ownership lifecycle and conditional Matter tr
     assert.ok(definition.lifecycle_statuses.includes("review_required"));
     assert.equal(definition.matter_trace_policy, "required_when_workflow_touches_matter_or_document");
   }
+});
+
+test("G2-A party schema binds party person organization alias and identifier tenant keys", () => {
+  const tenant_id = "tenant_g2_party";
+  const owner_user_id = "user_g2_owner";
+  const party = createMasterDataParty({
+    party_id: "party_g2_amic",
+    tenant_id,
+    party_type: "organization",
+    display_name: "AMIC G2 Client",
+    status: "active",
+    owner_user_id,
+    canonical_entity_id: "entity_g2_amic",
+  });
+  const personParty = createMasterDataParty({
+    party_id: "party_g2_lee",
+    tenant_id,
+    party_type: "person",
+    display_name: "Lee G2 Contact",
+    status: "active",
+    owner_user_id,
+    canonical_entity_id: "entity_g2_lee",
+  });
+  const organization = createMasterDataOrganization({
+    organization_id: "org_g2_amic",
+    party_id: party.party_id,
+    tenant_id,
+    entity_id: "entity_g2_amic",
+    display_name: "AMIC G2 Client",
+    status: "active",
+    owner_user_id,
+    registration_number: "123-45-67890",
+  });
+  const person = createMasterDataPerson({
+    person_id: "person_g2_lee",
+    party_id: personParty.party_id,
+    tenant_id,
+    entity_id: "entity_g2_lee",
+    display_name: "Lee G2 Contact",
+    status: "active",
+    owner_user_id,
+    email: "lee.g2@example.invalid",
+  });
+  const koreanAlias = createMasterDataPartyAlias({
+    party_alias_id: "alias_g2_amic_ko",
+    tenant_id,
+    party_id: party.party_id,
+    alias_value: "에이엠아이씨",
+    alias_type: "localized_name",
+    locale: "ko-KR",
+    status: "active",
+    owner_user_id,
+  });
+  const englishFormerAlias = createMasterDataPartyAlias({
+    party_alias_id: "alias_g2_amic_former",
+    tenant_id,
+    party_id: party.party_id,
+    alias_value: "AMIC Former LLP",
+    alias_type: "former_name",
+    locale: "en-US",
+    status: "archived",
+    owner_user_id,
+  });
+  const businessNumber = createMasterDataPartyIdentifier({
+    party_identifier_id: "identifier_g2_business",
+    tenant_id,
+    party_id: party.party_id,
+    identifier_type: "business_number",
+    identifier_value: "123-45-67890",
+    jurisdiction: "KR",
+    verified: true,
+    status: "active",
+    owner_user_id,
+  });
+  const lei = createMasterDataPartyIdentifier({
+    party_identifier_id: "identifier_g2_lei",
+    tenant_id,
+    party_id: party.party_id,
+    identifier_type: "lei",
+    identifier_value: "549300G2AMICCLIENT01",
+    jurisdiction: "GLOBAL",
+    verified: false,
+    status: "review_required",
+    owner_user_id,
+  });
+  const registrationId = createMasterDataPartyIdentifier({
+    party_identifier_id: "identifier_g2_registration",
+    tenant_id,
+    party_id: party.party_id,
+    identifier_type: "registration_id",
+    identifier_value: "REG-G2-AMIC",
+    jurisdiction: "KR",
+    verified: true,
+    status: "active",
+    owner_user_id,
+  });
+
+  assert.equal(party.identity_key, "tenant_g2_party:party:organization:amic g2 client");
+  assert.equal(personParty.identity_key, "tenant_g2_party:party:person:lee g2 contact");
+  assert.equal(organization.party_id, party.party_id);
+  assert.equal(person.party_id, personParty.party_id);
+  assert.equal(koreanAlias.normalized_alias_key, "tenant_g2_party:party-alias:party_g2_amic:ko-KR:에이엠아이씨");
+  assert.equal(englishFormerAlias.normalized_alias_key, "tenant_g2_party:party-alias:party_g2_amic:en-US:amic former llp");
+  assert.equal(businessNumber.normalized_identifier_key, "tenant_g2_party:party-identifier:business_number:123-45-67890");
+  assert.equal(lei.normalized_identifier_key, "tenant_g2_party:party-identifier:lei:549300g2amicclient01");
+  assert.equal(registrationId.normalized_identifier_key, "tenant_g2_party:party-identifier:registration_id:reg-g2-amic");
+
+  assert.equal(validateMasterDataRecord("Party", party).valid, true);
+  assert.equal(validateMasterDataRecord("PartyAlias", koreanAlias).valid, true);
+  assert.equal(validateMasterDataRecord("PartyIdentifier", businessNumber).valid, true);
+
+  const duplicateAlias = validateMasterDataRecord("PartyAlias", koreanAlias, {
+    known_alias_keys: [koreanAlias.normalized_alias_key],
+  });
+  assert.equal(duplicateAlias.valid, true);
+  assert.ok(duplicateAlias.review_required_claims.includes("duplicate_alias_review_required"));
+
+  const duplicateIdentifier = validateMasterDataRecord("PartyIdentifier", businessNumber, {
+    known_identifier_keys: [businessNumber.normalized_identifier_key],
+  });
+  assert.equal(duplicateIdentifier.valid, true);
+  assert.ok(duplicateIdentifier.review_required_claims.includes("duplicate_identifier_review_required"));
+
+  assert.throws(
+    () => createMasterDataParty({ ...party, party_id: "party_bad", party_type: "court" }),
+    /Party type must be one of/,
+  );
+  assert.throws(
+    () => createMasterDataPartyAlias({ ...koreanAlias, party_alias_id: "alias_bad", alias_type: "nickname" }),
+    /PartyAlias type must be one of/,
+  );
+  assert.throws(
+    () =>
+      createMasterDataPartyIdentifier({
+        ...businessNumber,
+        party_identifier_id: "identifier_bad",
+        identifier_type: "tax_id",
+      }),
+    /PartyIdentifier type must be one of/,
+  );
 });
 
 test("master data factories create synthetic no-write records", () => {
