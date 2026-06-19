@@ -64,6 +64,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `19-g1-a-tenant-actor-context-report.md` | Records the G1-A tenant boundary, actor context, and permission context implementation slice. |
 | `20-g1-b-durable-audit-report.md` | Records the G1-B durable audit event schema, middleware append, and sensitive-read audit slice. |
 | `21-g1-c-permission-controls-report.md` | Records the G1-C evaluator wrapper, deny-over-allow, Object ACL, ethical wall, legal hold, and break-glass control slice. |
+| `22-g1-d-audit-closeout-report.md` | Records the G1-D hash-chain verification, tenant export, admin simulator, and closeout evidence slice. |
 
 ## Execution Order
 
@@ -98,6 +99,7 @@ npm run client-matter:g1:plan:validate
 npm run client-matter:g1a:validate
 npm run client-matter:g1b:validate
 npm run client-matter:g1c:validate
+npm run client-matter:g1d:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -117,6 +119,10 @@ audit, test, export, TUW trace, and G1-open boundary evidence.
 The G1-C validator checks the `/permissions/evaluate` wrapper, decision routing,
 deny-over-allow, Object ACL, ethical wall, legal hold, break-glass, test, export,
 TUW trace, and G1-open boundary evidence.
+
+The G1-D validator checks hash-chain verification, tenant-scoped audit export,
+admin permission simulation, closeout receipt, test, export, TUW trace, and
+G1-open boundary evidence.
 
 ## Non-Goals
 

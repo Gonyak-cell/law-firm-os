@@ -84,6 +84,7 @@ npm run client-matter:g1:plan:validate
 npm run client-matter:g1a:validate
 npm run client-matter:g1b:validate
 npm run client-matter:g1c:validate
+npm run client-matter:g1d:validate
 npm run rp02:permission-kernel:validate
 npm run rp03:audit:validate
 npm run validate
