@@ -20,19 +20,19 @@
       }
     },
     "G2": {
-      "criteria_status": "blocked_pending_runtime_ready_evidence",
+      "criteria_status": "blocked_pending_runtime_targets",
       "evidence": {
         "G2-E01": {
-          "status": "blocked_pending_wave1_matrix",
-          "ref": "docs/closeout-pack-plan/implementation-layer-ledger.json"
+          "status": "blocked_pending_runtime_targets",
+          "ref": "docs/launch/g2-runtime-readiness-blocker-2026-06-19.json"
         },
         "G2-E02": {
-          "status": "blocked_pending_runtime_integration_output",
-          "ref": "scripts/validate-runtime-readiness.mjs"
+          "status": "blocked_empty_runtime_validation_scope",
+          "ref": "docs/launch/g2-runtime-readiness-blocker-2026-06-19.json"
         },
         "G2-E03": {
-          "status": "blocked_pending_rtg_links",
-          "ref": "contracts/runtime-readiness-contract.json"
+          "status": "blocked_pending_rtg_target_links",
+          "ref": "docs/launch/g2-runtime-readiness-blocker-2026-06-19.json"
         }
       }
     },

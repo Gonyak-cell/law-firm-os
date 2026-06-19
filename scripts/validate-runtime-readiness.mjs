@@ -24,6 +24,11 @@ const runtimeTargets = (ledger.packs ?? []).filter(
     ["runtime", "mixed"].includes(pack.implementation_layer),
 );
 
+assert(
+  runtimeTargets.length > 0,
+  `Runtime readiness requires at least one runtime/mixed pack at or after pack ${contract.implementation_layer_start_pack_number}; found 0.`,
+);
+
 for (const pack of runtimeTargets) {
   const manifest = JSON.parse(await readFile(pack.manifest_ref, "utf8"));
   assert(manifest.status === "production_ready", `${pack.pack_id} runtime/mixed pack must be production_ready before runtime readiness`);

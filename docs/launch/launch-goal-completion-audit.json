@@ -913,7 +913,7 @@
     "finding_count": 0
   },
   "no_go_claim_policy": {
-    "scanned_file_count": 218,
+    "scanned_file_count": 220,
     "no_go_active": true,
     "forbidden_true_claim_count": 0,
     "finding_count": 0
@@ -1243,7 +1243,7 @@
     {
       "command": "node scripts/audit-launch-no-go-claim-policy.mjs",
       "exit_code": 0,
-      "stdout": "{\n  \"report_json\": \"docs/launch/launch-no-go-claim-policy-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-no-go-claim-policy-audit.md\",\n  \"verdict\": \"PASS\",\n  \"scanned_file_count\": 218,\n  \"no_go_active\": true,\n  \"forbidden_true_claim_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-no-go-claim-policy-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-no-go-claim-policy-audit.md\",\n  \"verdict\": \"PASS\",\n  \"scanned_file_count\": 220,\n  \"no_go_active\": true,\n  \"forbidden_true_claim_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
     },
     {
       "command": "node scripts/audit-launch-tuw-evidence-coverage.mjs",
