@@ -85,6 +85,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `40-g4-f-dms-ui-audit-closeout-report.md` | Records the G4-F DMS workspace UI, view/download/share audit coverage, and G4 DMS closeout slice. |
 | `41-g5-billing-finance-entry-plan.md` | Opens the G5 Billing/Finance execution lane with TUW coverage, G4 handoff evidence, revenue runtime requirements, and PR slices. |
 | `42-g5-a-time-expense-foundation-report.md` | Records the G5-A TimeEntry, RateCard, FeeArrangement, time-entry workflow, Expense, and Disbursement foundation slice. |
+| `43-g5-b-wip-prebill-adjustment-report.md` | Records the G5-B WIP generation, immutable PreBill snapshot, partner review, and write-down/write-off approval slice. |
 
 ## Execution Order
 
@@ -140,6 +141,7 @@ npm run client-matter:g4e:validate
 npm run client-matter:g4f:validate
 npm run client-matter:g5:plan:validate
 npm run client-matter:g5a:validate
+npm run client-matter:g5b:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -266,6 +268,11 @@ effective dates, FeeArrangement BillingProfile and rate override mapping,
 submit/approve/lock workflow evidence, Expense evidence-document requirements,
 Disbursement billable-flag evidence, test coverage, RP11 descriptor-only
 contract boundary, and the open runtime-readiness boundary.
+
+The G5-B validator checks approved-source WIP generation, immutable PreBill
+snapshot evidence, partner review requirements, write-down/write-off approval
+requirements, issued-invoice mutation blocking, test coverage, RP12
+descriptor-only contract boundary, and the open runtime-readiness boundary.
 
 ## Non-Goals
 
