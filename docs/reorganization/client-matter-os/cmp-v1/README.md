@@ -1,0 +1,42 @@
+# CMP v1.0 Baseline Implementation Plan
+
+Status: Proposed
+Date: 2026-06-19
+
+## What This Folder Does
+
+This folder translates the attached Client-Matter-People package into the
+repo-native CMP v1.0 implementation baseline. The package contains 316 newly
+generated `CMP-*` TUWs across 13 gates. The current repo also has an older
+198-TUW `LFOS-*` Client-Matter catalog; that catalog remains useful as a legacy
+reference anchor, but the CMP package is not merely an extension of it.
+
+## Files
+
+| File | Purpose |
+| --- | --- |
+| `00-cmp-source-intake.md` | Registers source paths, hashes, gate counts, and intake rules. |
+| `cmp-v1-tuw-crosswalk.csv` | Maps all 316 CMP TUWs to legacy LFOS anchors, status, target package, validator impact, and runtime-claim permission. |
+| `02-cmp-stable-implementation-plan.md` | Defines the TUW batch order, branch/commit/PR strategy, validators, and runtime claim boundaries. |
+| `03-cmp-g1-trust-foundation-runtime-report.md` | Records the first executable CMP-G1 trust foundation API slice, tests, validator, and no-premature-R4 boundary. |
+| `04-cmp-g2-party-runtime-report.md` | Records the executable CMP-G2 Party Master API slice, tests, validator, G1 dependency, and no-premature-R4 boundary. |
+| `05-cmp-g3-people-hrx-runtime-report.md` | Records the executable CMP-G3 People/HRX boundary API slice, People UI refs, tests, validator, G1/G2 dependencies, and no-premature-R4 boundary. |
+| `06-cmp-g4-matter-runtime-report.md` | Records the executable CMP-G4 Matter Core API slice, CRM/Intake clearance dependency, People staffing boundary, tests, validator, and no-premature-R4 boundary. |
+| `07-cmp-g5-vault-dms-runtime-report.md` | Records the executable CMP-G5 Vault/DMS API slice, permission-before-search guardrail, Vault write/search/share audit evidence, tests, validator, and no-premature-R4 boundary. |
+| `08-cmp-g6-crm-intake-runtime-report.md` | Records the executable CMP-G6 CRM/Intake clearance API slice, Opportunity-to-Intake-only guardrail, conflict/engagement gate tests, tests, validator, and no-premature-R4 boundary. |
+| `09-cmp-g7-revenue-finance-runtime-report.md` | Records the executable CMP-G7 Revenue/Finance API slice, Employee+Matter cost basis guardrail, WIP/PreBill/invoice/payment/settlement flows, tests, validator, and no-premature-R4 boundary. |
+| `10-cmp-g8-analytics-read-model-runtime-report.md` | Records the executable CMP-G8 Analytics read-model API slice, source mutation negative tests, profitability/utilization/dashboard/export/KPI projections, tests, validator, and no-premature-R4 boundary. |
+| `11-cmp-g9-ai-rag-governance-runtime-report.md` | Records the executable CMP-G9 AI/RAG governance API slice, permission-before-AI guardrail, citation/human-review controls, legal workflow/export gates, tests, validator, and no-premature-R4 boundary. |
+| `12-cmp-g10-client-collaboration-runtime-report.md` | Records the executable CMP-G10 client portal/data-room API slice, projection-only external access, shared-only ACLs, secure links, RFI upload guards, tests, validator, and no-premature-R4 boundary. |
+| `13-cmp-g11-ui-console-runtime-report.md` | Records the executable CMP-G11 web console slice, IA catalog, routable screen catalog, reusable UI states, domain API client context, UI regression tests, validator, and no-premature-R4 boundary. |
+| `14-cmp-g12-enterprise-readiness-runtime-report.md` | Records the executable CMP-G12 enterprise readiness API slice, admin/IAM/ops/migration/integration/compliance/UAT/release/launch routes, negative tests, validator, and no-premature-R4 boundary. |
+
+## Baseline Rule
+
+`CMP-*` rows are the active CMP v1.0 baseline. They are still not completed
+until a row or gate has implementation evidence. A plan, descriptor, fixture, or
+synthetic-only result may close a planning task, but it must not be described as
+runtime-write-ready.
+
+R4 and higher claims still require the repo's runtime readiness rule:
+persistence, write API, permission, audit, state, and idempotency evidence.

@@ -119,6 +119,7 @@ export function Sidebar({ labels, view, setView }) {
     content: ["All content", "Spaces", "Resources", "Feature flags", "Catalog"],
     profiles: ["Matter Profiles", "Group Profiles", "Cohorts", "Session replays", "Raw events"],
     people: ["Overview", "Employees", "Profile", "Documents", "Leave"],
+    cmp: ["Client-Matter-People", "Command Center", "Clients", "Matters", "Vault", "Finance", "Admin"],
     analytics: ["Segmentation", "Funnels", "Data table", "Retention", "Journeys"],
     dashboards: ["Dashboards", "Notebooks", "Reports", "Templates", "Pinned"],
     ask: ["Prompt gallery", "Answers", "Guidance", "Feedback", "History"],

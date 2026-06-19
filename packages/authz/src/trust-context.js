@@ -9,6 +9,7 @@ export const DEFAULT_ACTOR_TYPES = Object.freeze([
   "client_user",
   "external_counsel",
   "system",
+  "service_principal",
   "integration",
   "ai_agent",
   "hermes",

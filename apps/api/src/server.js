@@ -14,16 +14,99 @@ import {
   handleRelationshipLookup,
 } from "./master-data-context.js";
 import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, parsePermissionContext } from "./permission-gate.js";
-import { createHrxRuntimeContext, handleHrxApiRequest } from "./hrx-runtime-context.js";
+import { PEOPLE_HRX_BOUNDED_CONTEXT, createHrxRuntimeContext, handleHrxApiRequest } from "./hrx-runtime-context.js";
+import {
+  TRUST_FOUNDATION_BOUNDED_CONTEXT,
+  createTrustFoundationRuntime,
+  handleTrustFoundationApiRequest,
+  isTrustFoundationPath,
+} from "./trust-foundation-runtime.js";
+import {
+  PARTY_MASTER_BOUNDED_CONTEXT,
+  createPartyMasterRuntimeContext,
+  handlePartyMasterApiRequest,
+  isPartyMasterPath,
+} from "./party-runtime-context.js";
+import {
+  MATTER_CORE_BOUNDED_CONTEXT,
+  createMatterRuntimeContext,
+  handleMatterApiRequest,
+  isMatterPath,
+} from "./matter-runtime-context.js";
+import {
+  VAULT_DMS_BOUNDED_CONTEXT,
+  createVaultDmsRuntimeContext,
+  handleVaultDmsApiRequest,
+  isVaultDmsPath,
+} from "./vault-dms-runtime-context.js";
+import {
+  CRM_INTAKE_CLEARANCE_BOUNDED_CONTEXT,
+  createCrmIntakeRuntimeContext,
+  handleCrmIntakeApiRequest,
+  isCrmIntakePath,
+} from "./crm-intake-runtime-context.js";
+import {
+  REVENUE_FINANCE_BOUNDED_CONTEXT,
+  createRevenueFinanceRuntimeContext,
+  handleRevenueFinanceApiRequest,
+  isRevenueFinancePath,
+} from "./revenue-finance-runtime-context.js";
+import {
+  ANALYTICS_READ_MODEL_BOUNDED_CONTEXT,
+  createAnalyticsReadModelRuntimeContext,
+  handleAnalyticsReadModelApiRequest,
+  isAnalyticsReadModelPath,
+} from "./analytics-read-model-runtime-context.js";
+import {
+  AI_RAG_GOVERNANCE_BOUNDED_CONTEXT,
+  createAiRagGovernanceRuntimeContext,
+  handleAiRagGovernanceApiRequest,
+  isAiRagGovernancePath,
+} from "./ai-rag-governance-runtime-context.js";
+import {
+  CLIENT_COLLABORATION_BOUNDED_CONTEXT,
+  createClientCollaborationRuntimeContext,
+  handleClientCollaborationApiRequest,
+  isClientCollaborationPath,
+} from "./client-collaboration-runtime-context.js";
+import {
+  ENTERPRISE_READINESS_BOUNDED_CONTEXT,
+  createEnterpriseReadinessRuntimeContext,
+  handleEnterpriseReadinessApiRequest,
+  isEnterpriseReadinessPath,
+} from "./enterprise-readiness-runtime-context.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
 const HRX_RUNTIME = createHrxRuntimeContext();
+const TRUST_FOUNDATION_RUNTIME = createTrustFoundationRuntime();
+const PARTY_MASTER_RUNTIME = createPartyMasterRuntimeContext();
+const MATTER_RUNTIME = createMatterRuntimeContext();
+const VAULT_DMS_RUNTIME = createVaultDmsRuntimeContext();
+const CRM_INTAKE_RUNTIME = createCrmIntakeRuntimeContext();
+const REVENUE_FINANCE_RUNTIME = createRevenueFinanceRuntimeContext();
+const ANALYTICS_READ_MODEL_RUNTIME = createAnalyticsReadModelRuntimeContext();
+const AI_RAG_GOVERNANCE_RUNTIME = createAiRagGovernanceRuntimeContext();
+const CLIENT_COLLABORATION_RUNTIME = createClientCollaborationRuntimeContext();
+const ENTERPRISE_READINESS_RUNTIME = createEnterpriseReadinessRuntimeContext();
 
 export const SERVICE_DESCRIPTOR = Object.freeze({
   service: "@law-firm-os/api",
   version: "0.1.0",
-  bounded_contexts: Object.freeze([MASTER_DATA_BOUNDED_CONTEXT]),
+  bounded_contexts: Object.freeze([
+    MASTER_DATA_BOUNDED_CONTEXT,
+    TRUST_FOUNDATION_BOUNDED_CONTEXT,
+    PARTY_MASTER_BOUNDED_CONTEXT,
+    PEOPLE_HRX_BOUNDED_CONTEXT,
+    MATTER_CORE_BOUNDED_CONTEXT,
+    VAULT_DMS_BOUNDED_CONTEXT,
+    CRM_INTAKE_CLEARANCE_BOUNDED_CONTEXT,
+    REVENUE_FINANCE_BOUNDED_CONTEXT,
+    ANALYTICS_READ_MODEL_BOUNDED_CONTEXT,
+    AI_RAG_GOVERNANCE_BOUNDED_CONTEXT,
+    CLIENT_COLLABORATION_BOUNDED_CONTEXT,
+    ENTERPRISE_READINESS_BOUNDED_CONTEXT,
+  ]),
   permission_gate: Object.freeze({
     contract_ref: "contracts/permission-kernel-contract.json",
     contract_schema_version: "law-firm-os.permission-kernel-contract.v0.28",
@@ -72,18 +155,51 @@ async function handle(req, res) {
 
   const clientGroupMatch = pathname.match(/^\/master-data\/client-groups\/([^/]+)$/);
   const isHrxPath = pathname.startsWith("/api/hrx");
+  const isTrustPath = isTrustFoundationPath(pathname);
+  const isPartyPath = isPartyMasterPath(pathname);
+  const isMatterCorePath = isMatterPath(pathname);
+  const isVaultDmsRuntimePath = isVaultDmsPath(pathname);
+  const isCrmIntakeRuntimePath = isCrmIntakePath(pathname);
+  const isRevenueFinanceRuntimePath = isRevenueFinancePath(pathname);
+  const isAnalyticsReadModelRuntimePath = isAnalyticsReadModelPath(pathname);
+  const isAiRagGovernanceRuntimePath = isAiRagGovernancePath(pathname);
+  const isClientCollaborationRuntimePath = isClientCollaborationPath(pathname);
+  const isEnterpriseReadinessRuntimePath = isEnterpriseReadinessPath(pathname);
   const knownPath =
     pathname === "/api/health" ||
     pathname === "/master-data/records" ||
     pathname === "/master-data/relationships" ||
     clientGroupMatch !== null ||
+    isTrustPath ||
+    isPartyPath ||
+    isMatterCorePath ||
+    isVaultDmsRuntimePath ||
+    isCrmIntakeRuntimePath ||
+    isRevenueFinanceRuntimePath ||
+    isAnalyticsReadModelRuntimePath ||
+    isAiRagGovernanceRuntimePath ||
+    isClientCollaborationRuntimePath ||
+    isEnterpriseReadinessRuntimePath ||
     isHrxPath;
 
   if (!knownPath) {
     sendJson(res, 404, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "not_found" });
     return;
   }
-  if (!isHrxPath && req.method !== "GET") {
+  if (
+    !isHrxPath &&
+    !isTrustPath &&
+    !isPartyPath &&
+    !isMatterCorePath &&
+    !isVaultDmsRuntimePath &&
+    !isCrmIntakeRuntimePath &&
+    !isRevenueFinanceRuntimePath &&
+    !isAnalyticsReadModelRuntimePath &&
+    !isAiRagGovernanceRuntimePath &&
+    !isClientCollaborationRuntimePath &&
+    !isEnterpriseReadinessRuntimePath &&
+    req.method !== "GET"
+  ) {
     sendJson(res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
@@ -94,8 +210,93 @@ async function handle(req, res) {
   }
 
   if (isHrxPath) {
-    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
     const result = await handleHrxApiRequest({ pathname, method: req.method, query, body, context: HRX_RUNTIME });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isMatterCorePath) {
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
+    const result = await handleMatterApiRequest({ pathname, method: req.method, query, body, context: MATTER_RUNTIME });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isVaultDmsRuntimePath) {
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
+    const result = await handleVaultDmsApiRequest({ pathname, method: req.method, query, body, context: VAULT_DMS_RUNTIME });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isCrmIntakeRuntimePath) {
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
+    const result = await handleCrmIntakeApiRequest({ pathname, method: req.method, query, body, context: CRM_INTAKE_RUNTIME });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isRevenueFinanceRuntimePath) {
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
+    const result = await handleRevenueFinanceApiRequest({ pathname, method: req.method, query, body, context: REVENUE_FINANCE_RUNTIME });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isAnalyticsReadModelRuntimePath) {
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
+    const result = await handleAnalyticsReadModelApiRequest({ pathname, method: req.method, query, body, context: ANALYTICS_READ_MODEL_RUNTIME });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isAiRagGovernanceRuntimePath) {
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
+    const result = await handleAiRagGovernanceApiRequest({ pathname, method: req.method, query, body, context: AI_RAG_GOVERNANCE_RUNTIME });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isClientCollaborationRuntimePath) {
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
+    const result = await handleClientCollaborationApiRequest({ pathname, method: req.method, query, body, context: CLIENT_COLLABORATION_RUNTIME });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isEnterpriseReadinessRuntimePath) {
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
+    const result = await handleEnterpriseReadinessApiRequest({ pathname, method: req.method, query, body, context: ENTERPRISE_READINESS_RUNTIME });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isTrustPath) {
+    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const result = await handleTrustFoundationApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      requestId,
+      context: TRUST_FOUNDATION_RUNTIME,
+    });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isPartyPath) {
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
+    const result = await handlePartyMasterApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      headers: req.headers,
+      requestId,
+      context: PARTY_MASTER_RUNTIME,
+    });
     sendJson(res, result.status, { request_id: requestId, ...result.body });
     return;
   }
