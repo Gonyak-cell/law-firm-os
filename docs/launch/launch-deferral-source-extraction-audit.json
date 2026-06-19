@@ -382,67 +382,67 @@
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
-        "line": 58,
+        "line": 59,
         "text": "\"source_family\": \"MAT-DEC launch decision mentions\","
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
-        "line": 60,
+        "line": 61,
         "text": "\"current_meaning\": \"Unique decision IDs present: MAT-DEC-01, MAT-DEC-02, MAT-DEC-03, MAT-DEC-04, MAT-DEC-05, MAT-DEC-06, MAT-DEC-07, MAT-DEC-08, MAT-DEC-09.\","
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
-        "line": 64,
+        "line": 65,
         "text": "\"remaining_action\": \"MAT-DEC owner linkage is present or non-blocking. Move G1-E02 into manual evidence intake only after verifier records timestamped evidence satisfaction.\","
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
-        "line": 67,
+        "line": 68,
         "text": "\"decision_id\": \"MAT-DEC-01\","
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
-        "line": 77,
+        "line": 78,
         "text": "\"decision_id\": \"MAT-DEC-02\","
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
-        "line": 87,
+        "line": 88,
         "text": "\"decision_id\": \"MAT-DEC-03\","
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
-        "line": 97,
+        "line": 98,
         "text": "\"decision_id\": \"MAT-DEC-05\","
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
-        "line": 107,
+        "line": 108,
         "text": "\"decision_id\": \"MAT-DEC-06\","
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
-        "line": 117,
+        "line": 118,
         "text": "\"decision_id\": \"MAT-DEC-07\","
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
-        "line": 127,
+        "line": 128,
         "text": "\"decision_id\": \"MAT-DEC-04\","
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
-        "line": 137,
+        "line": 138,
         "text": "\"decision_id\": \"MAT-DEC-08\","
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
-        "line": 147,
+        "line": 148,
         "text": "\"decision_id\": \"MAT-DEC-09\","
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
-        "line": 2904,
+        "line": 2906,
         "text": "\"action\": \"For G1-E02, resolve MAT-DEC owner linkage and prove every remaining item is non-blocking or assigned to a valid launch phase.\""
       },
       {
