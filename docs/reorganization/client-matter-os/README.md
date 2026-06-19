@@ -76,6 +76,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `31-g3-c-intake-conflict-schema-report.md` | Records the G3-C IntakeRequest, ConflictCheck, and ConflictHit schema slice. |
 | `32-g3-d-conflict-engagement-workflow-report.md` | Records the G3-D conflict search, decision, waiver, engagement, FeeTerms, risk approval, and clearance-token workflow slice. |
 | `33-g3-e-intake-ui-closeout-report.md` | Records the G3-E conflict memo boundary, waiver UI, engagement UI, and G3 Intake closeout slice. |
+| `34-g4-matter-dms-entry-plan.md` | Opens the G4 Matter/DMS execution lane with TUW coverage, entry evidence, Matter opening clearance controls, DMS permission/search controls, and PR slices. |
 
 ## Execution Order
 
@@ -122,6 +123,7 @@ npm run client-matter:g3b:validate
 npm run client-matter:g3c:validate
 npm run client-matter:g3d:validate
 npm run client-matter:g3e:validate
+npm run client-matter:g4:plan:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -200,6 +202,10 @@ The G3-E validator checks conflict memo permission boundaries, CRM-user denial,
 hidden-field and unauthorized-count leak guards, waiver denied/review UI states,
 engagement signed/approved UI states, G3 closeout evidence, Opportunity-to-Matter
 bypass blocking, test coverage, and the open runtime-readiness boundary.
+
+The G4 plan validator checks all 30 G4 TUWs, Matter, DMS, and Email-DMS
+descriptor evidence, R-005/R-011/R-015 controls, G3 clearance before Matter
+opening, required validation scripts, and the open runtime-readiness boundary.
 
 ## Non-Goals
 
