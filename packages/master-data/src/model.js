@@ -2,6 +2,9 @@ import {
   MASTER_DATA_ENTITY_KINDS,
   MASTER_DATA_LIFECYCLE_STATUSES,
   MASTER_DATA_MODEL_DEFINITIONS,
+  MASTER_DATA_PARTY_ALIAS_TYPES,
+  MASTER_DATA_PARTY_IDENTIFIER_TYPES,
+  MASTER_DATA_PARTY_TYPES,
   MASTER_DATA_RELATIONSHIP_DIRECTIONS,
   getMasterDataModelDefinition,
 } from "./registry.js";
@@ -26,6 +29,10 @@ function assertLifecycleStatus(modelType, status) {
   }
 }
 
+function normalizeSearchValue(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
 function baseRecord(modelType, input) {
   assertRequiredFields(modelType, input);
   assertLifecycleStatus(modelType, input.status);
@@ -46,6 +53,20 @@ function baseRecord(modelType, input) {
   };
 }
 
+export function createMasterDataParty(input) {
+  if (!MASTER_DATA_PARTY_TYPES.includes(input.party_type)) {
+    throw new Error(`Party type must be one of ${MASTER_DATA_PARTY_TYPES.join(", ")}`);
+  }
+  return freezeRecord({
+    ...baseRecord("Party", input),
+    party_id: input.party_id,
+    party_type: input.party_type,
+    display_name: input.display_name,
+    canonical_entity_id: input.canonical_entity_id ?? null,
+    identity_key: input.identity_key ?? `${input.tenant_id}:party:${input.party_type}:${normalizeSearchValue(input.display_name)}`,
+  });
+}
+
 export function createMasterDataEntity(input) {
   if (!MASTER_DATA_ENTITY_KINDS.includes(input.entity_kind)) {
     throw new Error(`Entity kind must be one of ${MASTER_DATA_ENTITY_KINDS.join(", ")}`);
@@ -63,11 +84,12 @@ export function createMasterDataPerson(input) {
   return freezeRecord({
     ...baseRecord("Person", input),
     person_id: input.person_id,
+    party_id: input.party_id ?? null,
     entity_id: input.entity_id,
     display_name: input.display_name,
     email: input.email ?? null,
     phone: input.phone ?? null,
-    identity_key: input.identity_key ?? `${input.tenant_id}:person:${input.display_name.toLowerCase()}`,
+    identity_key: input.identity_key ?? `${input.tenant_id}:person:${normalizeSearchValue(input.display_name)}`,
   });
 }
 
@@ -75,11 +97,47 @@ export function createMasterDataOrganization(input) {
   return freezeRecord({
     ...baseRecord("Organization", input),
     organization_id: input.organization_id,
+    party_id: input.party_id ?? null,
     entity_id: input.entity_id,
     display_name: input.display_name,
     registration_number: input.registration_number ?? null,
-    identity_key: input.identity_key ?? `${input.tenant_id}:organization:${input.display_name.toLowerCase()}`,
+    identity_key: input.identity_key ?? `${input.tenant_id}:organization:${normalizeSearchValue(input.display_name)}`,
     security_attribute: input.security_attribute ?? "standard",
+  });
+}
+
+export function createMasterDataPartyAlias(input) {
+  if (!MASTER_DATA_PARTY_ALIAS_TYPES.includes(input.alias_type)) {
+    throw new Error(`PartyAlias type must be one of ${MASTER_DATA_PARTY_ALIAS_TYPES.join(", ")}`);
+  }
+  return freezeRecord({
+    ...baseRecord("PartyAlias", input),
+    party_alias_id: input.party_alias_id,
+    party_id: input.party_id,
+    alias_value: input.alias_value,
+    alias_type: input.alias_type,
+    locale: input.locale ?? null,
+    normalized_alias_key:
+      input.normalized_alias_key ??
+      `${input.tenant_id}:party-alias:${input.party_id}:${input.locale ?? "und"}:${normalizeSearchValue(input.alias_value)}`,
+  });
+}
+
+export function createMasterDataPartyIdentifier(input) {
+  if (!MASTER_DATA_PARTY_IDENTIFIER_TYPES.includes(input.identifier_type)) {
+    throw new Error(`PartyIdentifier type must be one of ${MASTER_DATA_PARTY_IDENTIFIER_TYPES.join(", ")}`);
+  }
+  return freezeRecord({
+    ...baseRecord("PartyIdentifier", input),
+    party_identifier_id: input.party_identifier_id,
+    party_id: input.party_id,
+    identifier_type: input.identifier_type,
+    identifier_value: input.identifier_value,
+    jurisdiction: input.jurisdiction ?? null,
+    verified: input.verified ?? false,
+    normalized_identifier_key:
+      input.normalized_identifier_key ??
+      `${input.tenant_id}:party-identifier:${input.identifier_type}:${normalizeSearchValue(input.identifier_value)}`,
   });
 }
 
@@ -132,9 +190,12 @@ export function createMasterDataBillingProfile(input) {
 }
 
 const FACTORIES = Object.freeze({
+  Party: createMasterDataParty,
   Entity: createMasterDataEntity,
   Person: createMasterDataPerson,
   Organization: createMasterDataOrganization,
+  PartyAlias: createMasterDataPartyAlias,
+  PartyIdentifier: createMasterDataPartyIdentifier,
   ClientGroup: createMasterDataClientGroup,
   Relationship: createMasterDataRelationship,
   ContactPoint: createMasterDataContactPoint,

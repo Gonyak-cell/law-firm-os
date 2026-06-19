@@ -35,9 +35,12 @@
     "claude_mode": "read_only"
   },
   "scope": [
+    "Party",
     "Entity",
     "Person",
     "Organization",
+    "PartyAlias",
+    "PartyIdentifier",
     "ClientGroup",
     "Relationship",
     "ContactPoint",
@@ -61,7 +64,7 @@
       "archived"
     ],
     "matter_trace_policy": "required_when_workflow_touches_matter_or_document",
-    "model_count": 7
+    "model_count": 10
   },
   "service_logic": {
     "service_entrypoint": "executeMasterDataServiceWorkflow",
@@ -427,6 +430,9 @@
     "MASTER_DATA_LIFECYCLE_STATUSES",
     "MASTER_DATA_MODEL_DEFINITIONS",
     "MASTER_DATA_OWNER_BOUNDARIES",
+    "MASTER_DATA_PARTY_ALIAS_TYPES",
+    "MASTER_DATA_PARTY_IDENTIFIER_TYPES",
+    "MASTER_DATA_PARTY_TYPES",
     "MASTER_DATA_PERMISSION_AUDIT_BINDING",
     "MASTER_DATA_PERMISSION_AUDIT_CONTROL_INTERACTIONS",
     "MASTER_DATA_PERMISSION_AUDIT_DECISION_BINDING",
@@ -545,6 +551,9 @@
     "createMasterDataFailureTaxonomySensitiveEntryBoundaryCatalog",
     "createMasterDataFailureTaxonomySensitiveEntryBoundaryDescriptor",
     "createMasterDataOrganization",
+    "createMasterDataParty",
+    "createMasterDataPartyAlias",
+    "createMasterDataPartyIdentifier",
     "createMasterDataPermissionAuditBindingCatalog",
     "createMasterDataPermissionAuditBindingDescriptor",
     "createMasterDataPermissionAuditControlInteractionDescriptor",

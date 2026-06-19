@@ -383,9 +383,12 @@ export const MASTER_DATA_PROGRAM_CONTRACT = Object.freeze({
   terminal_review_closeout_readiness_pack_id: MASTER_DATA_CP176_PACK_BINDING.pack_id,
   source_unit_range: MASTER_DATA_CP176_PACK_BINDING.range,
   scope: Object.freeze([
+    "Party",
     "Entity",
     "Person",
     "Organization",
+    "PartyAlias",
+    "PartyIdentifier",
     "ClientGroup",
     "Relationship",
     "ContactPoint",
@@ -411,6 +414,12 @@ export const MASTER_DATA_LIFECYCLE_STATUSES = Object.freeze([
 
 export const MASTER_DATA_ENTITY_KINDS = Object.freeze(["entity", "person", "organization"]);
 
+export const MASTER_DATA_PARTY_TYPES = Object.freeze(["person", "organization"]);
+
+export const MASTER_DATA_PARTY_ALIAS_TYPES = Object.freeze(["legal_name", "localized_name", "former_name", "search_name"]);
+
+export const MASTER_DATA_PARTY_IDENTIFIER_TYPES = Object.freeze(["business_number", "lei", "registration_id"]);
+
 export const MASTER_DATA_RELATIONSHIP_DIRECTIONS = Object.freeze([
   "person_to_organization",
   "organization_to_person",
@@ -419,7 +428,18 @@ export const MASTER_DATA_RELATIONSHIP_DIRECTIONS = Object.freeze([
 ]);
 
 export const MASTER_DATA_OWNER_BOUNDARIES = Object.freeze({
-  owns: Object.freeze(["Entity", "Person", "Organization", "ClientGroup", "Relationship", "ContactPoint", "BillingProfile"]),
+  owns: Object.freeze([
+    "Party",
+    "Entity",
+    "Person",
+    "Organization",
+    "PartyAlias",
+    "PartyIdentifier",
+    "ClientGroup",
+    "Relationship",
+    "ContactPoint",
+    "BillingProfile",
+  ]),
   may_reference_only: Object.freeze(["Core", "PermissionKernel", "AuditKernel", "MatterCore", "DMS", "CRM", "Billing", "AI"]),
   permission_decision_owner: "PermissionKernel",
   audit_event_owner: "AuditKernel",
@@ -428,6 +448,17 @@ export const MASTER_DATA_OWNER_BOUNDARIES = Object.freeze({
 });
 
 export const MASTER_DATA_MODEL_DEFINITIONS = Object.freeze({
+  Party: Object.freeze({
+    primary_id: "party_id",
+    tenant_field: "tenant_id",
+    owner_module: "MasterData",
+    required_fields: Object.freeze(["party_id", "tenant_id", "party_type", "display_name", "status", "owner_user_id"]),
+    optional_fields: Object.freeze(["matter_id", "permission_ref", "audit_hint_ref", "identity_key", "canonical_entity_id"]),
+    lifecycle_statuses: MASTER_DATA_LIFECYCLE_STATUSES,
+    pre_matter_allowed: true,
+    matter_trace_policy: "required_when_workflow_touches_matter_or_document",
+    package_layout: "packages/master-data/src/model.js",
+  }),
   Entity: Object.freeze({
     primary_id: "entity_id",
     tenant_field: "tenant_id",
@@ -444,7 +475,7 @@ export const MASTER_DATA_MODEL_DEFINITIONS = Object.freeze({
     tenant_field: "tenant_id",
     owner_module: "MasterData",
     required_fields: Object.freeze(["person_id", "tenant_id", "entity_id", "display_name", "status", "owner_user_id"]),
-    optional_fields: Object.freeze(["matter_id", "email", "phone", "identity_key"]),
+    optional_fields: Object.freeze(["matter_id", "party_id", "email", "phone", "identity_key"]),
     lifecycle_statuses: MASTER_DATA_LIFECYCLE_STATUSES,
     pre_matter_allowed: true,
     matter_trace_policy: "required_when_workflow_touches_matter_or_document",
@@ -455,7 +486,37 @@ export const MASTER_DATA_MODEL_DEFINITIONS = Object.freeze({
     tenant_field: "tenant_id",
     owner_module: "MasterData",
     required_fields: Object.freeze(["organization_id", "tenant_id", "entity_id", "display_name", "status", "owner_user_id"]),
-    optional_fields: Object.freeze(["matter_id", "registration_number", "identity_key", "security_attribute"]),
+    optional_fields: Object.freeze(["matter_id", "party_id", "registration_number", "identity_key", "security_attribute"]),
+    lifecycle_statuses: MASTER_DATA_LIFECYCLE_STATUSES,
+    pre_matter_allowed: true,
+    matter_trace_policy: "required_when_workflow_touches_matter_or_document",
+    package_layout: "packages/master-data/src/model.js",
+  }),
+  PartyAlias: Object.freeze({
+    primary_id: "party_alias_id",
+    tenant_field: "tenant_id",
+    owner_module: "MasterData",
+    required_fields: Object.freeze(["party_alias_id", "tenant_id", "party_id", "alias_value", "alias_type", "status", "owner_user_id"]),
+    optional_fields: Object.freeze(["matter_id", "permission_ref", "audit_hint_ref", "locale", "normalized_alias_key"]),
+    lifecycle_statuses: MASTER_DATA_LIFECYCLE_STATUSES,
+    pre_matter_allowed: true,
+    matter_trace_policy: "required_when_workflow_touches_matter_or_document",
+    package_layout: "packages/master-data/src/model.js",
+  }),
+  PartyIdentifier: Object.freeze({
+    primary_id: "party_identifier_id",
+    tenant_field: "tenant_id",
+    owner_module: "MasterData",
+    required_fields: Object.freeze([
+      "party_identifier_id",
+      "tenant_id",
+      "party_id",
+      "identifier_type",
+      "identifier_value",
+      "status",
+      "owner_user_id",
+    ]),
+    optional_fields: Object.freeze(["matter_id", "permission_ref", "audit_hint_ref", "jurisdiction", "normalized_identifier_key", "verified"]),
     lifecycle_statuses: MASTER_DATA_LIFECYCLE_STATUSES,
     pre_matter_allowed: true,
     matter_trace_policy: "required_when_workflow_touches_matter_or_document",

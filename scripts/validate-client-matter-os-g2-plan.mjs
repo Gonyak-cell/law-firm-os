@@ -9,7 +9,8 @@ const REQUIRED_FILES = [
   "11-full-tuw-catalog.md",
   "14-billing-profile-ownership-adr.md",
   "17-g1-g2-sequencing-adr.md",
-  "23-g2-party-master-entry-plan.md"
+  "23-g2-party-master-entry-plan.md",
+  "24-g2-a-party-schema-report.md"
 ];
 
 const REQUIRED_REPO_SURFACES = [
@@ -154,6 +155,7 @@ if (findings.length === 0) {
     "client-matter:g1c:validate",
     "client-matter:g1d:validate",
     "client-matter:g2:plan:validate",
+    "client-matter:g2a:validate",
     "rp04:master-data:validate",
     "validate"
   ]) {

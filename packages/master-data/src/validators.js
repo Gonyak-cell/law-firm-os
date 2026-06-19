@@ -50,6 +50,9 @@ import {
   MASTER_DATA_FAILURE_TAXONOMY_SENSITIVE_ENTRY_BOUNDARY,
   MASTER_DATA_MODEL_DEFINITIONS,
   MASTER_DATA_OWNER_BOUNDARIES,
+  MASTER_DATA_PARTY_ALIAS_TYPES,
+  MASTER_DATA_PARTY_IDENTIFIER_TYPES,
+  MASTER_DATA_PARTY_TYPES,
   MASTER_DATA_PERMISSION_AUDIT_CONTROL_INTERACTIONS,
   MASTER_DATA_PERMISSION_AUDIT_DECISION_BINDING,
   MASTER_DATA_PERMISSION_AUDIT_FIXTURE_DECISION_TESTS,
@@ -129,6 +132,28 @@ export function validateMasterDataRecord(modelType, record, options = {}) {
     if (record?.identity_key && options.known_identity_keys?.includes(record.identity_key)) {
       pushUnique(review_required_claims, "duplicate_identity_review_required");
     }
+    if (modelType === "Party" && record?.party_type && !MASTER_DATA_PARTY_TYPES.includes(record.party_type)) {
+      errors.push(`Party type must be one of ${MASTER_DATA_PARTY_TYPES.join(", ")}`);
+      pushUnique(blocked_claims, "party_type_error");
+    }
+    if (modelType === "PartyAlias") {
+      if (record?.alias_type && !MASTER_DATA_PARTY_ALIAS_TYPES.includes(record.alias_type)) {
+        errors.push(`PartyAlias type must be one of ${MASTER_DATA_PARTY_ALIAS_TYPES.join(", ")}`);
+        pushUnique(blocked_claims, "party_alias_type_error");
+      }
+      if (record?.normalized_alias_key && options.known_alias_keys?.includes(record.normalized_alias_key)) {
+        pushUnique(review_required_claims, "duplicate_alias_review_required");
+      }
+    }
+    if (modelType === "PartyIdentifier") {
+      if (record?.identifier_type && !MASTER_DATA_PARTY_IDENTIFIER_TYPES.includes(record.identifier_type)) {
+        errors.push(`PartyIdentifier type must be one of ${MASTER_DATA_PARTY_IDENTIFIER_TYPES.join(", ")}`);
+        pushUnique(blocked_claims, "party_identifier_type_error");
+      }
+      if (record?.normalized_identifier_key && options.known_identifier_keys?.includes(record.normalized_identifier_key)) {
+        pushUnique(review_required_claims, "duplicate_identifier_review_required");
+      }
+    }
     if (modelType === "Relationship") {
       if (record?.direction && !MASTER_DATA_RELATIONSHIP_DIRECTIONS.includes(record.direction)) {
         errors.push(`Relationship direction must be one of ${MASTER_DATA_RELATIONSHIP_DIRECTIONS.join(", ")}`);
@@ -158,6 +183,11 @@ export function validateMasterDataRecord(modelType, record, options = {}) {
       "ownership_boundary",
       "matter_trace_when_context_touched",
       "duplicate_identity_review",
+      "party_type",
+      "party_alias_type",
+      "party_identifier_type",
+      "duplicate_alias_review",
+      "duplicate_identifier_review",
       "relationship_direction",
       "client_group_leakage",
     ]),
