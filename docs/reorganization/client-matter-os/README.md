@@ -56,6 +56,12 @@ ownership, boundary, and runtime-readiness evidence.
 | `16-planning-root-adr.md` | Proposes this folder as the canonical G0-G7 Client-Matter OS planning root. |
 | `17-g1-g2-sequencing-adr.md` | Proposes separate G1/G2 PR lanes with sequential runtime gate acceptance. |
 
+## Gate Entry Plans
+
+| File | Purpose |
+| --- | --- |
+| `18-g1-trust-foundation-plan.md` | Opens the G1 Trust Foundation execution lane with TUW coverage, entry evidence, required runtime evidence, and PR slices. |
+
 ## Execution Order
 
 1. Close G0: inventory, ownership, module boundaries, runtime readiness.
@@ -85,12 +91,16 @@ locations.
 
 ```sh
 npm run client-matter:g0:validate
+npm run client-matter:g1:plan:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
 R0-R6 readiness badges, target folder checklist, decision ADRs,
 no-self-merge boundary, and direct Opportunity-to-Matter shortcut prohibition
 remain present.
+
+The G1 plan validator checks the 16 G1 TUWs, permission/audit source contracts,
+required npm scripts, and the open runtime-readiness boundary.
 
 ## Non-Goals
 
