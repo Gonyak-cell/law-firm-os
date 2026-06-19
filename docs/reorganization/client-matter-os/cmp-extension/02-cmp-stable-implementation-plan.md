@@ -64,7 +64,7 @@ Every CMP implementation PR must cite the `CMP-*` TUW IDs it covers and include:
 | Validator update or new focused validator | Yes |
 
 If a row only updates plans, descriptors, fixtures, UI mock data, or synthetic
-cases, its status remains below R4.
+cases, its status remains below R4. Such rows must not be described as runtime-write-ready.
 
 ## Commit and Push Strategy
 
@@ -107,4 +107,3 @@ This plan is not a product-readiness claim. It is an absorption plan. Any future
 report that says runtime-ready, pilot-ready, enterprise-ready, production-ready,
 R4, R5, or R6 must name the evidence file and the validator output proving that
 claim.
-

@@ -28,6 +28,10 @@ runtime gates with evidence before any R4/R5/R6 claim.
 
 ## Gate Counts
 
+Total CMP TUWs: 316
+First CMP TUW: `CMP-G0-W00-T001`
+Last CMP TUW: `CMP-G12-W12-T028`
+
 | CMP gate | Name | TUWs | Existing lane treatment |
 | --- | --- | ---: | --- |
 | `CMP-G0` | Product Governance & Architecture Freeze | 21 | Extend current `G0` planning root and ADR set. |
