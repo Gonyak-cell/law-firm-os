@@ -56,6 +56,14 @@ ownership, boundary, and runtime-readiness evidence.
 | `16-planning-root-adr.md` | Proposes this folder as the canonical G0-G7 Client-Matter OS planning root. |
 | `17-g1-g2-sequencing-adr.md` | Proposes separate G1/G2 PR lanes with sequential runtime gate acceptance. |
 
+## CMP Extension Absorption Artifacts
+
+| File | Purpose |
+| --- | --- |
+| `cmp-extension/00-cmp-source-intake.md` | Registers the Client-Matter-People source package, source hashes, 13 gate counts, and no-runtime intake rules. |
+| `cmp-extension/01-cmp-tuw-crosswalk.csv` | Maps all 316 `CMP-*` TUWs to existing repo lanes, `LFOS-*` anchors, implementation batches, and GitHub history units. |
+| `cmp-extension/02-cmp-stable-implementation-plan.md` | Defines the stable TUW batch order, commit/push strategy, validators, and R4+ claim boundaries for full absorption. |
+
 ## Gate Entry Plans
 
 | File | Purpose |
