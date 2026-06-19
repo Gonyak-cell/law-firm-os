@@ -6,6 +6,15 @@ export const INTAKE_G3D_CONFLICT_DECISIONS = Object.freeze(["cleared", "blocked"
 
 export const INTAKE_G3D_FEE_TERM_TYPES = Object.freeze(["hourly", "fixed", "cap", "retainer"]);
 
+export const INTAKE_G3E_CONFLICT_MEMO_HIDDEN_FIELDS = Object.freeze([
+  "conflict_memo_body",
+  "conflict_hit_detail",
+  "waiver_document_body",
+  "raw_permission_decision",
+  "audit_event_body",
+  "unauthorized_count",
+]);
+
 const CONFLICT_SEARCH_MISSING_SOURCE_CLAIMS = Object.freeze({
   alias_index: "conflict_search_alias_index_source_missing",
   relationship_graph: "conflict_search_relationship_graph_source_missing",
@@ -403,5 +412,185 @@ export function createIntakeG3DWorkflowCloseoutDescriptor(request = {}) {
     intake_to_matter_runtime_readiness_claim: "open",
     blocked_claims: freezeArray(blocked ? ["g3d_workflow_closeout_evidence_missing"] : []),
     review_required_claims: freezeArray(blocked ? [] : ["g3d_workflow_closeout_human_review_pending"]),
+  });
+}
+
+function payloadContainsHiddenField(payload, hiddenFields) {
+  const encoded = JSON.stringify(payload ?? {});
+  return hiddenFields.some((field) => encoded.includes(field));
+}
+
+export function createIntakeConflictMemoBoundaryDescriptor(request = {}) {
+  const missing = missingFields(["tenant_id", "actor_id", "conflict_check_id"], request);
+  const actorModule = request.actor_module ?? "crm";
+  const permissionOutcome = request.permission_outcome ?? (actorModule === "crm" ? "denied" : "review_required");
+  const denied = permissionOutcome === "denied" || actorModule === "crm";
+  const blockedClaims = [];
+
+  if (missing.length > 0) blockedClaims.push("conflict_memo_boundary_required_context_missing");
+  if (denied) blockedClaims.push("crm_user_conflict_memo_denied");
+  if (hasMatterCreationRequest(request)) blockedClaims.push("intake_to_matter_shortcut_blocked");
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G3-W04-T011"),
+    descriptor_type: "intake_conflict_memo_boundary_descriptor",
+    tenant_id: request.tenant_id ?? null,
+    actor_id: request.actor_id ?? null,
+    actor_module: actorModule,
+    conflict_check_id: request.conflict_check_id ?? null,
+    permission_outcome: permissionOutcome,
+    outcome: denied ? "denied" : "review_required",
+    customer_visible_memo: denied
+      ? null
+      : freezeRecord({
+          conflict_check_id: request.conflict_check_id,
+          memo_status: request.memo_status ?? "review_required",
+          conflict_memo_visible: false,
+        }),
+    hidden_fields: INTAKE_G3E_CONFLICT_MEMO_HIDDEN_FIELDS,
+    leak_guard: freezeRecord({
+      conflict_memo_body_visible: false,
+      conflict_hit_detail_visible: false,
+      unauthorized_count_visible: false,
+      source_payload_contains_hidden_fields: payloadContainsHiddenField(
+        request.source_payload,
+        INTAKE_G3E_CONFLICT_MEMO_HIDDEN_FIELDS
+      ),
+      customer_visible_payload_contains_hidden_fields: false,
+    }),
+    blocked_claims: freezeArray(blockedClaims),
+    review_required_claims: freezeArray(denied ? [] : ["conflict_memo_risk_review_required"]),
+    safe_error_code: denied ? "INTAKE_CONFLICT_MEMO_DENIED" : null,
+  });
+}
+
+export function createIntakeWaiverApprovalUiStateDescriptor(request = {}) {
+  const missing = missingFields(["tenant_id", "actor_id", "waiver"], request);
+  const waiver = request.waiver ?? {};
+  const permissionOutcome = request.permission_outcome ?? "review_required";
+  const denied = permissionOutcome === "denied";
+  const reviewState = waiver.approval_state ?? waiver.status ?? "review_required";
+  const blockedClaims = [];
+
+  if (missing.length > 0) blockedClaims.push("waiver_ui_required_context_missing");
+  if (denied) blockedClaims.push("waiver_ui_denied_state");
+  if (hasMatterCreationRequest(request)) blockedClaims.push("intake_to_matter_shortcut_blocked");
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G3-W04-T012"),
+    descriptor_type: "intake_waiver_approval_ui_state_descriptor",
+    tenant_id: request.tenant_id ?? waiver.tenant_id ?? null,
+    actor_id: request.actor_id ?? null,
+    waiver_id: waiver.waiver_id ?? null,
+    ui_surface: "waiver_approval",
+    ui_state: denied ? "denied" : reviewState,
+    permission_outcome: permissionOutcome,
+    customer_visible_waiver: denied
+      ? null
+      : freezeRecord({
+          waiver_id: waiver.waiver_id,
+          approval_state: reviewState,
+          consent_document_visible: false,
+          raw_conflict_detail_visible: false,
+        }),
+    hidden_fields: freezeArray(["consent_document_body", "raw_conflict_detail", "approval_audit_body", "unauthorized_count"]),
+    leak_guard: freezeRecord({
+      unauthorized_count_visible: false,
+      consent_document_body_visible: false,
+      raw_conflict_detail_visible: false,
+    }),
+    blocked_claims: freezeArray(blockedClaims),
+    review_required_claims: freezeArray(denied ? [] : ["waiver_ui_review_required_state"]),
+    safe_error_code: denied ? "INTAKE_WAIVER_UI_DENIED" : null,
+  });
+}
+
+export function createIntakeEngagementApprovalUiStateDescriptor(request = {}) {
+  const missing = missingFields(["tenant_id", "actor_id", "engagement"], request);
+  const engagement = request.engagement ?? {};
+  const approvalState = engagement.approval_state ?? "review_required";
+  const signed = approvalState === "signed";
+  const approved = approvalState === "approved" || signed;
+  const blockedClaims = [];
+
+  if (missing.length > 0) blockedClaims.push("engagement_ui_required_context_missing");
+  if (!approved) blockedClaims.push("engagement_ui_approval_state_required");
+  if (hasMatterCreationRequest(request)) blockedClaims.push("intake_to_matter_shortcut_blocked");
+
+  const outcome = blockedClaims.length > 0 ? "blocked" : "review_required";
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G3-W04-T013"),
+    descriptor_type: "intake_engagement_approval_ui_state_descriptor",
+    tenant_id: request.tenant_id ?? engagement.tenant_id ?? null,
+    actor_id: request.actor_id ?? null,
+    engagement_id: engagement.engagement_id ?? null,
+    ui_surface: "engagement_approval",
+    ui_state: approvalState,
+    customer_visible_engagement: freezeRecord({
+      engagement_id: engagement.engagement_id,
+      legal_client_party_id: engagement.legal_client_party_id ?? null,
+      approval_state: approvalState,
+      signed_state_visible: signed,
+      approved_state_visible: approved,
+      signed_document_body_visible: false,
+    }),
+    hidden_fields: freezeArray(["signed_document_body", "approval_audit_body", "raw_fee_terms", "unauthorized_count"]),
+    leak_guard: freezeRecord({
+      signed_document_body_visible: false,
+      raw_fee_terms_visible: false,
+      unauthorized_count_visible: false,
+    }),
+    outcome,
+    blocked_claims: freezeArray(blockedClaims),
+    review_required_claims: freezeArray(outcome === "review_required" ? ["engagement_ui_signed_or_approved_state"] : []),
+  });
+}
+
+export function createIntakeG3CloseoutDescriptor(request = {}) {
+  const evidence = {
+    crm_evidence: freezeArray(request.crm_evidence),
+    intake_schema_evidence: freezeArray(request.intake_schema_evidence),
+    workflow_evidence: freezeArray(request.workflow_evidence),
+    ui_boundary_evidence: freezeArray(request.ui_boundary_evidence),
+    command_evidence: freezeArray(request.command_evidence),
+  };
+  const missingEvidence = Object.entries(evidence)
+    .filter(([, values]) => values.length === 0)
+    .map(([key]) => key);
+
+  if (request.pr_state?.draft !== true) missingEvidence.push("draft_pr_state");
+  if (request.pr_state?.merge_authority !== "human_only") missingEvidence.push("human_only_merge_authority");
+  if (request.g1_g2_evidence_disposition === undefined) missingEvidence.push("g1_g2_evidence_disposition");
+  if (request.human_review_disposition === undefined) missingEvidence.push("human_review_disposition");
+
+  const blockedClaims = [];
+  if (missingEvidence.length > 0) blockedClaims.push("g3_closeout_evidence_missing");
+  if (request.opportunity_to_matter_bypass_attempt === true || hasMatterCreationRequest(request)) {
+    blockedClaims.push("opportunity_cannot_bypass_intake");
+  }
+
+  const blocked = blockedClaims.length > 0;
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G3-W04-T014"),
+    descriptor_type: "intake_g3_closeout_descriptor",
+    closeout_state: blocked ? "evidence_recorded_pending_review" : "g3_intake_evidence_recorded",
+    outcome: blocked ? "blocked" : "review_required",
+    evidence: freezeObject(evidence),
+    missing_evidence: freezeArray(missingEvidence),
+    pr_state: freezeRecord({
+      branch: request.pr_state?.branch ?? "codex/lawos-g3-intake-ui-closeout",
+      base_branch: request.pr_state?.base_branch ?? "codex/lawos-g3-conflict-engagement-workflow",
+      draft: request.pr_state?.draft ?? true,
+      clean: request.pr_state?.clean ?? false,
+      merge_authority: request.pr_state?.merge_authority ?? "human_only",
+    }),
+    g1_g2_evidence_disposition: request.g1_g2_evidence_disposition ?? null,
+    human_review_disposition: request.human_review_disposition ?? null,
+    opportunity_to_matter_shortcut_prohibited: true,
+    intake_evidence_required_for_matter_opening: true,
+    blocked_claims: freezeArray(blockedClaims),
+    review_required_claims: freezeArray(blocked ? [] : ["g3_closeout_human_review_pending"]),
   });
 }

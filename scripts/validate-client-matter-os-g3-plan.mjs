@@ -17,6 +17,7 @@ const REQUIRED_FILES = [
   "30-g3-b-crm-service-ui-closeout-report.md",
   "31-g3-c-intake-conflict-schema-report.md",
   "32-g3-d-conflict-engagement-workflow-report.md",
+  "33-g3-e-intake-ui-closeout-report.md",
 ];
 
 const REQUIRED_REPO_SURFACES = [
@@ -206,6 +207,7 @@ if (findings.length === 0) {
     "client-matter:g3b:validate",
     "client-matter:g3c:validate",
     "client-matter:g3d:validate",
+    "client-matter:g3e:validate",
     "rp09:crm-core:validate",
     "rp10:intake-core:validate",
     "validate",
