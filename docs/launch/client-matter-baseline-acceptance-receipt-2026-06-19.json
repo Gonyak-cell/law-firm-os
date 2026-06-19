@@ -1,0 +1,105 @@
+{
+  "schema_version": "law-firm-os.client-matter-baseline-acceptance-receipt.v0.1",
+  "generated_on": "2026-06-19",
+  "purpose": "Record PR #52 merge as Managing Partner/System Admin baseline acceptance only, while preserving production go-live as NO-GO.",
+  "decision_id": "CM-BASELINE-ACCEPT-2026-06-19",
+  "receipt_status": "baseline_acceptance_recorded",
+  "source_refs": [
+    "https://github.com/Gonyak-cell/law-firm-os/pull/52",
+    "main@cd32426fbfe43ab1bde72a9a269d257866169bad",
+    "docs/launch/client-matter-go-live-approval-packet-2026-06-19.md",
+    "docs/launch/client-matter-go-live-evidence-classification-2026-06-19.json"
+  ],
+  "merge_event": {
+    "pr_number": 52,
+    "pr_title": "Client-Matter Go-Live Owner Approval Packet",
+    "state": "MERGED",
+    "merged_at": "2026-06-19T10:43:11Z",
+    "merged_by_github_login": "Gonyak-cell",
+    "merge_commit": "cd32426fbfe43ab1bde72a9a269d257866169bad",
+    "base_ref": "main",
+    "head_ref": "codex/lawos-go-live-approval-packet",
+    "comments_count": 0,
+    "reviews_count": 0
+  },
+  "owner_record": {
+    "role": "Managing Partner/System Admin",
+    "actor": "Gonyak-cell",
+    "decision": "baseline_acceptance_only",
+    "basis": "The Managing Partner/System Admin directed PR #52 merge to be documented as baseline acceptance only. PR #52 merged the go-live approval packet into main, and the packet records green baseline verification while preserving production go-live as NO-GO.",
+    "approval_signature_ref": "github:pull-request-52-merge-cd32426fbfe43ab1bde72a9a269d257866169bad",
+    "recorded_at": "2026-06-19",
+    "recorded_by": "Codex"
+  },
+  "accepted_scope": [
+    {
+      "id": "CM-BASELINE-ACCEPT-2026-06-19",
+      "status": "accepted",
+      "description": "Accept the current Client-Matter implementation and documentation baseline reflected by main after PR #52.",
+      "evidence_refs": [
+        "main@cd32426fbfe43ab1bde72a9a269d257866169bad",
+        "PR #52 merge event",
+        "docs/launch/client-matter-go-live-approval-packet-2026-06-19.md"
+      ]
+    },
+    {
+      "id": "CM-SOURCE-PACKAGE-REPRESENTATION-2026-06-19",
+      "status": "accepted_as_baseline_analysis",
+      "description": "Accept the source package representation analysis as part of the current planning/evidence baseline.",
+      "evidence_refs": [
+        "/Users/jws/Documents/Codex/matter-erp-crm-integration/",
+        "docs/launch/client-matter-go-live-approval-packet-2026-06-19.md"
+      ]
+    },
+    {
+      "id": "CM-OWNER-REQUEST-SCAFFOLD-2026-06-19",
+      "status": "accepted_as_collection_scaffold",
+      "description": "Accept the owner request, receipt, and intake structure as the correct path for later real owner evidence.",
+      "evidence_refs": [
+        "docs/launch/launch-owner-approval-request-packet.json",
+        "docs/launch/launch-owner-response-intake.json",
+        "docs/launch/client-matter-go-live-approval-packet-2026-06-19.md"
+      ]
+    }
+  ],
+  "explicit_non_approvals": {
+    "production_go_live": "NO-GO",
+    "runtime_readiness": "not_approved",
+    "g1_g10_closure": "not_approved",
+    "g10_final_signoff": "not_approved",
+    "owner_deferrals": "not_approved",
+    "launch_decision_register_import": "not_allowed_from_this_receipt",
+    "review_waiver_as_evidence": "forbidden"
+  },
+  "blocked_or_deferred_scope_remaining": [
+    {
+      "decision_id": "COVERAGE-ALL-GO-LIVE",
+      "target_count": 31,
+      "status": "pending_owner_response_or_remediation"
+    },
+    {
+      "decision_id": "COVERAGE-L9-STABILIZATION",
+      "target_count": 5,
+      "status": "pending_owner_response_or_remediation"
+    },
+    {
+      "decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "target_count": 70,
+      "status": "pending_owner_response_or_remediation"
+    },
+    {
+      "decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "target_count": 11,
+      "status": "pending_owner_response_or_remediation"
+    }
+  ],
+  "boundary": {
+    "go_live_approved_by_this_receipt": false,
+    "owner_deferrals_approved_by_this_receipt": false,
+    "launch_decision_register_modified_by_this_receipt": false,
+    "decision_register_copy_allowed": false,
+    "pending_requests_count_as_owner_evidence": false,
+    "human_signoff_required_for_g10": true,
+    "review_waiver_counts_as_valid_review_evidence": false
+  }
+}
