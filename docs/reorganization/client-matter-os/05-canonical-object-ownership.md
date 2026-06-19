@@ -14,7 +14,7 @@ TUW: `LFOS-G0-W00-T005`
 | ClientGroup | Party & Relationship Master | Must be referenced by CRM, Billing, and Analytics. |
 | Relationship | Party & Relationship Master | Must be directed and auditable. |
 | ContactPoint | Party & Relationship Master | Must be referenced, not copied. |
-| BillingProfile | Party & Relationship Master, with Billing as strong downstream consumer | Owner requires final G0 signoff because billing workflows need tight control. |
+| BillingProfile | Party & Relationship Master, with Billing as strong downstream consumer | Proposed by `ADR-G0-001`; Billing owns workflow state, not Party identity. |
 | Lead | Client Growth / CRM | Must reference Party or create Party candidate through approved flow. |
 | Opportunity | Client Growth / CRM | Must not equal Matter. |
 | CRMActivity | Client Growth / CRM | Must not contain unguarded matter strategy or conflict memo. |
@@ -46,6 +46,6 @@ TUW: `LFOS-G0-W00-T005`
 
 ## G0 Open Decision
 
-`BillingProfile` is the only ownership row that needs explicit signoff. The
-recommended owner is Party & Relationship Master, with Billing owning the
-workflow state that consumes it.
+`BillingProfile` ownership is proposed in
+`14-billing-profile-ownership-adr.md`: Party & Relationship Master owns the
+canonical profile; Billing owns downstream workflow state that references it.
