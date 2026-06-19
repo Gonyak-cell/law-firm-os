@@ -108,6 +108,18 @@ const REQUIRED_DECISION_ARTIFACTS = [
       "does not make planning artifacts runtime evidence",
       "Human review still needs to accept or amend"
     ]
+  },
+  {
+    file: "17-g1-g2-sequencing-adr.md",
+    id: "ADR-G0-004",
+    phrases: [
+      "G1/G2 Sequencing",
+      "separate Vault-style PR lanes",
+      "runtime gate acceptance sequential",
+      "G2 must not claim runtime write readiness",
+      "Required G1 Evidence Before G2 Runtime Claim",
+      "Human review still needs to accept or amend"
+    ]
   }
 ];
 

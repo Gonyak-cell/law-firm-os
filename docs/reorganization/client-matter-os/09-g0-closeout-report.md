@@ -39,7 +39,8 @@ runtime-readiness claims, and migration procedure before G1+ runtime work.
    oversized ledger file.
 3. Review and accept or amend `ADR-G0-003` for keeping
    `docs/reorganization/client-matter-os/` as the canonical planning root.
-4. Confirm whether G1 and G2 should run sequentially or as two separate PRs.
+4. Review and accept or amend `ADR-G0-004` for running G1/G2 as separate PR
+   lanes while keeping runtime gate acceptance sequential.
 
 ## G0 Exit Criteria
 
@@ -64,8 +65,9 @@ runtime-readiness claims, and migration procedure before G1+ runtime work.
 
 1. `codex/lawos-g1-trust-foundation-plan`: expand tenant, actor, permission, and
    durable audit design.
-2. `codex/lawos-g2-party-master-runtime-plan`: expand Party Master persistence,
-   duplicate review, relationship search, and merge/split flow.
+2. `codex/lawos-g2-party-master-planning-plan`: expand Party Master object
+   model, duplicate review, relationship search, and migration design without
+   claiming runtime readiness before G1 evidence exists.
 
 ## Non-Completion Claims
 
