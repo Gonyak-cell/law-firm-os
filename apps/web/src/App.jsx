@@ -9,6 +9,7 @@ import { HomeSurface } from "./components/HomeSurface.jsx";
 import { ContentSurface } from "./components/ContentSurface.jsx";
 import { ProfilesSurface } from "./components/ProfilesSurface.jsx";
 import { PeopleHome } from "./people/PeopleHome.tsx";
+import { CmpConsoleSurface } from "./components/CmpConsoleSurface.jsx";
 import { AnalyticsSurface } from "./components/AnalyticsSurface.jsx";
 import { DashboardsSurface } from "./components/DashboardsSurface.jsx";
 import { AskSurface } from "./components/AskSurface.jsx";
@@ -180,6 +181,7 @@ export function App() {
             />
           )}
           {view === "people" && <PeopleHome labels={labels} />}
+          {view === "cmp" && <CmpConsoleSurface labels={labels} />}
           {view === "analytics" && <AnalyticsSurface labels={labels} variant={initialVariant} onSave={() => setModal("save")} />}
           {view === "dashboards" && <DashboardsSurface labels={labels} setView={setView} variant={initialVariant} onCreateDashboard={() => setModal("createDashboard")} />}
           {view === "ask" && <AskSurface labels={labels} variant={initialVariant} />}

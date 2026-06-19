@@ -5481,3 +5481,263 @@ html[data-theme="dark"] .public-preview {
     grid-template-columns: 1fr;
   }
 }
+
+/* --- CMP-G11 Client-Matter-People console runtime surface --- */
+
+.cmp-console-surface {
+  gap: 14px;
+}
+
+.cmp-console-metrics,
+.cmp-console-grid,
+.cmp-evidence-strip {
+  display: grid;
+  gap: 12px;
+}
+
+.cmp-console-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.cmp-console-metrics div {
+  min-height: 86px;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  padding: 12px;
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-md);
+  background: var(--am-surface);
+  box-shadow: var(--am-shadow-panel);
+}
+
+.cmp-console-metrics span,
+.cmp-console-metrics small,
+.cmp-console-row em,
+.cmp-console-group > span,
+.cmp-detail-card span,
+.cmp-detail-card p,
+.cmp-route-contract span,
+.cmp-state-card span {
+  color: var(--am-text-muted);
+}
+
+.cmp-console-metrics strong {
+  font-family: var(--font-heading);
+  font-size: 21px;
+  line-height: 1.1;
+}
+
+.cmp-console-metrics small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+}
+
+.cmp-console-grid {
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+  align-items: start;
+}
+
+.cmp-console-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.cmp-console-list {
+  max-height: calc(100vh - 315px);
+  display: grid;
+  gap: 12px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.cmp-console-group {
+  display: grid;
+  gap: 6px;
+}
+
+.cmp-console-group > span {
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.cmp-console-row {
+  min-height: 58px;
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text);
+  text-align: left;
+}
+
+.cmp-console-row:hover,
+.cmp-console-row.active {
+  border-color: var(--am-blue);
+  background: var(--am-blue-soft);
+}
+
+.cmp-console-row span,
+.cmp-console-row em {
+  font-size: 11px;
+  font-style: normal;
+}
+
+.cmp-console-row strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cmp-detail-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.cmp-detail-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  min-height: 112px;
+  padding: 12px;
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-md);
+  background: var(--am-surface-subtle);
+}
+
+.cmp-detail-card h2 {
+  margin: 3px 0 6px;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.cmp-detail-card p {
+  margin-bottom: 0;
+  overflow-wrap: anywhere;
+}
+
+.cmp-security-badges,
+.cmp-state-switcher,
+.cmp-evidence-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cmp-security-badges {
+  justify-content: flex-end;
+  max-width: 176px;
+}
+
+.cmp-security-badges span,
+.cmp-evidence-strip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text-muted);
+  font-size: 11px;
+}
+
+.cmp-security-badges span {
+  color: var(--am-blue);
+}
+
+.cmp-route-contract {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 6px 10px;
+  padding: 10px;
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+}
+
+.cmp-route-contract code {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--am-text);
+}
+
+.cmp-state-switcher button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text-muted);
+}
+
+.cmp-state-switcher button.active {
+  border-color: var(--am-blue);
+  background: var(--am-blue);
+  color: #fff;
+}
+
+.cmp-state-card {
+  min-height: 82px;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 2px 10px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-md);
+  background: var(--am-surface);
+}
+
+.cmp-state-card svg {
+  grid-row: 1 / span 2;
+  color: var(--am-blue);
+}
+
+.cmp-state-card.denied svg,
+.cmp-state-card.error svg {
+  color: var(--am-danger);
+}
+
+.cmp-state-card.review svg {
+  color: var(--am-warning);
+}
+
+.cmp-state-card strong {
+  font-family: var(--font-heading);
+}
+
+.cmp-state-card .spin {
+  animation: am-spin 1.2s linear infinite;
+}
+
+@media (max-width: 1180px) {
+  .cmp-console-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .cmp-console-grid,
+  .cmp-console-metrics,
+  .cmp-detail-card,
+  .cmp-route-contract {
+    grid-template-columns: 1fr;
+  }
+
+  .cmp-console-list {
+    max-height: none;
+  }
+
+  .cmp-security-badges {
+    justify-content: flex-start;
+    max-width: none;
+  }
+}
