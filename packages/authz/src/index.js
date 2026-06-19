@@ -26,3 +26,4 @@ export * from "./hermes-evidence-synthetic-fixture-verdict-boundary.js";
 export * from "./fixture-evidence-review-readiness-catalog.js";
 export * from "./terminal-review-question-boundary.js";
 export * from "./terminal-review-closeout-readiness-catalog.js";
+export * from "./trust-context.js";

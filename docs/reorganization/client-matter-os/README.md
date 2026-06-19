@@ -61,6 +61,7 @@ ownership, boundary, and runtime-readiness evidence.
 | File | Purpose |
 | --- | --- |
 | `18-g1-trust-foundation-plan.md` | Opens the G1 Trust Foundation execution lane with TUW coverage, entry evidence, required runtime evidence, and PR slices. |
+| `19-g1-a-tenant-actor-context-report.md` | Records the G1-A tenant boundary, actor context, and permission context implementation slice. |
 
 ## Execution Order
 
@@ -92,6 +93,7 @@ locations.
 ```sh
 npm run client-matter:g0:validate
 npm run client-matter:g1:plan:validate
+npm run client-matter:g1a:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -101,6 +103,9 @@ remain present.
 
 The G1 plan validator checks the 16 G1 TUWs, permission/audit source contracts,
 required npm scripts, and the open runtime-readiness boundary.
+
+The G1-A validator checks tenant-boundary, actor-context, permission-context,
+test, export, TUW trace, and G1-open boundary evidence.
 
 ## Non-Goals
 

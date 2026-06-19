@@ -1,6 +1,9 @@
+import { validateTenantBoundary } from "./trust-context.js";
+
 export function evaluatePermission({ principal, resource, action, rules = [], objectAcl = [] }) {
-  if (!principal?.tenant_id || !resource?.tenant_id || principal.tenant_id !== resource.tenant_id) {
-    return decision("deny", "cross_tenant_deny", principal, resource, action);
+  const tenantBoundary = validateTenantBoundary({ principal, resource });
+  if (!tenantBoundary.ok) {
+    return decision("deny", tenantBoundary.reason, principal, resource, action);
   }
 
   const denyRule = rules.find((rule) => rule.effect === "deny" && matches(rule, principal, resource, action));

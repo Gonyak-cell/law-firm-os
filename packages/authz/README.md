@@ -10,6 +10,22 @@ Permission engine concepts:
 
 Deny rules always override allow rules.
 
+## G1-A Tenant, Actor, and Permission Context
+
+`packages/authz/src/trust-context.js` opens the Client-Matter OS G1-A slice for
+`LFOS-G1-W01-T001` through `LFOS-G1-W01-T003`:
+
+- `validateTenantBoundary()` fails closed when tenant context is missing,
+  mismatched, or cross-tenant.
+- `createActorContext()` fails closed when actor identity is missing or the
+  actor type is not allowed.
+- `createPermissionContext()` binds tenant, actor, action, object, request, and
+  audit context while marking permission context persistence as required and
+  header-only trust as disallowed.
+
+This slice does not close G1. It opens the first trust foundation runtime
+interface for later durable audit and permission-control PRs.
+
 ## CP00-108 Permission Kernel Foundation Catalog
 
 CP00-108 starts RP02 with a generated-plan-aligned foundation catalog over
