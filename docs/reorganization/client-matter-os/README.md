@@ -81,6 +81,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `36-g4-b-matter-execution-workflow-report.md` | Records the G4-B Matter team UI, task transition, deadline audit, critical deadline dual control, status history, and client report projection slice. |
 | `37-g4-c-matter-closeout-ui-report.md` | Records the G4-C Matter closing checklist, silent matter visibility, dashboard ACL trimming, and Matter closeout evidence slice. |
 | `38-g4-d-dms-workspace-document-foundation-report.md` | Records the G4-D DMS workspace, folder path, document upload, version, file object, and hash-lineage foundation slice. |
+| `39-g4-e-dms-security-email-search-report.md` | Records the G4-E DMS checkout lock, privilege label, redaction, secure link, email filing, Outlook placeholder, and search ACL slice. |
 
 ## Execution Order
 
@@ -132,6 +133,7 @@ npm run client-matter:g4a:validate
 npm run client-matter:g4b:validate
 npm run client-matter:g4c:validate
 npm run client-matter:g4d:validate
+npm run client-matter:g4e:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -235,6 +237,12 @@ permission and traversal blocking, document upload audit evidence, immutable
 document version evidence, file-object raw storage path blocking, document hash
 lineage and mismatch detection, test coverage, and the open runtime-readiness
 boundary.
+
+The G4-E validator checks DMS check-in/check-out lock evidence, privilege
+AI/search exclusion, redacted export metadata, secure-link expiry/MFA/watermark
+controls, Matter-traced email filing, Outlook placeholder no-credential-leak
+guards, search ACL unauthorized-result omission, test coverage, RP06/RP08
+descriptor-only contract boundaries, and the open runtime-readiness boundary.
 
 ## Non-Goals
 
