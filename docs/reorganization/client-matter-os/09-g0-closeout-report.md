@@ -28,6 +28,7 @@ runtime-readiness claims, and migration procedure before G1+ runtime work.
 | Full 198-TUW catalog drafted | Proposed |
 | Risk register drafted | Proposed |
 | Workflow, state, and folder checklist drafted | Proposed |
+| G0 artifact validator added | Proposed |
 
 ## Required Human Decisions Before G0 Accepted
 
@@ -56,6 +57,7 @@ runtime-readiness claims, and migration procedure before G1+ runtime work.
 | Full 198-TUW catalog exists | Done in draft |
 | Risk register exists | Done in draft |
 | Workflow/state/folder checklist exists | Done in draft |
+| `npm run client-matter:g0:validate` passes | Done in draft |
 | PM/Tech Lead approval | Pending |
 
 ## Recommended Next PRs

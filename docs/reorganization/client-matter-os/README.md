@@ -64,6 +64,16 @@ exceeds GitHub's per-file size limit. The sanitized snapshot preserves the
 working product surfaces needed for this Vault-style PR flow while leaving the
 local historical repository untouched.
 
+## Validation
+
+```sh
+npm run client-matter:g0:validate
+```
+
+This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
+R0-R6 readiness badges, target folder checklist, no-self-merge boundary, and
+direct Opportunity-to-Matter shortcut prohibition remain present.
+
 ## Non-Goals
 
 - No runtime write path is opened by this lane.
