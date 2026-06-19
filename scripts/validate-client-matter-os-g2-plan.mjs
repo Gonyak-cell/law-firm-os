@@ -12,7 +12,8 @@ const REQUIRED_FILES = [
   "23-g2-party-master-entry-plan.md",
   "24-g2-a-party-schema-report.md",
   "25-g2-b-relationship-billing-profile-report.md",
-  "26-g2-c-duplicate-search-merge-report.md"
+  "26-g2-c-duplicate-search-merge-report.md",
+  "27-g2-d-ui-closeout-report.md"
 ];
 
 const REQUIRED_REPO_SURFACES = [
@@ -160,6 +161,7 @@ if (findings.length === 0) {
     "client-matter:g2a:validate",
     "client-matter:g2b:validate",
     "client-matter:g2c:validate",
+    "client-matter:g2d:validate",
     "rp04:master-data:validate",
     "validate"
   ]) {

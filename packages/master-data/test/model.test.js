@@ -139,7 +139,10 @@ import {
   createMasterDataCp156CloseoutHandoff,
   createMasterDataCp156HermesEvidencePacket,
   createMasterDataDuplicateCandidateQueue,
+  createMasterDataG2CloseoutDescriptor,
   createMasterDataPartyMergeSplitWorkflowDescriptor,
+  createMasterDataPartyProfileUiStateDescriptor,
+  createMasterDataPartySearchUiStateDescriptor,
   createMasterDataRelatedPartySearchDescriptor,
   executeMasterDataClientGroupingWorkflow,
   executeMasterDataContactNormalizationWorkflow,
@@ -743,6 +746,113 @@ test("G2-C duplicate search and merge descriptors preserve review audit and roll
   });
   assert.equal(blockedMerge.outcome, "blocked");
   assert.ok(blockedMerge.blocked_claims.includes("merge_split_audit_rollback_required"));
+});
+
+test("G2-D UI states and closeout descriptors preserve denied review and handoff evidence", () => {
+  const tenant_id = "tenant_g2_ui_closeout";
+  const reviewParty = createMasterDataParty({
+    party_id: "party_g2_ui_review",
+    tenant_id,
+    party_type: "organization",
+    display_name: "G2 Review Client",
+    status: "review_required",
+    owner_user_id: "user_owner",
+    canonical_entity_id: "entity_g2_ui_review",
+  });
+
+  const deniedSearch = createMasterDataPartySearchUiStateDescriptor({
+    tenant_id,
+    query: "restricted client",
+    permission_outcome: "denied",
+    denied_results: [
+      {
+        party_id: "party_g2_hidden",
+        tenant_id,
+        display_name: "Hidden Client",
+        raw_permission_decision: "deny_by_ethical_wall",
+      },
+    ],
+    hidden_fields: ["raw_permission_decision", "ethical_wall_rule_id"],
+  });
+  assert.equal(deniedSearch.g2_descriptor, "master_data_g2_party_search_ui_state_descriptor");
+  assert.equal(deniedSearch.tuw_id, "LFOS-G2-W02-T013");
+  assert.equal(deniedSearch.ui_state, "denied");
+  assert.equal(deniedSearch.customer_visible_search_state.result_count, 0);
+  assert.equal(deniedSearch.internal_ui_evidence.denied_candidate_count, 1);
+  assert.equal(deniedSearch.customer_visible_search_state.unauthorized_count_visible, false);
+  assert.equal(Object.hasOwn(deniedSearch.customer_visible_search_state, "denied_candidate_count"), false);
+  assert.equal(JSON.stringify(deniedSearch.customer_visible_search_state).includes("raw_permission_decision"), false);
+  assert.equal(deniedSearch.renders_ui, false);
+  assert.equal(deniedSearch.mutates_dom, false);
+
+  const reviewSearch = createMasterDataPartySearchUiStateDescriptor({
+    tenant_id,
+    query: "G2 Review",
+    visible_results: [reviewParty],
+  });
+  assert.equal(reviewSearch.ui_state, "review_required");
+  assert.equal(reviewSearch.customer_visible_search_state.review_badge_visible, true);
+  assert.ok(reviewSearch.review_required_claims.includes("party_search_review_state_required"));
+
+  const deniedProfile = createMasterDataPartyProfileUiStateDescriptor({
+    tenant_id,
+    party_id: "party_g2_denied_profile",
+    permission_outcome: "denied",
+    hidden_fields: ["raw_permission_decision", "audit_payload"],
+  });
+  assert.equal(deniedProfile.g2_descriptor, "master_data_g2_party_profile_ui_state_descriptor");
+  assert.equal(deniedProfile.ui_state, "denied");
+  assert.equal(deniedProfile.customer_visible_profile_state.profile, null);
+  assert.equal(deniedProfile.customer_visible_profile_state.hidden_fields_visible, false);
+  assert.equal(JSON.stringify(deniedProfile.customer_visible_profile_state).includes("audit_payload"), false);
+
+  const reviewProfile = createMasterDataPartyProfileUiStateDescriptor({
+    tenant_id,
+    party: reviewParty,
+    review_required_reasons: ["duplicate_candidate_review_required"],
+    hidden_fields: ["permission_rule_id"],
+  });
+  assert.equal(reviewProfile.ui_state, "review_required");
+  assert.equal(reviewProfile.customer_visible_profile_state.profile.display_name, reviewParty.display_name);
+  assert.equal(reviewProfile.customer_visible_profile_state.review_badge_visible, true);
+  assert.equal(Object.hasOwn(reviewProfile.customer_visible_profile_state, "review_required_reasons"), false);
+  assert.ok(reviewProfile.review_required_claims.includes("party_profile_review_state_required"));
+
+  const closeout = createMasterDataG2CloseoutDescriptor({
+    crm_reference_evidence: ["G3 CRM intake must reference Party.party_id before Matter conversion"],
+    matter_reference_evidence: ["G4 Matter/DMS runtime must use Matter.party_id references from Party Master"],
+    billing_reference_evidence: ["G5 Billing must treat BillingProfile identity as Party Master owned"],
+    command_evidence: [
+      "npm run client-matter:g2d:validate",
+      "npm run rp04:master-data:validate",
+      "npm --workspace @law-firm-os/master-data run test",
+    ],
+    pr_state: {
+      branch: "codex/lawos-g2-ui-closeout",
+      base_branch: "codex/lawos-g2-duplicate-search-merge",
+      draft: true,
+      merge_authority: "human_only",
+      clean: true,
+    },
+    g1_evidence_disposition: "draft_stack_pending_human_review",
+    human_review_disposition: "pending",
+    runtime_write_readiness_claim: "open",
+  });
+  assert.equal(closeout.g2_descriptor, "master_data_g2_closeout_descriptor");
+  assert.equal(closeout.tuw_id, "LFOS-G2-W02-T014");
+  assert.equal(closeout.outcome, "review_required");
+  assert.equal(closeout.missing_evidence.length, 0);
+  assert.equal(closeout.g2_runtime_write_readiness_claim, "open");
+  assert.equal(closeout.pr_state.merge_authority, "human_only");
+  assert.equal(closeout.renders_ui, false);
+  assert.equal(closeout.writes_product_state, false);
+  assert.ok(closeout.review_required_claims.includes("g2_closeout_human_review_pending"));
+
+  const blockedCloseout = createMasterDataG2CloseoutDescriptor({
+    runtime_write_readiness_claim: "open",
+  });
+  assert.equal(blockedCloseout.outcome, "blocked");
+  assert.ok(blockedCloseout.blocked_claims.includes("g2_closeout_evidence_missing"));
 });
 
 test("master data factories create synthetic no-write records", () => {

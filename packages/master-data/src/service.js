@@ -1080,6 +1080,186 @@ export function createMasterDataPartyMergeSplitWorkflowDescriptor(request = {}) 
   });
 }
 
+function safePartySearchResult(party = {}) {
+  return Object.freeze({
+    party_id: party.party_id ?? null,
+    display_name: party.display_name ?? null,
+    party_type: party.party_type ?? null,
+    status: party.status ?? null,
+    review_badge: party.status === "review_required" || party.review_required === true ? "review_required" : null,
+  });
+}
+
+export function createMasterDataPartySearchUiStateDescriptor(request = {}) {
+  const tenantId = request.tenant_id ?? null;
+  const visibleResults = Object.freeze([...(request.visible_results ?? [])].map((party) => safePartySearchResult(party)));
+  const deniedResults = Object.freeze([...(request.denied_results ?? [])]);
+  const reviewRequiredResults = Object.freeze([
+    ...(request.review_required_results ?? visibleResults.filter((party) => party.status === "review_required" || party.review_badge === "review_required")),
+  ]);
+  const permissionOutcome = request.permission_outcome ?? (deniedResults.length > 0 && visibleResults.length === 0 ? "denied" : "allowed");
+  const uiState =
+    permissionOutcome === "denied"
+      ? "denied"
+      : reviewRequiredResults.length > 0 || permissionOutcome === "review_required"
+        ? "review_required"
+        : visibleResults.length > 0
+          ? "results"
+          : "empty";
+  const customerVisibleSearchState = Object.freeze({
+    state: uiState,
+    query: request.query ?? "",
+    result_count: uiState === "denied" ? 0 : visibleResults.length,
+    results: uiState === "denied" ? Object.freeze([]) : visibleResults,
+    denied_explanation_code: uiState === "denied" ? "MASTER_DATA_PARTY_SEARCH_DENIED" : null,
+    review_badge_visible: uiState === "review_required",
+    unauthorized_count_visible: false,
+    hidden_fields_visible: false,
+  });
+
+  return freezeEvidenceReviewUiReadinessBridgeResult({
+    g2_descriptor: "master_data_g2_party_search_ui_state_descriptor",
+    tuw_id: "LFOS-G2-W02-T013",
+    tenant_id: tenantId,
+    query: request.query ?? "",
+    ui_state: uiState,
+    outcome: uiState,
+    customer_visible_search_state: customerVisibleSearchState,
+    internal_ui_evidence: Object.freeze({
+      denied_candidate_count: deniedResults.length,
+      review_required_candidate_count: reviewRequiredResults.length,
+      hidden_field_names: unique([
+        ...(request.hidden_fields ?? []),
+        "raw_permission_decision",
+        "permission_rule_id",
+        "audit_payload",
+      ]),
+      denied_result_values_exposed: false,
+      unauthorized_counts_exposed: false,
+      hidden_field_values_exposed: false,
+    }),
+    leak_guard: Object.freeze({
+      customer_surface_excludes_denied_count: !Object.hasOwn(customerVisibleSearchState, "denied_candidate_count"),
+      customer_surface_excludes_hidden_fields: !Object.hasOwn(customerVisibleSearchState, "hidden_field_names"),
+      customer_surface_excludes_permission_rule: !JSON.stringify(customerVisibleSearchState).includes("permission_rule_id"),
+    }),
+    blocked_claims: Object.freeze([]),
+    review_required_claims: Object.freeze(uiState === "review_required" ? ["party_search_review_state_required"] : []),
+  });
+}
+
+export function createMasterDataPartyProfileUiStateDescriptor(request = {}) {
+  const party = request.party ?? {};
+  const permissionOutcome = request.permission_outcome ?? "allowed";
+  const reviewReasons = Object.freeze([...(request.review_required_reasons ?? [])]);
+  const uiState =
+    permissionOutcome === "denied"
+      ? "denied"
+      : reviewReasons.length > 0 || party.status === "review_required"
+        ? "review_required"
+        : "profile";
+  const safeProfile =
+    uiState === "denied"
+      ? null
+      : Object.freeze({
+          party_id: party.party_id ?? request.party_id ?? null,
+          display_name: party.display_name ?? null,
+          party_type: party.party_type ?? null,
+          status: party.status ?? null,
+          canonical_entity_id: party.canonical_entity_id ?? null,
+          review_badge: uiState === "review_required" ? "review_required" : null,
+        });
+  const customerVisibleProfileState = Object.freeze({
+    state: uiState,
+    party_id: party.party_id ?? request.party_id ?? null,
+    profile: safeProfile,
+    denied_explanation_code: uiState === "denied" ? "MASTER_DATA_PARTY_PROFILE_DENIED" : null,
+    review_badge_visible: uiState === "review_required",
+    hidden_fields_visible: false,
+  });
+
+  return freezeEvidenceReviewUiReadinessBridgeResult({
+    g2_descriptor: "master_data_g2_party_profile_ui_state_descriptor",
+    tuw_id: "LFOS-G2-W02-T013",
+    tenant_id: request.tenant_id ?? party.tenant_id ?? null,
+    party_id: party.party_id ?? request.party_id ?? null,
+    ui_state: uiState,
+    outcome: uiState,
+    customer_visible_profile_state: customerVisibleProfileState,
+    internal_ui_evidence: Object.freeze({
+      hidden_field_names: unique([
+        ...(request.hidden_fields ?? []),
+        "raw_permission_decision",
+        "ethical_wall_rule_id",
+        "audit_payload",
+      ]),
+      review_required_reasons: reviewReasons,
+      denied_field_values_exposed: false,
+      hidden_field_values_exposed: false,
+    }),
+    leak_guard: Object.freeze({
+      customer_surface_excludes_hidden_fields: !Object.hasOwn(customerVisibleProfileState, "hidden_field_names"),
+      customer_surface_excludes_review_reasons: !Object.hasOwn(customerVisibleProfileState, "review_required_reasons"),
+      customer_surface_excludes_audit_payload: !JSON.stringify(customerVisibleProfileState).includes("audit_payload"),
+    }),
+    blocked_claims: Object.freeze([]),
+    review_required_claims: Object.freeze(uiState === "review_required" ? ["party_profile_review_state_required"] : []),
+  });
+}
+
+export function createMasterDataG2CloseoutDescriptor(request = {}) {
+  const crmReferenceEvidence = Object.freeze([...(request.crm_reference_evidence ?? [])]);
+  const matterReferenceEvidence = Object.freeze([...(request.matter_reference_evidence ?? [])]);
+  const billingReferenceEvidence = Object.freeze([...(request.billing_reference_evidence ?? [])]);
+  const commandEvidence = Object.freeze([...(request.command_evidence ?? [])]);
+  const prState = Object.freeze({
+    branch: request.pr_state?.branch ?? "codex/lawos-g2-ui-closeout",
+    base_branch: request.pr_state?.base_branch ?? "codex/lawos-g2-duplicate-search-merge",
+    draft: request.pr_state?.draft ?? true,
+    merge_authority: request.pr_state?.merge_authority ?? "human_only",
+    clean: request.pr_state?.clean ?? null,
+    pull_request_url: request.pr_state?.pull_request_url ?? null,
+  });
+  const missingEvidence = [];
+  if (crmReferenceEvidence.length === 0) missingEvidence.push("crm_reference_evidence");
+  if (matterReferenceEvidence.length === 0) missingEvidence.push("matter_reference_evidence");
+  if (billingReferenceEvidence.length === 0) missingEvidence.push("billing_reference_evidence");
+  if (commandEvidence.length === 0) missingEvidence.push("command_evidence");
+  if (!request.g1_evidence_disposition) missingEvidence.push("g1_evidence_disposition");
+  if (!request.human_review_disposition) missingEvidence.push("human_review_disposition");
+  if (request.runtime_write_readiness_claim !== "open") missingEvidence.push("runtime_write_readiness_claim_open");
+  const humanReviewDisposition = request.human_review_disposition ?? "pending";
+  const g1EvidenceDisposition = request.g1_evidence_disposition ?? "pending";
+  const outcome =
+    missingEvidence.length > 0
+      ? "blocked"
+      : humanReviewDisposition === "accepted" && g1EvidenceDisposition === "accepted"
+        ? "passed"
+        : "review_required";
+
+  return freezeTerminalReviewCloseoutReadinessResult({
+    g2_descriptor: "master_data_g2_closeout_descriptor",
+    tuw_id: "LFOS-G2-W02-T014",
+    closeout_state: outcome === "passed" ? "evidence_recorded" : "evidence_recorded_pending_review",
+    required_reference_modules: Object.freeze(["CRM", "Matter", "Billing"]),
+    reference_evidence: Object.freeze({
+      crm: crmReferenceEvidence,
+      matter: matterReferenceEvidence,
+      billing: billingReferenceEvidence,
+    }),
+    command_evidence: commandEvidence,
+    pr_state: prState,
+    g1_evidence_disposition: g1EvidenceDisposition,
+    human_review_disposition: humanReviewDisposition,
+    runtime_write_readiness_claim: request.runtime_write_readiness_claim ?? "open",
+    g2_runtime_write_readiness_claim: "open",
+    outcome,
+    missing_evidence: Object.freeze(missingEvidence),
+    blocked_claims: Object.freeze(missingEvidence.length > 0 ? ["g2_closeout_evidence_missing"] : []),
+    review_required_claims: Object.freeze(outcome === "review_required" ? ["g2_closeout_human_review_pending"] : []),
+  });
+}
+
 export function createMasterDataServiceTailDescriptor(request = {}) {
   const workflow = request.workflow_descriptor ? request : executeMasterDataServiceWorkflow(request);
   const sanitizedWorkflow = sanitizeTailValue(workflow);
