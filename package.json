@@ -138,6 +138,7 @@
     "contracts:validate": "node scripts/validate-product-contract.mjs",
     "launch:normal-go-live:queue": "node scripts/generate-normal-go-live-remediation-queue.mjs",
     "launch:g1:prep": "node scripts/generate-g1-completion-remediation-prep.mjs",
+    "launch:g1:hardening:candidates": "node scripts/generate-g1-hardening-evidence-candidates.mjs",
     "client-matter:g0:validate": "node scripts/validate-client-matter-os-reorganization.mjs",
     "client-matter:g1:plan:validate": "node scripts/validate-client-matter-os-g1-plan.mjs",
     "client-matter:g1a:validate": "node scripts/validate-client-matter-os-g1-a.mjs",
