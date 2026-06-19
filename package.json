@@ -182,6 +182,7 @@
     "client-matter:g7d:validate": "node scripts/validate-client-matter-os-g7-d.mjs",
     "client-matter:g7e:validate": "node scripts/validate-client-matter-os-g7-e.mjs",
     "client-matter:g7f:validate": "node scripts/validate-client-matter-os-g7-f.mjs",
+    "client-matter:g7g:validate": "node scripts/validate-client-matter-os-g7-g.mjs",
     "ui:reference:generate": "node scripts/generate-amplitude-ui-reference.mjs",
     "ui:tokens:extract": "node scripts/extract-amplitude-visual-tokens.mjs",
     "ui:states:registry": "node scripts/generate-matter-amplitude-screenshot-state-registry.mjs",
