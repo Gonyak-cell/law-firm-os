@@ -3,6 +3,7 @@ export * from "./api-ui-reference-readiness-catalog.js";
 export * from "./durable-entry.js";
 export * from "./entry-readiness-catalog.js";
 export * from "./events.js";
+export * from "./g1-closeout.js";
 export * from "./retention.js";
 export * from "./service-interface-claude-boundary-catalog.js";
 export * from "./service-interface-readiness-catalog.js";

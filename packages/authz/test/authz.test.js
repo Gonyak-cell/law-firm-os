@@ -168,9 +168,11 @@ import {
   createPermissionKernelCp134TerminalReviewCloseoutReadinessManifest,
   evaluatePermissionControlRequest,
   G1_PERMISSION_CONTROL_TUW_IDS,
+  G1_ADMIN_SIMULATOR_TUW_IDS,
   createActorContext,
   createPermissionContext,
   executePermissionKernelCp110Workflow,
+  simulateAdminPermission,
   evaluatePermission,
   runPermissionKernelCp119FixtureWorkflowCase,
   runPermissionKernelCp120PermissionDecisionBinding,
@@ -500,6 +502,36 @@ test("G1-C break-glass requires reason approval and audit before allow", () => {
   assert.equal(allowed.decision.reason, "object_acl_allow");
   assert.equal(allowed.audit_binding.audit_required, true);
   assert.equal(allowed.control_evidence.break_glass.approval_id, "approval_bg_001");
+});
+
+test("G1-D admin permission simulator cannot grant access or bypass audit", () => {
+  const simulated = simulateAdminPermission({
+    admin: { user_id: "u_support_admin", tenant_id: "t_synthetic", actor_type: "support_admin" },
+    targetPrincipal: principal,
+    resource: documentResource,
+    action: "document.view",
+    rules: [{ id: "allow_doc", effect: "allow", role_id: "attorney", resource_type: "Document", action: "document.view" }],
+    request: { request_id: "req_g1d_simulator" },
+  });
+  const rejectedAdmin = simulateAdminPermission({
+    admin: { user_id: "u_regular", tenant_id: "t_synthetic", actor_type: "user" },
+    targetPrincipal: principal,
+    resource: documentResource,
+    action: "document.view",
+  });
+
+  assert.equal(simulated.ok, true);
+  assert.equal(simulated.simulator_only, true);
+  assert.equal(simulated.grant_applied, false);
+  assert.equal(simulated.can_grant_access, false);
+  assert.equal(simulated.audit_required, true);
+  assert.equal(simulated.simulated_decision.effect, "allow");
+  assert.equal(simulated.audit_binding.action, "admin.permission.simulate");
+  assert.equal(simulated.audit_binding.emits_audit_event, false);
+  assert.deepEqual(simulated.tuw_ids, G1_ADMIN_SIMULATOR_TUW_IDS);
+  assert.equal(rejectedAdmin.ok, false);
+  assert.equal(rejectedAdmin.reason, "unauthorized_actor_type");
+  assert.equal(rejectedAdmin.grant_applied, false);
 });
 
 test("CP00-108 foundation catalog covers the planned RP02 permission units", () => {

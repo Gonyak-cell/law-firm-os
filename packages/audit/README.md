@@ -17,6 +17,21 @@ Audit concepts for login, document access, permission changes, billing changes, 
 This slice does not close G1. It opens the durable audit entry interface for
 later permission-control, export, simulator, and closeout PRs.
 
+## G1-D Audit Verification, Export, and Closeout
+
+`packages/audit/src/g1-closeout.js` opens the Client-Matter OS G1-D audit slice
+for `LFOS-G1-W01-T013`, `LFOS-G1-W01-T014`, and `LFOS-G1-W01-T016`:
+
+- `verifyTenantAuditHashChain()` wraps tenant-scoped hash-chain verification and
+  returns tamper-evident receipts.
+- `exportTenantAuditEvents()` returns metadata-only, tenant-scoped audit export
+  receipts after hash-chain verification.
+- `createG1TrustFoundationCloseout()` records command output, PR state, human
+  review disposition, no-self-merge boundary, and open runtime-readiness status.
+
+This slice does not self-approve G1. Human review and PR disposition remain
+outside the agent closeout boundary.
+
 ## CP00-135 Entry Readiness
 
 CP00-135 opens the RP03 Audit And Compliance Kernel pack lane with a no-write, synthetic-only readiness catalog for `RP03.P00.M00.S01-RP03.P01.M08.S05`.

@@ -172,8 +172,11 @@ import {
   createAuditComplianceCp155ReviewTerminalCloseoutCatalog,
   createAuditComplianceCp155ReviewTerminalCloseoutManifest,
   createAuditLedger,
+  createG1TrustFoundationCloseout,
   buildAuditEventInput,
   createAuditMiddleware,
+  exportTenantAuditEvents,
+  G1_AUDIT_CLOSEOUT_TUW_IDS,
   recordSensitiveRead,
   runAuditComplianceCp135EntryReadinessCase,
   runAuditComplianceCp136ServiceInterfaceReadinessCase,
@@ -217,6 +220,7 @@ import {
   validateAuditComplianceCp153Coverage,
   validateAuditComplianceCp154Coverage,
   validateAuditComplianceCp155Coverage,
+  verifyTenantAuditHashChain,
   verifyHashChain,
 } from "../src/index.js";
 
@@ -514,6 +518,124 @@ test("G1-B sensitive read audit binds permission decision and document version",
   assert.equal(event.document_version_id, "dv_003");
   assert.equal(event.permission_decision_id, "pd_g1b_read");
   assert.deepEqual(result.tuw_ids, ["LFOS-G1-W01-T006"]);
+});
+
+test("G1-D audit hash-chain verification detects tamper", () => {
+  const ledger = createAuditLedger();
+  const first = ledger.append(auditEvent({
+    event_id: "evt_g1d_001",
+    idempotency_key: "idem_g1d_001",
+    occurred_at: "2026-06-19T00:03:00.000Z",
+    received_at: "2026-06-19T00:03:01.000Z",
+  }));
+  const second = ledger.append(auditEvent({
+    event_id: "evt_g1d_002",
+    action: "document.download",
+    idempotency_key: "idem_g1d_002",
+    occurred_at: "2026-06-19T00:04:00.000Z",
+    received_at: "2026-06-19T00:04:01.000Z",
+  }));
+  const tampered = { ...first, action: "document.export" };
+
+  assert.deepEqual(verifyTenantAuditHashChain({ ledger, tenant_id: "t_synthetic" }), {
+    ok: true,
+    checked: 2,
+    tenant_id: "t_synthetic",
+    tamper_evident: true,
+    tuw_ids: ["LFOS-G1-W01-T013"],
+  });
+  assert.deepEqual(verifyTenantAuditHashChain({ tenant_id: "t_synthetic", events: [tampered, second] }), {
+    ok: false,
+    reason: "event_hash_mismatch",
+    event_id: "evt_g1d_001",
+    checked: 2,
+    tenant_id: "t_synthetic",
+    tamper_evident: true,
+    tuw_ids: ["LFOS-G1-W01-T013"],
+  });
+});
+
+test("G1-D audit export is tenant scoped and chain verified", () => {
+  const ledger = createAuditLedger();
+  ledger.append(auditEvent({ event_id: "evt_g1d_t1_001", tenant_id: "t_one", idempotency_key: "idem_g1d_t1_001" }));
+  ledger.append(auditEvent({
+    event_id: "evt_g1d_t2_001",
+    tenant_id: "t_two",
+    idempotency_key: "idem_g1d_t2_001",
+    occurred_at: "2026-06-19T00:04:00.000Z",
+    received_at: "2026-06-19T00:04:01.000Z",
+  }));
+  ledger.append(auditEvent({
+    event_id: "evt_g1d_t1_002",
+    tenant_id: "t_one",
+    action: "matter.update",
+    idempotency_key: "idem_g1d_t1_002",
+    occurred_at: "2026-06-19T00:05:00.000Z",
+    received_at: "2026-06-19T00:05:01.000Z",
+  }));
+
+  const exported = exportTenantAuditEvents({
+    ledger,
+    tenant_id: "t_one",
+    principal: { tenant_id: "t_one" },
+    generated_at: "2026-06-19T00:06:00.000Z",
+  });
+  const blocked = exportTenantAuditEvents({
+    ledger,
+    tenant_id: "t_two",
+    principal: { tenant_id: "t_one" },
+  });
+
+  assert.equal(exported.ok, true);
+  assert.equal(exported.event_count, 2);
+  assert.deepEqual(exported.events.map((event) => event.tenant_id), ["t_one", "t_one"]);
+  assert.deepEqual(exported.chain, {
+    ok: true,
+    checked: 2,
+    tenant_id: "t_one",
+    tamper_evident: true,
+    tuw_ids: ["LFOS-G1-W01-T013"],
+  });
+  assert.equal(exported.payload_policy, "metadata_only_export");
+  assert.equal(exported.custody_receipt.chain_verified, true);
+  assert.equal(blocked.ok, false);
+  assert.equal(blocked.reason, "export_tenant_mismatch");
+});
+
+test("G1-D closeout records command PR and human review state without self merge", () => {
+  const closeout = createG1TrustFoundationCloseout({
+    pr_stack: [
+      { number: 8, branch: "codex/lawos-g1-durable-audit-entry", merge_state: "CLEAN" },
+      { number: 9, branch: "codex/lawos-g1-permission-controls", merge_state: "CLEAN" },
+    ],
+    validations: [
+      { command: "npm run client-matter:g1d:validate", status: "pass" },
+      { command: "npm test", status: "pass" },
+    ],
+    audit_evidence: {
+      hash_chain_verified: true,
+      tenant_export_verified: true,
+    },
+    permission_evidence: {
+      permission_controls_validated: true,
+      admin_simulator_verified: true,
+    },
+    human_review_disposition: "pending",
+    generated_at: "2026-06-19T00:07:00.000Z",
+  });
+
+  assert.equal(closeout.status, "implementation_evidence_ready");
+  assert.equal(closeout.g1_runtime_readiness_claim, "open");
+  assert.equal(closeout.self_merge_allowed, false);
+  assert.equal(closeout.command_output_recorded, true);
+  assert.equal(closeout.pr_state_recorded, true);
+  assert.equal(closeout.human_review_disposition, "pending");
+  assert.deepEqual(closeout.tuw_ids, ["LFOS-G1-W01-T016"]);
+  assert.deepEqual(G1_AUDIT_CLOSEOUT_TUW_IDS, [
+    "LFOS-G1-W01-T013",
+    "LFOS-G1-W01-T014",
+    "LFOS-G1-W01-T016",
+  ]);
 });
 
 test("legal hold blocks purge even when retention expired", () => {

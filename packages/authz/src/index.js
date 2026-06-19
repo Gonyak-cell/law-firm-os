@@ -1,6 +1,7 @@
 export * from "./api-permission-audit-binding.js";
 export * from "./api-fixture-ui-readiness-catalog.js";
 export * from "./api-synthetic-fixture-set.js";
+export * from "./admin-simulator.js";
 export * from "./evaluate.js";
 export * from "./foundation-catalog.js";
 export * from "./interface-closeout-catalog.js";

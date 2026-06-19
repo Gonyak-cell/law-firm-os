@@ -48,6 +48,19 @@ slice for `LFOS-G1-W01-T007` through `LFOS-G1-W01-T012`:
 This slice does not close G1. Audit hash-chain verification, export, simulator,
 and G1 closeout evidence remain in the G1-D slice.
 
+## G1-D Admin Permission Simulator
+
+`packages/authz/src/admin-simulator.js` opens `LFOS-G1-W01-T015`:
+
+- `simulateAdminPermission()` runs the permission-control wrapper as a
+  simulation-only receipt.
+- The simulator never grants access, never mutates policy, and requires audit
+  binding metadata for every simulation.
+- Unauthorized admin actor types fail closed before simulation.
+
+This slice does not close G1 by itself. It provides simulator evidence for the
+G1-D audit closeout PR.
+
 ## CP00-108 Permission Kernel Foundation Catalog
 
 CP00-108 starts RP02 with a generated-plan-aligned foundation catalog over
