@@ -166,6 +166,8 @@ import {
   createPermissionKernelCp134TerminalReviewCloseoutReadiness,
   createPermissionKernelCp134TerminalReviewCloseoutReadinessCatalog,
   createPermissionKernelCp134TerminalReviewCloseoutReadinessManifest,
+  evaluatePermissionControlRequest,
+  G1_PERMISSION_CONTROL_TUW_IDS,
   createActorContext,
   createPermissionContext,
   executePermissionKernelCp110Workflow,
@@ -188,6 +190,7 @@ import {
   runPermissionKernelCp134TerminalReviewCloseoutReadinessCase,
   runPermissionKernelCp111SyntheticFixtureProfile,
   trimSearchResults,
+  validateBreakGlassRequest,
   validateTenantBoundary,
   validatePermissionKernelCp108Coverage,
   validatePermissionKernelCp109Coverage,
@@ -356,6 +359,147 @@ test("review and approval policies override object ACL allow", () => {
   });
 
   assert.equal(result.effect, "approval_required");
+});
+
+test("G1-C permission evaluator API wrapper returns allow deny review and approval", () => {
+  const allow = evaluatePermissionControlRequest({
+    principal,
+    resource: documentResource,
+    action: "document.view",
+    request: { request_id: "req_g1c_allow" },
+    rules: [{ id: "allow_doc", effect: "allow", role_id: "attorney", resource_type: "Document", action: "document.view" }],
+  });
+  const deny = evaluatePermissionControlRequest({
+    principal,
+    resource: documentResource,
+    action: "document.view",
+    request: { request_id: "req_g1c_deny" },
+    rules: [{ id: "deny_doc", effect: "deny", role_id: "attorney", resource_type: "Document", action: "document.view" }],
+  });
+  const review = evaluatePermissionControlRequest({
+    principal,
+    resource: documentResource,
+    action: "document.download",
+    request: { request_id: "req_g1c_review" },
+    rules: [{ id: "review_doc", effect: "review_required", role_id: "attorney", resource_type: "Document", action: "document.download" }],
+  });
+  const approval = evaluatePermissionControlRequest({
+    principal,
+    resource: documentResource,
+    action: "document.delete.request",
+    request: { request_id: "req_g1c_approval" },
+    rules: [{ id: "approval_doc", effect: "approval_required", role_id: "attorney", resource_type: "Document", action: "document.delete.request" }],
+  });
+
+  assert.equal(allow.route, "/permissions/evaluate");
+  assert.equal(allow.status_code, 200);
+  assert.equal(deny.status_code, 403);
+  assert.equal(review.status_code, 202);
+  assert.equal(approval.status_code, 202);
+  assert.deepEqual(allow.tuw_ids, G1_PERMISSION_CONTROL_TUW_IDS);
+  assert.deepEqual([allow, deny, review, approval].map((row) => row.decision.effect), [
+    "allow",
+    "deny",
+    "review_required",
+    "approval_required",
+  ]);
+});
+
+test("G1-C deny-over-allow and object ACL controls fail closed", () => {
+  const deniedByRule = evaluatePermissionControlRequest({
+    principal,
+    resource: documentResource,
+    action: "document.view",
+    rules: [
+      { id: "allow_doc", effect: "allow", role_id: "attorney", resource_type: "Document", action: "document.view" },
+      { id: "deny_doc", effect: "deny", role_id: "attorney", resource_type: "Document", action: "document.view", reason: "deny_over_allow" },
+    ],
+  });
+  const aclAllow = evaluatePermissionControlRequest({
+    principal,
+    resource: documentResource,
+    action: "document.view",
+    objectAcl: [{ id: "acl_allow_doc", effect: "allow", principal_id: principal.user_id, action: "document.view" }],
+  });
+  const aclDeny = evaluatePermissionControlRequest({
+    principal,
+    resource: documentResource,
+    action: "document.view",
+    rules: [{ id: "allow_doc", effect: "allow", role_id: "attorney", resource_type: "Document", action: "document.view" }],
+    objectAcl: [{ id: "acl_deny_doc", effect: "deny", principal_id: principal.user_id, action: "document.view" }],
+  });
+
+  assert.equal(deniedByRule.decision.effect, "deny");
+  assert.equal(deniedByRule.decision.reason, "deny_over_allow");
+  assert.equal(aclAllow.decision.effect, "allow");
+  assert.equal(aclAllow.decision.reason, "object_acl_allow");
+  assert.equal(aclDeny.decision.effect, "deny");
+  assert.equal(aclDeny.decision.reason, "object_acl_deny");
+});
+
+test("G1-C ethical wall blocks a listed user from matter listing", () => {
+  const result = evaluatePermissionControlRequest({
+    principal,
+    resource: { resource_id: "m_001", resource_type: "Matter", tenant_id: "t_synthetic", matter_id: "m_001" },
+    action: "matter.list",
+    rules: [{ id: "allow_matter_list", effect: "allow", role_id: "attorney", resource_type: "Matter", action: "matter.list" }],
+    ethicalWalls: [{ id: "wall_m_001", matter_id: "m_001", blocked_user_ids: [principal.user_id] }],
+  });
+
+  assert.equal(result.status_code, 403);
+  assert.equal(result.decision.effect, "deny");
+  assert.equal(result.decision.reason, "ethical_wall");
+  assert.deepEqual(result.control_evidence.ethical_wall_rule_ids, ["wall_m_001"]);
+});
+
+test("G1-C legal hold blocks held document delete even with allow ACL", () => {
+  const result = evaluatePermissionControlRequest({
+    principal,
+    resource: documentResource,
+    action: "document.delete",
+    rules: [{ id: "allow_delete", effect: "allow", role_id: "attorney", resource_type: "Document", action: "document.delete" }],
+    objectAcl: [{ id: "acl_allow_delete", effect: "allow", principal_id: principal.user_id, action: "document.delete" }],
+    legalHolds: [{ id: "hold_d_001", document_id: "d_001", matter_id: "m_001", status: "active" }],
+  });
+
+  assert.equal(result.status_code, 403);
+  assert.equal(result.decision.effect, "deny");
+  assert.equal(result.decision.reason, "legal_hold");
+  assert.deepEqual(result.control_evidence.legal_hold_rule_ids, ["hold_d_001"]);
+});
+
+test("G1-C break-glass requires reason approval and audit before allow", () => {
+  const incomplete = validateBreakGlassRequest({
+    principal: { ...principal, actor_type: "break_glass_admin" },
+    breakGlass: { requested: true, reason: "urgent client injunction" },
+  });
+  const denied = evaluatePermissionControlRequest({
+    principal: { ...principal, actor_type: "break_glass_admin" },
+    resource: documentResource,
+    action: "document.view",
+    breakGlass: { requested: true, reason: "urgent client injunction" },
+  });
+  const allowed = evaluatePermissionControlRequest({
+    principal: { ...principal, actor_type: "break_glass_admin" },
+    resource: documentResource,
+    action: "document.view",
+    breakGlass: {
+      requested: true,
+      reason: "urgent client injunction",
+      approval_id: "approval_bg_001",
+      approved_by: "risk_partner_001",
+      audit_required: true,
+    },
+  });
+
+  assert.equal(incomplete.ok, false);
+  assert.deepEqual(incomplete.missing, ["approval", "audit_required"]);
+  assert.equal(denied.status_code, 403);
+  assert.equal(denied.decision.reason, "break_glass_incomplete");
+  assert.equal(allowed.status_code, 200);
+  assert.equal(allowed.decision.reason, "object_acl_allow");
+  assert.equal(allowed.audit_binding.audit_required, true);
+  assert.equal(allowed.control_evidence.break_glass.approval_id, "approval_bg_001");
 });
 
 test("CP00-108 foundation catalog covers the planned RP02 permission units", () => {

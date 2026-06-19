@@ -26,6 +26,28 @@ Deny rules always override allow rules.
 This slice does not close G1. It opens the first trust foundation runtime
 interface for later durable audit and permission-control PRs.
 
+## G1-C Permission Controls
+
+`packages/authz/src/permission-controls.js` opens the Client-Matter OS G1-C
+slice for `LFOS-G1-W01-T007` through `LFOS-G1-W01-T012`:
+
+- `evaluatePermissionControlRequest()` models the `/permissions/evaluate`
+  wrapper and maps `allow`, `deny`, `review_required`, and `approval_required`
+  decisions to response receipts with audit binding metadata.
+- Deny-over-allow remains fail-closed because control deny rules are evaluated
+  before Object ACL and allow rules.
+- Object ACL allow and deny entries are normalized into the evaluator without
+  letting allow entries override explicit deny rules.
+- Ethical wall controls add tenant/matter-scoped deny rules so blocked users
+  cannot list or read the protected matter surface.
+- Legal hold controls block held document delete/disposal actions even when
+  a normal allow rule or object ACL allow exists.
+- Break-glass access is only eligible for an allow candidate when reason,
+  approval, and audit intent are present; it still cannot bypass deny rules.
+
+This slice does not close G1. Audit hash-chain verification, export, simulator,
+and G1 closeout evidence remain in the G1-D slice.
+
 ## CP00-108 Permission Kernel Foundation Catalog
 
 CP00-108 starts RP02 with a generated-plan-aligned foundation catalog over

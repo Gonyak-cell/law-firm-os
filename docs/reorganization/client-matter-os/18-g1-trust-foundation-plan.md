@@ -52,7 +52,7 @@ G1 cannot close until the following evidence exists in implementation PRs:
 | --- | --- | --- | --- | --- |
 | G1-A | `LFOS-G1-W01-T001`-`LFOS-G1-W01-T003` | `codex/lawos-g1-tenant-actor-context` | Tenant boundary, actor context, permission context shape | Missing tenant/actor fail-closed tests and interface docs. |
 | G1-B | `LFOS-G1-W01-T004`-`LFOS-G1-W01-T006` | `codex/lawos-g1-durable-audit-entry` | AuditEvent schema, write middleware, sensitive read audit | Append-only write test, idempotency test, and sensitive read audit test. |
-| G1-C | `LFOS-G1-W01-T007`-`LFOS-G1-W01-T012` | `codex/lawos-g1-permission-controls` | Evaluator API, deny-over-allow, ObjectACL, ethical wall, legal hold, break-glass | Allow/deny/review/approval routing plus fail-closed control tests. |
+| G1-C | `LFOS-G1-W01-T007`-`LFOS-G1-W01-T012` | `codex/lawos-g1-permission-controls` | Evaluator API, deny-over-allow, ObjectACL, ethical wall, legal hold, break-glass | `/permissions/evaluate` wrapper plus allow/deny/review/approval, deny-over-allow, Object ACL, ethical wall, legal hold, and break-glass tests. |
 | G1-D | `LFOS-G1-W01-T013`-`LFOS-G1-W01-T016` | `codex/lawos-g1-audit-closeout` | Hash-chain verification, audit export, admin simulator, G1 closeout | Tenant-scoped export, tamper detection, simulator, and closeout evidence. |
 
 ## TUW Coverage
@@ -83,6 +83,7 @@ npm run client-matter:g0:validate
 npm run client-matter:g1:plan:validate
 npm run client-matter:g1a:validate
 npm run client-matter:g1b:validate
+npm run client-matter:g1c:validate
 npm run rp02:permission-kernel:validate
 npm run rp03:audit:validate
 npm run validate
