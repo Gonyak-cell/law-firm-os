@@ -17,8 +17,8 @@ Generated at: 2026-06-18T15:28:12.318Z
 - failed_gate_evidence_slot_count: 31
 - l9_stabilization_closure_slot_count: 5
 - total_intake_row_count: 36
-- pending_intake_count: 36
-- evidence_satisfied_count: 0
+- pending_intake_count: 35
+- evidence_satisfied_count: 1
 - owner_deferred_count: 0
 - go_live_all_pass: false
 - owner_approved_deferrals_present: false
@@ -29,7 +29,7 @@ Generated at: 2026-06-18T15:28:12.318Z
 
 | Intake | Gate | Evidence | Slot | Required state | Status |
 | --- | --- | --- | --- | --- | --- |
-| GL-G1-G1-E02 | G1 | G1-E02 | deferred_item_rejudgment_register | blocking_remaining_count_zero | pending_evidence_or_owner_deferral |
+| GL-G1-G1-E02 | G1 | G1-E02 | deferred_item_rejudgment_register | blocking_remaining_count_zero | evidence_satisfied |
 | GL-G1-G1-E03 | G1 | G1-E03 | hardening_coverage_matrix | all_missing_cells_adjudicated_or_zero | pending_evidence_or_owner_deferral |
 | GL-G2-G2-E01 | G2 | G2-E01 | wave1_runtime_ready_matrix | approved_wave1_runtime_ready_completeness_rule_satisfied | pending_evidence_or_owner_deferral |
 | GL-G2-G2-E02 | G2 | G2-E02 | runtime_integration_test_output | all_tests_pass_with_timestamp | pending_evidence_or_owner_deferral |

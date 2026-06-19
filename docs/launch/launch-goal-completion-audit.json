@@ -605,8 +605,8 @@
     "blocked_work_package_count": 70,
     "failed_gate_evidence_slot_count": 31,
     "total_manual_intake_row_count": 36,
-    "pending_manual_intake_row_count": 36,
-    "evidence_satisfied_manual_intake_row_count": 0,
+    "pending_manual_intake_row_count": 35,
+    "evidence_satisfied_manual_intake_row_count": 1,
     "owner_deferred_manual_intake_row_count": 0,
     "blocked_phase_count": 11
   },
@@ -614,8 +614,8 @@
     "gate_intake_count": 31,
     "l9_stabilization_intake_count": 5,
     "total_intake_row_count": 36,
-    "pending_intake_count": 36,
-    "evidence_satisfied_count": 0,
+    "pending_intake_count": 35,
+    "evidence_satisfied_count": 1,
     "owner_deferred_count": 0,
     "valid_decision_register_deferred_rows": 0,
     "coverage_eligible_valid_deferred_rows": 0,
@@ -626,12 +626,12 @@
     "gate_acceptance_row_count": 31,
     "l9_acceptance_row_count": 5,
     "total_acceptance_row_count": 36,
-    "pending_acceptance_row_count": 36,
-    "evidence_satisfied_acceptance_row_count": 0,
+    "pending_acceptance_row_count": 35,
+    "evidence_satisfied_acceptance_row_count": 1,
     "owner_deferred_acceptance_row_count": 0,
     "missing_intake_acceptance_row_count": 0,
-    "gate_pending_acceptance_row_count": 31,
-    "gate_evidence_satisfied_acceptance_row_count": 0,
+    "gate_pending_acceptance_row_count": 30,
+    "gate_evidence_satisfied_acceptance_row_count": 1,
     "gate_owner_deferred_acceptance_row_count": 0,
     "l9_pending_acceptance_row_count": 5,
     "l9_evidence_satisfied_acceptance_row_count": 0,
@@ -641,10 +641,10 @@
   "manual_evidence_completion_path": {
     "total_manual_intake_row_count": 36,
     "total_acceptance_row_count": 36,
-    "pending_manual_intake_row_count": 36,
-    "pending_acceptance_row_count": 36,
-    "evidence_satisfied_manual_intake_row_count": 0,
-    "evidence_satisfied_acceptance_row_count": 0,
+    "pending_manual_intake_row_count": 35,
+    "pending_acceptance_row_count": 35,
+    "evidence_satisfied_manual_intake_row_count": 1,
+    "evidence_satisfied_acceptance_row_count": 1,
     "owner_deferred_manual_intake_row_count": 0,
     "owner_deferred_acceptance_row_count": 0,
     "missing_intake_acceptance_row_count": 0,
@@ -659,8 +659,8 @@
     "failed_gate_node_count": 10,
     "gate_acceptance_node_count": 31,
     "l9_closure_node_count": 5,
-    "pending_acceptance_node_count": 36,
-    "evidence_satisfied_acceptance_node_count": 0,
+    "pending_acceptance_node_count": 35,
+    "evidence_satisfied_acceptance_node_count": 1,
     "owner_deferred_acceptance_node_count": 0,
     "missing_intake_acceptance_node_count": 0,
     "blocked_wp_node_count": 70,
@@ -909,11 +909,11 @@
     "p2_unresolved_item_line_count": 0,
     "ldip_actual_defer_decision_count": 0,
     "hrx_actual_defer_decision_count": 0,
-    "mat_dec_mention_line_count": 85,
+    "mat_dec_mention_line_count": 86,
     "finding_count": 0
   },
   "no_go_claim_policy": {
-    "scanned_file_count": 212,
+    "scanned_file_count": 214,
     "no_go_active": true,
     "forbidden_true_claim_count": 0,
     "finding_count": 0
@@ -1048,17 +1048,17 @@
     {
       "command": "node scripts/validate-launch-manual-evidence-intake.mjs",
       "exit_code": 0,
-      "stdout": "{\n  \"report_json\": \"docs/launch/launch-manual-evidence-intake-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-manual-evidence-intake-validation.md\",\n  \"verdict\": \"PASS\",\n  \"total_intake_row_count\": 36,\n  \"pending_intake_count\": 36,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-manual-evidence-intake-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-manual-evidence-intake-validation.md\",\n  \"verdict\": \"PASS\",\n  \"total_intake_row_count\": 36,\n  \"pending_intake_count\": 35,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
     },
     {
       "command": "node scripts/generate-launch-evidence-acceptance-matrix.mjs",
       "exit_code": 0,
-      "stdout": "{\n  \"report_json\": \"docs/launch/launch-evidence-acceptance-matrix.json\",\n  \"report_markdown\": \"docs/launch/launch-evidence-acceptance-matrix.md\",\n  \"gate_acceptance_row_count\": 31,\n  \"l9_acceptance_row_count\": 5,\n  \"total_acceptance_row_count\": 36,\n  \"pending_acceptance_row_count\": 36,\n  \"evidence_satisfied_acceptance_row_count\": 0,\n  \"owner_deferred_acceptance_row_count\": 0,\n  \"missing_intake_acceptance_row_count\": 0,\n  \"gate_evidence_satisfied_acceptance_row_count\": 0,\n  \"l9_evidence_satisfied_acceptance_row_count\": 0,\n  \"owner_approved_deferrals_present\": false,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0\n}"
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-evidence-acceptance-matrix.json\",\n  \"report_markdown\": \"docs/launch/launch-evidence-acceptance-matrix.md\",\n  \"gate_acceptance_row_count\": 31,\n  \"l9_acceptance_row_count\": 5,\n  \"total_acceptance_row_count\": 36,\n  \"pending_acceptance_row_count\": 35,\n  \"evidence_satisfied_acceptance_row_count\": 1,\n  \"owner_deferred_acceptance_row_count\": 0,\n  \"missing_intake_acceptance_row_count\": 0,\n  \"gate_evidence_satisfied_acceptance_row_count\": 1,\n  \"l9_evidence_satisfied_acceptance_row_count\": 0,\n  \"owner_approved_deferrals_present\": false,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0\n}"
     },
     {
       "command": "node scripts/validate-launch-evidence-acceptance-matrix.mjs",
       "exit_code": 0,
-      "stdout": "{\n  \"report_json\": \"docs/launch/launch-evidence-acceptance-matrix-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-evidence-acceptance-matrix-validation.md\",\n  \"verdict\": \"PASS\",\n  \"total_acceptance_row_count\": 36,\n  \"pending_acceptance_row_count\": 36,\n  \"evidence_satisfied_acceptance_row_count\": 0,\n  \"owner_deferred_acceptance_row_count\": 0,\n  \"missing_intake_acceptance_row_count\": 0,\n  \"gate_evidence_satisfied_acceptance_row_count\": 0,\n  \"l9_evidence_satisfied_acceptance_row_count\": 0,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-evidence-acceptance-matrix-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-evidence-acceptance-matrix-validation.md\",\n  \"verdict\": \"PASS\",\n  \"total_acceptance_row_count\": 36,\n  \"pending_acceptance_row_count\": 35,\n  \"evidence_satisfied_acceptance_row_count\": 1,\n  \"owner_deferred_acceptance_row_count\": 0,\n  \"missing_intake_acceptance_row_count\": 0,\n  \"gate_evidence_satisfied_acceptance_row_count\": 1,\n  \"l9_evidence_satisfied_acceptance_row_count\": 0,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
     },
     {
       "command": "node scripts/generate-launch-owner-action-package.mjs",
@@ -1073,12 +1073,12 @@
     {
       "command": "node scripts/audit-launch-blocker-surface.mjs",
       "exit_code": 0,
-      "stdout": "{\n  \"report_json\": \"docs/launch/launch-blocker-surface-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-blocker-surface-audit.md\",\n  \"verdict\": \"PASS\",\n  \"blocked_work_package_count\": 70,\n  \"failed_gate_evidence_slot_count\": 31,\n  \"total_manual_intake_row_count\": 36,\n  \"pending_manual_intake_row_count\": 36,\n  \"evidence_satisfied_manual_intake_row_count\": 0,\n  \"owner_deferred_manual_intake_row_count\": 0,\n  \"blocked_phase_count\": 11,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0\n}"
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-blocker-surface-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-blocker-surface-audit.md\",\n  \"verdict\": \"PASS\",\n  \"blocked_work_package_count\": 70,\n  \"failed_gate_evidence_slot_count\": 31,\n  \"total_manual_intake_row_count\": 36,\n  \"pending_manual_intake_row_count\": 35,\n  \"evidence_satisfied_manual_intake_row_count\": 1,\n  \"owner_deferred_manual_intake_row_count\": 0,\n  \"blocked_phase_count\": 11,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0\n}"
     },
     {
       "command": "node scripts/audit-launch-closure-dependency-graph.mjs",
       "exit_code": 0,
-      "stdout": "{\n  \"report_json\": \"docs/launch/launch-closure-dependency-graph.json\",\n  \"report_markdown\": \"docs/launch/launch-closure-dependency-graph.md\",\n  \"verdict\": \"PASS\",\n  \"phase_node_count\": 11,\n  \"failed_gate_node_count\": 10,\n  \"gate_acceptance_node_count\": 31,\n  \"l9_closure_node_count\": 5,\n  \"pending_acceptance_node_count\": 36,\n  \"evidence_satisfied_acceptance_node_count\": 0,\n  \"owner_deferred_acceptance_node_count\": 0,\n  \"missing_intake_acceptance_node_count\": 0,\n  \"blocked_wp_node_count\": 70,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-closure-dependency-graph.json\",\n  \"report_markdown\": \"docs/launch/launch-closure-dependency-graph.md\",\n  \"verdict\": \"PASS\",\n  \"phase_node_count\": 11,\n  \"failed_gate_node_count\": 10,\n  \"gate_acceptance_node_count\": 31,\n  \"l9_closure_node_count\": 5,\n  \"pending_acceptance_node_count\": 35,\n  \"evidence_satisfied_acceptance_node_count\": 1,\n  \"owner_deferred_acceptance_node_count\": 0,\n  \"missing_intake_acceptance_node_count\": 0,\n  \"blocked_wp_node_count\": 70,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
     },
     {
       "command": "node scripts/audit-launch-deferral-coverage.mjs",
@@ -1238,12 +1238,12 @@
     {
       "command": "node scripts/audit-launch-deferral-source-extraction.mjs",
       "exit_code": 0,
-      "stdout": "{\n  \"report_json\": \"docs/launch/launch-deferral-source-extraction-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-deferral-source-extraction-audit.md\",\n  \"verdict\": \"PASS\",\n  \"p2_broad_marker_source_file_count\": 3794,\n  \"p2_positive_count_statement_file_count\": 11,\n  \"p2_positive_count_statement_sum\": 18,\n  \"explicit_p2_item_line_count\": 18,\n  \"unresolved_p2_line_count\": 0,\n  \"ldip_actual_decision_count\": 0,\n  \"hrx_actual_decision_count\": 0,\n  \"mat_dec_mention_line_count\": 85,\n  \"finding_count\": 0\n}"
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-deferral-source-extraction-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-deferral-source-extraction-audit.md\",\n  \"verdict\": \"PASS\",\n  \"p2_broad_marker_source_file_count\": 3794,\n  \"p2_positive_count_statement_file_count\": 11,\n  \"p2_positive_count_statement_sum\": 18,\n  \"explicit_p2_item_line_count\": 18,\n  \"unresolved_p2_line_count\": 0,\n  \"ldip_actual_decision_count\": 0,\n  \"hrx_actual_decision_count\": 0,\n  \"mat_dec_mention_line_count\": 86,\n  \"finding_count\": 0\n}"
     },
     {
       "command": "node scripts/audit-launch-no-go-claim-policy.mjs",
       "exit_code": 0,
-      "stdout": "{\n  \"report_json\": \"docs/launch/launch-no-go-claim-policy-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-no-go-claim-policy-audit.md\",\n  \"verdict\": \"PASS\",\n  \"scanned_file_count\": 212,\n  \"no_go_active\": true,\n  \"forbidden_true_claim_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-no-go-claim-policy-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-no-go-claim-policy-audit.md\",\n  \"verdict\": \"PASS\",\n  \"scanned_file_count\": 214,\n  \"no_go_active\": true,\n  \"forbidden_true_claim_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
     },
     {
       "command": "node scripts/audit-launch-tuw-evidence-coverage.mjs",
@@ -1253,7 +1253,7 @@
     {
       "command": "node scripts/audit-launch-manual-evidence-completion-path.mjs",
       "exit_code": 0,
-      "stdout": "{\n  \"report_json\": \"docs/launch/launch-manual-evidence-completion-path-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-manual-evidence-completion-path-audit.md\",\n  \"verdict\": \"PASS\",\n  \"total_manual_intake_row_count\": 36,\n  \"total_acceptance_row_count\": 36,\n  \"evidence_satisfied_manual_intake_row_count\": 0,\n  \"evidence_satisfied_acceptance_row_count\": 0,\n  \"go_live_evidence_completion_path_ready\": false,\n  \"l9_evidence_completion_path_ready\": false,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-manual-evidence-completion-path-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-manual-evidence-completion-path-audit.md\",\n  \"verdict\": \"PASS\",\n  \"total_manual_intake_row_count\": 36,\n  \"total_acceptance_row_count\": 36,\n  \"evidence_satisfied_manual_intake_row_count\": 1,\n  \"evidence_satisfied_acceptance_row_count\": 1,\n  \"go_live_evidence_completion_path_ready\": false,\n  \"l9_evidence_completion_path_ready\": false,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
     }
   ]
 }

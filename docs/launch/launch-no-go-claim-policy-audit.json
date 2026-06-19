@@ -15,10 +15,10 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "scanned_file_count": 212,
+    "scanned_file_count": 214,
     "no_go_active": true,
     "markdown_status_count": 77,
-    "json_status_count": 2,
+    "json_status_count": 3,
     "generated_pass_json_count": 35,
     "forbidden_true_claim_count": 0,
     "finding_count": 0,
@@ -175,6 +175,21 @@
     },
     {
       "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
+      "type": "markdown",
+      "status": null,
+      "status_policy": "not_applicable"
+    },
+    {
+      "path": "docs/launch/g1-e02-evidence-satisfaction-2026-06-19.json",
+      "type": "json",
+      "status": "evidence_satisfied",
+      "verdict": null,
+      "status_policy": "allowed_no_go_status",
+      "generated_pass_json": false,
+      "forbidden_true_claims": []
+    },
+    {
+      "path": "docs/launch/g1-e02-evidence-satisfaction-2026-06-19.md",
       "type": "markdown",
       "status": null,
       "status_policy": "not_applicable"

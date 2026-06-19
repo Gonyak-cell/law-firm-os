@@ -12,8 +12,8 @@ Verdict: PASS
 - failed_gate_evidence_slot_count: 31
 - l9_stabilization_closure_slot_count: 5
 - total_manual_intake_row_count: 36
-- pending_manual_intake_row_count: 36
-- evidence_satisfied_manual_intake_row_count: 0
+- pending_manual_intake_row_count: 35
+- evidence_satisfied_manual_intake_row_count: 1
 - owner_deferred_manual_intake_row_count: 0
 - phase_count: 11
 - blocked_phase_count: 11
@@ -60,8 +60,8 @@ Verdict: PASS
 
 ## Manual Intake Resolution State
 
-- Pending manual intake rows: 36
-- Evidence-satisfied manual intake rows: 0
+- Pending manual intake rows: 35
+- Evidence-satisfied manual intake rows: 1
 - Owner-deferred manual intake rows: 0
 - Coverage-eligible valid deferred rows: 0
 

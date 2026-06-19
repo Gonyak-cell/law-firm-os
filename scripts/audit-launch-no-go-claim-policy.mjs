@@ -30,6 +30,7 @@ const STATUS_ALLOWLIST = new Map([
 ]);
 
 const JSON_STATUS_ALLOWLIST = new Map([
+  ["docs/launch/g1-e02-evidence-satisfaction-2026-06-19.json", new Set(["evidence_satisfied"])],
   ["docs/launch/scope-revision-register.json", new Set(["approved"])],
   ["docs/launch/kpi-baseline-data.json", new Set(["blocked_not_collected"])]
 ]);

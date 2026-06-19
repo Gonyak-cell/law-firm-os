@@ -80,8 +80,8 @@ Verdict: NOT_COMPLETE
 ## Manual Evidence Intake
 
 - Total intake rows: 36
-- Pending intake rows: 36
-- Evidence-satisfied rows: 0
+- Pending intake rows: 35
+- Evidence-satisfied rows: 1
 - Owner-deferred rows: 0
 - Coverage-eligible valid deferred rows: 0
 - Manual intake findings: 0
@@ -89,11 +89,11 @@ Verdict: NOT_COMPLETE
 ## Evidence Acceptance Matrix
 
 - Total acceptance rows: 36
-- Pending acceptance rows: 36
-- Evidence-satisfied acceptance rows: 0
+- Pending acceptance rows: 35
+- Evidence-satisfied acceptance rows: 1
 - Owner-deferred acceptance rows: 0
 - Missing-intake acceptance rows: 0
-- Gate evidence-satisfied rows: 0
+- Gate evidence-satisfied rows: 1
 - L9 evidence-satisfied rows: 0
 - Acceptance matrix findings: 0
 
@@ -103,8 +103,8 @@ Verdict: NOT_COMPLETE
 - Go-live evidence path ready: false
 - L9 evidence path ready: false
 - All evidence paths ready: false
-- Evidence-satisfied manual rows: 0
-- Evidence-satisfied acceptance rows: 0
+- Evidence-satisfied manual rows: 1
+- Evidence-satisfied acceptance rows: 1
 
 ## Decision Register Owner Evidence
 
