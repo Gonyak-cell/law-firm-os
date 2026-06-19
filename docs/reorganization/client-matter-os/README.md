@@ -160,6 +160,7 @@ npm run client-matter:g6a:validate
 npm run client-matter:g6b:validate
 npm run client-matter:g6c:validate
 npm run client-matter:g6d:validate
+npm run client-matter:g6e:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -342,6 +343,11 @@ The G6-D validator checks AIOutput candidate default state, Citation
 required-before-confirm evidence, HumanReview confirm/reject audit evidence,
 DisableSwitch dark-launch-off evidence, test coverage, RP17 descriptor-only
 contract boundary, and the open runtime-readiness boundary.
+
+The G6-E validator checks LegalWorkflow human approval step evidence, Workflow
+Builder no-auto-final legal decision controls, AI output export privilege-label
+and ACL inheritance, AI ACL bypass blocking, test coverage, RP18
+descriptor-only contract boundary, and the open runtime-readiness boundary.
 
 ## Non-Goals
 
