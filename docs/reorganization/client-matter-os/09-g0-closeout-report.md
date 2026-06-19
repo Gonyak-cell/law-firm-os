@@ -37,9 +37,8 @@ runtime-readiness claims, and migration procedure before G1+ runtime work.
 2. Review and accept or amend `ADR-G0-002` for keeping the GitHub remote as a
    sanitized snapshot while the local historical repo still contains the
    oversized ledger file.
-3. Confirm whether `docs/reorganization/client-matter-os/` becomes the canonical
-   planning root, or whether the approved docs should later move under another
-   governance folder.
+3. Review and accept or amend `ADR-G0-003` for keeping
+   `docs/reorganization/client-matter-os/` as the canonical planning root.
 4. Confirm whether G1 and G2 should run sequentially or as two separate PRs.
 
 ## G0 Exit Criteria

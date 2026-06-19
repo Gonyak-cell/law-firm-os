@@ -53,6 +53,7 @@ ownership, boundary, and runtime-readiness evidence.
 | --- | --- |
 | `14-billing-profile-ownership-adr.md` | Proposes Party & Relationship Master as the canonical `BillingProfile` owner while Billing owns downstream workflow state. |
 | `15-github-remote-vault-flow-adr.md` | Proposes the sanitized GitHub snapshot plus draft `codex/*` PR flow as the review surface while local history remains untouched. |
+| `16-planning-root-adr.md` | Proposes this folder as the canonical G0-G7 Client-Matter OS planning root. |
 
 ## Execution Order
 
@@ -70,6 +71,13 @@ historical repository contains `docs/weighted-implementation-ledger.json`, which
 exceeds GitHub's per-file size limit. The sanitized snapshot preserves the
 working product surfaces needed for this Vault-style PR flow while leaving the
 local historical repository untouched.
+
+## Current Planning Root
+
+`docs/reorganization/client-matter-os/` is the proposed canonical planning root
+for the G0-G7 Client-Matter OS transition. Closeout-pack evidence, runtime
+contracts, and package-local implementation evidence remain in their existing
+locations.
 
 ## Validation
 
