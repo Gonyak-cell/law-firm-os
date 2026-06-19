@@ -1,0 +1,27 @@
+{
+  "schema_version": "law-firm-os.hrx-seed-fixture.v0.1",
+  "synthetic": true,
+  "production_data": false,
+  "real_employee_data_included": false,
+  "employees": [
+    {
+      "tenant_id": "tenant-synthetic",
+      "employee_id": "emp-syn-001",
+      "display_name": "Synthetic Employee One",
+      "status": "active",
+      "source_ref": "synthetic-fixture"
+    }
+  ],
+  "employment_profiles": [
+    {
+      "tenant_id": "tenant-synthetic",
+      "profile_id": "profile-syn-001",
+      "employee_id": "emp-syn-001",
+      "employment_type": "full_time",
+      "status": "active",
+      "title": "Synthetic Counsel",
+      "effective_from": "2026-06-19",
+      "source_ref": "synthetic-fixture"
+    }
+  ]
+}

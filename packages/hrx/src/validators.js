@@ -15823,3 +15823,28 @@ export function validateHrxPeopleContract(contract = {}, planPack) {
     descriptor: descriptorValidation,
   });
 }
+
+export function validateHrxRuntimePayload(payload = {}, options = {}) {
+  const errors = [];
+  const entityType = options.entity_type ?? payload.entity_type ?? "HRXRuntimePayload";
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    errors.push(`${entityType} must be an object`);
+  } else {
+    if (payload.descriptor_only === true) errors.push(`${entityType} descriptor_only payload cannot enter runtime path`);
+    if (payload.runtime_execution === false) errors.push(`${entityType} runtime_execution=false cannot satisfy runtime path`);
+    if (payload.product_state_written === false) errors.push(`${entityType} product_state_written=false cannot satisfy runtime path`);
+    if (typeof payload.tenant_id !== "string" || payload.tenant_id.trim() === "") errors.push(`${entityType} tenant_id is required`);
+    if (typeof payload.actor_id !== "string" || payload.actor_id.trim() === "") errors.push(`${entityType} actor_id is required`);
+  }
+  return Object.freeze({
+    valid: errors.length === 0,
+    ok: errors.length === 0,
+    errors: Object.freeze(errors),
+  });
+}
+
+export function assertHrxRuntimePayload(payload = {}, options = {}) {
+  const validation = validateHrxRuntimePayload(payload, options);
+  if (!validation.valid) throw new TypeError(validation.errors.join("; "));
+  return payload;
+}

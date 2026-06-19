@@ -1,19 +1,19 @@
 # Confidentiality Enum Extension Decision Brief
 
-Status: blocked_runtime_pending_owner_decision_resolved
+Status: blocked_pending_mat_dec_08
 Recorded at: 2026-06-18T10:11:17Z
 Work package: LT-PRE-W05
 Terminal TUW: LT-PRE-W05-T02
 
 ## Current Enum State
 
-`packages/domain/src/entities.js` now defines:
+`packages/domain/src/entities.js` currently defines:
 
 ```js
-export const CONFIDENTIALITY_LEVELS = ["public", "internal", "confidential", "restricted", "privileged", "hr_restricted"];
+export const CONFIDENTIALITY_LEVELS = ["public", "internal", "confidential", "restricted"];
 ```
 
-The current enum has dedicated `privileged` and `hr_restricted` values approved by the Managing Partner/System Admin on 2026-06-19.
+The current enum has no dedicated `privilege` value and no dedicated HR-sensitive value.
 
 ## Current Enum Usage Inventory
 
@@ -33,7 +33,7 @@ Usage file count: 1
 
 ## Related Risk Signals
 
-The codebase already contains privilege-like redaction fields such as `privileged_note`, and the M365 runtime contract now records `privilege_classification_decision_resolved: true`. The source governance documents also call for confidentiality/privilege/HR-sensitive classification checks.
+The codebase already contains privilege-like redaction fields such as `privileged_note`, and the M365 runtime contract has `privilege_classification_decision_resolved: false`. The source governance documents also call for confidentiality/privilege/HR-sensitive classification checks.
 
 These signals support the need for a decision, but they do not themselves decide the canonical enum values.
 
@@ -50,15 +50,15 @@ These signals support the need for a decision, but they do not themselves decide
 
 | ID | Owner role | Required decision | Blocking scope | Status |
 |---|---|---|---|---|
-| ESC-LT-PRE-W05-001 | Launch owner / data classification approver | Decide the closed confidentiality enum list and the application boundary before related runtime RP work | PRE-EXIT, permission/audit classification, M365 privilege field, HRX sensitive data, L2 enum alignment | resolved_owner_decision_recorded_runtime_pending |
+| ESC-LT-PRE-W05-001 | Launch owner / data classification approver | Decide the closed confidentiality enum list and the application boundary before related runtime RP work | PRE-EXIT, permission/audit classification, M365 privilege field, HRX sensitive data, L2 enum alignment | open |
 
 ## T02 Boundary
 
-`docs/launch/confidentiality-enum-extension-spec.md` is now created because LT-PRE-W05-T02 has a decided value scheme. The spec records the closed list and application boundary without approving real HR or M365 runtime data use.
+`docs/launch/confidentiality-enum-extension-spec.md` is not created by this blocked record because LT-PRE-W05-T02 depends on a decided value scheme. Without the closed list, any value-by-permission/audit/HR mapping table would be synthetic.
 
 ## Non-Weakening Boundary
 
-This brief changes `CONFIDENTIALITY_LEVELS`, does not weaken existing four-value semantics, does not alter production fixtures, and does not claim M365/HR runtime readiness.
+This brief does not change `CONFIDENTIALITY_LEVELS`, does not weaken existing four-value semantics, does not alter fixtures, and does not claim the privilege/HR-sensitive decision is complete.
 
 ## Review Policy
 

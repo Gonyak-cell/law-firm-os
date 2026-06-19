@@ -15,14 +15,14 @@ Generated at: 2026-06-18T15:48:40.447Z
 ## Summary
 
 - failed_gate_count: 10
-- gate_acceptance_row_count: 29
+- gate_acceptance_row_count: 31
 - l9_acceptance_row_count: 5
-- total_acceptance_row_count: 34
-- pending_acceptance_row_count: 34
+- total_acceptance_row_count: 36
+- pending_acceptance_row_count: 36
 - evidence_satisfied_acceptance_row_count: 0
 - owner_deferred_acceptance_row_count: 0
 - missing_intake_acceptance_row_count: 0
-- gate_pending_acceptance_row_count: 29
+- gate_pending_acceptance_row_count: 31
 - gate_evidence_satisfied_acceptance_row_count: 0
 - gate_owner_deferred_acceptance_row_count: 0
 - l9_pending_acceptance_row_count: 5
@@ -37,6 +37,8 @@ Generated at: 2026-06-18T15:48:40.447Z
 
 | Acceptance | Gate | Evidence | Slot | Required state | Intake | Related blocked WP |
 | --- | --- | --- | --- | --- | --- | ---: |
+| ACC-GL-G1-G1-E02 | G1 | G1-E02 | deferred_item_rejudgment_register | blocking_remaining_count_zero | GL-G1-G1-E02 | 5 |
+| ACC-GL-G1-G1-E03 | G1 | G1-E03 | hardening_coverage_matrix | all_missing_cells_adjudicated_or_zero | GL-G1-G1-E03 | 5 |
 | ACC-GL-G2-G2-E01 | G2 | G2-E01 | wave1_runtime_ready_matrix | approved_wave1_runtime_ready_completeness_rule_satisfied | GL-G2-G2-E01 | 7 |
 | ACC-GL-G2-G2-E02 | G2 | G2-E02 | runtime_integration_test_output | all_tests_pass_with_timestamp | GL-G2-G2-E02 | 7 |
 | ACC-GL-G2-G2-E03 | G2 | G2-E03 | rtg_001_005_attestation_links | all_links_resolve | GL-G2-G2-E03 | 7 |

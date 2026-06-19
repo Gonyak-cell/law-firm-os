@@ -13,10 +13,10 @@ Generated at: 2026-06-18T16:53:25.910Z
 
 ## Summary
 
-- source_missing_deferral_target_count: 115
-- template_row_count: 115
-- recommended_decision_id_count: 115
-- placeholder_row_count: 115
+- source_missing_deferral_target_count: 117
+- template_row_count: 117
+- recommended_decision_id_count: 117
+- placeholder_row_count: 117
 - primary_lane_count: 8
 - unclassified_target_count: 0
 
@@ -24,6 +24,8 @@ Generated at: 2026-06-18T16:53:25.910Z
 
 | Recommended decision ID | Coverage | Lane | Owner | Decision | Basis | Date/revisit gate | Approval signature | Status to use only after approval | Alternatives |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ACC-GL-G1-G1-E02 | ACC-GL-G1-G1-E02 | go_live_gate_evidence | <OWNER_ROLE_AND_NAME_REQUIRED> | <OWNER_DEFERRAL_DECISION_REQUIRED> | <OWNER_DEFERRAL_BASIS_REQUIRED> | <TARGET_DATE_OR_REVISIT_GATE_REQUIRED> | <APPROVAL_SIGNATURE_REFERENCE_REQUIRED> | deferred(시한 명기) | COVERAGE-GATE-G1<br>COVERAGE-ALL-GO-LIVE |
+| ACC-GL-G1-G1-E03 | ACC-GL-G1-G1-E03 | go_live_gate_evidence | <OWNER_ROLE_AND_NAME_REQUIRED> | <OWNER_DEFERRAL_DECISION_REQUIRED> | <OWNER_DEFERRAL_BASIS_REQUIRED> | <TARGET_DATE_OR_REVISIT_GATE_REQUIRED> | <APPROVAL_SIGNATURE_REFERENCE_REQUIRED> | deferred(시한 명기) | COVERAGE-GATE-G1<br>COVERAGE-ALL-GO-LIVE |
 | ACC-GL-G2-G2-E01 | ACC-GL-G2-G2-E01 | go_live_gate_evidence | <OWNER_ROLE_AND_NAME_REQUIRED> | <OWNER_DEFERRAL_DECISION_REQUIRED> | <OWNER_DEFERRAL_BASIS_REQUIRED> | <TARGET_DATE_OR_REVISIT_GATE_REQUIRED> | <APPROVAL_SIGNATURE_REFERENCE_REQUIRED> | deferred(시한 명기) | COVERAGE-GATE-G2<br>COVERAGE-ALL-GO-LIVE |
 | ACC-GL-G2-G2-E02 | ACC-GL-G2-G2-E02 | go_live_gate_evidence | <OWNER_ROLE_AND_NAME_REQUIRED> | <OWNER_DEFERRAL_DECISION_REQUIRED> | <OWNER_DEFERRAL_BASIS_REQUIRED> | <TARGET_DATE_OR_REVISIT_GATE_REQUIRED> | <APPROVAL_SIGNATURE_REFERENCE_REQUIRED> | deferred(시한 명기) | COVERAGE-GATE-G2<br>COVERAGE-ALL-GO-LIVE |
 | ACC-GL-G2-G2-E03 | ACC-GL-G2-G2-E03 | go_live_gate_evidence | <OWNER_ROLE_AND_NAME_REQUIRED> | <OWNER_DEFERRAL_DECISION_REQUIRED> | <OWNER_DEFERRAL_BASIS_REQUIRED> | <TARGET_DATE_OR_REVISIT_GATE_REQUIRED> | <APPROVAL_SIGNATURE_REFERENCE_REQUIRED> | deferred(시한 명기) | COVERAGE-GATE-G2<br>COVERAGE-ALL-GO-LIVE |

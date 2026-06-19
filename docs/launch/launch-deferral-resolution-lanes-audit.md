@@ -6,10 +6,10 @@ Verdict: PASS
 
 ## Summary
 
-- missing_deferral_target_count: 115
-- classified_target_count: 115
+- missing_deferral_target_count: 117
+- classified_target_count: 117
 - primary_lane_count: 8
-- lane_mention_count: 144
+- lane_mention_count: 146
 - unclassified_target_count: 0
 - finding_count: 0
 - p0_count: 0
@@ -19,7 +19,7 @@ Verdict: PASS
 
 | Lane | Targets |
 | --- | ---: |
-| go_live_gate_evidence | 29 |
+| go_live_gate_evidence | 31 |
 | owner_decision_signature | 27 |
 | runtime_operational_evidence | 24 |
 | phase_exit_closure_or_deferral | 11 |
@@ -33,8 +33,8 @@ Verdict: PASS
 | Lane | Mentions |
 | --- | ---: |
 | runtime_operational_evidence | 36 |
+| go_live_gate_evidence | 31 |
 | owner_decision_signature | 31 |
-| go_live_gate_evidence | 29 |
 | policy_scope_decision | 16 |
 | phase_exit_closure_or_deferral | 11 |
 | external_dependency | 10 |
@@ -45,6 +45,8 @@ Verdict: PASS
 
 | Primary lane | Coverage | Domain | Action source | Action ref |
 | --- | --- | --- | --- | --- |
+| go_live_gate_evidence | ACC-GL-G1-G1-E02 | go_live_gate_evidence | manual_intake_and_failed_gate_action | GL-G1-G1-E02 |
+| go_live_gate_evidence | ACC-GL-G1-G1-E03 | go_live_gate_evidence | manual_intake_and_failed_gate_action | GL-G1-G1-E03 |
 | go_live_gate_evidence | ACC-GL-G2-G2-E01 | go_live_gate_evidence | manual_intake_and_failed_gate_action | GL-G2-G2-E01 |
 | go_live_gate_evidence | ACC-GL-G2-G2-E02 | go_live_gate_evidence | manual_intake_and_failed_gate_action | GL-G2-G2-E02 |
 | go_live_gate_evidence | ACC-GL-G2-G2-E03 | go_live_gate_evidence | manual_intake_and_failed_gate_action | GL-G2-G2-E03 |

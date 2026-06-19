@@ -1,0 +1,71 @@
+# HRX Enterprise Sequential Pack PR Board
+
+Status: planning-only execution board
+Date: 2026-06-19
+Source TUWs: 88
+Execution packs: 18
+PR lanes: 12
+
+## Execution Rule
+
+Packs are sequential. A later pack may be designed earlier, but implementation does not start until the previous pack exit gate is proven by current repo evidence. PR lanes are review bundles; when a PR lane contains multiple packs, the packs still execute in order inside that PR lane.
+
+## Claim Ladder
+
+| Stage | Allowed claim | Blocked claim |
+| --- | --- | --- |
+| HRX-P01 to HRX-P02 | Boundary and governance planned/implemented | runtime-ready, production-ready |
+| HRX-P03 to HRX-P06 | Runtime foundation/trust boundary partial | API/UI/e2e ready unless those gates exist |
+| HRX-P07 to HRX-P13 | API/UI/workflow runtime slices ready by scope | enterprise HRIS ready |
+| HRX-P14 to HRX-P17 | AI/analytics/hardening readiness by gate | AI final decision, payroll calculation runtime |
+| HRX-P18 | Release package ready for human decision | go-live without human receipt |
+
+## PR Lanes
+
+| PR Lane | Packs | TUWs | TUW Range | Window | Severities |
+| --- | --- | ---: | --- | --- | --- |
+| PR-01 | HRX-P01, HRX-P02 | 8 | HRX-ENT-L0-W01-T01 - HRX-ENT-L1-W01-T04 | 30d | P1, P0 |
+| PR-02 | HRX-P03 | 4 | HRX-ENT-L2-W01-T01 - HRX-ENT-L2-W01-T04 | 30d | P0, P1 |
+| PR-03 | HRX-P04 | 6 | HRX-ENT-L2-W01-T05 - HRX-ENT-L2-W01-T10 | 30d | P0, P1 |
+| PR-04 | HRX-P05, HRX-P06 | 10 | HRX-ENT-L3-W01-T01 - HRX-ENT-L3-W01-T10 | 30d | P1, P0 |
+| PR-05 | HRX-P07, HRX-P08 | 10 | HRX-ENT-L4-W01-T01 - HRX-ENT-L4-W01-T10 | 60d | P0, P1 |
+| PR-06 | HRX-P09 | 5 | HRX-ENT-L5-W01-T01 - HRX-ENT-L5-W01-T05 | 60d | P1 |
+| PR-07 | HRX-P10 | 5 | HRX-ENT-L5-W01-T06 - HRX-ENT-L5-W01-T10 | 60d | P1, P0 |
+| PR-08 | HRX-P11 | 5 | HRX-ENT-L5-W01-T11 - HRX-ENT-L5-W01-T15 | 60d | P1 |
+| PR-09 | HRX-P12, HRX-P13 | 10 | HRX-ENT-L6-W01-T01 - HRX-ENT-L6-W01-T10 | 60d | P1, P0 |
+| PR-10 | HRX-P14, HRX-P15 | 10 | HRX-ENT-L7-W01-T01 - HRX-ENT-L7-W01-T10 | 90d | P1, P0 |
+| PR-11 | HRX-P16, HRX-P17 | 10 | HRX-ENT-L8-W01-T01 - HRX-ENT-L8-W01-T10 | 90d | P1, P0 |
+| PR-12 | HRX-P18 | 5 | HRX-ENT-L8-W02-T01 - HRX-ENT-L8-W02-T05 | 90d | P1 |
+
+## Pack Board
+
+| Order | Pack | PR Lane | Name | TUWs | TUW Range | Entry Gate | Exit Gate | Commands | Main Targets |
+| ---: | --- | --- | --- | ---: | --- | --- | --- | --- | --- |
+| 1 | HRX-P01 | PR-01 | Boundary | 4 | HRX-ENT-L0-W01-T01 - HRX-ENT-L0-W01-T04 | Pack 0 intake accepted | Boundary docs/contracts block standalone HR SaaS, payroll runtime, and AI final judgment overclaims | review checklist<br>docs lint<br>contract validator | docs/hrx-enterprise/00-boundary-decision.md<br>docs/hrx-enterprise/01-terminology.md<br>contracts/hrx-payroll-boundary.json<br>contracts/hrx-ai-decision-boundary.json |
+| 2 | HRX-P02 | PR-01 | Governance | 4 | HRX-ENT-L1-W01-T01 - HRX-ENT-L1-W01-T04 | HRX-P01 exit gate passed | Runtime readiness validator exists and cannot pass on descriptor-only evidence | manual review<br>npm run hrx:runtime:validate<br>npm run validate<br>review checklist | .github/pull_request_template.md<br>docs/hrx-enterprise/02-tuw-governance.md<br>scripts/validate-hrx-runtime-readiness.mjs<br>package.json<br>scripts/validate-rp30-hrx-people-contract.mjs |
+| 3 | HRX-P03 | PR-02 | Runtime Core A | 4 | HRX-ENT-L2-W01-T01 - HRX-ENT-L2-W01-T04 | HRX-P02 exit gate passed | Employee, EmploymentProfile, and EmployeeUserLink schema/repository/link tests pass | node --test packages/hrx/test/schema.test.js<br>npm run db:migrate:test<br>node --test packages/hrx/test/repository.test.js<br>node --test packages/hrx/test/identity-link.test.js | packages/hrx/src/schema.js<br>packages/hrx/src/migrations/001_hrx_core.sql<br>packages/hrx/src/repository.js<br>packages/hrx/src/identity-link.js |
+| 4 | HRX-P04 | PR-03 | Runtime Core B | 6 | HRX-ENT-L2-W01-T05 - HRX-ENT-L2-W01-T10 | HRX-P03 exit gate passed | Tenant/actor context, service shell, validators, seed, master-data, and matter projection ports pass fail-closed checks | node --test apps/api/test/context.test.js<br>node --test packages/hrx/test/service.test.js<br>node --test packages/hrx/test/validators.test.js<br>node scripts/seed-hrx-fixtures.mjs --dry-run<br>node --test packages/master-data/test/hrx-refs.test.js<br>node --test packages/matter/test/hrx-workload-projection.test.js | apps/api/src/middleware/tenant-context.js<br>apps/api/src/middleware/actor-context.js<br>packages/hrx/src/service.js<br>packages/hrx/src/validators.js<br>packages/hrx/fixtures/seed-employees.synthetic.json |
+| 5 | HRX-P05 | PR-04 | Trust Boundary A | 5 | HRX-ENT-L3-W01-T01 - HRX-ENT-L3-W01-T05 | HRX-P04 exit gate passed | HR-sensitive scopes and first policy set deny by default with negative tests | node --test packages/authz/test/hrx-scopes.test.js<br>node --test packages/authz/test/hrx-policy-engine.test.js<br>node --test packages/authz/test/hrx-compensation-policy.test.js<br>node --test packages/authz/test/hrx-evaluation-policy.test.js<br>node --test packages/authz/test/hrx-candidate-policy.test.js | packages/authz/src/hrx-sensitive-scopes.js<br>packages/authz/src/hrx-policy-engine.js<br>packages/authz/src/hrx-compensation-policy.js<br>packages/authz/src/hrx-evaluation-policy.js<br>packages/authz/src/hrx-candidate-policy.js |
+| 6 | HRX-P06 | PR-04 | Trust Boundary B | 5 | HRX-ENT-L3-W01-T06 - HRX-ENT-L3-W01-T10 | HRX-P05 exit gate passed | Sensitive read/write audit append, masking, and break-glass tests pass | node --test packages/audit/test/hrx-events.test.js<br>node --test packages/audit/test/hrx-event-store.test.js<br>node --test apps/api/test/hrx-audit-write.test.js<br>node --test packages/hrx/test/field-masker.test.js<br>node --test packages/authz/test/hrx-break-glass.test.js | packages/audit/src/hrx-events.js<br>packages/audit/src/hrx-event-store.js<br>apps/api/src/middleware/hrx-audit-write.js<br>packages/hrx/src/field-masker.js<br>packages/authz/src/hrx-break-glass.js |
+| 7 | HRX-P07 | PR-05 | Core HRIS A | 5 | HRX-ENT-L4-W01-T01 - HRX-ENT-L4-W01-T05 | HRX-P06 exit gate passed | Employee API, profile lifecycle, org/reporting, assignment, and HR document metadata persist and audit | node --test apps/api/test/hrx/employees.test.js<br>node --test packages/hrx/test/employment-profile.test.js<br>node --test packages/hrx/test/org.test.js<br>node --test packages/hrx/test/assignment.test.js<br>node --test apps/api/test/hrx/documents.test.js | apps/api/src/routes/hrx/employees.js<br>packages/hrx/src/employment-profile.js<br>packages/hrx/src/org.js<br>packages/hrx/src/reporting-line.js<br>packages/hrx/src/assignment.js |
+| 8 | HRX-P08 | PR-05 | Core HRIS B | 5 | HRX-ENT-L4-W01-T06 - HRX-ENT-L4-W01-T10 | HRX-P07 exit gate passed | Contracts, compensation metadata, payroll boundary, retention/legal hold, and people graph pass no-leak tests | node --test packages/hrx/test/contracts.test.js<br>node --test packages/hrx/test/compensation.test.js<br>node --test apps/api/test/hrx/payroll.test.js<br>node --test packages/hrx/test/retention.test.js<br>node --test packages/hrx/test/people-graph.test.js | packages/hrx/src/contracts.js<br>packages/hrx/src/compensation.js<br>packages/hrx/src/payroll-boundary.js<br>apps/api/src/routes/hrx/payroll.js<br>packages/hrx/src/retention.js |
+| 9 | HRX-P09 | PR-06 | Workflow A | 5 | HRX-ENT-L5-W01-T01 - HRX-ENT-L5-W01-T05 | HRX-P08 exit gate passed | Leave, attendance, and overtime workflows transition only through audited approval states | node --test packages/hrx/test/leave-policy.test.js<br>node --test packages/hrx/test/leave-balance.test.js<br>node --test apps/api/test/hrx/leave.test.js<br>node --test packages/hrx/test/attendance.test.js<br>node --test packages/hrx/test/overtime.test.js | packages/hrx/src/rules/leave-policy.js<br>packages/hrx/src/leave/balance.js<br>packages/hrx/src/leave/request-service.js<br>apps/api/src/routes/hrx/leave.js<br>packages/hrx/src/attendance.js |
+| 10 | HRX-P10 | PR-07 | Workflow B | 5 | HRX-ENT-L5-W01-T06 - HRX-ENT-L5-W01-T10 | HRX-P09 exit gate passed | Recruiting/candidate/application/interview/offer workflows stay separate from CRM Party and audited | node --test packages/hrx/test/job-opening.test.js<br>node --test packages/hrx/test/candidate.test.js<br>node --test packages/hrx/test/application.test.js<br>node --test packages/hrx/test/interview.test.js<br>node --test packages/hrx/test/offer.test.js | packages/hrx/src/recruiting/job-opening.js<br>packages/hrx/src/recruiting/candidate.js<br>packages/hrx/src/recruiting/application.js<br>packages/hrx/src/recruiting/interview.js<br>packages/hrx/src/recruiting/offer.js |
+| 11 | HRX-P11 | PR-08 | Workflow C | 5 | HRX-ENT-L5-W01-T11 - HRX-ENT-L5-W01-T15 | HRX-P10 exit gate passed | Onboarding/offboarding/risk/legal-risk/approval engine passes access revoke and legal hold checks | node --test packages/hrx/test/onboarding.test.js<br>node --test packages/hrx/test/offboarding.test.js<br>node --test packages/hrx/test/risk-event.test.js<br>node --test packages/hrx/test/legal-risk.test.js<br>node --test packages/hrx/test/approval.test.js | packages/hrx/src/onboarding.js<br>packages/hrx/src/offboarding.js<br>packages/hrx/src/risk-event.js<br>packages/hrx/src/legal-risk.js<br>packages/matter/src/hr-risk-link.js |
+| 12 | HRX-P12 | PR-09 | Portal API A | 5 | HRX-ENT-L6-W01-T01 - HRX-ENT-L6-W01-T05 | HRX-P11 exit gate passed | People shell/list/profile/docs/leave UI use API-backed state, no static acceptance data | npm run web:e2e -- people-home<br>npm run web:e2e -- employee-list<br>npm run web:e2e -- employee-profile<br>npm run web:e2e -- hr-documents<br>npm run web:e2e -- leave-request | apps/web/src/people/PeopleHome.tsx<br>apps/web/src/people/employees/EmployeeList.tsx<br>apps/web/src/people/employees/EmployeeProfile.tsx<br>apps/web/src/people/documents/HRDocumentWorkspace.tsx<br>apps/web/src/people/leave/LeaveRequestPage.tsx |
+| 13 | HRX-P13 | PR-09 | Portal API B | 5 | HRX-ENT-L6-W01-T06 - HRX-ENT-L6-W01-T10 | HRX-P12 exit gate passed | Manager queue, candidate portal, recruiting, policy console, and audit viewer are role-scoped and API-backed | npm run web:e2e -- manager-approval<br>npm run web:e2e -- candidate-portal<br>npm run web:e2e -- recruiting-pipeline<br>npm run web:e2e -- hrx-policy-console<br>npm run web:e2e -- hrx-audit-viewer | apps/web/src/people/approvals/ManagerApprovalQueue.tsx<br>apps/web/src/candidate/CandidatePortal.tsx<br>apps/web/src/people/recruiting/RecruitingPipeline.tsx<br>apps/web/src/admin/hrx/HRXPolicyConsole.tsx<br>apps/web/src/admin/hrx/HRXAuditViewer.tsx |
+| 14 | HRX-P14 | PR-10 | AI Analytics A | 5 | HRX-ENT-L7-W01-T01 - HRX-ENT-L7-W01-T05 | HRX-P13 exit gate passed | Permission-aware RAG excludes denied sources and no-final-judgment guard blocks final decisions | node --test packages/hrx/test/ai-source-registry.test.js<br>node --test packages/hrx/test/ai-rag-authz.test.js<br>node --test packages/hrx/test/ai-answer-schema.test.js<br>node --test packages/hrx/test/ai-decision-guard.test.js<br>node --test packages/hrx/test/ai-audit.test.js | packages/hrx/src/ai/source-registry.js<br>packages/hrx/src/ai/rag.js<br>packages/hrx/src/ai/answer-schema.js<br>packages/hrx/src/ai/decision-guard.js<br>packages/hrx/src/ai/audit.js |
+| 15 | HRX-P15 | PR-10 | AI Analytics B | 5 | HRX-ENT-L7-W01-T06 - HRX-ENT-L7-W01-T10 | HRX-P14 exit gate passed | AI review queue, analytics, workload projection, dashboards, and assistant stay source-grounded and reviewed | node --test apps/api/test/hrx/ai.test.js<br>node --test packages/hrx/test/analytics.test.js<br>node --test packages/matter/test/hrx-workload-projection.test.js<br>npm run web:e2e -- hrx-analytics<br>npm run web:e2e -- hrx-ai-assistant | packages/hrx/src/ai/review-queue.js<br>apps/api/src/routes/hrx/ai.js<br>packages/hrx/src/analytics.js<br>packages/matter/src/hrx-workload-projection.js<br>apps/web/src/people/analytics/HRAnalytics.tsx |
+| 16 | HRX-P16 | PR-11 | Hardening A | 5 | HRX-ENT-L8-W01-T01 - HRX-ENT-L8-W01-T05 | HRX-P15 exit gate passed | SSO, MFA, SCIM, tenant isolation, and metrics security gates pass | node --test packages/authz/test/sso-subject-map.test.js<br>node --test apps/api/test/hrx-step-up.test.js<br>node --test packages/hrx/test/scim-boundary.test.js<br>npm test -- tenant-isolation<br>node --test apps/api/test/hrx-observability.test.js | packages/authz/src/sso-subject-map.js<br>apps/api/src/middleware/hrx-step-up.js<br>packages/hrx/src/scim-boundary.js<br>apps/api/test/hrx/tenant-isolation.test.js<br>packages/hrx/src/observability.js |
+| 17 | HRX-P17 | PR-11 | Hardening B | 5 | HRX-ENT-L8-W01-T06 - HRX-ENT-L8-W01-T10 | HRX-P16 exit gate passed | Compliance report, backup/restore, negative security gate, UAT, and enterprise readiness validator pass or explicit no-go | node --test packages/hrx/test/compliance-report.test.js<br>node scripts/hrx-backup-restore-smoke.mjs --dry-run<br>npm run hrx:security:validate<br>npm run web:e2e -- hrx<br>npm run hrx:enterprise:validate | packages/hrx/src/compliance-report.js<br>scripts/hrx-backup-restore-smoke.mjs<br>scripts/validate-hrx-security-negative-tests.mjs<br>docs/hrx-enterprise/uat-scenarios.md<br>apps/web/e2e/hrx/*.spec.ts |
+| 18 | HRX-P18 | PR-12 | Release Adoption | 5 | HRX-ENT-L8-W02-T01 - HRX-ENT-L8-W02-T05 | HRX-P17 exit gate passed | PR board, rollback, feature flags, go-live checklist, and developer handoff receipt complete with human release gate | manual review<br>runbook review<br>contract validator<br>sign-off | docs/hrx-enterprise/pr-sequence.md<br>docs/hrx-enterprise/cutover-runbook.md<br>contracts/hrx-feature-flags.json<br>docs/hrx-enterprise/go-live-checklist.md<br>docs/hrx-enterprise/dev-handoff-receipt.md |
+
+## No-Go Conditions
+
+- Any TUW tries to treat descriptor-only evidence as runtime-ready evidence.
+- Employee and User identities are conflated.
+- Payroll calculation runtime appears before the payroll boundary is explicitly approved.
+- HR AI produces hire/fire/pay/evaluation/discipline/termination final decisions.
+- Sensitive HR read/write lacks both permission decision and audit append.
+- Static UI fixtures are accepted as API-backed UI evidence.
+- Enterprise readiness is claimed before HRX-P17 and HRX-P18 gates.

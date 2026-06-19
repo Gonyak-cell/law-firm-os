@@ -27,14 +27,14 @@
   },
   "summary": {
     "failed_gate_count": 10,
-    "gate_acceptance_row_count": 29,
+    "gate_acceptance_row_count": 31,
     "l9_acceptance_row_count": 5,
-    "total_acceptance_row_count": 34,
-    "pending_acceptance_row_count": 34,
+    "total_acceptance_row_count": 36,
+    "pending_acceptance_row_count": 36,
     "evidence_satisfied_acceptance_row_count": 0,
     "owner_deferred_acceptance_row_count": 0,
     "missing_intake_acceptance_row_count": 0,
-    "gate_pending_acceptance_row_count": 29,
+    "gate_pending_acceptance_row_count": 31,
     "gate_evidence_satisfied_acceptance_row_count": 0,
     "gate_owner_deferred_acceptance_row_count": 0,
     "l9_pending_acceptance_row_count": 5,
@@ -46,6 +46,102 @@
     "go_live_all_pass": false
   },
   "gate_acceptance_rows": [
+    {
+      "acceptance_id": "ACC-GL-G1-G1-E02",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G1-G1-E02",
+      "gate_id": "G1",
+      "dimension": "completion",
+      "evidence_id": "G1-E02",
+      "slot": "deferred_item_rejudgment_register",
+      "required_state": "blocking_remaining_count_zero",
+      "gate_criteria": [
+        "Final Product Completion Gate is green.",
+        "Every deferred item has a fresh blocking, non-blocking, or wave-2-plus disposition.",
+        "No blocking deferred item remains open.",
+        "Hardening coverage is either complete or every missing cell has adjudication."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L0-W01",
+        "LT-L0-W02",
+        "LT-L0-W03",
+        "LT-L0-W05",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G1-G1-E03",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G1-G1-E03",
+      "gate_id": "G1",
+      "dimension": "completion",
+      "evidence_id": "G1-E03",
+      "slot": "hardening_coverage_matrix",
+      "required_state": "all_missing_cells_adjudicated_or_zero",
+      "gate_criteria": [
+        "Final Product Completion Gate is green.",
+        "Every deferred item has a fresh blocking, non-blocking, or wave-2-plus disposition.",
+        "No blocking deferred item remains open.",
+        "Hardening coverage is either complete or every missing cell has adjudication."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L0-W01",
+        "LT-L0-W02",
+        "LT-L0-W03",
+        "LT-L0-W05",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
     {
       "acceptance_id": "ACC-GL-G2-G2-E01",
       "acceptance_type": "go_live_gate_evidence",

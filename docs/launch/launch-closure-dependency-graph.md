@@ -9,9 +9,9 @@ Verdict: PASS
 - phase_node_count: 11
 - blocked_phase_node_count: 11
 - failed_gate_node_count: 10
-- gate_acceptance_node_count: 29
+- gate_acceptance_node_count: 31
 - l9_closure_node_count: 5
-- pending_acceptance_node_count: 34
+- pending_acceptance_node_count: 36
 - evidence_satisfied_acceptance_node_count: 0
 - owner_deferred_acceptance_node_count: 0
 - missing_intake_acceptance_node_count: 0
@@ -44,7 +44,7 @@ Verdict: PASS
 
 | Gate | Status | Acceptance rows | Related blocked WP | Related phases |
 | --- | --- | ---: | ---: | --- |
-| G1 | fail | 0 | 0 | none |
+| G1 | fail | 2 | 5 | L0, L8 |
 | G2 | fail | 3 | 7 | L0, L2, L8 |
 | G3 | fail | 4 | 7 | L0, L2, L5, L8 |
 | G4 | fail | 4 | 8 | L3, L5, L8 |
@@ -67,7 +67,7 @@ Verdict: PASS
 
 ## Acceptance Resolution State
 
-- Pending acceptance nodes: 34
+- Pending acceptance nodes: 36
 - Evidence-satisfied acceptance nodes: 0
 - Owner-deferred acceptance nodes: 0
 - Missing-intake acceptance nodes: 0

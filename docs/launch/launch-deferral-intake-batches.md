@@ -13,14 +13,14 @@ Generated at: 2026-06-18T17:00:24.650Z
 
 ## Summary
 
-- missing_deferral_target_count: 115
-- intake_target_count: 115
+- missing_deferral_target_count: 117
+- intake_target_count: 117
 - batch_count: 8
 - non_empty_batch_count: 8
-- template_matched_target_count: 115
-- recommended_decision_id_count: 115
-- owner_input_required_count: 115
-- not_approved_target_count: 115
+- template_matched_target_count: 117
+- recommended_decision_id_count: 117
+- owner_input_required_count: 117
+- not_approved_target_count: 117
 
 ## Batch Summary
 
@@ -31,7 +31,7 @@ Generated at: 2026-06-18T17:00:24.650Z
 | B03 | policy_scope_decision | 3 | Resolve policy/scope choices, or obtain owner-approved deferrals with basis and revisit gates. |
 | B04 | runtime_operational_evidence | 24 | Provide real runtime, staging, monitoring, rollback, DR, pilot, or operational evidence, or defer with owner approval. |
 | B05 | evidence_completion | 6 | Fill missing evidence cells, links, records, and acceptance artifacts, or defer with owner approval. |
-| B06 | go_live_gate_evidence | 29 | Supply failed go-live gate evidence slots, or record coverage-eligible owner-approved deferrals. |
+| B06 | go_live_gate_evidence | 31 | Supply failed go-live gate evidence slots, or record coverage-eligible owner-approved deferrals. |
 | B07 | phase_exit_closure_or_deferral | 11 | Close phase exits through real WP evidence, or record phase-exit owner-approved deferrals. |
 | B08 | l9_stabilization_measurement | 5 | Provide measured L9 stabilization/hypercare evidence, or record owner-approved deferrals. |
 
@@ -134,6 +134,8 @@ Generated at: 2026-06-18T17:00:24.650Z
 
 | Coverage | Domain | Action source | Action ref | Recommended decision ID | Approval state |
 | --- | --- | --- | --- | --- | --- |
+| ACC-GL-G1-G1-E02 | go_live_gate_evidence | manual_intake_and_failed_gate_action | GL-G1-G1-E02 | ACC-GL-G1-G1-E02 | not_approved_template_only |
+| ACC-GL-G1-G1-E03 | go_live_gate_evidence | manual_intake_and_failed_gate_action | GL-G1-G1-E03 | ACC-GL-G1-G1-E03 | not_approved_template_only |
 | ACC-GL-G10-G10-E01 | go_live_gate_evidence | manual_intake_and_failed_gate_action | GL-G10-G10-E01 | ACC-GL-G10-G10-E01 | not_approved_template_only |
 | ACC-GL-G10-G10-E02 | go_live_gate_evidence | manual_intake_and_failed_gate_action | GL-G10-G10-E02 | ACC-GL-G10-G10-E02 | not_approved_template_only |
 | ACC-GL-G10-G10-E03 | go_live_gate_evidence | manual_intake_and_failed_gate_action | GL-G10-G10-E03 | ACC-GL-G10-G10-E03 | not_approved_template_only |

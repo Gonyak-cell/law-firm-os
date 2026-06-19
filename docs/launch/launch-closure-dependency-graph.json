@@ -24,9 +24,9 @@
     "phase_node_count": 11,
     "blocked_phase_node_count": 11,
     "failed_gate_node_count": 10,
-    "gate_acceptance_node_count": 29,
+    "gate_acceptance_node_count": 31,
     "l9_closure_node_count": 5,
-    "pending_acceptance_node_count": 34,
+    "pending_acceptance_node_count": 36,
     "evidence_satisfied_acceptance_node_count": 0,
     "owner_deferred_acceptance_node_count": 0,
     "missing_intake_acceptance_node_count": 0,
@@ -76,6 +76,8 @@
         "G3"
       ],
       "related_acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03",
         "ACC-GL-G2-G2-E01",
         "ACC-GL-G2-G2-E02",
         "ACC-GL-G2-G2-E03",
@@ -301,6 +303,8 @@
         "G9"
       ],
       "related_acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03",
         "ACC-GL-G10-G10-E01",
         "ACC-GL-G10-G10-E02",
         "ACC-GL-G10-G10-E03",
@@ -352,10 +356,25 @@
     {
       "gate_id": "G1",
       "status": "fail",
-      "failed_evidence_ids": [],
-      "acceptance_ids": [],
-      "related_blocked_wp_ids": [],
-      "related_phase_ids": []
+      "failed_evidence_ids": [
+        "G1-E02",
+        "G1-E03"
+      ],
+      "acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03"
+      ],
+      "related_blocked_wp_ids": [
+        "LT-L0-W01",
+        "LT-L0-W02",
+        "LT-L0-W03",
+        "LT-L0-W05",
+        "LT-L8-W02"
+      ],
+      "related_phase_ids": [
+        "L0",
+        "L8"
+      ]
     },
     {
       "gate_id": "G2",
@@ -734,7 +753,10 @@
       "command_status": "blocked_pending_human_acceptance",
       "evidence_base": "docs/goal-closeout/lt-l0-w01",
       "terminal_tuw": "LT-L0-W01-T05",
-      "related_acceptance_ids": [],
+      "related_acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03"
+      ],
       "next_required_action": null
     },
     {
@@ -752,6 +774,8 @@
       "evidence_base": "docs/goal-closeout/lt-l0-w02",
       "terminal_tuw": "LT-L0-W02-T04",
       "related_acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03",
         "ACC-GL-G2-G2-E01",
         "ACC-GL-G2-G2-E02",
         "ACC-GL-G2-G2-E03"
@@ -771,7 +795,10 @@
       "command_status": "blocked_pending_owner_rejudgment",
       "evidence_base": "docs/goal-closeout/lt-l0-w03",
       "terminal_tuw": "LT-L0-W03-T03",
-      "related_acceptance_ids": [],
+      "related_acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03"
+      ],
       "next_required_action": null
     },
     {
@@ -808,7 +835,10 @@
       "command_status": "blocked_pending_owner_ratification_and_cell_evidence",
       "evidence_base": "docs/goal-closeout/lt-l0-w05",
       "terminal_tuw": "LT-L0-W05-T02",
-      "related_acceptance_ids": [],
+      "related_acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03"
+      ],
       "next_required_action": null
     },
     {
@@ -1831,6 +1861,8 @@
       "evidence_base": "docs/goal-closeout/lt-l8-w02",
       "terminal_tuw": "LT-L8-W02-T10",
       "related_acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03",
         "ACC-GL-G10-G10-E01",
         "ACC-GL-G10-G10-E02",
         "ACC-GL-G10-G10-E03",

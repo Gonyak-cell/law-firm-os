@@ -16,18 +16,18 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "missing_deferral_target_count": 115,
-    "template_row_count": 115,
-    "intake_target_count": 115,
+    "missing_deferral_target_count": 117,
+    "template_row_count": 117,
+    "intake_target_count": 117,
     "minimum_bundle_decision_id_count": 4,
-    "minimum_bundle_covered_target_count": 115,
+    "minimum_bundle_covered_target_count": 117,
     "minimum_bundle_uncovered_target_count": 0,
     "domain_aggregate_option_count": 4,
-    "gate_option_count": 9,
+    "gate_option_count": 10,
     "blocked_wp_phase_option_count": 11,
     "phase_exit_option_count": 11,
-    "exact_target_option_count": 115,
-    "not_approved_option_count": 150
+    "exact_target_option_count": 117,
+    "not_approved_option_count": 153
   },
   "minimum_all_target_routing_bundle": {
     "decision_rows": [
@@ -36,8 +36,10 @@
         "decision_id": "COVERAGE-ALL-GO-LIVE",
         "coverage_domain": "go_live_gate_evidence",
         "label": "All failed G1-G10 gate evidence slots",
-        "covered_target_count": 29,
+        "covered_target_count": 31,
         "covered_target_ids": [
+          "ACC-GL-G1-G1-E02",
+          "ACC-GL-G1-G1-E03",
           "ACC-GL-G10-G10-E01",
           "ACC-GL-G10-G10-E02",
           "ACC-GL-G10-G10-E03",
@@ -205,8 +207,10 @@
       "COVERAGE-ALL-BLOCKED-WP",
       "COVERAGE-ALL-PHASE-EXITS"
     ],
-    "covered_target_count": 115,
+    "covered_target_count": 117,
     "covered_target_ids": [
+      "ACC-GL-G1-G1-E02",
+      "ACC-GL-G1-G1-E03",
       "ACC-GL-G10-G10-E01",
       "ACC-GL-G10-G10-E02",
       "ACC-GL-G10-G10-E03",
@@ -335,8 +339,10 @@
       "decision_id": "COVERAGE-ALL-GO-LIVE",
       "coverage_domain": "go_live_gate_evidence",
       "label": "All failed G1-G10 gate evidence slots",
-      "covered_target_count": 29,
+      "covered_target_count": 31,
       "covered_target_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03",
         "ACC-GL-G10-G10-E01",
         "ACC-GL-G10-G10-E02",
         "ACC-GL-G10-G10-E03",
@@ -499,6 +505,20 @@
     }
   ],
   "gate_options": [
+    {
+      "option_type": "gate_bundle",
+      "decision_id": "COVERAGE-GATE-G1",
+      "coverage_domain": "go_live_gate_evidence",
+      "label": "COVERAGE-GATE-G1",
+      "covered_target_count": 2,
+      "covered_target_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03"
+      ],
+      "owner_input_required": true,
+      "real_owner_row_required": true,
+      "approval_state": "not_approved_option_only"
+    },
     {
       "option_type": "gate_bundle",
       "decision_id": "COVERAGE-GATE-G10",
@@ -1892,6 +1912,32 @@
       "covered_target_count": 1,
       "covered_target_ids": [
         "WP-LT-PRE-W06"
+      ],
+      "owner_input_required": true,
+      "real_owner_row_required": true,
+      "approval_state": "not_approved_option_only"
+    },
+    {
+      "option_type": "exact_target",
+      "decision_id": "ACC-GL-G1-G1-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "label": "ACC-GL-G1-G1-E02",
+      "covered_target_count": 1,
+      "covered_target_ids": [
+        "ACC-GL-G1-G1-E02"
+      ],
+      "owner_input_required": true,
+      "real_owner_row_required": true,
+      "approval_state": "not_approved_option_only"
+    },
+    {
+      "option_type": "exact_target",
+      "decision_id": "ACC-GL-G1-G1-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "label": "ACC-GL-G1-G1-E03",
+      "covered_target_count": 1,
+      "covered_target_ids": [
+        "ACC-GL-G1-G1-E03"
       ],
       "owner_input_required": true,
       "real_owner_row_required": true,

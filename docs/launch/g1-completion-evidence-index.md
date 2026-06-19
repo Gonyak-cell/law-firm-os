@@ -56,8 +56,6 @@ Latest machine validation result:
 | Evidence | Path | Status |
 | --- | --- | --- |
 | Final gate manual checklist | `docs/launch/final-gate-manual-checklist.md` | pending_human_acceptance |
-| G1-E02 deferred item rejudgment receipt | `docs/launch/g1-e02-evidence-satisfaction-2026-06-19.json` | evidence_satisfied |
-| G1-E03 hardening coverage receipt | `docs/launch/g1-e03-evidence-satisfaction-2026-06-19.json` | evidence_satisfied |
 
 Manual items pending signature:
 
@@ -69,6 +67,4 @@ Manual items pending signature:
 
 ## G1 Decision
 
-G1-E02 and G1-E03 are now evidence-satisfied by timestamped repo-local receipts.
-G1 is still not closed because final G1 closeout requires a real human decision
-for FPCG-11, FPCG-12, and FPCG-13. No final manual signature has been synthesized.
+G1 is not closed yet. Machine evidence is ready and passing, but final G1 closeout requires a real human decision for FPCG-11, FPCG-12, and FPCG-13. No manual signature has been synthesized.
