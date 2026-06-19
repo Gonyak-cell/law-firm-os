@@ -147,6 +147,7 @@
     "client-matter:cmp-v1:validate": "node scripts/validate-client-matter-os-cmp-v1.mjs",
     "client-matter:cmp-g1:validate": "node scripts/validate-client-matter-os-cmp-g1-runtime.mjs",
     "client-matter:cmp-g2:validate": "node scripts/validate-client-matter-os-cmp-g2-runtime.mjs",
+    "client-matter:cmp-g3:validate": "node scripts/validate-client-matter-os-cmp-g3-runtime.mjs",
     "client-matter:g1:plan:validate": "node scripts/validate-client-matter-os-g1-plan.mjs",
     "client-matter:g1a:validate": "node scripts/validate-client-matter-os-g1-a.mjs",
     "client-matter:g1b:validate": "node scripts/validate-client-matter-os-g1-b.mjs",

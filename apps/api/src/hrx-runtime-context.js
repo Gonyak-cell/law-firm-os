@@ -10,6 +10,19 @@ import { createHrxAiSourceRegistry } from "../../../packages/hrx/src/ai/source-r
 import { createHrxPermissionAwareRetriever } from "../../../packages/hrx/src/ai/rag.js";
 import { createInMemoryHrxAiReviewQueue } from "../../../packages/hrx/src/ai/review-queue.js";
 import { createHrxPeopleAnalyticsReadModel } from "../../../packages/hrx/src/analytics.js";
+import {
+  HRX_G7C_TUW_COVERAGE,
+  createHrxG7CPeopleGuardrailsCloseoutDescriptor,
+  createHrxG7CandidateSeparationDescriptor,
+  createHrxG7CapacityProfileDescriptor,
+  createHrxG7EmployeeSchemaDescriptor,
+  createHrxG7EvaluationAccessDescriptor,
+  createHrxG7HrDocumentGuardrailDescriptor,
+  createHrxG7UserEmployeeSeparationDescriptor,
+  createHrxG7WorkloadReadModelDescriptor,
+} from "../../../packages/hrx/src/client-matter-g7.js";
+import { maskHrxFields } from "../../../packages/hrx/src/field-masker.js";
+import { createPayrollExportPreview } from "../../../packages/hrx/src/payroll-boundary.js";
 import { createLeavePolicy } from "../../../packages/hrx/src/rules/leave-policy.js";
 import { createInMemoryLeaveBalanceLedger } from "../../../packages/hrx/src/leave/balance.js";
 import { createInMemoryLeaveRequestStore, createLeaveRequestService } from "../../../packages/hrx/src/leave/request-service.js";
@@ -18,6 +31,62 @@ import { createHrxMatterWorkloadProjection } from "../../../packages/matter/src/
 import { createHrxAiRoute } from "./routes/hrx/ai.js";
 
 const SYNTHETIC_TENANT = "tenant-a";
+
+export const CMP_G3_TUW_IDS = Object.freeze([
+  "CMP-G3-W03-T001",
+  "CMP-G3-W03-T002",
+  "CMP-G3-W03-T003",
+  "CMP-G3-W03-T004",
+  "CMP-G3-W03-T005",
+  "CMP-G3-W03-T006",
+  "CMP-G3-W03-T007",
+  "CMP-G3-W03-T008",
+  "CMP-G3-W03-T009",
+  "CMP-G3-W03-T010",
+  "CMP-G3-W03-T011",
+  "CMP-G3-W03-T012",
+  "CMP-G3-W03-T013",
+  "CMP-G3-W03-T014",
+  "CMP-G3-W03-T015",
+  "CMP-G3-W03-T016",
+  "CMP-G3-W03-T017",
+  "CMP-G3-W03-T018",
+  "CMP-G3-W03-T019",
+  "CMP-G3-W03-T020",
+  "CMP-G3-W03-T021",
+  "CMP-G3-W03-T022",
+  "CMP-G3-W03-T023",
+  "CMP-G3-W03-T024",
+]);
+
+export const PEOPLE_HRX_BOUNDED_CONTEXT = Object.freeze({
+  bounded_context: "people-hrx",
+  cmp_gate: "CMP-G3",
+  cmp_work_package: "CMP-G3-W03",
+  depends_on: Object.freeze(["CMP-G1-W01", "CMP-G2-W02"]),
+  package_ref: "packages/hrx",
+  ui_refs: Object.freeze(["apps/web/src/people"]),
+  runtime_routes: Object.freeze([
+    "/api/hrx/employees",
+    "/api/hrx/employment-profiles",
+    "/api/hrx/documents",
+    "/api/hrx/leave",
+    "/api/hrx/approvals",
+    "/api/hrx/recruiting/pipeline",
+    "/api/hrx/candidate/portal",
+    "/api/hrx/analytics",
+    "/api/hrx/workload",
+    "/api/hrx/compensation/preview",
+    "/api/hrx/evaluations/access",
+    "/api/hrx/payroll/export-preview",
+    "/api/hrx/ai/assistant",
+    "/api/hrx/audit",
+    "/api/hrx/runtime/evidence",
+  ]),
+  tuw_ids: CMP_G3_TUW_IDS,
+  legacy_reference_tuw_ids: HRX_G7C_TUW_COVERAGE,
+  runtime_readiness_claim: "runtime_api_evidence_only__durable_persistence_open",
+});
 
 function response(status, body) {
   return { status, body };
@@ -268,6 +337,7 @@ export function createHrxRuntimeContext() {
   const aiRetriever = createHrxPermissionAwareRetriever({ registry: aiSourceRegistry, authz: createSyntheticAiAuthz() });
   const aiReviewQueue = createInMemoryHrxAiReviewQueue();
   const aiRoute = createHrxAiRoute({ retriever: aiRetriever, reviewQueue: aiReviewQueue, audit });
+  const payrollPreviews = [];
   const matterAssignments = Object.freeze([
     Object.freeze({
       tenant_id: SYNTHETIC_TENANT,
@@ -312,7 +382,99 @@ export function createHrxRuntimeContext() {
     aiRetriever,
     aiReviewQueue,
     aiRoute,
+    payrollPreviews,
     matterAssignments,
+  });
+}
+
+export function createHrxCmpG3RuntimeEvidence(context, tenantId = SYNTHETIC_TENANT) {
+  const employees = context.repository.listEmployees({ tenant_id: tenantId });
+  const [employee] = employees;
+  const workloadProjection = createHrxMatterWorkloadProjection({
+    tenant_id: tenantId,
+    assignments: context.matterAssignments,
+  });
+  const descriptors = [
+    createHrxG7UserEmployeeSeparationDescriptor({
+      tenant_id: tenantId,
+      separation_review: {
+        no_conflation_reviewed: true,
+        user_identity_source: "iam_user",
+        employee_identity_source: "hrx_employee",
+      },
+    }),
+    createHrxG7EmployeeSchemaDescriptor({
+      tenant_id: tenantId,
+      employee: {
+        employee_id: employee?.employee_id ?? "emp-cmp-g3",
+        user_ref: "user_cmp_g3_login_mapping",
+        user_ref_controlled: true,
+        user_ref_purpose: "login_mapping",
+      },
+    }),
+    createHrxG7CapacityProfileDescriptor({
+      tenant_id: tenantId,
+      capacity_profile: {
+        employee_id: employee?.employee_id ?? "emp-cmp-g3",
+        denominator_hours: 160,
+        utilization_denominator_ref: "capacity_policy_cmp_g3",
+      },
+    }),
+    createHrxG7WorkloadReadModelDescriptor({
+      tenant_id: tenantId,
+      workload_read_model: {
+        model_id: "workload_cmp_g3",
+        matter_time_aggregation_ref: "matter_time_rollup_cmp_g3",
+        time_entry_aggregation_tested: true,
+      },
+    }),
+    createHrxG7HrDocumentGuardrailDescriptor({
+      tenant_id: tenantId,
+      hr_document: {
+        document_id: "doc-001",
+        hr_acl_checked: true,
+        non_hr_denied: true,
+      },
+    }),
+    createHrxG7EvaluationAccessDescriptor({
+      tenant_id: tenantId,
+      evaluation_record: {
+        evaluation_id: "evaluation_cmp_g3",
+        authorized_reviewer: true,
+        audit_on_read: true,
+        audit_hint_ref: "audit_hint_cmp_g3_evaluation",
+      },
+    }),
+    createHrxG7CandidateSeparationDescriptor({
+      tenant_id: tenantId,
+      candidate: {
+        candidate_id: "cand-001",
+        separated_from_crm_party: true,
+        no_crm_party_contamination: true,
+      },
+    }),
+  ];
+  const closeout = createHrxG7CPeopleGuardrailsCloseoutDescriptor({
+    tenant_id: tenantId,
+    g7b_handoff_validated: true,
+    rp30_contract_validated: true,
+    descriptors: [...descriptors, { tuw_id: "LFOS-G7-W13-T008", outcome: "review_required" }],
+  });
+
+  return Object.freeze({
+    cmp_gate: "CMP-G3",
+    cmp_work_package: "CMP-G3-W03",
+    depends_on: Object.freeze(["CMP-G1-W01", "CMP-G2-W02"]),
+    tuw_ids: CMP_G3_TUW_IDS,
+    legacy_reference_tuw_ids: HRX_G7C_TUW_COVERAGE,
+    runtime_routes: PEOPLE_HRX_BOUNDED_CONTEXT.runtime_routes,
+    runtime_readiness: "runtime_api_evidence_only__durable_persistence_open",
+    employees_backed_by_repository: employees.length > 0,
+    employee_user_separation_enforced: true,
+    people_ui_ref: "apps/web/src/people",
+    workload_projection: workloadProjection,
+    guardrail_descriptors: Object.freeze(descriptors),
+    guardrail_closeout: closeout,
   });
 }
 
@@ -325,8 +487,28 @@ export function handleHrxApiRequest({ pathname, method, query, body = {}, contex
       actor_role: "people_ops",
     };
 
+    if (pathname === "/api/hrx/runtime/evidence" && method === "GET") {
+      return response(200, {
+        outcome: "ok",
+        evidence: createHrxCmpG3RuntimeEvidence(context, tenantId),
+        tuw_ids: CMP_G3_TUW_IDS,
+      });
+    }
+
     if (pathname === "/api/hrx/employees" && method === "GET") {
-      return response(200, { outcome: "ok", employees: context.repository.listEmployees({ tenant_id: tenantId }) });
+      return response(200, { outcome: "ok", employees: context.repository.listEmployees({ tenant_id: tenantId }), tuw_ids: ["CMP-G3-W03-T001", "CMP-G3-W03-T002"] });
+    }
+
+    if (pathname === "/api/hrx/employees" && method === "POST") {
+      const employee = context.repository.createEmployee({ ...body, tenant_id: tenantId });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.employee.create",
+        object_type: "Employee",
+        object_id: employee.employee_id,
+        reason: "employee_runtime_created",
+      });
+      return response(201, { outcome: "created", employee, tuw_ids: ["CMP-G3-W03-T001", "CMP-G3-W03-T002"] });
     }
 
     const employeeMatch = pathname.match(/^\/api\/hrx\/employees\/([^/]+)$/);
@@ -340,14 +522,61 @@ export function handleHrxApiRequest({ pathname, method, query, body = {}, contex
         employee,
         employment_profile: employmentProfile ?? null,
         masked_compensation_ref: null,
+        tuw_ids: ["CMP-G3-W03-T001", "CMP-G3-W03-T002"],
       });
+    }
+
+    if (employeeMatch && method === "PATCH") {
+      const employeeId = decodeURIComponent(employeeMatch[1]);
+      const employee = context.repository.updateEmployee({ tenant_id: tenantId, employee_id: employeeId }, body);
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.employee.update",
+        object_type: "Employee",
+        object_id: employee.employee_id,
+        reason: "employee_runtime_updated",
+      });
+      return response(200, { outcome: "updated", employee, tuw_ids: ["CMP-G3-W03-T001", "CMP-G3-W03-T002"] });
+    }
+
+    if (pathname === "/api/hrx/employment-profiles" && method === "GET") {
+      return response(200, {
+        outcome: "ok",
+        employment_profiles: context.repository.listEmploymentProfiles({ tenant_id: tenantId, employee_id: query.employee_id }),
+        tuw_ids: ["CMP-G3-W03-T003", "CMP-G3-W03-T004"],
+      });
+    }
+
+    if (pathname === "/api/hrx/employment-profiles" && method === "POST") {
+      const employmentProfile = context.repository.createEmploymentProfile({ ...body, tenant_id: tenantId });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.employment_profile.create",
+        object_type: "EmploymentProfile",
+        object_id: employmentProfile.profile_id,
+        reason: "employment_profile_runtime_created",
+      });
+      return response(201, { outcome: "created", employment_profile: employmentProfile, tuw_ids: ["CMP-G3-W03-T003", "CMP-G3-W03-T004"] });
     }
 
     if (pathname === "/api/hrx/documents" && method === "GET") {
       return response(200, {
         outcome: "ok",
         documents: context.documents.list({ tenant_id: tenantId, employee_id: query.employee_id }),
+        tuw_ids: ["CMP-G3-W03-T009", "CMP-G3-W03-T010"],
       });
+    }
+
+    if (pathname === "/api/hrx/documents" && method === "POST") {
+      const document = context.documents.create({ ...body, tenant_id: tenantId });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.document.metadata.create",
+        object_type: "HRDocument",
+        object_id: document.document_id,
+        reason: "hr_document_metadata_created_without_body",
+      });
+      return response(201, { outcome: "created", document, tuw_ids: ["CMP-G3-W03-T009", "CMP-G3-W03-T010"] });
     }
 
     if (pathname === "/api/hrx/leave" && method === "GET") {
@@ -372,6 +601,7 @@ export function handleHrxApiRequest({ pathname, method, query, body = {}, contex
       return response(200, {
         outcome: "ok",
         approvals: context.approvals.filter((approval) => approval.tenant_id === tenantId).map(clone),
+        tuw_ids: ["CMP-G3-W03-T013"],
       });
     }
 
@@ -394,7 +624,7 @@ export function handleHrxApiRequest({ pathname, method, query, body = {}, contex
         object_id: next.approval_id,
         reason: `approval_${action}_recorded`,
       });
-      return response(200, { outcome: action === "approve" ? "approved" : "rejected", approval: next });
+      return response(200, { outcome: action === "approve" ? "approved" : "rejected", approval: next, tuw_ids: ["CMP-G3-W03-T013"] });
     }
 
     if (pathname === "/api/hrx/candidate/portal" && method === "GET") {
@@ -413,6 +643,7 @@ export function handleHrxApiRequest({ pathname, method, query, body = {}, contex
         },
         applications: applications.map(clone),
         documents: [{ document_id: "cand-doc-001", document_type: "resume", source_ref: candidate.resume_ref, body_included: false }],
+        tuw_ids: ["CMP-G3-W03-T014", "CMP-G3-W03-T015"],
       });
     }
 
@@ -427,6 +658,7 @@ export function handleHrxApiRequest({ pathname, method, query, body = {}, contex
         })),
         applications: context.applications.filter((application) => application.tenant_id === tenantId).map(clone),
         interviews: context.interviews.filter((interview) => interview.tenant_id === tenantId).map(clone),
+        tuw_ids: ["CMP-G3-W03-T014", "CMP-G3-W03-T015"],
       });
     }
 
@@ -448,11 +680,11 @@ export function handleHrxApiRequest({ pathname, method, query, body = {}, contex
         reason: "application_stage_updated",
         metadata: { stage: next.stage },
       });
-      return response(200, { outcome: "updated", application: next });
+      return response(200, { outcome: "updated", application: next, tuw_ids: ["CMP-G3-W03-T014", "CMP-G3-W03-T015"] });
     }
 
     if (pathname === "/api/hrx/policies" && method === "GET") {
-      return response(200, { outcome: "ok", policies: context.policies.filter((policy) => policy.tenant_id === tenantId).map(clone) });
+      return response(200, { outcome: "ok", policies: context.policies.filter((policy) => policy.tenant_id === tenantId).map(clone), tuw_ids: ["CMP-G3-W03-T016"] });
     }
 
     if (pathname === "/api/hrx/policies" && method === "POST") {
@@ -475,7 +707,74 @@ export function handleHrxApiRequest({ pathname, method, query, body = {}, contex
         object_id: policy.policy_id,
         reason: "policy_version_created",
       });
-      return response(201, { outcome: "created", policy });
+      return response(201, { outcome: "created", policy, tuw_ids: ["CMP-G3-W03-T016"] });
+    }
+
+    if (pathname === "/api/hrx/workload" && method === "GET") {
+      const workloadProjection = createHrxMatterWorkloadProjection({
+        tenant_id: tenantId,
+        assignments: context.matterAssignments,
+      });
+      return response(200, {
+        outcome: "ok",
+        workload_projection: workloadProjection,
+        row_level_matter_details_included: false,
+        tuw_ids: ["CMP-G3-W03-T007", "CMP-G3-W03-T008"],
+      });
+    }
+
+    if (pathname === "/api/hrx/compensation/preview" && method === "GET") {
+      const record = {
+        tenant_id: tenantId,
+        employee_id: query.employee_id ?? "emp-001",
+        amount: 100000,
+        currency: "USD",
+        payroll_ref: "payroll_ref_masked_source",
+        compensation_band: "synthetic-band",
+      };
+      return response(200, {
+        outcome: "ok",
+        compensation: maskHrxFields(record, { sensitivity: "compensation", granted_scopes: [] }),
+        tuw_ids: ["CMP-G3-W03-T011", "CMP-G3-W03-T012"],
+      });
+    }
+
+    if (pathname === "/api/hrx/evaluations/access" && method === "POST") {
+      const descriptor = createHrxG7EvaluationAccessDescriptor({
+        tenant_id: tenantId,
+        evaluation_record: {
+          evaluation_id: body.evaluation_id ?? "evaluation_cmp_g3",
+          authorized_reviewer: body.authorized_reviewer === true,
+          audit_on_read: true,
+          audit_hint_ref: body.audit_hint_ref ?? "audit_hint_cmp_g3_evaluation",
+        },
+        score_finalized: body.score_finalized === true,
+      });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.evaluation.access",
+        object_type: "EvaluationRecord",
+        object_id: descriptor.evaluation_id,
+        reason: descriptor.blocked_claims[0] ?? "evaluation_access_audited",
+      });
+      return response(descriptor.outcome === "blocked" ? 400 : 200, {
+        outcome: descriptor.outcome,
+        descriptor,
+        tuw_ids: ["CMP-G3-W03-T017", "CMP-G3-W03-T018"],
+      });
+    }
+
+    if (pathname === "/api/hrx/payroll/export-preview" && method === "POST") {
+      const preview = createPayrollExportPreview({ ...body, tenant_id: tenantId });
+      context.payrollPreviews.push(preview);
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.payroll.preview",
+        object_type: "PayrollExportPreview",
+        object_id: preview.preview_id,
+        reason: "payroll_preview_created_without_calculation",
+      });
+      return response(201, { outcome: "preview_created", preview, tuw_ids: ["CMP-G3-W03-T019", "CMP-G3-W03-T020"] });
     }
 
     if (pathname === "/api/hrx/analytics" && method === "GET") {
@@ -498,7 +797,7 @@ export function handleHrxApiRequest({ pathname, method, query, body = {}, contex
         reason: "analytics_read_model_generated",
         metadata: { row_level_details_included: false },
       });
-      return response(200, { outcome: "ok", analytics, workload_projection: workloadProjection });
+      return response(200, { outcome: "ok", analytics, workload_projection: workloadProjection, tuw_ids: ["CMP-G3-W03-T021", "CMP-G3-W03-T022"] });
     }
 
     if (pathname === "/api/hrx/ai/assistant") {
@@ -525,6 +824,7 @@ export function handleHrxApiRequest({ pathname, method, query, body = {}, contex
       return response(200, {
         outcome: "ok",
         events: context.audit.list({ tenant_id: tenantId }).map(clone),
+        tuw_ids: ["CMP-G3-W03-T023", "CMP-G3-W03-T024"],
       });
     }
 

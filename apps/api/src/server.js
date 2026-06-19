@@ -14,7 +14,7 @@ import {
   handleRelationshipLookup,
 } from "./master-data-context.js";
 import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, parsePermissionContext } from "./permission-gate.js";
-import { createHrxRuntimeContext, handleHrxApiRequest } from "./hrx-runtime-context.js";
+import { PEOPLE_HRX_BOUNDED_CONTEXT, createHrxRuntimeContext, handleHrxApiRequest } from "./hrx-runtime-context.js";
 import {
   TRUST_FOUNDATION_BOUNDED_CONTEXT,
   createTrustFoundationRuntime,
@@ -37,7 +37,12 @@ const PARTY_MASTER_RUNTIME = createPartyMasterRuntimeContext();
 export const SERVICE_DESCRIPTOR = Object.freeze({
   service: "@law-firm-os/api",
   version: "0.1.0",
-  bounded_contexts: Object.freeze([MASTER_DATA_BOUNDED_CONTEXT, TRUST_FOUNDATION_BOUNDED_CONTEXT, PARTY_MASTER_BOUNDED_CONTEXT]),
+  bounded_contexts: Object.freeze([
+    MASTER_DATA_BOUNDED_CONTEXT,
+    TRUST_FOUNDATION_BOUNDED_CONTEXT,
+    PARTY_MASTER_BOUNDED_CONTEXT,
+    PEOPLE_HRX_BOUNDED_CONTEXT,
+  ]),
   permission_gate: Object.freeze({
     contract_ref: "contracts/permission-kernel-contract.json",
     contract_schema_version: "law-firm-os.permission-kernel-contract.v0.28",
@@ -112,7 +117,7 @@ async function handle(req, res) {
   }
 
   if (isHrxPath) {
-    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
     const result = await handleHrxApiRequest({ pathname, method: req.method, query, body, context: HRX_RUNTIME });
     sendJson(res, result.status, { request_id: requestId, ...result.body });
     return;
