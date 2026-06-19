@@ -69,6 +69,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `24-g2-a-party-schema-report.md` | Records the G2-A Party, Person, Organization, PartyAlias, and PartyIdentifier schema slice. |
 | `25-g2-b-relationship-billing-profile-report.md` | Records the G2-B ClientGroup, Relationship, ContactPoint, and BillingProfile reference slice. |
 | `26-g2-c-duplicate-search-merge-report.md` | Records the G2-C duplicate candidate, related-party search, and merge/split descriptor slice. |
+| `27-g2-d-ui-closeout-report.md` | Records the G2-D Party search/profile UI-state and G2 closeout evidence descriptor slice. |
 
 ## Execution Order
 
@@ -108,6 +109,7 @@ npm run client-matter:g2:plan:validate
 npm run client-matter:g2a:validate
 npm run client-matter:g2b:validate
 npm run client-matter:g2c:validate
+npm run client-matter:g2d:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -149,6 +151,11 @@ runtime-write-readiness boundary.
 The G2-C validator checks duplicate candidate review queues, tenant-scoped
 related-party lookup, merge/split audit and rollback descriptors, contract
 risks, test coverage, and the open runtime-write-readiness boundary.
+
+The G2-D validator checks denied and review-required Party search/profile UI
+states, hidden-field and unauthorized-count protection, CRM/Matter/Billing
+reference evidence, command evidence, draft PR state, human review disposition,
+contract risks, test coverage, and the open runtime-write-readiness boundary.
 
 ## Non-Goals
 
