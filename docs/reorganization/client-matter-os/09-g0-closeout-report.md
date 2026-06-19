@@ -24,6 +24,10 @@ runtime-readiness claims, and migration procedure before G1+ runtime work.
 | Module boundary drafted | Proposed |
 | Runtime readiness standard drafted | Proposed |
 | Migration manifest template drafted | Proposed |
+| Full G0-G7 roadmap and gate tracker drafted | Proposed |
+| Full 198-TUW catalog drafted | Proposed |
+| Risk register drafted | Proposed |
+| Workflow, state, and folder checklist drafted | Proposed |
 
 ## Required Human Decisions Before G0 Accepted
 
@@ -48,6 +52,10 @@ runtime-readiness claims, and migration procedure before G1+ runtime work.
 | Module boundary map drafted | Done in draft |
 | R0-R6 readiness standard drafted | Done in draft |
 | Migration manifest template exists | Done in draft |
+| Full roadmap and gate tracker exists | Done in draft |
+| Full 198-TUW catalog exists | Done in draft |
+| Risk register exists | Done in draft |
+| Workflow/state/folder checklist exists | Done in draft |
 | PM/Tech Lead approval | Pending |
 
 ## Recommended Next PRs

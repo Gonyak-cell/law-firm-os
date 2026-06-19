@@ -38,6 +38,15 @@ ownership, boundary, and runtime-readiness evidence.
 | `08-migration-manifest.csv` | Template for future folder/document movement. |
 | `09-g0-closeout-report.md` | G0 closeout checklist and decision record. |
 
+## Full-Goal Tracking Artifacts
+
+| File | Purpose |
+| --- | --- |
+| `10-roadmap-and-gates.md` | Preserves the full G0-G7 roadmap and quality gates. |
+| `11-full-tuw-catalog.md` | Preserves the full 198-TUW backlog for later slice PRs. |
+| `12-risk-register.md` | Carries the source risk register as implementation controls. |
+| `13-workflow-state-and-folder-checklist.md` | Carries workflow, state-machine, and target-folder checklists. |
+
 ## Execution Order
 
 1. Close G0: inventory, ownership, module boundaries, runtime readiness.
@@ -46,6 +55,14 @@ ownership, boundary, and runtime-readiness evidence.
    baselines exist.
 4. Open G4-G6: Matter/DMS, Revenue, Analytics/AI/Portal in that order.
 5. Close G7: enterprise hardening, UAT, migration, production readiness.
+
+## Current Remote Boundary
+
+The GitHub repository is initialized from a sanitized snapshot because the local
+historical repository contains `docs/weighted-implementation-ledger.json`, which
+exceeds GitHub's per-file size limit. The sanitized snapshot preserves the
+working product surfaces needed for this Vault-style PR flow while leaving the
+local historical repository untouched.
 
 ## Non-Goals
 
