@@ -47,6 +47,12 @@ ownership, boundary, and runtime-readiness evidence.
 | `12-risk-register.md` | Carries the source risk register as implementation controls. |
 | `13-workflow-state-and-folder-checklist.md` | Carries workflow, state-machine, and target-folder checklists. |
 
+## Follow-Up Decision Artifacts
+
+| File | Purpose |
+| --- | --- |
+| `14-billing-profile-ownership-adr.md` | Proposes Party & Relationship Master as the canonical `BillingProfile` owner while Billing owns downstream workflow state. |
+
 ## Execution Order
 
 1. Close G0: inventory, ownership, module boundaries, runtime readiness.

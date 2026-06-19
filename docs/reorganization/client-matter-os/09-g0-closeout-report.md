@@ -32,8 +32,8 @@ runtime-readiness claims, and migration procedure before G1+ runtime work.
 
 ## Required Human Decisions Before G0 Accepted
 
-1. Confirm whether `BillingProfile` canonical owner is Party Master, Billing, or
-   split by identity vs workflow state.
+1. Review and accept or amend `ADR-G0-001` for `BillingProfile` canonical
+   ownership.
 2. Confirm whether GitHub remote should remain a sanitized snapshot while the
    local historical repo still contains the oversized ledger file.
 3. Confirm whether `docs/reorganization/client-matter-os/` becomes the canonical
@@ -62,10 +62,9 @@ runtime-readiness claims, and migration procedure before G1+ runtime work.
 
 ## Recommended Next PRs
 
-1. `codex/lawos-g0-billing-profile-owner`: finalize `BillingProfile` ownership.
-2. `codex/lawos-g1-trust-foundation-plan`: expand tenant, actor, permission, and
+1. `codex/lawos-g1-trust-foundation-plan`: expand tenant, actor, permission, and
    durable audit design.
-3. `codex/lawos-g2-party-master-runtime-plan`: expand Party Master persistence,
+2. `codex/lawos-g2-party-master-runtime-plan`: expand Party Master persistence,
    duplicate review, relationship search, and merge/split flow.
 
 ## Non-Completion Claims
