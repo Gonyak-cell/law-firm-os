@@ -19,6 +19,7 @@ reference anchor, but the CMP package is not merely an extension of it.
 | `cmp-v1-tuw-crosswalk.csv` | Maps all 316 CMP TUWs to legacy LFOS anchors, status, target package, validator impact, and runtime-claim permission. |
 | `02-cmp-stable-implementation-plan.md` | Defines the TUW batch order, branch/commit/PR strategy, validators, and runtime claim boundaries. |
 | `03-cmp-g1-trust-foundation-runtime-report.md` | Records the first executable CMP-G1 trust foundation API slice, tests, validator, and no-premature-R4 boundary. |
+| `04-cmp-g2-party-runtime-report.md` | Records the executable CMP-G2 Party Master API slice, tests, validator, G1 dependency, and no-premature-R4 boundary. |
 
 ## Baseline Rule
 

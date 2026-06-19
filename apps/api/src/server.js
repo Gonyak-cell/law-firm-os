@@ -21,16 +21,23 @@ import {
   handleTrustFoundationApiRequest,
   isTrustFoundationPath,
 } from "./trust-foundation-runtime.js";
+import {
+  PARTY_MASTER_BOUNDED_CONTEXT,
+  createPartyMasterRuntimeContext,
+  handlePartyMasterApiRequest,
+  isPartyMasterPath,
+} from "./party-runtime-context.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
 const HRX_RUNTIME = createHrxRuntimeContext();
 const TRUST_FOUNDATION_RUNTIME = createTrustFoundationRuntime();
+const PARTY_MASTER_RUNTIME = createPartyMasterRuntimeContext();
 
 export const SERVICE_DESCRIPTOR = Object.freeze({
   service: "@law-firm-os/api",
   version: "0.1.0",
-  bounded_contexts: Object.freeze([MASTER_DATA_BOUNDED_CONTEXT, TRUST_FOUNDATION_BOUNDED_CONTEXT]),
+  bounded_contexts: Object.freeze([MASTER_DATA_BOUNDED_CONTEXT, TRUST_FOUNDATION_BOUNDED_CONTEXT, PARTY_MASTER_BOUNDED_CONTEXT]),
   permission_gate: Object.freeze({
     contract_ref: "contracts/permission-kernel-contract.json",
     contract_schema_version: "law-firm-os.permission-kernel-contract.v0.28",
@@ -80,19 +87,21 @@ async function handle(req, res) {
   const clientGroupMatch = pathname.match(/^\/master-data\/client-groups\/([^/]+)$/);
   const isHrxPath = pathname.startsWith("/api/hrx");
   const isTrustPath = isTrustFoundationPath(pathname);
+  const isPartyPath = isPartyMasterPath(pathname);
   const knownPath =
     pathname === "/api/health" ||
     pathname === "/master-data/records" ||
     pathname === "/master-data/relationships" ||
     clientGroupMatch !== null ||
     isTrustPath ||
+    isPartyPath ||
     isHrxPath;
 
   if (!knownPath) {
     sendJson(res, 404, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "not_found" });
     return;
   }
-  if (!isHrxPath && !isTrustPath && req.method !== "GET") {
+  if (!isHrxPath && !isTrustPath && !isPartyPath && req.method !== "GET") {
     sendJson(res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
@@ -118,6 +127,21 @@ async function handle(req, res) {
       body,
       requestId,
       context: TRUST_FOUNDATION_RUNTIME,
+    });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isPartyPath) {
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
+    const result = await handlePartyMasterApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      headers: req.headers,
+      requestId,
+      context: PARTY_MASTER_RUNTIME,
     });
     sendJson(res, result.status, { request_id: requestId, ...result.body });
     return;
