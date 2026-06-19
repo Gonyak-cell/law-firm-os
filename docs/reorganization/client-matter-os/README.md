@@ -65,6 +65,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `20-g1-b-durable-audit-report.md` | Records the G1-B durable audit event schema, middleware append, and sensitive-read audit slice. |
 | `21-g1-c-permission-controls-report.md` | Records the G1-C evaluator wrapper, deny-over-allow, Object ACL, ethical wall, legal hold, and break-glass control slice. |
 | `22-g1-d-audit-closeout-report.md` | Records the G1-D hash-chain verification, tenant export, admin simulator, and closeout evidence slice. |
+| `23-g2-party-master-entry-plan.md` | Opens the G2 Party & Relationship Master planning lane with TUW coverage, entry evidence, runtime-evidence requirements, and slice boundaries. |
 
 ## Execution Order
 
@@ -100,6 +101,7 @@ npm run client-matter:g1a:validate
 npm run client-matter:g1b:validate
 npm run client-matter:g1c:validate
 npm run client-matter:g1d:validate
+npm run client-matter:g2:plan:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -123,6 +125,10 @@ TUW trace, and G1-open boundary evidence.
 The G1-D validator checks hash-chain verification, tenant-scoped audit export,
 admin permission simulation, closeout receipt, test, export, TUW trace, and
 G1-open boundary evidence.
+
+The G2 plan validator checks all 14 G2 TUWs, BillingProfile Party Master
+ownership, G1/G2 sequencing, Master Data evidence surfaces, validation scripts,
+and the open runtime-write-readiness boundary.
 
 ## Non-Goals
 
