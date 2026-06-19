@@ -161,6 +161,7 @@ npm run client-matter:g6b:validate
 npm run client-matter:g6c:validate
 npm run client-matter:g6d:validate
 npm run client-matter:g6e:validate
+npm run client-matter:g6f:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -348,6 +349,12 @@ The G6-E validator checks LegalWorkflow human approval step evidence, Workflow
 Builder no-auto-final legal decision controls, AI output export privilege-label
 and ACL inheritance, AI ACL bypass blocking, test coverage, RP18
 descriptor-only contract boundary, and the open runtime-readiness boundary.
+
+The G6-F validator checks ExternalUser separation from internal identities,
+PortalMatterProjection internal memo and hidden detail exclusion, ExternalACL
+shared-only access, RFIRequest due date/status evidence, RFIResponse upload
+security placeholders, test coverage, RP19 descriptor-only contract boundary,
+and the open runtime-readiness boundary.
 
 ## Non-Goals
 
