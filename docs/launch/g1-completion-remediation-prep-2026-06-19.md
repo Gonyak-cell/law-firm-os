@@ -18,7 +18,8 @@ Generated on: 2026-06-19
 - hrx_actual_defer_decision_count: 0
 - mat_dec_unique_decision_id_count: 9
 - mat_dec_linked_decision_count: 6
-- mat_dec_remaining_owner_linkage_count: 3
+- mat_dec_non_blocking_default_count: 1
+- mat_dec_remaining_owner_linkage_count: 2
 - hardening_required_cell_count: 272
 - hardening_pending_cell_count: 272
 
@@ -37,17 +38,17 @@ Create owner-linked MAT-DEC decision rows or prove each MAT-DEC mention is non-b
 
 ### MAT-DEC Linkage State
 
-| Decision | Status | Launch effect |
-| --- | --- | --- |
-| MAT-DEC-01 | decided | owner_linkage_present |
-| MAT-DEC-02 | decided | owner_linkage_present |
-| MAT-DEC-03 | deferred | requires_owner_linkage_before_g1_e02 |
-| MAT-DEC-05 | decided | owner_linkage_present |
-| MAT-DEC-06 | decided | owner_linkage_present |
-| MAT-DEC-07 | decided | owner_linkage_present |
-| MAT-DEC-04 | decided | owner_linkage_present |
-| MAT-DEC-08 | pending | requires_owner_linkage_before_g1_e02 |
-| MAT-DEC-09 | pending | requires_owner_linkage_before_g1_e02 |
+| Decision | Status | G1 blocker | Launch effect | Basis |
+| --- | --- | --- | --- | --- |
+| MAT-DEC-01 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |
+| MAT-DEC-02 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |
+| MAT-DEC-03 | deferred | yes | requires_owner_linkage_before_g1_e02 | No decided owner-linked row or non-blocking register basis is present. |
+| MAT-DEC-05 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |
+| MAT-DEC-06 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |
+| MAT-DEC-07 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |
+| MAT-DEC-04 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |
+| MAT-DEC-08 | pending | yes | requires_owner_linkage_before_g1_e02 | No decided owner-linked row or non-blocking register basis is present. |
+| MAT-DEC-09 | pending | no | non_blocking_default_owner_no_approval_required | Register text states the default owner path requires no approval when used. |
 
 ## G1-E03 Hardening Coverage Prep
 
