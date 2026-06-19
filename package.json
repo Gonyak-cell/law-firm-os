@@ -136,6 +136,7 @@
     "rp:validate-all": "node scripts/validate-rp-detailed-plan.mjs all",
     "validate": "node scripts/validate-product-contract.mjs",
     "contracts:validate": "node scripts/validate-product-contract.mjs",
+    "client-matter:g0:validate": "node scripts/validate-client-matter-os-reorganization.mjs",
     "ui:reference:generate": "node scripts/generate-amplitude-ui-reference.mjs",
     "ui:tokens:extract": "node scripts/extract-amplitude-visual-tokens.mjs",
     "ui:states:registry": "node scripts/generate-matter-amplitude-screenshot-state-registry.mjs",
