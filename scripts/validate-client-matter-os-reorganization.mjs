@@ -74,6 +74,31 @@ const REQUIRED_CANONICAL_OBJECTS = [
 
 const REQUIRED_BADGES = ["R0", "R1", "R2", "R3", "R4", "R5", "R6"];
 
+const REQUIRED_DECISION_ARTIFACTS = [
+  {
+    file: "14-billing-profile-ownership-adr.md",
+    id: "ADR-G0-001",
+    phrases: [
+      "BillingProfile Canonical Ownership",
+      "Party & Relationship Master",
+      "Billing owns billing workflow state",
+      "Human review still needs to accept or amend"
+    ]
+  },
+  {
+    file: "15-github-remote-vault-flow-adr.md",
+    id: "ADR-G0-002",
+    phrases: [
+      "sanitized GitHub snapshot",
+      "docs/weighted-implementation-ledger.json",
+      "No local history rewrite",
+      "Draft PRs",
+      "No-self-merge",
+      "codex/*"
+    ]
+  }
+];
+
 function addFinding(findings, code, message, details = {}) {
   findings.push({ code, message, details });
 }
@@ -112,6 +137,15 @@ const findings = [];
 for (const file of REQUIRED_FILES) {
   if (!(await exists(file))) {
     addFinding(findings, "MISSING_FILE", `Missing required Client-Matter OS artifact: ${file}`);
+  }
+}
+
+const decisionDocs = new Map();
+for (const artifact of REQUIRED_DECISION_ARTIFACTS) {
+  if (!(await exists(artifact.file))) {
+    addFinding(findings, "MISSING_DECISION_ARTIFACT", `Missing G0 decision artifact: ${artifact.file}`);
+  } else {
+    decisionDocs.set(artifact.file, await readDoc(artifact.file));
   }
 }
 
@@ -220,6 +254,27 @@ if (findings.length === 0) {
     addFinding(findings, "SANITIZED_REMOTE_BOUNDARY", "Artifacts must document the sanitized GitHub snapshot boundary.");
   }
 
+  for (const artifact of REQUIRED_DECISION_ARTIFACTS) {
+    const content = decisionDocs.get(artifact.file);
+    if (!readme.includes(artifact.file) || !closeout.includes(artifact.id)) {
+      addFinding(findings, "DECISION_ARTIFACT_NOT_INDEXED", `${artifact.id} must be indexed by README and G0 closeout.`, {
+        file: artifact.file
+      });
+    }
+    if (!content.includes(artifact.id) || !content.includes("Status: Proposed")) {
+      addFinding(findings, "DECISION_ARTIFACT_METADATA", `${artifact.file} must preserve ADR id and proposed status.`, {
+        id: artifact.id
+      });
+    }
+    for (const phrase of artifact.phrases) {
+      if (!content.includes(phrase)) {
+        addFinding(findings, "DECISION_ARTIFACT_CONTENT", `${artifact.file} missing required decision phrase.`, {
+          phrase
+        });
+      }
+    }
+  }
+
   if (!closeout.includes("PM/Tech Lead approval | Pending")) {
     addFinding(findings, "G0_APPROVAL_PENDING", "G0 closeout must keep PM/Tech Lead approval pending.");
   }
@@ -246,4 +301,5 @@ console.log("gates: 8/8");
 console.log("tuw_rows: 198/198");
 console.log("risk_rows: 15/15");
 console.log("readiness_badges: R0-R6");
+console.log(`decision_artifacts: ${REQUIRED_DECISION_ARTIFACTS.length}/${REQUIRED_DECISION_ARTIFACTS.length}`);
 console.log("vault_pr_boundary: preserved");

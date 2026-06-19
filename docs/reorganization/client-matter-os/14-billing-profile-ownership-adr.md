@@ -35,6 +35,8 @@ belongs to `02 Party & Relationship Master`.
 PreBill, Invoice, TaxInvoice, WriteOff, invoice line generation, and billing
 adjustment workflows.
 
+Billing owns billing workflow state, not Party identity.
+
 ## Boundary
 
 | Concern | Owner | Notes |
