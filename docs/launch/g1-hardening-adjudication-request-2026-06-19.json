@@ -1,0 +1,19 @@
+{
+  "schema_version": "law-firm-os.g1-hardening-adjudication-request.v0.1",
+  "recorded_on": "2026-06-19",
+  "source_matrix": "docs/launch/g1-hardening-evidence-candidates-2026-06-19.json",
+  "owner_decision_receipt": "docs/launch/g1-owner-decisions-2026-06-19.json",
+  "candidate_ref_count": 256,
+  "gap_count": 16,
+  "verifier_adjudication_authorized": true,
+  "gap_routes_authorized": [
+    "additional_evidence",
+    "applicability_exclusion",
+    "risk_acceptance_with_follow_up"
+  ],
+  "boundary": {
+    "g1_e03_satisfied": false,
+    "go_live_approved": false,
+    "owner_deferral_approved": false
+  }
+}

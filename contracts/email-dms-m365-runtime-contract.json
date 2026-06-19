@@ -12,9 +12,9 @@
   "runtime_layer_policy": "Future M365 runtime packs must satisfy this contract admission gate and RTG-001 through RTG-005 from the runtime readiness contract.",
   "runtime_admission_gate": {
     "planning_gate_complete": true,
-    "storage_decision_resolved": false,
+    "storage_decision_resolved": true,
     "internal_vs_saas_decision_resolved": true,
-    "privilege_classification_decision_resolved": false,
+    "privilege_classification_decision_resolved": true,
     "implementation_allowed": false
   },
   "no_runtime_attestation": {
@@ -63,7 +63,7 @@
     "graph_surfaces": {
       "mail": "fixed",
       "calendar": "fixed",
-      "files": "blocked_until_storage_decision"
+      "files": "sharepoint_onedrive_original_storage_decided_runtime_pending"
     },
     "smart_alerts": {
       "event": "on_message_send",
@@ -126,32 +126,38 @@
     "storage_pointer_ref"
   ],
   "storage_dependency_partition": {
-    "storage_decision_ref": null,
+    "storage_decision_ref": "docs/launch/g1-owner-decisions-2026-06-19.md#mat-dec-03",
+    "selected_original_storage": "sharepoint_onedrive",
     "storage_dependent": [
       {
         "id": "M365-STOR-001",
         "item": "SharePoint/OneDrive matter folder upload",
-        "blocked_until_storage_decision": true
+        "blocked_until_storage_decision": false,
+        "remaining_gate": "m365_admin_graph_scope_and_runtime_evidence"
       },
       {
         "id": "M365-STOR-002",
         "item": "email body original storage target",
-        "blocked_until_storage_decision": true
+        "blocked_until_storage_decision": false,
+        "remaining_gate": "m365_admin_graph_scope_and_runtime_evidence"
       },
       {
         "id": "M365-STOR-003",
         "item": "attachment binary storage target",
-        "blocked_until_storage_decision": true
+        "blocked_until_storage_decision": false,
+        "remaining_gate": "m365_admin_graph_scope_and_runtime_evidence"
       },
       {
         "id": "M365-STOR-004",
         "item": "Graph files write surface",
-        "blocked_until_storage_decision": true
+        "blocked_until_storage_decision": false,
+        "remaining_gate": "m365_admin_graph_scope_and_runtime_evidence"
       },
       {
         "id": "M365-STOR-005",
         "item": "Vault export/import storage bridge",
-        "blocked_until_storage_decision": true
+        "blocked_until_storage_decision": false,
+        "remaining_gate": "m365_admin_graph_scope_and_runtime_evidence"
       }
     ]
   },

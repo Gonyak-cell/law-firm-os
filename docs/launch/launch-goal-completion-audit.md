@@ -15,7 +15,7 @@ Verdict: NOT_COMPLETE
 
 | Requirement | Status | Evidence |
 | --- | --- | --- |
-| cp_closeout_completed_before_launch | satisfied | scripts/validate-final-product-completion-gate.mjs<br>docs/closeout-pack-plan/closeout-pack-plan.json |
+| cp_closeout_completed_before_launch | failed | scripts/validate-final-product-completion-gate.mjs<br>docs/closeout-pack-plan/closeout-pack-plan.json |
 | launch_tuw_ledger_valid_72_wp_344_tuw | satisfied | workbook/launch-tuw/launch-tuw-ledger.json<br>workbook/launch-tuw/validate-launch-tuw-ledger.mjs |
 | launch_planning_authority_traceable | satisfied | /Users/jws/Downloads/LAUNCH_TUW_PACKAGE_PART1_COMBINED.md<br>workbook/launch-tuw<br>docs/launch/launch-authority-traceability-audit.json |
 | implementation_layer_ledger_valid | satisfied | docs/closeout-pack-plan/implementation-layer-ledger.json<br>scripts/validate-implementation-layer-ledger.mjs |
@@ -296,7 +296,7 @@ Verdict: NOT_COMPLETE
 
 | Command | Exit |
 | --- | ---: |
-| node scripts/validate-final-product-completion-gate.mjs | 0 |
+| node scripts/validate-final-product-completion-gate.mjs | 1 |
 | node scripts/validate-implementation-layer-ledger.mjs | 0 |
 | node workbook/launch-tuw/validate-launch-tuw-ledger.mjs | 0 |
 | node scripts/audit-launch-authority-traceability.mjs | 0 |

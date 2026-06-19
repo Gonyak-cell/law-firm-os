@@ -15,7 +15,7 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "scanned_file_count": 196,
+    "scanned_file_count": 212,
     "no_go_active": true,
     "markdown_status_count": 77,
     "json_status_count": 2,
@@ -45,6 +45,36 @@
       "status_policy": "allowed_no_go_status"
     },
     {
+      "path": "docs/launch/client-matter-baseline-acceptance-receipt-2026-06-19.json",
+      "type": "json",
+      "status": null,
+      "verdict": null,
+      "status_policy": "not_applicable",
+      "generated_pass_json": false,
+      "forbidden_true_claims": []
+    },
+    {
+      "path": "docs/launch/client-matter-baseline-acceptance-receipt-2026-06-19.md",
+      "type": "markdown",
+      "status": null,
+      "status_policy": "not_applicable"
+    },
+    {
+      "path": "docs/launch/client-matter-go-live-approval-packet-2026-06-19.md",
+      "type": "markdown",
+      "status": null,
+      "status_policy": "not_applicable"
+    },
+    {
+      "path": "docs/launch/client-matter-go-live-evidence-classification-2026-06-19.json",
+      "type": "json",
+      "status": null,
+      "verdict": null,
+      "status_policy": "not_applicable",
+      "generated_pass_json": false,
+      "forbidden_true_claims": []
+    },
+    {
       "path": "docs/launch/company-wide-rollout-record.md",
       "type": "markdown",
       "status": "blocked_not_executed",
@@ -53,8 +83,14 @@
     {
       "path": "docs/launch/confidentiality-enum-extension-decision-brief.md",
       "type": "markdown",
-      "status": "blocked_pending_mat_dec_08",
+      "status": "blocked_runtime_pending_owner_decision_resolved",
       "status_policy": "allowed_no_go_status"
+    },
+    {
+      "path": "docs/launch/confidentiality-enum-extension-spec.md",
+      "type": "markdown",
+      "status": null,
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/critical-oq-prd8-decision-round-brief.md",
@@ -127,6 +163,66 @@
       "type": "markdown",
       "status": "blocked_pending_human_acceptance",
       "status_policy": "allowed_no_go_status"
+    },
+    {
+      "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+      "type": "json",
+      "status": null,
+      "verdict": null,
+      "status_policy": "not_applicable",
+      "generated_pass_json": false,
+      "forbidden_true_claims": []
+    },
+    {
+      "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
+      "type": "markdown",
+      "status": null,
+      "status_policy": "not_applicable"
+    },
+    {
+      "path": "docs/launch/g1-hardening-adjudication-request-2026-06-19.json",
+      "type": "json",
+      "status": null,
+      "verdict": null,
+      "status_policy": "not_applicable",
+      "generated_pass_json": false,
+      "forbidden_true_claims": []
+    },
+    {
+      "path": "docs/launch/g1-hardening-adjudication-request-2026-06-19.md",
+      "type": "markdown",
+      "status": null,
+      "status_policy": "not_applicable"
+    },
+    {
+      "path": "docs/launch/g1-hardening-evidence-candidates-2026-06-19.json",
+      "type": "json",
+      "status": null,
+      "verdict": null,
+      "status_policy": "not_applicable",
+      "generated_pass_json": false,
+      "forbidden_true_claims": []
+    },
+    {
+      "path": "docs/launch/g1-hardening-evidence-candidates-2026-06-19.md",
+      "type": "markdown",
+      "status": null,
+      "status_policy": "not_applicable"
+    },
+    {
+      "path": "docs/launch/g1-owner-decisions-2026-06-19.json",
+      "type": "json",
+      "status": null,
+      "verdict": null,
+      "status_policy": "not_applicable",
+      "generated_pass_json": false,
+      "forbidden_true_claims": []
+    },
+    {
+      "path": "docs/launch/g1-owner-decisions-2026-06-19.md",
+      "type": "markdown",
+      "status": null,
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/gap-five-area-coverage-matrix.md",
@@ -1166,14 +1262,35 @@
     {
       "path": "docs/launch/mat-dec-03-storage-decision-brief.md",
       "type": "markdown",
-      "status": "blocked_pending_storage_decision",
+      "status": "blocked_runtime_pending_owner_decision_resolved",
       "status_policy": "allowed_no_go_status"
+    },
+    {
+      "path": "docs/launch/mat-dec-03-unseal-referral.md",
+      "type": "markdown",
+      "status": null,
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/matter-naming-rules.md",
       "type": "markdown",
       "status": "adopted_from_owner_decision",
       "status_policy": "allowed_no_go_status"
+    },
+    {
+      "path": "docs/launch/normal-go-live-remediation-queue-2026-06-19.json",
+      "type": "json",
+      "status": null,
+      "verdict": null,
+      "status_policy": "not_applicable",
+      "generated_pass_json": false,
+      "forbidden_true_claims": []
+    },
+    {
+      "path": "docs/launch/normal-go-live-remediation-queue-2026-06-19.md",
+      "type": "markdown",
+      "status": null,
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/owner-action-deferral-request-validation.json",

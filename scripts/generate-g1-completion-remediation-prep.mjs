@@ -101,6 +101,10 @@ function classifyMatDecLaunchEffect(row) {
   };
 }
 
+function allZero(values) {
+  return values.every((value) => value === 0);
+}
+
 function renderMarkdown(report) {
   const lines = [];
   lines.push("# G1 Completion Remediation Prep");
@@ -179,12 +183,18 @@ const matDecRows = parseMatDecStatusRows(MAT_DEC_REGISTER_PATH)
     ...classifyMatDecLaunchEffect(row)
   }));
 const matDecBlockingRows = matDecRows.filter((row) => row.g1_blocking);
+const g1E02CloseableNow = allZero([
+  deferralAudit.p2?.unresolved_p2_line_count ?? 0,
+  deferralAudit.ldip?.actual_decision_count ?? 0,
+  deferralAudit.hrx?.actual_decision_count ?? 0,
+  matDecBlockingRows.length
+]);
 
 const g1E02 = {
   evidence_id: "G1-E02",
   required_state: "blocking_remaining_count_zero",
-  current_status: "not_satisfied",
-  closeable_now: false,
+  current_status: g1E02CloseableNow ? "closeable_pending_manual_evidence_intake" : "not_satisfied",
+  closeable_now: g1E02CloseableNow,
   source_families: [
     {
       source_family: "P2 explicit item lines",
@@ -208,10 +218,12 @@ const g1E02 = {
       source_family: "MAT-DEC launch decision mentions",
       count: uniqueMatDecIds.length,
       current_meaning: `Unique decision IDs present: ${uniqueMatDecIds.join(", ") || "none"}.`,
-      g1_effect: uniqueMatDecIds.length === 0 ? "normalized_not_blocking" : "requires_launch_owner_linkage"
+      g1_effect: matDecBlockingRows.length === 0 ? "owner_linkage_present_not_blocking" : "requires_launch_owner_linkage"
     }
   ],
-  remaining_action: "Create owner-linked MAT-DEC decision rows or prove each MAT-DEC mention is non-blocking for launch G1. Only then can G1-E02 claim blocking_remaining_count_zero.",
+  remaining_action: g1E02CloseableNow
+    ? "MAT-DEC owner linkage is present or non-blocking. Move G1-E02 into manual evidence intake only after verifier records timestamped evidence satisfaction."
+    : "Create owner-linked MAT-DEC decision rows or prove each MAT-DEC mention is non-blocking for launch G1. Only then can G1-E02 claim blocking_remaining_count_zero.",
   mat_dec_linkage_rows: matDecRows,
   mat_dec_blocking_rows: matDecBlockingRows,
   source_refs: [

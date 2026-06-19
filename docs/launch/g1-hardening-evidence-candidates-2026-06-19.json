@@ -5,21 +5,27 @@
     "contracts/critical-rp-saas-hardening-contract.json",
     "docs/critical-rp-saas-hardening-plan.md",
     "docs/launch/hardening-coverage-matrix.md",
-    "docs/launch/g1-completion-remediation-prep-2026-06-19.json"
+    "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+    "docs/launch/g1-owner-decisions-2026-06-19.json"
   ],
   "boundary": {
     "closes_g1_e03": false,
     "marks_any_cell_evidence_satisfied": false,
     "go_live_approved_by_this_package": false,
-    "candidate_refs_require_adjudication": true
+    "candidate_refs_require_adjudication": true,
+    "owner_authorized_candidate_adjudication": true,
+    "owner_authorized_gap_disposition_routes": true
   },
   "summary": {
     "total_cell_count": 272,
     "candidate_evidence_present_count": 256,
     "candidate_gap_count": 16,
     "evidence_satisfied_cell_count": 0,
-    "missing_mandatory_artifact_unique_count": 0
+    "missing_mandatory_artifact_unique_count": 0,
+    "owner_candidate_adjudication_authorized": true,
+    "owner_gap_routes_authorized": true
   },
+  "owner_decision_receipt_ref": "docs/launch/g1-owner-decisions-2026-06-19.json",
   "missing_mandatory_artifacts": [],
   "rp_summary": [
     {
@@ -196,7 +202,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:object_level_authorization",
@@ -253,7 +259,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:deny_over_allow",
@@ -300,7 +306,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:matter_first_traceability",
@@ -359,7 +365,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:append_only_audit_or_evidence",
@@ -422,7 +428,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:privacy_minimization",
@@ -458,7 +464,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:secure_secret_handling",
@@ -504,7 +510,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:idempotency_and_replay_protection",
@@ -540,7 +546,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:data_retention_and_legal_hold",
@@ -587,7 +593,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:observability_trace_log_metric",
@@ -634,7 +640,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:synthetic_fixture_only",
@@ -671,7 +677,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:contract_tests",
@@ -751,7 +757,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:threat_model",
@@ -794,7 +800,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:migration_or_release_rollback",
@@ -855,7 +861,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:hermes_gate",
@@ -928,7 +934,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:claude_cross_validation",
@@ -991,7 +997,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP00:human_approval",
@@ -1070,7 +1076,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:tenant_isolation",
@@ -1150,7 +1156,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:object_level_authorization",
@@ -1196,7 +1202,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:deny_over_allow",
@@ -1232,7 +1238,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:matter_first_traceability",
@@ -1319,7 +1325,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:append_only_audit_or_evidence",
@@ -1372,7 +1378,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:privacy_minimization",
@@ -1420,7 +1426,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:secure_secret_handling",
@@ -1446,7 +1452,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP01:idempotency_and_replay_protection",
@@ -1491,7 +1497,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:data_retention_and_legal_hold",
@@ -1517,7 +1523,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP01:observability_trace_log_metric",
@@ -1563,7 +1569,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:synthetic_fixture_only",
@@ -1600,7 +1606,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:contract_tests",
@@ -1652,7 +1658,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:threat_model",
@@ -1688,7 +1694,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:migration_or_release_rollback",
@@ -1724,7 +1730,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:hermes_gate",
@@ -1768,7 +1774,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:claude_cross_validation",
@@ -1812,7 +1818,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:human_approval",
@@ -1848,7 +1854,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:tenant_isolation",
@@ -1914,7 +1920,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:object_level_authorization",
@@ -2031,7 +2037,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:deny_over_allow",
@@ -2107,7 +2113,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:matter_first_traceability",
@@ -2164,7 +2170,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:append_only_audit_or_evidence",
@@ -2227,7 +2233,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:privacy_minimization",
@@ -2253,7 +2259,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP02:secure_secret_handling",
@@ -2289,7 +2295,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:idempotency_and_replay_protection",
@@ -2327,7 +2333,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:data_retention_and_legal_hold",
@@ -2363,7 +2369,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:observability_trace_log_metric",
@@ -2400,7 +2406,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:synthetic_fixture_only",
@@ -2437,7 +2443,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:contract_tests",
@@ -2482,7 +2488,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:threat_model",
@@ -2518,7 +2524,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:migration_or_release_rollback",
@@ -2563,7 +2569,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:hermes_gate",
@@ -2607,7 +2613,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:claude_cross_validation",
@@ -2651,7 +2657,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:human_approval",
@@ -2705,7 +2711,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:tenant_isolation",
@@ -2765,7 +2771,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:object_level_authorization",
@@ -2829,7 +2835,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:deny_over_allow",
@@ -2866,7 +2872,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:matter_first_traceability",
@@ -2929,7 +2935,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:append_only_audit_or_evidence",
@@ -3073,7 +3079,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:privacy_minimization",
@@ -3143,7 +3149,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:secure_secret_handling",
@@ -3201,7 +3207,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:idempotency_and_replay_protection",
@@ -3261,7 +3267,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:data_retention_and_legal_hold",
@@ -3354,7 +3360,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:observability_trace_log_metric",
@@ -3421,7 +3427,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:synthetic_fixture_only",
@@ -3477,7 +3483,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:contract_tests",
@@ -3544,7 +3550,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:threat_model",
@@ -3591,7 +3597,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:migration_or_release_rollback",
@@ -3656,7 +3662,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:hermes_gate",
@@ -3720,7 +3726,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:claude_cross_validation",
@@ -3785,7 +3791,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP03:human_approval",
@@ -3842,7 +3848,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:tenant_isolation",
@@ -3900,7 +3906,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:object_level_authorization",
@@ -3964,7 +3970,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:deny_over_allow",
@@ -4009,7 +4015,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:matter_first_traceability",
@@ -4073,7 +4079,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:append_only_audit_or_evidence",
@@ -4129,7 +4135,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:privacy_minimization",
@@ -4186,7 +4192,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:secure_secret_handling",
@@ -4232,7 +4238,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:idempotency_and_replay_protection",
@@ -4297,7 +4303,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:data_retention_and_legal_hold",
@@ -4323,7 +4329,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP04:observability_trace_log_metric",
@@ -4370,7 +4376,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:synthetic_fixture_only",
@@ -4427,7 +4433,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:contract_tests",
@@ -4485,7 +4491,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:threat_model",
@@ -4522,7 +4528,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:migration_or_release_rollback",
@@ -4567,7 +4573,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:hermes_gate",
@@ -4620,7 +4626,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:claude_cross_validation",
@@ -4673,7 +4679,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:human_approval",
@@ -4719,7 +4725,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:tenant_isolation",
@@ -4792,7 +4798,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:object_level_authorization",
@@ -4855,7 +4861,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:deny_over_allow",
@@ -4903,7 +4909,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:matter_first_traceability",
@@ -5066,7 +5072,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:append_only_audit_or_evidence",
@@ -5136,7 +5142,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:privacy_minimization",
@@ -5188,7 +5194,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:secure_secret_handling",
@@ -5214,7 +5220,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP05:idempotency_and_replay_protection",
@@ -5263,7 +5269,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:data_retention_and_legal_hold",
@@ -5299,7 +5305,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:observability_trace_log_metric",
@@ -5361,7 +5367,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:synthetic_fixture_only",
@@ -5419,7 +5425,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:contract_tests",
@@ -5476,7 +5482,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:threat_model",
@@ -5532,7 +5538,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:migration_or_release_rollback",
@@ -5577,7 +5583,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:hermes_gate",
@@ -5631,7 +5637,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:claude_cross_validation",
@@ -5685,7 +5691,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:human_approval",
@@ -5730,7 +5736,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:tenant_isolation",
@@ -5789,7 +5795,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:object_level_authorization",
@@ -5845,7 +5851,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:deny_over_allow",
@@ -5891,7 +5897,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:matter_first_traceability",
@@ -5949,7 +5955,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:append_only_audit_or_evidence",
@@ -6020,7 +6026,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:privacy_minimization",
@@ -6054,7 +6060,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:secure_secret_handling",
@@ -6080,7 +6086,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP06:idempotency_and_replay_protection",
@@ -6131,7 +6137,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:data_retention_and_legal_hold",
@@ -6192,7 +6198,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:observability_trace_log_metric",
@@ -6246,7 +6252,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:synthetic_fixture_only",
@@ -6303,7 +6309,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:contract_tests",
@@ -6361,7 +6367,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:threat_model",
@@ -6408,7 +6414,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:migration_or_release_rollback",
@@ -6455,7 +6461,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:hermes_gate",
@@ -6509,7 +6515,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:claude_cross_validation",
@@ -6563,7 +6569,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:human_approval",
@@ -6609,7 +6615,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:tenant_isolation",
@@ -6665,7 +6671,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:object_level_authorization",
@@ -6729,7 +6735,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:deny_over_allow",
@@ -6785,7 +6791,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:matter_first_traceability",
@@ -6840,7 +6846,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:append_only_audit_or_evidence",
@@ -6897,7 +6903,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:privacy_minimization",
@@ -6931,7 +6937,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:secure_secret_handling",
@@ -6957,7 +6963,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP07:idempotency_and_replay_protection",
@@ -7018,7 +7024,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:data_retention_and_legal_hold",
@@ -7063,7 +7069,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:observability_trace_log_metric",
@@ -7117,7 +7123,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:synthetic_fixture_only",
@@ -7175,7 +7181,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:contract_tests",
@@ -7265,7 +7271,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:threat_model",
@@ -7321,7 +7327,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:migration_or_release_rollback",
@@ -7375,7 +7381,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:hermes_gate",
@@ -7439,7 +7445,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:claude_cross_validation",
@@ -7503,7 +7509,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:human_approval",
@@ -7559,7 +7565,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:tenant_isolation",
@@ -7615,7 +7621,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:object_level_authorization",
@@ -7671,7 +7677,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:deny_over_allow",
@@ -7717,7 +7723,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:matter_first_traceability",
@@ -7787,7 +7793,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:append_only_audit_or_evidence",
@@ -7850,7 +7856,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:privacy_minimization",
@@ -7891,7 +7897,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:secure_secret_handling",
@@ -7917,7 +7923,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP10:idempotency_and_replay_protection",
@@ -7966,7 +7972,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:data_retention_and_legal_hold",
@@ -8002,7 +8008,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:observability_trace_log_metric",
@@ -8054,7 +8060,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:synthetic_fixture_only",
@@ -8110,7 +8116,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:contract_tests",
@@ -8168,7 +8174,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:threat_model",
@@ -8221,7 +8227,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:migration_or_release_rollback",
@@ -8266,7 +8272,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:hermes_gate",
@@ -8320,7 +8326,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:claude_cross_validation",
@@ -8374,7 +8380,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:human_approval",
@@ -8435,7 +8441,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:tenant_isolation",
@@ -8491,7 +8497,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:object_level_authorization",
@@ -8546,7 +8552,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:deny_over_allow",
@@ -8601,7 +8607,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:matter_first_traceability",
@@ -8656,7 +8662,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:append_only_audit_or_evidence",
@@ -8734,7 +8740,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:privacy_minimization",
@@ -8760,7 +8766,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP12:secure_secret_handling",
@@ -8786,7 +8792,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP12:idempotency_and_replay_protection",
@@ -8842,7 +8848,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:data_retention_and_legal_hold",
@@ -8878,7 +8884,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:observability_trace_log_metric",
@@ -8939,7 +8945,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:synthetic_fixture_only",
@@ -8997,7 +9003,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:contract_tests",
@@ -9080,7 +9086,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:threat_model",
@@ -9135,7 +9141,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:migration_or_release_rollback",
@@ -9171,7 +9177,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:hermes_gate",
@@ -9235,7 +9241,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:claude_cross_validation",
@@ -9299,7 +9305,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:human_approval",
@@ -9375,7 +9381,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:tenant_isolation",
@@ -9431,7 +9437,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:object_level_authorization",
@@ -9486,7 +9492,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:deny_over_allow",
@@ -9541,7 +9547,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:matter_first_traceability",
@@ -9596,7 +9602,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:append_only_audit_or_evidence",
@@ -9667,7 +9673,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:privacy_minimization",
@@ -9693,7 +9699,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP14:secure_secret_handling",
@@ -9719,7 +9725,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP14:idempotency_and_replay_protection",
@@ -9796,7 +9802,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:data_retention_and_legal_hold",
@@ -9832,7 +9838,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:observability_trace_log_metric",
@@ -9886,7 +9892,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:synthetic_fixture_only",
@@ -9944,7 +9950,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:contract_tests",
@@ -10020,7 +10026,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:threat_model",
@@ -10075,7 +10081,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:migration_or_release_rollback",
@@ -10111,7 +10117,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:hermes_gate",
@@ -10175,7 +10181,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:claude_cross_validation",
@@ -10239,7 +10245,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:human_approval",
@@ -10309,7 +10315,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:tenant_isolation",
@@ -10365,7 +10371,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:object_level_authorization",
@@ -10420,7 +10426,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:deny_over_allow",
@@ -10475,7 +10481,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:matter_first_traceability",
@@ -10530,7 +10536,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:append_only_audit_or_evidence",
@@ -10601,7 +10607,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:privacy_minimization",
@@ -10635,7 +10641,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:secure_secret_handling",
@@ -10661,7 +10667,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP16:idempotency_and_replay_protection",
@@ -10717,7 +10723,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:data_retention_and_legal_hold",
@@ -10810,7 +10816,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:observability_trace_log_metric",
@@ -10871,7 +10877,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:synthetic_fixture_only",
@@ -10929,7 +10935,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:contract_tests",
@@ -11005,7 +11011,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:threat_model",
@@ -11067,7 +11073,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:migration_or_release_rollback",
@@ -11103,7 +11109,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:hermes_gate",
@@ -11167,7 +11173,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:claude_cross_validation",
@@ -11231,7 +11237,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:human_approval",
@@ -11300,7 +11306,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:tenant_isolation",
@@ -11356,7 +11362,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:object_level_authorization",
@@ -11412,7 +11418,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:deny_over_allow",
@@ -11458,7 +11464,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:matter_first_traceability",
@@ -11521,7 +11527,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:append_only_audit_or_evidence",
@@ -11592,7 +11598,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:privacy_minimization",
@@ -11626,7 +11632,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:secure_secret_handling",
@@ -11652,7 +11658,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP17:idempotency_and_replay_protection",
@@ -11699,7 +11705,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:data_retention_and_legal_hold",
@@ -11735,7 +11741,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:observability_trace_log_metric",
@@ -11790,7 +11796,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:synthetic_fixture_only",
@@ -11846,7 +11852,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:contract_tests",
@@ -11920,7 +11926,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:threat_model",
@@ -11966,7 +11972,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:migration_or_release_rollback",
@@ -12002,7 +12008,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:hermes_gate",
@@ -12056,7 +12062,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:claude_cross_validation",
@@ -12110,7 +12116,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:human_approval",
@@ -12165,7 +12171,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:tenant_isolation",
@@ -12211,7 +12217,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:object_level_authorization",
@@ -12278,7 +12284,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:deny_over_allow",
@@ -12315,7 +12321,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:matter_first_traceability",
@@ -12368,7 +12374,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:append_only_audit_or_evidence",
@@ -12412,7 +12418,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:privacy_minimization",
@@ -12453,7 +12459,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:secure_secret_handling",
@@ -12498,7 +12504,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:idempotency_and_replay_protection",
@@ -12536,7 +12542,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:data_retention_and_legal_hold",
@@ -12572,7 +12578,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:observability_trace_log_metric",
@@ -12610,7 +12616,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:synthetic_fixture_only",
@@ -12647,7 +12653,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:contract_tests",
@@ -12711,7 +12717,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:threat_model",
@@ -12748,7 +12754,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:migration_or_release_rollback",
@@ -12852,7 +12858,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:hermes_gate",
@@ -12896,7 +12902,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:claude_cross_validation",
@@ -12940,7 +12946,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP25:human_approval",
@@ -12986,7 +12992,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:tenant_isolation",
@@ -13056,7 +13062,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:object_level_authorization",
@@ -13093,7 +13099,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:deny_over_allow",
@@ -13130,7 +13136,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:matter_first_traceability",
@@ -13168,7 +13174,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:append_only_audit_or_evidence",
@@ -13205,7 +13211,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:privacy_minimization",
@@ -13231,7 +13237,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP26:secure_secret_handling",
@@ -13292,7 +13298,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:idempotency_and_replay_protection",
@@ -13330,7 +13336,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:data_retention_and_legal_hold",
@@ -13366,7 +13372,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:observability_trace_log_metric",
@@ -13412,7 +13418,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:synthetic_fixture_only",
@@ -13468,7 +13474,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:contract_tests",
@@ -13514,7 +13520,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:threat_model",
@@ -13551,7 +13557,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:migration_or_release_rollback",
@@ -13588,7 +13594,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:hermes_gate",
@@ -13632,7 +13638,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:claude_cross_validation",
@@ -13676,7 +13682,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:human_approval",
@@ -13713,7 +13719,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:tenant_isolation",
@@ -13760,7 +13766,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:object_level_authorization",
@@ -13806,7 +13812,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:deny_over_allow",
@@ -13844,7 +13850,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:matter_first_traceability",
@@ -13898,7 +13904,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:append_only_audit_or_evidence",
@@ -13996,7 +14002,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:privacy_minimization",
@@ -14022,7 +14028,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
     },
     {
       "cell_id": "RP29:secure_secret_handling",
@@ -14068,7 +14074,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:idempotency_and_replay_protection",
@@ -14106,7 +14112,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:data_retention_and_legal_hold",
@@ -14153,7 +14159,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:observability_trace_log_metric",
@@ -14222,7 +14228,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:synthetic_fixture_only",
@@ -14268,7 +14274,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:contract_tests",
@@ -14349,7 +14355,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:threat_model",
@@ -14386,7 +14392,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:migration_or_release_rollback",
@@ -14492,7 +14498,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:hermes_gate",
@@ -14536,7 +14542,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:claude_cross_validation",
@@ -14594,7 +14600,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:human_approval",
@@ -14657,7 +14663,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     }
   ]
 }

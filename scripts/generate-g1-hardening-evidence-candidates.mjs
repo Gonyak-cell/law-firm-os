@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 
 const CONTRACT_PATH = "contracts/critical-rp-saas-hardening-contract.json";
+const OWNER_DECISION_RECEIPT_PATH = "docs/launch/g1-owner-decisions-2026-06-19.json";
 const OUTPUT_JSON_PATH = "docs/launch/g1-hardening-evidence-candidates-2026-06-19.json";
 const OUTPUT_MD_PATH = "docs/launch/g1-hardening-evidence-candidates-2026-06-19.md";
 
@@ -28,6 +29,10 @@ const CONTROL_RULES = {
 
 function readJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));
+}
+
+function readOptionalJson(path) {
+  return existsSync(path) ? readJson(path) : null;
 }
 
 function markdownCell(value) {
@@ -128,8 +133,8 @@ function buildRows(contract) {
         mandatory_artifacts: mandatoryArtifacts,
         missing_mandatory_artifacts: mandatoryArtifacts.filter((artifact) => !artifact.exists),
         required_next_action: controlEvidence.length > 0
-          ? "Adjudicate candidate refs and record real evidence, n/a rationale, or owner-approved unmet disposition."
-          : "Extract a real control-specific evidence ref or record an owner-approved unmet disposition."
+          ? "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
+          : "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
       });
     }
   }
@@ -207,6 +212,7 @@ function renderMarkdown(report) {
 }
 
 const contract = readJson(CONTRACT_PATH);
+const ownerDecisionReceipt = readOptionalJson(OWNER_DECISION_RECEIPT_PATH);
 const cells = buildRows(contract);
 const rpSummary = summarizeByRp(cells);
 const statusCounts = countBy(cells, "candidate_status");
@@ -221,21 +227,27 @@ const report = {
     CONTRACT_PATH,
     "docs/critical-rp-saas-hardening-plan.md",
     "docs/launch/hardening-coverage-matrix.md",
-    "docs/launch/g1-completion-remediation-prep-2026-06-19.json"
+    "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+    OWNER_DECISION_RECEIPT_PATH
   ],
   boundary: {
     closes_g1_e03: false,
     marks_any_cell_evidence_satisfied: false,
     go_live_approved_by_this_package: false,
-    candidate_refs_require_adjudication: true
+    candidate_refs_require_adjudication: true,
+    owner_authorized_candidate_adjudication: ownerDecisionReceipt?.decisions?.g1_e03?.candidate_refs_for_verifier_adjudication === true,
+    owner_authorized_gap_disposition_routes: ownerDecisionReceipt?.decisions?.g1_e03?.gap_disposition_routes_authorized === true
   },
   summary: {
     total_cell_count: cells.length,
     candidate_evidence_present_count: statusCounts.candidate_evidence_present_pending_adjudication ?? 0,
     candidate_gap_count: statusCounts.candidate_gap_pending_evidence ?? 0,
     evidence_satisfied_cell_count: cells.filter((cell) => cell.satisfies_g1_e03).length,
-    missing_mandatory_artifact_unique_count: uniqueMissingArtifacts.length
+    missing_mandatory_artifact_unique_count: uniqueMissingArtifacts.length,
+    owner_candidate_adjudication_authorized: ownerDecisionReceipt?.decisions?.g1_e03?.candidate_refs_for_verifier_adjudication === true,
+    owner_gap_routes_authorized: ownerDecisionReceipt?.decisions?.g1_e03?.gap_disposition_routes_authorized === true
   },
+  owner_decision_receipt_ref: ownerDecisionReceipt ? OWNER_DECISION_RECEIPT_PATH : null,
   missing_mandatory_artifacts: uniqueMissingArtifacts,
   rp_summary: rpSummary,
   cells

@@ -232,7 +232,7 @@
     "actual_decision_count": 0
   },
   "mat_dec": {
-    "mention_line_count": 53,
+    "mention_line_count": 85,
     "unique_decision_ids": [
       "MAT-DEC-01",
       "MAT-DEC-02",
@@ -253,7 +253,7 @@
       {
         "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
         "line": 13,
-        "text": "| MAT-DEC-03 | ⏸ 보류 확정 | 스토리지 결정은 봉인 유지 — RP06/08 런타임 계약 신설 전까지 |"
+        "text": "| MAT-DEC-03 | ✅ **결정** | **SharePoint/OneDrive 원본 저장소 승인** — 2026-06-19 Managing Partner/System Admin 승인. 결정 증거: `docs/launch/g1-owner-decisions-2026-06-19.md#mat-dec-03` |"
       },
       {
         "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
@@ -267,68 +267,78 @@
       },
       {
         "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "line": 20,
+        "line": 19,
+        "text": "| MAT-DEC-09 | pending | 레지스터 owner 기본값 사용 시 승인 불요 |"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 21,
         "text": "## 1. 마스터 결정 표 (MAT-DEC-01~09)"
       },
       {
         "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "line": 24,
+        "line": 25,
         "text": "| **MAT-DEC-01** | 제품 성격: 내부용 vs 멀티테넌트 SaaS (또는 **\"1호 테넌트\" 정합화** — 내부 로펌을 첫 테넌트로 보고 SaaS 코어 유지) | 전략 선언문 §6(b) 확정 전, RP19/RP26 착수 전 | M365 배포 모델(④), 전략 선언문 분기 기준, Portal 일반화 판정 | 1호 테넌트 정합화 — 표준 목표문·기구현 테넌시와 충돌 없이 Plan A 의도 흡수 |"
       },
       {
         "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "line": 26,
-        "text": "| **MAT-DEC-03** | 문서 원본 스토리지: SharePoint/OneDrive vs object storage | RP06/08 런타임 계약 신설 전, RP22/23 착수 전 | M365 계약의 storage_dependent 5항목 봉인 해제 | 결정 자체는 보류 가능 — 계약 설계가 결정 무관 항목을 분리해 둠. 단 Outlook 런타임 착수 전 필수 |"
+        "line": 27,
+        "text": "| **MAT-DEC-03** | 문서 원본 스토리지: SharePoint/OneDrive vs object storage | 2026-06-19 소유자 승인으로 결정 | M365 계약의 storage_dependent 5항목은 storage decision blocker 해소. M365 admin/Graph scope/runtime evidence gate는 별도 유지 | **결정:** SharePoint/OneDrive를 "
       },
       {
         "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "line": 28,
+        "line": 29,
         "text": "| **MAT-DEC-05** | Plan A 소스 동결 방식: workbook 25파일 커밋 vs untracked+SHA256 앵커 | 각 트랙 Phase 1 / Stage 1 커밋 전 | 모든 소스 인덱스의 freeze_mode | **커밋 동결** (SHA256 표의 실효성 — LDIP 방식). 현재 workbook/ 전체 untracked |"
       },
       {
         "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "line": 30,
+        "line": 31,
         "text": "| **MAT-DEC-07** | 런타임 게이트 레이어 신설 일괄: 경계 팩 번호, **런타임 어휘 명명(runtime_ready/RTG + M365 계약의 런타임 검증 플래그 6종 — 단일 결정, 검증 반영)**, 의무화 시점(opt-in 권고), legacy 라벨, 변경 경로 | 문서 05 착수 전 (= 착수 승인이 곧 이 결정) | 문서 05 전체, M365 계약의 runtime_acceptance_criteria 명명 "
       },
       {
         "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "line": 32,
+        "line": 33,
         "text": "| **MAT-DEC-09** | 리스크 레지스터 owner·갱신 주기 | 레지스터 커밋 전 | 산출물 B | owner 기본 jwsuh@amic.kr, 갱신 트리거는 RP 착수·MAT-DEC 결정·리뷰 적발 시 |"
       },
       {
         "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "line": 37,
+        "line": 38,
         "text": "MAT-DEC-02 (User/Employee) ──→ HRX 커밋 2 ──→ HRX 팩 생성 가능"
       },
       {
         "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "line": 39,
-        "text": "MAT-DEC-03 (스토리지) ──→ M365 admission 게이트 해제 ──→ Outlook 런타임 팩"
+        "line": 40,
+        "text": "MAT-DEC-03 (스토리지, 결정됨) ──→ M365 admission에서 storage-decision blocker 해제 ──→ Outlook 런타임 팩은 admin/Graph/runtime evidence 필요"
       },
       {
         "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "line": 41,
-        "text": "MAT-DEC-08 (기밀분류) ──→ M365 privilege 필드, HRX P06 — 소급 비용 大"
+        "line": 42,
+        "text": "MAT-DEC-08 (기밀분류, 결정됨) ──→ M365 privilege 필드, HRX P06 — enum 정책결정 해소, 런타임 evidence 별도"
       },
       {
         "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "line": 43,
+        "line": 44,
         "text": "MAT-DEC-07 (게이트 레이어) ──→ 문서 05 착수 + M365 계약의 런타임 플래그 명명 (어휘 단일 결정)"
       },
       {
         "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "line": 50,
+        "line": 51,
         "text": "### MAT-DEC-01 (내부 vs SaaS)"
       },
       {
         "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "line": 55,
+        "line": 56,
         "text": "### MAT-DEC-02 (User/Employee)"
       },
       {
         "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "line": 59,
+        "line": 60,
         "text": "### MAT-DEC-03 (스토리지)"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 64,
+        "text": "### MAT-DEC-08 (기밀분류)"
       },
       {
         "path": "docs/launch/critical-oq-prd8-decision-round-brief.md",
@@ -369,6 +379,151 @@
         "path": "docs/launch/deferral-review-register.md",
         "line": 86,
         "text": "| LT-L0-W03-T01 | Collect P2, LDIP, HRX, and MAT-DEC deferral families with commands and counts | Candidate-family counts recorded; P2 broad markers normalized; LDIP/HRX actual defer decisions checked as 0 | partial |"
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+        "line": 58,
+        "text": "\"source_family\": \"MAT-DEC launch decision mentions\","
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+        "line": 60,
+        "text": "\"current_meaning\": \"Unique decision IDs present: MAT-DEC-01, MAT-DEC-02, MAT-DEC-03, MAT-DEC-04, MAT-DEC-05, MAT-DEC-06, MAT-DEC-07, MAT-DEC-08, MAT-DEC-09.\","
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+        "line": 64,
+        "text": "\"remaining_action\": \"MAT-DEC owner linkage is present or non-blocking. Move G1-E02 into manual evidence intake only after verifier records timestamped evidence satisfaction.\","
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+        "line": 67,
+        "text": "\"decision_id\": \"MAT-DEC-01\","
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+        "line": 77,
+        "text": "\"decision_id\": \"MAT-DEC-02\","
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+        "line": 87,
+        "text": "\"decision_id\": \"MAT-DEC-03\","
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+        "line": 97,
+        "text": "\"decision_id\": \"MAT-DEC-05\","
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+        "line": 107,
+        "text": "\"decision_id\": \"MAT-DEC-06\","
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+        "line": 117,
+        "text": "\"decision_id\": \"MAT-DEC-07\","
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+        "line": 127,
+        "text": "\"decision_id\": \"MAT-DEC-04\","
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+        "line": 137,
+        "text": "\"decision_id\": \"MAT-DEC-08\","
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+        "line": 147,
+        "text": "\"decision_id\": \"MAT-DEC-09\","
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+        "line": 2904,
+        "text": "\"action\": \"For G1-E02, resolve MAT-DEC owner linkage and prove every remaining item is non-blocking or assigned to a valid launch phase.\""
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
+        "line": 33,
+        "text": "| MAT-DEC launch decision mentions | 9 | Unique decision IDs present: MAT-DEC-01, MAT-DEC-02, MAT-DEC-03, MAT-DEC-04, MAT-DEC-05, MAT-DEC-06, MAT-DEC-07, MAT-DEC-08, MAT-DEC-09. | owner_linkage_present_not_blocking |"
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
+        "line": 37,
+        "text": "MAT-DEC owner linkage is present or non-blocking. Move G1-E02 into manual evidence intake only after verifier records timestamped evidence satisfaction."
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
+        "line": 39,
+        "text": "### MAT-DEC Linkage State"
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
+        "line": 43,
+        "text": "| MAT-DEC-01 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |"
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
+        "line": 45,
+        "text": "| MAT-DEC-03 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |"
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
+        "line": 47,
+        "text": "| MAT-DEC-06 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |"
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
+        "line": 49,
+        "text": "| MAT-DEC-04 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |"
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
+        "line": 51,
+        "text": "| MAT-DEC-09 | pending | no | non_blocking_default_owner_no_approval_required | Register text states the default owner path requires no approval when used. |"
+      },
+      {
+        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
+        "line": 96,
+        "text": "1. For G1-E02, resolve MAT-DEC owner linkage and prove every remaining item is non-blocking or assigned to a valid launch phase."
+      },
+      {
+        "path": "docs/launch/g1-owner-decisions-2026-06-19.json",
+        "line": 12,
+        "text": "\"MAT-DEC-03: SharePoint/OneDrive를 원본 문서 저장소로 승인한다.\","
+      },
+      {
+        "path": "docs/launch/g1-owner-decisions-2026-06-19.json",
+        "line": 19,
+        "text": "\"decision_id\": \"MAT-DEC-03\","
+      },
+      {
+        "path": "docs/launch/g1-owner-decisions-2026-06-19.json",
+        "line": 31,
+        "text": "\"decision_id\": \"MAT-DEC-08\","
+      },
+      {
+        "path": "docs/launch/g1-owner-decisions-2026-06-19.md",
+        "line": 14,
+        "text": "## MAT-DEC-03"
+      },
+      {
+        "path": "docs/launch/g1-owner-decisions-2026-06-19.md",
+        "line": 20,
+        "text": "- The MAT-DEC-03 owner decision blocker is resolved."
+      },
+      {
+        "path": "docs/launch/g1-owner-decisions-2026-06-19.md",
+        "line": 25,
+        "text": "## MAT-DEC-08"
+      },
+      {
+        "path": "docs/launch/g1-owner-decisions-2026-06-19.md",
+        "line": 42,
+        "text": "- The MAT-DEC-08 owner decision blocker is resolved."
       },
       {
         "path": "docs/launch/gap-five-area-coverage-matrix.md",
@@ -433,12 +588,17 @@
       {
         "path": "docs/launch/mat-dec-03-storage-decision-brief.md",
         "line": 10,
-        "text": "`workbook/absorption-package/06_오픈_결정_레지스터.md` still records MAT-DEC-03 as deferred/pending for document original storage. Codex cannot choose SharePoint/OneDrive or object storage on behalf of the launch owner."
+        "text": "`workbook/absorption-package/06_오픈_결정_레지스터.md` now records MAT-DEC-03 as decided by the Managing Partner/System Admin on 2026-06-19."
       },
       {
         "path": "docs/launch/mat-dec-03-storage-decision-brief.md",
-        "line": 27,
+        "line": 29,
         "text": "| ID | Sealed item | Why MAT-DEC-03 matters |"
+      },
+      {
+        "path": "docs/launch/mat-dec-03-unseal-referral.md",
+        "line": 1,
+        "text": "# MAT-DEC-03 Unseal Referral"
       },
       {
         "path": "docs/launch/matter-naming-rules.md",
@@ -484,31 +644,6 @@
         "path": "docs/launch/perf/performance-acceptance-criteria-decision.md",
         "line": 92,
         "text": "| MAT-DEC-03 | Decide upload/storage boundary before measuring provider transfer. |"
-      },
-      {
-        "path": "docs/launch/perf/performance-acceptance-report.md",
-        "line": 26,
-        "text": "| Provider file transfer measured | false; pending MAT-DEC-03 |"
-      },
-      {
-        "path": "docs/launch/perf/performance-acceptance-report.md",
-        "line": 75,
-        "text": "| MAT-DEC-03 | Provider transfer timing remains excluded until storage/link boundary is decided. |"
-      },
-      {
-        "path": "docs/launch/risk-control-existence-audit.md",
-        "line": 18,
-        "text": "| RISK-003 | SharePoint permission sync checker, audit, reconciliation job | absent | M365 runtime contract and overlay still have `storage_decision_resolved: false`; `privilege_classification_decision_resolved: false`; SharePoint/Graph wri"
-      },
-      {
-        "path": "docs/launch/risk-control-existence-audit.md",
-        "line": 27,
-        "text": "| RISK-005 | Obsidian export-only -> controlled import -> approval sync | absent | No `packages/obsidian` or `packages/vault` directory exists. Vault requirements are planning candidates, and MAT-DEC-03 remains relevant to storage origin. |"
-      },
-      {
-        "path": "docs/launch/risk-control-reality-matrix.md",
-        "line": 17,
-        "text": "| RISK-005 | Obsidian export-only before controlled import and approval sync | absent | No Obsidian/Vault package; requirements remain planning candidates linked to MAT-DEC-03. | not_ready | yes |"
       }
     ]
   },
