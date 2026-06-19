@@ -29,6 +29,7 @@ reference anchor, but the CMP package is not merely an extension of it.
 | `11-cmp-g9-ai-rag-governance-runtime-report.md` | Records the executable CMP-G9 AI/RAG governance API slice, permission-before-AI guardrail, citation/human-review controls, legal workflow/export gates, tests, validator, and no-premature-R4 boundary. |
 | `12-cmp-g10-client-collaboration-runtime-report.md` | Records the executable CMP-G10 client portal/data-room API slice, projection-only external access, shared-only ACLs, secure links, RFI upload guards, tests, validator, and no-premature-R4 boundary. |
 | `13-cmp-g11-ui-console-runtime-report.md` | Records the executable CMP-G11 web console slice, IA catalog, routable screen catalog, reusable UI states, domain API client context, UI regression tests, validator, and no-premature-R4 boundary. |
+| `14-cmp-g12-enterprise-readiness-runtime-report.md` | Records the executable CMP-G12 enterprise readiness API slice, admin/IAM/ops/migration/integration/compliance/UAT/release/launch routes, negative tests, validator, and no-premature-R4 boundary. |
 
 ## Baseline Rule
 

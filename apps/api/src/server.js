@@ -69,6 +69,12 @@ import {
   handleClientCollaborationApiRequest,
   isClientCollaborationPath,
 } from "./client-collaboration-runtime-context.js";
+import {
+  ENTERPRISE_READINESS_BOUNDED_CONTEXT,
+  createEnterpriseReadinessRuntimeContext,
+  handleEnterpriseReadinessApiRequest,
+  isEnterpriseReadinessPath,
+} from "./enterprise-readiness-runtime-context.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
@@ -82,6 +88,7 @@ const REVENUE_FINANCE_RUNTIME = createRevenueFinanceRuntimeContext();
 const ANALYTICS_READ_MODEL_RUNTIME = createAnalyticsReadModelRuntimeContext();
 const AI_RAG_GOVERNANCE_RUNTIME = createAiRagGovernanceRuntimeContext();
 const CLIENT_COLLABORATION_RUNTIME = createClientCollaborationRuntimeContext();
+const ENTERPRISE_READINESS_RUNTIME = createEnterpriseReadinessRuntimeContext();
 
 export const SERVICE_DESCRIPTOR = Object.freeze({
   service: "@law-firm-os/api",
@@ -98,6 +105,7 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
     ANALYTICS_READ_MODEL_BOUNDED_CONTEXT,
     AI_RAG_GOVERNANCE_BOUNDED_CONTEXT,
     CLIENT_COLLABORATION_BOUNDED_CONTEXT,
+    ENTERPRISE_READINESS_BOUNDED_CONTEXT,
   ]),
   permission_gate: Object.freeze({
     contract_ref: "contracts/permission-kernel-contract.json",
@@ -156,6 +164,7 @@ async function handle(req, res) {
   const isAnalyticsReadModelRuntimePath = isAnalyticsReadModelPath(pathname);
   const isAiRagGovernanceRuntimePath = isAiRagGovernancePath(pathname);
   const isClientCollaborationRuntimePath = isClientCollaborationPath(pathname);
+  const isEnterpriseReadinessRuntimePath = isEnterpriseReadinessPath(pathname);
   const knownPath =
     pathname === "/api/health" ||
     pathname === "/master-data/records" ||
@@ -170,6 +179,7 @@ async function handle(req, res) {
     isAnalyticsReadModelRuntimePath ||
     isAiRagGovernanceRuntimePath ||
     isClientCollaborationRuntimePath ||
+    isEnterpriseReadinessRuntimePath ||
     isHrxPath;
 
   if (!knownPath) {
@@ -187,6 +197,7 @@ async function handle(req, res) {
     !isAnalyticsReadModelRuntimePath &&
     !isAiRagGovernanceRuntimePath &&
     !isClientCollaborationRuntimePath &&
+    !isEnterpriseReadinessRuntimePath &&
     req.method !== "GET"
   ) {
     sendJson(res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
@@ -250,6 +261,13 @@ async function handle(req, res) {
   if (isClientCollaborationRuntimePath) {
     const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
     const result = await handleClientCollaborationApiRequest({ pathname, method: req.method, query, body, context: CLIENT_COLLABORATION_RUNTIME });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isEnterpriseReadinessRuntimePath) {
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
+    const result = await handleEnterpriseReadinessApiRequest({ pathname, method: req.method, query, body, context: ENTERPRISE_READINESS_RUNTIME });
     sendJson(res, result.status, { request_id: requestId, ...result.body });
     return;
   }
