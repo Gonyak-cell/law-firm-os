@@ -104,6 +104,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `59-g7-c-hrx-people-guardrails-report.md` | Records the G7-C User/Employee separation, Employee schema, capacity/workload, HR document/evaluation, candidate separation, and HRX closeout slice. |
 | `60-g7-d-integrations-migration-foundation-report.md` | Records the G7-D connector registry, credential reference, sync job, sync cursor, and reconciliation foundation slice. |
 | `61-g7-e-migration-cutover-closeout-report.md` | Records the G7-E migration batch, import validation, accounting export, migration dashboard, and cutover closeout slice. |
+| `62-g7-f-qa-security-baseline-report.md` | Records the G7-F test strategy, unit/integration baseline, permission negative, audit completeness, and idempotency baseline slice. |
 
 ## Execution Order
 
@@ -412,6 +413,12 @@ Party detection, accounting export human-review-before-send controls, migration
 dashboard failed-row review, RP23/RP25 descriptor boundaries, G7-D handoff,
 test coverage, and the open boundary for cutover approval, production
 readiness, and go-live approval.
+
+The G7-F validator checks PM/QA test-strategy review markers, unit coverage
+threshold evidence, integration key-workflow evidence, permission-negative
+denials, audit completeness, idempotency and replay protection, RP26 descriptor
+boundaries, G7-E handoff, test coverage, and the open boundary for security
+approval, UAT completion, production readiness, and go-live approval.
 
 ## Non-Goals
 
