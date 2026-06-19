@@ -16,6 +16,8 @@ Generated on: 2026-06-19
 - candidate_gap_count: 16
 - evidence_satisfied_cell_count: 0
 - missing_mandatory_artifact_unique_count: 0
+- owner_candidate_adjudication_authorized: true
+- owner_gap_routes_authorized: true
 
 ## RP Summary
 
@@ -42,21 +44,21 @@ Generated on: 2026-06-19
 
 | Cell | Required next action |
 | --- | --- |
-| RP01:secure_secret_handling | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
-| RP01:data_retention_and_legal_hold | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
-| RP02:privacy_minimization | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
-| RP04:data_retention_and_legal_hold | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
-| RP05:secure_secret_handling | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
-| RP06:secure_secret_handling | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
-| RP07:secure_secret_handling | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
-| RP10:secure_secret_handling | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
-| RP12:privacy_minimization | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
-| RP12:secure_secret_handling | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
-| RP14:privacy_minimization | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
-| RP14:secure_secret_handling | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
-| RP16:secure_secret_handling | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
-| RP17:secure_secret_handling | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
-| RP26:privacy_minimization | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
-| RP29:privacy_minimization | Extract a real control-specific evidence ref or record an owner-approved unmet disposition. |
+| RP01:secure_secret_handling | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
+| RP01:data_retention_and_legal_hold | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
+| RP02:privacy_minimization | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
+| RP04:data_retention_and_legal_hold | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
+| RP05:secure_secret_handling | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
+| RP06:secure_secret_handling | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
+| RP07:secure_secret_handling | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
+| RP10:secure_secret_handling | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
+| RP12:privacy_minimization | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
+| RP12:secure_secret_handling | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
+| RP14:privacy_minimization | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
+| RP14:secure_secret_handling | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
+| RP16:secure_secret_handling | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
+| RP17:secure_secret_handling | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
+| RP26:privacy_minimization | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
+| RP29:privacy_minimization | Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction. |
 
 Full 272-cell candidate matrix is in the JSON artifact.

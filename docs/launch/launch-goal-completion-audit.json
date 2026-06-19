@@ -56,7 +56,7 @@
   },
   "requirements": {
     "cp_closeout_completed_before_launch": {
-      "status": "satisfied",
+      "status": "failed",
       "evidence_refs": [
         "scripts/validate-final-product-completion-gate.mjs",
         "docs/closeout-pack-plan/closeout-pack-plan.json"
@@ -909,11 +909,11 @@
     "p2_unresolved_item_line_count": 0,
     "ldip_actual_defer_decision_count": 0,
     "hrx_actual_defer_decision_count": 0,
-    "mat_dec_mention_line_count": 53,
+    "mat_dec_mention_line_count": 85,
     "finding_count": 0
   },
   "no_go_claim_policy": {
-    "scanned_file_count": 196,
+    "scanned_file_count": 212,
     "no_go_active": true,
     "forbidden_true_claim_count": 0,
     "finding_count": 0
@@ -986,8 +986,9 @@
   "commands": [
     {
       "command": "node scripts/validate-final-product-completion-gate.mjs",
-      "exit_code": 0,
-      "stdout": "{\n  \"schema_version\": \"law-firm-os.final-product-completion-gate.validation.v0.1\",\n  \"contract_path\": \"contracts/final-product-completion-gate-contract.json\",\n  \"scope_revision\": {\n    \"path\": \"docs/launch/scope-revision-register.json\",\n    \"approved\": true,\n    \"status\": \"approved\",\n    \"revision_type\": \"no_scope_delta_after_cp_closeout\"\n  },\n  \"units\": {\n    \"law_firm_os_units\": 54355,\n    \"hrx_embedded_people_units\": 901,\n    \"expanded_total_units\": 55256,\n    \"law_firm_os_ledger_path\": \"docs/weighted-implementation-ledger.json\",\n    \"hrx_ledger_path\": \"docs/hrx-weighted-implementation-ledger.json\"\n  },\n  \"production_ready\": {\n    \"closeout_complete\": true,\n    \"live_latest_pack_id\": \"CP00-987\",\n    \"manifest_count\": 987,\n    \"production_ready_pack_count\": 987,\n    \"manifest_unit_proxy_count\": 55131,\n    \"satisfied_units\": 55256,\n    \"required_units\": 55256,\n    \"source\": \"closeout_plan_completion\",\n    \"structured_review_p0_count\": 0,\n    \"structured_review_p1_count\": 0\n  },\n  \"ldip\": {\n    \"source_index_path\": \"docs/ldip-integration/ldip-source-index.md\",\n    \"source_sections_total\": 68,\n    \"classified_sections\": 68,\n    \"classification_rate_percent\": 100\n  },\n  \"invariants\": {\n    \"required_count\": 8,\n    \"passed_count\": 8,\n    \"rows\": [\n      {\n        \"id\": \"matter_first\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"contracts/law-firm-os.product-contract.json\"\n        ]\n      },\n      {\n        \"id\": \"permission_first\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"contracts/law-firm-os.product-contract.json\",\n          \"docs/closeout-pack-plan/latest-total-closeout-execution-plan.md\"\n        ]\n      },\n      {\n        \"id\": \"audit_first\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"contracts/law-firm-os.product-contract.json\",\n          \"docs/closeout-pack-plan/latest-total-closeout-execution-plan.md\"\n        ]\n      },\n      {\n        \"id\": \"evidence_bound_ai\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"contracts/law-firm-os.product-contract.json\",\n          \"docs/closeout-pack-plan/latest-total-closeout-execution-plan.md\"\n        ]\n      },\n      {\n        \"id\": \"human_review\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"contracts/law-firm-os.product-contract.json\",\n          \"docs/ldip-integration/ldip-no-omission-coverage-matrix.md\"\n        ]\n      },\n      {\n        \"id\": \"read_only_default\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"docs/ldip-integration/ldip-no-omission-coverage-matrix.md\",\n          \"docs/closeout-pack-plan/latest-total-closeout-execution-plan.md\"\n        ]\n      },\n      {\n        \"id\": \"external_share_safety\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"docs/ldip-integration/ldip-no-omission-coverage-matrix.md\",\n          \"docs/closeout-pack-plan/latest-total-closeout-execution-plan.md\"\n        ]\n      },\n      {\n        \"id\": \"vendor_neutral_architecture\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"docs/closeout-pack-plan/latest-total-closeout-execution-plan.md\",\n          \"docs/ldip-integration/ldip-gap-adjudication.md\"\n        ]\n      }\n    ]\n  },\n  \"pack_gate_chain\": {\n    \"pack_count\": 987,\n    \"required_artifact_complete_count\": 987,\n    \"implementation_evidence_count\": 987,\n    \"tests_evidence_count\": 987,\n    \"hermes_evidence_count\": 987,\n    \"valid_review_count\": 952,\n    \"review_waiver_count\": 35,\n    \"review_satisfied_count\": 987,\n    \"adjudication_count\": 987,\n    \"construction_inspection_pass_count\": 987,\n    \"included_units_production_ready_count\": 987,\n    \"final_validation_count\": 987,\n    \"commit_evidence_count\": 987,\n    \"review_waiver_is_not_valid_review_evidence\": true,\n    \"missing_pack_count\": 0,\n    \"missing_packs\": []\n  },\n  \"p0_p1_counts\": {\n    \"validator_p0_count\": 0,\n    \"validator_p1_count\": 0,\n    \"structured_review_p0_count\": 0,\n    \"structured_review_p1_count\": 0\n  },\n  \"findings\": [],\n  \"verdict\": \"PASS\"\n}"
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "{\n  \"verdict\": \"FAIL\",\n  \"error\": \"ENOENT: no such file or directory, open 'docs/weighted-implementation-ledger.json'\"\n}"
     },
     {
       "command": "node scripts/validate-implementation-layer-ledger.mjs",
@@ -1237,12 +1238,12 @@
     {
       "command": "node scripts/audit-launch-deferral-source-extraction.mjs",
       "exit_code": 0,
-      "stdout": "{\n  \"report_json\": \"docs/launch/launch-deferral-source-extraction-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-deferral-source-extraction-audit.md\",\n  \"verdict\": \"PASS\",\n  \"p2_broad_marker_source_file_count\": 3794,\n  \"p2_positive_count_statement_file_count\": 11,\n  \"p2_positive_count_statement_sum\": 18,\n  \"explicit_p2_item_line_count\": 18,\n  \"unresolved_p2_line_count\": 0,\n  \"ldip_actual_decision_count\": 0,\n  \"hrx_actual_decision_count\": 0,\n  \"mat_dec_mention_line_count\": 53,\n  \"finding_count\": 0\n}"
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-deferral-source-extraction-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-deferral-source-extraction-audit.md\",\n  \"verdict\": \"PASS\",\n  \"p2_broad_marker_source_file_count\": 3794,\n  \"p2_positive_count_statement_file_count\": 11,\n  \"p2_positive_count_statement_sum\": 18,\n  \"explicit_p2_item_line_count\": 18,\n  \"unresolved_p2_line_count\": 0,\n  \"ldip_actual_decision_count\": 0,\n  \"hrx_actual_decision_count\": 0,\n  \"mat_dec_mention_line_count\": 85,\n  \"finding_count\": 0\n}"
     },
     {
       "command": "node scripts/audit-launch-no-go-claim-policy.mjs",
       "exit_code": 0,
-      "stdout": "{\n  \"report_json\": \"docs/launch/launch-no-go-claim-policy-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-no-go-claim-policy-audit.md\",\n  \"verdict\": \"PASS\",\n  \"scanned_file_count\": 196,\n  \"no_go_active\": true,\n  \"forbidden_true_claim_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-no-go-claim-policy-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-no-go-claim-policy-audit.md\",\n  \"verdict\": \"PASS\",\n  \"scanned_file_count\": 212,\n  \"no_go_active\": true,\n  \"forbidden_true_claim_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
     },
     {
       "command": "node scripts/audit-launch-tuw-evidence-coverage.mjs",

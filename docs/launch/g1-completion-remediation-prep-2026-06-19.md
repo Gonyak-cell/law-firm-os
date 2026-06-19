@@ -11,15 +11,15 @@ Generated on: 2026-06-19
 
 ## Summary
 
-- g1_e02_closeable_now: false
+- g1_e02_closeable_now: true
 - g1_e03_closeable_now: false
 - unresolved_p2_line_count: 0
 - ldip_actual_defer_decision_count: 0
 - hrx_actual_defer_decision_count: 0
 - mat_dec_unique_decision_id_count: 9
-- mat_dec_linked_decision_count: 6
+- mat_dec_linked_decision_count: 8
 - mat_dec_non_blocking_default_count: 1
-- mat_dec_remaining_owner_linkage_count: 2
+- mat_dec_remaining_owner_linkage_count: 0
 - hardening_required_cell_count: 272
 - hardening_pending_cell_count: 272
 
@@ -30,11 +30,11 @@ Generated on: 2026-06-19
 | P2 explicit item lines | 18 | Explicit historical P2 rows found; unresolved count is 0. | normalized_not_blocking |
 | LDIP actual defer decisions | 0 | Object-level traversal count of actual defer decisions. | normalized_not_blocking |
 | HRX actual defer decisions | 0 | Object-level traversal count of actual defer decisions. | normalized_not_blocking |
-| MAT-DEC launch decision mentions | 9 | Unique decision IDs present: MAT-DEC-01, MAT-DEC-02, MAT-DEC-03, MAT-DEC-04, MAT-DEC-05, MAT-DEC-06, MAT-DEC-07, MAT-DEC-08, MAT-DEC-09. | requires_launch_owner_linkage |
+| MAT-DEC launch decision mentions | 9 | Unique decision IDs present: MAT-DEC-01, MAT-DEC-02, MAT-DEC-03, MAT-DEC-04, MAT-DEC-05, MAT-DEC-06, MAT-DEC-07, MAT-DEC-08, MAT-DEC-09. | owner_linkage_present_not_blocking |
 
 Remaining G1-E02 action:
 
-Create owner-linked MAT-DEC decision rows or prove each MAT-DEC mention is non-blocking for launch G1. Only then can G1-E02 claim blocking_remaining_count_zero.
+MAT-DEC owner linkage is present or non-blocking. Move G1-E02 into manual evidence intake only after verifier records timestamped evidence satisfaction.
 
 ### MAT-DEC Linkage State
 
@@ -42,12 +42,12 @@ Create owner-linked MAT-DEC decision rows or prove each MAT-DEC mention is non-b
 | --- | --- | --- | --- | --- |
 | MAT-DEC-01 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |
 | MAT-DEC-02 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |
-| MAT-DEC-03 | deferred | yes | requires_owner_linkage_before_g1_e02 | No decided owner-linked row or non-blocking register basis is present. |
+| MAT-DEC-03 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |
 | MAT-DEC-05 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |
 | MAT-DEC-06 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |
 | MAT-DEC-07 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |
 | MAT-DEC-04 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |
-| MAT-DEC-08 | pending | yes | requires_owner_linkage_before_g1_e02 | No decided owner-linked row or non-blocking register basis is present. |
+| MAT-DEC-08 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |
 | MAT-DEC-09 | pending | no | non_blocking_default_owner_no_approval_required | Register text states the default owner path requires no approval when used. |
 
 ## G1-E03 Hardening Coverage Prep

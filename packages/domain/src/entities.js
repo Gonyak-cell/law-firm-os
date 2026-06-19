@@ -1,4 +1,4 @@
-export const CONFIDENTIALITY_LEVELS = ["public", "internal", "confidential", "restricted"];
+export const CONFIDENTIALITY_LEVELS = ["public", "internal", "confidential", "restricted", "privileged", "hr_restricted"];
 export const LIFECYCLE_STATUSES = ["draft", "active", "open", "paused", "closed", "archived"];
 export const MATTER_STATUSES = ["intake", "open", "paused", "closed", "archived"];
 export const ENTITY_KINDS = ["organization", "person", "internal_user", "external_party"];

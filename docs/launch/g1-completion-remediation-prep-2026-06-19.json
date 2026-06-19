@@ -18,23 +18,23 @@
     "review_waiver_counts_as_valid_review_evidence": false
   },
   "summary": {
-    "g1_e02_closeable_now": false,
+    "g1_e02_closeable_now": true,
     "g1_e03_closeable_now": false,
     "unresolved_p2_line_count": 0,
     "ldip_actual_defer_decision_count": 0,
     "hrx_actual_defer_decision_count": 0,
     "mat_dec_unique_decision_id_count": 9,
-    "mat_dec_linked_decision_count": 6,
+    "mat_dec_linked_decision_count": 8,
     "mat_dec_non_blocking_default_count": 1,
-    "mat_dec_remaining_owner_linkage_count": 2,
+    "mat_dec_remaining_owner_linkage_count": 0,
     "hardening_required_cell_count": 272,
     "hardening_pending_cell_count": 272
   },
   "g1_e02_deferred_item_rejudgment": {
     "evidence_id": "G1-E02",
     "required_state": "blocking_remaining_count_zero",
-    "current_status": "not_satisfied",
-    "closeable_now": false,
+    "current_status": "closeable_pending_manual_evidence_intake",
+    "closeable_now": true,
     "source_families": [
       {
         "source_family": "P2 explicit item lines",
@@ -58,10 +58,10 @@
         "source_family": "MAT-DEC launch decision mentions",
         "count": 9,
         "current_meaning": "Unique decision IDs present: MAT-DEC-01, MAT-DEC-02, MAT-DEC-03, MAT-DEC-04, MAT-DEC-05, MAT-DEC-06, MAT-DEC-07, MAT-DEC-08, MAT-DEC-09.",
-        "g1_effect": "requires_launch_owner_linkage"
+        "g1_effect": "owner_linkage_present_not_blocking"
       }
     ],
-    "remaining_action": "Create owner-linked MAT-DEC decision rows or prove each MAT-DEC mention is non-blocking for launch G1. Only then can G1-E02 claim blocking_remaining_count_zero.",
+    "remaining_action": "MAT-DEC owner linkage is present or non-blocking. Move G1-E02 into manual evidence intake only after verifier records timestamped evidence satisfaction.",
     "mat_dec_linkage_rows": [
       {
         "decision_id": "MAT-DEC-01",
@@ -85,13 +85,13 @@
       },
       {
         "decision_id": "MAT-DEC-03",
-        "status": "deferred",
-        "status_text": "⏸ 보류 확정",
-        "decision_text": "스토리지 결정은 봉인 유지 — RP06/08 런타임 계약 신설 전까지",
+        "status": "decided",
+        "status_text": "✅ **결정**",
+        "decision_text": "**SharePoint/OneDrive 원본 저장소 승인** — 2026-06-19 Managing Partner/System Admin 승인. 결정 증거: `docs/launch/g1-owner-decisions-2026-06-19.md#mat-dec-03`",
         "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "requires_owner_linkage_before_g1_e02",
-        "g1_blocking": true,
-        "launch_basis": "No decided owner-linked row or non-blocking register basis is present."
+        "launch_g1_effect": "owner_linkage_present",
+        "g1_blocking": false,
+        "launch_basis": "Decision status is recorded as decided in the absorption decision register."
       },
       {
         "decision_id": "MAT-DEC-05",
@@ -135,47 +135,26 @@
       },
       {
         "decision_id": "MAT-DEC-08",
-        "status": "pending",
-        "status_text": "pending",
-        "decision_text": "08 기밀분류 enum(미래 구현 팩 게이트) / 09 레지스터 owner(기본값 사용 시 승인 불요)",
+        "status": "decided",
+        "status_text": "✅ **결정**",
+        "decision_text": "**기밀분류 enum 확장 승인** — `public/internal/confidential/restricted/privileged/hr_restricted`. 결정 증거: `docs/launch/g1-owner-decisions-2026-06-19.md#mat-dec-08`",
         "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "requires_owner_linkage_before_g1_e02",
-        "g1_blocking": true,
-        "launch_basis": "No decided owner-linked row or non-blocking register basis is present."
+        "launch_g1_effect": "owner_linkage_present",
+        "g1_blocking": false,
+        "launch_basis": "Decision status is recorded as decided in the absorption decision register."
       },
       {
         "decision_id": "MAT-DEC-09",
         "status": "pending",
         "status_text": "pending",
-        "decision_text": "08 기밀분류 enum(미래 구현 팩 게이트) / 09 레지스터 owner(기본값 사용 시 승인 불요)",
+        "decision_text": "레지스터 owner 기본값 사용 시 승인 불요",
         "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
         "launch_g1_effect": "non_blocking_default_owner_no_approval_required",
         "g1_blocking": false,
         "launch_basis": "Register text states the default owner path requires no approval when used."
       }
     ],
-    "mat_dec_blocking_rows": [
-      {
-        "decision_id": "MAT-DEC-03",
-        "status": "deferred",
-        "status_text": "⏸ 보류 확정",
-        "decision_text": "스토리지 결정은 봉인 유지 — RP06/08 런타임 계약 신설 전까지",
-        "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "requires_owner_linkage_before_g1_e02",
-        "g1_blocking": true,
-        "launch_basis": "No decided owner-linked row or non-blocking register basis is present."
-      },
-      {
-        "decision_id": "MAT-DEC-08",
-        "status": "pending",
-        "status_text": "pending",
-        "decision_text": "08 기밀분류 enum(미래 구현 팩 게이트) / 09 레지스터 owner(기본값 사용 시 승인 불요)",
-        "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "requires_owner_linkage_before_g1_e02",
-        "g1_blocking": true,
-        "launch_basis": "No decided owner-linked row or non-blocking register basis is present."
-      }
-    ],
+    "mat_dec_blocking_rows": [],
     "source_refs": [
       "docs/launch/launch-deferral-source-extraction-audit.json",
       "docs/launch/deferral-review-register.md",

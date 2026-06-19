@@ -151,6 +151,7 @@ function renderMarkdown(report) {
   lines.push("- It does not approve go-live.");
   lines.push("- It does not approve owner deferrals.");
   lines.push("- Generated audit PASS verdicts are allowed only as audit results, not as launch approval.");
+  lines.push("- Generated FAIL verdicts are allowed as blocked-state evidence; they are not launch approval claims.");
   lines.push("- Closed CP evidence remains read-only.");
   return `${lines.join("\n")}\n`;
 }
@@ -209,7 +210,7 @@ for (const path of files) {
         });
       }
     }
-    if (noGoActive && verdict && verdict !== "PASS" && verdict !== "NOT_COMPLETE") {
+    if (noGoActive && verdict && verdict !== "PASS" && verdict !== "NOT_COMPLETE" && verdict !== "FAIL") {
       addFinding(findings, "P1", "NO_GO_JSON_VERDICT_CLAIM", "JSON launch artifact verdict is not safe for the current No-Go state.", {
         path,
         verdict

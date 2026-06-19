@@ -6,7 +6,7 @@ Verdict: PASS
 
 ## Summary
 
-- scanned_file_count: 196
+- scanned_file_count: 212
 - no_go_active: true
 - markdown_status_count: 77
 - json_status_count: 2
@@ -26,4 +26,5 @@ No findings.
 - It does not approve go-live.
 - It does not approve owner deferrals.
 - Generated audit PASS verdicts are allowed only as audit results, not as launch approval.
+- Generated FAIL verdicts are allowed as blocked-state evidence; they are not launch approval claims.
 - Closed CP evidence remains read-only.

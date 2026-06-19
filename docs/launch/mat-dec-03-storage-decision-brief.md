@@ -1,13 +1,15 @@
 # MAT-DEC-03 Storage Decision Brief
 
-Status: blocked_pending_storage_decision
+Status: blocked_runtime_pending_owner_decision_resolved
 Recorded at: 2026-06-18T10:10:01Z
 Work package: LT-PRE-W03
 Terminal TUW: LT-PRE-W03-T02
 
 ## Current Decision State
 
-`workbook/absorption-package/06_오픈_결정_레지스터.md` still records MAT-DEC-03 as deferred/pending for document original storage. Codex cannot choose SharePoint/OneDrive or object storage on behalf of the launch owner.
+`workbook/absorption-package/06_오픈_결정_레지스터.md` now records MAT-DEC-03 as decided by the Managing Partner/System Admin on 2026-06-19.
+
+Decision: SharePoint/OneDrive is approved as the Law Firm OS document original storage.
 
 The deadline anchor in `workbook/launch-tuw/10_PRE.md` is before RP06/08 runtime contract creation and before RP22/23 start. The live repo is now after CP completion:
 
@@ -22,7 +24,7 @@ The deadline anchor in `workbook/launch-tuw/10_PRE.md` is before RP06/08 runtime
 
 ## Storage-Dependent Sealed Items
 
-`contracts/email-dms-m365-runtime-contract.json` has five storage-dependent items with `blocked_until_storage_decision: true`.
+`contracts/email-dms-m365-runtime-contract.json` has five storage-dependent items that are no longer blocked by storage decision. They remain gated by M365 admin consent, Graph scope, SharePoint/OneDrive provisioning, and runtime evidence.
 
 | ID | Sealed item | Why MAT-DEC-03 matters |
 |---|---|---|
@@ -32,7 +34,7 @@ The deadline anchor in `workbook/launch-tuw/10_PRE.md` is before RP06/08 runtime
 | M365-STOR-004 | Graph files write surface | Fixes whether Graph file writes are in the runtime path. |
 | M365-STOR-005 | Vault export/import storage bridge | Fixes how Obsidian/Vault export-import bridges to source document storage. |
 
-Command count note: the raw `grep -c "blocked_until_storage_decision"` output is 6 because the contract also contains one policy flag at `m365_runtime_acceptance_criteria.files`. The sealed item count is 5 when counting `"blocked_until_storage_decision": true` rows under `storage_dependency_partition.storage_dependent`.
+Contract note: `storage_decision_ref` points to `docs/launch/g1-owner-decisions-2026-06-19.md#mat-dec-03`, and each storage-dependent item retains `remaining_gate: m365_admin_graph_scope_and_runtime_evidence`.
 
 ## Option Comparison
 
@@ -45,15 +47,15 @@ Command count note: the raw `grep -c "blocked_until_storage_decision"` output is
 
 | ID | Owner role | Required decision | Blocking scope | Status |
 |---|---|---|---|---|
-| ESC-LT-PRE-W03-001 | Launch owner / document storage architecture approver | Decide SharePoint/OneDrive original storage vs object storage, with basis and decision date | PRE-EXIT, M365 admission, Outlook filing, L2 document runtime, L3 M365 provisioning, R8 Vault disposition | open |
+| ESC-LT-PRE-W03-001 | Launch owner / document storage architecture approver | Decide SharePoint/OneDrive original storage vs object storage, with basis and decision date | PRE-EXIT, M365 admission, Outlook filing, L2 document runtime, L3 M365 provisioning, R8 Vault disposition | resolved_owner_decision_recorded_runtime_pending |
 
 ## T02 Boundary
 
-LT-PRE-W03-T02 cannot honestly create the unseal referral or scope-revision judgment until T01 is decided. No `docs/launch/mat-dec-03-unseal-referral.md` file is created by this blocked record.
+LT-PRE-W03-T02 can now create `docs/launch/mat-dec-03-unseal-referral.md`. The referral removes the storage-decision blocker only; it does not claim M365 runtime readiness.
 
 ## Non-Weakening Boundary
 
-This brief does not unseal M365 storage-dependent items, does not modify the M365 runtime contract, does not add units, does not rewrite closed CP evidence, and does not approve production data use.
+This brief unseals the owner decision for M365 storage-dependent items, modifies only the M365 runtime decision contract, does not add units, does not rewrite closed CP evidence, and does not approve production data use.
 
 ## Review Policy
 
