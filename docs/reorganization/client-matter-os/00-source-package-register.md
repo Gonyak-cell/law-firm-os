@@ -10,6 +10,7 @@ Date: 2026-06-19
 | `/Users/jws/Documents/Codex/matter-erp-crm-integration/Law_Firm_OS_Development_Document_Package_v1.0.docx` | Primary development document package | Defines Client-Matter OS reorganization, runtime gates, and handoff checklist. |
 | `/Users/jws/Documents/Codex/matter-erp-crm-integration/Law_Firm_OS_Development_Document_Package_v1.0.pdf` | Rendered reference | Same content as the DOCX, useful for review. |
 | `/Users/jws/Documents/Codex/matter-erp-crm-integration/Law_Firm_OS_TUW_Backlog_v1.0.xlsx` | Structured execution backlog | Contains 8 gates, 16 workstreams, 198 TUWs, risks, ownership, boundaries, workflows, states, and folder checklist. |
+| `/Users/jws/Documents/Codex/Client-Matter-People/` | CMP extension source package | Contains the 2026-06-19 Client-Matter-People OS handoff package, 13 CMP gates, and 316 CMP TUWs. Treat as an extension candidate until the CMP crosswalk validator passes. |
 
 ## Package Interpretation
 
@@ -44,6 +45,17 @@ transition plan, not as a replacement for the existing repo.
 | TUWs | 198 |
 | Risks | 15 |
 | Canonical object rows | 27 |
+
+## CMP Extension Candidate Counts
+
+| Item | Count |
+| --- | ---: |
+| Source package | `Client-Matter-People` |
+| Release gates | 13 |
+| Workstreams | 13 |
+| TUWs | 316 |
+| First CMP TUW | `CMP-G0-W00-T001` |
+| Last CMP TUW | `CMP-G12-W12-T028` |
 
 ## First and Last TUW
 
