@@ -5,6 +5,7 @@ import {
   assertMatterBelongsToClient,
   CONFIDENTIALITY_LEVELS,
   createAuditEventReference,
+  assertNoSecretMaterialInput,
   createClient,
   createDocumentReference,
   createMatter,
@@ -84,6 +85,18 @@ test("canonical confidentiality levels include owner-approved privilege and HR r
       confidentiality: "hr_restricted",
     }).confidentiality,
     "hr_restricted",
+  );
+});
+
+test("core domain input rejects secret material fields before persistence", () => {
+  assert.equal(assertNoSecretMaterialInput("Synthetic", { tenant_id: "t_synthetic", name: "Synthetic" }), true);
+  assert.throws(
+    () => createTenant({ tenant_id: "t_synthetic", name: "Synthetic", api_key: "should-not-persist" }),
+    /Tenant input must not include secret material fields: api_key/,
+  );
+  assert.throws(
+    () => createUser({ user_id: "u_owner", tenant_id: "t_synthetic", email: "owner@example.test", client_secret: "blocked" }),
+    /User input must not include secret material fields: client_secret/,
   );
 });
 

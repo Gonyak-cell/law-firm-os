@@ -79,21 +79,21 @@ Verdict: NOT_COMPLETE
 
 ## Manual Evidence Intake
 
-- Total intake rows: 36
-- Pending intake rows: 35
-- Evidence-satisfied rows: 1
+- Total intake rows: 34
+- Pending intake rows: 34
+- Evidence-satisfied rows: 0
 - Owner-deferred rows: 0
 - Coverage-eligible valid deferred rows: 0
 - Manual intake findings: 0
 
 ## Evidence Acceptance Matrix
 
-- Total acceptance rows: 36
-- Pending acceptance rows: 35
-- Evidence-satisfied acceptance rows: 1
+- Total acceptance rows: 34
+- Pending acceptance rows: 34
+- Evidence-satisfied acceptance rows: 0
 - Owner-deferred acceptance rows: 0
 - Missing-intake acceptance rows: 0
-- Gate evidence-satisfied rows: 1
+- Gate evidence-satisfied rows: 0
 - L9 evidence-satisfied rows: 0
 - Acceptance matrix findings: 0
 
@@ -103,8 +103,8 @@ Verdict: NOT_COMPLETE
 - Go-live evidence path ready: false
 - L9 evidence path ready: false
 - All evidence paths ready: false
-- Evidence-satisfied manual rows: 1
-- Evidence-satisfied acceptance rows: 1
+- Evidence-satisfied manual rows: 0
+- Evidence-satisfied acceptance rows: 0
 
 ## Decision Register Owner Evidence
 
@@ -120,46 +120,46 @@ Verdict: NOT_COMPLETE
 - Coverage-eligible valid deferred decisions: 0
 - Non-coverage valid deferred decisions: 0
 - All required deferrals covered: false
-- Missing go-live deferrals: 31
+- Missing go-live deferrals: 29
 - Missing L9 deferrals: 5
 - Missing blocked-WP deferrals: 70
 - Missing phase-exit deferrals: 11
 
 ## Decision ID Contract
 
-- Accepted decision ID mentions checked: 346
-- Unique accepted decision IDs checked: 153
+- Accepted decision ID mentions checked: 340
+- Unique accepted decision IDs checked: 150
 - Unclassified decision IDs: 0
 - Domain mismatches: 0
 - Cross-domain decision IDs: 0
 
 ## Deferral Action Crosswalk
 
-- Missing deferral targets: 117
-- Action-linked targets: 117
+- Missing deferral targets: 115
+- Action-linked targets: 115
 - Missing action sources: 0
-- Gate manual-intake links: 31
+- Gate manual-intake links: 29
 - L9 manual-intake links: 5
 - Blocked-WP owner-action links: 70
 - Phase-exit links: 11
 
 ## Deferral Resolution Lanes
 
-- Classified targets: 117
+- Classified targets: 115
 - Primary lanes: 8
 - Unclassified targets: 0
 - Lane findings: 0
 
 ## Decision Register Template
 
-- Template rows: 117
-- Placeholder rows: 117
+- Template rows: 115
+- Placeholder rows: 115
 - Decision register current rows: 0
 - Template validation findings: 0
 
 ## Deferral Intake Batches
 
-- Intake targets: 117
+- Intake targets: 115
 - Batches: 8
 - Non-empty batches: 8
 - Decision register current rows: 0
@@ -168,7 +168,7 @@ Verdict: NOT_COMPLETE
 ## Deferral Coverage Options
 
 - Minimum bundle decision IDs: 4
-- Minimum bundle covered targets: 117
+- Minimum bundle covered targets: 115
 - Minimum bundle uncovered targets: 0
 - Decision register current rows: 0
 - Options validation findings: 0
@@ -176,7 +176,7 @@ Verdict: NOT_COMPLETE
 ## Minimum Deferral Decision Packet
 
 - Placeholder decision rows: 4
-- Covered targets if owner rows are completed: 117
+- Covered targets if owner rows are completed: 115
 - Uncovered targets if owner rows are completed: 0
 - Decision register current rows: 0
 - Packet validation findings: 0
@@ -184,7 +184,7 @@ Verdict: NOT_COMPLETE
 ## Minimum Deferral Target Annex
 
 - Minimum decision rows: 4
-- Unique target IDs: 117
+- Unique target IDs: 115
 - Unmatched targets: 0
 - Aggregate-not-accepted targets: 0
 - Annex validation findings: 0
@@ -192,10 +192,10 @@ Verdict: NOT_COMPLETE
 ## Owner Decision Intake Runbook
 
 - Minimum owner rows: 4
-- Targets if minimum owner rows are completed: 117
+- Targets if minimum owner rows are completed: 115
 - Decision register current rows: 0
 - Valid applied minimum decision rows: 0
-- Remaining targets after valid applied rows: 117
+- Remaining targets after valid applied rows: 115
 - Runbook validation findings: 0
 
 ## Owner Approval Receipt Ledger
@@ -210,7 +210,7 @@ Verdict: NOT_COMPLETE
 
 - Request cards: 4
 - Pending receipt slots: 4
-- Targets by pending requests: 117
+- Targets by pending requests: 115
 - Request packet findings: 0
 
 ## Owner Response Intake
@@ -271,7 +271,7 @@ Verdict: NOT_COMPLETE
 - Application coverage ready: false
 - Valid applied minimum decision rows: 0
 - Missing minimum decision rows: 4
-- Remaining targets after valid applied rows: 117
+- Remaining targets after valid applied rows: 115
 - Application findings: 0
 
 ## No-Go Guard

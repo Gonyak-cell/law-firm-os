@@ -18,9 +18,9 @@
   "summary": {
     "required_domain_count": 4,
     "owner_action_domain_count": 4,
-    "coverage_row_count": 117,
-    "accepted_decision_id_mention_count": 346,
-    "unique_accepted_decision_id_count": 153,
+    "coverage_row_count": 115,
+    "accepted_decision_id_mention_count": 340,
+    "unique_accepted_decision_id_count": 150,
     "unclassified_decision_id_count": 0,
     "domain_mismatch_count": 0,
     "cross_domain_decision_id_count": 0,
@@ -31,9 +31,9 @@
   "domain_contracts": [
     {
       "domain": "go_live_gate_evidence",
-      "coverage_row_count": 31,
-      "accepted_decision_id_mention_count": 93,
-      "unique_accepted_decision_id_count": 42,
+      "coverage_row_count": 29,
+      "accepted_decision_id_mention_count": 87,
+      "unique_accepted_decision_id_count": 39,
       "unclassified_decision_id_count": 0,
       "domain_mismatch_count": 0
     },
@@ -64,48 +64,6 @@
   ],
   "cross_domain_decision_ids": [],
   "accepted_decision_rows": [
-    {
-      "coverage_id": "ACC-GL-G1-G1-E02",
-      "coverage_domain": "go_live_gate_evidence",
-      "accepted_decision_id": "ACC-GL-G1-G1-E02",
-      "classified_domain": "go_live_gate_evidence",
-      "contract_status": "match"
-    },
-    {
-      "coverage_id": "ACC-GL-G1-G1-E02",
-      "coverage_domain": "go_live_gate_evidence",
-      "accepted_decision_id": "COVERAGE-GATE-G1",
-      "classified_domain": "go_live_gate_evidence",
-      "contract_status": "match"
-    },
-    {
-      "coverage_id": "ACC-GL-G1-G1-E02",
-      "coverage_domain": "go_live_gate_evidence",
-      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
-      "classified_domain": "go_live_gate_evidence",
-      "contract_status": "match"
-    },
-    {
-      "coverage_id": "ACC-GL-G1-G1-E03",
-      "coverage_domain": "go_live_gate_evidence",
-      "accepted_decision_id": "ACC-GL-G1-G1-E03",
-      "classified_domain": "go_live_gate_evidence",
-      "contract_status": "match"
-    },
-    {
-      "coverage_id": "ACC-GL-G1-G1-E03",
-      "coverage_domain": "go_live_gate_evidence",
-      "accepted_decision_id": "COVERAGE-GATE-G1",
-      "classified_domain": "go_live_gate_evidence",
-      "contract_status": "match"
-    },
-    {
-      "coverage_id": "ACC-GL-G1-G1-E03",
-      "coverage_domain": "go_live_gate_evidence",
-      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
-      "classified_domain": "go_live_gate_evidence",
-      "contract_status": "match"
-    },
     {
       "coverage_id": "ACC-GL-G2-G2-E01",
       "coverage_domain": "go_live_gate_evidence",

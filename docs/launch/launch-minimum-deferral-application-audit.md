@@ -11,9 +11,9 @@ Verdict: PASS
 - missing_minimum_decision_row_count: 4
 - invalid_minimum_decision_row_count: 0
 - application_coverage_ready: false
-- target_count_if_fully_applied: 117
+- target_count_if_fully_applied: 115
 - covered_target_count_by_valid_applied_rows: 0
-- remaining_target_count_after_valid_applied_rows: 117
+- remaining_target_count_after_valid_applied_rows: 115
 - decision_register_total_rows: 0
 - decision_register_valid_deferred_rows: 0
 - finding_count: 0
@@ -24,7 +24,7 @@ Verdict: PASS
 
 | Decision ID | Domain | Covered targets | Register row state |
 | --- | --- | ---: | --- |
-| COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 31 | missing_from_register |
+| COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 29 | missing_from_register |
 | COVERAGE-L9-STABILIZATION | l9_stabilization_closure | 5 | missing_from_register |
 | COVERAGE-ALL-BLOCKED-WP | blocked_work_package | 70 | missing_from_register |
 | COVERAGE-ALL-PHASE-EXITS | phase_exit | 11 | missing_from_register |

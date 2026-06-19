@@ -10,12 +10,12 @@
           "ref": "docs/launch/g1-completion-evidence-index.md"
         },
         "G1-E02": {
-          "status": "blocked_pending_human_acceptance",
-          "ref": "docs/launch/g1-completion-evidence-index.md"
+          "status": "satisfied",
+          "ref": "docs/launch/g1-e02-evidence-satisfaction-2026-06-19.json"
         },
         "G1-E03": {
-          "status": "blocked_pending_human_acceptance",
-          "ref": "docs/launch/g1-completion-evidence-index.md"
+          "status": "satisfied",
+          "ref": "docs/launch/g1-e03-evidence-satisfaction-2026-06-19.json"
         }
       }
     },

@@ -8,8 +8,8 @@ Verdict: PASS
 
 - placeholder_decision_row_count: 4
 - minimum_bundle_decision_id_count: 4
-- covered_target_count_if_owner_rows_are_completed: 117
-- minimum_bundle_covered_target_count: 117
+- covered_target_count_if_owner_rows_are_completed: 115
+- minimum_bundle_covered_target_count: 115
 - uncovered_target_count_if_owner_rows_are_completed: 0
 - decision_register_total_rows: 0
 - decision_register_valid_deferred_rows: 0

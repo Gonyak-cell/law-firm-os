@@ -17,12 +17,12 @@
   },
   "summary": {
     "minimum_decision_row_count": 4,
-    "unique_target_id_count": 117,
-    "source_missing_deferral_target_count": 117,
+    "unique_target_id_count": 115,
+    "source_missing_deferral_target_count": 115,
     "uncovered_target_count_if_owner_rows_are_completed": 0,
     "unmatched_target_count": 0,
     "aggregate_not_accepted_target_count": 0,
-    "go_live_target_count": 31,
+    "go_live_target_count": 29,
     "l9_target_count": 5,
     "blocked_wp_target_count": 70,
     "phase_exit_target_count": 11
@@ -33,12 +33,10 @@
       "title": "Owner deferral for all failed G1-G10 gate evidence",
       "coverage_domain": "go_live_gate_evidence",
       "required_owner_basis": "Owner accepts deferring all currently failed go-live gate evidence slots.",
-      "covered_target_count": 31,
-      "source_domain_missing_count": 31,
+      "covered_target_count": 29,
+      "source_domain_missing_count": 29,
       "target_detail_state": "all_targets_matched_and_aggregate_accepted",
       "target_ids": [
-        "ACC-GL-G1-G1-E02",
-        "ACC-GL-G1-G1-E03",
         "ACC-GL-G10-G10-E01",
         "ACC-GL-G10-G10-E02",
         "ACC-GL-G10-G10-E03",
@@ -70,48 +68,6 @@
         "ACC-GL-G9-G9-E03"
       ],
       "targets": [
-        {
-          "target_id": "ACC-GL-G1-G1-E02",
-          "label": "G1 G1-E02",
-          "domain": "go_live_gate_evidence",
-          "coverage_status": "missing_owner_deferral",
-          "accepted_decision_ids": [
-            "ACC-GL-G1-G1-E02",
-            "COVERAGE-GATE-G1",
-            "COVERAGE-ALL-GO-LIVE"
-          ],
-          "aggregate_decision_id_accepted": true,
-          "covering_decision_id": null,
-          "gate_id": "G1",
-          "evidence_id": "G1-E02",
-          "wp_id": null,
-          "phase": null,
-          "command_status": null,
-          "exit_gate": null,
-          "closure_id": null,
-          "lookup_state": "matched_deferral_coverage_audit"
-        },
-        {
-          "target_id": "ACC-GL-G1-G1-E03",
-          "label": "G1 G1-E03",
-          "domain": "go_live_gate_evidence",
-          "coverage_status": "missing_owner_deferral",
-          "accepted_decision_ids": [
-            "ACC-GL-G1-G1-E03",
-            "COVERAGE-GATE-G1",
-            "COVERAGE-ALL-GO-LIVE"
-          ],
-          "aggregate_decision_id_accepted": true,
-          "covering_decision_id": null,
-          "gate_id": "G1",
-          "evidence_id": "G1-E03",
-          "wp_id": null,
-          "phase": null,
-          "command_status": null,
-          "exit_gate": null,
-          "closure_id": null,
-          "lookup_state": "matched_deferral_coverage_audit"
-        },
         {
           "target_id": "ACC-GL-G10-G10-E01",
           "label": "G10 G10-E01",

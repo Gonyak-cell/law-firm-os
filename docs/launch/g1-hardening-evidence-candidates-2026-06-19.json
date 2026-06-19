@@ -18,8 +18,8 @@
   },
   "summary": {
     "total_cell_count": 272,
-    "candidate_evidence_present_count": 256,
-    "candidate_gap_count": 16,
+    "candidate_evidence_present_count": 272,
+    "candidate_gap_count": 0,
     "evidence_satisfied_cell_count": 0,
     "missing_mandatory_artifact_unique_count": 0,
     "owner_candidate_adjudication_authorized": true,
@@ -39,16 +39,16 @@
     {
       "rp_id": "RP01",
       "total_cell_count": 17,
-      "candidate_evidence_present_count": 15,
-      "candidate_gap_count": 2,
+      "candidate_evidence_present_count": 17,
+      "candidate_gap_count": 0,
       "missing_mandatory_artifacts": [],
       "missing_mandatory_artifact_count": 0
     },
     {
       "rp_id": "RP02",
       "total_cell_count": 17,
-      "candidate_evidence_present_count": 16,
-      "candidate_gap_count": 1,
+      "candidate_evidence_present_count": 17,
+      "candidate_gap_count": 0,
       "missing_mandatory_artifacts": [],
       "missing_mandatory_artifact_count": 0
     },
@@ -63,72 +63,72 @@
     {
       "rp_id": "RP04",
       "total_cell_count": 17,
-      "candidate_evidence_present_count": 16,
-      "candidate_gap_count": 1,
+      "candidate_evidence_present_count": 17,
+      "candidate_gap_count": 0,
       "missing_mandatory_artifacts": [],
       "missing_mandatory_artifact_count": 0
     },
     {
       "rp_id": "RP05",
       "total_cell_count": 17,
-      "candidate_evidence_present_count": 16,
-      "candidate_gap_count": 1,
+      "candidate_evidence_present_count": 17,
+      "candidate_gap_count": 0,
       "missing_mandatory_artifacts": [],
       "missing_mandatory_artifact_count": 0
     },
     {
       "rp_id": "RP06",
       "total_cell_count": 17,
-      "candidate_evidence_present_count": 16,
-      "candidate_gap_count": 1,
+      "candidate_evidence_present_count": 17,
+      "candidate_gap_count": 0,
       "missing_mandatory_artifacts": [],
       "missing_mandatory_artifact_count": 0
     },
     {
       "rp_id": "RP07",
       "total_cell_count": 17,
-      "candidate_evidence_present_count": 16,
-      "candidate_gap_count": 1,
+      "candidate_evidence_present_count": 17,
+      "candidate_gap_count": 0,
       "missing_mandatory_artifacts": [],
       "missing_mandatory_artifact_count": 0
     },
     {
       "rp_id": "RP10",
       "total_cell_count": 17,
-      "candidate_evidence_present_count": 16,
-      "candidate_gap_count": 1,
+      "candidate_evidence_present_count": 17,
+      "candidate_gap_count": 0,
       "missing_mandatory_artifacts": [],
       "missing_mandatory_artifact_count": 0
     },
     {
       "rp_id": "RP12",
       "total_cell_count": 17,
-      "candidate_evidence_present_count": 15,
-      "candidate_gap_count": 2,
+      "candidate_evidence_present_count": 17,
+      "candidate_gap_count": 0,
       "missing_mandatory_artifacts": [],
       "missing_mandatory_artifact_count": 0
     },
     {
       "rp_id": "RP14",
       "total_cell_count": 17,
-      "candidate_evidence_present_count": 15,
-      "candidate_gap_count": 2,
+      "candidate_evidence_present_count": 17,
+      "candidate_gap_count": 0,
       "missing_mandatory_artifacts": [],
       "missing_mandatory_artifact_count": 0
     },
     {
       "rp_id": "RP16",
       "total_cell_count": 17,
-      "candidate_evidence_present_count": 16,
-      "candidate_gap_count": 1,
+      "candidate_evidence_present_count": 17,
+      "candidate_gap_count": 0,
       "missing_mandatory_artifacts": [],
       "missing_mandatory_artifact_count": 0
     },
     {
       "rp_id": "RP17",
       "total_cell_count": 17,
-      "candidate_evidence_present_count": 16,
-      "candidate_gap_count": 1,
+      "candidate_evidence_present_count": 17,
+      "candidate_gap_count": 0,
       "missing_mandatory_artifacts": [],
       "missing_mandatory_artifact_count": 0
     },
@@ -143,16 +143,16 @@
     {
       "rp_id": "RP26",
       "total_cell_count": 17,
-      "candidate_evidence_present_count": 16,
-      "candidate_gap_count": 1,
+      "candidate_evidence_present_count": 17,
+      "candidate_gap_count": 0,
       "missing_mandatory_artifacts": [],
       "missing_mandatory_artifact_count": 0
     },
     {
       "rp_id": "RP29",
       "total_cell_count": 17,
-      "candidate_evidence_present_count": 16,
-      "candidate_gap_count": 1,
+      "candidate_evidence_present_count": 17,
+      "candidate_gap_count": 0,
       "missing_mandatory_artifacts": [],
       "missing_mandatory_artifact_count": 0
     }
@@ -564,7 +564,8 @@
           "line": 70,
           "matched_terms": [
             "retention",
-            "legal hold"
+            "legal hold",
+            "hold"
           ]
         },
         {
@@ -574,7 +575,8 @@
           "line": 237,
           "matched_terms": [
             "retention",
-            "legal hold"
+            "legal hold",
+            "hold"
           ]
         }
       ],
@@ -1123,7 +1125,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/domain/src/entities.js",
           "value": "export function createTenant(input) {",
-          "line": 17,
+          "line": 28,
           "matched_terms": [
             "tenant",
             "tenant_id"
@@ -1181,7 +1183,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/domain/src/entities.js",
           "value": "permission_set_id: input.permission_set_id ?? null,",
-          "line": 59,
+          "line": 70,
           "matched_terms": [
             "permission"
           ]
@@ -1357,7 +1359,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/domain/src/entities.js",
           "value": "export function createAuditEventReference(input) {",
-          "line": 284,
+          "line": 295,
           "matched_terms": [
             "audit"
           ]
@@ -1433,10 +1435,22 @@
       "rp_id": "RP01",
       "control_id": "secure_secret_handling",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 1,
+      "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/domain/src/entities.js",
+          "value": "export const FORBIDDEN_SECRET_FIELD_PATTERN =",
+          "line": 5,
+          "matched_terms": [
+            "secret",
+            "credential",
+            "must not include secret material fields"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/core-domain-contract.json",
@@ -1452,7 +1466,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:idempotency_and_replay_protection",
@@ -1504,10 +1518,21 @@
       "rp_id": "RP01",
       "control_id": "data_retention_and_legal_hold",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 1,
+      "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/core-domain-contract.json",
+          "value": "\"legal_hold\",",
+          "line": 1038,
+          "matched_terms": [
+            "legal_hold",
+            "hold"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/core-domain-contract.json",
@@ -1523,7 +1548,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP01:observability_trace_log_metric",
@@ -1615,7 +1640,7 @@
       "g1_e03_status": "not_satisfied",
       "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 3,
+      "candidate_evidence_count": 4,
       "candidate_evidence": [
         {
           "field": "safety_gates",
@@ -1640,6 +1665,15 @@
             "test",
             "contract",
             "validation"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/domain/src/entities.js",
+          "value": "const forbiddenFields = Object.keys(value ?? {}).filter((field) => FORBIDDEN_SECRET_FIELD_PATTERN.test(field));",
+          "line": 9,
+          "matched_terms": [
+            "test"
           ]
         }
       ],
@@ -2240,10 +2274,29 @@
       "rp_id": "RP02",
       "control_id": "privacy_minimization",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 2,
+      "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/permission-kernel-contract.json",
+          "value": "\"redacted_unauthorized_count\"",
+          "line": 685,
+          "matched_terms": [
+            "redacted"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/authz/src/evaluate.js",
+          "value": "object_id: crossTenantDeny ? \"redacted_cross_tenant_object\" : (resource?.resource_id ?? resource?.document_id ?? \"unknown\"),",
+          "line": 56,
+          "matched_terms": [
+            "redacted"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/permission-kernel-contract.json",
@@ -2259,7 +2312,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP02:secure_secret_handling",
@@ -2342,15 +2395,27 @@
       "g1_e03_status": "not_satisfied",
       "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 1,
+      "candidate_evidence_count": 2,
       "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/permission-kernel-contract.json",
+          "value": "\"legal_hold_interaction\",",
+          "line": 1010,
+          "matched_terms": [
+            "legal_hold",
+            "hold"
+          ]
+        },
         {
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/authz/src/permission-controls.js",
           "value": "\"document.retention.dispose\"",
           "line": 28,
           "matched_terms": [
-            "retention"
+            "retention",
+            "legal_hold",
+            "hold"
           ]
         }
       ],
@@ -3112,7 +3177,8 @@
           "matched_terms": [
             "privacy",
             "PII",
-            "minimization"
+            "minimization",
+            "redacted"
           ]
         },
         {
@@ -3121,7 +3187,8 @@
           "value": "\"purpose\": \"Provide the evidence ledger for Law Firm OS: append-only audit events, tamper-evident sequencing, retention, legal hold, privacy-safe query, admin access review, and compliance export.\",",
           "line": 5,
           "matched_terms": [
-            "privacy"
+            "privacy",
+            "redacted"
           ]
         },
         {
@@ -3130,7 +3197,8 @@
           "value": "\"Privacy\",",
           "line": 442,
           "matched_terms": [
-            "privacy"
+            "privacy",
+            "unauthorized data"
           ]
         }
       ],
@@ -3282,7 +3350,8 @@
           "field": "why_critical",
           "value": "It is the evidence ledger for compliance, incident response, legal hold, AI traceability, and release claims.",
           "matched_terms": [
-            "legal hold"
+            "legal hold",
+            "hold"
           ]
         },
         {
@@ -3297,7 +3366,8 @@
           "field": "essential_capabilities",
           "value": "legal hold",
           "matched_terms": [
-            "legal hold"
+            "legal hold",
+            "hold"
           ]
         },
         {
@@ -3305,7 +3375,8 @@
           "value": "legal hold blocks purge",
           "matched_terms": [
             "legal hold",
-            "purge"
+            "purge",
+            "hold"
           ]
         },
         {
@@ -3316,8 +3387,10 @@
           "matched_terms": [
             "retention",
             "legal hold",
+            "legal_hold",
             "WORM",
-            "purge"
+            "purge",
+            "hold"
           ]
         },
         {
@@ -3328,8 +3401,10 @@
           "matched_terms": [
             "retention",
             "legal hold",
+            "legal_hold",
             "WORM",
-            "purge"
+            "purge",
+            "hold"
           ]
         },
         {
@@ -3340,8 +3415,10 @@
           "matched_terms": [
             "retention",
             "legal hold",
+            "legal_hold",
             "WORM",
-            "purge"
+            "purge",
+            "hold"
           ]
         }
       ],
@@ -4164,7 +4241,9 @@
           "field": "safety_gates",
           "value": "privacy-sensitive attributes are masked",
           "matched_terms": [
-            "privacy"
+            "privacy",
+            "sensitive attributes are masked",
+            "masked"
           ]
         },
         {
@@ -4310,10 +4389,31 @@
       "rp_id": "RP04",
       "control_id": "data_retention_and_legal_hold",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 2,
+      "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/master-data-contract.json",
+          "value": "\"builds_legal_hold_interaction_descriptors\": true,",
+          "line": 286,
+          "matched_terms": [
+            "legal_hold",
+            "hold"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/master-data/src/service.js",
+          "value": "legal_hold: MASTER_DATA_PERMISSION_MATRIX_WORKFLOW.safe_error_codes.legal_hold,",
+          "line": 2071,
+          "matched_terms": [
+            "legal_hold",
+            "hold"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/master-data-contract.json",
@@ -4329,7 +4429,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP04:observability_trace_log_metric",
@@ -4775,7 +4875,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/matter/src/service.js",
           "value": "const tenantId = input.tenant_id ?? input.payload?.tenant_id ?? null;",
-          "line": 629,
+          "line": 651,
           "matched_terms": [
             "tenant",
             "cross-tenant",
@@ -4839,7 +4939,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/matter/src/service.js",
           "value": "object_acl_ref: control === \"object_acl_interaction\" ? \"object-acl-ref-only\" : null,",
-          "line": 1447,
+          "line": 1469,
           "matched_terms": [
             "ACL",
             "permission"
@@ -4886,7 +4986,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/matter/src/service.js",
           "value": "deny_over_allow_applied: control === \"deny_over_allow_check\" || deniedTest,",
-          "line": 1444,
+          "line": 1466,
           "matched_terms": [
             "deny",
             "fail-closed",
@@ -5173,7 +5273,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/matter/src/service.js",
           "value": "export function executeMatterCoreApiInterface(input = {}) {",
-          "line": 926,
+          "line": 948,
           "matched_terms": [
             "PII"
           ]
@@ -5201,10 +5301,25 @@
       "rp_id": "RP05",
       "control_id": "secure_secret_handling",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 1,
+      "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/matter/src/service.js",
+          "value": "const MATTER_CORE_SECRET_MATERIAL_FIELD_PATTERN =",
+          "line": 61,
+          "matched_terms": [
+            "secret",
+            "credential",
+            "exposes_secret_material",
+            "secret_material_included",
+            "credential_or_secret_included",
+            "must not include secret material fields"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/matter-core-contract.json",
@@ -5220,7 +5335,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP05:idempotency_and_replay_protection",
@@ -5246,7 +5361,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/matter/src/service.js",
           "value": "persists_idempotency_key: false,",
-          "line": 206,
+          "line": 228,
           "matched_terms": [
             "idempotency",
             "replay",
@@ -5278,8 +5393,18 @@
       "g1_e03_status": "not_satisfied",
       "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 1,
+      "candidate_evidence_count": 3,
       "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/matter-core-contract.json",
+          "value": "\"legal_hold_interaction\",",
+          "line": 628,
+          "matched_terms": [
+            "legal_hold",
+            "hold"
+          ]
+        },
         {
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/matter/src/model.js",
@@ -5287,6 +5412,16 @@
           "line": 195,
           "matched_terms": [
             "retention"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/matter/src/service.js",
+          "value": "legal_hold_ref: control === \"legal_hold_interaction\" ? \"legal-hold-ref-only\" : null,",
+          "line": 1467,
+          "matched_terms": [
+            "legal_hold",
+            "hold"
           ]
         }
       ],
@@ -5346,7 +5481,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/matter/src/service.js",
           "value": "checked.push(\"matter_trace_precheck\");",
-          "line": 669,
+          "line": 691,
           "matched_terms": [
             "trace"
           ]
@@ -5516,7 +5651,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/matter/src/service.js",
           "value": "risk_a_pack_reason: requirements.risk_a_pack_reason,",
-          "line": 1344,
+          "line": 1366,
           "matched_terms": [
             "risk",
             "blocked-claim"
@@ -5562,7 +5697,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/matter/src/service.js",
           "value": "executes_rollback: false,",
-          "line": 333,
+          "line": 355,
           "matched_terms": [
             "rollback"
           ]
@@ -5615,7 +5750,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/matter/src/service.js",
           "value": "hermes_ui_evidence: Object.freeze({",
-          "line": 1145,
+          "line": 1167,
           "matched_terms": [
             "Hermes",
             "H05"
@@ -5669,7 +5804,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/matter/src/service.js",
           "value": "claude_ui_leak_prompt: Object.freeze({",
-          "line": 1154,
+          "line": 1176,
           "matched_terms": [
             "Claude",
             "C05"
@@ -5715,7 +5850,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/matter/src/service.js",
           "value": "dispatches_approval_route: false,",
-          "line": 76,
+          "line": 98,
           "matched_terms": [
             "approval"
           ]
@@ -6035,13 +6170,32 @@
       "g1_e03_status": "not_satisfied",
       "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 1,
+      "candidate_evidence_count": 3,
       "candidate_evidence": [
         {
           "field": "research_alignment",
           "value": "NIST-PRIVACY",
           "matched_terms": [
             "privacy"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/dms-core-contract.json",
+          "value": "\"Unauthorized data omission\",",
+          "line": 2702,
+          "matched_terms": [
+            "unauthorized data",
+            "redacted"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/dms/src/service.js",
+          "value": "details_redacted: true,",
+          "line": 1422,
+          "matched_terms": [
+            "redacted"
           ]
         }
       ],
@@ -6067,10 +6221,31 @@
       "rp_id": "RP06",
       "control_id": "secure_secret_handling",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 2,
+      "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/dms-core-contract.json",
+          "value": "\"lock_token_included\": false,",
+          "line": 24208,
+          "matched_terms": [
+            "lock_token_included",
+            "exposes_lock_token"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/dms/src/service.js",
+          "value": "lock_token_included: false,",
+          "line": 1671,
+          "matched_terms": [
+            "lock_token_included",
+            "exposes_lock_token"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/dms-core-contract.json",
@@ -6086,7 +6261,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP06:idempotency_and_replay_protection",
@@ -6146,7 +6321,7 @@
       "g1_e03_status": "not_satisfied",
       "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 4,
+      "candidate_evidence_count": 5,
       "candidate_evidence": [
         {
           "field": "why_critical",
@@ -6160,7 +6335,8 @@
           "value": "legal hold and retention labels are enforceable",
           "matched_terms": [
             "retention",
-            "legal hold"
+            "legal hold",
+            "hold"
           ]
         },
         {
@@ -6170,7 +6346,9 @@
           "line": 200,
           "matched_terms": [
             "retention",
-            "legal hold"
+            "legal hold",
+            "legal_hold",
+            "hold"
           ]
         },
         {
@@ -6179,7 +6357,19 @@
           "value": "retention_label_id: input.retention_label_id ?? null,",
           "line": 94,
           "matched_terms": [
-            "retention"
+            "retention",
+            "legal_hold",
+            "hold"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/dms/src/service.js",
+          "value": "legal_hold_overrides_access: true,",
+          "line": 733,
+          "matched_terms": [
+            "legal_hold",
+            "hold"
           ]
         }
       ],
@@ -6912,13 +7102,32 @@
       "g1_e03_status": "not_satisfied",
       "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 1,
+      "candidate_evidence_count": 3,
       "candidate_evidence": [
         {
           "field": "research_alignment",
           "value": "NIST-PRIVACY",
           "matched_terms": [
             "privacy"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/search-core-contract.json",
+          "value": "\"Unauthorized data omission\",",
+          "line": 2178,
+          "matched_terms": [
+            "unauthorized data"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/search/src/validators.js",
+          "value": "if (row.raw_payload_included !== false) errors.push(`CP00-235 ${microId} ${key} must not include raw payload`);",
+          "line": 576,
+          "matched_terms": [
+            "raw payload",
+            "unauthorized data"
           ]
         }
       ],
@@ -6944,10 +7153,31 @@
       "rp_id": "RP07",
       "control_id": "secure_secret_handling",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 2,
+      "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/search-core-contract.json",
+          "value": "\"lock_token_included\": false",
+          "line": 11917,
+          "matched_terms": [
+            "lock_token_included",
+            "exposes_lock_token"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/search/src/service.js",
+          "value": "lock_acquisition_rule: Object.freeze({ acquires_runtime_lock: false, lock_token_included: false }),",
+          "line": 623,
+          "matched_terms": [
+            "lock_token_included",
+            "exposes_lock_token"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/search-core-contract.json",
@@ -6963,7 +7193,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP07:idempotency_and_replay_protection",
@@ -7033,7 +7263,7 @@
       "g1_e03_status": "not_satisfied",
       "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 2,
+      "candidate_evidence_count": 3,
       "candidate_evidence": [
         {
           "field": "mandatory_artifact_content",
@@ -7041,7 +7271,19 @@
           "value": "\"Legal hold interaction\",",
           "line": 4131,
           "matched_terms": [
-            "legal hold"
+            "legal hold",
+            "legal_hold",
+            "hold"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/search/src/service.js",
+          "value": "legal_hold_interaction: Object.freeze({ legal_hold_descriptor_only: true }),",
+          "line": 2924,
+          "matched_terms": [
+            "legal_hold",
+            "hold"
           ]
         },
         {
@@ -7050,7 +7292,8 @@
           "value": "\"Do the eight descriptor sections (five P05 fixture micros and three P06 permission micros) cover every planned row title as descriptor-only rows, including permission matrix rows, view/search/mutation/export/share/AI-retrieval decision bin",
           "line": 4948,
           "matched_terms": [
-            "legal hold"
+            "legal hold",
+            "hold"
           ]
         }
       ],
@@ -7865,7 +8108,7 @@
       "g1_e03_status": "not_satisfied",
       "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 2,
+      "candidate_evidence_count": 3,
       "candidate_evidence": [
         {
           "field": "research_alignment",
@@ -7879,6 +8122,15 @@
           "value": "pre-matter data is privacy-scoped",
           "matched_terms": [
             "privacy"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/intake-core-contract.json",
+          "value": "\"title\": \"Unauthorized data omission\",",
+          "line": 5437,
+          "matched_terms": [
+            "unauthorized data"
           ]
         }
       ],
@@ -7904,10 +8156,31 @@
       "rp_id": "RP10",
       "control_id": "secure_secret_handling",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 2,
+      "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/intake-core-contract.json",
+          "value": "\"lock_token_included\": false",
+          "line": 2370,
+          "matched_terms": [
+            "lock_token_included",
+            "exposes_lock_token"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/intake/src/service.js",
+          "value": "lock_acquisition_rule: Object.freeze({ acquires_runtime_lock: false, lock_token_included: false }),",
+          "line": 307,
+          "matched_terms": [
+            "lock_token_included",
+            "exposes_lock_token"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/intake-core-contract.json",
@@ -7923,7 +8196,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP10:idempotency_and_replay_protection",
@@ -7981,7 +8254,7 @@
       "g1_e03_status": "not_satisfied",
       "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 1,
+      "candidate_evidence_count": 2,
       "candidate_evidence": [
         {
           "field": "mandatory_artifact_content",
@@ -7989,7 +8262,19 @@
           "value": "\"title\": \"Legal hold interaction\",",
           "line": 14113,
           "matched_terms": [
-            "legal hold"
+            "legal hold",
+            "legal_hold",
+            "hold"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/intake/src/service.js",
+          "value": "legal_hold_interaction: Object.freeze({",
+          "line": 1488,
+          "matched_terms": [
+            "legal_hold",
+            "hold"
           ]
         }
       ],
@@ -8466,7 +8751,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/billing/src/service.js",
           "value": "cross_tenant_access_allowed: false,",
-          "line": 166,
+          "line": 188,
           "matched_terms": [
             "tenant"
           ]
@@ -8522,7 +8807,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/billing/src/service.js",
           "value": "evaluates_runtime_permission: false,",
-          "line": 109,
+          "line": 131,
           "matched_terms": [
             "permission"
           ]
@@ -8577,7 +8862,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/billing/src/service.js",
           "value": "deny_over_allow_enforced: true,",
-          "line": 165,
+          "line": 187,
           "matched_terms": [
             "deny"
           ]
@@ -8632,7 +8917,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/billing/src/service.js",
           "value": "matter_first_trace_note: Object.freeze({ matter_trace_required: true }),",
-          "line": 162,
+          "line": 184,
           "matched_terms": [
             "Matter"
           ]
@@ -8708,7 +8993,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/billing/src/service.js",
           "value": "writes_audit_event: false,",
-          "line": 110,
+          "line": 132,
           "matched_terms": [
             "audit",
             "evidence"
@@ -8747,10 +9032,37 @@
       "rp_id": "RP12",
       "control_id": "privacy_minimization",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 3,
+      "candidate_evidence": [
+        {
+          "field": "safety_gates",
+          "value": "payment card data stays out of product logs and audit payloads",
+          "matched_terms": [
+            "payment card data"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/billing-core-contract.json",
+          "value": "\"Unauthorized data omission\",",
+          "line": 1700,
+          "matched_terms": [
+            "unauthorized data"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/billing/src/validators.js",
+          "value": "if (row.raw_payload_included !== false) errors.push(`CP00-364 ${microId} ${key} must not include raw payload`);",
+          "line": 242,
+          "matched_terms": [
+            "raw payload",
+            "unauthorized data"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/billing-core-contract.json",
@@ -8766,17 +9078,32 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:secure_secret_handling",
       "rp_id": "RP12",
       "control_id": "secure_secret_handling",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 1,
+      "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/billing/src/service.js",
+          "value": "const BILLING_CORE_SECRET_MATERIAL_FIELD_PATTERN =",
+          "line": 89,
+          "matched_terms": [
+            "secret",
+            "credential",
+            "exposes_secret_material",
+            "secret_material_included",
+            "credential_or_secret_included",
+            "must not include secret material fields"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/billing-core-contract.json",
@@ -8792,7 +9119,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP12:idempotency_and_replay_protection",
@@ -8818,7 +9145,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/billing/src/service.js",
           "value": "persists_idempotency_key: false,",
-          "line": 123,
+          "line": 145,
           "matched_terms": [
             "idempotency"
           ]
@@ -8865,7 +9192,9 @@
           "value": "\"Legal hold interaction\",",
           "line": 3258,
           "matched_terms": [
-            "legal hold"
+            "legal hold",
+            "legal_hold",
+            "hold"
           ]
         }
       ],
@@ -8915,7 +9244,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/billing/src/service.js",
           "value": "appends_audit_trace: false,",
-          "line": 121,
+          "line": 143,
           "matched_terms": [
             "trace"
           ]
@@ -8970,7 +9299,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/billing/src/service.js",
           "value": "synthetic_only: true,",
-          "line": 102,
+          "line": 124,
           "matched_terms": [
             "synthetic",
             "fixture"
@@ -9111,7 +9440,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/billing/src/service.js",
           "value": "risk_register_row: Object.freeze({ risk_register_descriptor_only: true }),",
-          "line": 170,
+          "line": 192,
           "matched_terms": [
             "risk"
           ]
@@ -9209,7 +9538,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/billing/src/service.js",
           "value": "emits_hermes_runtime_receipt: false,",
-          "line": 115,
+          "line": 137,
           "matched_terms": [
             "Hermes",
             "H12"
@@ -9273,7 +9602,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/billing/src/service.js",
           "value": "claude_gate: BILLING_CORE_CP364_PACK_BINDING.claude_gate,",
-          "line": 147,
+          "line": 169,
           "matched_terms": [
             "Claude",
             "C12"
@@ -9351,7 +9680,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/billing/src/service.js",
           "value": "claude_model_review_prompt: Object.freeze({ read_only: true, claude_final_approval_claimed: false }),",
-          "line": 189,
+          "line": 211,
           "matched_terms": [
             "approval"
           ]
@@ -9406,7 +9735,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/settlement/src/service.js",
           "value": "cross_tenant_access_allowed: false,",
-          "line": 163,
+          "line": 185,
           "matched_terms": [
             "tenant"
           ]
@@ -9462,7 +9791,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/settlement/src/service.js",
           "value": "evaluates_runtime_permission: false,",
-          "line": 106,
+          "line": 128,
           "matched_terms": [
             "permission"
           ]
@@ -9517,7 +9846,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/settlement/src/service.js",
           "value": "deny_over_allow_enforced: true,",
-          "line": 162,
+          "line": 184,
           "matched_terms": [
             "deny"
           ]
@@ -9572,7 +9901,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/settlement/src/service.js",
           "value": "matter_first_trace_note: Object.freeze({ matter_trace_required: true }),",
-          "line": 159,
+          "line": 181,
           "matched_terms": [
             "Matter"
           ]
@@ -9641,7 +9970,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/settlement/src/service.js",
           "value": "writes_audit_event: false,",
-          "line": 107,
+          "line": 129,
           "matched_terms": [
             "audit",
             "evidence"
@@ -9680,10 +10009,30 @@
       "rp_id": "RP14",
       "control_id": "privacy_minimization",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 2,
+      "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/settlement-core-contract.json",
+          "value": "\"Unauthorized data omission\",",
+          "line": 1335,
+          "matched_terms": [
+            "unauthorized data"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/settlement/src/validators.js",
+          "value": "if (row.raw_payload_included !== false) errors.push(`CP00-426 ${microId} ${key} must not include raw payload`);",
+          "line": 237,
+          "matched_terms": [
+            "raw payload",
+            "unauthorized data"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/settlement-core-contract.json",
@@ -9699,17 +10048,32 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:secure_secret_handling",
       "rp_id": "RP14",
       "control_id": "secure_secret_handling",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 1,
+      "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/settlement/src/service.js",
+          "value": "const SETTLEMENT_CORE_SECRET_MATERIAL_FIELD_PATTERN =",
+          "line": 86,
+          "matched_terms": [
+            "secret",
+            "credential",
+            "exposes_secret_material",
+            "secret_material_included",
+            "credential_or_secret_included",
+            "must not include secret material fields"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/settlement-core-contract.json",
@@ -9725,7 +10089,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP14:idempotency_and_replay_protection",
@@ -9772,7 +10136,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/settlement/src/service.js",
           "value": "persists_idempotency_key: false,",
-          "line": 120,
+          "line": 142,
           "matched_terms": [
             "idempotency"
           ]
@@ -9819,7 +10183,9 @@
           "value": "\"Legal hold interaction\",",
           "line": 2938,
           "matched_terms": [
-            "legal hold"
+            "legal hold",
+            "legal_hold",
+            "hold"
           ]
         }
       ],
@@ -9862,7 +10228,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/settlement/src/service.js",
           "value": "appends_audit_trace: false,",
-          "line": 118,
+          "line": 140,
           "matched_terms": [
             "trace"
           ]
@@ -9917,7 +10283,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/settlement/src/service.js",
           "value": "synthetic_only: true,",
-          "line": 99,
+          "line": 121,
           "matched_terms": [
             "synthetic",
             "fixture"
@@ -10051,7 +10417,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/settlement/src/service.js",
           "value": "risk_register_row: Object.freeze({ risk_register_descriptor_only: true }),",
-          "line": 167,
+          "line": 189,
           "matched_terms": [
             "risk"
           ]
@@ -10149,7 +10515,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/settlement/src/service.js",
           "value": "emits_hermes_runtime_receipt: false,",
-          "line": 112,
+          "line": 134,
           "matched_terms": [
             "Hermes",
             "H14"
@@ -10213,7 +10579,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/settlement/src/service.js",
           "value": "claude_gate: SETTLEMENT_CORE_CP426_PACK_BINDING.claude_gate,",
-          "line": 144,
+          "line": 166,
           "matched_terms": [
             "Claude",
             "C14"
@@ -10285,7 +10651,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/settlement/src/service.js",
           "value": "claude_model_review_prompt: Object.freeze({ read_only: true, claude_final_approval_claimed: false }),",
-          "line": 186,
+          "line": 208,
           "matched_terms": [
             "approval"
           ]
@@ -10340,7 +10706,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/governance/src/service.js",
           "value": "cross_tenant_access_allowed: false,",
-          "line": 184,
+          "line": 206,
           "matched_terms": [
             "tenant"
           ]
@@ -10396,7 +10762,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/governance/src/service.js",
           "value": "evaluates_runtime_permission: false,",
-          "line": 127,
+          "line": 149,
           "matched_terms": [
             "permission"
           ]
@@ -10451,7 +10817,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/governance/src/service.js",
           "value": "deny_over_allow_enforced: true,",
-          "line": 183,
+          "line": 205,
           "matched_terms": [
             "deny"
           ]
@@ -10506,7 +10872,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/governance/src/service.js",
           "value": "matter_first_trace_note: Object.freeze({ matter_trace_required: true }),",
-          "line": 180,
+          "line": 202,
           "matched_terms": [
             "Matter"
           ]
@@ -10575,7 +10941,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/governance/src/service.js",
           "value": "writes_audit_event: false,",
-          "line": 128,
+          "line": 150,
           "matched_terms": [
             "audit",
             "evidence"
@@ -10616,13 +10982,32 @@
       "g1_e03_status": "not_satisfied",
       "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 1,
+      "candidate_evidence_count": 3,
       "candidate_evidence": [
         {
           "field": "research_alignment",
           "value": "NIST-PRIVACY",
           "matched_terms": [
             "privacy"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/governance-core-contract.json",
+          "value": "\"Unauthorized data omission\",",
+          "line": 1700,
+          "matched_terms": [
+            "unauthorized data"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/governance/src/validators.js",
+          "value": "if (row.raw_payload_included !== false) errors.push(`CP00-480 ${microId} ${key} must not include raw payload`);",
+          "line": 272,
+          "matched_terms": [
+            "raw payload",
+            "unauthorized data"
           ]
         }
       ],
@@ -10648,10 +11033,25 @@
       "rp_id": "RP16",
       "control_id": "secure_secret_handling",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 1,
+      "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/governance/src/service.js",
+          "value": "const GOVERNANCE_CORE_SECRET_MATERIAL_FIELD_PATTERN =",
+          "line": 107,
+          "matched_terms": [
+            "secret",
+            "credential",
+            "exposes_secret_material",
+            "secret_material_included",
+            "credential_or_secret_included",
+            "must not include secret material fields"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/governance-core-contract.json",
@@ -10667,7 +11067,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP16:idempotency_and_replay_protection",
@@ -10693,7 +11093,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/governance/src/service.js",
           "value": "persists_idempotency_key: false,",
-          "line": 141,
+          "line": 163,
           "matched_terms": [
             "idempotency"
           ]
@@ -10746,14 +11146,16 @@
           "value": "DLP, legal hold, retention, break-glass, and incident response define whether sensitive legal data can be controlled.",
           "matched_terms": [
             "retention",
-            "legal hold"
+            "legal hold",
+            "hold"
           ]
         },
         {
           "field": "essential_capabilities",
           "value": "legal hold activation",
           "matched_terms": [
-            "legal hold"
+            "legal hold",
+            "hold"
           ]
         },
         {
@@ -10769,7 +11171,8 @@
           "matched_terms": [
             "retention",
             "legal hold",
-            "purge"
+            "purge",
+            "hold"
           ]
         },
         {
@@ -10779,16 +11182,20 @@
           "line": 5,
           "matched_terms": [
             "retention",
-            "legal hold"
+            "legal hold",
+            "legal_hold",
+            "hold"
           ]
         },
         {
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/governance/src/service.js",
           "value": "dispatches_retention_runtime: false,",
-          "line": 125,
+          "line": 147,
           "matched_terms": [
-            "retention"
+            "retention",
+            "legal_hold",
+            "hold"
           ]
         },
         {
@@ -10797,7 +11204,8 @@
           "value": "\"Does CP00-480 avoid governance/dlp/legal-hold/retention runtime, runtime permission evaluation, audit event writes, state writes, object storage, command runtime execution, Hermes runtime receipts, real data, permission decision leaks, aud",
           "line": 379,
           "matched_terms": [
-            "retention"
+            "retention",
+            "hold"
           ]
         }
       ],
@@ -10847,7 +11255,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/governance/src/service.js",
           "value": "appends_audit_trace: false,",
-          "line": 139,
+          "line": 161,
           "matched_terms": [
             "trace"
           ]
@@ -10902,7 +11310,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/governance/src/service.js",
           "value": "synthetic_only: true,",
-          "line": 120,
+          "line": 142,
           "matched_terms": [
             "synthetic",
             "fixture"
@@ -11043,7 +11451,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/governance/src/service.js",
           "value": "risk_register_row: Object.freeze({ risk_register_descriptor_only: true }),",
-          "line": 188,
+          "line": 210,
           "matched_terms": [
             "risk"
           ]
@@ -11141,7 +11549,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/governance/src/service.js",
           "value": "emits_hermes_runtime_receipt: false,",
-          "line": 133,
+          "line": 155,
           "matched_terms": [
             "Hermes",
             "H16"
@@ -11205,7 +11613,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/governance/src/service.js",
           "value": "claude_gate: GOVERNANCE_CORE_CP480_PACK_BINDING.claude_gate,",
-          "line": 165,
+          "line": 187,
           "matched_terms": [
             "Claude",
             "C16"
@@ -11276,7 +11684,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/governance/src/service.js",
           "value": "claude_model_review_prompt: Object.freeze({ read_only: true, claude_final_approval_claimed: false }),",
-          "line": 207,
+          "line": 229,
           "matched_terms": [
             "approval"
           ]
@@ -11341,7 +11749,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/ai-governance/src/service.js",
           "value": "cross_tenant_access_allowed: false,",
-          "line": 193,
+          "line": 215,
           "matched_terms": [
             "tenant"
           ]
@@ -11397,7 +11805,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/ai-governance/src/service.js",
           "value": "evaluates_runtime_permission: false,",
-          "line": 136,
+          "line": 158,
           "matched_terms": [
             "permission"
           ]
@@ -11443,7 +11851,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/ai-governance/src/service.js",
           "value": "deny_over_allow_enforced: true,",
-          "line": 192,
+          "line": 214,
           "matched_terms": [
             "deny"
           ]
@@ -11506,7 +11914,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/ai-governance/src/service.js",
           "value": "matter_first_trace_note: Object.freeze({ matter_trace_required: true }),",
-          "line": 189,
+          "line": 211,
           "matched_terms": [
             "Matter"
           ]
@@ -11576,7 +11984,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/ai-governance/src/service.js",
           "value": "writes_audit_event: false,",
-          "line": 137,
+          "line": 159,
           "matched_terms": [
             "audit",
             "evidence"
@@ -11607,13 +12015,22 @@
       "g1_e03_status": "not_satisfied",
       "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 1,
+      "candidate_evidence_count": 2,
       "candidate_evidence": [
         {
           "field": "research_alignment",
           "value": "NIST-PRIVACY",
           "matched_terms": [
             "privacy"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/ai-governance-core-contract.json",
+          "value": "\"Unauthorized data omission\",",
+          "line": 2026,
+          "matched_terms": [
+            "unauthorized data"
           ]
         }
       ],
@@ -11639,10 +12056,25 @@
       "rp_id": "RP17",
       "control_id": "secure_secret_handling",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 1,
+      "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/ai-governance/src/service.js",
+          "value": "const AI_GOVERNANCE_CORE_SECRET_MATERIAL_FIELD_PATTERN =",
+          "line": 116,
+          "matched_terms": [
+            "secret",
+            "credential",
+            "exposes_secret_material",
+            "secret_material_included",
+            "credential_or_secret_included",
+            "must not include secret material fields"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/ai-governance-core-contract.json",
@@ -11658,7 +12090,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP17:idempotency_and_replay_protection",
@@ -11684,7 +12116,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/ai-governance/src/service.js",
           "value": "persists_idempotency_key: false,",
-          "line": 150,
+          "line": 172,
           "matched_terms": [
             "idempotency"
           ]
@@ -11714,7 +12146,7 @@
       "g1_e03_status": "not_satisfied",
       "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 1,
+      "candidate_evidence_count": 2,
       "candidate_evidence": [
         {
           "field": "mandatory_artifact_content",
@@ -11722,7 +12154,19 @@
           "value": "\"Legal hold interaction\",",
           "line": 3848,
           "matched_terms": [
-            "legal hold"
+            "legal hold",
+            "legal_hold",
+            "hold"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "packages/ai-governance/src/client-matter-g6.js",
+          "value": "if (!hasAll(privilegeLabelRoutes, [\"attorney_client\", \"work_product\", \"legal_hold\"])) {",
+          "line": 78,
+          "matched_terms": [
+            "legal_hold",
+            "hold"
           ]
         }
       ],
@@ -11775,7 +12219,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/ai-governance/src/service.js",
           "value": "appends_audit_trace: false,",
-          "line": 148,
+          "line": 170,
           "matched_terms": [
             "trace"
           ]
@@ -11830,7 +12274,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/ai-governance/src/service.js",
           "value": "synthetic_only: true,",
-          "line": 129,
+          "line": 151,
           "matched_terms": [
             "synthetic",
             "fixture"
@@ -11951,7 +12395,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/ai-governance/src/service.js",
           "value": "risk_register_row: Object.freeze({ risk_register_descriptor_only: true }),",
-          "line": 197,
+          "line": 219,
           "matched_terms": [
             "risk"
           ]
@@ -12040,7 +12484,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/ai-governance/src/service.js",
           "value": "emits_hermes_runtime_receipt: false,",
-          "line": 142,
+          "line": 164,
           "matched_terms": [
             "Hermes",
             "H17"
@@ -12094,7 +12538,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/ai-governance/src/service.js",
           "value": "claude_gate: AI_GOVERNANCE_CORE_CP514_PACK_BINDING.claude_gate,",
-          "line": 174,
+          "line": 196,
           "matched_terms": [
             "Claude",
             "C17"
@@ -12150,7 +12594,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "packages/ai-governance/src/service.js",
           "value": "claude_model_review_prompt: Object.freeze({ read_only: true, claude_final_approval_claimed: false }),",
-          "line": 216,
+          "line": 238,
           "matched_terms": [
             "approval"
           ]
@@ -12427,7 +12871,7 @@
       "g1_e03_status": "not_satisfied",
       "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 2,
+      "candidate_evidence_count": 3,
       "candidate_evidence": [
         {
           "field": "research_alignment",
@@ -12441,6 +12885,16 @@
           "value": "PII handling is declared",
           "matched_terms": [
             "PII"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/migration-platform-contract.json",
+          "value": "\"title\": \"Unauthorized data omission\",",
+          "line": 12836,
+          "matched_terms": [
+            "unauthorized data",
+            "real client data"
           ]
         }
       ],
@@ -12559,7 +13013,9 @@
           "value": "\"title\": \"Legal hold interaction\",",
           "line": 26919,
           "matched_terms": [
-            "legal hold"
+            "legal hold",
+            "legal_hold",
+            "hold"
           ]
         }
       ],
@@ -13218,10 +13674,20 @@
       "rp_id": "RP26",
       "control_id": "privacy_minimization",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 1,
+      "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/enterprise-saas-hardening-contract.json",
+          "value": "\"title\": \"Unauthorized data omission\",",
+          "line": 12982,
+          "matched_terms": [
+            "unauthorized data"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/enterprise-saas-hardening-contract.json",
@@ -13237,7 +13703,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP26:secure_secret_handling",
@@ -13261,7 +13727,11 @@
           "value": "\"secret material remains absent from descriptors\",",
           "line": 43,
           "matched_terms": [
-            "secret"
+            "secret",
+            "stores_idp_secret",
+            "stores_scim_token",
+            "exposes_secret_material",
+            "secret_material_included"
           ]
         },
         {
@@ -13270,7 +13740,9 @@
           "value": "stores_idp_secret: false,",
           "line": 14,
           "matched_terms": [
-            "secret"
+            "secret",
+            "stores_idp_secret",
+            "exposes_secret_material"
           ]
         },
         {
@@ -13279,7 +13751,9 @@
           "value": "exposes_secret_material: false,",
           "line": 14,
           "matched_terms": [
-            "secret"
+            "secret",
+            "stores_scim_token",
+            "exposes_secret_material"
           ]
         }
       ],
@@ -13353,7 +13827,9 @@
           "value": "\"title\": \"Legal hold interaction\",",
           "line": 26731,
           "matched_terms": [
-            "legal hold"
+            "legal hold",
+            "legal_hold",
+            "hold"
           ]
         }
       ],
@@ -13791,7 +14267,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "docs/launch/launch-evidence-acceptance-matrix.md",
           "value": "| ACC-GL-G5-G5-E03 | G5 | G5-E03 | permission_sync_checker_log | injected_mismatch_detected | GL-G5-G5-E03 | 5 |",
-          "line": 55,
+          "line": 53,
           "matched_terms": [
             "permission"
           ]
@@ -13980,7 +14456,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "docs/launch/launch-evidence-acceptance-matrix.md",
           "value": "| ACC-GL-G3-G3-E02 | G3 | G3-E02 | ethical_wall_blocking_results | five_of_five_pass_with_audit | GL-G3-G3-E02 | 7 |",
-          "line": 46,
+          "line": 44,
           "matched_terms": [
             "audit",
             "evidence"
@@ -14009,10 +14485,30 @@
       "rp_id": "RP29",
       "control_id": "privacy_minimization",
       "g1_e03_status": "not_satisfied",
-      "candidate_status": "candidate_gap_pending_evidence",
+      "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 0,
-      "candidate_evidence": [],
+      "candidate_evidence_count": 2,
+      "candidate_evidence": [
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "contracts/commercial-readiness-contract.json",
+          "value": "\"title\": \"Unauthorized data omission\",",
+          "line": 18726,
+          "matched_terms": [
+            "unauthorized data",
+            "real client data"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "docs/reorganization/client-matter-os/63-g7-g-release-readiness-closeout-report.md",
+          "value": "provider calls, customer payload reads, production config changes, production",
+          "line": 24,
+          "matched_terms": [
+            "customer payload"
+          ]
+        }
+      ],
       "mandatory_artifacts": [
         {
           "path": "contracts/commercial-readiness-contract.json",
@@ -14028,7 +14524,7 @@
         }
       ],
       "missing_mandatory_artifacts": [],
-      "required_next_action": "Record additional evidence, applicability exclusion, or risk-accepted follow-up before satisfaction."
+      "required_next_action": "Verifier adjudication is owner-authorized; record real evidence, n/a rationale, or owner-approved unmet disposition before satisfaction."
     },
     {
       "cell_id": "RP29:secure_secret_handling",
@@ -14046,7 +14542,10 @@
           "line": 535,
           "matched_terms": [
             "secret",
-            "credential"
+            "credential",
+            "credential_or_secret_included",
+            "no_ci_cd_secret",
+            "no_deployment_secret"
           ]
         },
         {
@@ -14121,7 +14620,7 @@
       "g1_e03_status": "not_satisfied",
       "candidate_status": "candidate_evidence_present_pending_adjudication",
       "satisfies_g1_e03": false,
-      "candidate_evidence_count": 2,
+      "candidate_evidence_count": 3,
       "candidate_evidence": [
         {
           "field": "mandatory_artifact_content",
@@ -14129,18 +14628,30 @@
           "value": "\"title\": \"Legal hold interaction\",",
           "line": 43221,
           "matched_terms": [
-            "legal hold"
+            "legal hold",
+            "legal_hold",
+            "hold"
+          ]
+        },
+        {
+          "field": "mandatory_artifact_content",
+          "artifact_path": "docs/reorganization/client-matter-os/63-g7-g-release-readiness-closeout-report.md",
+          "value": "absence, agreed latency threshold, restore verification, user signoff, and G7",
+          "line": 13,
+          "matched_terms": [
+            "hold"
           ]
         },
         {
           "field": "mandatory_artifact_content",
           "artifact_path": "docs/launch/launch-evidence-acceptance-matrix.md",
           "value": "| ACC-GL-G7-G7-E01 | G7 | G7-E01 | pipa_retention_policy_setting_reconciliation | mismatch_count_zero | GL-G7-G7-E01 | 5 |",
-          "line": 60,
+          "line": 58,
           "matched_terms": [
             "retention",
             "WORM",
-            "purge"
+            "purge",
+            "hold"
           ]
         }
       ],
@@ -14206,7 +14717,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "docs/launch/launch-evidence-acceptance-matrix.md",
           "value": "| ACC-GL-G4-G4-E04 | G4 | G4-E04 | performance_acceptance_report | all_metrics_within_approved_thresholds | GL-G4-G4-E04 | 8 |",
-          "line": 52,
+          "line": 50,
           "matched_terms": [
             "metric",
             "log"
@@ -14334,7 +14845,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "docs/launch/launch-evidence-acceptance-matrix.md",
           "value": "| ACC-GL-G2-G2-E02 | G2 | G2-E02 | runtime_integration_test_output | all_tests_pass_with_timestamp | GL-G2-G2-E02 | 7 |",
-          "line": 43,
+          "line": 41,
           "matched_terms": [
             "test"
           ]
@@ -14476,7 +14987,7 @@
           "field": "mandatory_artifact_content",
           "artifact_path": "docs/launch/launch-evidence-acceptance-matrix.md",
           "value": "| ACC-GL-G4-G4-E03 | G4 | G4-E03 | deployment_rollback_roundtrip | start_end_timestamp_pairs_present | GL-G4-G4-E03 | 8 |",
-          "line": 51,
+          "line": 49,
           "matched_terms": [
             "rollback",
             "release"

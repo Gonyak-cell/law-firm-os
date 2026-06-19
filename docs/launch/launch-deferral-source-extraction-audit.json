@@ -232,7 +232,7 @@
     "actual_decision_count": 0
   },
   "mat_dec": {
-    "mention_line_count": 86,
+    "mention_line_count": 84,
     "unique_decision_ids": [
       "MAT-DEC-01",
       "MAT-DEC-02",
@@ -441,54 +441,44 @@
         "text": "\"decision_id\": \"MAT-DEC-09\","
       },
       {
-        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
-        "line": 2906,
-        "text": "\"action\": \"For G1-E02, resolve MAT-DEC owner linkage and prove every remaining item is non-blocking or assigned to a valid launch phase.\""
-      },
-      {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
-        "line": 33,
+        "line": 34,
         "text": "| MAT-DEC launch decision mentions | 9 | Unique decision IDs present: MAT-DEC-01, MAT-DEC-02, MAT-DEC-03, MAT-DEC-04, MAT-DEC-05, MAT-DEC-06, MAT-DEC-07, MAT-DEC-08, MAT-DEC-09. | owner_linkage_present_not_blocking |"
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
-        "line": 37,
+        "line": 38,
         "text": "MAT-DEC owner linkage is present or non-blocking. Move G1-E02 into manual evidence intake only after verifier records timestamped evidence satisfaction."
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
-        "line": 39,
+        "line": 40,
         "text": "### MAT-DEC Linkage State"
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
-        "line": 43,
+        "line": 44,
         "text": "| MAT-DEC-01 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |"
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
-        "line": 45,
+        "line": 46,
         "text": "| MAT-DEC-03 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |"
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
-        "line": 47,
+        "line": 48,
         "text": "| MAT-DEC-06 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |"
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
-        "line": 49,
+        "line": 50,
         "text": "| MAT-DEC-04 | decided | no | owner_linkage_present | Decision status is recorded as decided in the absorption decision register. |"
       },
       {
         "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
-        "line": 51,
+        "line": 52,
         "text": "| MAT-DEC-09 | pending | no | non_blocking_default_owner_no_approval_required | Register text states the default owner path requires no approval when used. |"
-      },
-      {
-        "path": "docs/launch/g1-completion-remediation-prep-2026-06-19.md",
-        "line": 96,
-        "text": "1. For G1-E02, resolve MAT-DEC owner linkage and prove every remaining item is non-blocking or assigned to a valid launch phase."
       },
       {
         "path": "docs/launch/g1-e02-evidence-satisfaction-2026-06-19.md",
@@ -572,17 +562,17 @@
       },
       {
         "path": "docs/launch/launch-closure-dependency-graph.json",
-        "line": 684,
+        "line": 665,
         "text": "\"MAT-DEC-03 decision row update in workbook/absorption-package/06_오픈_결정_레지스터.md\","
       },
       {
         "path": "docs/launch/launch-closure-dependency-graph.json",
-        "line": 722,
+        "line": 703,
         "text": "\"MAT-DEC-08 decision row update\","
       },
       {
         "path": "docs/launch/launch-tuw-status-audit.json",
-        "line": 262,
+        "line": 259,
         "text": "\"title\": \"MAT-DEC-03(문서 원본 소재/M365) 해소\","
       },
       {
@@ -612,17 +602,17 @@
       },
       {
         "path": "docs/launch/owner-action-deferral-request.json",
-        "line": 465,
+        "line": 450,
         "text": "\"title\": \"MAT-DEC-03(문서 원본 소재/M365) 해소\","
       },
       {
         "path": "docs/launch/owner-action-deferral-request.json",
-        "line": 483,
+        "line": 468,
         "text": "\"MAT-DEC-03 decision row update in workbook/absorption-package/06_오픈_결정_레지스터.md\","
       },
       {
         "path": "docs/launch/owner-action-deferral-request.json",
-        "line": 553,
+        "line": 538,
         "text": "\"MAT-DEC-08 decision row update\","
       },
       {
@@ -644,6 +634,16 @@
         "path": "docs/launch/perf/performance-acceptance-criteria-decision.md",
         "line": 66,
         "text": "| Basis | LT-L3-W06 SLO baseline, pilot roster/load target, MAT-DEC-03 storage boundary, staging telemetry capability |"
+      },
+      {
+        "path": "docs/launch/perf/performance-acceptance-criteria-decision.md",
+        "line": 92,
+        "text": "| MAT-DEC-03 | Decide upload/storage boundary before measuring provider transfer. |"
+      },
+      {
+        "path": "docs/launch/perf/performance-acceptance-report.md",
+        "line": 26,
+        "text": "| Provider file transfer measured | false; pending MAT-DEC-03 |"
       }
     ]
   },

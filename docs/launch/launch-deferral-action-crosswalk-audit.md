@@ -6,11 +6,11 @@ Verdict: PASS
 
 ## Summary
 
-- missing_deferral_target_count: 117
-- crosswalk_row_count: 117
-- action_linked_count: 117
+- missing_deferral_target_count: 115
+- crosswalk_row_count: 115
+- action_linked_count: 115
 - missing_action_source_count: 0
-- gate_manual_intake_link_count: 31
+- gate_manual_intake_link_count: 29
 - l9_manual_intake_link_count: 5
 - blocked_wp_owner_action_link_count: 70
 - phase_exit_link_count: 11
@@ -23,7 +23,7 @@ Verdict: PASS
 | Domain | Count |
 | --- | ---: |
 | blocked_work_package | 70 |
-| go_live_gate_evidence | 31 |
+| go_live_gate_evidence | 29 |
 | phase_exit | 11 |
 | l9_stabilization_closure | 5 |
 
@@ -31,8 +31,6 @@ Verdict: PASS
 
 | Domain | Coverage | Action source | Action ref | Accepted decision IDs |
 | --- | --- | --- | --- | --- |
-| go_live_gate_evidence | ACC-GL-G1-G1-E02 | manual_intake_and_failed_gate_action | GL-G1-G1-E02 | ACC-GL-G1-G1-E02<br>COVERAGE-GATE-G1<br>COVERAGE-ALL-GO-LIVE |
-| go_live_gate_evidence | ACC-GL-G1-G1-E03 | manual_intake_and_failed_gate_action | GL-G1-G1-E03 | ACC-GL-G1-G1-E03<br>COVERAGE-GATE-G1<br>COVERAGE-ALL-GO-LIVE |
 | go_live_gate_evidence | ACC-GL-G2-G2-E01 | manual_intake_and_failed_gate_action | GL-G2-G2-E01 | ACC-GL-G2-G2-E01<br>COVERAGE-GATE-G2<br>COVERAGE-ALL-GO-LIVE |
 | go_live_gate_evidence | ACC-GL-G2-G2-E02 | manual_intake_and_failed_gate_action | GL-G2-G2-E02 | ACC-GL-G2-G2-E02<br>COVERAGE-GATE-G2<br>COVERAGE-ALL-GO-LIVE |
 | go_live_gate_evidence | ACC-GL-G2-G2-E03 | manual_intake_and_failed_gate_action | GL-G2-G2-E03 | ACC-GL-G2-G2-E03<br>COVERAGE-GATE-G2<br>COVERAGE-ALL-GO-LIVE |

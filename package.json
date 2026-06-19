@@ -140,6 +140,7 @@
     "launch:g1:prep": "node scripts/generate-g1-completion-remediation-prep.mjs",
     "launch:g1:hardening:candidates": "node scripts/generate-g1-hardening-evidence-candidates.mjs",
     "launch:g1:hardening:adjudicate": "node scripts/adjudicate-g1-hardening-evidence.mjs",
+    "launch:g1:e03:satisfy": "node scripts/satisfy-g1-e03-evidence.mjs",
     "client-matter:g0:validate": "node scripts/validate-client-matter-os-reorganization.mjs",
     "client-matter:g1:plan:validate": "node scripts/validate-client-matter-os-g1-plan.mjs",
     "client-matter:g1a:validate": "node scripts/validate-client-matter-os-g1-a.mjs",

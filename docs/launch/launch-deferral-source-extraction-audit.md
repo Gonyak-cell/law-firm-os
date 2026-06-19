@@ -18,7 +18,7 @@ Verdict: PASS
 | P2 closeout packs | 3794 | 18 explicit P2 item lines | Broad markers include common fixed_or_deferred/no-P2 text and are not item-level unresolved deferrals. |
 | LDIP overlay | 1 | 0 actual defer decisions | Token count is currently an enum/policy option count. |
 | HRX overlay | 0 | 0 actual defer decisions | No actual defer decisions found. |
-| MAT-DEC | 86 mention lines | 9 unique decision IDs | Launch rejudgment linkage remains owner-controlled. |
+| MAT-DEC | 84 mention lines | 9 unique decision IDs | Launch rejudgment linkage remains owner-controlled. |
 
 ## P2 Positive Count Statements
 

@@ -14,7 +14,7 @@ Verdict: PASS
 - l9_deferral_coverage_complete: false
 - blocked_wp_deferral_coverage_complete: false
 - phase_exit_deferral_coverage_complete: false
-- go_live_missing_deferral_count: 31
+- go_live_missing_deferral_count: 29
 - l9_missing_deferral_count: 5
 - blocked_wp_missing_deferral_count: 70
 - phase_exit_missing_deferral_count: 11
@@ -26,7 +26,7 @@ Verdict: PASS
 
 | Domain | Total | Covered | Missing | Complete |
 | --- | ---: | ---: | ---: | --- |
-| go_live_gate_evidence | 31 | 0 | 31 | false |
+| go_live_gate_evidence | 29 | 0 | 29 | false |
 | l9_stabilization_closure | 5 | 0 | 5 | false |
 | blocked_work_package | 70 | 0 | 70 | false |
 | phase_exit | 11 | 0 | 11 | false |
@@ -42,8 +42,6 @@ Verdict: PASS
 
 | Domain | Coverage ID | Target | Accepted decision IDs |
 | --- | --- | --- | --- |
-| go_live_gate_evidence | ACC-GL-G1-G1-E02 | G1/G1-E02 | ACC-GL-G1-G1-E02, COVERAGE-GATE-G1, COVERAGE-ALL-GO-LIVE |
-| go_live_gate_evidence | ACC-GL-G1-G1-E03 | G1/G1-E03 | ACC-GL-G1-G1-E03, COVERAGE-GATE-G1, COVERAGE-ALL-GO-LIVE |
 | go_live_gate_evidence | ACC-GL-G2-G2-E01 | G2/G2-E01 | ACC-GL-G2-G2-E01, COVERAGE-GATE-G2, COVERAGE-ALL-GO-LIVE |
 | go_live_gate_evidence | ACC-GL-G2-G2-E02 | G2/G2-E02 | ACC-GL-G2-G2-E02, COVERAGE-GATE-G2, COVERAGE-ALL-GO-LIVE |
 | go_live_gate_evidence | ACC-GL-G2-G2-E03 | G2/G2-E03 | ACC-GL-G2-G2-E03, COVERAGE-GATE-G2, COVERAGE-ALL-GO-LIVE |

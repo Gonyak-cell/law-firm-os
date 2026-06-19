@@ -25,7 +25,7 @@
     "pending_response_count": 4,
     "real_owner_response_count": 0,
     "copy_allowed_count": 0,
-    "target_count_if_all_responses_received": 117,
+    "target_count_if_all_responses_received": 115,
     "target_count_by_real_responses": 0
   },
   "required_owner_response_fields": [
@@ -76,12 +76,10 @@
       "decision_id": "COVERAGE-ALL-GO-LIVE",
       "title": "Owner deferral for all failed G1-G10 gate evidence",
       "coverage_domain": "go_live_gate_evidence",
-      "covered_target_count": 31,
+      "covered_target_count": 29,
       "required_owner_basis": "Owner accepts deferring all currently failed go-live gate evidence slots.",
       "target_detail_state": "all_targets_matched_and_aggregate_accepted",
       "target_ids": [
-        "ACC-GL-G1-G1-E02",
-        "ACC-GL-G1-G1-E03",
         "ACC-GL-G10-G10-E01",
         "ACC-GL-G10-G10-E02",
         "ACC-GL-G10-G10-E03",
@@ -113,8 +111,6 @@
         "ACC-GL-G9-G9-E03"
       ],
       "target_sample": [
-        "ACC-GL-G1-G1-E02",
-        "ACC-GL-G1-G1-E03",
         "ACC-GL-G10-G10-E01",
         "ACC-GL-G10-G10-E02",
         "ACC-GL-G10-G10-E03",
@@ -122,7 +118,9 @@
         "ACC-GL-G2-G2-E02",
         "ACC-GL-G2-G2-E03",
         "ACC-GL-G3-G3-E01",
-        "ACC-GL-G3-G3-E02"
+        "ACC-GL-G3-G3-E02",
+        "ACC-GL-G3-G3-E03",
+        "ACC-GL-G3-G3-E04"
       ],
       "allowed_register_status_after_real_receipt": "deferred(시한 명기)",
       "request_status": "pending_owner_response",

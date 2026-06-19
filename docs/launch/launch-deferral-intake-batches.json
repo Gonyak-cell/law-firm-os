@@ -16,19 +16,19 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "missing_deferral_target_count": 117,
-    "intake_target_count": 117,
+    "missing_deferral_target_count": 115,
+    "intake_target_count": 115,
     "batch_count": 8,
     "non_empty_batch_count": 8,
-    "template_matched_target_count": 117,
-    "recommended_decision_id_count": 117,
-    "owner_input_required_count": 117,
-    "not_approved_target_count": 117
+    "template_matched_target_count": 115,
+    "recommended_decision_id_count": 115,
+    "owner_input_required_count": 115,
+    "not_approved_target_count": 115
   },
   "lane_counts": [
     {
       "value": "go_live_gate_evidence",
-      "count": 31
+      "count": 29
     },
     {
       "value": "owner_decision_signature",
@@ -66,7 +66,7 @@
     },
     {
       "value": "go_live_gate_evidence",
-      "count": 31
+      "count": 29
     },
     {
       "value": "phase_exit",
@@ -2308,10 +2308,8 @@
       "primary_resolution_lane": "go_live_gate_evidence",
       "title": "G1-G10 gate evidence intake",
       "required_action": "Supply failed go-live gate evidence slots, or record coverage-eligible owner-approved deferrals.",
-      "target_count": 31,
+      "target_count": 29,
       "target_coverage_ids": [
-        "ACC-GL-G1-G1-E02",
-        "ACC-GL-G1-G1-E03",
         "ACC-GL-G10-G10-E01",
         "ACC-GL-G10-G10-E02",
         "ACC-GL-G10-G10-E03",
@@ -2343,66 +2341,6 @@
         "ACC-GL-G9-G9-E03"
       ],
       "targets": [
-        {
-          "coverage_id": "ACC-GL-G1-G1-E02",
-          "domain": "go_live_gate_evidence",
-          "primary_resolution_lane": "go_live_gate_evidence",
-          "action_source": "manual_intake_and_failed_gate_action",
-          "action_ref": "GL-G1-G1-E02",
-          "accepted_decision_ids": [
-            "ACC-GL-G1-G1-E02",
-            "COVERAGE-GATE-G1",
-            "COVERAGE-ALL-GO-LIVE"
-          ],
-          "recommended_decision_id": "ACC-GL-G1-G1-E02",
-          "alternative_decision_ids": [
-            "COVERAGE-GATE-G1",
-            "COVERAGE-ALL-GO-LIVE"
-          ],
-          "decision_register_template_coverage_id": "ACC-GL-G1-G1-E02",
-          "decision_register_status_after_owner_approval": "deferred(시한 명기)",
-          "approval_state": "not_approved_template_only",
-          "owner_decision_fields_required": [
-            "owner role/name",
-            "owner deferral decision",
-            "deferral basis",
-            "target date or revisit gate",
-            "approval signature reference"
-          ],
-          "source_next_required_action": "Provide required gate evidence, or record an owner-approved deferral using one accepted decision ID.",
-          "owner_input_required": true,
-          "real_evidence_or_owner_deferral_required": true
-        },
-        {
-          "coverage_id": "ACC-GL-G1-G1-E03",
-          "domain": "go_live_gate_evidence",
-          "primary_resolution_lane": "go_live_gate_evidence",
-          "action_source": "manual_intake_and_failed_gate_action",
-          "action_ref": "GL-G1-G1-E03",
-          "accepted_decision_ids": [
-            "ACC-GL-G1-G1-E03",
-            "COVERAGE-GATE-G1",
-            "COVERAGE-ALL-GO-LIVE"
-          ],
-          "recommended_decision_id": "ACC-GL-G1-G1-E03",
-          "alternative_decision_ids": [
-            "COVERAGE-GATE-G1",
-            "COVERAGE-ALL-GO-LIVE"
-          ],
-          "decision_register_template_coverage_id": "ACC-GL-G1-G1-E03",
-          "decision_register_status_after_owner_approval": "deferred(시한 명기)",
-          "approval_state": "not_approved_template_only",
-          "owner_decision_fields_required": [
-            "owner role/name",
-            "owner deferral decision",
-            "deferral basis",
-            "target date or revisit gate",
-            "approval signature reference"
-          ],
-          "source_next_required_action": "Provide required gate evidence, or record an owner-approved deferral using one accepted decision ID.",
-          "owner_input_required": true,
-          "real_evidence_or_owner_deferral_required": true
-        },
         {
           "coverage_id": "ACC-GL-G10-G10-E01",
           "domain": "go_live_gate_evidence",
@@ -5882,66 +5820,6 @@
         "approval signature reference"
       ],
       "source_next_required_action": "Provide real completion evidence, or record an owner-approved deferral using one accepted decision ID.",
-      "owner_input_required": true,
-      "real_evidence_or_owner_deferral_required": true
-    },
-    {
-      "coverage_id": "ACC-GL-G1-G1-E02",
-      "domain": "go_live_gate_evidence",
-      "primary_resolution_lane": "go_live_gate_evidence",
-      "action_source": "manual_intake_and_failed_gate_action",
-      "action_ref": "GL-G1-G1-E02",
-      "accepted_decision_ids": [
-        "ACC-GL-G1-G1-E02",
-        "COVERAGE-GATE-G1",
-        "COVERAGE-ALL-GO-LIVE"
-      ],
-      "recommended_decision_id": "ACC-GL-G1-G1-E02",
-      "alternative_decision_ids": [
-        "COVERAGE-GATE-G1",
-        "COVERAGE-ALL-GO-LIVE"
-      ],
-      "decision_register_template_coverage_id": "ACC-GL-G1-G1-E02",
-      "decision_register_status_after_owner_approval": "deferred(시한 명기)",
-      "approval_state": "not_approved_template_only",
-      "owner_decision_fields_required": [
-        "owner role/name",
-        "owner deferral decision",
-        "deferral basis",
-        "target date or revisit gate",
-        "approval signature reference"
-      ],
-      "source_next_required_action": "Provide required gate evidence, or record an owner-approved deferral using one accepted decision ID.",
-      "owner_input_required": true,
-      "real_evidence_or_owner_deferral_required": true
-    },
-    {
-      "coverage_id": "ACC-GL-G1-G1-E03",
-      "domain": "go_live_gate_evidence",
-      "primary_resolution_lane": "go_live_gate_evidence",
-      "action_source": "manual_intake_and_failed_gate_action",
-      "action_ref": "GL-G1-G1-E03",
-      "accepted_decision_ids": [
-        "ACC-GL-G1-G1-E03",
-        "COVERAGE-GATE-G1",
-        "COVERAGE-ALL-GO-LIVE"
-      ],
-      "recommended_decision_id": "ACC-GL-G1-G1-E03",
-      "alternative_decision_ids": [
-        "COVERAGE-GATE-G1",
-        "COVERAGE-ALL-GO-LIVE"
-      ],
-      "decision_register_template_coverage_id": "ACC-GL-G1-G1-E03",
-      "decision_register_status_after_owner_approval": "deferred(시한 명기)",
-      "approval_state": "not_approved_template_only",
-      "owner_decision_fields_required": [
-        "owner role/name",
-        "owner deferral decision",
-        "deferral basis",
-        "target date or revisit gate",
-        "approval signature reference"
-      ],
-      "source_next_required_action": "Provide required gate evidence, or record an owner-approved deferral using one accepted decision ID.",
       "owner_input_required": true,
       "real_evidence_or_owner_deferral_required": true
     },

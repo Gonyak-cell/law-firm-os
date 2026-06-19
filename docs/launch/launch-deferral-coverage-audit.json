@@ -27,7 +27,7 @@
     "l9_deferral_coverage_complete": false,
     "blocked_wp_deferral_coverage_complete": false,
     "phase_exit_deferral_coverage_complete": false,
-    "go_live_missing_deferral_count": 31,
+    "go_live_missing_deferral_count": 29,
     "l9_missing_deferral_count": 5,
     "blocked_wp_missing_deferral_count": 70,
     "phase_exit_missing_deferral_count": 11,
@@ -38,9 +38,9 @@
   "coverage_domains": [
     {
       "domain": "go_live_gate_evidence",
-      "total": 31,
+      "total": 29,
       "covered": 0,
-      "missing": 31,
+      "missing": 29,
       "complete": false
     },
     {
@@ -67,32 +67,6 @@
   ],
   "coverage_rows": {
     "go_live_gate_evidence": [
-      {
-        "coverage_id": "ACC-GL-G1-G1-E02",
-        "domain": "go_live_gate_evidence",
-        "gate_id": "G1",
-        "evidence_id": "G1-E02",
-        "accepted_decision_ids": [
-          "ACC-GL-G1-G1-E02",
-          "COVERAGE-GATE-G1",
-          "COVERAGE-ALL-GO-LIVE"
-        ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
-      },
-      {
-        "coverage_id": "ACC-GL-G1-G1-E03",
-        "domain": "go_live_gate_evidence",
-        "gate_id": "G1",
-        "evidence_id": "G1-E03",
-        "accepted_decision_ids": [
-          "ACC-GL-G1-G1-E03",
-          "COVERAGE-GATE-G1",
-          "COVERAGE-ALL-GO-LIVE"
-        ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
-      },
       {
         "coverage_id": "ACC-GL-G2-G2-E01",
         "domain": "go_live_gate_evidence",

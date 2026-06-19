@@ -86,22 +86,7 @@
       "gate_id": "G1",
       "dimension": "completion",
       "status": "fail",
-      "failed_evidence": [
-        {
-          "id": "G1-E02",
-          "gate_id": "G1",
-          "dimension": "completion",
-          "slot": "deferred_item_rejudgment_register",
-          "required_state": "blocking_remaining_count_zero"
-        },
-        {
-          "id": "G1-E03",
-          "gate_id": "G1",
-          "dimension": "completion",
-          "slot": "hardening_coverage_matrix",
-          "required_state": "all_missing_cells_adjudicated_or_zero"
-        }
-      ],
+      "failed_evidence": [],
       "missing_evidence": []
     },
     {

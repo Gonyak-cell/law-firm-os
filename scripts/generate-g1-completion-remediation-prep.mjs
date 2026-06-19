@@ -9,6 +9,8 @@ const DEFERRAL_REVIEW_REGISTER_PATH = "docs/launch/deferral-review-register.md";
 const HARDENING_COVERAGE_MATRIX_PATH = "docs/launch/hardening-coverage-matrix.md";
 const G1_INDEX_PATH = "docs/launch/g1-completion-evidence-index.md";
 const MAT_DEC_REGISTER_PATH = "workbook/absorption-package/06_오픈_결정_레지스터.md";
+const G1_E02_RECEIPT_PATH = "docs/launch/g1-e02-evidence-satisfaction-2026-06-19.json";
+const G1_E03_RECEIPT_PATH = "docs/launch/g1-e03-evidence-satisfaction-2026-06-19.json";
 const OUTPUT_JSON_PATH = "docs/launch/g1-completion-remediation-prep-2026-06-19.json";
 const OUTPUT_MD_PATH = "docs/launch/g1-completion-remediation-prep-2026-06-19.md";
 
@@ -128,7 +130,12 @@ function renderMarkdown(report) {
   lines.push("- This prep package does not close G1.");
   lines.push("- It does not mark `G1-E02` or `G1-E03` as evidence-satisfied.");
   lines.push("- It separates already-normalized deferral sources from owner-linkage and hardening-cell work still required.");
-  lines.push(`- G1 can close only after the remaining owner linkage and ${report.summary.hardening_pending_cell_count} hardening cells have real evidence or valid dispositions.`);
+  if (report.summary.g1_e02_closeable_now && report.summary.g1_e03_closeable_now) {
+    lines.push("- G1-E02 and G1-E03 are closeable from this prep state; the separate satisfaction receipts record evidence satisfaction.");
+    lines.push("- G1 still requires the final criteria/manual decision layer before the gate can close.");
+  } else {
+    lines.push(`- G1 can close only after the remaining owner linkage and ${report.summary.hardening_pending_cell_count} hardening cells have real evidence or valid dispositions.`);
+  }
   lines.push("");
   lines.push("## Summary");
   lines.push("");
@@ -166,7 +173,7 @@ function renderMarkdown(report) {
   lines.push(`| Cells with evidence | ${report.g1_e03_hardening_coverage.evidence_satisfied_cell_count} |`);
   lines.push(`| Pending cells | ${report.g1_e03_hardening_coverage.pending_cell_count} |`);
   lines.push("");
-  lines.push("First 24 hardening cells to populate:");
+  lines.push(report.g1_e03_hardening_coverage.pending_cell_count === 0 ? "First 24 satisfied hardening cells:" : "First 24 hardening cells to populate:");
   lines.push("");
   lines.push("| Cell | RP | Control | Status |");
   lines.push("| --- | --- | --- | --- |");
@@ -182,6 +189,27 @@ function renderMarkdown(report) {
     lines.push(`${item.order}. ${item.action}`);
   }
   return `${lines.join("\n")}\n`;
+}
+
+function buildNextRequiredWork(g1E02, g1E03) {
+  return [
+    {
+      order: 1,
+      action: g1E02.closeable_now
+        ? `G1-E02 is closeable; keep the evidence satisfaction receipt at ${G1_E02_RECEIPT_PATH} and keep readiness input marked satisfied.`
+        : "For G1-E02, resolve MAT-DEC owner linkage and prove every remaining item is non-blocking or assigned to a valid launch phase."
+    },
+    {
+      order: 2,
+      action: g1E03.closeable_now
+        ? `G1-E03 is closeable; hardening adjudication has ${g1E03.evidence_satisfied_cell_count}/${g1E03.required_cell_count} satisfied cells and zero pending gaps, with satisfaction recorded at ${G1_E03_RECEIPT_PATH}.`
+        : `For G1-E03, populate each of the ${g1E03.required_cell_count} RP/control cells with real evidence, n/a rationale, or owner-approved disposition for unmet cells.`
+    },
+    {
+      order: 3,
+      action: "Continue the remaining launch evidence work while keeping go-live NO-GO until all G1-G10 and L9 evidence is satisfied or owner-deferred."
+    }
+  ];
 }
 
 const deferralAudit = readJson(DEFERRAL_SOURCE_AUDIT_PATH);
@@ -299,20 +327,7 @@ const report = {
   },
   g1_e02_deferred_item_rejudgment: g1E02,
   g1_e03_hardening_coverage: g1E03,
-  next_required_work: [
-    {
-      order: 1,
-      action: "For G1-E02, resolve MAT-DEC owner linkage and prove every remaining item is non-blocking or assigned to a valid launch phase."
-    },
-    {
-      order: 2,
-      action: "For G1-E03, populate each of the 272 RP/control cells with real evidence, `n/a` rationale, or owner-approved disposition for unmet cells."
-    },
-    {
-      order: 3,
-      action: "After G1-E02 and G1-E03 have real evidence refs, update the manual evidence intake rows to `evidence_satisfied` with timestamp and verifier."
-    }
-  ]
+  next_required_work: buildNextRequiredWork(g1E02, g1E03)
 };
 
 mkdirSync(dirname(OUTPUT_JSON_PATH), { recursive: true });

@@ -20,7 +20,7 @@
   },
   "summary": {
     "g1_e02_closeable_now": true,
-    "g1_e03_closeable_now": false,
+    "g1_e03_closeable_now": true,
     "unresolved_p2_line_count": 0,
     "ldip_actual_defer_decision_count": 0,
     "hrx_actual_defer_decision_count": 0,
@@ -29,7 +29,7 @@
     "mat_dec_non_blocking_default_count": 1,
     "mat_dec_remaining_owner_linkage_count": 0,
     "hardening_required_cell_count": 272,
-    "hardening_pending_cell_count": 16
+    "hardening_pending_cell_count": 0
   },
   "g1_e02_deferred_item_rejudgment": {
     "evidence_id": "G1-E02",
@@ -165,13 +165,13 @@
   "g1_e03_hardening_coverage": {
     "evidence_id": "G1-E03",
     "required_state": "all_missing_cells_adjudicated_or_zero",
-    "current_status": "not_satisfied",
-    "closeable_now": false,
+    "current_status": "closeable_pending_manual_evidence_intake",
+    "closeable_now": true,
     "critical_rp_count": 16,
     "universal_control_count": 17,
     "required_cell_count": 272,
-    "evidence_satisfied_cell_count": 256,
-    "pending_cell_count": 16,
+    "evidence_satisfied_cell_count": 272,
+    "pending_cell_count": 0,
     "cells": [
       {
         "cell_id": "RP00:tenant_isolation",
@@ -407,10 +407,10 @@
         "cell_id": "RP01:secure_secret_handling",
         "rp_id": "RP01",
         "control_id": "secure_secret_handling",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
@@ -427,10 +427,10 @@
         "cell_id": "RP01:data_retention_and_legal_hold",
         "rp_id": "RP01",
         "control_id": "data_retention_and_legal_hold",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
@@ -567,10 +567,10 @@
         "cell_id": "RP02:privacy_minimization",
         "rp_id": "RP02",
         "control_id": "privacy_minimization",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
@@ -937,10 +937,10 @@
         "cell_id": "RP04:data_retention_and_legal_hold",
         "rp_id": "RP04",
         "control_id": "data_retention_and_legal_hold",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
@@ -1087,10 +1087,10 @@
         "cell_id": "RP05:secure_secret_handling",
         "rp_id": "RP05",
         "control_id": "secure_secret_handling",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
@@ -1257,10 +1257,10 @@
         "cell_id": "RP06:secure_secret_handling",
         "rp_id": "RP06",
         "control_id": "secure_secret_handling",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
@@ -1427,10 +1427,10 @@
         "cell_id": "RP07:secure_secret_handling",
         "rp_id": "RP07",
         "control_id": "secure_secret_handling",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
@@ -1597,10 +1597,10 @@
         "cell_id": "RP10:secure_secret_handling",
         "rp_id": "RP10",
         "control_id": "secure_secret_handling",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
@@ -1757,20 +1757,20 @@
         "cell_id": "RP12:privacy_minimization",
         "rp_id": "RP12",
         "control_id": "privacy_minimization",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
         "cell_id": "RP12:secure_secret_handling",
         "rp_id": "RP12",
         "control_id": "secure_secret_handling",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
@@ -1927,20 +1927,20 @@
         "cell_id": "RP14:privacy_minimization",
         "rp_id": "RP14",
         "control_id": "privacy_minimization",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
         "cell_id": "RP14:secure_secret_handling",
         "rp_id": "RP14",
         "control_id": "secure_secret_handling",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
@@ -2107,10 +2107,10 @@
         "cell_id": "RP16:secure_secret_handling",
         "rp_id": "RP16",
         "control_id": "secure_secret_handling",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
@@ -2277,10 +2277,10 @@
         "cell_id": "RP17:secure_secret_handling",
         "rp_id": "RP17",
         "control_id": "secure_secret_handling",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
@@ -2607,10 +2607,10 @@
         "cell_id": "RP26:privacy_minimization",
         "rp_id": "RP26",
         "control_id": "privacy_minimization",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
@@ -2777,10 +2777,10 @@
         "cell_id": "RP29:privacy_minimization",
         "rp_id": "RP29",
         "control_id": "privacy_minimization",
-        "status": "pending_gap_disposition",
-        "evidence_ref": "",
+        "status": "evidence_satisfied",
+        "evidence_ref": "docs/launch/g1-hardening-adjudication-2026-06-19.json",
         "evidence_command": "npm run launch:g1:hardening:adjudicate",
-        "unmet_disposition": "No control-specific candidate evidence is present. Owner-authorized routes remain additional evidence, applicability exclusion, or risk acceptance with follow-up.",
+        "unmet_disposition": "",
         "approval_record": "docs/launch/g1-owner-decisions-2026-06-19.json"
       },
       {
@@ -2903,15 +2903,15 @@
   "next_required_work": [
     {
       "order": 1,
-      "action": "For G1-E02, resolve MAT-DEC owner linkage and prove every remaining item is non-blocking or assigned to a valid launch phase."
+      "action": "G1-E02 is closeable; keep the evidence satisfaction receipt at docs/launch/g1-e02-evidence-satisfaction-2026-06-19.json and keep readiness input marked satisfied."
     },
     {
       "order": 2,
-      "action": "For G1-E03, populate each of the 272 RP/control cells with real evidence, `n/a` rationale, or owner-approved disposition for unmet cells."
+      "action": "G1-E03 is closeable; hardening adjudication has 272/272 satisfied cells and zero pending gaps, with satisfaction recorded at docs/launch/g1-e03-evidence-satisfaction-2026-06-19.json."
     },
     {
       "order": 3,
-      "action": "After G1-E02 and G1-E03 have real evidence refs, update the manual evidence intake rows to `evidence_satisfied` with timestamp and verifier."
+      "action": "Continue the remaining launch evidence work while keeping go-live NO-GO until all G1-G10 and L9 evidence is satisfied or owner-deferred."
     }
   ]
 }

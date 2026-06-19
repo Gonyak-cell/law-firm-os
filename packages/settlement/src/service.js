@@ -83,6 +83,28 @@ import {
   SETTLEMENT_CORE_PROGRAM_CONTRACT,
 } from "./registry.js";
 
+const SETTLEMENT_CORE_SECRET_MATERIAL_FIELD_PATTERN =
+  /(^|_)(secret|credential|access_token|api_key|password|private_key|client_secret|refresh_token|id_token|signed_url|lock_token)($|_)/i;
+
+export const SETTLEMENT_CORE_SECURE_SECRET_HANDLING_POLICY = Object.freeze({
+  accepts_secret_material: false,
+  credential_or_secret_included: false,
+  secret_material_included: false,
+  exposes_secret_material: false,
+});
+
+export function assertSettlementCoreNoSecretMaterialIncluded(payload = {}) {
+  const forbiddenFields = Object.keys(payload).filter((field) => SETTLEMENT_CORE_SECRET_MATERIAL_FIELD_PATTERN.test(field));
+  if (forbiddenFields.length > 0) {
+    throw new Error(`Settlement Core payload must not include secret material fields: ${forbiddenFields.join(", ")}`);
+  }
+  return Object.freeze({
+    ...SETTLEMENT_CORE_SECURE_SECRET_HANDLING_POLICY,
+    checked_field_count: Object.keys(payload).length,
+    forbidden_field_count: 0,
+  });
+}
+
 export function settlementCoreRowKey(title) {
   return title
     .toLowerCase()
