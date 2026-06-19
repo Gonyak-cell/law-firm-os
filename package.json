@@ -170,6 +170,7 @@
     "client-matter:g6:plan:validate": "node scripts/validate-client-matter-os-g6-plan.mjs",
     "client-matter:g6a:validate": "node scripts/validate-client-matter-os-g6-a.mjs",
     "client-matter:g6b:validate": "node scripts/validate-client-matter-os-g6-b.mjs",
+    "client-matter:g6c:validate": "node scripts/validate-client-matter-os-g6-c.mjs",
     "ui:reference:generate": "node scripts/generate-amplitude-ui-reference.mjs",
     "ui:tokens:extract": "node scripts/extract-amplitude-visual-tokens.mjs",
     "ui:states:registry": "node scripts/generate-matter-amplitude-screenshot-state-registry.mjs",

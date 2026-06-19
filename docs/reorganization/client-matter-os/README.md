@@ -93,6 +93,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `48-g6-analytics-ai-portal-entry-plan.md` | Opens the G6 Analytics, AI Governance, AI Legal Workflows, Client Portal, and Data Room planning lane. |
 | `49-g6-a-analytics-read-model-foundation-report.md` | Records the G6-A AnalyticsEvent, profitability, utilization, and realization read-model foundation slice. |
 | `50-g6-b-analytics-dashboard-export-closeout-report.md` | Records the G6-B AR aging, client health, practice P&L, analytics export, and Analytics closeout slice. |
+| `51-g6-c-ai-policy-retrieval-audit-report.md` | Records the G6-C ModelPolicy, RetrievalRequest, permission-aware retrieval, and PromptLog audit slice. |
 
 ## Execution Order
 
@@ -156,6 +157,7 @@ npm run client-matter:g5f:validate
 npm run client-matter:g6:plan:validate
 npm run client-matter:g6a:validate
 npm run client-matter:g6b:validate
+npm run client-matter:g6c:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -328,6 +330,11 @@ client-health conflict and Matter detail omission, practice P&L role-based
 visibility, analytics export audit, masking, tenant scope, read-model-only
 closeout evidence, test coverage, RP15 descriptor-only contract boundary, and
 the open runtime-readiness boundary.
+
+The G6-C validator checks ModelPolicy Matter sensitivity and privilege routing,
+RetrievalRequest Matter-required evidence, permission-aware retrieval
+unauthorized-document exclusion, PromptLog audit evidence, test coverage, RP17
+descriptor-only contract boundary, and the open runtime-readiness boundary.
 
 ## Non-Goals
 
