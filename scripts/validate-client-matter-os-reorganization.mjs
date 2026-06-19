@@ -96,6 +96,18 @@ const REQUIRED_DECISION_ARTIFACTS = [
       "No-self-merge",
       "codex/*"
     ]
+  },
+  {
+    file: "16-planning-root-adr.md",
+    id: "ADR-G0-003",
+    phrases: [
+      "Client-Matter OS Planning Root",
+      "docs/reorganization/client-matter-os/",
+      "canonical planning root",
+      "Closeout-pack evidence remains separate",
+      "does not make planning artifacts runtime evidence",
+      "Human review still needs to accept or amend"
+    ]
   }
 ];
 
@@ -248,6 +260,10 @@ if (findings.length === 0) {
 
   if (!readme.includes("Vault-Style PR Rules") || !readme.includes("Do not merge the PR from the agent side")) {
     addFinding(findings, "VAULT_PR_RULES", "README must preserve Vault-style PR rules and no-self-merge boundary.");
+  }
+
+  if (!readme.includes("Current Planning Root") || !readme.includes("Closeout-pack evidence")) {
+    addFinding(findings, "PLANNING_ROOT_BOUNDARY", "README must document the Client-Matter OS planning root boundary.");
   }
 
   if (!readme.includes("sanitized snapshot") || !manifest.includes("docs/weighted-implementation-ledger.json")) {
