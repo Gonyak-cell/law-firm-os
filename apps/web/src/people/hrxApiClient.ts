@@ -1,0 +1,228 @@
+const PERMISSION_CONTEXT_HEADER = "x-lawos-permission-context";
+const TENANT_ID = "tenant-a";
+const ACTOR_ID = "people-ui-runtime";
+
+const HRX_PERMISSION_CONTEXT = {
+  principal: {
+    user_id: ACTOR_ID,
+    tenant_id: TENANT_ID,
+    role_ids: ["people_ops"],
+    hrx_scopes: [
+      "hrx.employee.read",
+      "hrx.document.read",
+      "hrx.leave.read",
+      "hrx.leave.submit",
+      "hrx.approval.read",
+      "hrx.approval.write",
+      "hrx.candidate.read",
+      "hrx.recruiting.write",
+      "hrx.policy.write",
+      "hrx.audit.read",
+      "hrx.compensation.masked.read",
+      "hrx.analytics.read",
+      "hrx.ai.ask",
+      "hrx.ai.review"
+    ],
+    allowed_purposes: ["people_operations", "employee_self_service"]
+  },
+  rules: [{ id: "hrx_people_ui_allow", effect: "allow", action: "*" }],
+  object_acl: []
+};
+
+function query(params = {}) {
+  const search = new URLSearchParams({ tenant_id: TENANT_ID, actor_id: ACTOR_ID, ...params });
+  return search.toString();
+}
+
+async function requestJson(path, options = {}) {
+  let response;
+  let body;
+  try {
+    response = await fetch(path, {
+      ...options,
+      headers: {
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(HRX_PERMISSION_CONTEXT),
+        "content-type": "application/json",
+        ...(options.headers ?? {})
+      }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", reason: "network_or_parse_error" };
+  }
+  if (!response.ok || body === null || typeof body !== "object") {
+    return { kind: "error", reason: body?.safe_error_code ?? body?.error ?? "unexpected_response" };
+  }
+  return { kind: "data", body };
+}
+
+export async function fetchHrxEmployees() {
+  const result = await requestJson(`/api/hrx/employees?${query()}`);
+  if (result.kind !== "data" || !Array.isArray(result.body.employees)) return { kind: "error" };
+  return { kind: "data", employees: result.body.employees };
+}
+
+export async function fetchHrxEmployeeProfile(employeeId) {
+  if (!employeeId) return { kind: "empty" };
+  const result = await requestJson(`/api/hrx/employees/${encodeURIComponent(employeeId)}?${query()}`);
+  if (result.kind !== "data" || !result.body.employee) return { kind: "error" };
+  return {
+    kind: "data",
+    employee: result.body.employee,
+    employment_profile: result.body.employment_profile ?? null,
+    masked_compensation_ref: result.body.masked_compensation_ref ?? null
+  };
+}
+
+export async function fetchHrxDocuments(employeeId) {
+  if (!employeeId) return { kind: "empty" };
+  const result = await requestJson(`/api/hrx/documents?${query({ employee_id: employeeId })}`);
+  if (result.kind !== "data" || !Array.isArray(result.body.documents)) return { kind: "error" };
+  return { kind: "data", documents: result.body.documents };
+}
+
+export async function fetchHrxLeaveState(employeeId) {
+  if (!employeeId) return { kind: "empty" };
+  const result = await requestJson(`/api/hrx/leave?${query({ employee_id: employeeId, policy_id: "pto-us" })}`);
+  if (result.kind !== "data") return { kind: "error" };
+  return {
+    kind: "data",
+    balance: result.body.balance ?? null,
+    requests: Array.isArray(result.body.requests) ? result.body.requests : []
+  };
+}
+
+export async function submitHrxLeaveRequest(employeeId, form) {
+  if (!employeeId) return { kind: "empty" };
+  const result = await requestJson(`/api/hrx/leave?${query()}`, {
+    method: "POST",
+    body: JSON.stringify({
+      request_id: `leave-${employeeId}-${Date.now()}`,
+      employee_id: employeeId,
+      policy_id: "pto-us",
+      leave_type: "pto",
+      amount: Number(form.amount),
+      start_date: form.start_date,
+      end_date: form.end_date
+    })
+  });
+  if (result.kind !== "data" || !result.body.leave_request) return { kind: "error" };
+  return { kind: "data", leave_request: result.body.leave_request };
+}
+
+export async function fetchHrxApprovals() {
+  const result = await requestJson(`/api/hrx/approvals?${query()}`);
+  if (result.kind !== "data" || !Array.isArray(result.body.approvals)) return { kind: "error" };
+  return { kind: "data", approvals: result.body.approvals };
+}
+
+export async function resolveHrxApproval(approvalId, action) {
+  const result = await requestJson(`/api/hrx/approvals/${encodeURIComponent(approvalId)}/${action}?${query()}`, {
+    method: "POST",
+    body: JSON.stringify({ decision_reason: `${action}_from_people_ui` })
+  });
+  if (result.kind !== "data" || !result.body.approval) return { kind: "error" };
+  return { kind: "data", approval: result.body.approval };
+}
+
+export async function fetchCandidatePortal(candidateId = "cand-001") {
+  const result = await requestJson(`/api/hrx/candidate/portal?${query({ candidate_id: candidateId })}`);
+  if (result.kind !== "data" || !result.body.candidate || !Array.isArray(result.body.applications)) return { kind: "error" };
+  return {
+    kind: "data",
+    candidate: result.body.candidate,
+    applications: result.body.applications,
+    documents: Array.isArray(result.body.documents) ? result.body.documents : []
+  };
+}
+
+export async function fetchRecruitingPipeline() {
+  const result = await requestJson(`/api/hrx/recruiting/pipeline?${query()}`);
+  if (result.kind !== "data" || !Array.isArray(result.body.applications)) return { kind: "error" };
+  return {
+    kind: "data",
+    job_openings: result.body.job_openings ?? [],
+    candidates: result.body.candidates ?? [],
+    applications: result.body.applications,
+    interviews: result.body.interviews ?? []
+  };
+}
+
+export async function updateHrxApplicationStage(applicationId, stage) {
+  const result = await requestJson(`/api/hrx/recruiting/applications/${encodeURIComponent(applicationId)}/stage?${query()}`, {
+    method: "POST",
+    body: JSON.stringify({ stage, stage_reason: "people_ui_pipeline_update" })
+  });
+  if (result.kind !== "data" || !result.body.application) return { kind: "error" };
+  return { kind: "data", application: result.body.application };
+}
+
+export async function fetchHrxPolicies() {
+  const result = await requestJson(`/api/hrx/policies?${query()}`);
+  if (result.kind !== "data" || !Array.isArray(result.body.policies)) return { kind: "error" };
+  return { kind: "data", policies: result.body.policies };
+}
+
+export async function createHrxPolicyVersion(form) {
+  const result = await requestJson(`/api/hrx/policies?${query()}`, {
+    method: "POST",
+    body: JSON.stringify(form)
+  });
+  if (result.kind !== "data" || !result.body.policy) return { kind: "error" };
+  return { kind: "data", policy: result.body.policy };
+}
+
+export async function fetchHrxAuditEvents() {
+  const result = await requestJson(`/api/hrx/audit?${query()}`);
+  if (result.kind !== "data" || !Array.isArray(result.body.events)) return { kind: "error" };
+  return { kind: "data", events: result.body.events };
+}
+
+export async function fetchHrxAnalytics() {
+  const result = await requestJson(`/api/hrx/analytics?${query()}`);
+  if (result.kind !== "data" || !result.body.analytics) return { kind: "error" };
+  return {
+    kind: "data",
+    analytics: result.body.analytics,
+    workload_projection: Array.isArray(result.body.workload_projection) ? result.body.workload_projection : []
+  };
+}
+
+export async function askHrxAiAssistant(question, options = {}) {
+  const result = await requestJson(`/api/hrx/ai/assistant?${query()}`, {
+    method: "POST",
+    body: JSON.stringify({
+      question,
+      decision_mode: options.decision_mode ?? "advisory",
+      decision_domain: options.decision_domain ?? null,
+      final_decision: options.final_decision === true
+    })
+  });
+  if (result.kind !== "data") return { kind: "error" };
+  return {
+    kind: "data",
+    outcome: result.body.outcome,
+    answer: result.body.answer ?? null,
+    review_item: result.body.review_item ?? null,
+    citations: Array.isArray(result.body.citations) ? result.body.citations : []
+  };
+}
+
+export async function fetchHrxAiReviews() {
+  const result = await requestJson(`/api/hrx/ai/reviews?${query()}`);
+  if (result.kind !== "data" || !Array.isArray(result.body.reviews)) return { kind: "error" };
+  return { kind: "data", reviews: result.body.reviews };
+}
+
+export async function fetchHrxPeopleOverview() {
+  const employees = await fetchHrxEmployees();
+  if (employees.kind !== "data") return { kind: "error" };
+  return {
+    kind: "data",
+    metrics: {
+      employee_count: employees.employees.length,
+      active_count: employees.employees.filter((employee) => employee.status === "active").length,
+      on_leave_count: employees.employees.filter((employee) => employee.status === "on_leave").length
+    }
+  };
+}

@@ -35,3 +35,4 @@ export * from "./hrx-compensation-policy.js";
 export * from "./hrx-evaluation-policy.js";
 export * from "./hrx-candidate-policy.js";
 export * from "./hrx-break-glass.js";
+export * from "./sso-subject-map.js";

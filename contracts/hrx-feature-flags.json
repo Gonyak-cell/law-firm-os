@@ -1,0 +1,42 @@
+{
+  "schema_version": "law-firm-os.hrx-feature-flags.v0.1",
+  "default_enabled": false,
+  "flags": [
+    {
+      "flag": "hrx_runtime_core",
+      "module": "embedded_people_runtime",
+      "default_enabled": false,
+      "tenant_override_allowed": true,
+      "risk_tier": "medium",
+      "prerequisite_gates": ["hrx:runtime:validate", "rp30:hrx:validate"],
+      "rollback": ["disable_flag", "preserve_audit", "run_runtime_validator"]
+    },
+    {
+      "flag": "hrx_people_portal",
+      "module": "people_portal_api",
+      "default_enabled": false,
+      "tenant_override_allowed": true,
+      "risk_tier": "high",
+      "prerequisite_gates": ["npm --workspace apps/api run test", "npm run web:e2e -- hrx"],
+      "rollback": ["disable_flag", "hide_people_nav", "preserve_audit"]
+    },
+    {
+      "flag": "hrx_ai_analytics",
+      "module": "ai_analytics_reviewed",
+      "default_enabled": false,
+      "tenant_override_allowed": true,
+      "risk_tier": "high",
+      "prerequisite_gates": ["npm run hrx:security:validate", "npm run hrx:enterprise:validate"],
+      "rollback": ["disable_flag", "drain_ai_review_queue", "preserve_ai_audit_metadata"]
+    },
+    {
+      "flag": "hrx_payroll_execution",
+      "module": "payroll_execution",
+      "default_enabled": false,
+      "tenant_override_allowed": false,
+      "risk_tier": "blocked",
+      "prerequisite_gates": ["explicit_future_payroll_runtime_approval"],
+      "rollback": ["must_remain_disabled"]
+    }
+  ]
+}

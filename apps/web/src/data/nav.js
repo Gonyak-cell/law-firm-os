@@ -8,6 +8,7 @@ import {
   Moon,
   Settings,
   Sparkles,
+  UserRoundCheck,
   Users
 } from "lucide-react";
 
@@ -16,6 +17,7 @@ export const navItems = [
   { id: "home", icon: Home },
   { id: "content", icon: LayoutGrid },
   { id: "profiles", icon: Users },
+  { id: "people", icon: UserRoundCheck },
   { id: "analytics", icon: BarChart3 },
   { id: "dashboards", icon: LayoutDashboard },
   { id: "ask", icon: Sparkles },

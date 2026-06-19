@@ -34,15 +34,21 @@ async function authorize(authz, context, action, resource) {
 
 async function audit(auditPort, context, event) {
   return auditPort.append({
+    event_id: event.event_id ?? `hrx_svc_evt_${randomUUID()}`,
     ...event,
     tenant_id: context.tenant_id,
     actor_id: context.actor_id,
+    action: event.action ?? event.event_type,
+    object_type: event.object_type,
+    object_id: event.object_id,
+    decision: event.decision ?? "allow",
+    reason: event.reason ?? "hrx_service_action",
     source: "hrx-service",
   });
 }
 
 export function createHrxService({ repository, authz, audit: auditPort } = {}) {
-  requirePort(repository, "repository", ["createEmployee", "getEmployee", "createEmploymentProfile"]);
+  requirePort(repository, "repository", ["createEmployee", "getEmployee", "updateEmployee", "createEmploymentProfile"]);
   requirePort(authz, "authz", ["evaluate"]);
   requirePort(auditPort, "audit", ["append"]);
 
@@ -57,6 +63,7 @@ export function createHrxService({ repository, authz, audit: auditPort } = {}) {
       const employee = repository.createEmployee({ ...input, tenant_id: context.tenant_id });
       await audit(auditPort, context, {
         event_type: "hrx.employee.created",
+        action: "hrx.employee.create",
         object_type: "Employee",
         object_id: employee.employee_id,
       });
@@ -73,8 +80,26 @@ export function createHrxService({ repository, authz, audit: auditPort } = {}) {
       const employee = repository.getEmployee({ ...ref, tenant_id: context.tenant_id });
       await audit(auditPort, context, {
         event_type: "hrx.employee.read",
+        action: "hrx.employee.read",
         object_type: "Employee",
         object_id: ref?.employee_id ?? null,
+      });
+      return employee;
+    },
+
+    async updateEmployee(context, ref, patch) {
+      requireContext(context);
+      await authorize(authz, context, "hrx.employee.update", {
+        tenant_id: context.tenant_id,
+        resource_type: "hrx.employee",
+        resource_id: ref?.employee_id ?? null,
+      });
+      const employee = repository.updateEmployee({ ...ref, tenant_id: context.tenant_id }, patch);
+      await audit(auditPort, context, {
+        event_type: "hrx.employee.updated",
+        action: "hrx.employee.update",
+        object_type: "Employee",
+        object_id: employee.employee_id,
       });
       return employee;
     },
@@ -89,6 +114,7 @@ export function createHrxService({ repository, authz, audit: auditPort } = {}) {
       const profile = repository.createEmploymentProfile({ ...input, tenant_id: context.tenant_id });
       await audit(auditPort, context, {
         event_type: "hrx.employment_profile.created",
+        action: "hrx.employment_profile.create",
         object_type: "EmploymentProfile",
         object_id: profile.profile_id,
       });
@@ -96,3 +122,4 @@ export function createHrxService({ repository, authz, audit: auditPort } = {}) {
     },
   });
 }
+import { randomUUID } from "node:crypto";

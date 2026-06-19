@@ -14,9 +14,11 @@ import {
   handleRelationshipLookup,
 } from "./master-data-context.js";
 import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, parsePermissionContext } from "./permission-gate.js";
+import { createHrxRuntimeContext, handleHrxApiRequest } from "./hrx-runtime-context.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
+const HRX_RUNTIME = createHrxRuntimeContext();
 
 export const SERVICE_DESCRIPTOR = Object.freeze({
   service: "@law-firm-os/api",
@@ -53,30 +55,48 @@ function queryToObject(searchParams) {
   return query;
 }
 
-function handle(req, res) {
+async function readRequestBody(req) {
+  const chunks = [];
+  for await (const chunk of req) chunks.push(chunk);
+  if (chunks.length === 0) return {};
+  const raw = Buffer.concat(chunks).toString("utf8").trim();
+  if (!raw) return {};
+  return JSON.parse(raw);
+}
+
+async function handle(req, res) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
   const requestId = query.request_id || `req_${randomUUID()}`;
 
   const clientGroupMatch = pathname.match(/^\/master-data\/client-groups\/([^/]+)$/);
+  const isHrxPath = pathname.startsWith("/api/hrx");
   const knownPath =
     pathname === "/api/health" ||
     pathname === "/master-data/records" ||
     pathname === "/master-data/relationships" ||
-    clientGroupMatch !== null;
+    clientGroupMatch !== null ||
+    isHrxPath;
 
   if (!knownPath) {
     sendJson(res, 404, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "not_found" });
     return;
   }
-  if (req.method !== "GET") {
+  if (!isHrxPath && req.method !== "GET") {
     sendJson(res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
 
   if (pathname === "/api/health") {
     sendJson(res, 200, { status: "ok", time: new Date().toISOString(), ...SERVICE_DESCRIPTOR });
+    return;
+  }
+
+  if (isHrxPath) {
+    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const result = await handleHrxApiRequest({ pathname, method: req.method, query, body, context: HRX_RUNTIME });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
     return;
   }
 
@@ -100,9 +120,9 @@ function handle(req, res) {
 }
 
 export function createApiServer() {
-  return http.createServer((req, res) => {
+  return http.createServer(async (req, res) => {
     try {
-      handle(req, res);
+      await handle(req, res);
     } catch (error) {
       sendJson(res, 500, { outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "internal_error", message: error.message });
     }

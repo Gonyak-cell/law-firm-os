@@ -118,6 +118,7 @@ export function Sidebar({ labels, view, setView }) {
     home: ["Overview", "Templates", "Guides", "Resources", "Realtime"],
     content: ["All content", "Spaces", "Resources", "Feature flags", "Catalog"],
     profiles: ["Matter Profiles", "Group Profiles", "Cohorts", "Session replays", "Raw events"],
+    people: ["Overview", "Employees", "Profile", "Documents", "Leave"],
     analytics: ["Segmentation", "Funnels", "Data table", "Retention", "Journeys"],
     dashboards: ["Dashboards", "Notebooks", "Reports", "Templates", "Pinned"],
     ask: ["Prompt gallery", "Answers", "Guidance", "Feedback", "History"],
