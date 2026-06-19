@@ -27,6 +27,7 @@ reference anchor, but the CMP package is not merely an extension of it.
 | `09-cmp-g7-revenue-finance-runtime-report.md` | Records the executable CMP-G7 Revenue/Finance API slice, Employee+Matter cost basis guardrail, WIP/PreBill/invoice/payment/settlement flows, tests, validator, and no-premature-R4 boundary. |
 | `10-cmp-g8-analytics-read-model-runtime-report.md` | Records the executable CMP-G8 Analytics read-model API slice, source mutation negative tests, profitability/utilization/dashboard/export/KPI projections, tests, validator, and no-premature-R4 boundary. |
 | `11-cmp-g9-ai-rag-governance-runtime-report.md` | Records the executable CMP-G9 AI/RAG governance API slice, permission-before-AI guardrail, citation/human-review controls, legal workflow/export gates, tests, validator, and no-premature-R4 boundary. |
+| `12-cmp-g10-client-collaboration-runtime-report.md` | Records the executable CMP-G10 client portal/data-room API slice, projection-only external access, shared-only ACLs, secure links, RFI upload guards, tests, validator, and no-premature-R4 boundary. |
 
 ## Baseline Rule
 
