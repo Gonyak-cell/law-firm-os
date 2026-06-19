@@ -6,6 +6,14 @@ export const ANALYTICS_G6A_TUW_COVERAGE = Object.freeze([
   "LFOS-G6-W09-T005",
 ]);
 
+export const ANALYTICS_G6B_TUW_COVERAGE = Object.freeze([
+  "LFOS-G6-W09-T006",
+  "LFOS-G6-W09-T007",
+  "LFOS-G6-W09-T008",
+  "LFOS-G6-W09-T009",
+  "LFOS-G6-W09-T010",
+]);
+
 function freezeRecord(record) {
   return Object.freeze(record);
 }
@@ -36,6 +44,10 @@ function totalFor(items, fields) {
     const value = valueOf(item, fields);
     return value === null ? total : total + value;
   }, 0);
+}
+
+function hasPermission(permissions, expected) {
+  return freezeArray(permissions).includes(expected);
 }
 
 function noWriteBoundary(tuwId) {
@@ -319,6 +331,224 @@ export function createAnalyticsG6AReadModelFoundationCloseoutDescriptor(request 
     closeout_receipt: freezeRecord({
       runtime_readiness_claim: "open",
       analytics_runtime_opened: false,
+      draft_pr_self_merged: false,
+    }),
+  });
+}
+
+export function createAnalyticsG6ARAgingDashboardDescriptor(request = {}) {
+  const rows = freezeArray(request.ar_aging_rows);
+  const sourceMutation = sourceMutationRequested(request, request.dashboard ?? {});
+  const runtimeDispatch = request.dispatched_runtime === true || request.dashboard?.dispatched_runtime === true;
+  const financePermissionTested = hasPermission(request.permissions, "finance:ar:read");
+  const blockedClaims = [];
+
+  if (missingFields(["tenant_id", "actor_id", "permissions", "ar_aging_rows"], request).length > 0) {
+    blockedClaims.push("ar_aging_required_context_missing");
+  }
+  if (!financePermissionTested) blockedClaims.push("ar_aging_finance_permission_required");
+  if (rows.length === 0) blockedClaims.push("ar_aging_read_model_rows_required");
+  if (rows.some((row) => row?.tenant_id && row.tenant_id !== request.tenant_id)) {
+    blockedClaims.push("ar_aging_cross_tenant_blocked");
+  }
+  if (sourceMutation) blockedClaims.push("ar_aging_source_mutation_blocked");
+  if (runtimeDispatch) blockedClaims.push("ar_aging_dashboard_runtime_blocked");
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G6-W09-T006"),
+    descriptor_type: "analytics_g6_ar_aging_dashboard_descriptor",
+    tenant_id: request.tenant_id ?? null,
+    actor_id: request.actor_id ?? null,
+    row_count: rows.length,
+    overdue_total: totalFor(rows, ["overdue_amount", "amount", "total"]),
+    outcome: outcomeFor(blockedClaims),
+    blocked_claims: freezeArray(blockedClaims),
+    ar_aging_receipt: freezeRecord({
+      finance_permission_tested: financePermissionTested,
+      dashboard_persisted: false,
+      runtime_dispatched: runtimeDispatch,
+      source_objects_mutated: sourceMutation,
+    }),
+  });
+}
+
+export function createAnalyticsG6ClientHealthDashboardDescriptor(request = {}) {
+  const rows = freezeArray(request.client_health_rows);
+  const sourceMutation = sourceMutationRequested(request, request.dashboard ?? {});
+  const omittedConflictDetails = request.conflict_detail_omitted === true || request.dashboard?.conflict_detail_omitted === true;
+  const omittedMatterDetails = request.matter_detail_omitted === true || request.dashboard?.matter_detail_omitted === true;
+  const exposedConflictDetails =
+    request.exposed_conflict_detail === true ||
+    request.dashboard?.exposed_conflict_detail === true ||
+    rows.some((row) => row?.conflict_memo || row?.conflict_detail);
+  const exposedMatterDetails =
+    request.exposed_matter_detail === true ||
+    request.dashboard?.exposed_matter_detail === true ||
+    rows.some((row) => row?.internal_matter_detail || row?.hidden_matter_detail);
+  const blockedClaims = [];
+
+  if (missingFields(["tenant_id", "client_group_id", "client_health_rows"], request).length > 0) {
+    blockedClaims.push("client_health_required_context_missing");
+  }
+  if (rows.length === 0 || !omittedConflictDetails || !omittedMatterDetails) {
+    blockedClaims.push("client_health_conflict_matter_detail_omission_required");
+  }
+  if (rows.some((row) => row?.client_group_id && row.client_group_id !== request.client_group_id)) {
+    blockedClaims.push("client_health_client_group_trace_mismatch");
+  }
+  if (rows.some((row) => row?.tenant_id && row.tenant_id !== request.tenant_id)) {
+    blockedClaims.push("client_health_cross_tenant_blocked");
+  }
+  if (exposedConflictDetails) blockedClaims.push("client_health_conflict_detail_exposure_blocked");
+  if (exposedMatterDetails) blockedClaims.push("client_health_matter_detail_exposure_blocked");
+  if (sourceMutation) blockedClaims.push("client_health_source_mutation_blocked");
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G6-W09-T007"),
+    descriptor_type: "analytics_g6_client_health_dashboard_descriptor",
+    tenant_id: request.tenant_id ?? null,
+    client_group_id: request.client_group_id ?? null,
+    row_count: rows.length,
+    health_score_average: rows.length > 0 ? totalFor(rows, ["health_score", "score"]) / rows.length : null,
+    outcome: outcomeFor(blockedClaims),
+    blocked_claims: freezeArray(blockedClaims),
+    client_health_receipt: freezeRecord({
+      conflict_detail_omission_tested: omittedConflictDetails,
+      matter_detail_omission_tested: omittedMatterDetails,
+      conflict_detail_exposed: exposedConflictDetails,
+      matter_detail_exposed: exposedMatterDetails,
+      dashboard_persisted: false,
+      source_objects_mutated: sourceMutation,
+    }),
+  });
+}
+
+export function createAnalyticsG6PracticePnlDashboardDescriptor(request = {}) {
+  const rows = freezeArray(request.practice_pnl_rows);
+  const sourceMutation = sourceMutationRequested(request, request.dashboard ?? {});
+  const roleVisibilityTested = hasPermission(request.permissions, "analytics:practice-pnl:read") && request.role_visibility_tested === true;
+  const unauthorizedVisibility =
+    request.unauthorized_visibility === true ||
+    request.dashboard?.unauthorized_visibility === true ||
+    rows.some((row) => row?.visible_to_role && row.visible_to_role !== request.role_id);
+  const blockedClaims = [];
+
+  if (missingFields(["tenant_id", "practice_id", "role_id", "permissions", "practice_pnl_rows"], request).length > 0) {
+    blockedClaims.push("practice_pnl_required_context_missing");
+  }
+  if (rows.length === 0 || !roleVisibilityTested) blockedClaims.push("practice_pnl_role_visibility_required");
+  if (rows.some((row) => row?.practice_id && row.practice_id !== request.practice_id)) {
+    blockedClaims.push("practice_pnl_practice_trace_mismatch");
+  }
+  if (rows.some((row) => row?.tenant_id && row.tenant_id !== request.tenant_id)) {
+    blockedClaims.push("practice_pnl_cross_tenant_blocked");
+  }
+  if (unauthorizedVisibility) blockedClaims.push("practice_pnl_unauthorized_visibility_blocked");
+  if (sourceMutation) blockedClaims.push("practice_pnl_source_mutation_blocked");
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G6-W09-T008"),
+    descriptor_type: "analytics_g6_practice_pnl_dashboard_descriptor",
+    tenant_id: request.tenant_id ?? null,
+    practice_id: request.practice_id ?? null,
+    role_id: request.role_id ?? null,
+    row_count: rows.length,
+    pnl_total: totalFor(rows, ["pnl_amount", "profit", "amount"]),
+    outcome: outcomeFor(blockedClaims),
+    blocked_claims: freezeArray(blockedClaims),
+    practice_pnl_receipt: freezeRecord({
+      role_visibility_tested: roleVisibilityTested,
+      unauthorized_visibility_detected: unauthorizedVisibility,
+      dashboard_persisted: false,
+      source_objects_mutated: sourceMutation,
+    }),
+  });
+}
+
+export function createAnalyticsG6AnalyticsExportControlDescriptor(request = {}) {
+  const rows = freezeArray(request.export_rows);
+  const readModelRefs = freezeArray(request.read_model_refs);
+  const auditReceipt = request.audit_receipt ?? {};
+  const sourceMutation = sourceMutationRequested(request, request.export_request ?? {});
+  const maskingTested = request.masking_tested === true || request.export_request?.masking_tested === true;
+  const tenantScoped = request.tenant_scoped === true || request.export_request?.tenant_scoped === true;
+  const runtimeExport = request.executed_export_runtime === true || request.export_request?.executed_export_runtime === true;
+  const unmaskedSensitiveData =
+    request.unmasked_sensitive_data === true ||
+    request.export_request?.unmasked_sensitive_data === true ||
+    rows.some((row) => row?.privileged_text || row?.personal_identifier || row?.unmasked_sensitive_data);
+  const auditBound = auditReceipt.audit_event_id && auditReceipt.tenant_id === request.tenant_id && auditReceipt.export_id;
+  const blockedClaims = [];
+
+  if (missingFields(["tenant_id", "actor_id", "export_id", "read_model_refs", "export_rows", "audit_receipt"], request).length > 0) {
+    blockedClaims.push("analytics_export_required_context_missing");
+  }
+  if (readModelRefs.length === 0 || rows.length === 0) blockedClaims.push("analytics_export_read_model_rows_required");
+  if (!auditBound || !maskingTested) blockedClaims.push("analytics_export_audit_masking_required");
+  if (!tenantScoped) blockedClaims.push("analytics_export_tenant_scope_required");
+  if (rows.some((row) => row?.tenant_id && row.tenant_id !== request.tenant_id)) {
+    blockedClaims.push("analytics_export_cross_tenant_blocked");
+  }
+  if (unmaskedSensitiveData) blockedClaims.push("analytics_export_unmasked_sensitive_data_blocked");
+  if (sourceMutation) blockedClaims.push("analytics_export_source_mutation_blocked");
+  if (runtimeExport) blockedClaims.push("analytics_export_runtime_blocked");
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G6-W09-T009"),
+    descriptor_type: "analytics_g6_analytics_export_control_descriptor",
+    tenant_id: request.tenant_id ?? null,
+    actor_id: request.actor_id ?? null,
+    export_id: request.export_id ?? null,
+    read_model_ref_count: readModelRefs.length,
+    row_count: rows.length,
+    outcome: outcomeFor(blockedClaims),
+    blocked_claims: freezeArray(blockedClaims),
+    analytics_export_receipt: freezeRecord({
+      export_audit_tested: Boolean(auditBound),
+      masking_tested: maskingTested,
+      tenant_scope_tested: tenantScoped,
+      unmasked_sensitive_data_detected: unmaskedSensitiveData,
+      export_runtime_executed: runtimeExport,
+      source_objects_mutated: sourceMutation,
+    }),
+  });
+}
+
+export function createAnalyticsG6BAnalyticsDashboardExportCloseoutDescriptor(request = {}) {
+  const descriptors = freezeArray(request.descriptors);
+  const descriptorTuws = new Set(descriptors.map((descriptor) => descriptor?.tuw_id));
+  const blockedClaims = [];
+
+  for (const tuwId of ANALYTICS_G6B_TUW_COVERAGE.slice(0, 4)) {
+    if (!descriptorTuws.has(tuwId)) blockedClaims.push("g6_analytics_dashboard_export_closeout_evidence_required");
+  }
+  if (request.read_model_foundation_closed !== true) blockedClaims.push("g6_analytics_read_model_foundation_required");
+  if (descriptors.some((descriptor) => descriptor?.outcome !== "review_required")) {
+    blockedClaims.push("g6_analytics_dashboard_export_blocked_descriptor_present");
+  }
+
+  const outcome = outcomeFor(blockedClaims);
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G6-W09-T006..LFOS-G6-W09-T010"),
+    descriptor_type: "analytics_g6b_dashboard_export_closeout_descriptor",
+    tenant_id: request.tenant_id ?? null,
+    slice_id: "G6-B",
+    tuw_coverage: ANALYTICS_G6B_TUW_COVERAGE,
+    descriptor_count: descriptors.length,
+    outcome,
+    blocked_claims: freezeArray(blockedClaims),
+    finance_permission_tested: descriptorTuws.has("LFOS-G6-W09-T006"),
+    conflict_matter_detail_omission_tested: descriptorTuws.has("LFOS-G6-W09-T007"),
+    role_visibility_tested: descriptorTuws.has("LFOS-G6-W09-T008"),
+    export_audit_masking_tested: descriptorTuws.has("LFOS-G6-W09-T009"),
+    read_model_only_evidence_tested: request.read_model_foundation_closed === true,
+    g6_runtime_evidence_recorded: outcome === "review_required",
+    closeout_receipt: freezeRecord({
+      runtime_readiness_claim: "open",
+      analytics_runtime_opened: false,
+      dashboards_persisted: false,
+      export_runtime_executed: false,
       draft_pr_self_merged: false,
     }),
   });

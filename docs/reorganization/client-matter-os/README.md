@@ -92,6 +92,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `47-g5-f-settlement-finance-ui-closeout-report.md` | Records the G5-F SettlementRun, OriginationCredit, WorkingCredit, settlement approval, Finance UI masking, and G5 Finance closeout slice. |
 | `48-g6-analytics-ai-portal-entry-plan.md` | Opens the G6 Analytics, AI Governance, AI Legal Workflows, Client Portal, and Data Room planning lane. |
 | `49-g6-a-analytics-read-model-foundation-report.md` | Records the G6-A AnalyticsEvent, profitability, utilization, and realization read-model foundation slice. |
+| `50-g6-b-analytics-dashboard-export-closeout-report.md` | Records the G6-B AR aging, client health, practice P&L, analytics export, and Analytics closeout slice. |
 
 ## Execution Order
 
@@ -154,6 +155,7 @@ npm run client-matter:g5e:validate
 npm run client-matter:g5f:validate
 npm run client-matter:g6:plan:validate
 npm run client-matter:g6a:validate
+npm run client-matter:g6b:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -320,6 +322,12 @@ client-group aggregation evidence, UtilizationMetric capacity denominator
 evidence, RealizationMetric billed-versus-standard value evidence, test
 coverage, RP15 descriptor-only contract boundary, and the open
 runtime-readiness boundary.
+
+The G6-B validator checks AR aging dashboard finance permission evidence,
+client-health conflict and Matter detail omission, practice P&L role-based
+visibility, analytics export audit, masking, tenant scope, read-model-only
+closeout evidence, test coverage, RP15 descriptor-only contract boundary, and
+the open runtime-readiness boundary.
 
 ## Non-Goals
 
