@@ -1,0 +1,2921 @@
+{
+  "schema_version": "law-firm-os.g1-completion-remediation-prep.v0.1",
+  "generated_on": "2026-06-19",
+  "source_refs": [
+    "docs/launch/launch-deferral-source-extraction-audit.json",
+    "contracts/critical-rp-saas-hardening-contract.json",
+    "docs/launch/deferral-review-register.md",
+    "docs/launch/hardening-coverage-matrix.md",
+    "workbook/absorption-package/06_오픈_결정_레지스터.md",
+    "docs/launch/g1-completion-evidence-index.md"
+  ],
+  "boundary": {
+    "closes_g1": false,
+    "marks_g1_e02_evidence_satisfied": false,
+    "marks_g1_e03_evidence_satisfied": false,
+    "go_live_approved_by_this_prep": false,
+    "owner_deferrals_approved_by_this_prep": false,
+    "review_waiver_counts_as_valid_review_evidence": false
+  },
+  "summary": {
+    "g1_e02_closeable_now": false,
+    "g1_e03_closeable_now": false,
+    "unresolved_p2_line_count": 0,
+    "ldip_actual_defer_decision_count": 0,
+    "hrx_actual_defer_decision_count": 0,
+    "mat_dec_unique_decision_id_count": 9,
+    "mat_dec_linked_decision_count": 6,
+    "mat_dec_remaining_owner_linkage_count": 3,
+    "hardening_required_cell_count": 272,
+    "hardening_pending_cell_count": 272
+  },
+  "g1_e02_deferred_item_rejudgment": {
+    "evidence_id": "G1-E02",
+    "required_state": "blocking_remaining_count_zero",
+    "current_status": "not_satisfied",
+    "closeable_now": false,
+    "source_families": [
+      {
+        "source_family": "P2 explicit item lines",
+        "count": 18,
+        "current_meaning": "Explicit historical P2 rows found; unresolved count is 0.",
+        "g1_effect": "normalized_not_blocking"
+      },
+      {
+        "source_family": "LDIP actual defer decisions",
+        "count": 0,
+        "current_meaning": "Object-level traversal count of actual defer decisions.",
+        "g1_effect": "normalized_not_blocking"
+      },
+      {
+        "source_family": "HRX actual defer decisions",
+        "count": 0,
+        "current_meaning": "Object-level traversal count of actual defer decisions.",
+        "g1_effect": "normalized_not_blocking"
+      },
+      {
+        "source_family": "MAT-DEC launch decision mentions",
+        "count": 9,
+        "current_meaning": "Unique decision IDs present: MAT-DEC-01, MAT-DEC-02, MAT-DEC-03, MAT-DEC-04, MAT-DEC-05, MAT-DEC-06, MAT-DEC-07, MAT-DEC-08, MAT-DEC-09.",
+        "g1_effect": "requires_launch_owner_linkage"
+      }
+    ],
+    "remaining_action": "Create owner-linked MAT-DEC decision rows or prove each MAT-DEC mention is non-blocking for launch G1. Only then can G1-E02 claim blocking_remaining_count_zero.",
+    "mat_dec_linkage_rows": [
+      {
+        "decision_id": "MAT-DEC-01",
+        "status": "decided",
+        "status_text": "✅ **결정**",
+        "decision_text": "**1호 테넌트 정합화** — SaaS 코어 유지, 자사 로펌 = 1호 테넌트",
+        "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "launch_g1_effect": "owner_linkage_present"
+      },
+      {
+        "decision_id": "MAT-DEC-02",
+        "status": "decided",
+        "status_text": "✅ **결정**",
+        "decision_text": "**User/Employee 분리 채택** — `Employee.user_id` 역방향 참조",
+        "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "launch_g1_effect": "owner_linkage_present"
+      },
+      {
+        "decision_id": "MAT-DEC-03",
+        "status": "deferred",
+        "status_text": "⏸ 보류 확정",
+        "decision_text": "스토리지 결정은 봉인 유지 — RP06/08 런타임 계약 신설 전까지",
+        "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "launch_g1_effect": "requires_owner_linkage_before_g1_e02"
+      },
+      {
+        "decision_id": "MAT-DEC-05",
+        "status": "decided",
+        "status_text": "✅ **결정**",
+        "decision_text": "**커밋 동결** — 25파일을 흡수 트랙 커밋 1에 포함",
+        "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "launch_g1_effect": "owner_linkage_present"
+      },
+      {
+        "decision_id": "MAT-DEC-06",
+        "status": "decided",
+        "status_text": "✅ **결정**",
+        "decision_text": "**HRX 등재 일괄 승인** — RP30 네임스페이스, 901 보정 테이블(2.2+high-risk=895, M05 보강 +6), 급여 계산 defer(메타+rule 인터페이스만), 큐 꼬리 배치, HR AI는 RP17/18 anchor",
+        "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "launch_g1_effect": "owner_linkage_present"
+      },
+      {
+        "decision_id": "MAT-DEC-07",
+        "status": "decided",
+        "status_text": "✅ **결정**",
+        "decision_text": "**런타임 게이트 레이어 신설 일괄 승인** — 경계 = 머지 직전 커서+2, 명명 `runtime_ready`/RTG, opt-in, `undeclared_legacy`, 단독 거버넌스 커밋",
+        "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "launch_g1_effect": "owner_linkage_present"
+      },
+      {
+        "decision_id": "MAT-DEC-04",
+        "status": "decided",
+        "status_text": "✅ **결정**",
+        "decision_text": "**제품명 정합** — 2026-06-12 소유자 지시 기준: 제품 브랜드 `matter`, UI 브랜드 `matter by AMIC`, 플랫폼/리포 코드명 `Law Firm OS`, 기계 식별자 `law-firm-os` 유지",
+        "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "launch_g1_effect": "owner_linkage_present"
+      },
+      {
+        "decision_id": "MAT-DEC-08",
+        "status": "pending",
+        "status_text": "pending",
+        "decision_text": "08 기밀분류 enum(미래 구현 팩 게이트) / 09 레지스터 owner(기본값 사용 시 승인 불요)",
+        "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "launch_g1_effect": "requires_owner_linkage_before_g1_e02"
+      },
+      {
+        "decision_id": "MAT-DEC-09",
+        "status": "pending",
+        "status_text": "pending",
+        "decision_text": "08 기밀분류 enum(미래 구현 팩 게이트) / 09 레지스터 owner(기본값 사용 시 승인 불요)",
+        "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "launch_g1_effect": "requires_owner_linkage_before_g1_e02"
+      }
+    ],
+    "mat_dec_blocking_rows": [
+      {
+        "decision_id": "MAT-DEC-03",
+        "status": "deferred",
+        "status_text": "⏸ 보류 확정",
+        "decision_text": "스토리지 결정은 봉인 유지 — RP06/08 런타임 계약 신설 전까지",
+        "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "launch_g1_effect": "requires_owner_linkage_before_g1_e02"
+      },
+      {
+        "decision_id": "MAT-DEC-08",
+        "status": "pending",
+        "status_text": "pending",
+        "decision_text": "08 기밀분류 enum(미래 구현 팩 게이트) / 09 레지스터 owner(기본값 사용 시 승인 불요)",
+        "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "launch_g1_effect": "requires_owner_linkage_before_g1_e02"
+      },
+      {
+        "decision_id": "MAT-DEC-09",
+        "status": "pending",
+        "status_text": "pending",
+        "decision_text": "08 기밀분류 enum(미래 구현 팩 게이트) / 09 레지스터 owner(기본값 사용 시 승인 불요)",
+        "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "launch_g1_effect": "requires_owner_linkage_before_g1_e02"
+      }
+    ],
+    "source_refs": [
+      "docs/launch/launch-deferral-source-extraction-audit.json",
+      "docs/launch/deferral-review-register.md",
+      "workbook/absorption-package/06_오픈_결정_레지스터.md"
+    ]
+  },
+  "g1_e03_hardening_coverage": {
+    "evidence_id": "G1-E03",
+    "required_state": "all_missing_cells_adjudicated_or_zero",
+    "current_status": "not_satisfied",
+    "closeable_now": false,
+    "critical_rp_count": 16,
+    "universal_control_count": 17,
+    "required_cell_count": 272,
+    "evidence_satisfied_cell_count": 0,
+    "pending_cell_count": 272,
+    "cells": [
+      {
+        "cell_id": "RP00:tenant_isolation",
+        "rp_id": "RP00",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:object_level_authorization",
+        "rp_id": "RP00",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:deny_over_allow",
+        "rp_id": "RP00",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:matter_first_traceability",
+        "rp_id": "RP00",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:append_only_audit_or_evidence",
+        "rp_id": "RP00",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:privacy_minimization",
+        "rp_id": "RP00",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:secure_secret_handling",
+        "rp_id": "RP00",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:idempotency_and_replay_protection",
+        "rp_id": "RP00",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:data_retention_and_legal_hold",
+        "rp_id": "RP00",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:observability_trace_log_metric",
+        "rp_id": "RP00",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:synthetic_fixture_only",
+        "rp_id": "RP00",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:contract_tests",
+        "rp_id": "RP00",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:threat_model",
+        "rp_id": "RP00",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:migration_or_release_rollback",
+        "rp_id": "RP00",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:hermes_gate",
+        "rp_id": "RP00",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:claude_cross_validation",
+        "rp_id": "RP00",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP00:human_approval",
+        "rp_id": "RP00",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:tenant_isolation",
+        "rp_id": "RP01",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:object_level_authorization",
+        "rp_id": "RP01",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:deny_over_allow",
+        "rp_id": "RP01",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:matter_first_traceability",
+        "rp_id": "RP01",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:append_only_audit_or_evidence",
+        "rp_id": "RP01",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:privacy_minimization",
+        "rp_id": "RP01",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:secure_secret_handling",
+        "rp_id": "RP01",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:idempotency_and_replay_protection",
+        "rp_id": "RP01",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:data_retention_and_legal_hold",
+        "rp_id": "RP01",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:observability_trace_log_metric",
+        "rp_id": "RP01",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:synthetic_fixture_only",
+        "rp_id": "RP01",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:contract_tests",
+        "rp_id": "RP01",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:threat_model",
+        "rp_id": "RP01",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:migration_or_release_rollback",
+        "rp_id": "RP01",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:hermes_gate",
+        "rp_id": "RP01",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:claude_cross_validation",
+        "rp_id": "RP01",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP01:human_approval",
+        "rp_id": "RP01",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:tenant_isolation",
+        "rp_id": "RP02",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:object_level_authorization",
+        "rp_id": "RP02",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:deny_over_allow",
+        "rp_id": "RP02",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:matter_first_traceability",
+        "rp_id": "RP02",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:append_only_audit_or_evidence",
+        "rp_id": "RP02",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:privacy_minimization",
+        "rp_id": "RP02",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:secure_secret_handling",
+        "rp_id": "RP02",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:idempotency_and_replay_protection",
+        "rp_id": "RP02",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:data_retention_and_legal_hold",
+        "rp_id": "RP02",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:observability_trace_log_metric",
+        "rp_id": "RP02",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:synthetic_fixture_only",
+        "rp_id": "RP02",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:contract_tests",
+        "rp_id": "RP02",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:threat_model",
+        "rp_id": "RP02",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:migration_or_release_rollback",
+        "rp_id": "RP02",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:hermes_gate",
+        "rp_id": "RP02",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:claude_cross_validation",
+        "rp_id": "RP02",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP02:human_approval",
+        "rp_id": "RP02",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:tenant_isolation",
+        "rp_id": "RP03",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:object_level_authorization",
+        "rp_id": "RP03",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:deny_over_allow",
+        "rp_id": "RP03",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:matter_first_traceability",
+        "rp_id": "RP03",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:append_only_audit_or_evidence",
+        "rp_id": "RP03",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:privacy_minimization",
+        "rp_id": "RP03",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:secure_secret_handling",
+        "rp_id": "RP03",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:idempotency_and_replay_protection",
+        "rp_id": "RP03",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:data_retention_and_legal_hold",
+        "rp_id": "RP03",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:observability_trace_log_metric",
+        "rp_id": "RP03",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:synthetic_fixture_only",
+        "rp_id": "RP03",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:contract_tests",
+        "rp_id": "RP03",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:threat_model",
+        "rp_id": "RP03",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:migration_or_release_rollback",
+        "rp_id": "RP03",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:hermes_gate",
+        "rp_id": "RP03",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:claude_cross_validation",
+        "rp_id": "RP03",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP03:human_approval",
+        "rp_id": "RP03",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:tenant_isolation",
+        "rp_id": "RP04",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:object_level_authorization",
+        "rp_id": "RP04",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:deny_over_allow",
+        "rp_id": "RP04",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:matter_first_traceability",
+        "rp_id": "RP04",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:append_only_audit_or_evidence",
+        "rp_id": "RP04",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:privacy_minimization",
+        "rp_id": "RP04",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:secure_secret_handling",
+        "rp_id": "RP04",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:idempotency_and_replay_protection",
+        "rp_id": "RP04",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:data_retention_and_legal_hold",
+        "rp_id": "RP04",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:observability_trace_log_metric",
+        "rp_id": "RP04",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:synthetic_fixture_only",
+        "rp_id": "RP04",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:contract_tests",
+        "rp_id": "RP04",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:threat_model",
+        "rp_id": "RP04",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:migration_or_release_rollback",
+        "rp_id": "RP04",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:hermes_gate",
+        "rp_id": "RP04",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:claude_cross_validation",
+        "rp_id": "RP04",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP04:human_approval",
+        "rp_id": "RP04",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:tenant_isolation",
+        "rp_id": "RP05",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:object_level_authorization",
+        "rp_id": "RP05",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:deny_over_allow",
+        "rp_id": "RP05",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:matter_first_traceability",
+        "rp_id": "RP05",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:append_only_audit_or_evidence",
+        "rp_id": "RP05",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:privacy_minimization",
+        "rp_id": "RP05",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:secure_secret_handling",
+        "rp_id": "RP05",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:idempotency_and_replay_protection",
+        "rp_id": "RP05",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:data_retention_and_legal_hold",
+        "rp_id": "RP05",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:observability_trace_log_metric",
+        "rp_id": "RP05",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:synthetic_fixture_only",
+        "rp_id": "RP05",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:contract_tests",
+        "rp_id": "RP05",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:threat_model",
+        "rp_id": "RP05",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:migration_or_release_rollback",
+        "rp_id": "RP05",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:hermes_gate",
+        "rp_id": "RP05",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:claude_cross_validation",
+        "rp_id": "RP05",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP05:human_approval",
+        "rp_id": "RP05",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:tenant_isolation",
+        "rp_id": "RP06",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:object_level_authorization",
+        "rp_id": "RP06",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:deny_over_allow",
+        "rp_id": "RP06",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:matter_first_traceability",
+        "rp_id": "RP06",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:append_only_audit_or_evidence",
+        "rp_id": "RP06",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:privacy_minimization",
+        "rp_id": "RP06",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:secure_secret_handling",
+        "rp_id": "RP06",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:idempotency_and_replay_protection",
+        "rp_id": "RP06",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:data_retention_and_legal_hold",
+        "rp_id": "RP06",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:observability_trace_log_metric",
+        "rp_id": "RP06",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:synthetic_fixture_only",
+        "rp_id": "RP06",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:contract_tests",
+        "rp_id": "RP06",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:threat_model",
+        "rp_id": "RP06",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:migration_or_release_rollback",
+        "rp_id": "RP06",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:hermes_gate",
+        "rp_id": "RP06",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:claude_cross_validation",
+        "rp_id": "RP06",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP06:human_approval",
+        "rp_id": "RP06",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:tenant_isolation",
+        "rp_id": "RP07",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:object_level_authorization",
+        "rp_id": "RP07",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:deny_over_allow",
+        "rp_id": "RP07",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:matter_first_traceability",
+        "rp_id": "RP07",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:append_only_audit_or_evidence",
+        "rp_id": "RP07",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:privacy_minimization",
+        "rp_id": "RP07",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:secure_secret_handling",
+        "rp_id": "RP07",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:idempotency_and_replay_protection",
+        "rp_id": "RP07",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:data_retention_and_legal_hold",
+        "rp_id": "RP07",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:observability_trace_log_metric",
+        "rp_id": "RP07",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:synthetic_fixture_only",
+        "rp_id": "RP07",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:contract_tests",
+        "rp_id": "RP07",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:threat_model",
+        "rp_id": "RP07",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:migration_or_release_rollback",
+        "rp_id": "RP07",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:hermes_gate",
+        "rp_id": "RP07",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:claude_cross_validation",
+        "rp_id": "RP07",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP07:human_approval",
+        "rp_id": "RP07",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:tenant_isolation",
+        "rp_id": "RP10",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:object_level_authorization",
+        "rp_id": "RP10",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:deny_over_allow",
+        "rp_id": "RP10",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:matter_first_traceability",
+        "rp_id": "RP10",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:append_only_audit_or_evidence",
+        "rp_id": "RP10",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:privacy_minimization",
+        "rp_id": "RP10",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:secure_secret_handling",
+        "rp_id": "RP10",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:idempotency_and_replay_protection",
+        "rp_id": "RP10",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:data_retention_and_legal_hold",
+        "rp_id": "RP10",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:observability_trace_log_metric",
+        "rp_id": "RP10",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:synthetic_fixture_only",
+        "rp_id": "RP10",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:contract_tests",
+        "rp_id": "RP10",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:threat_model",
+        "rp_id": "RP10",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:migration_or_release_rollback",
+        "rp_id": "RP10",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:hermes_gate",
+        "rp_id": "RP10",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:claude_cross_validation",
+        "rp_id": "RP10",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP10:human_approval",
+        "rp_id": "RP10",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:tenant_isolation",
+        "rp_id": "RP12",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:object_level_authorization",
+        "rp_id": "RP12",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:deny_over_allow",
+        "rp_id": "RP12",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:matter_first_traceability",
+        "rp_id": "RP12",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:append_only_audit_or_evidence",
+        "rp_id": "RP12",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:privacy_minimization",
+        "rp_id": "RP12",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:secure_secret_handling",
+        "rp_id": "RP12",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:idempotency_and_replay_protection",
+        "rp_id": "RP12",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:data_retention_and_legal_hold",
+        "rp_id": "RP12",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:observability_trace_log_metric",
+        "rp_id": "RP12",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:synthetic_fixture_only",
+        "rp_id": "RP12",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:contract_tests",
+        "rp_id": "RP12",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:threat_model",
+        "rp_id": "RP12",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:migration_or_release_rollback",
+        "rp_id": "RP12",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:hermes_gate",
+        "rp_id": "RP12",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:claude_cross_validation",
+        "rp_id": "RP12",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP12:human_approval",
+        "rp_id": "RP12",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:tenant_isolation",
+        "rp_id": "RP14",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:object_level_authorization",
+        "rp_id": "RP14",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:deny_over_allow",
+        "rp_id": "RP14",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:matter_first_traceability",
+        "rp_id": "RP14",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:append_only_audit_or_evidence",
+        "rp_id": "RP14",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:privacy_minimization",
+        "rp_id": "RP14",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:secure_secret_handling",
+        "rp_id": "RP14",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:idempotency_and_replay_protection",
+        "rp_id": "RP14",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:data_retention_and_legal_hold",
+        "rp_id": "RP14",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:observability_trace_log_metric",
+        "rp_id": "RP14",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:synthetic_fixture_only",
+        "rp_id": "RP14",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:contract_tests",
+        "rp_id": "RP14",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:threat_model",
+        "rp_id": "RP14",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:migration_or_release_rollback",
+        "rp_id": "RP14",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:hermes_gate",
+        "rp_id": "RP14",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:claude_cross_validation",
+        "rp_id": "RP14",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP14:human_approval",
+        "rp_id": "RP14",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:tenant_isolation",
+        "rp_id": "RP16",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:object_level_authorization",
+        "rp_id": "RP16",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:deny_over_allow",
+        "rp_id": "RP16",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:matter_first_traceability",
+        "rp_id": "RP16",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:append_only_audit_or_evidence",
+        "rp_id": "RP16",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:privacy_minimization",
+        "rp_id": "RP16",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:secure_secret_handling",
+        "rp_id": "RP16",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:idempotency_and_replay_protection",
+        "rp_id": "RP16",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:data_retention_and_legal_hold",
+        "rp_id": "RP16",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:observability_trace_log_metric",
+        "rp_id": "RP16",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:synthetic_fixture_only",
+        "rp_id": "RP16",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:contract_tests",
+        "rp_id": "RP16",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:threat_model",
+        "rp_id": "RP16",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:migration_or_release_rollback",
+        "rp_id": "RP16",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:hermes_gate",
+        "rp_id": "RP16",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:claude_cross_validation",
+        "rp_id": "RP16",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP16:human_approval",
+        "rp_id": "RP16",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:tenant_isolation",
+        "rp_id": "RP17",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:object_level_authorization",
+        "rp_id": "RP17",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:deny_over_allow",
+        "rp_id": "RP17",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:matter_first_traceability",
+        "rp_id": "RP17",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:append_only_audit_or_evidence",
+        "rp_id": "RP17",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:privacy_minimization",
+        "rp_id": "RP17",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:secure_secret_handling",
+        "rp_id": "RP17",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:idempotency_and_replay_protection",
+        "rp_id": "RP17",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:data_retention_and_legal_hold",
+        "rp_id": "RP17",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:observability_trace_log_metric",
+        "rp_id": "RP17",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:synthetic_fixture_only",
+        "rp_id": "RP17",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:contract_tests",
+        "rp_id": "RP17",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:threat_model",
+        "rp_id": "RP17",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:migration_or_release_rollback",
+        "rp_id": "RP17",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:hermes_gate",
+        "rp_id": "RP17",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:claude_cross_validation",
+        "rp_id": "RP17",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP17:human_approval",
+        "rp_id": "RP17",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:tenant_isolation",
+        "rp_id": "RP25",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:object_level_authorization",
+        "rp_id": "RP25",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:deny_over_allow",
+        "rp_id": "RP25",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:matter_first_traceability",
+        "rp_id": "RP25",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:append_only_audit_or_evidence",
+        "rp_id": "RP25",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:privacy_minimization",
+        "rp_id": "RP25",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:secure_secret_handling",
+        "rp_id": "RP25",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:idempotency_and_replay_protection",
+        "rp_id": "RP25",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:data_retention_and_legal_hold",
+        "rp_id": "RP25",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:observability_trace_log_metric",
+        "rp_id": "RP25",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:synthetic_fixture_only",
+        "rp_id": "RP25",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:contract_tests",
+        "rp_id": "RP25",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:threat_model",
+        "rp_id": "RP25",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:migration_or_release_rollback",
+        "rp_id": "RP25",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:hermes_gate",
+        "rp_id": "RP25",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:claude_cross_validation",
+        "rp_id": "RP25",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP25:human_approval",
+        "rp_id": "RP25",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:tenant_isolation",
+        "rp_id": "RP26",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:object_level_authorization",
+        "rp_id": "RP26",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:deny_over_allow",
+        "rp_id": "RP26",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:matter_first_traceability",
+        "rp_id": "RP26",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:append_only_audit_or_evidence",
+        "rp_id": "RP26",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:privacy_minimization",
+        "rp_id": "RP26",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:secure_secret_handling",
+        "rp_id": "RP26",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:idempotency_and_replay_protection",
+        "rp_id": "RP26",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:data_retention_and_legal_hold",
+        "rp_id": "RP26",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:observability_trace_log_metric",
+        "rp_id": "RP26",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:synthetic_fixture_only",
+        "rp_id": "RP26",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:contract_tests",
+        "rp_id": "RP26",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:threat_model",
+        "rp_id": "RP26",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:migration_or_release_rollback",
+        "rp_id": "RP26",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:hermes_gate",
+        "rp_id": "RP26",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:claude_cross_validation",
+        "rp_id": "RP26",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP26:human_approval",
+        "rp_id": "RP26",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:tenant_isolation",
+        "rp_id": "RP29",
+        "control_id": "tenant_isolation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:object_level_authorization",
+        "rp_id": "RP29",
+        "control_id": "object_level_authorization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:deny_over_allow",
+        "rp_id": "RP29",
+        "control_id": "deny_over_allow",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:matter_first_traceability",
+        "rp_id": "RP29",
+        "control_id": "matter_first_traceability",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:append_only_audit_or_evidence",
+        "rp_id": "RP29",
+        "control_id": "append_only_audit_or_evidence",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:privacy_minimization",
+        "rp_id": "RP29",
+        "control_id": "privacy_minimization",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:secure_secret_handling",
+        "rp_id": "RP29",
+        "control_id": "secure_secret_handling",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:idempotency_and_replay_protection",
+        "rp_id": "RP29",
+        "control_id": "idempotency_and_replay_protection",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:data_retention_and_legal_hold",
+        "rp_id": "RP29",
+        "control_id": "data_retention_and_legal_hold",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:observability_trace_log_metric",
+        "rp_id": "RP29",
+        "control_id": "observability_trace_log_metric",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:synthetic_fixture_only",
+        "rp_id": "RP29",
+        "control_id": "synthetic_fixture_only",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:contract_tests",
+        "rp_id": "RP29",
+        "control_id": "contract_tests",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:threat_model",
+        "rp_id": "RP29",
+        "control_id": "threat_model",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:migration_or_release_rollback",
+        "rp_id": "RP29",
+        "control_id": "migration_or_release_rollback",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:hermes_gate",
+        "rp_id": "RP29",
+        "control_id": "hermes_gate",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:claude_cross_validation",
+        "rp_id": "RP29",
+        "control_id": "claude_cross_validation",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      },
+      {
+        "cell_id": "RP29:human_approval",
+        "rp_id": "RP29",
+        "control_id": "human_approval",
+        "status": "pending_evidence_extraction",
+        "evidence_ref": "",
+        "evidence_command": "",
+        "unmet_disposition": "",
+        "approval_record": ""
+      }
+    ],
+    "source_refs": [
+      "contracts/critical-rp-saas-hardening-contract.json",
+      "docs/launch/hardening-coverage-matrix.md"
+    ]
+  },
+  "next_required_work": [
+    {
+      "order": 1,
+      "action": "For G1-E02, resolve MAT-DEC owner linkage and prove every remaining item is non-blocking or assigned to a valid launch phase."
+    },
+    {
+      "order": 2,
+      "action": "For G1-E03, populate each of the 272 RP/control cells with real evidence, `n/a` rationale, or owner-approved disposition for unmet cells."
+    },
+    {
+      "order": 3,
+      "action": "After G1-E02 and G1-E03 have real evidence refs, update the manual evidence intake rows to `evidence_satisfied` with timestamp and verifier."
+    }
+  ]
+}
