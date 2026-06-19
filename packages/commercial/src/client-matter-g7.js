@@ -4,6 +4,11 @@ export const COMMERCIAL_G7A_TUW_COVERAGE = Object.freeze([
   "LFOS-G7-W12-T005",
 ]);
 
+export const COMMERCIAL_G7B_TUW_COVERAGE = Object.freeze([
+  "LFOS-G7-W12-T006",
+  "LFOS-G7-W12-T007",
+]);
+
 function freezeRecord(record) {
   return Object.freeze(record);
 }
@@ -143,6 +148,76 @@ export function createCommercialG7ReleaseCandidateDescriptor(request = {}) {
       deployment_blocked_until_approved: releaseCandidate.deployment_blocked_until_approved === true,
       production_readiness_claim: "open",
       go_live_approval_claimed: false,
+      runtime_dispatched: runtimeDispatch,
+    }),
+  });
+}
+
+export function createCommercialG7DeploymentRunDescriptor(request = {}) {
+  const deployment = request.deployment_run ?? {};
+  const runtimeDispatch = request.dispatched_runtime === true || deployment.dispatched_runtime === true;
+  const deployExecuted = request.deploy_executed === true || deployment.deploy_executed === true;
+  const rollbackRecordPresent = Boolean(deployment.rollback_record_ref) && deployment.rollback_tested === true;
+  const failedDeployMasked = deployment.failed_deploy_masked === true || request.failed_deploy_masked === true;
+  const blockedClaims = [];
+
+  if (missingFields(["tenant_id", "deployment_run"], request).length > 0) {
+    blockedClaims.push("deployment_run_required_context_missing");
+  }
+  if (!deployment.deployment_run_id) blockedClaims.push("deployment_run_id_required");
+  if (!rollbackRecordPresent) blockedClaims.push("deployment_run_rollback_record_required");
+  if (failedDeployMasked) blockedClaims.push("deployment_run_failed_deploy_masking_blocked");
+  if (deployExecuted) blockedClaims.push("deployment_run_execution_blocked");
+  if (runtimeDispatch) blockedClaims.push("deployment_run_runtime_dispatch_blocked");
+
+  return freezeRecord({
+    ...noRuntimeBoundary("LFOS-G7-W12-T006"),
+    descriptor_type: "commercial_g7_deployment_run_descriptor",
+    tenant_id: request.tenant_id ?? deployment.tenant_id ?? null,
+    deployment_run_id: deployment.deployment_run_id ?? null,
+    outcome: outcomeFor(blockedClaims),
+    blocked_claims: freezeArray(blockedClaims),
+    deployment_run_receipt: freezeRecord({
+      rollback_record_tested: rollbackRecordPresent,
+      failed_deploy_masking_blocked: failedDeployMasked,
+      deployment_executed: deployExecuted,
+      runtime_dispatched: runtimeDispatch,
+    }),
+  });
+}
+
+export function createCommercialG7ComplianceReportDescriptor(request = {}) {
+  const report = request.compliance_report ?? {};
+  const evidenceItems = freezeArray(report.evidence_items ?? request.evidence_items);
+  const runtimeDispatch = request.dispatched_runtime === true || report.dispatched_runtime === true;
+  const claimsSoc2 = report.claims_soc2_approval === true || request.claims_soc2_approval === true;
+  const claimsIsmsp = report.claims_ismsp_approval === true || request.claims_ismsp_approval === true;
+  const claimsEnterpriseApproval = report.claims_enterprise_approval === true || request.claims_enterprise_approval === true;
+  const evidenceChecklistPresent = evidenceItems.length > 0 && evidenceItems.every((item) => item?.evidence_ref && item?.status);
+  const blockedClaims = [];
+
+  if (missingFields(["tenant_id", "compliance_report"], request).length > 0) {
+    blockedClaims.push("compliance_report_required_context_missing");
+  }
+  if (!report.report_id) blockedClaims.push("compliance_report_id_required");
+  if (!evidenceChecklistPresent) blockedClaims.push("compliance_report_evidence_checklist_required");
+  if (claimsSoc2 || claimsIsmsp) blockedClaims.push("compliance_report_certification_claim_blocked");
+  if (claimsEnterpriseApproval) blockedClaims.push("compliance_report_enterprise_approval_claim_blocked");
+  if (runtimeDispatch) blockedClaims.push("compliance_report_runtime_dispatch_blocked");
+
+  return freezeRecord({
+    ...noRuntimeBoundary("LFOS-G7-W12-T007"),
+    descriptor_type: "commercial_g7_compliance_report_descriptor",
+    tenant_id: request.tenant_id ?? report.tenant_id ?? null,
+    report_id: report.report_id ?? null,
+    evidence_item_count: evidenceItems.length,
+    outcome: outcomeFor(blockedClaims),
+    blocked_claims: freezeArray(blockedClaims),
+    compliance_report_receipt: freezeRecord({
+      evidence_checklist_tested: evidenceChecklistPresent,
+      soc2_approval_claimed: false,
+      ismsp_approval_claimed: false,
+      enterprise_approval_claimed: false,
       runtime_dispatched: runtimeDispatch,
     }),
   });

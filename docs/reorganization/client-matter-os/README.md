@@ -100,6 +100,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `55-g6-g-portal-data-room-closeout-report.md` | Records the G6-G client approval, secure link, DataRoom, portal audit, and Portal/Data Room closeout slice. |
 | `56-g7-enterprise-hardening-entry-plan.md` | Opens the G7 Enterprise hardening, UAT, migration, HRX, QA/security, and production-readiness planning lane. |
 | `57-g7-a-admin-ops-foundation-report.md` | Records the G7-A tenant admin settings, plan/usage, observability, incident runbook, and release candidate foundation slice. |
+| `58-g7-b-ops-commercial-closeout-report.md` | Records the G7-B deployment run, compliance report, admin audit viewer, operations dashboard, and Ops/Commercial closeout slice. |
 
 ## Execution Order
 
@@ -170,6 +171,7 @@ npm run client-matter:g6f:validate
 npm run client-matter:g6g:validate
 npm run client-matter:g7:plan:validate
 npm run client-matter:g7a:validate
+npm run client-matter:g7b:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -380,6 +382,12 @@ The G7-A validator checks tenant admin settings, plan/usage audit, observability
 baseline, incident runbook, release candidate approval, RP21/RP29 descriptor
 boundaries, test coverage, and the open boundary for enterprise trust,
 production readiness, and go-live approval.
+
+The G7-B validator checks deployment rollback evidence, compliance checklist
+evidence, tenant-scoped admin audit viewer behavior, operations dashboard
+redaction/no-leak behavior, RP21/RP29 descriptor boundaries, G7-A handoff,
+test coverage, and the open boundary for release readiness, production
+readiness, and go-live approval.
 
 ## Non-Goals
 
