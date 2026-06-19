@@ -102,6 +102,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `57-g7-a-admin-ops-foundation-report.md` | Records the G7-A tenant admin settings, plan/usage, observability, incident runbook, and release candidate foundation slice. |
 | `58-g7-b-ops-commercial-closeout-report.md` | Records the G7-B deployment run, compliance report, admin audit viewer, operations dashboard, and Ops/Commercial closeout slice. |
 | `59-g7-c-hrx-people-guardrails-report.md` | Records the G7-C User/Employee separation, Employee schema, capacity/workload, HR document/evaluation, candidate separation, and HRX closeout slice. |
+| `60-g7-d-integrations-migration-foundation-report.md` | Records the G7-D connector registry, credential reference, sync job, sync cursor, and reconciliation foundation slice. |
 
 ## Execution Order
 
@@ -174,6 +175,7 @@ npm run client-matter:g7:plan:validate
 npm run client-matter:g7a:validate
 npm run client-matter:g7b:validate
 npm run client-matter:g7c:validate
+npm run client-matter:g7d:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -397,6 +399,12 @@ document non-HR denial, evaluation audit-on-read, candidate CRM/Party
 separation, RP30 embedded-HRX descriptor boundaries, G7-B handoff, test
 coverage, and the open boundary for enterprise trust, production readiness,
 and go-live approval.
+
+The G7-D validator checks connector credential exposure blocking,
+credential-reference secret-not-returned evidence, sync retry/idempotency,
+sync cursor resumability, reconciliation mismatch report and human review,
+RP22/RP25 descriptor boundaries, G7-C handoff, test coverage, and the open
+boundary for runtime readiness, production readiness, and go-live approval.
 
 ## Non-Goals
 
