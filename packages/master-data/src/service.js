@@ -936,6 +936,150 @@ export function executeMasterDataDuplicateReviewWorkflow(request = {}) {
   return executeMasterDataServiceWorkflow({ ...request, operation: "duplicate_review", model_type: request.model_type ?? "Entity" });
 }
 
+function normalizeCandidateText(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣]+/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+function tokenSet(value) {
+  return new Set(normalizeCandidateText(value).split(" ").filter(Boolean));
+}
+
+function similarityScore(left, right) {
+  const leftTokens = tokenSet(left);
+  const rightTokens = tokenSet(right);
+  if (leftTokens.size === 0 || rightTokens.size === 0) return 0;
+  let overlap = 0;
+  for (const token of leftTokens) {
+    if (rightTokens.has(token)) overlap += 1;
+  }
+  return Number((overlap / Math.max(leftTokens.size, rightTokens.size)).toFixed(2));
+}
+
+export function createMasterDataDuplicateCandidateQueue(request = {}) {
+  const tenantId = request.tenant_id ?? null;
+  const threshold = request.review_threshold ?? 0.5;
+  const sourceName = request.source_display_name ?? "";
+  const candidates = (request.candidates ?? [])
+    .filter((candidate) => !tenantId || candidate.tenant_id === tenantId)
+    .map((candidate) =>
+      Object.freeze({
+        party_id: candidate.party_id,
+        display_name: candidate.display_name,
+        tenant_id: candidate.tenant_id,
+        candidate_reason: candidate.candidate_reason ?? "similar_name",
+        similarity_score: candidate.similarity_score ?? similarityScore(sourceName, candidate.display_name),
+        identity_key: candidate.identity_key ?? null,
+        alias_keys: Object.freeze([...(candidate.alias_keys ?? [])]),
+      }),
+    )
+    .filter((candidate) => candidate.similarity_score >= threshold);
+  const reviewRequired = candidates.length > 0;
+  return freezeServiceResult({
+    g2_descriptor: "master_data_g2_duplicate_candidate_queue",
+    tuw_id: "LFOS-G2-W02-T010",
+    tenant_id: tenantId,
+    source_party_id: request.source_party_id ?? null,
+    source_display_name: sourceName,
+    review_threshold: threshold,
+    outcome: reviewRequired ? "review_required" : "passed",
+    candidate_count: candidates.length,
+    duplicate_candidates: Object.freeze(candidates),
+    review_required_claims: Object.freeze(reviewRequired ? ["duplicate_candidate_review_required"] : []),
+    blocked_claims: Object.freeze([]),
+    queue_behavior: "review_required_no_silent_duplicate",
+    executes_search: false,
+  });
+}
+
+export function createMasterDataRelatedPartySearchDescriptor(request = {}) {
+  const tenantId = request.tenant_id ?? null;
+  const queryPartyId = request.query_party_id ?? null;
+  const relationships = request.relationships ?? [];
+  const partyIndex = request.parties_by_id ?? {};
+  const related = relationships
+    .filter((relationship) => relationship.tenant_id === tenantId)
+    .filter((relationship) => relationship.from_party_id === queryPartyId || relationship.to_party_id === queryPartyId)
+    .map((relationship) => {
+      const relatedPartyId = relationship.from_party_id === queryPartyId ? relationship.to_party_id : relationship.from_party_id;
+      const party = partyIndex[relatedPartyId] ?? {};
+      return Object.freeze({
+        relationship_id: relationship.relationship_id,
+        related_party_id: relatedPartyId,
+        related_display_name: party.display_name ?? null,
+        relationship_type: relationship.relationship_type,
+        direction: relationship.direction,
+        result_scope: "tenant_scoped_party_relationship",
+      });
+    });
+  const unauthorizedCount = relationships.filter((relationship) => relationship.tenant_id !== tenantId).length;
+  return freezeServiceResult({
+    g2_descriptor: "master_data_g2_related_party_search_descriptor",
+    tuw_id: "LFOS-G2-W02-T011",
+    tenant_id: tenantId,
+    query_party_id: queryPartyId,
+    result_count: related.length,
+    related_parties: Object.freeze(related),
+    unauthorized_result_count: 0,
+    hidden_unauthorized_candidate_count: unauthorizedCount,
+    blocked_claims: Object.freeze([]),
+    review_required_claims: Object.freeze([]),
+    executes_api_handler: false,
+    executes_search: false,
+  });
+}
+
+export function createMasterDataPartyMergeSplitWorkflowDescriptor(request = {}) {
+  const workflowType = request.workflow_type ?? "merge";
+  const errors = [];
+  const blockedClaims = [];
+  if (!["merge", "split"].includes(workflowType)) {
+    errors.push("Party merge/split workflow_type must be merge or split");
+    blockedClaims.push("merge_split_workflow_type_error");
+  }
+  if (!request.audit_hint_ref) {
+    errors.push("Party merge/split workflow requires audit_hint_ref descriptor");
+    blockedClaims.push("merge_split_audit_rollback_required");
+  }
+  if (!request.rollback_ref) {
+    errors.push("Party merge/split workflow requires rollback_ref descriptor");
+    blockedClaims.push("merge_split_audit_rollback_required");
+  }
+  const sourcePartyIds = Object.freeze([...(request.source_party_ids ?? (request.source_party_id ? [request.source_party_id] : []))]);
+  const targetPartyIds = Object.freeze([...(request.target_party_ids ?? (request.target_party_id ? [request.target_party_id] : []))]);
+  return freezeServiceResult({
+    g2_descriptor: "master_data_g2_party_merge_split_workflow_descriptor",
+    tuw_id: "LFOS-G2-W02-T012",
+    workflow_type: workflowType,
+    tenant_id: request.tenant_id ?? null,
+    source_party_ids: sourcePartyIds,
+    target_party_ids: targetPartyIds,
+    outcome: blockedClaims.length > 0 ? "blocked" : "review_required",
+    audit_event_descriptor: Object.freeze({
+      audit_hint_ref: request.audit_hint_ref ?? null,
+      action: `party_${workflowType}`,
+      appends_audit_event: false,
+      writes_audit_event: false,
+      evidence_required: true,
+    }),
+    rollback_plan: Object.freeze({
+      rollback_ref: request.rollback_ref ?? null,
+      rollback_available: blockedClaims.length === 0,
+      executed: false,
+      restores_source_party_ids: sourcePartyIds,
+    }),
+    blocked_claims: Object.freeze(unique(blockedClaims)),
+    review_required_claims: Object.freeze(blockedClaims.length === 0 ? ["party_merge_split_review_required"] : []),
+    errors: Object.freeze(errors),
+    creates_database_rows: false,
+    updates_database_rows: false,
+    deletes_database_rows: false,
+  });
+}
+
 export function createMasterDataServiceTailDescriptor(request = {}) {
   const workflow = request.workflow_descriptor ? request : executeMasterDataServiceWorkflow(request);
   const sanitizedWorkflow = sanitizeTailValue(workflow);

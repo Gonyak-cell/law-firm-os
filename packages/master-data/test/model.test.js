@@ -138,6 +138,9 @@ import {
   createMasterDataCp156ClaudeReviewPacket,
   createMasterDataCp156CloseoutHandoff,
   createMasterDataCp156HermesEvidencePacket,
+  createMasterDataDuplicateCandidateQueue,
+  createMasterDataPartyMergeSplitWorkflowDescriptor,
+  createMasterDataRelatedPartySearchDescriptor,
   executeMasterDataClientGroupingWorkflow,
   executeMasterDataContactNormalizationWorkflow,
   executeMasterDataDuplicateReviewWorkflow,
@@ -620,6 +623,126 @@ test("G2-B relationship and billing profile schema binds group contact and clien
   );
   assert.equal(sameBillingClient.valid, false);
   assert.ok(sameBillingClient.blocked_claims.includes("billing_profile_client_reference_error"));
+});
+
+test("G2-C duplicate search and merge descriptors preserve review audit and rollback evidence", () => {
+  const tenant_id = "tenant_g2_duplicate";
+  const legalClient = createMasterDataParty({
+    party_id: "party_g2_dup_source",
+    tenant_id,
+    party_type: "organization",
+    display_name: "AMIC Client Korea",
+    status: "active",
+    owner_user_id: "user_owner",
+    canonical_entity_id: "entity_g2_dup_source",
+  });
+  const duplicateCandidate = createMasterDataParty({
+    party_id: "party_g2_dup_candidate",
+    tenant_id,
+    party_type: "organization",
+    display_name: "AMIC Client Korea Ltd",
+    status: "review_required",
+    owner_user_id: "user_owner",
+    canonical_entity_id: "entity_g2_dup_candidate",
+  });
+  const relatedContact = createMasterDataParty({
+    party_id: "party_g2_related_contact",
+    tenant_id,
+    party_type: "person",
+    display_name: "G2 Related Contact",
+    status: "active",
+    owner_user_id: "user_owner",
+    canonical_entity_id: "entity_g2_related_contact",
+  });
+  const duplicateQueue = createMasterDataDuplicateCandidateQueue({
+    tenant_id,
+    source_party_id: legalClient.party_id,
+    source_display_name: legalClient.display_name,
+    review_threshold: 0.5,
+    candidates: [
+      {
+        party_id: duplicateCandidate.party_id,
+        tenant_id,
+        display_name: duplicateCandidate.display_name,
+        identity_key: duplicateCandidate.identity_key,
+        alias_keys: ["tenant_g2_duplicate:party-alias:party_g2_dup_candidate:en-US:amic client korea ltd"],
+      },
+      {
+        party_id: "party_other_tenant",
+        tenant_id: "tenant_other",
+        display_name: "AMIC Client Korea",
+      },
+    ],
+  });
+  assert.equal(duplicateQueue.g2_descriptor, "master_data_g2_duplicate_candidate_queue");
+  assert.equal(duplicateQueue.outcome, "review_required");
+  assert.equal(duplicateQueue.candidate_count, 1);
+  assert.equal(duplicateQueue.duplicate_candidates[0].party_id, duplicateCandidate.party_id);
+  assert.ok(duplicateQueue.review_required_claims.includes("duplicate_candidate_review_required"));
+  assert.equal(duplicateQueue.writes_product_state, false);
+
+  const relationship = createMasterDataRelationship({
+    relationship_id: "relationship_g2_related_contact",
+    tenant_id,
+    from_entity_id: relatedContact.canonical_entity_id,
+    to_entity_id: legalClient.canonical_entity_id,
+    from_party_id: relatedContact.party_id,
+    to_party_id: legalClient.party_id,
+    relationship_type: "primary_contact",
+    direction: "person_to_organization",
+    status: "active",
+    owner_user_id: "user_owner",
+  });
+  const relatedSearch = createMasterDataRelatedPartySearchDescriptor({
+    tenant_id,
+    query_party_id: legalClient.party_id,
+    relationships: [
+      relationship,
+      {
+        relationship_id: "relationship_other_tenant",
+        tenant_id: "tenant_other",
+        from_party_id: "party_other_a",
+        to_party_id: legalClient.party_id,
+        relationship_type: "blocked",
+        direction: "organization_to_organization",
+      },
+    ],
+    parties_by_id: {
+      [relatedContact.party_id]: relatedContact,
+      [legalClient.party_id]: legalClient,
+    },
+  });
+  assert.equal(relatedSearch.g2_descriptor, "master_data_g2_related_party_search_descriptor");
+  assert.equal(relatedSearch.result_count, 1);
+  assert.equal(relatedSearch.related_parties[0].related_party_id, relatedContact.party_id);
+  assert.equal(relatedSearch.unauthorized_result_count, 0);
+  assert.equal(relatedSearch.hidden_unauthorized_candidate_count, 1);
+  assert.equal(relatedSearch.executes_api_handler, false);
+
+  const mergeDescriptor = createMasterDataPartyMergeSplitWorkflowDescriptor({
+    tenant_id,
+    workflow_type: "merge",
+    source_party_ids: [legalClient.party_id, duplicateCandidate.party_id],
+    target_party_id: legalClient.party_id,
+    audit_hint_ref: "audit_hint_g2_merge",
+    rollback_ref: "rollback_ref_g2_merge",
+  });
+  assert.equal(mergeDescriptor.g2_descriptor, "master_data_g2_party_merge_split_workflow_descriptor");
+  assert.equal(mergeDescriptor.outcome, "review_required");
+  assert.equal(mergeDescriptor.audit_event_descriptor.action, "party_merge");
+  assert.equal(mergeDescriptor.audit_event_descriptor.writes_audit_event, false);
+  assert.equal(mergeDescriptor.rollback_plan.rollback_available, true);
+  assert.equal(mergeDescriptor.rollback_plan.executed, false);
+  assert.ok(mergeDescriptor.review_required_claims.includes("party_merge_split_review_required"));
+
+  const blockedMerge = createMasterDataPartyMergeSplitWorkflowDescriptor({
+    tenant_id,
+    workflow_type: "merge",
+    source_party_ids: [legalClient.party_id, duplicateCandidate.party_id],
+    target_party_id: legalClient.party_id,
+  });
+  assert.equal(blockedMerge.outcome, "blocked");
+  assert.ok(blockedMerge.blocked_claims.includes("merge_split_audit_rollback_required"));
 });
 
 test("master data factories create synthetic no-write records", () => {
