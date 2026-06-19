@@ -72,6 +72,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `27-g2-d-ui-closeout-report.md` | Records the G2-D Party search/profile UI-state and G2 closeout evidence descriptor slice. |
 | `28-g3-crm-intake-entry-plan.md` | Opens the G3 CRM/Intake execution lane with TUW coverage, entry evidence, Opportunity-to-Matter shortcut controls, and PR slices. |
 | `29-g3-a-crm-schema-report.md` | Records the G3-A Lead, Opportunity, CRMActivity, Proposal, Referral, and Campaign schema slice. |
+| `30-g3-b-crm-service-ui-closeout-report.md` | Records the G3-B CRM pipeline, permission trimming, summary UI, Opportunity-to-Intake, KeyClientPlan, and partial closeout slice. |
 
 ## Execution Order
 
@@ -114,6 +115,7 @@ npm run client-matter:g2c:validate
 npm run client-matter:g2d:validate
 npm run client-matter:g3:plan:validate
 npm run client-matter:g3a:validate
+npm run client-matter:g3b:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -170,6 +172,12 @@ Referral, and Campaign schema evidence, Party Master references, direct
 Opportunity-to-Matter blocking, confidential activity trimming claims, proposal
 fee-estimate references, campaign contact consent, test coverage, and the open
 runtime-readiness boundary.
+
+The G3-B validator checks CRM Opportunity pipeline descriptors, confidential
+activity trimming, no conflict memo or billing detail leak in CRM summary state,
+Opportunity-to-Intake-only command evidence, KeyClientPlan AR/detail masking,
+partial closeout evidence, test coverage, and the open runtime-readiness
+boundary.
 
 ## Non-Goals
 
