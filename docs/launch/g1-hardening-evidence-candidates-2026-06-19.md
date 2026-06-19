@@ -12,10 +12,10 @@ Generated on: 2026-06-19
 ## Summary
 
 - total_cell_count: 272
-- candidate_evidence_present_count: 115
-- candidate_gap_count: 157
+- candidate_evidence_present_count: 117
+- candidate_gap_count: 155
 - evidence_satisfied_cell_count: 0
-- missing_mandatory_artifact_unique_count: 29
+- missing_mandatory_artifact_unique_count: 0
 
 ## RP Summary
 
@@ -23,20 +23,20 @@ Generated on: 2026-06-19
 | --- | ---: | ---: | ---: | ---: |
 | RP00 | 17 | 7 | 10 | 0 |
 | RP01 | 17 | 8 | 9 | 0 |
-| RP02 | 17 | 7 | 10 | 1 |
+| RP02 | 17 | 7 | 10 | 0 |
 | RP03 | 17 | 10 | 7 | 0 |
-| RP04 | 17 | 7 | 10 | 2 |
-| RP05 | 17 | 9 | 8 | 2 |
-| RP06 | 17 | 6 | 11 | 2 |
-| RP07 | 17 | 5 | 12 | 3 |
-| RP10 | 17 | 9 | 8 | 3 |
-| RP12 | 17 | 6 | 11 | 3 |
-| RP14 | 17 | 6 | 11 | 3 |
-| RP16 | 17 | 9 | 8 | 3 |
-| RP17 | 17 | 5 | 12 | 3 |
-| RP25 | 17 | 8 | 9 | 2 |
+| RP04 | 17 | 7 | 10 | 0 |
+| RP05 | 17 | 9 | 8 | 0 |
+| RP06 | 17 | 6 | 11 | 0 |
+| RP07 | 17 | 5 | 12 | 0 |
+| RP10 | 17 | 9 | 8 | 0 |
+| RP12 | 17 | 6 | 11 | 0 |
+| RP14 | 17 | 6 | 11 | 0 |
+| RP16 | 17 | 9 | 8 | 0 |
+| RP17 | 17 | 6 | 11 | 0 |
+| RP25 | 17 | 8 | 9 | 0 |
 | RP26 | 17 | 6 | 11 | 0 |
-| RP29 | 17 | 7 | 10 | 2 |
+| RP29 | 17 | 8 | 9 | 0 |
 
 ## First Candidate Gaps
 
