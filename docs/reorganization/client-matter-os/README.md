@@ -54,11 +54,13 @@ ownership, boundary, and runtime-readiness evidence.
 | `14-billing-profile-ownership-adr.md` | Proposes Party & Relationship Master as the canonical `BillingProfile` owner while Billing owns downstream workflow state. |
 | `15-github-remote-vault-flow-adr.md` | Proposes the sanitized GitHub snapshot plus draft `codex/*` PR flow as the review surface while local history remains untouched. |
 | `16-planning-root-adr.md` | Proposes this folder as the canonical G0-G7 Client-Matter OS planning root. |
+| `17-g1-g2-sequencing-adr.md` | Proposes separate G1/G2 PR lanes with sequential runtime gate acceptance. |
 
 ## Execution Order
 
 1. Close G0: inventory, ownership, module boundaries, runtime readiness.
-2. Open G1/G2: Trust Foundation plus Party & Relationship Master.
+2. Open G1/G2: separate Trust Foundation and Party Master PR lanes, with G1
+   runtime evidence required before G2 runtime readiness.
 3. Open G3: CRM and Intake only after Party Master and permission/audit
    baselines exist.
 4. Open G4-G6: Matter/DMS, Revenue, Analytics/AI/Portal in that order.
