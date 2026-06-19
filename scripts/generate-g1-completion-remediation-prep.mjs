@@ -75,6 +75,32 @@ function parseMatDecStatusRows(path) {
     });
 }
 
+function classifyMatDecLaunchEffect(row) {
+  if (row.status === "decided") {
+    return {
+      launch_g1_effect: "owner_linkage_present",
+      g1_blocking: false,
+      launch_basis: "Decision status is recorded as decided in the absorption decision register."
+    };
+  }
+  if (
+    row.decision_id === "MAT-DEC-09" &&
+    row.decision_text.includes("기본값") &&
+    row.decision_text.includes("승인 불요")
+  ) {
+    return {
+      launch_g1_effect: "non_blocking_default_owner_no_approval_required",
+      g1_blocking: false,
+      launch_basis: "Register text states the default owner path requires no approval when used."
+    };
+  }
+  return {
+    launch_g1_effect: "requires_owner_linkage_before_g1_e02",
+    g1_blocking: true,
+    launch_basis: "No decided owner-linked row or non-blocking register basis is present."
+  };
+}
+
 function renderMarkdown(report) {
   const lines = [];
   lines.push("# G1 Completion Remediation Prep");
@@ -108,10 +134,10 @@ function renderMarkdown(report) {
   lines.push("");
   lines.push("### MAT-DEC Linkage State");
   lines.push("");
-  lines.push("| Decision | Status | Launch effect |");
-  lines.push("| --- | --- | --- |");
+  lines.push("| Decision | Status | G1 blocker | Launch effect | Basis |");
+  lines.push("| --- | --- | --- | --- | --- |");
   for (const row of report.g1_e02_deferred_item_rejudgment.mat_dec_linkage_rows) {
-    lines.push(`| ${row.decision_id} | ${row.status} | ${markdownCell(row.launch_g1_effect)} |`);
+    lines.push(`| ${row.decision_id} | ${row.status} | ${row.g1_blocking ? "yes" : "no"} | ${markdownCell(row.launch_g1_effect)} | ${markdownCell(row.launch_basis)} |`);
   }
   lines.push("");
   lines.push("## G1-E03 Hardening Coverage Prep");
@@ -150,9 +176,9 @@ const matDecRows = parseMatDecStatusRows(MAT_DEC_REGISTER_PATH)
   .filter((row, index, rows) => rows.findIndex((candidate) => candidate.decision_id === row.decision_id) === index)
   .map((row) => ({
     ...row,
-    launch_g1_effect: row.status === "decided" ? "owner_linkage_present" : "requires_owner_linkage_before_g1_e02"
+    ...classifyMatDecLaunchEffect(row)
   }));
-const matDecBlockingRows = matDecRows.filter((row) => row.status !== "decided");
+const matDecBlockingRows = matDecRows.filter((row) => row.g1_blocking);
 
 const g1E02 = {
   evidence_id: "G1-E02",
@@ -239,6 +265,7 @@ const report = {
     hrx_actual_defer_decision_count: deferralAudit.hrx?.actual_decision_count ?? null,
     mat_dec_unique_decision_id_count: uniqueMatDecIds.length,
     mat_dec_linked_decision_count: matDecRows.filter((row) => row.status === "decided").length,
+    mat_dec_non_blocking_default_count: matDecRows.filter((row) => row.launch_g1_effect === "non_blocking_default_owner_no_approval_required").length,
     mat_dec_remaining_owner_linkage_count: matDecBlockingRows.length,
     hardening_required_cell_count: g1E03.required_cell_count,
     hardening_pending_cell_count: g1E03.pending_cell_count

@@ -25,7 +25,8 @@
     "hrx_actual_defer_decision_count": 0,
     "mat_dec_unique_decision_id_count": 9,
     "mat_dec_linked_decision_count": 6,
-    "mat_dec_remaining_owner_linkage_count": 3,
+    "mat_dec_non_blocking_default_count": 1,
+    "mat_dec_remaining_owner_linkage_count": 2,
     "hardening_required_cell_count": 272,
     "hardening_pending_cell_count": 272
   },
@@ -68,7 +69,9 @@
         "status_text": "✅ **결정**",
         "decision_text": "**1호 테넌트 정합화** — SaaS 코어 유지, 자사 로펌 = 1호 테넌트",
         "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "owner_linkage_present"
+        "launch_g1_effect": "owner_linkage_present",
+        "g1_blocking": false,
+        "launch_basis": "Decision status is recorded as decided in the absorption decision register."
       },
       {
         "decision_id": "MAT-DEC-02",
@@ -76,7 +79,9 @@
         "status_text": "✅ **결정**",
         "decision_text": "**User/Employee 분리 채택** — `Employee.user_id` 역방향 참조",
         "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "owner_linkage_present"
+        "launch_g1_effect": "owner_linkage_present",
+        "g1_blocking": false,
+        "launch_basis": "Decision status is recorded as decided in the absorption decision register."
       },
       {
         "decision_id": "MAT-DEC-03",
@@ -84,7 +89,9 @@
         "status_text": "⏸ 보류 확정",
         "decision_text": "스토리지 결정은 봉인 유지 — RP06/08 런타임 계약 신설 전까지",
         "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "requires_owner_linkage_before_g1_e02"
+        "launch_g1_effect": "requires_owner_linkage_before_g1_e02",
+        "g1_blocking": true,
+        "launch_basis": "No decided owner-linked row or non-blocking register basis is present."
       },
       {
         "decision_id": "MAT-DEC-05",
@@ -92,7 +99,9 @@
         "status_text": "✅ **결정**",
         "decision_text": "**커밋 동결** — 25파일을 흡수 트랙 커밋 1에 포함",
         "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "owner_linkage_present"
+        "launch_g1_effect": "owner_linkage_present",
+        "g1_blocking": false,
+        "launch_basis": "Decision status is recorded as decided in the absorption decision register."
       },
       {
         "decision_id": "MAT-DEC-06",
@@ -100,7 +109,9 @@
         "status_text": "✅ **결정**",
         "decision_text": "**HRX 등재 일괄 승인** — RP30 네임스페이스, 901 보정 테이블(2.2+high-risk=895, M05 보강 +6), 급여 계산 defer(메타+rule 인터페이스만), 큐 꼬리 배치, HR AI는 RP17/18 anchor",
         "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "owner_linkage_present"
+        "launch_g1_effect": "owner_linkage_present",
+        "g1_blocking": false,
+        "launch_basis": "Decision status is recorded as decided in the absorption decision register."
       },
       {
         "decision_id": "MAT-DEC-07",
@@ -108,7 +119,9 @@
         "status_text": "✅ **결정**",
         "decision_text": "**런타임 게이트 레이어 신설 일괄 승인** — 경계 = 머지 직전 커서+2, 명명 `runtime_ready`/RTG, opt-in, `undeclared_legacy`, 단독 거버넌스 커밋",
         "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "owner_linkage_present"
+        "launch_g1_effect": "owner_linkage_present",
+        "g1_blocking": false,
+        "launch_basis": "Decision status is recorded as decided in the absorption decision register."
       },
       {
         "decision_id": "MAT-DEC-04",
@@ -116,7 +129,9 @@
         "status_text": "✅ **결정**",
         "decision_text": "**제품명 정합** — 2026-06-12 소유자 지시 기준: 제품 브랜드 `matter`, UI 브랜드 `matter by AMIC`, 플랫폼/리포 코드명 `Law Firm OS`, 기계 식별자 `law-firm-os` 유지",
         "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "owner_linkage_present"
+        "launch_g1_effect": "owner_linkage_present",
+        "g1_blocking": false,
+        "launch_basis": "Decision status is recorded as decided in the absorption decision register."
       },
       {
         "decision_id": "MAT-DEC-08",
@@ -124,7 +139,9 @@
         "status_text": "pending",
         "decision_text": "08 기밀분류 enum(미래 구현 팩 게이트) / 09 레지스터 owner(기본값 사용 시 승인 불요)",
         "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "requires_owner_linkage_before_g1_e02"
+        "launch_g1_effect": "requires_owner_linkage_before_g1_e02",
+        "g1_blocking": true,
+        "launch_basis": "No decided owner-linked row or non-blocking register basis is present."
       },
       {
         "decision_id": "MAT-DEC-09",
@@ -132,7 +149,9 @@
         "status_text": "pending",
         "decision_text": "08 기밀분류 enum(미래 구현 팩 게이트) / 09 레지스터 owner(기본값 사용 시 승인 불요)",
         "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "requires_owner_linkage_before_g1_e02"
+        "launch_g1_effect": "non_blocking_default_owner_no_approval_required",
+        "g1_blocking": false,
+        "launch_basis": "Register text states the default owner path requires no approval when used."
       }
     ],
     "mat_dec_blocking_rows": [
@@ -142,7 +161,9 @@
         "status_text": "⏸ 보류 확정",
         "decision_text": "스토리지 결정은 봉인 유지 — RP06/08 런타임 계약 신설 전까지",
         "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "requires_owner_linkage_before_g1_e02"
+        "launch_g1_effect": "requires_owner_linkage_before_g1_e02",
+        "g1_blocking": true,
+        "launch_basis": "No decided owner-linked row or non-blocking register basis is present."
       },
       {
         "decision_id": "MAT-DEC-08",
@@ -150,15 +171,9 @@
         "status_text": "pending",
         "decision_text": "08 기밀분류 enum(미래 구현 팩 게이트) / 09 레지스터 owner(기본값 사용 시 승인 불요)",
         "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "requires_owner_linkage_before_g1_e02"
-      },
-      {
-        "decision_id": "MAT-DEC-09",
-        "status": "pending",
-        "status_text": "pending",
-        "decision_text": "08 기밀분류 enum(미래 구현 팩 게이트) / 09 레지스터 owner(기본값 사용 시 승인 불요)",
-        "source_ref": "workbook/absorption-package/06_오픈_결정_레지스터.md",
-        "launch_g1_effect": "requires_owner_linkage_before_g1_e02"
+        "launch_g1_effect": "requires_owner_linkage_before_g1_e02",
+        "g1_blocking": true,
+        "launch_basis": "No decided owner-linked row or non-blocking register basis is present."
       }
     ],
     "source_refs": [
