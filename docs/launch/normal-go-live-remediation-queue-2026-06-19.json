@@ -1,0 +1,890 @@
+{
+  "schema_version": "law-firm-os.normal-go-live-remediation-queue.v0.1",
+  "generated_on": "2026-06-19",
+  "source_refs": [
+    "docs/launch/launch-manual-evidence-intake-register.json",
+    "docs/launch/launch-blocker-surface-audit.json",
+    "docs/launch/launch-phase-exit-readiness-audit.json",
+    "docs/launch/launch-manual-evidence-completion-path-audit.json",
+    "docs/launch/owner-action-deferral-request.json"
+  ],
+  "boundary": {
+    "follows_normal_evidence_route": true,
+    "go_live_approved_by_this_queue": false,
+    "owner_deferrals_approved_by_this_queue": false,
+    "override_go_live_approval": false,
+    "evidence_satisfied_requires_real_ref_timestamp_and_verifier": true,
+    "l9_requires_post_launch_operating_window": true
+  },
+  "summary": {
+    "failed_gate_count": 10,
+    "failed_gate_evidence_slot_count": 31,
+    "l9_stabilization_closure_slot_count": 5,
+    "total_manual_intake_row_count": 36,
+    "pending_manual_intake_row_count": 36,
+    "evidence_satisfied_manual_intake_row_count": 0,
+    "blocked_work_package_count": 70,
+    "blocked_phase_count": 11,
+    "gate_blocker_count": 10,
+    "phase_blocker_count": 11,
+    "owner_approved_deferrals_present": false
+  },
+  "execution_order": [
+    {
+      "order": 1,
+      "title": "G1 completion governance",
+      "exit_condition": "G1-E02 and G1-E03 are evidence_satisfied."
+    },
+    {
+      "order": 2,
+      "title": "G2-G8 target-environment evidence",
+      "exit_condition": "Runtime, security, infrastructure, M365, operations, compliance, and data evidence rows are evidence_satisfied."
+    },
+    {
+      "order": 3,
+      "title": "G9 governance rollup",
+      "exit_condition": "All closeout links resolve and the G1-G8 readiness report shows all eight gates pass."
+    },
+    {
+      "order": 4,
+      "title": "G10 human final signoff",
+      "exit_condition": "Joint signoff artifact, G1-G9 decision table, and launch decision register entry are linked."
+    },
+    {
+      "order": 5,
+      "title": "L9 stabilization",
+      "exit_condition": "Four-week post-launch stabilization criteria and owner signoff are evidence_satisfied."
+    }
+  ],
+  "gate_blockers": [
+    {
+      "gate_id": "G1",
+      "status": "fail",
+      "failed_evidence_slot_count": 2,
+      "manual_intake_row_count": 2,
+      "related_blocked_work_package_count": 5
+    },
+    {
+      "gate_id": "G2",
+      "status": "fail",
+      "failed_evidence_slot_count": 3,
+      "manual_intake_row_count": 3,
+      "related_blocked_work_package_count": 7
+    },
+    {
+      "gate_id": "G3",
+      "status": "fail",
+      "failed_evidence_slot_count": 4,
+      "manual_intake_row_count": 4,
+      "related_blocked_work_package_count": 7
+    },
+    {
+      "gate_id": "G4",
+      "status": "fail",
+      "failed_evidence_slot_count": 4,
+      "manual_intake_row_count": 4,
+      "related_blocked_work_package_count": 8
+    },
+    {
+      "gate_id": "G5",
+      "status": "fail",
+      "failed_evidence_slot_count": 3,
+      "manual_intake_row_count": 3,
+      "related_blocked_work_package_count": 5
+    },
+    {
+      "gate_id": "G6",
+      "status": "fail",
+      "failed_evidence_slot_count": 4,
+      "manual_intake_row_count": 4,
+      "related_blocked_work_package_count": 7
+    },
+    {
+      "gate_id": "G7",
+      "status": "fail",
+      "failed_evidence_slot_count": 3,
+      "manual_intake_row_count": 3,
+      "related_blocked_work_package_count": 5
+    },
+    {
+      "gate_id": "G8",
+      "status": "fail",
+      "failed_evidence_slot_count": 3,
+      "manual_intake_row_count": 3,
+      "related_blocked_work_package_count": 4
+    },
+    {
+      "gate_id": "G9",
+      "status": "fail",
+      "failed_evidence_slot_count": 2,
+      "manual_intake_row_count": 2,
+      "related_blocked_work_package_count": 2
+    },
+    {
+      "gate_id": "G10",
+      "status": "fail",
+      "failed_evidence_slot_count": 3,
+      "manual_intake_row_count": 3,
+      "related_blocked_work_package_count": 3
+    }
+  ],
+  "phase_exit_impact": [
+    {
+      "phase": "PRE",
+      "exit_gate": "PRE-EXIT",
+      "work_package_count": 7,
+      "exit_gate_bound_count": 7,
+      "recorded_count": 1,
+      "blocked_count": 6,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [
+        "LT-PRE-W07"
+      ],
+      "blocked_wp_ids": [
+        "LT-PRE-W01",
+        "LT-PRE-W02",
+        "LT-PRE-W03",
+        "LT-PRE-W04",
+        "LT-PRE-W05",
+        "LT-PRE-W06"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-PRE",
+        "PHASE-PRE-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L0",
+      "exit_gate": "L0-EXIT",
+      "work_package_count": 5,
+      "exit_gate_bound_count": 5,
+      "recorded_count": 0,
+      "blocked_count": 5,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L0-W01",
+        "LT-L0-W02",
+        "LT-L0-W03",
+        "LT-L0-W04",
+        "LT-L0-W05"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L0",
+        "PHASE-L0-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L1",
+      "exit_gate": "L1-EXIT",
+      "work_package_count": 10,
+      "exit_gate_bound_count": 10,
+      "recorded_count": 0,
+      "blocked_count": 10,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L1-W01",
+        "LT-L1-W02",
+        "LT-L1-W03",
+        "LT-L1-W04",
+        "LT-L1-W05",
+        "LT-L1-W06",
+        "LT-L1-W07",
+        "LT-L1-W08",
+        "LT-L1-W09",
+        "LT-L1-W10"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L1",
+        "PHASE-L1-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L2",
+      "exit_gate": "L2-EXIT",
+      "work_package_count": 7,
+      "exit_gate_bound_count": 7,
+      "recorded_count": 0,
+      "blocked_count": 7,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L2-W01",
+        "LT-L2-W02",
+        "LT-L2-W03",
+        "LT-L2-W04",
+        "LT-L2-W05",
+        "LT-L2-W06",
+        "LT-L2-W07"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L2",
+        "PHASE-L2-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L3",
+      "exit_gate": "L3-EXIT",
+      "work_package_count": 10,
+      "exit_gate_bound_count": 10,
+      "recorded_count": 0,
+      "blocked_count": 10,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L3-W01",
+        "LT-L3-W02",
+        "LT-L3-W03",
+        "LT-L3-W04",
+        "LT-L3-W05",
+        "LT-L3-W06",
+        "LT-L3-W07",
+        "LT-L3-W08",
+        "LT-L3-W09",
+        "LT-L3-W10"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L3",
+        "PHASE-L3-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L4",
+      "exit_gate": "L4-EXIT",
+      "work_package_count": 6,
+      "exit_gate_bound_count": 6,
+      "recorded_count": 0,
+      "blocked_count": 6,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L4-W01",
+        "LT-L4-W02",
+        "LT-L4-W03",
+        "LT-L4-W04",
+        "LT-L4-W05",
+        "LT-L4-W06"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L4",
+        "PHASE-L4-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L5",
+      "exit_gate": "L5-EXIT",
+      "work_package_count": 7,
+      "exit_gate_bound_count": 7,
+      "recorded_count": 0,
+      "blocked_count": 7,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L5-W01",
+        "LT-L5-W02",
+        "LT-L5-W03",
+        "LT-L5-W04",
+        "LT-L5-W05",
+        "LT-L5-W06",
+        "LT-L5-W07"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L5",
+        "PHASE-L5-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L6",
+      "exit_gate": "L6-EXIT",
+      "work_package_count": 6,
+      "exit_gate_bound_count": 6,
+      "recorded_count": 0,
+      "blocked_count": 6,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L6-W01",
+        "LT-L6-W02",
+        "LT-L6-W03",
+        "LT-L6-W04",
+        "LT-L6-W05",
+        "LT-L6-W06"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L6",
+        "PHASE-L6-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L7",
+      "exit_gate": "L7-EXIT",
+      "work_package_count": 6,
+      "exit_gate_bound_count": 6,
+      "recorded_count": 0,
+      "blocked_count": 6,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L7-W01",
+        "LT-L7-W02",
+        "LT-L7-W03",
+        "LT-L7-W04",
+        "LT-L7-W05",
+        "LT-L7-W06"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L7",
+        "PHASE-L7-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L8",
+      "exit_gate": "L8-EXIT",
+      "work_package_count": 3,
+      "exit_gate_bound_count": 3,
+      "recorded_count": 1,
+      "blocked_count": 2,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [
+        "LT-L8-W01"
+      ],
+      "blocked_wp_ids": [
+        "LT-L8-W02",
+        "LT-L8-W03"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L8",
+        "PHASE-L8-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L9",
+      "exit_gate": "L9-EXIT",
+      "work_package_count": 5,
+      "exit_gate_bound_count": 5,
+      "recorded_count": 0,
+      "blocked_count": 5,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L9-W01",
+        "LT-L9-W02",
+        "LT-L9-W03",
+        "LT-L9-W04",
+        "LT-L9-W05"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L9",
+        "PHASE-L9-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    }
+  ],
+  "gate_evidence_queue": [
+    {
+      "intake_id": "GL-G1-G1-E02",
+      "gate_id": "G1",
+      "evidence_id": "G1-E02",
+      "lane": "completion_governance",
+      "execution_context": "repo_local_evidence_possible",
+      "slot": "deferred_item_rejudgment_register",
+      "required_state": "blocking_remaining_count_zero",
+      "required_action": "Produce a zero-blocking deferred item rejudgment register.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G1-G1-E03",
+      "gate_id": "G1",
+      "evidence_id": "G1-E03",
+      "lane": "completion_governance",
+      "execution_context": "repo_local_evidence_possible",
+      "slot": "hardening_coverage_matrix",
+      "required_state": "all_missing_cells_adjudicated_or_zero",
+      "required_action": "Produce a hardening coverage matrix with every missing cell closed or adjudicated.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G10-G10-E01",
+      "gate_id": "G10",
+      "evidence_id": "G10-E01",
+      "lane": "human_final_signoff",
+      "execution_context": "human_signoff_required",
+      "slot": "joint_signoff_artifact",
+      "required_state": "two_required_signatures_present",
+      "required_action": "Attach joint Managing Partner/System Admin signoff artifact.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G10-G10-E02",
+      "gate_id": "G10",
+      "evidence_id": "G10-E02",
+      "lane": "human_final_signoff",
+      "execution_context": "human_signoff_required",
+      "slot": "g1_through_g9_decision_table",
+      "required_state": "nine_rows_and_decision_date_present",
+      "required_action": "Attach nine-row G1-G9 decision table with decision date.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G10-G10-E03",
+      "gate_id": "G10",
+      "evidence_id": "G10-E03",
+      "lane": "human_final_signoff",
+      "execution_context": "human_signoff_required",
+      "slot": "launch_decision_register_entry",
+      "required_state": "linked_and_resolvable",
+      "required_action": "Link the resolvable launch decision register entry.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G2-G2-E01",
+      "gate_id": "G2",
+      "evidence_id": "G2-E01",
+      "lane": "runtime_execution",
+      "execution_context": "tenant_or_runtime_evidence_required",
+      "slot": "wave1_runtime_ready_matrix",
+      "required_state": "approved_wave1_runtime_ready_completeness_rule_satisfied",
+      "required_action": "Produce the approved Wave 1 runtime-ready matrix.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G2-G2-E02",
+      "gate_id": "G2",
+      "evidence_id": "G2-E02",
+      "lane": "runtime_execution",
+      "execution_context": "tenant_or_runtime_evidence_required",
+      "slot": "runtime_integration_test_output",
+      "required_state": "all_tests_pass_with_timestamp",
+      "required_action": "Run runtime integration tests in the target environment and attach timestamped PASS output.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G2-G2-E03",
+      "gate_id": "G2",
+      "evidence_id": "G2-E03",
+      "lane": "runtime_execution",
+      "execution_context": "tenant_or_runtime_evidence_required",
+      "slot": "rtg_001_005_attestation_links",
+      "required_state": "all_links_resolve",
+      "required_action": "Attach RTG-001 through RTG-005 attestation links and verify they resolve.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G3-G3-E01",
+      "gate_id": "G3",
+      "evidence_id": "G3-E01",
+      "lane": "security_verification",
+      "execution_context": "tenant_security_test_required",
+      "slot": "verification_gate_production_rerun",
+      "required_state": "seven_of_seven_pass",
+      "required_action": "Rerun the seven-item verification gate against the production candidate.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G3-G3-E02",
+      "gate_id": "G3",
+      "evidence_id": "G3-E02",
+      "lane": "security_verification",
+      "execution_context": "tenant_security_test_required",
+      "slot": "ethical_wall_blocking_results",
+      "required_state": "five_of_five_pass_with_audit",
+      "required_action": "Run the five ethical-wall blocking paths and attach audit evidence.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G3-G3-E03",
+      "gate_id": "G3",
+      "evidence_id": "G3-E03",
+      "lane": "security_verification",
+      "execution_context": "external_security_review_required",
+      "slot": "penetration_test_adjudication",
+      "required_state": "open_p0_p1_zero",
+      "required_action": "Attach penetration test adjudication showing open P0/P1 equals zero.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G3-G3-E04",
+      "gate_id": "G3",
+      "evidence_id": "G3-E04",
+      "lane": "security_verification",
+      "execution_context": "tenant_security_test_required",
+      "slot": "bypass_mapping_results",
+      "required_state": "all_rows_green",
+      "required_action": "Attach bypass mapping results with every row green.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G4-G4-E01",
+      "gate_id": "G4",
+      "evidence_id": "G4-E01",
+      "lane": "infrastructure_dr_performance",
+      "execution_context": "tenant_infrastructure_execution_required",
+      "slot": "backup_restore_rehearsal",
+      "required_state": "meets_approved_rpo_rto",
+      "required_action": "Run backup/restore rehearsal and attach RPO/RTO evidence.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G4-G4-E02",
+      "gate_id": "G4",
+      "evidence_id": "G4-E02",
+      "lane": "infrastructure_dr_performance",
+      "execution_context": "tenant_infrastructure_execution_required",
+      "slot": "worm_chain_operation",
+      "required_state": "hash_verify_mutation_block_and_hold_purge_block",
+      "required_action": "Verify WORM hash, mutation block, and hold purge block.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G4-G4-E03",
+      "gate_id": "G4",
+      "evidence_id": "G4-E03",
+      "lane": "infrastructure_dr_performance",
+      "execution_context": "tenant_infrastructure_execution_required",
+      "slot": "deployment_rollback_roundtrip",
+      "required_state": "start_end_timestamp_pairs_present",
+      "required_action": "Run deployment rollback roundtrip and attach start/end timestamp pairs.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G4-G4-E04",
+      "gate_id": "G4",
+      "evidence_id": "G4-E04",
+      "lane": "infrastructure_dr_performance",
+      "execution_context": "tenant_infrastructure_execution_required",
+      "slot": "performance_acceptance_report",
+      "required_state": "all_metrics_within_approved_thresholds",
+      "required_action": "Attach performance acceptance report with all metrics inside approved thresholds.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G5-G5-E01",
+      "gate_id": "G5",
+      "evidence_id": "G5-E01",
+      "lane": "m365_tenant",
+      "execution_context": "m365_tenant_access_required",
+      "slot": "admin_consent_scope_reconciliation",
+      "required_state": "mismatch_count_zero",
+      "required_action": "Run M365 admin consent scope reconciliation and show mismatch count zero.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G5-G5-E02",
+      "gate_id": "G5",
+      "evidence_id": "G5-E02",
+      "lane": "m365_tenant",
+      "execution_context": "m365_tenant_access_required",
+      "slot": "addin_release_gate_production_results",
+      "required_state": "six_of_six_pass",
+      "required_action": "Run Outlook add-in production release gate and attach six-of-six PASS.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G5-G5-E03",
+      "gate_id": "G5",
+      "evidence_id": "G5-E03",
+      "lane": "m365_tenant",
+      "execution_context": "m365_tenant_access_required",
+      "slot": "permission_sync_checker_log",
+      "required_state": "injected_mismatch_detected",
+      "required_action": "Run permission sync checker and prove injected mismatch detection.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G6-G6-E01",
+      "gate_id": "G6",
+      "evidence_id": "G6-E01",
+      "lane": "operations_readiness",
+      "execution_context": "operations_tabletop_or_monitoring_required",
+      "slot": "slo_dashboard_and_alert_fire",
+      "required_state": "dashboard_capture_and_alert_timestamp_pair",
+      "required_action": "Capture SLO dashboard and alert-fire timestamp pair.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G6-G6-E02",
+      "gate_id": "G6",
+      "evidence_id": "G6-E02",
+      "lane": "operations_readiness",
+      "execution_context": "operations_tabletop_or_monitoring_required",
+      "slot": "runbook_tabletop_records",
+      "required_state": "incident_breakglass_rollback_each_at_least_once",
+      "required_action": "Record incident, break-glass, and rollback tabletop exercises.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G6-G6-E03",
+      "gate_id": "G6",
+      "evidence_id": "G6-E03",
+      "lane": "operations_readiness",
+      "execution_context": "operations_tabletop_or_monitoring_required",
+      "slot": "break_glass_effective_record",
+      "required_state": "approved_approver_and_time_limit_present",
+      "required_action": "Attach break-glass record with approved approver and time limit.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G6-G6-E04",
+      "gate_id": "G6",
+      "evidence_id": "G6-E04",
+      "lane": "operations_readiness",
+      "execution_context": "operations_tabletop_or_monitoring_required",
+      "slot": "support_channel_roundtrip",
+      "required_state": "test_request_received_and_resolved",
+      "required_action": "Send and resolve a test support request through the launch support channel.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G7-G7-E01",
+      "gate_id": "G7",
+      "evidence_id": "G7-E01",
+      "lane": "compliance_policy",
+      "execution_context": "tenant_or_runtime_evidence_required",
+      "slot": "pipa_retention_policy_setting_reconciliation",
+      "required_state": "mismatch_count_zero",
+      "required_action": "Reconcile ratified PIPA retention policy against system settings.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G7-G7-E02",
+      "gate_id": "G7",
+      "evidence_id": "G7-E02",
+      "lane": "compliance_policy",
+      "execution_context": "tenant_or_runtime_evidence_required",
+      "slot": "ai_disabled_state_or_wave2_gate",
+      "required_state": "all_wave1_ai_off_or_wave2_gate_pass",
+      "required_action": "Prove all Wave 1 AI is off, or attach a passing Wave 2 AI gate.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G7-G7-E03",
+      "gate_id": "G7",
+      "evidence_id": "G7-E03",
+      "lane": "compliance_policy",
+      "execution_context": "tenant_or_runtime_evidence_required",
+      "slot": "hr_sensitive_store_count",
+      "required_state": "real_record_count_zero",
+      "required_action": "Prove HR sensitive store real-data record count equals zero.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G8-G8-E01",
+      "gate_id": "G8",
+      "evidence_id": "G8-E01",
+      "lane": "data_migration_cutover",
+      "execution_context": "tenant_data_migration_execution_required",
+      "slot": "backfill_reconciliation_report",
+      "required_state": "approved_reconciliation_completeness_rule_satisfied_and_unexplained_diff_zero",
+      "required_action": "Attach approved backfill reconciliation with unexplained diff zero.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G8-G8-E02",
+      "gate_id": "G8",
+      "evidence_id": "G8-E02",
+      "lane": "data_migration_cutover",
+      "execution_context": "tenant_data_migration_execution_required",
+      "slot": "delta_sync_latest_log",
+      "required_state": "latest_run_timestamp_and_count_present",
+      "required_action": "Attach latest delta sync run log with timestamp and counts.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G8-G8-E03",
+      "gate_id": "G8",
+      "evidence_id": "G8-E03",
+      "lane": "data_migration_cutover",
+      "execution_context": "tenant_data_migration_execution_required",
+      "slot": "rollback_ready_attestation",
+      "required_state": "current_owner_and_date_present",
+      "required_action": "Attach current rollback-ready owner/date attestation.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G9-G9-E01",
+      "gate_id": "G9",
+      "evidence_id": "G9-E01",
+      "lane": "repo_governance_rollup",
+      "execution_context": "repo_local_evidence_possible",
+      "slot": "goal_closeout_chain_links",
+      "required_state": "all_links_resolve",
+      "required_action": "Verify all goal closeout chain links resolve.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "GL-G9-G9-E03",
+      "gate_id": "G9",
+      "evidence_id": "G9-E03",
+      "lane": "g1_g8_rollup",
+      "execution_context": "tenant_or_runtime_evidence_required",
+      "slot": "g1_through_g8_readiness_report",
+      "required_state": "g1_to_g8_all_pass",
+      "required_action": "Produce a G1-G8 readiness report showing all eight gates pass.",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "evidence_ref": "",
+      "verifier": ""
+    }
+  ],
+  "l9_stabilization_queue": [
+    {
+      "intake_id": "L9-C01",
+      "execution_context": "post_launch_elapsed_time_required",
+      "closure_criterion": "Last 14 days P0/P1 count equals zero",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "required_action": "Measure and attach post-launch operating evidence for the stated stabilization window.",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "L9-C02",
+      "execution_context": "post_launch_elapsed_time_required",
+      "closure_criterion": "Four consecutive weeks SLO met",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "required_action": "Measure and attach post-launch operating evidence for the stated stabilization window.",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "L9-C03",
+      "execution_context": "post_launch_elapsed_time_required",
+      "closure_criterion": "Four weeks audit completeness green",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "required_action": "Measure and attach post-launch operating evidence for the stated stabilization window.",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "L9-C04",
+      "execution_context": "post_launch_elapsed_time_required",
+      "closure_criterion": "Every incident has post-analysis link",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "required_action": "Measure and attach post-launch operating evidence for the stated stabilization window.",
+      "evidence_ref": "",
+      "verifier": ""
+    },
+    {
+      "intake_id": "L9-C05",
+      "execution_context": "human_signoff_required",
+      "closure_criterion": "Owner signoff",
+      "current_status": "pending_evidence_or_owner_deferral",
+      "required_action": "Record owner signoff after the four-week stabilization evidence is complete.",
+      "evidence_ref": "",
+      "verifier": ""
+    }
+  ]
+}
