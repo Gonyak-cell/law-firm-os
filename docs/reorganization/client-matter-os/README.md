@@ -95,6 +95,10 @@ ownership, boundary, and runtime-readiness evidence.
 | `50-g6-b-analytics-dashboard-export-closeout-report.md` | Records the G6-B AR aging, client health, practice P&L, analytics export, and Analytics closeout slice. |
 | `51-g6-c-ai-policy-retrieval-audit-report.md` | Records the G6-C ModelPolicy, RetrievalRequest, permission-aware retrieval, and PromptLog audit slice. |
 | `52-g6-d-ai-output-review-controls-report.md` | Records the G6-D AIOutput, Citation, HumanReviewQueue, and DisableSwitch review-control slice. |
+| `53-g6-e-ai-legal-workflows-closeout-report.md` | Records the G6-E AI legal workflow, workflow-builder, AI export, and AI closeout slice. |
+| `54-g6-f-portal-rfi-foundation-report.md` | Records the G6-F ExternalUser, PortalMatterProjection, ExternalACL, RFIRequest, and RFIResponse upload slice. |
+| `55-g6-g-portal-data-room-closeout-report.md` | Records the G6-G client approval, secure link, DataRoom, portal audit, and Portal/Data Room closeout slice. |
+| `56-g7-enterprise-hardening-entry-plan.md` | Opens the G7 Enterprise hardening, UAT, migration, HRX, QA/security, and production-readiness planning lane. |
 
 ## Execution Order
 
@@ -163,6 +167,7 @@ npm run client-matter:g6d:validate
 npm run client-matter:g6e:validate
 npm run client-matter:g6f:validate
 npm run client-matter:g6g:validate
+npm run client-matter:g7:plan:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -362,6 +367,12 @@ watermark, and MFA controls, DataRoom room-level ACL evidence, portal external
 view/upload audit coverage, no-internal-data-exposure closeout, test coverage,
 RP19/RP20 descriptor-only contract boundaries, and the open runtime-readiness
 boundary.
+
+The G7 plan validator checks all 40 G7 TUWs, W12-W15 coverage, Admin,
+Integrations, Migration, Enterprise SaaS, Platform, Marketplace, Commercial,
+and HRX descriptor evidence, G6-G handoff, stacked PR branch markers, and the
+open boundary for enterprise trust, UAT completion, production readiness, and
+go-live approval.
 
 ## Non-Goals
 
