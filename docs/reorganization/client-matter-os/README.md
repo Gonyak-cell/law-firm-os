@@ -87,6 +87,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `42-g5-a-time-expense-foundation-report.md` | Records the G5-A TimeEntry, RateCard, FeeArrangement, time-entry workflow, Expense, and Disbursement foundation slice. |
 | `43-g5-b-wip-prebill-adjustment-report.md` | Records the G5-B WIP generation, immutable PreBill snapshot, partner review, and write-down/write-off approval slice. |
 | `44-g5-c-invoice-tax-billing-ui-report.md` | Records the G5-C invoice issue, invoice-line reconciliation, TaxInvoice, correction workflow, Billing UI masking, and G5 Billing closeout slice. |
+| `45-g5-d-payment-ar-foundation-report.md` | Records the G5-D Payment import, duplicate import idempotency, partial matching, ARBalance, and AR aging foundation slice. |
 
 ## Execution Order
 
@@ -144,6 +145,7 @@ npm run client-matter:g5:plan:validate
 npm run client-matter:g5a:validate
 npm run client-matter:g5b:validate
 npm run client-matter:g5c:validate
+npm run client-matter:g5d:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -281,6 +283,12 @@ line reconciliation, TaxInvoice issue/transmit/fail evidence, issued-invoice
 direct-edit blocking, Billing UI role-based detail masking, time-to-invoice
 closeout evidence, test coverage, RP12 descriptor-only contract boundary, and
 the open runtime-readiness boundary.
+
+The G5-D validator checks Payment imported/unmatched state evidence, duplicate
+import idempotency, partial payment matching without duplicate cash recognition,
+ARBalance derivation from issued invoices, AR aging bucket calculation evidence,
+test coverage, RP13 descriptor-only contract boundary, and the open
+runtime-readiness boundary.
 
 ## Non-Goals
 
