@@ -2,6 +2,21 @@
 
 Audit concepts for login, document access, permission changes, billing changes, settlement runs, exports, admin access, and AI access.
 
+## G1-B Durable Audit Entry
+
+`packages/audit/src/durable-entry.js` opens the Client-Matter OS G1-B slice for
+`LFOS-G1-W01-T004` through `LFOS-G1-W01-T006`:
+
+- `buildAuditEventInput()` prepares durable audit event schema inputs compatible
+  with the append-only hash-chain ledger.
+- `createAuditMiddleware()` appends write-route audit events through the ledger
+  with idempotency-key protection.
+- `recordSensitiveRead()` appends sensitive read audit events bound to a
+  permission decision and document/matter context.
+
+This slice does not close G1. It opens the durable audit entry interface for
+later permission-control, export, simulator, and closeout PRs.
+
 ## CP00-135 Entry Readiness
 
 CP00-135 opens the RP03 Audit And Compliance Kernel pack lane with a no-write, synthetic-only readiness catalog for `RP03.P00.M00.S01-RP03.P01.M08.S05`.

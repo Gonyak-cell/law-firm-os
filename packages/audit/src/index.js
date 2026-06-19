@@ -1,5 +1,6 @@
 export * from "./append-only-ledger.js";
 export * from "./api-ui-reference-readiness-catalog.js";
+export * from "./durable-entry.js";
 export * from "./entry-readiness-catalog.js";
 export * from "./events.js";
 export * from "./retention.js";

@@ -172,6 +172,9 @@ import {
   createAuditComplianceCp155ReviewTerminalCloseoutCatalog,
   createAuditComplianceCp155ReviewTerminalCloseoutManifest,
   createAuditLedger,
+  buildAuditEventInput,
+  createAuditMiddleware,
+  recordSensitiveRead,
   runAuditComplianceCp135EntryReadinessCase,
   runAuditComplianceCp136ServiceInterfaceReadinessCase,
   runAuditComplianceCp137ServiceInterfaceWorkflowEvidenceCase,
@@ -406,6 +409,111 @@ test("ledger enforces tenant-scoped idempotency keys", () => {
   assert.equal(duplicate, first);
   assert.equal(otherTenant.event_id, "evt_other_tenant");
   assert.deepEqual(ledger.list({ tenant_id: "t_one" }).map((event) => event.event_id), ["evt_once"]);
+});
+
+test("G1-B durable audit event input appends through hash chain", () => {
+  const ledger = createAuditLedger();
+  const input = buildAuditEventInput({
+    tenant_id: "t_synthetic",
+    actor: { actor_id: "u_attorney", actor_type: "user" },
+    action: "matter.update",
+    object: { object_id: "m_001", object_type: "Matter" },
+    outcome: "allow",
+    decision: "allow",
+    reason_code: "matter_update",
+    source_service: "matter-api",
+    request: {
+      request_id: "req_g1b_schema",
+      trace_id: "trace_g1b_schema",
+      span_id: "span_g1b_schema",
+      idempotency_key: "idem_g1b_schema",
+    },
+    matter_id: "m_001",
+    permission_decision_id: "pd_g1b_schema",
+    occurred_at: "2026-06-19T00:00:00.000Z",
+    received_at: "2026-06-19T00:00:01.000Z",
+  });
+
+  const event = ledger.append(input);
+
+  assert.equal(event.schema_version, "law-firm-os.audit-event.v0.1");
+  assert.equal(event.sequence_number, 1);
+  assert.equal(event.previous_event_hash, "GENESIS");
+  assert.equal(event.action, "matter.update");
+  assert.equal(event.payload_classification, "metadata_plus_digest");
+  assert.deepEqual(ledger.verify({ tenant_id: "t_synthetic" }), { ok: true, checked: 1 });
+});
+
+test("G1-B audit middleware appends write route audit events idempotently", () => {
+  const ledger = createAuditLedger();
+  const appendAuditEvent = createAuditMiddleware({ ledger, source_service: "matter-api" });
+  const input = {
+    tenant_id: "t_synthetic",
+    actor: { actor_id: "u_partner", actor_type: "user" },
+    action: "matter.write",
+    object: { object_id: "m_002", object_type: "Matter" },
+    outcome: "allow",
+    decision: "allow",
+    reason_code: "matter_write",
+    request: {
+      request_id: "req_g1b_write",
+      trace_id: "trace_g1b_write",
+      span_id: "span_g1b_write",
+      idempotency_key: "idem_g1b_write",
+    },
+    matter_id: "m_002",
+    permission_decision_id: "pd_g1b_write",
+    occurred_at: "2026-06-19T00:01:00.000Z",
+    received_at: "2026-06-19T00:01:01.000Z",
+  };
+
+  const first = appendAuditEvent(input);
+  const duplicate = appendAuditEvent(input);
+  const events = ledger.list({ tenant_id: "t_synthetic" });
+
+  assert.equal(first.event_id, duplicate.event_id);
+  assert.equal(first.sequence_number, 1);
+  assert.equal(events.length, 1);
+  assert.equal(events[0].source_service, "matter-api");
+});
+
+test("G1-B sensitive read audit binds permission decision and document version", () => {
+  const ledger = createAuditLedger();
+  const result = recordSensitiveRead({
+    ledger,
+    actor: { actor_id: "u_reviewer", actor_type: "user", tenant_id: "t_synthetic" },
+    object: {
+      object_id: "d_003",
+      object_type: "Document",
+      matter_id: "m_003",
+      document_version_id: "dv_003",
+      payload_digest: "sha256:document-digest",
+    },
+    permissionDecision: {
+      permission_decision_id: "pd_g1b_read",
+      tenant_id: "t_synthetic",
+      effect: "allow",
+      reason: "object_acl_allow",
+    },
+    request: {
+      request_id: "req_g1b_read",
+      trace_id: "trace_g1b_read",
+      span_id: "span_g1b_read",
+      idempotency_key: "idem_g1b_read",
+    },
+    source_service: "dms-api",
+    occurred_at: "2026-06-19T00:02:00.000Z",
+    received_at: "2026-06-19T00:02:01.000Z",
+  });
+  const [event] = ledger.list({ tenant_id: "t_synthetic" });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.permission_decision_id, "pd_g1b_read");
+  assert.equal(result.payload_digest, "sha256:document-digest");
+  assert.equal(event.action, "Document.sensitive_read");
+  assert.equal(event.document_version_id, "dv_003");
+  assert.equal(event.permission_decision_id, "pd_g1b_read");
+  assert.deepEqual(result.tuw_ids, ["LFOS-G1-W01-T006"]);
 });
 
 test("legal hold blocks purge even when retention expired", () => {
