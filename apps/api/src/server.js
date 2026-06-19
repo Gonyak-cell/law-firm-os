@@ -57,6 +57,12 @@ import {
   handleAnalyticsReadModelApiRequest,
   isAnalyticsReadModelPath,
 } from "./analytics-read-model-runtime-context.js";
+import {
+  AI_RAG_GOVERNANCE_BOUNDED_CONTEXT,
+  createAiRagGovernanceRuntimeContext,
+  handleAiRagGovernanceApiRequest,
+  isAiRagGovernancePath,
+} from "./ai-rag-governance-runtime-context.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
@@ -68,6 +74,7 @@ const VAULT_DMS_RUNTIME = createVaultDmsRuntimeContext();
 const CRM_INTAKE_RUNTIME = createCrmIntakeRuntimeContext();
 const REVENUE_FINANCE_RUNTIME = createRevenueFinanceRuntimeContext();
 const ANALYTICS_READ_MODEL_RUNTIME = createAnalyticsReadModelRuntimeContext();
+const AI_RAG_GOVERNANCE_RUNTIME = createAiRagGovernanceRuntimeContext();
 
 export const SERVICE_DESCRIPTOR = Object.freeze({
   service: "@law-firm-os/api",
@@ -82,6 +89,7 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
     CRM_INTAKE_CLEARANCE_BOUNDED_CONTEXT,
     REVENUE_FINANCE_BOUNDED_CONTEXT,
     ANALYTICS_READ_MODEL_BOUNDED_CONTEXT,
+    AI_RAG_GOVERNANCE_BOUNDED_CONTEXT,
   ]),
   permission_gate: Object.freeze({
     contract_ref: "contracts/permission-kernel-contract.json",
@@ -138,6 +146,7 @@ async function handle(req, res) {
   const isCrmIntakeRuntimePath = isCrmIntakePath(pathname);
   const isRevenueFinanceRuntimePath = isRevenueFinancePath(pathname);
   const isAnalyticsReadModelRuntimePath = isAnalyticsReadModelPath(pathname);
+  const isAiRagGovernanceRuntimePath = isAiRagGovernancePath(pathname);
   const knownPath =
     pathname === "/api/health" ||
     pathname === "/master-data/records" ||
@@ -150,6 +159,7 @@ async function handle(req, res) {
     isCrmIntakeRuntimePath ||
     isRevenueFinanceRuntimePath ||
     isAnalyticsReadModelRuntimePath ||
+    isAiRagGovernanceRuntimePath ||
     isHrxPath;
 
   if (!knownPath) {
@@ -165,6 +175,7 @@ async function handle(req, res) {
     !isCrmIntakeRuntimePath &&
     !isRevenueFinanceRuntimePath &&
     !isAnalyticsReadModelRuntimePath &&
+    !isAiRagGovernanceRuntimePath &&
     req.method !== "GET"
   ) {
     sendJson(res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
@@ -214,6 +225,13 @@ async function handle(req, res) {
   if (isAnalyticsReadModelRuntimePath) {
     const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
     const result = await handleAnalyticsReadModelApiRequest({ pathname, method: req.method, query, body, context: ANALYTICS_READ_MODEL_RUNTIME });
+    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isAiRagGovernanceRuntimePath) {
+    const body = ["POST", "PATCH"].includes(req.method) ? await readRequestBody(req) : {};
+    const result = await handleAiRagGovernanceApiRequest({ pathname, method: req.method, query, body, context: AI_RAG_GOVERNANCE_RUNTIME });
     sendJson(res, result.status, { request_id: requestId, ...result.body });
     return;
   }
