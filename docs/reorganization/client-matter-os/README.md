@@ -75,6 +75,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `30-g3-b-crm-service-ui-closeout-report.md` | Records the G3-B CRM pipeline, permission trimming, summary UI, Opportunity-to-Intake, KeyClientPlan, and partial closeout slice. |
 | `31-g3-c-intake-conflict-schema-report.md` | Records the G3-C IntakeRequest, ConflictCheck, and ConflictHit schema slice. |
 | `32-g3-d-conflict-engagement-workflow-report.md` | Records the G3-D conflict search, decision, waiver, engagement, FeeTerms, risk approval, and clearance-token workflow slice. |
+| `33-g3-e-intake-ui-closeout-report.md` | Records the G3-E conflict memo boundary, waiver UI, engagement UI, and G3 Intake closeout slice. |
 
 ## Execution Order
 
@@ -120,6 +121,7 @@ npm run client-matter:g3a:validate
 npm run client-matter:g3b:validate
 npm run client-matter:g3c:validate
 npm run client-matter:g3d:validate
+npm run client-matter:g3e:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -193,6 +195,11 @@ decision workflow, waiver consent document evidence, engagement legal
 client/scope requirements, hourly/fixed/cap/retainer FeeTerms, risk approval
 audit evidence, expired or stale clearance-token blocking, test coverage, and
 the open runtime-readiness boundary.
+
+The G3-E validator checks conflict memo permission boundaries, CRM-user denial,
+hidden-field and unauthorized-count leak guards, waiver denied/review UI states,
+engagement signed/approved UI states, G3 closeout evidence, Opportunity-to-Matter
+bypass blocking, test coverage, and the open runtime-readiness boundary.
 
 ## Non-Goals
 
