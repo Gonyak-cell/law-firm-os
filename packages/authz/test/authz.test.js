@@ -166,6 +166,8 @@ import {
   createPermissionKernelCp134TerminalReviewCloseoutReadiness,
   createPermissionKernelCp134TerminalReviewCloseoutReadinessCatalog,
   createPermissionKernelCp134TerminalReviewCloseoutReadinessManifest,
+  createActorContext,
+  createPermissionContext,
   executePermissionKernelCp110Workflow,
   evaluatePermission,
   runPermissionKernelCp119FixtureWorkflowCase,
@@ -186,6 +188,7 @@ import {
   runPermissionKernelCp134TerminalReviewCloseoutReadinessCase,
   runPermissionKernelCp111SyntheticFixtureProfile,
   trimSearchResults,
+  validateTenantBoundary,
   validatePermissionKernelCp108Coverage,
   validatePermissionKernelCp109Coverage,
   validatePermissionKernelCp110Coverage,
@@ -256,6 +259,65 @@ test("search results are security-trimmed before display", () => {
   ];
 
   assert.deepEqual(trimSearchResults(principal, results, rules).map((row) => row.resource_id), ["d_001"]);
+});
+
+test("G1-A tenant boundary rejects missing tenant", () => {
+  const result = validateTenantBoundary({
+    principal: { user_id: "u_missing_tenant" },
+    resource: documentResource,
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.effect, "deny");
+  assert.equal(result.reason, "tenant_context_missing");
+  assert.deepEqual(result.tuw_ids, ["LFOS-G1-W01-T001"]);
+});
+
+test("G1-A actor context rejects missing actor", () => {
+  const result = createActorContext({ principal: { tenant_id: "t_synthetic" } });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.effect, "deny");
+  assert.equal(result.reason, "actor_context_missing");
+  assert.deepEqual(result.tuw_ids, ["LFOS-G1-W01-T002"]);
+});
+
+test("G1-A actor context rejects unauthorized actor type", () => {
+  const result = createActorContext({
+    principal: { user_id: "u_shadow", tenant_id: "t_synthetic", actor_type: "shadow_admin" },
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, "unauthorized_actor_type");
+  assert.equal(result.actor_type, "shadow_admin");
+});
+
+test("G1-A permission context binds tenant actor action object and audit", () => {
+  const result = createPermissionContext({
+    principal,
+    resource: documentResource,
+    action: "document.view",
+    request: {
+      request_id: "req_g1a_001",
+      trace_id: "trace_g1a_001",
+      source_service: "matter-api",
+    },
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.tenant_id, "t_synthetic");
+  assert.equal(result.actor.actor_id, "u_attorney");
+  assert.equal(result.actor.actor_type, "user");
+  assert.equal(result.action, "document.view");
+  assert.equal(result.object.object_id, "d_001");
+  assert.equal(result.persistence_required, true);
+  assert.equal(result.header_only_trust_allowed, false);
+  assert.equal(result.audit_binding.permission_context_id, result.permission_context_id);
+  assert.deepEqual(result.tuw_ids, [
+    "LFOS-G1-W01-T001",
+    "LFOS-G1-W01-T002",
+    "LFOS-G1-W01-T003",
+  ]);
 });
 
 test("search trimming respects object ACL denies before display", () => {

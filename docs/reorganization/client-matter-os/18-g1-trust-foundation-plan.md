@@ -81,6 +81,7 @@ G1 cannot close until the following evidence exists in implementation PRs:
 ```sh
 npm run client-matter:g0:validate
 npm run client-matter:g1:plan:validate
+npm run client-matter:g1a:validate
 npm run rp02:permission-kernel:validate
 npm run rp03:audit:validate
 npm run validate
