@@ -162,6 +162,7 @@ npm run client-matter:g6c:validate
 npm run client-matter:g6d:validate
 npm run client-matter:g6e:validate
 npm run client-matter:g6f:validate
+npm run client-matter:g6g:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -355,6 +356,12 @@ PortalMatterProjection internal memo and hidden detail exclusion, ExternalACL
 shared-only access, RFIRequest due date/status evidence, RFIResponse upload
 security placeholders, test coverage, RP19 descriptor-only contract boundary,
 and the open runtime-readiness boundary.
+
+The G6-G validator checks client approval audit evidence, secure-link expiry,
+watermark, and MFA controls, DataRoom room-level ACL evidence, portal external
+view/upload audit coverage, no-internal-data-exposure closeout, test coverage,
+RP19/RP20 descriptor-only contract boundaries, and the open runtime-readiness
+boundary.
 
 ## Non-Goals
 
