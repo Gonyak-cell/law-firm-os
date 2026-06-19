@@ -73,6 +73,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `28-g3-crm-intake-entry-plan.md` | Opens the G3 CRM/Intake execution lane with TUW coverage, entry evidence, Opportunity-to-Matter shortcut controls, and PR slices. |
 | `29-g3-a-crm-schema-report.md` | Records the G3-A Lead, Opportunity, CRMActivity, Proposal, Referral, and Campaign schema slice. |
 | `30-g3-b-crm-service-ui-closeout-report.md` | Records the G3-B CRM pipeline, permission trimming, summary UI, Opportunity-to-Intake, KeyClientPlan, and partial closeout slice. |
+| `31-g3-c-intake-conflict-schema-report.md` | Records the G3-C IntakeRequest, ConflictCheck, and ConflictHit schema slice. |
 
 ## Execution Order
 
@@ -116,6 +117,7 @@ npm run client-matter:g2d:validate
 npm run client-matter:g3:plan:validate
 npm run client-matter:g3a:validate
 npm run client-matter:g3b:validate
+npm run client-matter:g3c:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -178,6 +180,11 @@ activity trimming, no conflict memo or billing detail leak in CRM summary state,
 Opportunity-to-Intake-only command evidence, KeyClientPlan AR/detail masking,
 partial closeout evidence, test coverage, and the open runtime-readiness
 boundary.
+
+The G3-C validator checks IntakeRequest required Party references,
+pre-clearance Matter blocking, ConflictCheck immutable snapshot evidence,
+ConflictHit source/audit evidence, test coverage, and the open
+runtime-readiness boundary.
 
 ## Non-Goals
 
