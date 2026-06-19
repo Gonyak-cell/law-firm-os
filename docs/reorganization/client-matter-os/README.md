@@ -78,6 +78,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `33-g3-e-intake-ui-closeout-report.md` | Records the G3-E conflict memo boundary, waiver UI, engagement UI, and G3 Intake closeout slice. |
 | `34-g4-matter-dms-entry-plan.md` | Opens the G4 Matter/DMS execution lane with TUW coverage, entry evidence, Matter opening clearance controls, DMS permission/search controls, and PR slices. |
 | `35-g4-a-matter-opening-foundation-report.md` | Records the G4-A Matter opening record, matter number reservation, atomic opening transaction refs, and MatterMember permission slice. |
+| `36-g4-b-matter-execution-workflow-report.md` | Records the G4-B Matter team UI, task transition, deadline audit, critical deadline dual control, status history, and client report projection slice. |
 
 ## Execution Order
 
@@ -126,6 +127,7 @@ npm run client-matter:g3d:validate
 npm run client-matter:g3e:validate
 npm run client-matter:g4:plan:validate
 npm run client-matter:g4a:validate
+npm run client-matter:g4b:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -213,6 +215,11 @@ The G4-A validator checks Matter opening clearance requirements, matter number
 idempotency and duplicate blocking, ACL/DMS/Billing atomic opening refs,
 MatterMember role permission evidence, test coverage, and the open
 runtime-readiness boundary.
+
+The G4-B validator checks Matter team add/remove audit and hidden-member
+trimming, MatterTask status transitions, deadline-change audit, critical
+deadline two-person confirmation, immutable status history, client-safe report
+projection, test coverage, and the open runtime-readiness boundary.
 
 ## Non-Goals
 

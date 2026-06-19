@@ -19,6 +19,24 @@ export const MATTER_G4A_REQUIRED_CLEARANCE_FIELDS = Object.freeze([
   "snapshot_hash",
 ]);
 
+export const MATTER_G4B_TASK_STATUS_TRANSITIONS = Object.freeze({
+  todo: Object.freeze(["in_progress", "blocked", "cancelled"]),
+  in_progress: Object.freeze(["blocked", "done", "cancelled"]),
+  blocked: Object.freeze(["in_progress", "cancelled"]),
+  done: Object.freeze([]),
+  cancelled: Object.freeze([]),
+});
+
+export const MATTER_G4B_CLIENT_REPORT_HIDDEN_FIELDS = Object.freeze([
+  "conflict_memo",
+  "privileged_strategy",
+  "internal_notes",
+  "raw_audit_event",
+  "permission_decision_detail",
+  "billing_detail",
+  "unauthorized_count",
+]);
+
 function freezeRecord(record) {
   return Object.freeze(record);
 }
@@ -304,4 +322,283 @@ export function createMatterG4AOpeningFoundationCloseoutDescriptor(request = {})
 
 export function createMatterG4Member(input = {}) {
   return createMatterMember(input);
+}
+
+export function createMatterTeamUiStateDescriptor(request = {}) {
+  const missing = missingFields(["tenant_id", "actor_id", "matter_id"], request);
+  const members = freezeArray(request.members);
+  const blockedClaims = [];
+  const action = request.action ?? "view";
+  const actionRequiresAudit = ["add_member", "remove_member"].includes(action);
+
+  if (missing.length > 0) blockedClaims.push("matter_team_ui_required_context_missing");
+  if (actionRequiresAudit && !request.audit_ref) blockedClaims.push("matter_team_add_remove_audit_required");
+
+  const visibleMembers = members
+    .filter((member) => member.hidden_from_actor !== true)
+    .map((member) =>
+      freezeRecord({
+        member_id: member.member_id,
+        user_id: member.user_id,
+        role: member.role,
+        status: member.status,
+      }),
+    );
+  const hiddenMemberCount = members.length - visibleMembers.length;
+  const outcome = blockedClaims.length > 0 ? "blocked" : "review_required";
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G4-W05-T005"),
+    descriptor_type: "matter_team_ui_state_descriptor",
+    tenant_id: request.tenant_id ?? null,
+    actor_id: request.actor_id ?? null,
+    matter_id: request.matter_id ?? null,
+    action,
+    visible_members: freezeArray(visibleMembers),
+    hidden_member_count_internal: hiddenMemberCount,
+    hidden_member_count_exposed: null,
+    unauthorized_count_leaked: false,
+    audit_ref: request.audit_ref ?? null,
+    outcome,
+    blocked_claims: freezeArray(blockedClaims),
+    ui_receipt: freezeRecord({
+      add_remove_audit_required: actionRequiresAudit,
+      state_rendered: false,
+      member_write_persisted: false,
+      hidden_member_details_exposed: false,
+    }),
+  });
+}
+
+export function createMatterTaskTransitionDescriptor(request = {}) {
+  const missing = missingFields(["tenant_id", "actor_id", "task", "to_status", "transition_reason", "audit_ref"], request);
+  const task = request.task ?? {};
+  const blockedClaims = [];
+  const taskValidation = validateMatterCoreRecord("MatterTask", task, { expected_tenant_id: request.tenant_id });
+  const fromStatus = task.status;
+  const allowedTargets = MATTER_G4B_TASK_STATUS_TRANSITIONS[fromStatus] ?? [];
+
+  if (missing.length > 0) blockedClaims.push("matter_task_transition_required_context_missing");
+  if (!taskValidation.valid) blockedClaims.push("matter_task_schema_validation_required");
+  if (!allowedTargets.includes(request.to_status)) blockedClaims.push("matter_task_status_transition_invalid");
+
+  const outcome = blockedClaims.length > 0 ? "blocked" : "review_required";
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G4-W05-T006"),
+    descriptor_type: "matter_task_transition_descriptor",
+    tenant_id: request.tenant_id ?? task.tenant_id ?? null,
+    actor_id: request.actor_id ?? null,
+    matter_id: task.matter_id ?? null,
+    task_id: task.task_id ?? null,
+    from_status: fromStatus ?? null,
+    to_status: request.to_status ?? null,
+    allowed_targets: freezeArray(allowedTargets),
+    transition_reason: request.transition_reason ?? null,
+    audit_ref: request.audit_ref ?? null,
+    task_validation: taskValidation,
+    outcome,
+    blocked_claims: freezeArray(blockedClaims),
+    transition_receipt: freezeRecord({
+      status_transition_tested: true,
+      transition_persisted: false,
+      audit_event_written: false,
+    }),
+  });
+}
+
+export function createMatterCalendarDeadlineChangeDescriptor(request = {}) {
+  const missing = missingFields(["tenant_id", "actor_id", "event", "new_starts_at", "change_reason", "audit_ref"], request);
+  const event = request.event ?? {};
+  const blockedClaims = [];
+  const eventValidation = validateMatterCoreRecord("MatterCalendarEvent", event, { expected_tenant_id: request.tenant_id });
+
+  if (missing.length > 0) blockedClaims.push("matter_deadline_change_required_context_missing");
+  if (!eventValidation.valid) blockedClaims.push("matter_calendar_event_schema_validation_required");
+  if (request.new_starts_at === event.starts_at && (request.new_ends_at ?? event.ends_at ?? null) === (event.ends_at ?? null)) {
+    blockedClaims.push("matter_deadline_change_noop");
+  }
+
+  const outcome = blockedClaims.length > 0 ? "blocked" : "review_required";
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G4-W05-T007"),
+    descriptor_type: "matter_calendar_deadline_change_descriptor",
+    tenant_id: request.tenant_id ?? event.tenant_id ?? null,
+    actor_id: request.actor_id ?? null,
+    matter_id: event.matter_id ?? null,
+    event_id: event.event_id ?? null,
+    previous_starts_at: event.starts_at ?? null,
+    previous_ends_at: event.ends_at ?? null,
+    new_starts_at: request.new_starts_at ?? null,
+    new_ends_at: request.new_ends_at ?? event.ends_at ?? null,
+    change_reason: request.change_reason ?? null,
+    audit_ref: request.audit_ref ?? null,
+    event_validation: eventValidation,
+    outcome,
+    blocked_claims: freezeArray(blockedClaims),
+    deadline_receipt: freezeRecord({
+      deadline_change_audit_required: true,
+      deadline_change_persisted: false,
+      audit_event_written: false,
+    }),
+  });
+}
+
+export function createMatterCriticalDeadlineDualControlDescriptor(request = {}) {
+  const missing = missingFields(["tenant_id", "event_id", "requester_user_id", "confirmer_user_id", "confirmation_audit_ref"], request);
+  const blockedClaims = [];
+
+  if (missing.length > 0) blockedClaims.push("critical_deadline_confirmation_required_context_missing");
+  if (request.requester_user_id && request.requester_user_id === request.confirmer_user_id) {
+    blockedClaims.push("critical_deadline_two_person_confirmation_required");
+  }
+
+  const outcome = blockedClaims.length > 0 ? "blocked" : "review_required";
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G4-W05-T008"),
+    descriptor_type: "matter_critical_deadline_dual_control_descriptor",
+    tenant_id: request.tenant_id ?? null,
+    matter_id: request.matter_id ?? null,
+    event_id: request.event_id ?? null,
+    requester_user_id: request.requester_user_id ?? null,
+    confirmer_user_id: request.confirmer_user_id ?? null,
+    confirmation_audit_ref: request.confirmation_audit_ref ?? null,
+    outcome,
+    blocked_claims: freezeArray(blockedClaims),
+    dual_control_receipt: freezeRecord({
+      two_person_confirmation_required: true,
+      confirmation_persisted: false,
+      audit_event_written: false,
+    }),
+  });
+}
+
+export function createMatterStatusHistoryDescriptor(request = {}) {
+  const missing = missingFields(["tenant_id", "matter_id", "from_status", "to_status", "actor_id", "reason", "audit_ref"], request);
+  const blockedClaims = [];
+
+  if (missing.length > 0) blockedClaims.push("matter_status_history_required_context_missing");
+  if (request.from_status === request.to_status) blockedClaims.push("matter_status_history_noop");
+
+  const historyRecord = freezeRecord({
+    status_history_id: request.status_history_id ?? `matter-status-history:${request.tenant_id}:${request.matter_id}:${request.to_status}`,
+    tenant_id: request.tenant_id ?? null,
+    matter_id: request.matter_id ?? null,
+    from_status: request.from_status ?? null,
+    to_status: request.to_status ?? null,
+    actor_id: request.actor_id ?? null,
+    reason: request.reason ?? null,
+    audit_ref: request.audit_ref ?? null,
+    changed_at: request.changed_at ?? null,
+    immutable_history: true,
+  });
+  const outcome = blockedClaims.length > 0 ? "blocked" : "review_required";
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G4-W05-T009"),
+    descriptor_type: "matter_status_history_descriptor",
+    tenant_id: request.tenant_id ?? null,
+    matter_id: request.matter_id ?? null,
+    history_record: historyRecord,
+    outcome,
+    blocked_claims: freezeArray(blockedClaims),
+    history_receipt: freezeRecord({
+      immutable_history_required: true,
+      status_history_persisted: false,
+      audit_event_written: false,
+    }),
+  });
+}
+
+export function createMatterClientReportProjectionDescriptor(request = {}) {
+  const missing = missingFields(["tenant_id", "matter_id", "client_report_id", "source_report"], request);
+  const blockedClaims = [];
+  const sourceReport = request.source_report ?? {};
+  const sourceSections = freezeArray(sourceReport.sections);
+  const removedFields = [];
+  const visibleSections = sourceSections
+    .filter((section) => section.client_visible !== false && section.privileged !== true)
+    .map((section) => {
+      const cleanSection = {};
+      for (const [key, value] of Object.entries(section)) {
+        if (MATTER_G4B_CLIENT_REPORT_HIDDEN_FIELDS.includes(key)) {
+          removedFields.push(key);
+        } else {
+          cleanSection[key] = value;
+        }
+      }
+      return freezeRecord(cleanSection);
+    });
+  for (const field of MATTER_G4B_CLIENT_REPORT_HIDDEN_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(sourceReport, field)) removedFields.push(field);
+  }
+  if (missing.length > 0) blockedClaims.push("client_report_projection_required_context_missing");
+
+  const outcome = blockedClaims.length > 0 ? "blocked" : "review_required";
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G4-W05-T010"),
+    descriptor_type: "matter_client_report_projection_descriptor",
+    tenant_id: request.tenant_id ?? null,
+    matter_id: request.matter_id ?? null,
+    client_report_id: request.client_report_id ?? null,
+    visible_sections: freezeArray(visibleSections),
+    removed_fields: freezeArray([...new Set(removedFields)]),
+    portal_projection_safe: true,
+    unauthorized_count_leaked: false,
+    outcome,
+    blocked_claims: freezeArray(blockedClaims),
+    projection_receipt: freezeRecord({
+      privileged_material_removed: true,
+      internal_material_removed: true,
+      raw_audit_removed: true,
+      projection_persisted: false,
+      portal_published: false,
+    }),
+  });
+}
+
+export function createMatterG4BExecutionWorkflowCloseoutDescriptor(request = {}) {
+  const descriptors = freezeArray(request.descriptors);
+  const blockedCount = descriptors.filter((descriptor) => descriptor.outcome === "blocked").length;
+  const tuwCoverage = freezeArray([
+    "LFOS-G4-W05-T005",
+    "LFOS-G4-W05-T006",
+    "LFOS-G4-W05-T007",
+    "LFOS-G4-W05-T008",
+    "LFOS-G4-W05-T009",
+    "LFOS-G4-W05-T010",
+  ]);
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G4-W05-T010"),
+    descriptor_type: "matter_g4b_execution_workflow_closeout_descriptor",
+    slice: "G4-B",
+    tenant_id: request.tenant_id ?? null,
+    branch: "codex/lawos-g4-matter-execution-workflow",
+    tuw_coverage: tuwCoverage,
+    descriptor_count: descriptors.length,
+    blocked_descriptor_count: blockedCount,
+    matter_team_ui_audit_tested: descriptors.some((descriptor) => descriptor.descriptor_type === "matter_team_ui_state_descriptor"),
+    matter_task_transition_tested: descriptors.some((descriptor) => descriptor.descriptor_type === "matter_task_transition_descriptor"),
+    deadline_change_audit_tested: descriptors.some(
+      (descriptor) => descriptor.descriptor_type === "matter_calendar_deadline_change_descriptor",
+    ),
+    critical_deadline_dual_control_tested: descriptors.some(
+      (descriptor) => descriptor.descriptor_type === "matter_critical_deadline_dual_control_descriptor",
+    ),
+    matter_status_history_tested: descriptors.some((descriptor) => descriptor.descriptor_type === "matter_status_history_descriptor"),
+    client_report_projection_tested: descriptors.some(
+      (descriptor) => descriptor.descriptor_type === "matter_client_report_projection_descriptor",
+    ),
+    outcome: blockedCount > 0 ? "blocked" : "review_required",
+    closeout_receipt: freezeRecord({
+      command_output_recorded: false,
+      draft_pr_required: true,
+      human_review_required: true,
+      runtime_readiness_claim: "open",
+    }),
+  });
 }
