@@ -89,6 +89,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `44-g5-c-invoice-tax-billing-ui-report.md` | Records the G5-C invoice issue, invoice-line reconciliation, TaxInvoice, correction workflow, Billing UI masking, and G5 Billing closeout slice. |
 | `45-g5-d-payment-ar-foundation-report.md` | Records the G5-D Payment import, duplicate import idempotency, partial matching, ARBalance, and AR aging foundation slice. |
 | `46-g5-e-accounting-tax-export-report.md` | Records the G5-E JournalEntry, accounting export, and VAT/tax export slice. |
+| `47-g5-f-settlement-finance-ui-closeout-report.md` | Records the G5-F SettlementRun, OriginationCredit, WorkingCredit, settlement approval, Finance UI masking, and G5 Finance closeout slice. |
 
 ## Execution Order
 
@@ -148,6 +149,7 @@ npm run client-matter:g5b:validate
 npm run client-matter:g5c:validate
 npm run client-matter:g5d:validate
 npm run client-matter:g5e:validate
+npm run client-matter:g5f:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -295,6 +297,12 @@ runtime-readiness boundary.
 The G5-E validator checks balanced JournalEntry evidence, accounting export
 audit evidence, VAT/tax export period-lock evidence, test coverage, RP13
 descriptor-only contract boundary, and the open runtime-readiness boundary.
+
+The G5-F validator checks SettlementRun run-lock evidence, OriginationCredit
+allocation-sum evidence, WorkingCredit role-allocation evidence, posted
+settlement run direct-edit blocking, Finance UI permission masking,
+invoice-to-payment closeout evidence, test coverage, RP14 descriptor-only
+contract boundary, and the open runtime-readiness boundary.
 
 ## Non-Goals
 
