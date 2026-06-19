@@ -52,6 +52,7 @@ ownership, boundary, and runtime-readiness evidence.
 | File | Purpose |
 | --- | --- |
 | `14-billing-profile-ownership-adr.md` | Proposes Party & Relationship Master as the canonical `BillingProfile` owner while Billing owns downstream workflow state. |
+| `15-github-remote-vault-flow-adr.md` | Proposes the sanitized GitHub snapshot plus draft `codex/*` PR flow as the review surface while local history remains untouched. |
 
 ## Execution Order
 
@@ -77,8 +78,9 @@ npm run client-matter:g0:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
-R0-R6 readiness badges, target folder checklist, no-self-merge boundary, and
-direct Opportunity-to-Matter shortcut prohibition remain present.
+R0-R6 readiness badges, target folder checklist, decision ADRs,
+no-self-merge boundary, and direct Opportunity-to-Matter shortcut prohibition
+remain present.
 
 ## Non-Goals
 
