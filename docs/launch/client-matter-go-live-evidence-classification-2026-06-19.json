@@ -1,0 +1,292 @@
+{
+  "schema_version": "law-firm-os.client-matter-go-live-evidence-classification.v0.1",
+  "generated_on": "2026-06-19",
+  "purpose": "Classify the current Client-Matter go-live evidence into approval-ready, deferral-required, and blocked decision lanes for Managing Partner/System Admin review.",
+  "source_refs": [
+    "docs/launch/launch-goal-completion-audit.json",
+    "docs/launch/launch-goal-completion-audit.md",
+    "docs/launch/owner-action-deferral-request.json",
+    "docs/launch/launch-owner-approval-request-packet.json",
+    "docs/launch/launch-owner-response-intake.json",
+    "docs/launch/launch-decision-register.md",
+    "docs/launch/go-no-go-decision.md",
+    "contracts/go-live-gate-contract.json"
+  ],
+  "boundary": {
+    "packet_records_owner_review_scope": true,
+    "go_live_approved_by_this_packet": false,
+    "owner_deferrals_approved_by_this_packet": false,
+    "launch_decision_register_modified_by_this_packet": false,
+    "pending_requests_count_as_owner_evidence": false,
+    "human_signoff_required_for_g10": true,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "current_evidence_summary": {
+    "main_merge_baseline": {
+      "status": "approval_ready_for_baseline_acceptance_only",
+      "main_ref": "810de84",
+      "merged_pr_range": "#1-#51",
+      "allowed_claim": "Client-Matter implementation and documentation baseline may be accepted as the current repo baseline.",
+      "forbidden_claim": "This does not approve production go-live, runtime readiness, or G10 final signoff."
+    },
+    "source_package_representation": {
+      "status": "mostly_represented_as_planning_and_evidence_baseline",
+      "source_package_files": 3,
+      "source_workbook_sheets": 10,
+      "source_tuw_count": 198,
+      "repo_client_matter_docs_count": 65,
+      "client_matter_validators_passed": 47,
+      "allowed_claim": "The attached Client-Matter source package is substantially represented in repo planning, validators, docs, and evidence scaffolding.",
+      "forbidden_claim": "Representation is not the same as live production execution."
+    },
+    "launch_readiness": {
+      "status": "not_complete",
+      "work_package_count": 72,
+      "tuw_count": 344,
+      "blocked_work_package_count": 70,
+      "recorded_work_package_count": 2,
+      "go_live_all_pass": false,
+      "failed_gate_ids": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9",
+        "G10"
+      ],
+      "owner_approved_deferrals_present": false,
+      "decision_register_valid_decided_rows": 0,
+      "decision_register_valid_deferred_rows": 0
+    },
+    "owner_request_state": {
+      "receipt_ledger_verdict": "PASS",
+      "request_card_count": 4,
+      "pending_receipt_slot_count": 4,
+      "real_owner_receipt_count": 0,
+      "target_count_by_pending_requests": 117,
+      "copy_allowed_count": 0
+    },
+    "packet_branch_verification": {
+      "branch": "codex/lawos-go-live-approval-packet",
+      "commands": [
+        {
+          "command": "npm run client-matter:g7g:validate",
+          "status": "pass",
+          "result": "Client-Matter OS G7-G validation passed; release readiness closeout keeps production readiness and go-live open."
+        },
+        {
+          "command": "npm run client-matter:g7:plan:validate",
+          "status": "pass",
+          "result": "G7 plan validation passed; 40 TUWs; runtime_readiness_claim open; go_live_approval_claimed false."
+        },
+        {
+          "command": "npm run validate",
+          "status": "pass",
+          "result": "Law Firm OS product contract validation passed; modules 9/9, principles 9/9, invariants 7/7."
+        },
+        {
+          "command": "npm test",
+          "status": "pass",
+          "result": "3767 tests passed, 0 failed."
+        }
+      ],
+      "go_live_readiness_validator": {
+        "command": "node scripts/validate-go-live-readiness.mjs --fixtures <fixture-dir-with-readiness-input.json>",
+        "status": "not_run_for_this_packet",
+        "reason": "A real fixture with satisfied evidence references is required; current source evidence says go-live must remain blocked."
+      }
+    }
+  },
+  "approval_ready_current_evidence": [
+    {
+      "id": "CM-BASELINE-ACCEPT-2026-06-19",
+      "title": "Accept current Client-Matter repo baseline",
+      "approval_scope": "Approve the merged repo baseline as the current implementation/documentation baseline only.",
+      "evidence_refs": [
+        "main@810de84",
+        "merged PR #1-#51",
+        "npm run client-matter:g7g:validate",
+        "npm run client-matter:g7:plan:validate",
+        "npm run validate",
+        "npm test"
+      ],
+      "decision_register_copy_allowed": false,
+      "restrictions": [
+        "Does not approve go-live.",
+        "Does not approve runtime readiness.",
+        "Does not close G1-G10.",
+        "Does not create owner deferrals."
+      ]
+    },
+    {
+      "id": "CM-SOURCE-PACKAGE-REPRESENTATION-2026-06-19",
+      "title": "Accept source package representation analysis",
+      "approval_scope": "Approve the attached Client-Matter ERP/CRM integration package as substantially reflected in the repo planning and evidence baseline.",
+      "evidence_refs": [
+        "/Users/jws/Documents/Codex/matter-erp-crm-integration/",
+        "docs/reorganization/client-matter-os",
+        "client-matter validator set"
+      ],
+      "decision_register_copy_allowed": false,
+      "restrictions": [
+        "Does not certify production implementation.",
+        "Does not resolve missing go-live evidence slots."
+      ]
+    },
+    {
+      "id": "CM-OWNER-REQUEST-SCAFFOLD-2026-06-19",
+      "title": "Accept owner approval request scaffolding",
+      "approval_scope": "Approve the request/receipt/intake structure as the correct path for collecting real owner decisions.",
+      "evidence_refs": [
+        "docs/launch/launch-owner-approval-request-packet.json",
+        "docs/launch/launch-owner-response-intake.json",
+        "docs/launch/launch-owner-approval-receipt-ledger-validation.json"
+      ],
+      "decision_register_copy_allowed": false,
+      "restrictions": [
+        "Scaffolding is not owner evidence.",
+        "Pending request cards do not count as approval."
+      ]
+    }
+  ],
+  "deferral_required_before_go_live_claim": [
+    {
+      "decision_id": "COVERAGE-ALL-GO-LIVE",
+      "title": "Owner deferral for all failed G1-G10 gate evidence",
+      "coverage_domain": "go_live_gate_evidence",
+      "covered_target_count": 31,
+      "current_status": "pending_owner_response",
+      "allowed_register_status_after_real_receipt": "deferred(시한 명기)",
+      "required_owner_fields": [
+        "owner",
+        "decision",
+        "basis",
+        "date_or_revisit_gate",
+        "approval_signature_ref",
+        "received_at",
+        "recorded_by_human"
+      ]
+    },
+    {
+      "decision_id": "COVERAGE-L9-STABILIZATION",
+      "title": "Owner deferral for all L9 stabilization criteria",
+      "coverage_domain": "l9_stabilization_closure",
+      "covered_target_count": 5,
+      "current_status": "pending_owner_response",
+      "allowed_register_status_after_real_receipt": "deferred(시한 명기)",
+      "required_owner_fields": [
+        "owner",
+        "decision",
+        "basis",
+        "date_or_revisit_gate",
+        "approval_signature_ref",
+        "received_at",
+        "recorded_by_human"
+      ]
+    },
+    {
+      "decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "title": "Owner deferral for all blocked launch work packages",
+      "coverage_domain": "blocked_work_package",
+      "covered_target_count": 70,
+      "current_status": "pending_owner_response",
+      "allowed_register_status_after_real_receipt": "deferred(시한 명기)",
+      "required_owner_fields": [
+        "owner",
+        "decision",
+        "basis",
+        "date_or_revisit_gate",
+        "approval_signature_ref",
+        "received_at",
+        "recorded_by_human"
+      ]
+    },
+    {
+      "decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "title": "Owner deferral for all PRE-L9 phase exits",
+      "coverage_domain": "phase_exit",
+      "covered_target_count": 11,
+      "current_status": "pending_owner_response",
+      "allowed_register_status_after_real_receipt": "deferred(시한 명기)",
+      "required_owner_fields": [
+        "owner",
+        "decision",
+        "basis",
+        "date_or_revisit_gate",
+        "approval_signature_ref",
+        "received_at",
+        "recorded_by_human"
+      ]
+    }
+  ],
+  "blocked_current_evidence": [
+    {
+      "id": "GO-LIVE-APPROVAL-2026-06-19",
+      "title": "Production go-live approval",
+      "current_status": "blocked_no_go",
+      "blocking_evidence": [
+        "G1-G10 all pass is false.",
+        "Failed gate ids are G1, G2, G3, G4, G5, G6, G7, G8, G9, G10.",
+        "Owner-approved deferrals present is false.",
+        "Decision register has 0 valid decided rows and 0 valid deferred rows.",
+        "Go/no-go meeting status is blocked_not_held."
+      ],
+      "unblock_condition": "Either all G1-G10 evidence slots satisfy the go-live contract or real owner deferrals are received, validated, imported, and G10 human signoff is recorded."
+    },
+    {
+      "id": "G10-FINAL-SIGNOFF",
+      "title": "Final G10 launch signoff",
+      "current_status": "blocked_missing_human_approval_record",
+      "blocking_evidence": [
+        "contracts/go-live-gate-contract.json requires human signoff for G10.",
+        "Pending owner responses do not count as owner evidence.",
+        "No approval signature reference is recorded."
+      ],
+      "unblock_condition": "Managing Partner/System Admin approval must be captured with owner identity, decision, basis, date or revisit gate, and approval signature reference."
+    },
+    {
+      "id": "RUNTIME-PRODUCTION-READINESS",
+      "title": "Runtime and production readiness claim",
+      "current_status": "blocked",
+      "blocking_evidence": [
+        "G2 runtime gate failed.",
+        "G3 security gate failed.",
+        "G4 infrastructure/DR gate failed.",
+        "G5 M365 gate failed.",
+        "G6 operations gate failed."
+      ],
+      "unblock_condition": "Run and attach the required runtime, security, DR, M365, and operations evidence referenced by the go-live gate contract."
+    },
+    {
+      "id": "REVIEW-WAIVER-AS-EVIDENCE",
+      "title": "Treat review waiver as valid review evidence",
+      "current_status": "blocked_forbidden",
+      "blocking_evidence": [
+        "Go-live contract and launch docs state that review waiver is not valid review evidence."
+      ],
+      "unblock_condition": "Do not use waiver as evidence; attach real review evidence or explicitly maintain no-go/deferral status."
+    }
+  ],
+  "recommended_owner_actions": [
+    {
+      "step": 1,
+      "action": "If desired, approve CM-BASELINE-ACCEPT-2026-06-19 as baseline acceptance only.",
+      "output": "A management approval record outside the launch decision register, or a repo-resolving signature reference."
+    },
+    {
+      "step": 2,
+      "action": "For each deferral decision id, either provide real owner deferral evidence or leave it pending.",
+      "output": "Filled owner response fields in the intake path, then validated receipt/import artifacts."
+    },
+    {
+      "step": 3,
+      "action": "Keep production go-live as blocked until G1-G10, L9, and G10 signoff evidence are valid.",
+      "output": "No-Go decision remains the correct current decision."
+    }
+  ]
+}
