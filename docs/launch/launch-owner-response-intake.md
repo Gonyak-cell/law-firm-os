@@ -22,7 +22,7 @@ Generated at: 2026-06-19T00:10:53.072Z
 - pending_response_count: 4
 - real_owner_response_count: 0
 - copy_allowed_count: 0
-- target_count_if_all_responses_received: 117
+- target_count_if_all_responses_received: 115
 - target_count_by_real_responses: 0
 
 ## Required Owner Response Fields
@@ -33,7 +33,7 @@ Generated at: 2026-06-19T00:10:53.072Z
 
 | Decision ID | Domain | Targets | Response status | Copy to receipt ledger allowed |
 | --- | --- | ---: | --- | --- |
-| COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 31 | pending_owner_response | false |
+| COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 29 | pending_owner_response | false |
 | COVERAGE-L9-STABILIZATION | l9_stabilization_closure | 5 | pending_owner_response | false |
 | COVERAGE-ALL-BLOCKED-WP | blocked_work_package | 70 | pending_owner_response | false |
 | COVERAGE-ALL-PHASE-EXITS | phase_exit | 11 | pending_owner_response | false |

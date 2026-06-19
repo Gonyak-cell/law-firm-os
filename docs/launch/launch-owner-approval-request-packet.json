@@ -21,7 +21,7 @@
     "pending_receipt_slot_count": 4,
     "real_owner_receipt_count": 0,
     "request_card_count": 4,
-    "target_count_by_pending_requests": 117,
+    "target_count_by_pending_requests": 115,
     "copy_allowed_count": 0
   },
   "required_owner_response_fields": [
@@ -68,12 +68,10 @@
       "decision_id": "COVERAGE-ALL-GO-LIVE",
       "title": "Owner deferral for all failed G1-G10 gate evidence",
       "coverage_domain": "go_live_gate_evidence",
-      "covered_target_count": 31,
+      "covered_target_count": 29,
       "required_owner_basis": "Owner accepts deferring all currently failed go-live gate evidence slots.",
       "target_detail_state": "all_targets_matched_and_aggregate_accepted",
       "target_ids": [
-        "ACC-GL-G1-G1-E02",
-        "ACC-GL-G1-G1-E03",
         "ACC-GL-G10-G10-E01",
         "ACC-GL-G10-G10-E02",
         "ACC-GL-G10-G10-E03",
@@ -105,8 +103,6 @@
         "ACC-GL-G9-G9-E03"
       ],
       "target_sample": [
-        "ACC-GL-G1-G1-E02",
-        "ACC-GL-G1-G1-E03",
         "ACC-GL-G10-G10-E01",
         "ACC-GL-G10-G10-E02",
         "ACC-GL-G10-G10-E03",
@@ -114,7 +110,9 @@
         "ACC-GL-G2-G2-E02",
         "ACC-GL-G2-G2-E03",
         "ACC-GL-G3-G3-E01",
-        "ACC-GL-G3-G3-E02"
+        "ACC-GL-G3-G3-E02",
+        "ACC-GL-G3-G3-E03",
+        "ACC-GL-G3-G3-E04"
       ],
       "receipt_status": "pending_owner_evidence",
       "request_status": "pending_owner_response",

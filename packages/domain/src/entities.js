@@ -2,8 +2,19 @@ export const CONFIDENTIALITY_LEVELS = ["public", "internal", "confidential", "re
 export const LIFECYCLE_STATUSES = ["draft", "active", "open", "paused", "closed", "archived"];
 export const MATTER_STATUSES = ["intake", "open", "paused", "closed", "archived"];
 export const ENTITY_KINDS = ["organization", "person", "internal_user", "external_party"];
+export const FORBIDDEN_SECRET_FIELD_PATTERN =
+  /(^|_)(secret|credential|access_token|api_key|password|private_key|client_secret|refresh_token|id_token|scim_token|idp_secret|signed_url|lock_token)($|_)/i;
+
+export function assertNoSecretMaterialInput(entityName, value) {
+  const forbiddenFields = Object.keys(value ?? {}).filter((field) => FORBIDDEN_SECRET_FIELD_PATTERN.test(field));
+  if (forbiddenFields.length > 0) {
+    throw new Error(`${entityName} input must not include secret material fields: ${forbiddenFields.join(", ")}`);
+  }
+  return true;
+}
 
 export function requireFields(entityName, value, fields) {
+  assertNoSecretMaterialInput(entityName, value);
   const missing = fields.filter((field) => value[field] === undefined || value[field] === null || value[field] === "");
   if (missing.length > 0) {
     throw new Error(`${entityName} missing required fields: ${missing.join(", ")}`);

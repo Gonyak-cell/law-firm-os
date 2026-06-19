@@ -9,11 +9,11 @@ Verdict: PASS
 - blocked_work_package_count: 70
 - recorded_work_package_count: 2
 - failed_gate_count: 10
-- failed_gate_evidence_slot_count: 31
+- failed_gate_evidence_slot_count: 29
 - l9_stabilization_closure_slot_count: 5
-- total_manual_intake_row_count: 36
-- pending_manual_intake_row_count: 35
-- evidence_satisfied_manual_intake_row_count: 1
+- total_manual_intake_row_count: 34
+- pending_manual_intake_row_count: 34
+- evidence_satisfied_manual_intake_row_count: 0
 - owner_deferred_manual_intake_row_count: 0
 - phase_count: 11
 - blocked_phase_count: 11
@@ -47,7 +47,7 @@ Verdict: PASS
 
 | Gate | Status | Failed evidence slots | Manual intake rows | Related blocked WP |
 | --- | --- | ---: | ---: | ---: |
-| G1 | fail | 2 | 2 | 5 |
+| G1 | fail | 0 | 0 | 5 |
 | G2 | fail | 3 | 3 | 7 |
 | G3 | fail | 4 | 4 | 7 |
 | G4 | fail | 4 | 4 | 8 |
@@ -60,8 +60,8 @@ Verdict: PASS
 
 ## Manual Intake Resolution State
 
-- Pending manual intake rows: 35
-- Evidence-satisfied manual intake rows: 1
+- Pending manual intake rows: 34
+- Evidence-satisfied manual intake rows: 0
 - Owner-deferred manual intake rows: 0
 - Coverage-eligible valid deferred rows: 0
 

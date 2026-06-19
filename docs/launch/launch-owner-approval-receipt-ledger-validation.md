@@ -12,7 +12,7 @@ Verdict: PASS
 - copy_allowed_count: 0
 - decision_register_total_rows: 0
 - decision_register_valid_deferred_rows: 0
-- target_count_if_all_receipts_are_completed: 117
+- target_count_if_all_receipts_are_completed: 115
 - finding_count: 0
 - p0_count: 0
 - p1_count: 0

@@ -21,11 +21,11 @@
     "decision_register_total_rows": 0,
     "owner_evidence_quality_pass_count": 0,
     "minimum_owner_row_count": 4,
-    "target_count_if_minimum_owner_rows_are_completed": 117,
+    "target_count_if_minimum_owner_rows_are_completed": 115,
     "valid_applied_minimum_decision_row_count": 0,
-    "remaining_target_count_after_valid_applied_rows": 117,
+    "remaining_target_count_after_valid_applied_rows": 115,
     "intake_batch_count": 8,
-    "owner_input_required_count": 117
+    "owner_input_required_count": 115
   },
   "required_register_fields": [
     "decision_id",
@@ -73,7 +73,7 @@
       "decision_id": "COVERAGE-ALL-GO-LIVE",
       "title": "Owner deferral for all failed G1-G10 gate evidence",
       "coverage_domain": "go_live_gate_evidence",
-      "covered_target_count": 31,
+      "covered_target_count": 29,
       "required_owner_basis": "Owner accepts deferring all currently failed go-live gate evidence slots.",
       "status_to_record_after_real_owner_evidence": "deferred(시한 명기)",
       "source_packet_row_is_placeholder_only": true,
@@ -154,7 +154,7 @@
       "batch_id": "B06",
       "title": "G1-G10 gate evidence intake",
       "primary_resolution_lane": "go_live_gate_evidence",
-      "target_count": 31,
+      "target_count": 29,
       "required_action": "Supply failed go-live gate evidence slots, or record coverage-eligible owner-approved deferrals."
     },
     {

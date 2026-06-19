@@ -14,10 +14,10 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "missing_deferral_target_count": 117,
-    "classified_target_count": 117,
+    "missing_deferral_target_count": 115,
+    "classified_target_count": 115,
     "primary_lane_count": 8,
-    "lane_mention_count": 146,
+    "lane_mention_count": 144,
     "unclassified_target_count": 0,
     "finding_count": 0,
     "p0_count": 0,
@@ -26,7 +26,7 @@
   "primary_lane_counts": [
     {
       "value": "go_live_gate_evidence",
-      "count": 31
+      "count": 29
     },
     {
       "value": "owner_decision_signature",
@@ -63,12 +63,12 @@
       "count": 36
     },
     {
-      "value": "go_live_gate_evidence",
+      "value": "owner_decision_signature",
       "count": 31
     },
     {
-      "value": "owner_decision_signature",
-      "count": 31
+      "value": "go_live_gate_evidence",
+      "count": 29
     },
     {
       "value": "policy_scope_decision",
@@ -92,38 +92,6 @@
     }
   ],
   "lane_rows": [
-    {
-      "coverage_id": "ACC-GL-G1-G1-E02",
-      "domain": "go_live_gate_evidence",
-      "action_source": "manual_intake_and_failed_gate_action",
-      "action_ref": "GL-G1-G1-E02",
-      "accepted_decision_ids": [
-        "ACC-GL-G1-G1-E02",
-        "COVERAGE-GATE-G1",
-        "COVERAGE-ALL-GO-LIVE"
-      ],
-      "resolution_lanes": [
-        "go_live_gate_evidence"
-      ],
-      "primary_resolution_lane": "go_live_gate_evidence",
-      "next_required_action": "Provide required gate evidence, or record an owner-approved deferral using one accepted decision ID."
-    },
-    {
-      "coverage_id": "ACC-GL-G1-G1-E03",
-      "domain": "go_live_gate_evidence",
-      "action_source": "manual_intake_and_failed_gate_action",
-      "action_ref": "GL-G1-G1-E03",
-      "accepted_decision_ids": [
-        "ACC-GL-G1-G1-E03",
-        "COVERAGE-GATE-G1",
-        "COVERAGE-ALL-GO-LIVE"
-      ],
-      "resolution_lanes": [
-        "go_live_gate_evidence"
-      ],
-      "primary_resolution_lane": "go_live_gate_evidence",
-      "next_required_action": "Provide required gate evidence, or record an owner-approved deferral using one accepted decision ID."
-    },
     {
       "coverage_id": "ACC-GL-G2-G2-E01",
       "domain": "go_live_gate_evidence",

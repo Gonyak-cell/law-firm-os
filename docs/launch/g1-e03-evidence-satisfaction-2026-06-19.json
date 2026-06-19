@@ -1,0 +1,29 @@
+{
+  "schema_version": "law-firm-os.g1-e03-evidence-satisfaction.v0.1",
+  "recorded_at": "2026-06-19T12:30:00Z",
+  "verifier": "Codex repo-local validation suite",
+  "intake_id": "GL-G1-G1-E03",
+  "acceptance_id": "ACC-GL-G1-G1-E03",
+  "gate_id": "G1",
+  "evidence_id": "G1-E03",
+  "required_state": "all_missing_cells_adjudicated_or_zero",
+  "status": "evidence_satisfied",
+  "evidence_refs": [
+    "docs/launch/g1-completion-remediation-prep-2026-06-19.json",
+    "docs/launch/g1-hardening-adjudication-2026-06-19.json",
+    "docs/launch/g1-hardening-evidence-candidates-2026-06-19.json",
+    "docs/launch/launch-manual-evidence-intake-register.json",
+    "docs/launch/launch-evidence-acceptance-matrix.json"
+  ],
+  "measured_state": {
+    "hardening_required_cell_count": 272,
+    "evidence_satisfied_cell_count": 272,
+    "pending_gap_disposition_count": 0,
+    "g1_e03_closeable_now": true
+  },
+  "boundary": {
+    "go_live_approved_by_this_receipt": false,
+    "owner_deferral_approved_by_this_receipt": false,
+    "runtime_opened_by_this_receipt": false
+  }
+}

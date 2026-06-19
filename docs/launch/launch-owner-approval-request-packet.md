@@ -19,7 +19,7 @@ Generated at: 2026-06-19T00:06:55.430Z
 - pending_receipt_slot_count: 4
 - real_owner_receipt_count: 0
 - request_card_count: 4
-- target_count_by_pending_requests: 117
+- target_count_by_pending_requests: 115
 - copy_allowed_count: 0
 
 ## Owner Response Fields
@@ -30,7 +30,7 @@ Generated at: 2026-06-19T00:06:55.430Z
 
 | Decision ID | Domain | Targets | Request status | Required owner basis |
 | --- | --- | ---: | --- | --- |
-| COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 31 | pending_owner_response | Owner accepts deferring all currently failed go-live gate evidence slots. |
+| COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 29 | pending_owner_response | Owner accepts deferring all currently failed go-live gate evidence slots. |
 | COVERAGE-L9-STABILIZATION | l9_stabilization_closure | 5 | pending_owner_response | Owner accepts deferring all currently blocked L9 stabilization closure criteria. |
 | COVERAGE-ALL-BLOCKED-WP | blocked_work_package | 70 | pending_owner_response | Owner accepts deferring all currently blocked PRE-L9 launch work packages. |
 | COVERAGE-ALL-PHASE-EXITS | phase_exit | 11 | pending_owner_response | Owner accepts deferring all currently blocked PRE-L9 phase exits. |

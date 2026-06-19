@@ -8,10 +8,10 @@ Verdict: PASS
 
 - minimum_owner_row_count: 4
 - expected_minimum_owner_row_count: 4
-- target_count_if_minimum_owner_rows_are_completed: 117
+- target_count_if_minimum_owner_rows_are_completed: 115
 - decision_register_total_rows: 0
 - valid_applied_minimum_decision_row_count: 0
-- remaining_target_count_after_valid_applied_rows: 117
+- remaining_target_count_after_valid_applied_rows: 115
 - intake_batch_count: 8
 - validation_command_count: 6
 - signature_ref_format_count: 7
