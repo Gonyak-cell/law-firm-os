@@ -82,6 +82,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `37-g4-c-matter-closeout-ui-report.md` | Records the G4-C Matter closing checklist, silent matter visibility, dashboard ACL trimming, and Matter closeout evidence slice. |
 | `38-g4-d-dms-workspace-document-foundation-report.md` | Records the G4-D DMS workspace, folder path, document upload, version, file object, and hash-lineage foundation slice. |
 | `39-g4-e-dms-security-email-search-report.md` | Records the G4-E DMS checkout lock, privilege label, redaction, secure link, email filing, Outlook placeholder, and search ACL slice. |
+| `40-g4-f-dms-ui-audit-closeout-report.md` | Records the G4-F DMS workspace UI, view/download/share audit coverage, and G4 DMS closeout slice. |
 
 ## Execution Order
 
@@ -134,6 +135,7 @@ npm run client-matter:g4b:validate
 npm run client-matter:g4c:validate
 npm run client-matter:g4d:validate
 npm run client-matter:g4e:validate
+npm run client-matter:g4f:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -243,6 +245,12 @@ AI/search exclusion, redacted export metadata, secure-link expiry/MFA/watermark
 controls, Matter-traced email filing, Outlook placeholder no-credential-leak
 guards, search ACL unauthorized-result omission, test coverage, RP06/RP08
 descriptor-only contract boundaries, and the open runtime-readiness boundary.
+
+The G4-F validator checks DMS workspace UI current-version and privilege-label
+display, UI no-byte/no-raw-path/no-extracted-text leak guards, DMS
+view/download/share audit coverage, sensitive audit payload blocking, G4 DMS
+closeout evidence, G4-D/G4-E dependencies, RP06 descriptor-only contract
+boundary, and the open runtime-readiness boundary.
 
 ## Non-Goals
 

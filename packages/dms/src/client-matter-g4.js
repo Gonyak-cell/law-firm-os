@@ -656,3 +656,168 @@ export function createDmsG4ESecurityEmailSearchCloseoutDescriptor(request = {}) 
     }),
   });
 }
+
+export function createDmsG4WorkspaceUiDescriptor(request = {}) {
+  const missing = missingFields(["tenant_id", "actor_id", "document", "current_version", "ui_state"], request);
+  const document = request.document ?? {};
+  const currentVersion = request.current_version ?? {};
+  const privilegeLabel = freezeObject(request.privilege_label);
+  const uiState = freezeObject(request.ui_state);
+  const blockedClaims = [];
+  const documentValidation = validateDmsCoreRecord("DmsDocument", document);
+  const versionValidation = validateDmsCoreRecord("DmsDocumentVersion", currentVersion);
+  const privilegeExpected = Boolean(privilegeLabel.label_id || privilegeLabel.classification);
+  const versionDisplayed = Boolean(uiState.displayed_version_id && uiState.displayed_version_id === currentVersion.version_id);
+  const privilegeLabelDisplayed = !privilegeExpected || Boolean(uiState.visible_privilege_label);
+  const leaksSensitivePayload =
+    uiState.exposes_raw_storage_path === true ||
+    uiState.exposes_document_bytes === true ||
+    uiState.exposes_extracted_text === true ||
+    Boolean(uiState.raw_storage_path || uiState.document_bytes || uiState.extracted_text);
+
+  if (missing.length > 0) blockedClaims.push("dms_ui_required_context_missing");
+  if (!documentValidation.valid) blockedClaims.push("dms_ui_document_schema_validation_required");
+  if (!versionValidation.valid) blockedClaims.push("dms_ui_version_schema_validation_required");
+  if (document.current_version_id && currentVersion.version_id && document.current_version_id !== currentVersion.version_id) {
+    blockedClaims.push("dms_ui_current_version_trace_mismatch");
+  }
+  if (!versionDisplayed) blockedClaims.push("dms_ui_version_display_required");
+  if (!privilegeLabelDisplayed) blockedClaims.push("dms_ui_privilege_display_required");
+  if (leaksSensitivePayload) blockedClaims.push("dms_ui_raw_storage_or_bytes_leak_blocked");
+  if (uiState.unauthorized_count_visible === true) blockedClaims.push("dms_ui_unauthorized_count_leak_blocked");
+
+  const outcome = blockedClaims.length > 0 ? "blocked" : "review_required";
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G4-W06-T014"),
+    descriptor_type: "dms_g4_workspace_ui_descriptor",
+    tenant_id: request.tenant_id ?? document.tenant_id ?? null,
+    actor_id: request.actor_id ?? null,
+    matter_id: document.matter_id ?? currentVersion.matter_id ?? null,
+    workspace_id: document.workspace_id ?? null,
+    document_id: document.document_id ?? currentVersion.document_id ?? null,
+    version_id: currentVersion.version_id ?? null,
+    displayed_version_id: uiState.displayed_version_id ?? null,
+    visible_privilege_label: uiState.visible_privilege_label ?? null,
+    version_displayed: versionDisplayed,
+    privilege_label_displayed: privilegeLabelDisplayed,
+    unauthorized_count_exposed: false,
+    raw_storage_path_rendered: false,
+    document_bytes_rendered: false,
+    extracted_text_rendered: false,
+    ui_state: uiState,
+    document_validation: documentValidation,
+    version_validation: versionValidation,
+    outcome,
+    blocked_claims: freezeArray(blockedClaims),
+    ui_receipt: freezeRecord({
+      version_privilege_display_tested: true,
+      ui_route_executed: false,
+      document_bytes_rendered: false,
+      raw_storage_path_rendered: false,
+      extracted_text_rendered: false,
+      audit_event_written: false,
+    }),
+  });
+}
+
+export function createDmsG4AuditCoverageDescriptor(request = {}) {
+  const missing = missingFields(["tenant_id", "actor_id", "document", "audit_events"], request);
+  const document = request.document ?? {};
+  const auditEvents = freezeArray(request.audit_events);
+  const requiredEvents = freezeArray(request.required_events ?? ["view", "download", "share"]);
+  const blockedClaims = [];
+  const documentValidation = validateDmsCoreRecord("DmsDocument", document);
+  const eventTypes = new Set(auditEvents.map((event) => event.event_type ?? event.action ?? event.event_name).filter(Boolean));
+  const eventCoverage = Object.fromEntries(requiredEvents.map((eventType) => [eventType, eventTypes.has(eventType)]));
+  const requiredEventClaims = freezeObject({
+    view: "dms_audit_view_event_required",
+    download: "dms_audit_download_event_required",
+    share: "dms_audit_share_event_required",
+  });
+  const sensitivePayloadLeaked = auditEvents.some((event) =>
+    Boolean(event.document_bytes || event.raw_storage_path || event.extracted_text || event.credential || event.access_token),
+  );
+
+  if (missing.length > 0) blockedClaims.push("dms_audit_coverage_required_context_missing");
+  if (!documentValidation.valid) blockedClaims.push("dms_audit_document_schema_validation_required");
+  for (const eventType of requiredEvents) {
+    if (!eventCoverage[eventType]) blockedClaims.push(requiredEventClaims[eventType] ?? `dms_audit_${eventType}_event_required`);
+  }
+  if (sensitivePayloadLeaked) blockedClaims.push("dms_audit_sensitive_payload_leak_blocked");
+  if (request.appends_audit_event === true || request.writes_audit_event === true) {
+    blockedClaims.push("dms_audit_runtime_append_blocked");
+  }
+
+  const outcome = blockedClaims.length > 0 ? "blocked" : "review_required";
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G4-W06-T015"),
+    descriptor_type: "dms_g4_audit_coverage_descriptor",
+    tenant_id: request.tenant_id ?? document.tenant_id ?? null,
+    actor_id: request.actor_id ?? null,
+    matter_id: document.matter_id ?? null,
+    document_id: document.document_id ?? null,
+    required_events: requiredEvents,
+    event_coverage: freezeObject(eventCoverage),
+    audit_events: freezeArray(auditEvents.map((event) => freezeObject(event))),
+    sensitive_payload_exposed: false,
+    document_validation: documentValidation,
+    outcome,
+    blocked_claims: freezeArray(blockedClaims),
+    audit_receipt: freezeRecord({
+      view_event_tested: eventCoverage.view === true,
+      download_event_tested: eventCoverage.download === true,
+      share_event_tested: eventCoverage.share === true,
+      audit_event_written: false,
+      audit_log_persisted: false,
+      sensitive_payload_exposed: false,
+    }),
+  });
+}
+
+export function createDmsG4FDmsCloseoutDescriptor(request = {}) {
+  const descriptors = freezeArray(request.descriptors);
+  const evidenceClaims = [];
+  const blockedDescriptorCount = descriptors.filter((descriptor) => descriptor.outcome === "blocked").length;
+  const uiDescriptorPresent = descriptors.some((descriptor) => descriptor.descriptor_type === "dms_g4_workspace_ui_descriptor");
+  const auditDescriptorPresent = descriptors.some((descriptor) => descriptor.descriptor_type === "dms_g4_audit_coverage_descriptor");
+  const tuwCoverage = freezeArray(["LFOS-G4-W06-T014", "LFOS-G4-W06-T015", "LFOS-G4-W06-T016"]);
+
+  if (!uiDescriptorPresent) evidenceClaims.push("dms_closeout_ui_evidence_required");
+  if (!auditDescriptorPresent) evidenceClaims.push("dms_closeout_audit_evidence_required");
+
+  const blockedCount = blockedDescriptorCount + evidenceClaims.length;
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G4-W06-T016"),
+    descriptor_type: "dms_g4f_dms_closeout_descriptor",
+    slice: "G4-F",
+    tenant_id: request.tenant_id ?? null,
+    branch: "codex/lawos-g4-dms-ui-audit-closeout",
+    tuw_coverage: tuwCoverage,
+    descriptor_count: descriptors.length,
+    blocked_descriptor_count: blockedCount,
+    blocked_claims: freezeArray(evidenceClaims),
+    g4d_dependency_ref: request.g4d_dependency_ref ?? "docs/reorganization/client-matter-os/38-g4-d-dms-workspace-document-foundation-report.md",
+    g4e_dependency_ref: request.g4e_dependency_ref ?? "docs/reorganization/client-matter-os/39-g4-e-dms-security-email-search-report.md",
+    workspace_ui_tested: uiDescriptorPresent,
+    audit_coverage_tested: auditDescriptorPresent,
+    version_privilege_display_tested: descriptors.some((descriptor) => descriptor.ui_receipt?.version_privilege_display_tested === true),
+    view_download_share_audit_tested: descriptors.some(
+      (descriptor) =>
+        descriptor.audit_receipt?.view_event_tested === true &&
+        descriptor.audit_receipt?.download_event_tested === true &&
+        descriptor.audit_receipt?.share_event_tested === true,
+    ),
+    dms_runtime_evidence_recorded: uiDescriptorPresent && auditDescriptorPresent,
+    outcome: blockedCount > 0 ? "blocked" : "review_required",
+    closeout_receipt: freezeRecord({
+      command_output_recorded: false,
+      draft_pr_required: true,
+      human_review_required: true,
+      runtime_readiness_claim: "open",
+      dms_runtime_readiness_claim: "open",
+    }),
+  });
+}
