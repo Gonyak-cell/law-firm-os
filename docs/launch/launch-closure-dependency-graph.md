@@ -11,8 +11,8 @@ Verdict: PASS
 - failed_gate_node_count: 10
 - gate_acceptance_node_count: 31
 - l9_closure_node_count: 5
-- pending_acceptance_node_count: 36
-- evidence_satisfied_acceptance_node_count: 0
+- pending_acceptance_node_count: 35
+- evidence_satisfied_acceptance_node_count: 1
 - owner_deferred_acceptance_node_count: 0
 - missing_intake_acceptance_node_count: 0
 - blocked_wp_node_count: 70
@@ -67,8 +67,8 @@ Verdict: PASS
 
 ## Acceptance Resolution State
 
-- Pending acceptance nodes: 36
-- Evidence-satisfied acceptance nodes: 0
+- Pending acceptance nodes: 35
+- Evidence-satisfied acceptance nodes: 1
 - Owner-deferred acceptance nodes: 0
 - Missing-intake acceptance nodes: 0
 - Coverage-eligible valid deferred rows: 0

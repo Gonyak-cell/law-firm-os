@@ -18,12 +18,12 @@ Generated at: 2026-06-18T15:48:40.447Z
 - gate_acceptance_row_count: 31
 - l9_acceptance_row_count: 5
 - total_acceptance_row_count: 36
-- pending_acceptance_row_count: 36
-- evidence_satisfied_acceptance_row_count: 0
+- pending_acceptance_row_count: 35
+- evidence_satisfied_acceptance_row_count: 1
 - owner_deferred_acceptance_row_count: 0
 - missing_intake_acceptance_row_count: 0
-- gate_pending_acceptance_row_count: 31
-- gate_evidence_satisfied_acceptance_row_count: 0
+- gate_pending_acceptance_row_count: 30
+- gate_evidence_satisfied_acceptance_row_count: 1
 - gate_owner_deferred_acceptance_row_count: 0
 - l9_pending_acceptance_row_count: 5
 - l9_evidence_satisfied_acceptance_row_count: 0

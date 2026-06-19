@@ -232,7 +232,7 @@
     "actual_decision_count": 0
   },
   "mat_dec": {
-    "mention_line_count": 85,
+    "mention_line_count": 86,
     "unique_decision_ids": [
       "MAT-DEC-01",
       "MAT-DEC-02",
@@ -491,6 +491,11 @@
         "text": "1. For G1-E02, resolve MAT-DEC owner linkage and prove every remaining item is non-blocking or assigned to a valid launch phase."
       },
       {
+        "path": "docs/launch/g1-e02-evidence-satisfaction-2026-06-19.md",
+        "line": 14,
+        "text": "| MAT-DEC remaining owner linkage count | 0 |"
+      },
+      {
         "path": "docs/launch/g1-owner-decisions-2026-06-19.json",
         "line": 12,
         "text": "\"MAT-DEC-03: SharePoint/OneDrive를 원본 문서 저장소로 승인한다.\","
@@ -639,11 +644,6 @@
         "path": "docs/launch/perf/performance-acceptance-criteria-decision.md",
         "line": 66,
         "text": "| Basis | LT-L3-W06 SLO baseline, pilot roster/load target, MAT-DEC-03 storage boundary, staging telemetry capability |"
-      },
-      {
-        "path": "docs/launch/perf/performance-acceptance-criteria-decision.md",
-        "line": 92,
-        "text": "| MAT-DEC-03 | Decide upload/storage boundary before measuring provider transfer. |"
       }
     ]
   },

@@ -9,8 +9,8 @@ Verdict: PASS
 - gate_intake_count: 31
 - l9_stabilization_intake_count: 5
 - total_intake_row_count: 36
-- pending_intake_count: 36
-- evidence_satisfied_count: 0
+- pending_intake_count: 35
+- evidence_satisfied_count: 1
 - owner_deferred_count: 0
 - valid_decision_register_deferred_rows: 0
 - coverage_eligible_valid_deferred_rows: 0
