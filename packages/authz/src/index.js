@@ -16,6 +16,7 @@ export * from "./permission-matrix-risk-boundary.js";
 export * from "./permission-matrix-workflow-binding.js";
 export * from "./permission-audit-terminal-boundary.js";
 export * from "./permission-fixture-failure-taxonomy.js";
+export * from "./permission-controls.js";
 export * from "./failure-taxonomy-risk-boundary.js";
 export * from "./failure-taxonomy-workflow-binding.js";
 export * from "./failure-taxonomy-test-fixture-boundary.js";
