@@ -20,7 +20,7 @@ const pr13RequiredFiles = [
   "packages/hrx/test/retention-job.test.js",
 ];
 
-const pr14PendingFiles = [
+const pr14RequiredFiles = [
   "scripts/hrx-backup-restore-smoke.mjs",
   "docs/hrx-enterprise/dr-runbook.md",
   "apps/api/test/hrx/performance-smoke.test.js",
@@ -47,6 +47,9 @@ const errors = [];
 for (const file of pr13RequiredFiles) {
   if (!existsSync(resolve(root, file))) errors.push(`${file}: missing`);
 }
+for (const file of pr14RequiredFiles) {
+  if (!existsSync(resolve(root, file))) errors.push(`${file}: missing`);
+}
 for (const script of requiredScripts) {
   if (!packageJson.scripts?.[script]) errors.push(`package.json scripts.${script}: missing`);
 }
@@ -59,6 +62,8 @@ for (const tuw of pr13Tuws) {
 }
 for (const tuw of pr14Tuws) {
   if (!traceability.includes(tuw)) errors.push(`${tuw}: missing from traceability matrix`);
+  const closedPattern = new RegExp(`\\| ${tuw} \\|[^\\n]+\\| closed \\|`);
+  if (!closedPattern.test(traceability)) errors.push(`${tuw}: not closed in traceability matrix`);
 }
 
 if (errors.length > 0) {
@@ -68,7 +73,7 @@ if (errors.length > 0) {
 }
 
 console.log("HRX enterprise readiness validation passed.");
-console.log("pr13_p0_missing: 0");
+console.log("p0_missing: 0");
 console.log(`pr13_required_files: ${pr13RequiredFiles.length}`);
-console.log(`pr14_pending_files: ${pr14PendingFiles.filter((file) => !existsSync(resolve(root, file))).length}`);
+console.log(`pr14_required_files: ${pr14RequiredFiles.length}`);
 console.log(`required_scripts: ${requiredScripts.length}`);

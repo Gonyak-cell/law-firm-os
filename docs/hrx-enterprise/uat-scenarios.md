@@ -1,7 +1,7 @@
 # HRX UAT Scenarios
 
-Status: In progress
-Depends on: HRX-P16 Hardening A exit gate
+Status: PR-14 UAT scenario pack
+Depends on: HRX PR-13 enterprise controls and PR-14 DR/UAT readiness validators
 
 ## Scope
 

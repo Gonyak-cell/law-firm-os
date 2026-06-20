@@ -1516,6 +1516,107 @@
         "node --test packages/hrx/test/retention-job.test.js",
         "npm run hrx:enterprise:validate"
       ]
+    },
+    {
+      "id": "HRX-L7-009",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "scripts/hrx-backup-restore-smoke.mjs"
+      ],
+      "validators": [
+        "node scripts/hrx-backup-restore-smoke.mjs --dry-run",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-010",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/dr-runbook.md",
+        "scripts/hrx-backup-restore-smoke.mjs"
+      ],
+      "validators": [
+        "node scripts/hrx-backup-restore-smoke.mjs --dry-run",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-011",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "apps/api/test/hrx/performance-smoke.test.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx/performance-smoke.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-012",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "apps/api/test/hrx/security-regression.test.js",
+        "apps/api/test/hrx/step-up-route.test.js",
+        "apps/api/test/hrx/route-authz.test.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx/security-regression.test.js apps/api/test/hrx/step-up-route.test.js apps/api/test/hrx/route-authz.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-013",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "apps/api/test/hrx/secret-exposure.test.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx/secret-exposure.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-014",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/uat-scenarios.md"
+      ],
+      "validators": [
+        "npm run web:e2e",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-015",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/uat-results.md"
+      ],
+      "validators": [
+        "npm run web:e2e",
+        "node scripts/hrx-backup-restore-smoke.mjs --dry-run",
+        "node --test apps/api/test/hrx/performance-smoke.test.js apps/api/test/hrx/security-regression.test.js apps/api/test/hrx/secret-exposure.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L7-016",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-enterprise-readiness.mjs",
+        "docs/hrx-enterprise/tuw-traceability-matrix.md"
+      ],
+      "validators": [
+        "npm run hrx:enterprise:validate",
+        "npm test"
+      ]
     }
   ]
 }
