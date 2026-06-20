@@ -137,6 +137,58 @@ export function createInMemoryLeaveRequestStore(seed = []) {
   });
 }
 
+export function createSqlLeaveRequestStore({ store } = {}) {
+  if (!store || typeof store.query !== "function") throw new TypeError("SQL leave request store requires store.query");
+
+  function create(input) {
+    const request = createLeaveRequest(input);
+    return Object.freeze(
+      store.query("insert", {
+        table: "hrx_leave_requests",
+        row: { ...request, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      }),
+    );
+  }
+
+  function get(ref = {}) {
+    const value = store.query("selectOne", {
+      table: "hrx_leave_requests",
+      where: { tenant_id: ref.tenant_id, request_id: ref.request_id },
+    });
+    return value ? Object.freeze(clone(value)) : undefined;
+  }
+
+  function update(ref = {}, change = {}) {
+    const existing = get(ref);
+    if (!existing) throw new Error(`Leave request not found: ${ref.request_id}`);
+    const request = transitionLeaveRequest(existing, change);
+    return Object.freeze(
+      store.query("updateOne", {
+        table: "hrx_leave_requests",
+        where: { tenant_id: request.tenant_id, request_id: request.request_id },
+        patch: { ...request, updated_at: new Date().toISOString() },
+      }),
+    );
+  }
+
+  return Object.freeze({
+    create,
+    update,
+    get,
+    list(query = {}) {
+      const where = {};
+      if (query.tenant_id) where.tenant_id = query.tenant_id;
+      if (query.employee_id) where.employee_id = query.employee_id;
+      return Object.freeze(
+        store
+          .query("select", { table: "hrx_leave_requests", where })
+          .sort((left, right) => left.request_id.localeCompare(right.request_id))
+          .map((request) => Object.freeze(clone(request))),
+      );
+    },
+  });
+}
+
 export function createLeaveRequestService({ store = createInMemoryLeaveRequestStore(), balanceLedger, audit } = {}) {
   return Object.freeze({
     async submit(context, input = {}) {

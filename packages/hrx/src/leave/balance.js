@@ -100,3 +100,41 @@ export function createInMemoryLeaveBalanceLedger(seed = []) {
     },
   });
 }
+
+export function createSqlLeaveBalanceLedger({ store } = {}) {
+  if (!store || typeof store.query !== "function") throw new TypeError("SQL leave balance ledger requires store.query");
+
+  function list(query = {}) {
+    const where = {};
+    if (query.tenant_id) where.tenant_id = query.tenant_id;
+    if (query.employee_id) where.employee_id = query.employee_id;
+    if (query.policy_id) where.policy_id = query.policy_id;
+    return Object.freeze(
+      store
+        .query("select", { table: "hrx_leave_balance_entries", where })
+        .sort((left, right) => left.entry_id.localeCompare(right.entry_id))
+        .map((row) =>
+          Object.freeze({
+            ...row,
+            metadata: Object.freeze(JSON.parse(row.metadata_json ?? "{}")),
+          }),
+        ),
+    );
+  }
+
+  return Object.freeze({
+    append(input) {
+      const entry = createLeaveBalanceEntry(input);
+      const row = {
+        ...entry,
+        metadata_json: JSON.stringify(entry.metadata ?? {}),
+        created_at: new Date().toISOString(),
+      };
+      return Object.freeze(store.query("insert", { table: "hrx_leave_balance_entries", row }));
+    },
+    list,
+    balance(query = {}) {
+      return calculateLeaveBalance(list(query), query);
+    },
+  });
+}

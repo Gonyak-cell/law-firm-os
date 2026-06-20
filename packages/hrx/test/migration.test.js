@@ -4,10 +4,21 @@ import test from "node:test";
 import { createFileHrxStore } from "../src/store/file-store.js";
 import { loadHrxCoreMigrations, runHrxMigrations } from "../src/migrations/index.js";
 
-const sql = readFileSync("packages/hrx/src/migrations/001_hrx_core.sql", "utf8");
+const sql = [
+  readFileSync("packages/hrx/src/migrations/001_hrx_core.sql", "utf8"),
+  readFileSync("packages/hrx/src/migrations/002_hrx_documents_leave_audit.sql", "utf8"),
+].join("\n");
 
-test("HRX core migration creates required tables idempotently", () => {
-  for (const table of ["hrx_employees", "hrx_employment_profiles", "hrx_employee_user_links"]) {
+test("HRX migrations create required tables idempotently", () => {
+  for (const table of [
+    "hrx_employees",
+    "hrx_employment_profiles",
+    "hrx_employee_user_links",
+    "hrx_documents",
+    "hrx_leave_balance_entries",
+    "hrx_leave_requests",
+    "hrx_audit_events",
+  ]) {
     assert.match(sql, new RegExp(`CREATE TABLE IF NOT EXISTS ${table}`));
   }
   assert.match(sql, /CREATE INDEX IF NOT EXISTS idx_hrx_employees_tenant_status/);
@@ -31,11 +42,11 @@ test("HRX migration runner applies core migration idempotently", () => {
   const store = createFileHrxStore();
   const first = runHrxMigrations(store);
   const second = runHrxMigrations(store);
-  assert.deepEqual(first.map((result) => result.applied), [true]);
-  assert.deepEqual(second.map((result) => result.applied), [false]);
+  assert.deepEqual(first.map((result) => result.applied), [true, true]);
+  assert.deepEqual(second.map((result) => result.applied), [false, false]);
   assert.deepEqual(
     store.snapshot().applied_migrations.map((migration) => migration.id),
-    ["001_hrx_core"],
+    ["001_hrx_core", "002_hrx_documents_leave_audit"],
   );
   store.close();
 });

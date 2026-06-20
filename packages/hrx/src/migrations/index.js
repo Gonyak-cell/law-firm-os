@@ -10,6 +10,10 @@ export const HRX_CORE_MIGRATIONS = Object.freeze([
     id: "001_hrx_core",
     filename: "001_hrx_core.sql",
   }),
+  Object.freeze({
+    id: "002_hrx_documents_leave_audit",
+    filename: "002_hrx_documents_leave_audit.sql",
+  }),
 ]);
 
 const UNSAFE_SQL_PATTERNS = Object.freeze([

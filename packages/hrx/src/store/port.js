@@ -8,6 +8,13 @@ export const HRX_DURABLE_CORE_TABLES = Object.freeze([
   "hrx_employee_user_links",
 ]);
 
+export const HRX_DURABLE_WORKFLOW_TABLES = Object.freeze([
+  "hrx_documents",
+  "hrx_leave_balance_entries",
+  "hrx_leave_requests",
+  "hrx_audit_events",
+]);
+
 export function assertHrxStorePort(store) {
   if (!store || typeof store !== "object") {
     throw new TypeError("HRX store port is required");
@@ -28,6 +35,16 @@ export function assertHrxStoreReadyForCoreRuntime(store) {
   }
   for (const table of HRX_DURABLE_CORE_TABLES) {
     if (!capabilities.tables?.includes(table)) {
+      throw new TypeError(`HRX store missing durable table: ${table}`);
+    }
+  }
+  return true;
+}
+
+export function assertHrxStoreReadyForWorkflowRuntime(store) {
+  assertHrxStoreReadyForCoreRuntime(store);
+  for (const table of HRX_DURABLE_WORKFLOW_TABLES) {
+    if (!store.capabilities?.tables?.includes(table)) {
       throw new TypeError(`HRX store missing durable table: ${table}`);
     }
   }

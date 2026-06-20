@@ -260,6 +260,37 @@
       "validators": [
         "npm run hrx:persistence:validate"
       ]
+    },
+    {
+      "id": "HRX-L1-006",
+      "pr": "PR-02",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/migrations/002_hrx_documents_leave_audit.sql",
+        "packages/hrx/src/documents.js",
+        "packages/hrx/src/leave/balance.js",
+        "packages/hrx/src/leave/request-service.js",
+        "packages/audit/src/hrx-event-store-sql.js",
+        "packages/audit/src/hrx-hash-chain.js"
+      ],
+      "validators": [
+        "npm run db:migrate:test",
+        "node --test packages/hrx/test/documents-sql.test.js packages/hrx/test/leave-sql.test.js packages/audit/test/hrx-event-store-sql.test.js apps/api/test/hrx/durability.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-013",
+      "pr": "PR-02",
+      "status": "closed",
+      "evidence": [
+        "scripts/hrx-backup-restore-smoke.mjs",
+        "apps/api/test/hrx/durability.test.js"
+      ],
+      "validators": [
+        "node scripts/hrx-backup-restore-smoke.mjs --dry-run",
+        "npm run hrx:persistence:validate"
+      ]
     }
   ]
 }

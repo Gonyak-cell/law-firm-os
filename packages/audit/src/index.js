@@ -26,3 +26,5 @@ export * from "./review-sensitive-boundary-catalog.js";
 export * from "./review-terminal-closeout-catalog.js";
 export * from "./hrx-events.js";
 export * from "./hrx-event-store.js";
+export * from "./hrx-event-store-sql.js";
+export * from "./hrx-hash-chain.js";

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { createHrxAuditEventStore } from "../../../packages/audit/src/hrx-event-store.js";
-import { createInMemoryHrxDocumentStore } from "../../../packages/hrx/src/documents.js";
+import { createSqlHrxAuditEventStore } from "../../../packages/audit/src/hrx-event-store-sql.js";
+import { createInMemoryHrxDocumentStore, createSqlHrxDocumentStore } from "../../../packages/hrx/src/documents.js";
 import { createApprovalPolicy, createApprovalRequest, resolveApprovalRequest } from "../../../packages/hrx/src/approval.js";
 import { createApplication, transitionApplicationStage } from "../../../packages/hrx/src/recruiting/application.js";
 import { createCandidateProfile } from "../../../packages/hrx/src/recruiting/candidate.js";
@@ -11,8 +12,8 @@ import { createHrxPermissionAwareRetriever } from "../../../packages/hrx/src/ai/
 import { createInMemoryHrxAiReviewQueue } from "../../../packages/hrx/src/ai/review-queue.js";
 import { createHrxPeopleAnalyticsReadModel } from "../../../packages/hrx/src/analytics.js";
 import { createLeavePolicy } from "../../../packages/hrx/src/rules/leave-policy.js";
-import { createInMemoryLeaveBalanceLedger } from "../../../packages/hrx/src/leave/balance.js";
-import { createInMemoryLeaveRequestStore, createLeaveRequestService } from "../../../packages/hrx/src/leave/request-service.js";
+import { createInMemoryLeaveBalanceLedger, createSqlLeaveBalanceLedger } from "../../../packages/hrx/src/leave/balance.js";
+import { createInMemoryLeaveRequestStore, createLeaveRequestService, createSqlLeaveRequestStore } from "../../../packages/hrx/src/leave/request-service.js";
 import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repository.js";
 import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
 import { createHrxMatterWorkloadProjection } from "../../../packages/matter/src/hrx-workload-projection.js";
@@ -97,7 +98,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
       },
     ],
   }));
-  const documents = createInMemoryHrxDocumentStore([
+  const documents = store ? createSqlHrxDocumentStore({ store }) : createInMemoryHrxDocumentStore([
     {
       tenant_id: SYNTHETIC_TENANT,
       document_id: "doc-001",
@@ -115,7 +116,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
       title: "Leave notice",
     },
   ]);
-  const leaveLedger = createInMemoryLeaveBalanceLedger([
+  const leaveLedger = store ? createSqlLeaveBalanceLedger({ store }) : createInMemoryLeaveBalanceLedger([
     {
       tenant_id: SYNTHETIC_TENANT,
       entry_id: "pto-earned-001",
@@ -137,7 +138,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
       source_ref: "LeaveRequest:leave-002",
     },
   ]);
-  const leaveStore = createInMemoryLeaveRequestStore([
+  const leaveStore = store ? createSqlLeaveRequestStore({ store }) : createInMemoryLeaveRequestStore([
     {
       tenant_id: SYNTHETIC_TENANT,
       request_id: "leave-002",
@@ -151,7 +152,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
       approver_id: "manager-001",
     },
   ]);
-  const audit = createHrxAuditEventStore();
+  const audit = store ? createSqlHrxAuditEventStore({ store }) : createHrxAuditEventStore();
   const leaveService = createLeaveRequestService({ store: leaveStore, balanceLedger: leaveLedger, audit });
 
   const approvalPolicy = createApprovalPolicy({

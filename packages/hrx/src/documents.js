@@ -49,3 +49,36 @@ export function createInMemoryHrxDocumentStore(seed = []) {
 
   return Object.freeze(store);
 }
+
+export function createSqlHrxDocumentStore({ store } = {}) {
+  if (!store || typeof store.query !== "function") throw new TypeError("HRX SQL document store requires store.query");
+
+  return Object.freeze({
+    create(input) {
+      const metadata = createHrxDocumentMetadata(input);
+      return Object.freeze(
+        store.query("insert", {
+          table: "hrx_documents",
+          row: { ...metadata, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        }),
+      );
+    },
+    get(ref = {}) {
+      const value = store.query("selectOne", {
+        table: "hrx_documents",
+        where: { tenant_id: ref.tenant_id, document_id: ref.document_id },
+      });
+      return value ? Object.freeze({ ...value }) : undefined;
+    },
+    list(query = {}) {
+      const where = { tenant_id: query.tenant_id };
+      if (query.employee_id) where.employee_id = query.employee_id;
+      return Object.freeze(
+        store
+          .query("select", { table: "hrx_documents", where })
+          .sort((left, right) => left.document_id.localeCompare(right.document_id))
+          .map((document) => Object.freeze({ ...document })),
+      );
+    },
+  });
+}
