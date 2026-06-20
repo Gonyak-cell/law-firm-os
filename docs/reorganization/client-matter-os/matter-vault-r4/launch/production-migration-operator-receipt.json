@@ -1,9 +1,13 @@
 {
   "schema_version": "law-firm-os.matter-vault-r4-production-migration-operator-receipt.v0.1",
-  "date": "2026-06-20",
+  "date": "2026-06-21",
   "release_lane": "Matter-Vault R4",
   "receipt_type": "production_migration_operator",
-  "status": "blocked_missing_operator_environment",
+  "status": "authorized_pending_operator_environment",
+  "execution_authorization": "docs/reorganization/client-matter-os/matter-vault-r4/launch/external-receipt-execution-authorization.json",
+  "execution_authorization_received": true,
+  "environment_tier": "production-equivalent",
+  "authorized_scope": "pilot_tenant_dry_run_only",
   "operator_receipt_received": false,
   "required_environment": [
     "MATTER_VAULT_R4_PRODUCTION_BASE_URL",
@@ -19,7 +23,7 @@
     "docs/reorganization/client-matter-os/matter-vault-r4/launch/migration-dry-run-receipt.json"
   ],
   "failed_rows": [],
-  "blocked_reason": "Only local dry-run receipts are present. No operator-owned production migration environment or migration window is configured in this workspace.",
+  "blocked_reason": "Execution authorization is recorded for pilot tenant dry-run only. No operator-owned production-equivalent migration environment or migration window is configured in this workspace.",
   "launch_authorization_claim": false,
   "go_live_claim": false,
   "production_ready_claim": false

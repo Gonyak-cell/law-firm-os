@@ -21,8 +21,9 @@ const scans = [
     file: "docs/reorganization/client-matter-os/matter-vault-r4/signoff.md",
     required: [
       /Owner release authority \| received for release\/cutover progression/,
-      /External production smoke receipt \| blocked_missing_external_environment/,
-      /Production migration operator receipt \| blocked_missing_operator_environment/,
+      /External receipt execution authorization \| received for production-equivalent smoke and pilot tenant dry-run migration/,
+      /External production smoke receipt \| authorized_pending_external_environment/,
+      /Production migration operator receipt \| authorized_pending_operator_environment/,
       /Actual launch\/go-live completed claim \| false/,
     ],
     forbidden: [/go-live approved/i],
