@@ -20,6 +20,31 @@ test("payroll route creates export preview with human review and no calculation 
   assert.equal(response.body.preview.human_review_required, true);
   assert.equal(response.body.preview.calculation_runtime, false);
   assert.equal(audit.list({ tenant_id: "tenant-a" }).length, 1);
+
+  const approved = await route.handle({
+    method: "POST",
+    context: { tenant_id: "tenant-a", actor_id: "user-a" },
+    params: { action: "approve", preview_id: "pay-preview-001" },
+    body: { approval_ref: "Approval:pay-preview-001" },
+  });
+  assert.equal(approved.status, 200);
+  assert.equal(approved.body.preview.state, "approved");
+
+  const exported = await route.handle({
+    method: "POST",
+    context: { tenant_id: "tenant-a", actor_id: "user-a" },
+    params: { action: "export", preview_id: "pay-preview-001" },
+    body: {
+      export_artifact_ref: "DMS:payroll-export-001",
+      provider_payload_ref: "ProviderDraft:payroll-export-001",
+    },
+  });
+  assert.equal(exported.status, 200);
+  assert.equal(exported.body.artifact.disbursement_instruction_included, false);
+  assert.deepEqual(
+    audit.list({ tenant_id: "tenant-a" }).map((event) => event.action),
+    ["hrx.payroll.preview", "hrx.payroll.approve", "hrx.payroll.export"],
+  );
 });
 
 test("payroll route blocks calculation and disbursement fields", async () => {

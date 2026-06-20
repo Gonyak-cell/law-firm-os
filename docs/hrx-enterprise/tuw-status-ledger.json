@@ -644,6 +644,114 @@
         "npm run hrx:core:validate",
         "npm test"
       ]
+    },
+    {
+      "id": "HRX-L4-001",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/rules/leave-policy.js",
+        "packages/hrx/test/leave-policy.test.js",
+        "scripts/validate-hrx-workflows.mjs"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/leave-policy.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-002",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/leave/request-service.js",
+        "packages/hrx/test/leave-sql.test.js",
+        "apps/api/test/hrx/leave.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/leave-sql.test.js apps/api/test/hrx/leave.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-003",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/attendance.js",
+        "packages/hrx/test/attendance.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/attendance.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-004",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/overtime.js",
+        "packages/hrx/test/overtime.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/overtime.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-005",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/approval.js",
+        "packages/hrx/test/approval.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/approval.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-014",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/payroll-export-service.js",
+        "apps/api/src/routes/hrx/payroll.js",
+        "packages/hrx/test/payroll-export-service.test.js",
+        "apps/api/test/hrx/payroll.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/payroll-export-service.test.js apps/api/test/hrx/payroll.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-015",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/payroll-reconciliation.js",
+        "packages/hrx/test/payroll-reconciliation.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/payroll-reconciliation.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-016",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/retention-job.js",
+        "packages/hrx/test/retention-job.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/retention-job.test.js"
+      ]
     }
   ]
 }

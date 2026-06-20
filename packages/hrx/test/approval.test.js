@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createApprovalPolicy, createApprovalRequest, resolveApprovalRequest, routeHrxApproval } from "../src/approval.js";
+import {
+  createApprovalPolicy,
+  createApprovalRequest,
+  createApprovalRoutePlan,
+  resolveApprovalRequest,
+  routeHrxApproval,
+} from "../src/approval.js";
 
 const policy = Object.freeze({
   tenant_id: "tenant-a",
@@ -32,4 +38,34 @@ test("approval engine resolves pending requests only", () => {
   assert.equal(approved.state, "approved");
   assert.throws(() => resolveApprovalRequest(approved, { state: "rejected", decided_by: "legal-002" }), /must be pending/);
   assert.throws(() => resolveApprovalRequest(request, { state: "pending", decided_by: "legal-002" }), /approved or rejected/);
+});
+
+test("approval route plan supports ordered steps delegation and escalation", () => {
+  const plan = createApprovalRoutePlan({
+    policy,
+    steps: [
+      { step_id: "step-hr", step_order: 2, route: "hr" },
+      { step_id: "step-manager", step_order: 1, route: "manager" },
+    ],
+    delegations: [
+      {
+        delegation_id: "delegation-001",
+        from_approver_id: "manager-001",
+        to_approver_id: "manager-002",
+        reason: "scheduled absence",
+        expires_at: "2026-07-01T00:00:00.000Z",
+      },
+    ],
+    escalations: [
+      {
+        escalation_id: "escalation-001",
+        trigger: "sla_expired",
+        to_route: "hr",
+        reason: "manager step exceeded SLA",
+      },
+    ],
+  });
+  assert.deepEqual(plan.steps.map((step) => step.step_id), ["step-manager", "step-hr"]);
+  assert.equal(plan.delegations[0].to_approver_id, "manager-002");
+  assert.equal(plan.escalations[0].trigger, "sla_expired");
 });

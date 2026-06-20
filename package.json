@@ -134,6 +134,7 @@
     "hrx:authz:validate": "node scripts/validate-hrx-route-authz.mjs",
     "hrx:context:validate": "node scripts/validate-hrx-context-hardening.mjs",
     "hrx:core:validate": "node scripts/validate-hrx-core-domain.mjs",
+    "hrx:workflows:validate": "node scripts/validate-hrx-workflows.mjs",
     "hrx:security:validate": "node scripts/validate-hrx-security-negative-tests.mjs",
     "hrx:enterprise:validate": "node scripts/validate-hrx-enterprise-readiness.mjs",
     "hrx:no-premature-claim:validate": "node scripts/validate-hrx-no-premature-claim.mjs",

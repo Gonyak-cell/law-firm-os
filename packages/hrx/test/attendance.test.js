@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createAttendanceRecord, createInMemoryAttendanceStore, importAttendanceRecords } from "../src/attendance.js";
+import {
+  createAttendanceCorrection,
+  createAttendanceRecord,
+  createInMemoryAttendanceStore,
+  importAttendanceRecords,
+} from "../src/attendance.js";
 
 test("attendance record requires source traceability", () => {
   const record = createAttendanceRecord({
@@ -38,4 +43,39 @@ test("attendance import stamps import source and batch id", () => {
     records: [{ employee_id: "emp-001", work_date: "2026-06-20", status: "present" }],
   });
   assert.equal(store.list({ tenant_id: "tenant-a", employee_id: "emp-001" }).length, 1);
+});
+
+test("attendance manual correction keeps source traceability and original reference", () => {
+  const current = createAttendanceRecord({
+    tenant_id: "tenant-a",
+    attendance_id: "att-original",
+    employee_id: "emp-001",
+    work_date: "2026-06-19",
+    status: "present",
+    recorded_hours: 8,
+    source_ref: "TimeClock:manual:original",
+  });
+  const correction = createAttendanceCorrection(current, {
+    attendance_id: "att-correction",
+    status: "remote",
+    recorded_hours: 7.5,
+    source_ref: "TimeClock:manual:correction",
+    correction_reason: "manager adjustment",
+  });
+  assert.equal(correction.source_kind, "manual");
+  assert.equal(correction.correction_of_attendance_id, "att-original");
+  assert.equal(correction.correction_reason, "manager adjustment");
+
+  const store = createInMemoryAttendanceStore([current]);
+  const stored = store.correct(
+    { tenant_id: "tenant-a", attendance_id: "att-original" },
+    {
+      attendance_id: "att-correction-store",
+      status: "leave",
+      source_ref: "TimeClock:manual:correction-store",
+      correction_reason: "approved PTO",
+    },
+  );
+  assert.equal(stored.correction_of_attendance_id, "att-original");
+  assert.equal(store.list({ tenant_id: "tenant-a", employee_id: "emp-001" }).length, 2);
 });

@@ -39,6 +39,25 @@ export function createAttendanceRecord(input = {}) {
     recorded_hours: optionalHours(input, "recorded_hours"),
     clock_in_at: input.clock_in_at ?? null,
     clock_out_at: input.clock_out_at ?? null,
+    correction_of_attendance_id: input.correction_of_attendance_id ?? null,
+    correction_reason: input.correction_reason ?? null,
+  });
+}
+
+export function createAttendanceCorrection(current = {}, input = {}) {
+  const existing = createAttendanceRecord(current);
+  const correctionReason = requiredString(input, "correction_reason");
+  return createAttendanceRecord({
+    ...existing,
+    ...input,
+    tenant_id: existing.tenant_id,
+    attendance_id: requiredString(input, "attendance_id"),
+    employee_id: existing.employee_id,
+    work_date: existing.work_date,
+    source_kind: "manual",
+    correction_of_attendance_id: existing.attendance_id,
+    correction_reason: correctionReason,
+    source_ref: requiredString(input, "source_ref"),
   });
 }
 
@@ -78,6 +97,11 @@ export function createInMemoryAttendanceStore(seed = []) {
       const imported = importAttendanceRecords(batch);
       for (const record of imported) write(record);
       return imported;
+    },
+    correct(ref = {}, input = {}) {
+      const current = records.get(key(ref.tenant_id, ref.attendance_id));
+      if (!current) throw new Error(`Attendance record not found: ${ref.attendance_id}`);
+      return write(createAttendanceCorrection(current, input));
     },
     list(query = {}) {
       return Object.freeze(
