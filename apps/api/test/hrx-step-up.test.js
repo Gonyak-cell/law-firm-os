@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { authorizeHrxStepUpRequest, parseHrxStepUpContext } from "../src/middleware/hrx-step-up-context.js";
 import { evaluateHrxStepUp, requireHrxStepUp } from "../src/middleware/hrx-step-up.js";
 
 const context = Object.freeze({ tenant_id: "tenant-a", actor_id: "hr-001", actor_role: "people_ops" });
@@ -34,4 +35,27 @@ test("HRX step-up accepts fresh matching MFA token and throws when required", ()
   });
   assert.equal(decision.effect, "allow");
   assert.throws(() => requireHrxStepUp({ action: "hrx.payroll.export", context }), /HRX_STEP_UP_REQUIRED/);
+});
+
+test("HRX step-up context parses trusted header and rejects malformed tokens", () => {
+  const parsed = parseHrxStepUpContext({
+    "x-lawos-hrx-step-up": JSON.stringify({
+      tenant_id: "tenant-a",
+      actor_id: "hr-001",
+      mfa: true,
+      assurance_level: 2,
+      expires_at: "2999-01-01T00:00:00.000Z",
+    }),
+  });
+  assert.equal(parsed.ok, true);
+  assert.equal(parsed.token.actor_id, "hr-001");
+
+  const malformed = authorizeHrxStepUpRequest({
+    action: "hrx.audit.read",
+    context,
+    headers: { "x-lawos-hrx-step-up": "not-json" },
+  });
+  assert.equal(malformed.ok, false);
+  assert.equal(malformed.body.safe_error_code, "HRX_STEP_UP_REQUIRED");
+  assert.equal(malformed.body.reason, "hrx_step_up_context_malformed");
 });

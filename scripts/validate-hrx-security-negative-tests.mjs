@@ -28,6 +28,14 @@ const checks = [
     file: "apps/api/test/hrx/route-authz.test.js",
     patterns: [/fails closed/i, /HRX_AUTHZ_DENIED/i, /HRX_ROUTE_POLICY_REQUIRED/i],
   },
+  {
+    file: "apps/api/test/hrx/step-up-route.test.js",
+    patterns: [/requires fresh step-up/i, /HRX_STEP_UP_REQUIRED/i, /stale/i],
+  },
+  {
+    file: "packages/authz/test/hrx-step-up-session.test.js",
+    patterns: [/fresh MFA assurance/i, /revokes sessions/i, /rejects weak/i],
+  },
 ];
 
 const errors = [];

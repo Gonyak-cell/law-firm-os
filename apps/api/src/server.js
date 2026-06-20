@@ -14,6 +14,7 @@ import {
   handleRelationshipLookup,
 } from "./master-data-context.js";
 import { authorizeHrxApiRequest } from "./middleware/hrx-authz.js";
+import { authorizeHrxStepUpRequest } from "./middleware/hrx-step-up-context.js";
 import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, parsePermissionContext } from "./permission-gate.js";
 import { createHrxRuntimeContext, handleHrxApiRequest } from "./hrx-runtime-context.js";
 
@@ -98,6 +99,11 @@ async function handle(req, res) {
     const hrxAuthz = authorizeHrxApiRequest({ method: req.method, pathname, query, headers: req.headers });
     if (!hrxAuthz.ok) {
       sendJson(res, hrxAuthz.status, { request_id: requestId, ...hrxAuthz.body });
+      return;
+    }
+    const hrxStepUp = authorizeHrxStepUpRequest({ action: hrxAuthz.policy.action, context: hrxAuthz.context, headers: req.headers });
+    if (!hrxStepUp.ok) {
+      sendJson(res, hrxStepUp.status, { request_id: requestId, ...hrxStepUp.body });
       return;
     }
     const body = req.method === "POST" ? await readRequestBody(req) : {};

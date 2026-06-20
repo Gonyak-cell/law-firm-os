@@ -371,6 +371,36 @@
         "npm run hrx:authz:validate",
         "npm run hrx:security:validate"
       ]
+    },
+    {
+      "id": "HRX-L2-006",
+      "pr": "PR-04",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/middleware/hrx-step-up-context.js",
+        "apps/api/test/hrx-step-up.test.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx-step-up.test.js",
+        "npm run hrx:security:validate",
+        "npm run hrx:runtime:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-007",
+      "pr": "PR-04",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/middleware/hrx-step-up.js",
+        "apps/api/src/middleware/hrx-step-up-context.js",
+        "apps/api/src/server.js",
+        "apps/api/test/hrx/step-up-route.test.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx-step-up.test.js apps/api/test/hrx/step-up-route.test.js",
+        "npm run hrx:security:validate",
+        "npm run hrx:runtime:validate"
+      ]
     }
   ]
 }

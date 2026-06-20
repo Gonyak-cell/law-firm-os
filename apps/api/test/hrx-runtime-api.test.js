@@ -9,6 +9,13 @@ const HRX_AUTH_HEADERS = Object.freeze({
   "x-lawos-tenant-id": "tenant-a",
   "x-lawos-actor-id": "hrx-test-user",
   "x-lawos-actor-role": "people_ops",
+  "x-lawos-hrx-step-up": JSON.stringify({
+    tenant_id: "tenant-a",
+    actor_id: "hrx-test-user",
+    mfa: true,
+    assurance_level: 2,
+    expires_at: "2999-01-01T00:00:00.000Z",
+  }),
   "x-lawos-hrx-scopes": [
     "hrx.employee.read",
     "hrx.document.read",
