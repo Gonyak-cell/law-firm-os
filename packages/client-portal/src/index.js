@@ -6,6 +6,7 @@ export * from "./runtime-repository.js";
 export * from "./audit.js";
 export * from "./external-user-service.js";
 export * from "./portal-projection-service.js";
+export * from "./matter-vault-projection-service.js";
 export * from "./rfi-service.js";
 export * from "./approval-service.js";
 export * from "./secure-link-service.js";

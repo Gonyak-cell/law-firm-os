@@ -434,6 +434,86 @@ export function addMatterTeamMember({ matterId, payload, ctx = "allow" } = {}) {
   });
 }
 
+export async function fetchMatterVaultSummary({
+  matterId,
+  ctx = "allow",
+  permissionRef = "ui_mv_matter_vault_summary",
+  auditHintRef = "ui_mv_matter_vault_probe"
+} = {}) {
+  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const params = new URLSearchParams({
+    tenant_id: MATTER_TENANT_ID,
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+
+  let body;
+  try {
+    const response = await fetch(`/api/matters/${encodeURIComponent(matterId)}/vault-summary?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+
+  const hasSummaryShape =
+    body !== null &&
+    typeof body === "object" &&
+    !Array.isArray(body) &&
+    ["request_id", "outcome", "item", "safe_error_codes", "audit_hint_ref", "ui_state", "production_ready_claim"]
+      .every((key) => key in body);
+  if (!hasSummaryShape) return { kind: "error" };
+
+  return {
+    kind: "data",
+    requestId: body.request_id,
+    uiState: body.ui_state,
+    outcome: body.outcome,
+    item: body.item,
+    safeErrorCodes: body.safe_error_codes,
+    auditHintRef: body.audit_hint_ref,
+    countLeakPrevented: body.count_leak_prevented === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+export async function fetchMatterTimeline({
+  matterId,
+  ctx = "allow",
+  permissionRef = "ui_mv_matter_timeline",
+  auditHintRef = "ui_mv_matter_timeline_probe"
+} = {}) {
+  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const params = new URLSearchParams({
+    tenant_id: MATTER_TENANT_ID,
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+
+  let body;
+  try {
+    const response = await fetch(`/api/matters/${encodeURIComponent(matterId)}/timeline?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+
+  if (!body || typeof body !== "object" || Array.isArray(body) || !("item" in body)) {
+    return { kind: "error" };
+  }
+  return {
+    kind: "data",
+    item: body.item,
+    uiState: body.ui_state,
+    safeErrorCodes: body.safe_error_codes ?? [],
+    countLeakPrevented: body.count_leak_prevented === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
 export async function fetchVaultDocuments({
   ctx = "allow",
   permissionRef = DEFAULT_VAULT_PERMISSION_REF,

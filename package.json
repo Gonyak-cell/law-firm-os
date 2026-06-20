@@ -172,6 +172,8 @@
     "client-matter:cmp-v1:g12:validate": "node scripts/validate-cmp-r4-g12.mjs",
     "client-matter:cmp-v1:blockers": "node scripts/audit-cmp-r4-blockers.mjs",
     "client-matter:cmp-v1:blockers:baseline": "node scripts/audit-cmp-r4-blockers.mjs --baseline",
+    "matter-vault:r4:validate": "node scripts/validate-matter-vault-r4.mjs",
+    "matter-vault:r4:blockers": "node scripts/audit-matter-vault-r4-blockers.mjs",
     "client-matter:g1:plan:validate": "node scripts/validate-client-matter-os-g1-plan.mjs",
     "client-matter:g1a:validate": "node scripts/validate-client-matter-os-g1-a.mjs",
     "client-matter:g1b:validate": "node scripts/validate-client-matter-os-g1-b.mjs",

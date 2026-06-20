@@ -5321,7 +5321,9 @@ html[data-theme="dark"] .public-preview {
 
 .matter-review-strip,
 .matter-form-footer,
-.matter-boundary-card {
+.matter-boundary-card,
+.matter-vault-actions,
+.matter-vault-actions span {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -5407,6 +5409,25 @@ html[data-theme="dark"] .public-preview {
 
 .matter-boundary-card span {
   color: var(--am-text-muted);
+}
+
+.matter-vault-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.matter-vault-actions {
+  min-height: 34px;
+  justify-content: space-between;
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.matter-vault-actions span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* --- CMP G5 Vault/DMS runtime surface --- */

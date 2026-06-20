@@ -5,6 +5,7 @@ import { fetchMatterRecords } from "../data/apiClient.js";
 import { DataTable, MetricCard, PageHeader, Panel } from "./primitives.jsx";
 import { MatterOpeningWizard } from "./MatterOpeningWizard.jsx";
 import { MatterTeamRoster } from "./MatterTeamRoster.jsx";
+import { MatterVaultPanel } from "./MatterVaultPanel.jsx";
 
 const MATTER_PERMISSION_REF = "ui_cmp_g4_matter_live";
 const MATTER_AUDIT_HINT_REF = "ui_cmp_g4_matter_probe";
@@ -58,6 +59,7 @@ export function MattersSurface({ labels, liveCtx = "allow" }) {
     }),
     [matters]
   );
+  const selectedMatterId = matters[0]?.matter_id ?? null;
 
   let body;
   if (result === null) {
@@ -132,6 +134,7 @@ export function MattersSurface({ labels, liveCtx = "allow" }) {
         <Panel className="span-2 matter-runtime-panel" title="Matter Home" meta="/api/matters">
           {body}
         </Panel>
+        <MatterVaultPanel matterId={selectedMatterId} liveCtx={liveCtx} />
         <Panel className="matter-runtime-panel" title="Evidence Binding" meta={MATTER_AUDIT_HINT_REF}>
           <div className="client-evidence-list">
             <span>permission_ref</span>
