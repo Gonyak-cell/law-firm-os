@@ -436,6 +436,37 @@
         "npm --workspace apps/web run test:ui",
         "npm run web:e2e -- hrx"
       ]
+    },
+    {
+      "id": "HRX-L3-005",
+      "pr": "PR-06",
+      "status": "closed",
+      "evidence": [
+        "contracts/hrx-document-source-boundary.json",
+        "packages/hrx/src/documents/source-adapter.js",
+        "packages/hrx/src/documents.js",
+        "apps/api/src/routes/hrx/documents.js",
+        "packages/hrx/test/document-source-adapter.test.js",
+        "apps/api/test/hrx/documents.test.js"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "node --test packages/hrx/test/document-source-adapter.test.js packages/hrx/test/documents-sql.test.js apps/api/test/hrx/documents.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L3-006",
+      "pr": "PR-06",
+      "status": "closed",
+      "evidence": [
+        "packages/integrations-core/src/hrx-m365-doc-source.js",
+        "packages/integrations-core/test/hrx-m365-doc-source.test.js",
+        "contracts/hrx-document-source-boundary.json"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "node --test packages/integrations-core/test/hrx-m365-doc-source.test.js"
+      ]
     }
   ]
 }

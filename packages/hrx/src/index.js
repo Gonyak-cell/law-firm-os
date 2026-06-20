@@ -14,6 +14,7 @@ export * from "./org.js";
 export * from "./reporting-line.js";
 export * from "./assignment.js";
 export * from "./documents.js";
+export * from "./documents/source-adapter.js";
 export * from "./contracts.js";
 export * from "./compensation.js";
 export * from "./payroll-boundary.js";

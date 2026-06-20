@@ -116,6 +116,11 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
       employee_id: "emp-001",
       document_type: "policy_ack",
       source_ref: "DMS:hr-policy-ack-001",
+      source_provider: "dms",
+      source_status: "verified",
+      source_verified_at: "2026-06-20T00:00:00.000Z",
+      source_version_ref: "DMS:hr-policy-ack-001:v1",
+      source_metadata: { provider_document_id: "hr-policy-ack-001", etag_present: true },
       title: "Policy acknowledgement",
     },
     {
@@ -124,6 +129,11 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
       employee_id: "emp-002",
       document_type: "leave_notice",
       source_ref: "DMS:leave-notice-002",
+      source_provider: "dms",
+      source_status: "verified",
+      source_verified_at: "2026-06-20T00:00:00.000Z",
+      source_version_ref: "DMS:leave-notice-002:v1",
+      source_metadata: { provider_document_id: "leave-notice-002", etag_present: true },
       title: "Leave notice",
     },
   ]);

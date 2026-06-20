@@ -24,9 +24,16 @@ test("SQL HR document store persists metadata only", () => {
     employee_id: "emp-001",
     document_type: "policy_ack",
     source_ref: "DMS:doc-001",
+    source_provider: "dms",
+    source_status: "verified",
+    source_verified_at: "2026-06-20T00:00:00.000Z",
+    source_version_ref: "DMS:v1",
+    source_metadata: { provider_document_id: "doc-001", etag_present: true },
     title: "Policy acknowledgement",
   });
   assert.equal(created.document_body_included, false);
+  assert.equal(created.source_status, "verified");
+  assert.equal(created.source_metadata.provider_document_id, "doc-001");
   assert.equal(documents.get({ tenant_id: "tenant-a", document_id: "doc-001" }).source_ref, "DMS:doc-001");
   assert.equal(documents.list({ tenant_id: "tenant-a", employee_id: "emp-001" }).length, 1);
   assert.throws(

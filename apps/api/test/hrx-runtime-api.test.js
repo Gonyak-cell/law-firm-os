@@ -66,6 +66,8 @@ test("GET /api/hrx/documents returns metadata source refs only", async () => {
   const { status, body } = await json("/api/hrx/documents?employee_id=emp-001");
   assert.equal(status, 200);
   assert.equal(body.documents[0].source_ref, "DMS:hr-policy-ack-001");
+  assert.equal(body.documents[0].source_status, "verified");
+  assert.equal(body.documents[0].source_provider, "dms");
   assert.equal(Object.hasOwn(body.documents[0], "body"), false);
 });
 

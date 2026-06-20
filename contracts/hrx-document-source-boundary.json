@@ -1,0 +1,26 @@
+{
+  "schema_version": "law-firm-os.hrx-document-source-boundary.v0.1",
+  "tuw_ids": ["HRX-L3-005", "HRX-L3-006"],
+  "status": "accepted",
+  "decision": "metadata_only_document_source_verification_before_hr_document_storage",
+  "metadata_only": true,
+  "document_body_storage_allowed": false,
+  "secret_storage_allowed": false,
+  "raw_external_payload_allowed": false,
+  "required_document_fields": [
+    "tenant_id",
+    "document_id",
+    "employee_id",
+    "document_type",
+    "source_ref",
+    "source_provider",
+    "source_status",
+    "document_body_included"
+  ],
+  "verified_status": "verified",
+  "allowed_source_providers": ["dms", "m365"],
+  "blocked_fields": ["body", "content", "text", "document_body", "raw_payload", "secret", "secret_value", "access_token", "refresh_token"],
+  "runtime_ready": false,
+  "production_ready": false,
+  "enterprise_ready": false
+}
