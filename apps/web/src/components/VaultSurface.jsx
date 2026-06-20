@@ -5,6 +5,10 @@ import { fetchVaultDocuments } from "../data/apiClient.js";
 import { DataTable, MetricCard, PageHeader, Panel } from "./primitives.jsx";
 import { DocumentDetail } from "./DocumentDetail.jsx";
 import { EmailFilingView } from "./EmailFilingView.jsx";
+import { VaultBreadcrumb } from "./VaultBreadcrumb.jsx";
+import { VaultDocumentDetail } from "./VaultDocumentDetail.jsx";
+import { VaultDocumentTable } from "./VaultDocumentTable.jsx";
+import { VaultSecurityBadges } from "./VaultSecurityBadges.jsx";
 
 const VAULT_PERMISSION_REF = "ui_cmp_g5_vault_live";
 const VAULT_AUDIT_HINT_REF = "ui_cmp_g5_vault_probe";
@@ -93,10 +97,10 @@ export function VaultSurface({ labels, liveCtx = "allow" }) {
           <ShieldCheck size={15} />
           <span>Legal hold and privilege metadata are visible; raw storage remains hidden.</span>
         </div>
-        <DataTable
-          columns={["Document", "Title", "Status", "Version", "Privilege", "Hold"]}
-          rows={vaultRows(documents)}
-        />
+        <VaultBreadcrumb matterId={selected?.matter_id} workspaceId={selected?.workspace_id} />
+        <VaultSecurityBadges document={selected} />
+        <VaultDocumentTable documents={documents} />
+        <DataTable columns={["Document", "Title", "Status", "Version", "Privilege", "Hold"]} rows={vaultRows(documents)} />
       </div>
     );
   }
@@ -124,6 +128,7 @@ export function VaultSurface({ labels, liveCtx = "allow" }) {
           {body}
         </Panel>
         <DocumentDetail document={selected} />
+        <VaultDocumentDetail document={selected} />
         <EmailFilingView />
         <Panel className="vault-panel" title="Runtime Boundary" meta="R4 write-ready">
           <div className="matter-boundary-card">

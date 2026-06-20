@@ -16,9 +16,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g0-w00-t001.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 1
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 1,
+    "loop_stream": "MV-H1-crosswalk-boundary",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/ownership.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/ownership.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G0-W00-T002",
@@ -37,9 +54,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g0-w00-t002.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 2
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 2,
+    "loop_stream": "MV-H1-crosswalk-boundary",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/matter/src/matter-vault-link.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/matter/src/matter-vault-link.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G0-W00-T003",
@@ -58,9 +92,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g0-w00-t003.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 3
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 3,
+    "loop_stream": "MV-H1-crosswalk-boundary",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/adr/matter-vault-boundary.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/adr/matter-vault-boundary.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G0-W00-T004",
@@ -79,9 +130,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g0-w00-t004.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 4
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 4,
+    "loop_stream": "MV-H1-crosswalk-boundary",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "scripts/audit-matter-vault-r4-blockers.mjs",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "scripts/audit-matter-vault-r4-blockers.mjs"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G0-W00-T005",
@@ -100,9 +168,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g0-w00-t005.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 5
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 5,
+    "loop_stream": "MV-H1-crosswalk-boundary",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/module-boundary.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/module-boundary.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G0-W00-T006",
@@ -121,9 +206,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g0-w00-t006.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 6
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 6,
+    "loop_stream": "MV-H1-crosswalk-boundary",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/api-matrix.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/api-matrix.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G0-W00-T007",
@@ -142,9 +244,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g0-w00-t007.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 7
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 7,
+    "loop_stream": "MV-H1-crosswalk-boundary",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/event-taxonomy.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/event-taxonomy.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G0-W00-T008",
@@ -163,9 +282,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g0-w00-t008.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 8
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 8,
+    "loop_stream": "MV-H1-crosswalk-boundary",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/ui-ia.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/ui-ia.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G0-W00-T009",
@@ -184,9 +320,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g0-w00-t009.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 9
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 9,
+    "loop_stream": "MV-H1-crosswalk-boundary",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": ".github/pull_request_template.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          ".github/pull_request_template.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G0-W00-T010",
@@ -205,9 +358,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g0-w00-t010.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 10
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 10,
+    "loop_stream": "MV-H1-crosswalk-boundary",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/g0-closeout.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/g0-closeout.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G1-W01-T001",
@@ -226,9 +396,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g1-w01-t001.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 11
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 11,
+    "loop_stream": "MV-H2-persistence-target-mapping",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/platform/src/persistence/repository.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/platform/src/persistence/repository.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G1-W01-T002",
@@ -247,9 +434,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g1-w01-t002.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 12
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 12,
+    "loop_stream": "MV-H2-persistence-target-mapping",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/platform/src/persistence/migration-runner.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/platform/src/persistence/migration-runner.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G1-W01-T003",
@@ -268,9 +472,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g1-w01-t003.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 13
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 13,
+    "loop_stream": "MV-H2-persistence-target-mapping",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/platform/src/persistence/unit-of-work.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/platform/src/persistence/unit-of-work.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G1-W01-T004",
@@ -289,9 +510,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g1-w01-t004.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 14
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 14,
+    "loop_stream": "MV-H2-persistence-target-mapping",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/platform/src/persistence/idempotency-store.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/platform/src/persistence/idempotency-store.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G1-W01-T005",
@@ -310,9 +548,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g1-w01-t005.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 15
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 15,
+    "loop_stream": "MV-H2-persistence-target-mapping",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/platform/src/persistence/outbox.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/platform/src/persistence/outbox.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G1-W01-T006",
@@ -331,9 +586,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g1-w01-t006.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 16
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 16,
+    "loop_stream": "MV-H2-persistence-target-mapping",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/platform/migrations/001_matter_vault_core.sql",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/platform/migrations/001_matter_vault_core.sql"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G1-W01-T007",
@@ -352,9 +624,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g1-w01-t007.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 17
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 17,
+    "loop_stream": "MV-H2-persistence-target-mapping",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/platform/src/persistence/seed-mode.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/platform/src/persistence/seed-mode.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G1-W01-T008",
@@ -373,9 +662,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g1-w01-t008.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 18
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 18,
+    "loop_stream": "MV-H2-persistence-target-mapping",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/platform/test/transaction-rollback.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/platform/test/transaction-rollback.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G1-W01-T009",
@@ -394,9 +700,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g1-w01-t009.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 19
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 19,
+    "loop_stream": "MV-H2-persistence-target-mapping",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "scripts/audit-no-in-memory-production.mjs",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "scripts/audit-no-in-memory-production.mjs"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G1-W01-T010",
@@ -415,9 +738,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g1-w01-t010.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 20
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 20,
+    "loop_stream": "MV-H2-persistence-target-mapping",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/src/runtime-factory.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/src/runtime-factory.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G1-W01-T011",
@@ -436,9 +776,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g1-w01-t011.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 21
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 21,
+    "loop_stream": "MV-H2-persistence-target-mapping",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/test/matter-vault-persistence.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/test/matter-vault-persistence.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G1-W01-T012",
@@ -457,9 +814,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g1-w01-t012.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 22
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 22,
+    "loop_stream": "MV-H2-persistence-target-mapping",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/persistence-report.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/persistence-report.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G2-W02-T001",
@@ -478,9 +852,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g2-w02-t001.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 23
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 23,
+    "loop_stream": "MV-H3-opening-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/matter/src/matter-vault-link-repository.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/matter/src/matter-vault-link-repository.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G2-W02-T002",
@@ -499,9 +890,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g2-w02-t002.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 24
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 24,
+    "loop_stream": "MV-H3-opening-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/matter/src/matter-opening-orchestrator.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/matter/src/matter-opening-orchestrator.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G2-W02-T003",
@@ -520,9 +928,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g2-w02-t003.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 25
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 25,
+    "loop_stream": "MV-H3-opening-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/matter/src/matter-opening-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/matter/src/matter-opening-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G2-W02-T004",
@@ -541,9 +966,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g2-w02-t004.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 26
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 26,
+    "loop_stream": "MV-H3-opening-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/vault-workspace-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/vault-workspace-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G2-W02-T005",
@@ -562,9 +1004,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g2-w02-t005.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 27
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 27,
+    "loop_stream": "MV-H3-opening-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/folder-template-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/folder-template-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G2-W02-T006",
@@ -583,9 +1042,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g2-w02-t006.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 28
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 28,
+    "loop_stream": "MV-H3-opening-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/authz/src/matter-permission-envelope.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/authz/src/matter-permission-envelope.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G2-W02-T007",
@@ -604,9 +1080,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g2-w02-t007.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 29
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 29,
+    "loop_stream": "MV-H3-opening-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/matter/src/matter-vault-link.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/matter/src/matter-vault-link.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G2-W02-T008",
@@ -625,9 +1118,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g2-w02-t008.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 30
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 30,
+    "loop_stream": "MV-H3-opening-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/vault-workspace-repository.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/vault-workspace-repository.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G2-W02-T009",
@@ -646,9 +1156,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g2-w02-t009.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 31
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 31,
+    "loop_stream": "MV-H3-opening-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/platform/src/persistence/outbox.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/platform/src/persistence/outbox.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G2-W02-T010",
@@ -667,9 +1194,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g2-w02-t010.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 32
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 32,
+    "loop_stream": "MV-H3-opening-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/src/routes/matters.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/src/routes/matters.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G2-W02-T011",
@@ -688,9 +1232,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g2-w02-t011.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 33
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 33,
+    "loop_stream": "MV-H3-opening-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/src/routes/vault.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/src/routes/vault.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G2-W02-T012",
@@ -709,9 +1270,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g2-w02-t012.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 34
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 34,
+    "loop_stream": "MV-H3-opening-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/test/e2e/matter-opening-vault.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/test/e2e/matter-opening-vault.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G2-W02-T013",
@@ -730,9 +1308,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g2-w02-t013.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 35
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 35,
+    "loop_stream": "MV-H3-opening-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/test/e2e/matter-vault-rollback.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/test/e2e/matter-vault-rollback.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G2-W02-T014",
@@ -751,9 +1346,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g2-w02-t014.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 36
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 36,
+    "loop_stream": "MV-H3-opening-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/opening-report.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/opening-report.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T001",
@@ -772,9 +1384,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t001.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 37
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 37,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/storage/storage-adapter.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/storage/storage-adapter.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T002",
@@ -793,9 +1422,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t002.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 38
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 38,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/storage/local-storage-adapter.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/storage/local-storage-adapter.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T003",
@@ -814,9 +1460,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t003.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 39
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 39,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/storage/s3-storage-adapter.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/storage/s3-storage-adapter.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T004",
@@ -835,9 +1498,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t004.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 40
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 40,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/storage/sharepoint-storage-adapter.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/storage/sharepoint-storage-adapter.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T005",
@@ -856,9 +1536,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t005.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 41
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 41,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/file-object-repository.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/file-object-repository.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T006",
@@ -877,9 +1574,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t006.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 42
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 42,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/document-repository.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/document-repository.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T007",
@@ -898,9 +1612,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t007.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 43
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 43,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/version-repository.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/version-repository.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T008",
@@ -919,9 +1650,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t008.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 44
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 44,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/document-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/document-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T009",
@@ -940,9 +1688,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t009.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 45
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 45,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/hash-lineage-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/hash-lineage-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T010",
@@ -961,9 +1726,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t010.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 46
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 46,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/version-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/version-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T011",
@@ -982,9 +1764,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t011.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 47
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 47,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/checkout-lock-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/checkout-lock-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T012",
@@ -1003,9 +1802,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t012.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 48
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 48,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/src/routes/vault.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/src/routes/vault.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T013",
@@ -1024,9 +1840,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t013.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 49
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 49,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/src/routes/vault.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/src/routes/vault.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T014",
@@ -1045,9 +1878,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t014.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 50
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 50,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/test/e2e/vault-storage-security.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/test/e2e/vault-storage-security.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T015",
@@ -1066,9 +1916,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t015.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 51
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 51,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/test/hash-lineage.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/test/hash-lineage.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G3-W03-T016",
@@ -1087,9 +1954,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g3-w03-t016.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 52
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 52,
+    "loop_stream": "MV-H3-document-api-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/document-runtime-report.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/document-runtime-report.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G4-W04-T001",
@@ -1108,9 +1992,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g4-w04-t001.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 53
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 53,
+    "loop_stream": "MV-H4-security-audit-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/vault-permission-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/vault-permission-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G4-W04-T002",
@@ -1129,9 +2030,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g4-w04-t002.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 54
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 54,
+    "loop_stream": "MV-H4-security-audit-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/authz/src/vault-object-acl.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/authz/src/vault-object-acl.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G4-W04-T003",
@@ -1150,9 +2068,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g4-w04-t003.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 55
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 55,
+    "loop_stream": "MV-H4-security-audit-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/privilege-label-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/privilege-label-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G4-W04-T004",
@@ -1171,9 +2106,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g4-w04-t004.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 56
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 56,
+    "loop_stream": "MV-H4-security-audit-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/legal-hold-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/legal-hold-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G4-W04-T005",
@@ -1192,9 +2144,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g4-w04-t005.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 57
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 57,
+    "loop_stream": "MV-H4-security-audit-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/retention-policy-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/retention-policy-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G4-W04-T006",
@@ -1213,9 +2182,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g4-w04-t006.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 58
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 58,
+    "loop_stream": "MV-H4-security-audit-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/src/middleware/sensitive-read-audit.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/src/middleware/sensitive-read-audit.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G4-W04-T007",
@@ -1234,9 +2220,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g4-w04-t007.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 59
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 59,
+    "loop_stream": "MV-H4-security-audit-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/document-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/document-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G4-W04-T008",
@@ -1255,9 +2258,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g4-w04-t008.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 60
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 60,
+    "loop_stream": "MV-H4-security-audit-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/storage/download-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/storage/download-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G4-W04-T009",
@@ -1276,9 +2296,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g4-w04-t009.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 61
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 61,
+    "loop_stream": "MV-H4-security-audit-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/legal-hold-guard.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/legal-hold-guard.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G4-W04-T010",
@@ -1297,9 +2334,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g4-w04-t010.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 62
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 62,
+    "loop_stream": "MV-H4-security-audit-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/vault-projection.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/vault-projection.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G4-W04-T011",
@@ -1318,9 +2372,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g4-w04-t011.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 63
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 63,
+    "loop_stream": "MV-H4-security-audit-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/test/security/matter-vault-tenant-leak.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/test/security/matter-vault-tenant-leak.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G4-W04-T012",
@@ -1339,9 +2410,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g4-w04-t012.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 64
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 64,
+    "loop_stream": "MV-H4-security-audit-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/test/security/matter-vault-ethical-wall.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/test/security/matter-vault-ethical-wall.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G4-W04-T013",
@@ -1360,9 +2448,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g4-w04-t013.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 65
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 65,
+    "loop_stream": "MV-H4-security-audit-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/test/security/matter-vault-legal-hold.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/test/security/matter-vault-legal-hold.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G4-W04-T014",
@@ -1381,9 +2486,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g4-w04-t014.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 66
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 66,
+    "loop_stream": "MV-H4-security-audit-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/permission-audit-report.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/permission-audit-report.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G5-W05-T001",
@@ -1402,9 +2524,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g5-w05-t001.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 67
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 67,
+    "loop_stream": "MV-H4-search-ai-portal-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/search/index-repository.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/search/index-repository.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G5-W05-T002",
@@ -1423,9 +2562,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g5-w05-t002.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 68
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 68,
+    "loop_stream": "MV-H4-search-ai-portal-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/search/acl-filter.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/search/acl-filter.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G5-W05-T003",
@@ -1444,9 +2600,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g5-w05-t003.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 69
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 69,
+    "loop_stream": "MV-H4-search-ai-portal-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/search/search-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/search/search-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G5-W05-T004",
@@ -1465,9 +2638,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g5-w05-t004.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 70
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 70,
+    "loop_stream": "MV-H4-search-ai-portal-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/src/search/indexer.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/src/search/indexer.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G5-W05-T005",
@@ -1486,9 +2676,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g5-w05-t005.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 71
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 71,
+    "loop_stream": "MV-H4-search-ai-portal-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/ai-governance/src/retrieval-evidence.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/ai-governance/src/retrieval-evidence.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G5-W05-T006",
@@ -1507,9 +2714,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g5-w05-t006.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 72
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 72,
+    "loop_stream": "MV-H4-search-ai-portal-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/ai-governance/src/retrieval-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/ai-governance/src/retrieval-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G5-W05-T007",
@@ -1528,9 +2752,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g5-w05-t007.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 73
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 73,
+    "loop_stream": "MV-H4-search-ai-portal-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/ai-governance/src/source-policy.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/ai-governance/src/source-policy.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G5-W05-T008",
@@ -1549,9 +2790,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g5-w05-t008.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 74
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 74,
+    "loop_stream": "MV-H4-search-ai-portal-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/client-portal/src/projection-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/client-portal/src/projection-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G5-W05-T009",
@@ -1570,9 +2828,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g5-w05-t009.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 75
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 75,
+    "loop_stream": "MV-H4-search-ai-portal-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/data-room/src/projection-service.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/data-room/src/projection-service.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G5-W05-T010",
@@ -1591,9 +2866,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g5-w05-t010.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 76
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 76,
+    "loop_stream": "MV-H4-search-ai-portal-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/test/e2e/vault-search-acl.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/test/e2e/vault-search-acl.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G5-W05-T011",
@@ -1612,9 +2904,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g5-w05-t011.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 77
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 77,
+    "loop_stream": "MV-H4-search-ai-portal-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/test/e2e/ai-vault-permission.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/test/e2e/ai-vault-permission.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G5-W05-T012",
@@ -1633,9 +2942,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g5-w05-t012.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 78
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 78,
+    "loop_stream": "MV-H4-search-ai-portal-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/test/e2e/portal-vault-projection.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/test/e2e/portal-vault-projection.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T001",
@@ -1654,9 +2980,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t001.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 79
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 79,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/matter/src/timeline-repository.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/matter/src/timeline-repository.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T002",
@@ -1675,9 +3018,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t002.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 80
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 80,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/matter/src/timeline-projection.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/matter/src/timeline-projection.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T003",
@@ -1696,9 +3056,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t003.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 81
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 81,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/matter/src/timeline-projection.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/matter/src/timeline-projection.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T004",
@@ -1717,9 +3094,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t004.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 82
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 82,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/matter/src/timeline-projection.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/matter/src/timeline-projection.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T005",
@@ -1738,9 +3132,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t005.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 83
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 83,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/src/routes/matters.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/src/routes/matters.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T006",
@@ -1759,9 +3170,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t006.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 84
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 84,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/src/routes/matters.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/src/routes/matters.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T007",
@@ -1780,9 +3208,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t007.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 85
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 85,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/web/src/data/vaultApiClient.ts",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/web/src/data/vaultApiClient.ts"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T008",
@@ -1801,9 +3246,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t008.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 86
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 86,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/web/src/components/MatterVaultPanel.jsx",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/web/src/components/MatterVaultPanel.jsx"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T009",
@@ -1822,9 +3284,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t009.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 87
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 87,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/web/src/components/VaultDocumentTable.jsx",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/web/src/components/VaultDocumentTable.jsx"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T010",
@@ -1843,9 +3322,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t010.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 88
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 88,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/web/src/components/VaultDocumentDetail.jsx",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/web/src/components/VaultDocumentDetail.jsx"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T011",
@@ -1864,9 +3360,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t011.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 89
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 89,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/web/src/components/VaultSecurityBadges.jsx",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/web/src/components/VaultSecurityBadges.jsx"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T012",
@@ -1885,9 +3398,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t012.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 90
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 90,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/web/src/components/VaultBreadcrumb.jsx",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/web/src/components/VaultBreadcrumb.jsx"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T013",
@@ -1906,9 +3436,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t013.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 91
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 91,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/web/src/components/primitives.jsx",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/web/src/components/primitives.jsx"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T014",
@@ -1927,9 +3474,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t014.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 92
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 92,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/web/e2e/matter-vault.spec.ts",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/web/e2e/matter-vault.spec.ts"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T015",
@@ -1948,9 +3512,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t015.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 93
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 93,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/web/test/matter-vault-a11y.test.mjs",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/web/test/matter-vault-a11y.test.mjs"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G6-W06-T016",
@@ -1969,9 +3550,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g6-w06-t016.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 94
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 94,
+    "loop_stream": "MV-H5-ui-timeline-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/ui-closeout-report.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/ui-closeout-report.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G7-W07-T001",
@@ -1990,9 +3588,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g7-w07-t001.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 95
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 95,
+    "loop_stream": "MV-H4-migration-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "scripts/inventory-matter-vault-records.mjs",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "scripts/inventory-matter-vault-records.mjs"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G7-W07-T002",
@@ -2011,9 +3626,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g7-w07-t002.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 96
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 96,
+    "loop_stream": "MV-H4-migration-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "scripts/backfill-matter-vault-links.mjs",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "scripts/backfill-matter-vault-links.mjs"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G7-W07-T003",
@@ -2032,9 +3664,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g7-w07-t003.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 97
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 97,
+    "loop_stream": "MV-H4-migration-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "scripts/backfill-vault-workspaces.mjs",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "scripts/backfill-vault-workspaces.mjs"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G7-W07-T004",
@@ -2053,9 +3702,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g7-w07-t004.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 98
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 98,
+    "loop_stream": "MV-H4-migration-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "scripts/audit-duplicate-vault-workspaces.mjs",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "scripts/audit-duplicate-vault-workspaces.mjs"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G7-W07-T005",
@@ -2074,9 +3740,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g7-w07-t005.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 99
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 99,
+    "loop_stream": "MV-H4-migration-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/migration-dry-run.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/migration-dry-run.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G7-W07-T006",
@@ -2095,9 +3778,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g7-w07-t006.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 100
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 100,
+    "loop_stream": "MV-H4-migration-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/rollback-plan.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/rollback-plan.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G7-W07-T007",
@@ -2116,9 +3816,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g7-w07-t007.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 101
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 101,
+    "loop_stream": "MV-H4-migration-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "scripts/reconcile-matter-vault-backfill.mjs",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "scripts/reconcile-matter-vault-backfill.mjs"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G7-W07-T008",
@@ -2137,9 +3854,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g7-w07-t008.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 102
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 102,
+    "loop_stream": "MV-H4-migration-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/migration-failed-rows.json",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/migration-failed-rows.json"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G7-W07-T009",
@@ -2158,9 +3892,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g7-w07-t009.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 103
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 103,
+    "loop_stream": "MV-H4-migration-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/migration-signoff.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/migration-signoff.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G7-W07-T010",
@@ -2179,9 +3930,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g7-w07-t010.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 104
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 104,
+    "loop_stream": "MV-H4-migration-hardening",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/migration-closeout.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/migration-closeout.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G8-W08-T001",
@@ -2200,9 +3968,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g8-w08-t001.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 105
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 105,
+    "loop_stream": "MV-H6-evidence-closeout",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/test/e2e/matter-vault-workflow.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/test/e2e/matter-vault-workflow.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G8-W08-T002",
@@ -2221,9 +4006,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g8-w08-t002.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 106
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 106,
+    "loop_stream": "MV-H6-evidence-closeout",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/test/security/matter-vault-security.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/test/security/matter-vault-security.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G8-W08-T003",
@@ -2242,9 +4044,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g8-w08-t003.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 107
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 107,
+    "loop_stream": "MV-H6-evidence-closeout",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/test/audit/matter-vault-audit.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/test/audit/matter-vault-audit.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G8-W08-T004",
@@ -2263,9 +4082,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g8-w08-t004.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 108
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 108,
+    "loop_stream": "MV-H6-evidence-closeout",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/test/idempotency/matter-vault-idempotency.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/test/idempotency/matter-vault-idempotency.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G8-W08-T005",
@@ -2284,9 +4120,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g8-w08-t005.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 109
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 109,
+    "loop_stream": "MV-H6-evidence-closeout",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "packages/dms/test/document-state-machine.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "packages/dms/test/document-state-machine.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G8-W08-T006",
@@ -2305,9 +4158,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g8-w08-t006.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 110
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 110,
+    "loop_stream": "MV-H6-evidence-closeout",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "apps/api/test/perf/matter-vault-smoke.test.js",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "apps/api/test/perf/matter-vault-smoke.test.js"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G8-W08-T007",
@@ -2326,9 +4196,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g8-w08-t007.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 111
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 111,
+    "loop_stream": "MV-H6-evidence-closeout",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "scripts/drill-matter-vault-backup-restore.mjs",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "scripts/drill-matter-vault-backup-restore.mjs"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G8-W08-T008",
@@ -2347,9 +4234,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g8-w08-t008.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 112
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 112,
+    "loop_stream": "MV-H6-evidence-closeout",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/uat/matter-vault-uat-scripts.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/uat/matter-vault-uat-scripts.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G8-W08-T009",
@@ -2368,9 +4272,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g8-w08-t009.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 113
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 113,
+    "loop_stream": "MV-H6-evidence-closeout",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "scripts/validate-matter-vault-r4-readiness.mjs",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "scripts/validate-matter-vault-r4-readiness.mjs"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G8-W08-T010",
@@ -2389,9 +4310,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g8-w08-t010.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 114
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 114,
+    "loop_stream": "MV-H6-evidence-closeout",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence-matrix.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/evidence-matrix.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G8-W08-T011",
@@ -2410,9 +4348,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g8-w08-t011.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 115
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 115,
+    "loop_stream": "MV-H6-evidence-closeout",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "scripts/audit-matter-vault-no-go-claim.mjs",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "scripts/audit-matter-vault-no-go-claim.mjs"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G8-W08-T012",
@@ -2431,9 +4386,26 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g8-w08-t012.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 116
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 116,
+    "loop_stream": "MV-H6-evidence-closeout",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/r4-closeout.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/r4-closeout.md"
+        ],
+        "exists": true
+      }
+    ]
   },
   {
     "tuw_id": "MV-G8-W08-T013",
@@ -2452,9 +4424,27 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g8-w08-t013.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 117
+    "repo_status": "launch_only_external_receipt",
+    "implementation_gate": "closed_by_local_validation_external_receipt_pending",
+    "ordinal": 117,
+    "loop_stream": "MV-H6-evidence-closeout",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "CI",
+        "classification": "launch_only_external_receipt",
+        "implemented_by": [
+          "local validator bundle",
+          "GitHub PR checks when available"
+        ],
+        "exists": false
+      }
+    ]
   },
   {
     "tuw_id": "MV-G8-W08-T014",
@@ -2473,8 +4463,25 @@
     "owner": "TBD",
     "sprint": "",
     "evidence_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence/mv-g8-w08-t014.md",
-    "repo_status": "mapped_pending_runtime_evidence",
-    "implementation_gate": "not_closed",
-    "ordinal": 118
+    "repo_status": "implemented_literal_closed",
+    "implementation_gate": "closed_by_loop_hardening",
+    "ordinal": 118,
+    "loop_stream": "MV-H6-evidence-closeout",
+    "loop_engineering": {
+      "plan": "Classify source TUW against PR #67 baseline and literal target file state.",
+      "do": "Close with existing PR #67 implementation or follow-up hardening artifact.",
+      "check": "matter-vault:r4 validators plus targeted API/web/package tests.",
+      "act": "Persist crosswalk/evidence status and keep launch/go-live false."
+    },
+    "target_mappings": [
+      {
+        "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/signoff.md",
+        "classification": "implemented_literal",
+        "implemented_by": [
+          "docs/reorganization/client-matter-os/matter-vault-r4/signoff.md"
+        ],
+        "exists": true
+      }
+    ]
   }
 ]

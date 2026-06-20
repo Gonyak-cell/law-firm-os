@@ -176,6 +176,10 @@ test("Vault runtime surface is routed and live Vault/DMS backed", async () => {
   const navSource = await readWebFile("src/data/nav.js");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const vaultSource = await readWebFile("src/components/VaultSurface.jsx");
+  const tableSource = await readWebFile("src/components/VaultDocumentTable.jsx");
+  const vaultDetailSource = await readWebFile("src/components/VaultDocumentDetail.jsx");
+  const badgesSource = await readWebFile("src/components/VaultSecurityBadges.jsx");
+  const breadcrumbSource = await readWebFile("src/components/VaultBreadcrumb.jsx");
   const detailSource = await readWebFile("src/components/DocumentDetail.jsx");
   const emailSource = await readWebFile("src/components/EmailFilingView.jsx");
   const apiClientSource = await readWebFile("src/data/apiClient.js");
@@ -186,6 +190,14 @@ test("Vault runtime surface is routed and live Vault/DMS backed", async () => {
   assert.match(shellSource, /vault: \["Matter vault"/);
   assert.match(vaultSource, /data-cmp-g5-vault-surface="true"/);
   assert.match(vaultSource, /fetchVaultDocuments/);
+  assert.match(vaultSource, /VaultDocumentTable/);
+  assert.match(vaultSource, /VaultDocumentDetail/);
+  assert.match(vaultSource, /VaultSecurityBadges/);
+  assert.match(vaultSource, /VaultBreadcrumb/);
+  assert.match(tableSource, /DataTable/);
+  assert.match(vaultDetailSource, /Version History/);
+  assert.match(badgesSource, /data-mv-vault-security-badges="true"/);
+  assert.match(breadcrumbSource, /aria-label="Matter Vault breadcrumb"/);
   assert.match(detailSource, /data-cmp-g5-document-detail="true"/);
   assert.match(detailSource, /storage_pointer_ref_included/);
   assert.match(detailSource, /document_bytes_included/);
