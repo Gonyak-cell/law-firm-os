@@ -12,6 +12,9 @@ This runbook is a PR-15 release-control template. It is not a deployment receipt
 - `npm run hrx:runtime:validate` passes.
 - `npm run hrx:security:validate` passes.
 - `npm run hrx:enterprise:validate` passes.
+- `npm run hrx:release:validate` passes.
+- `npm run hrx:r4-claim:validate` passes with claim allowed false.
+- `npm run hrx:launch-blockers:validate` passes.
 - `npm run web:e2e -- hrx` passes.
 - Feature flags in `contracts/hrx-feature-flags.json` remain disabled by default.
 - Human release authority has reviewed the go-live no-go checklist.
@@ -27,6 +30,8 @@ This runbook is a PR-15 release-control template. It is not a deployment receipt
 7. Run UAT smoke using `npm run web:e2e -- hrx`.
 8. Record audit and compliance evidence.
 9. Human release authority decides go/no-go.
+
+Automation does not authorize go-live. The release authority must record a separate signed owner receipt before any production traffic, R4, or enterprise-ready claim.
 
 ## Rollback Steps
 

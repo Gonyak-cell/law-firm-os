@@ -1617,6 +1617,134 @@
         "npm run hrx:enterprise:validate",
         "npm test"
       ]
+    },
+    {
+      "id": "HRX-L8-001",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "contracts/hrx-release-readiness.json",
+        "scripts/validate-hrx-release-readiness.mjs"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-002",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/cutover-runbook.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:launch-blockers:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-003",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/go-live-checklist.md",
+        "contracts/hrx-release-readiness.json"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:r4-claim:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-004",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/owner-decision-template.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:no-premature-claim:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-005",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-r4-claim.mjs",
+        "contracts/hrx-release-readiness.json"
+      ],
+      "validators": [
+        "npm run hrx:r4-claim:validate",
+        "npm run hrx:no-premature-claim:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-006",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/production-readiness-evidence.md",
+        "docs/hrx-enterprise/uat-results.md",
+        "docs/hrx-enterprise/dr-runbook.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-007",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/release-notes-template.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:r4-claim:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-008",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/post-release-monitoring.md",
+        "packages/hrx/src/observability.js"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "node --test packages/hrx/test/observability.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L8-009",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-launch-blockers.mjs",
+        "contracts/hrx-feature-flags.json"
+      ],
+      "validators": [
+        "npm run hrx:launch-blockers:validate",
+        "npm run hrx:release:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-010",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/dev-handoff-closeout.md",
+        "docs/hrx-enterprise/owner-decision-template.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:no-premature-claim:validate"
+      ]
     }
   ]
 }

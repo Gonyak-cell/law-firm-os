@@ -18,6 +18,8 @@ Source: `docs/hrx-enterprise/roadmap-package/11_DECISION_LOG_TEMPLATE.md`
 | Expiry / revisit date |  |
 | Required evidence |  |
 | Approval status | pending / approved / rejected |
+| Release contract reviewed | `contracts/hrx-release-readiness.json` |
+| Automation claim boundary | go-live/R4/production-ready/enterprise-ready claim remains false until signed |
 
 ## Notes
 

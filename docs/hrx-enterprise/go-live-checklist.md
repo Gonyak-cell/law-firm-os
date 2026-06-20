@@ -14,6 +14,9 @@ This checklist is a PR-15 decision template. It is not go-live authorization and
 | Runtime | `npm run hrx:runtime:validate` | Pass |
 | Security negative tests | `npm run hrx:security:validate` | Pass |
 | Enterprise readiness | `npm run hrx:enterprise:validate` | Pass |
+| Release contract | `contracts/hrx-release-readiness.json` | All gates listed; claim policy false until owner sign-off |
+| Launch blockers | `npm run hrx:launch-blockers:validate` | Pass with open P0 count 0 |
+| R4 claim guard | `npm run hrx:r4-claim:validate` | Pass with claim allowed false |
 | HRX UAT | `npm run web:e2e -- hrx` | Pass |
 | Product contract | `npm run validate` | Pass |
 | Backup/restore | `node scripts/hrx-backup-restore-smoke.mjs --dry-run` | Pass |
@@ -38,3 +41,4 @@ This checklist is a PR-15 decision template. It is not go-live authorization and
 | Prepared by | Codex implementation lane |
 | Decision owner | Human release authority |
 | Current decision | Not go-live authorized by automation |
+| Release contract | `contracts/hrx-release-readiness.json` |

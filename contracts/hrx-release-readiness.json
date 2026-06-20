@@ -1,0 +1,75 @@
+{
+  "schema_version": "law-firm-os.hrx-release-readiness.v0.1",
+  "date": "2026-06-20",
+  "current_boundary": "runtime_api_evidence_only__durable_persistence_open",
+  "target_state": "runtime_write_ready__durable_persistence_guarded",
+  "claim_policy": {
+    "owner_signoff_required": true,
+    "go_live_claim_allowed": false,
+    "r4_claim_allowed": false,
+    "production_ready_claim_allowed": false,
+    "enterprise_ready_claim_allowed": false
+  },
+  "required_gates": [
+    {
+      "id": "G-P0-1",
+      "name": "Durable persistence",
+      "command": "npm run hrx:persistence:validate",
+      "required_state": "pass"
+    },
+    {
+      "id": "G-P0-2",
+      "name": "Route authorization",
+      "command": "npm run hrx:authz:validate",
+      "required_state": "pass"
+    },
+    {
+      "id": "G-P0-3",
+      "name": "Step-up and security regression",
+      "command": "npm run hrx:security:validate",
+      "required_state": "pass"
+    },
+    {
+      "id": "G-P0-4",
+      "name": "Enterprise readiness",
+      "command": "npm run hrx:enterprise:validate",
+      "required_state": "pass"
+    },
+    {
+      "id": "G-P0-5",
+      "name": "Backup restore smoke",
+      "command": "node scripts/hrx-backup-restore-smoke.mjs --dry-run",
+      "required_state": "pass"
+    },
+    {
+      "id": "G-P0-6",
+      "name": "UAT and API smoke",
+      "command": "npm run web:e2e && npm --workspace apps/api run test",
+      "required_state": "pass"
+    },
+    {
+      "id": "G-P0-7",
+      "name": "No premature claim",
+      "command": "npm run hrx:no-premature-claim:validate",
+      "required_state": "pass_false_claim"
+    },
+    {
+      "id": "G-P0-8",
+      "name": "Launch blocker audit",
+      "command": "node scripts/validate-hrx-launch-blockers.mjs",
+      "required_state": "pass_no_open_p0"
+    },
+    {
+      "id": "G-P0-9",
+      "name": "Owner release authority",
+      "command": "manual owner sign-off",
+      "required_state": "signed_before_claim"
+    }
+  ],
+  "known_limitations": [
+    "This contract is release evidence, not owner sign-off.",
+    "Payroll execution remains disabled.",
+    "AI remains advisory and source-grounded; final people decisions remain blocked.",
+    "Feature flags default disabled until explicit owner decision."
+  ]
+}

@@ -77,6 +77,13 @@ const topLevelFiles = [
   "docs/hrx-enterprise/dev-handoff-receipt.md",
   "docs/hrx-enterprise/owner-decision-template.md",
   "docs/hrx-enterprise/go-no-go-template.md",
+  "docs/hrx-enterprise/go-live-checklist.md",
+  "docs/hrx-enterprise/cutover-runbook.md",
+  "docs/hrx-enterprise/production-readiness-evidence.md",
+  "docs/hrx-enterprise/release-notes-template.md",
+  "docs/hrx-enterprise/post-release-monitoring.md",
+  "docs/hrx-enterprise/dev-handoff-closeout.md",
+  "contracts/hrx-release-readiness.json",
 ];
 
 for (const file of [...importedPackageFiles, ...topLevelFiles]) {
@@ -122,6 +129,13 @@ for (const id of ["HRX-L0-001", "HRX-L0-002", "HRX-L0-003", "HRX-L0-004", "HRX-L
   assert(Array.isArray(entry?.evidence) && entry.evidence.length > 0, `${id}: PR-00 status ledger evidence required`);
   assert(Array.isArray(entry?.validators) && entry.validators.length > 0, `${id}: PR-00 status ledger validators required`);
 }
+for (const id of ["HRX-L8-001", "HRX-L8-002", "HRX-L8-003", "HRX-L8-004", "HRX-L8-005", "HRX-L8-006", "HRX-L8-007", "HRX-L8-008", "HRX-L8-009", "HRX-L8-010"]) {
+  const entry = statusById.get(id);
+  assert(entry?.status === "closed", `${id}: PR-15 status ledger must mark closed`);
+  assert(entry?.pr === "PR-15", `${id}: PR-15 status ledger PR mismatch`);
+  assert(Array.isArray(entry?.evidence) && entry.evidence.length > 0, `${id}: PR-15 status ledger evidence required`);
+  assert(Array.isArray(entry?.validators) && entry.validators.length > 0, `${id}: PR-15 status ledger validators required`);
+}
 
 const board = existsSync(resolve(root, "docs/hrx-enterprise/sequential-pack-pr-board.md"))
   ? read("docs/hrx-enterprise/sequential-pack-pr-board.md")
@@ -133,6 +147,16 @@ for (const pr of ["PR-00", "PR-01", "PR-02", "PR-03", "PR-04", "PR-05", "PR-06",
 const packageJson = existsSync(resolve(root, "package.json")) ? JSON.parse(read("package.json")) : {};
 assert(packageJson.scripts?.["hrx:no-premature-claim:validate"] === "node scripts/validate-hrx-no-premature-claim.mjs", "package script hrx:no-premature-claim:validate missing");
 assert(packageJson.scripts?.["hrx:release:validate"] === "node scripts/validate-hrx-release-readiness.mjs", "package script hrx:release:validate must run release readiness validator");
+assert(packageJson.scripts?.["hrx:r4-claim:validate"] === "node scripts/validate-hrx-r4-claim.mjs", "package script hrx:r4-claim:validate missing");
+assert(packageJson.scripts?.["hrx:launch-blockers:validate"] === "node scripts/validate-hrx-launch-blockers.mjs", "package script hrx:launch-blockers:validate missing");
+
+const releaseContract = existsSync(resolve(root, "contracts/hrx-release-readiness.json"))
+  ? JSON.parse(read("contracts/hrx-release-readiness.json"))
+  : null;
+assert(releaseContract?.required_gates?.length >= 9, "release contract must list required gates");
+assert(releaseContract?.claim_policy?.owner_signoff_required === true, "release contract must require owner sign-off");
+assert(releaseContract?.claim_policy?.go_live_claim_allowed === false, "release contract must keep go-live claim false");
+assert(releaseContract?.claim_policy?.r4_claim_allowed === false, "release contract must keep R4 claim false");
 
 if (errors.length > 0) {
   console.error("HRX release readiness validation failed:");
