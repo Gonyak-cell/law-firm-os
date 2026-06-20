@@ -24,7 +24,15 @@ async function requestJson(path, options = {}) {
     return { kind: "error", reason: "network_or_parse_error" };
   }
   if (!response.ok || body === null || typeof body !== "object") {
-    return { kind: "error", reason: body?.safe_error_code ?? body?.error ?? "unexpected_response" };
+    if (body?.step_up_required === true) {
+      return {
+        kind: "step_up_required",
+        status: response.status,
+        reason: body.safe_error_code ?? body.reason ?? "HRX_STEP_UP_REQUIRED",
+        action: body.action ?? null
+      };
+    }
+    return { kind: "error", status: response.status, reason: body?.safe_error_code ?? body?.error ?? "unexpected_response" };
   }
   return { kind: "data", body };
 }
@@ -117,7 +125,8 @@ export async function fetchRecruitingPipeline() {
     job_openings: result.body.job_openings ?? [],
     candidates: result.body.candidates ?? [],
     applications: result.body.applications,
-    interviews: result.body.interviews ?? []
+    interviews: result.body.interviews ?? [],
+    offers: result.body.offers ?? []
   };
 }
 
@@ -147,6 +156,7 @@ export async function createHrxPolicyVersion(form) {
 
 export async function fetchHrxAuditEvents() {
   const result = await requestJson("/api/hrx/audit");
+  if (result.kind === "step_up_required") return result;
   if (result.kind !== "data" || !Array.isArray(result.body.events)) return { kind: "error" };
   return { kind: "data", events: result.body.events };
 }

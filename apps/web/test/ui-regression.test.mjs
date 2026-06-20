@@ -57,3 +57,16 @@ test("People runtime surface is routed and remains API-backed", async () => {
   assert.match(peopleApiSource, /\/api\/hrx\/employees/);
   assert.doesNotMatch(peopleApiSource, /mock/i);
 });
+
+test("HRX audit UI preserves server-owned step-up and no local fallback", async () => {
+  const auditSource = await readWebFile("src/admin/hrx/HRXAuditViewer.tsx");
+  const challengeSource = await readWebFile("src/people/security/HrxStepUpChallenge.tsx");
+  const peopleApiSource = await readWebFile("src/people/hrxApiClient.ts");
+
+  assert.match(auditSource, /HrxStepUpChallenge/);
+  assert.match(auditSource, /step_up_required/);
+  assert.match(peopleApiSource, /body\?\.step_up_required === true/);
+  assert.match(challengeSource, /Trusted session only/);
+  assert.doesNotMatch(challengeSource, /x-lawos-hrx-step-up|tenant-a|actor_id|mfa: true/);
+  assert.doesNotMatch(peopleApiSource, /x-lawos-tenant-id|x-lawos-actor-id|x-lawos-hrx-scopes|HRX_PERMISSION_CONTEXT/);
+});

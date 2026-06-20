@@ -46,6 +46,24 @@ export function RecruitingPipeline() {
           columns={["Job", "Title", "State", "Positions"]}
           rows={result.job_openings.map((job) => [job.job_opening_id, job.title, job.state, job.position_count])}
         />
+        <DataTable
+          columns={["Interview", "Application", "State", "Schedule Ref"]}
+          rows={result.interviews.map((interview) => [
+            interview.interview_id,
+            interview.application_id,
+            interview.state,
+            interview.schedule_source_ref
+          ])}
+        />
+        <DataTable
+          columns={["Offer", "Application", "State", "Document Ref"]}
+          rows={result.offers.map((offer) => [
+            offer.offer_id,
+            offer.application_id,
+            offer.state,
+            offer.document_ref
+          ])}
+        />
         <div className="approval-queue">
           {result.applications.map((application) => (
             <div className="approval-row" key={application.application_id}>

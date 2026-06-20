@@ -921,6 +921,200 @@
         "npm run hrx:workflows:validate",
         "npm test"
       ]
+    },
+    {
+      "id": "HRX-L5-001",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/hrxApiClient.ts",
+        "apps/web/e2e/hrx/employee-list.spec.ts",
+        "scripts/validate-hrx-ui-api-backed.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-002",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/employees/EmployeeList.tsx",
+        "apps/web/e2e/hrx/employee-list.spec.ts",
+        "apps/web/test/ui-regression.test.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-003",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/employees/EmployeeProfile.tsx",
+        "apps/web/e2e/hrx/employee-profile.spec.ts",
+        "scripts/validate-hrx-ui-api-backed.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-004",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/documents/HRDocumentWorkspace.tsx",
+        "apps/web/e2e/hrx/hr-documents.spec.ts",
+        "scripts/validate-hrx-ui-api-backed.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-005",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/leave/LeaveRequestPage.tsx",
+        "apps/web/e2e/hrx/leave-request.spec.ts",
+        "scripts/validate-hrx-ui-api-backed.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-006",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/approvals/ManagerApprovalQueue.tsx",
+        "apps/web/e2e/hrx/manager-approval.spec.ts",
+        "scripts/validate-hrx-ui-api-backed.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-007",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/candidate/CandidatePortal.tsx",
+        "apps/web/e2e/hrx/candidate-portal.spec.ts",
+        "scripts/validate-hrx-ui-api-backed.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-008",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/recruiting/RecruitingPipeline.tsx",
+        "apps/web/e2e/hrx/recruiting-pipeline.spec.ts",
+        "apps/api/src/hrx-runtime-context.js"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui",
+        "node --test apps/api/test/hrx-runtime-api.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L5-009",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/admin/hrx/HRXPolicyConsole.tsx",
+        "apps/web/e2e/hrx/hrx-policy-console.spec.ts",
+        "scripts/validate-hrx-ui-api-backed.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-010",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/admin/hrx/HRXAuditViewer.tsx",
+        "apps/web/src/people/security/HrxStepUpChallenge.tsx",
+        "apps/web/e2e/hrx/hrx-audit-viewer.spec.ts"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui",
+        "node --test apps/api/test/hrx/step-up-route.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L5-012",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/security/HrxStepUpChallenge.tsx",
+        "apps/web/e2e/hrx/hrx-step-up-challenge.spec.ts",
+        "apps/web/test/ui-regression.test.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-013",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/e2e/hrx/*.spec.ts",
+        "scripts/run-web-e2e.mjs"
+      ],
+      "validators": [
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-014",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-ui-api-backed.mjs",
+        "package.json"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
     }
   ]
 }

@@ -5425,6 +5425,60 @@ html[data-theme="dark"] .public-preview {
   gap: 6px;
 }
 
+.hrx-step-up-challenge {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 74px;
+  padding: 12px;
+  border: 1px solid #e4cda4;
+  border-radius: var(--am-radius-sm);
+  background: #fdf9f0;
+}
+
+.hrx-step-up-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--am-radius-sm);
+  background: #fff4d8;
+  color: #8a5a12;
+}
+
+.hrx-step-up-copy,
+.hrx-step-up-actions {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.hrx-step-up-copy strong,
+.hrx-step-up-copy span,
+.hrx-step-up-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hrx-step-up-copy span,
+.hrx-step-up-copy small,
+.hrx-step-up-actions span {
+  color: var(--am-text-muted);
+  font-size: 11px;
+}
+
+.hrx-step-up-actions {
+  justify-items: end;
+}
+
+.hrx-step-up-actions span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .hrx-analytics-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

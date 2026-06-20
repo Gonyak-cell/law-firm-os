@@ -7,6 +7,7 @@ import { createApplication, transitionApplicationStage } from "../../../packages
 import { createCandidateProfile } from "../../../packages/hrx/src/recruiting/candidate.js";
 import { createInterview } from "../../../packages/hrx/src/recruiting/interview.js";
 import { createJobOpening } from "../../../packages/hrx/src/recruiting/job-opening.js";
+import { createOffer } from "../../../packages/hrx/src/recruiting/offer.js";
 import { createHrxAiSourceRegistry } from "../../../packages/hrx/src/ai/source-registry.js";
 import { createHrxPermissionAwareRetriever } from "../../../packages/hrx/src/ai/rag.js";
 import { createInMemoryHrxAiReviewQueue } from "../../../packages/hrx/src/ai/review-queue.js";
@@ -252,6 +253,18 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
       interviewer_employee_ids: ["emp-001"],
     }),
   ];
+  const offers = [
+    createOffer({
+      tenant_id: SYNTHETIC_TENANT,
+      offer_id: "offer-001",
+      application_id: "app-001",
+      candidate_id: "cand-001",
+      compensation_ref: "CompPackage:offer-001",
+      document_ref: "DMS:offer-letter-001",
+      state: "sent",
+      approval_ref: "Approval:offer-001",
+    }),
+  ];
   const policies = [
     createLeavePolicy({
       tenant_id: SYNTHETIC_TENANT,
@@ -338,6 +351,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
     applications,
     candidates,
     interviews,
+    offers,
     jobOpenings,
     policies,
     aiSourceRegistry,
@@ -501,6 +515,7 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         })),
         applications: context.applications.filter((application) => application.tenant_id === tenantId).map(clone),
         interviews: context.interviews.filter((interview) => interview.tenant_id === tenantId).map(clone),
+        offers: context.offers.filter((offer) => offer.tenant_id === tenantId).map(clone),
       });
     }
 

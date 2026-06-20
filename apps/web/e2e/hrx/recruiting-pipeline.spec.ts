@@ -18,6 +18,9 @@ test("Recruiting pipeline reads pipeline data and updates stages through API", a
   assert.match(home, /RecruitingPipeline/);
   assert.match(component, /fetchRecruitingPipeline/);
   assert.match(component, /updateHrxApplicationStage/);
+  assert.match(component, /Interview/);
+  assert.match(component, /Offer/);
+  assert.match(api, /offers: result\.body\.offers \?\? \[\]/);
   assert.match(api, /\/api\/hrx\/recruiting\/pipeline/);
   assert.match(api, /\/api\/hrx\/recruiting\/applications\/\$\{encodeURIComponent\(applicationId\)\}\/stage/);
   assert.doesNotMatch(component, /mockData|profileRows|matters/);

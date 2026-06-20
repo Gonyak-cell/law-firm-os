@@ -154,6 +154,8 @@ test("GET and POST recruiting pipeline updates application stage through API", a
   assert.equal(before.status, 200);
   const app = before.body.applications.find((item) => item.application_id === "app-001");
   assert.equal(app.stage, "interview");
+  assert.equal(before.body.interviews[0].state, "scheduled");
+  assert.equal(before.body.offers[0].state, "sent");
 
   const updated = await json("/api/hrx/recruiting/applications/app-001/stage", {
     method: "POST",

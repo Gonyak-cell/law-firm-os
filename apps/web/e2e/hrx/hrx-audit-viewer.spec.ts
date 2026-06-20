@@ -17,7 +17,10 @@ test("HRX audit viewer fetches tenant-scoped audit events through API only", asy
 
   assert.match(home, /HRXAuditViewer/);
   assert.match(component, /fetchHrxAuditEvents/);
+  assert.match(component, /HrxStepUpChallenge/);
+  assert.match(component, /step_up_required/);
   assert.match(api, /\/api\/hrx\/audit/);
-  assert.match(component, /Tenant-scoped audit events only/);
+  assert.match(api, /body\?\.step_up_required === true/);
+  assert.match(component, /Tenant-scoped audit events only after fresh step-up/);
   assert.doesNotMatch(component, /mockData|profileRows|matters/);
 });
