@@ -13,6 +13,7 @@ import {
   handleRecordsSearch,
   handleRelationshipLookup,
 } from "./master-data-context.js";
+import { authorizeHrxApiRequest } from "./middleware/hrx-authz.js";
 import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, parsePermissionContext } from "./permission-gate.js";
 import { createHrxRuntimeContext, handleHrxApiRequest } from "./hrx-runtime-context.js";
 
@@ -94,8 +95,14 @@ async function handle(req, res) {
   }
 
   if (isHrxPath) {
+    const hrxAuthz = authorizeHrxApiRequest({ method: req.method, pathname, query, headers: req.headers });
+    if (!hrxAuthz.ok) {
+      sendJson(res, hrxAuthz.status, { request_id: requestId, ...hrxAuthz.body });
+      return;
+    }
     const body = req.method === "POST" ? await readRequestBody(req) : {};
-    const result = await handleHrxApiRequest({ pathname, method: req.method, query, body, context: HRX_RUNTIME });
+    const trustedQuery = { ...query, tenant_id: hrxAuthz.context.tenant_id, actor_id: hrxAuthz.context.actor_id };
+    const result = await handleHrxApiRequest({ pathname, method: req.method, query: trustedQuery, body, context: HRX_RUNTIME });
     sendJson(res, result.status, { request_id: requestId, ...result.body });
     return;
   }

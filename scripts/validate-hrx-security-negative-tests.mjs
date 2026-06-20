@@ -24,6 +24,10 @@ const checks = [
     file: "apps/api/test/hrx/tenant-isolation.test.js",
     patterns: [/cross-tenant/i, /HRX_API_TENANT_REQUIRED/i, /employee document candidate analytics and AI/i],
   },
+  {
+    file: "apps/api/test/hrx/route-authz.test.js",
+    patterns: [/fails closed/i, /HRX_AUTHZ_DENIED/i, /HRX_ROUTE_POLICY_REQUIRED/i],
+  },
 ];
 
 const errors = [];

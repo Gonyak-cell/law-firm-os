@@ -5,8 +5,16 @@ import { startApiServer } from "../../src/server.js";
 let server;
 let baseUrl;
 
+const HRX_AUTH_HEADERS = Object.freeze({
+  "x-lawos-tenant-id": "tenant-a",
+  "x-lawos-actor-id": "hr-001",
+  "x-lawos-actor-role": "people_ops",
+  "x-lawos-hrx-scopes": "hrx.ai.assistant,hrx.ai.review.read,hrx.analytics.read",
+});
+
 async function json(path, options = {}) {
-  const response = await fetch(`${baseUrl}${path}`, options);
+  const headers = path.startsWith("/api/hrx") ? { ...HRX_AUTH_HEADERS, ...(options.headers ?? {}) } : options.headers;
+  const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
   return { status: response.status, body: await response.json() };
 }
 

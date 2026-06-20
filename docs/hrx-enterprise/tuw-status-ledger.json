@@ -291,6 +291,86 @@
         "node scripts/hrx-backup-restore-smoke.mjs --dry-run",
         "npm run hrx:persistence:validate"
       ]
+    },
+    {
+      "id": "HRX-L2-001",
+      "pr": "PR-03",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/routes/hrx/route-policy-map.js",
+        "apps/api/test/hrx/route-authz.test.js"
+      ],
+      "validators": [
+        "npm run hrx:authz:validate",
+        "node --test apps/api/test/hrx/route-authz.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L2-002",
+      "pr": "PR-03",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/middleware/hrx-authz.js",
+        "apps/api/test/hrx/route-authz.test.js"
+      ],
+      "validators": [
+        "npm run hrx:authz:validate",
+        "npm run hrx:security:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-003",
+      "pr": "PR-03",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/server.js",
+        "apps/api/test/hrx-runtime-api.test.js",
+        "apps/api/test/hrx/route-authz.test.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx-runtime-api.test.js apps/api/test/hrx/route-authz.test.js",
+        "npm run hrx:authz:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-008",
+      "pr": "PR-03",
+      "status": "closed",
+      "evidence": [
+        "packages/audit/src/hrx-event-store-sql.js",
+        "packages/audit/test/hrx-event-store-sql.test.js"
+      ],
+      "validators": [
+        "node --test packages/audit/test/hrx-event-store-sql.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-009",
+      "pr": "PR-03",
+      "status": "closed",
+      "evidence": [
+        "packages/audit/src/hrx-hash-chain.js",
+        "packages/audit/test/hrx-event-store-sql.test.js"
+      ],
+      "validators": [
+        "node --test packages/audit/test/hrx-event-store-sql.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-016",
+      "pr": "PR-03",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-route-authz.mjs",
+        "package.json",
+        "apps/api/test/hrx/route-authz.test.js"
+      ],
+      "validators": [
+        "npm run hrx:authz:validate",
+        "npm run hrx:security:validate"
+      ]
     }
   ]
 }
