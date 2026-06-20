@@ -28,7 +28,7 @@ export function mapHrxSsoSubjectToUser(claims = {}, config = {}) {
     return Object.freeze({ effect: "deny", reason: "hrx_sso_audience_not_allowed", fail_closed: true });
   }
   const userId = optionalString(claims, "user_id") ?? stableUserId(issuer, requiredString(claims, "sub"));
-  if (optionalString(claims, "employee_id") === userId) {
+  if (optionalString(claims, "employee_id")) {
     return Object.freeze({ effect: "deny", reason: "hrx_sso_employee_user_conflation", fail_closed: true });
   }
   return Object.freeze({
@@ -36,6 +36,8 @@ export function mapHrxSsoSubjectToUser(claims = {}, config = {}) {
     tenant_id: requiredString(claims, "tenant_id"),
     mapped_object_type: "User",
     user_id: userId,
+    actor_id: userId,
+    actor_type: "User",
     external_subject: requiredString(claims, "sub"),
     issuer,
     audience,

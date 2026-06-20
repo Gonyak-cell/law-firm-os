@@ -1328,6 +1328,194 @@
         "npm run hrx:ai:validate",
         "npm test"
       ]
+    },
+    {
+      "id": "HRX-L2-010",
+      "pr": "PR-03/04/05",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/middleware/hrx-audit-write.js",
+        "apps/api/src/hrx-runtime-context.js",
+        "scripts/validate-hrx-route-authz.mjs"
+      ],
+      "validators": [
+        "npm run hrx:authz:validate",
+        "npm run hrx:security:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-011",
+      "pr": "PR-03/04/05",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/field-masker.js",
+        "packages/hrx/test/field-masker.test.js",
+        "packages/authz/src/hrx-compensation-policy.js",
+        "packages/authz/src/hrx-evaluation-policy.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/field-masker.test.js",
+        "npm run hrx:security:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-012",
+      "pr": "PR-03/04/05",
+      "status": "closed",
+      "evidence": [
+        "packages/authz/src/hrx-break-glass.js",
+        "packages/authz/test/hrx-break-glass.test.js",
+        "packages/authz/src/hrx-step-up-session.js"
+      ],
+      "validators": [
+        "node --test packages/authz/test/hrx-break-glass.test.js",
+        "npm run hrx:security:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-013",
+      "pr": "PR-03/04/05",
+      "status": "closed",
+      "evidence": [
+        "packages/authz/src/hrx-compensation-policy.js",
+        "packages/authz/test/hrx-compensation-policy.test.js",
+        "packages/authz/src/hrx-step-up-session.js"
+      ],
+      "validators": [
+        "node --test packages/authz/test/hrx-compensation-policy.test.js",
+        "npm run hrx:security:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-014",
+      "pr": "PR-03/04/05",
+      "status": "closed",
+      "evidence": [
+        "packages/authz/src/hrx-evaluation-policy.js",
+        "packages/authz/test/hrx-evaluation-policy.test.js",
+        "packages/hrx/src/field-masker.js"
+      ],
+      "validators": [
+        "node --test packages/authz/test/hrx-evaluation-policy.test.js packages/hrx/test/field-masker.test.js",
+        "npm run hrx:security:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-015",
+      "pr": "PR-03/04/05",
+      "status": "closed",
+      "evidence": [
+        "packages/authz/src/hrx-candidate-policy.js",
+        "packages/authz/test/hrx-candidate-policy.test.js"
+      ],
+      "validators": [
+        "node --test packages/authz/test/hrx-candidate-policy.test.js",
+        "npm run hrx:security:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-001",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "packages/authz/src/sso-subject-map.js",
+        "packages/authz/test/sso-subject-map.test.js"
+      ],
+      "validators": [
+        "node --test packages/authz/test/sso-subject-map.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-002",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/scim-boundary.js",
+        "packages/hrx/test/scim-boundary.test.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/scim-boundary.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-003",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "packages/authz/src/hrx-step-up-session.js",
+        "packages/authz/test/hrx-step-up-session.test.js"
+      ],
+      "validators": [
+        "node --test packages/authz/test/hrx-step-up-session.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-004",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "apps/api/test/hrx/tenant-isolation.test.js",
+        "apps/api/src/hrx-runtime-context.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx/tenant-isolation.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-005",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/observability.js",
+        "packages/hrx/test/observability.test.js",
+        "apps/api/src/middleware/metrics.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/observability.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-006",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/slo-definition.md",
+        "packages/hrx/src/observability.js"
+      ],
+      "validators": [
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-007",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/compliance-report.js",
+        "packages/hrx/test/compliance-report.test.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/compliance-report.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-008",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/retention-job.js",
+        "packages/hrx/test/retention-job.test.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/retention-job.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
     }
   ]
 }

@@ -12,6 +12,7 @@ test("HRX break-glass denies without reason expiry approver audit and role", () 
   assert.ok(decision.errors.includes("approver_required"));
   assert.ok(decision.errors.includes("future_expiry_required"));
   assert.ok(decision.errors.includes("audit_required"));
+  assert.ok(decision.errors.includes("step_up_required"));
   assert.ok(decision.errors.includes("break_glass_role_required"));
 });
 
@@ -23,6 +24,13 @@ test("HRX break-glass allows bounded approved audited access", () => {
     expires_at: "2026-06-20T00:00:00.000Z",
     now: "2026-06-19T00:00:00.000Z",
     audit_required: true,
+    step_up_session: {
+      tenant_id: "tenant-a",
+      actor_id: "user-a",
+      mfa: true,
+      assurance_level: 2,
+      expires_at: "2026-06-19T00:05:00.000Z",
+    },
   });
   assert.equal(decision.effect, "allow");
   assert.equal(decision.audit_required, true);

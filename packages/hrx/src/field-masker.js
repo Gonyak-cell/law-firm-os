@@ -5,7 +5,7 @@ export const HRX_FIELD_MASKS = Object.freeze({
   }),
   evaluation: Object.freeze({
     required_scope: "hrx.evaluation.read",
-    fields: Object.freeze(["rating", "manager_notes", "calibration_notes", "improvement_plan"]),
+    fields: Object.freeze(["rating", "manager_notes", "calibration_notes", "improvement_plan", "final_score"]),
   }),
   candidate: Object.freeze({
     required_scope: "hrx.candidate.read",

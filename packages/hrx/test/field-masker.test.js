@@ -23,6 +23,16 @@ test("HRX field masker preserves fields with matching scope", () => {
   assert.equal(visible.masked, undefined);
 });
 
+test("HRX field masker blocks final evaluation score without evaluation scope", () => {
+  const masked = maskHrxFields(
+    { employee_id: "emp-001", rating: "meets", final_score: 4.2 },
+    { sensitivity: "evaluation", granted_scopes: ["hrx.employee.read"] },
+  );
+  assert.equal(masked.rating, null);
+  assert.equal(masked.final_score, null);
+  assert.equal(masked.masked, true);
+});
+
 test("HRX field masker masks candidate and payroll fields", () => {
   assert.equal(maskHrxFields({ email: "candidate@example.com" }, { sensitivity: "candidate" }).email, null);
   assert.equal(maskHrxFields({ net_pay: 100 }, { sensitivity: "payroll" }).net_pay, null);

@@ -57,6 +57,15 @@ export function createHrxMetric(input = {}) {
   });
 }
 
+export function isHrxSecurityMetricSignal({ outcome = "ok", attributes = {} } = {}) {
+  if (outcome === "security") return true;
+  if (attributes.security_event === true) return true;
+  const status = Number(attributes.status);
+  if (status === 401 || status === 403) return true;
+  const errorCode = String(attributes.error_code ?? "");
+  return errorCode.startsWith("HRX_") && /DENY|FORBIDDEN|UNAUTHORIZED|STEP_UP|CONTEXT|SCOPE|TENANT/.test(errorCode);
+}
+
 export function createInMemoryHrxMetricsSink(seed = []) {
   const records = [];
   return Object.freeze({
@@ -97,6 +106,15 @@ export function recordHrxOperationMetrics({ sink, tenant_id, component, operatio
       value: 1,
       unit: "count",
       tags,
+    }));
+  }
+  if (isHrxSecurityMetricSignal({ outcome, attributes })) {
+    emitted.push(sink.emit({
+      metric_name: "hrx.operation.security_count",
+      tenant_id,
+      value: 1,
+      unit: "count",
+      tags: { ...tags, security_event: true },
     }));
   }
   return Object.freeze(emitted);

@@ -1,3 +1,17 @@
+import { isHrxStepUpSessionFresh } from "./hrx-step-up-session.js";
+
+function hasFreshStepUp(input = {}) {
+  const principal = input.principal ?? {};
+  const context = {
+    tenant_id: principal.tenant_id,
+    actor_id: principal.actor_id ?? principal.user_id,
+  };
+  return isHrxStepUpSessionFresh(input.step_up_session ?? input.step_up, {
+    context,
+    now: input.now ?? new Date().toISOString(),
+  });
+}
+
 export function evaluateHrxBreakGlass(input = {}) {
   const principal = input.principal ?? {};
   const now = input.now ? new Date(input.now) : new Date();
@@ -8,6 +22,7 @@ export function evaluateHrxBreakGlass(input = {}) {
   if (typeof input.approver_id !== "string" || input.approver_id.trim() === "") errors.push("approver_required");
   if (!expiresAt || Number.isNaN(expiresAt.getTime()) || expiresAt <= now) errors.push("future_expiry_required");
   if (input.audit_required !== true) errors.push("audit_required");
+  if (!hasFreshStepUp(input)) errors.push("step_up_required");
   if (!Array.isArray(principal.role_ids) || !principal.role_ids.some((role) => ["hr_admin", "security_admin"].includes(role))) {
     errors.push("break_glass_role_required");
   }

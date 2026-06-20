@@ -18,6 +18,8 @@ test("SSO subject mapping creates IAM User identity without Employee conflation"
 
   assert.equal(mapped.effect, "allow");
   assert.equal(mapped.mapped_object_type, "User");
+  assert.equal(mapped.actor_id, mapped.user_id);
+  assert.equal(mapped.actor_type, "User");
   assert.equal(mapped.employee_id, null);
   assert.equal(mapped.employee_link_required, true);
   assert.match(mapped.user_id, /^user:/);
@@ -34,7 +36,7 @@ test("SSO subject mapping denies unknown issuer audience and user employee confl
     "hrx_sso_audience_not_allowed",
   );
   assert.equal(
-    mapHrxSsoSubjectToUser({ ...base, user_id: "emp-001", employee_id: "emp-001" }).reason,
+    mapHrxSsoSubjectToUser({ ...base, user_id: "user-001", employee_id: "emp-001" }).reason,
     "hrx_sso_employee_user_conflation",
   );
 });
