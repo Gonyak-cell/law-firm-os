@@ -27,7 +27,7 @@ test.before(async () => {
 test.after(() => new Promise((resolve) => server.close(resolve)));
 
 test("POST /api/hrx/ai/assistant returns cited advisory answer for allowed sources", async () => {
-  const { status, body } = await json("/api/hrx/ai/assistant?tenant_id=tenant-a&actor_id=hr-001", {
+  const { status, body } = await json("/api/hrx/ai/assistant", {
     method: "POST",
     body: JSON.stringify({
       interaction_id: "ai-api-001",
@@ -43,7 +43,7 @@ test("POST /api/hrx/ai/assistant returns cited advisory answer for allowed sourc
 });
 
 test("POST /api/hrx/ai/assistant routes blocked final people decisions to review queue", async () => {
-  const blocked = await json("/api/hrx/ai/assistant?tenant_id=tenant-a&actor_id=hr-001", {
+  const blocked = await json("/api/hrx/ai/assistant", {
     method: "POST",
     body: JSON.stringify({
       interaction_id: "ai-api-002",
@@ -59,13 +59,13 @@ test("POST /api/hrx/ai/assistant routes blocked final people decisions to review
   assert.equal(blocked.body.review_item.state, "pending_review");
   assert.equal(blocked.body.review_item.risk_level, "critical");
 
-  const reviews = await json("/api/hrx/ai/reviews?tenant_id=tenant-a&actor_id=hr-001");
+  const reviews = await json("/api/hrx/ai/reviews");
   assert.equal(reviews.status, 200);
   assert.ok(reviews.body.reviews.some((item) => item.review_id === "review-ai-api-002"));
 });
 
 test("GET /api/hrx/analytics returns tenant-scoped aggregate read model", async () => {
-  const { status, body } = await json("/api/hrx/analytics?tenant_id=tenant-a&actor_id=hr-001");
+  const { status, body } = await json("/api/hrx/analytics");
   assert.equal(status, 200);
   assert.equal(body.analytics.tenant_id, "tenant-a");
   assert.equal(body.analytics.row_level_details_included, false);

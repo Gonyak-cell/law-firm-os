@@ -32,6 +32,10 @@ function blocked(status, safeErrorCode, reason, extra = {}) {
   });
 }
 
+function hasQueryContext(query = {}) {
+  return Object.hasOwn(query, "tenant_id") || Object.hasOwn(query, "actor_id");
+}
+
 function buildPrincipal({ headers, requestContext, policy }) {
   const roleIds = parseList(requestContext.actor_role);
   return Object.freeze({
@@ -50,14 +54,17 @@ export function authorizeHrxApiRequest({ method, pathname, query = {}, headers =
     return blocked(403, "HRX_ROUTE_POLICY_REQUIRED", "hrx_route_policy_required", { fail_closed: true });
   }
 
+  if (hasQueryContext(query)) {
+    return blocked(400, "HRX_QUERY_CONTEXT_FORBIDDEN", "hrx_query_tenant_actor_context_forbidden", {
+      fail_closed: true,
+      forbidden_query_keys: Object.freeze(["tenant_id", "actor_id"].filter((key) => Object.hasOwn(query, key))),
+    });
+  }
+
   const tenant = parseTenantContext(headers);
   if (!tenant.ok) return blocked(tenant.status, tenant.safe_error_code, "hrx_tenant_context_required", { fail_closed: true });
   const actor = parseActorContext(headers);
   if (!actor.ok) return blocked(actor.status, actor.safe_error_code, "hrx_actor_context_required", { fail_closed: true });
-
-  if (query.tenant_id && query.tenant_id !== tenant.tenant_id) {
-    return blocked(400, "HRX_TENANT_CONTEXT_MISMATCH", "hrx_query_tenant_must_match_trusted_context", { fail_closed: true });
-  }
 
   const requestContext = buildHrxRequestContext({ tenant, actor });
   const principal = buildPrincipal({ headers, requestContext, policy });

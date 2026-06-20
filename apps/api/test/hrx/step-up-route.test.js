@@ -34,12 +34,12 @@ test.before(async () => {
 test.after(() => new Promise((resolve) => server.close(resolve)));
 
 test("HRX audit route requires fresh step-up context after authz allows scope", async () => {
-  const challenged = await json("/api/hrx/audit?tenant_id=tenant-a", { headers: BASE_HEADERS });
+  const challenged = await json("/api/hrx/audit", { headers: BASE_HEADERS });
   assert.equal(challenged.status, 403);
   assert.equal(challenged.body.safe_error_code, "HRX_STEP_UP_REQUIRED");
   assert.equal(challenged.body.step_up_required, true);
 
-  const allowed = await json("/api/hrx/audit?tenant_id=tenant-a", {
+  const allowed = await json("/api/hrx/audit", {
     headers: { ...BASE_HEADERS, "x-lawos-hrx-step-up": STEP_UP_HEADER },
   });
   assert.equal(allowed.status, 200);
@@ -48,7 +48,7 @@ test("HRX audit route requires fresh step-up context after authz allows scope", 
 });
 
 test("HRX audit route rejects stale or mismatched step-up token", async () => {
-  const stale = await json("/api/hrx/audit?tenant_id=tenant-a", {
+  const stale = await json("/api/hrx/audit", {
     headers: {
       ...BASE_HEADERS,
       "x-lawos-hrx-step-up": JSON.stringify({

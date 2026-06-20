@@ -55,7 +55,7 @@ assert(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/not-mapped" })
 const allow = authorizeHrxApiRequest({
   method: "GET",
   pathname: "/api/hrx/employees",
-  query: { tenant_id: "tenant-a" },
+  query: {},
   headers: {
     "x-lawos-tenant-id": "tenant-a",
     "x-lawos-actor-id": "validator-user",
@@ -68,7 +68,7 @@ assert(allow.ok === true, "authorized HRX employee route must pass with trusted 
 const missingScope = authorizeHrxApiRequest({
   method: "GET",
   pathname: "/api/hrx/documents",
-  query: { tenant_id: "tenant-a" },
+  query: {},
   headers: {
     "x-lawos-tenant-id": "tenant-a",
     "x-lawos-actor-id": "validator-user",
@@ -81,7 +81,7 @@ assert(missingScope.ok === false && missingScope.body.safe_error_code === "HRX_A
 const noPolicy = authorizeHrxApiRequest({
   method: "GET",
   pathname: "/api/hrx/not-mapped",
-  query: { tenant_id: "tenant-a" },
+  query: {},
   headers: {
     "x-lawos-tenant-id": "tenant-a",
     "x-lawos-actor-id": "validator-user",
@@ -90,6 +90,19 @@ const noPolicy = authorizeHrxApiRequest({
   },
 });
 assert(noPolicy.ok === false && noPolicy.body.safe_error_code === "HRX_ROUTE_POLICY_REQUIRED", "unmapped HRX route must fail closed");
+
+const queryContext = authorizeHrxApiRequest({
+  method: "GET",
+  pathname: "/api/hrx/employees",
+  query: { tenant_id: "tenant-a", actor_id: "query-user" },
+  headers: {
+    "x-lawos-tenant-id": "tenant-a",
+    "x-lawos-actor-id": "validator-user",
+    "x-lawos-actor-role": "people_ops",
+    "x-lawos-hrx-scopes": "hrx.employee.read",
+  },
+});
+assert(queryContext.ok === false && queryContext.body.safe_error_code === "HRX_QUERY_CONTEXT_FORBIDDEN", "query tenant/actor context must be forbidden");
 
 const serverSource = read("apps/api/src/server.js");
 assert(serverSource.includes("authorizeHrxApiRequest"), "server must call authorizeHrxApiRequest before HRX runtime handler");

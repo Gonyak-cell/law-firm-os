@@ -107,8 +107,7 @@ async function handle(req, res) {
       return;
     }
     const body = req.method === "POST" ? await readRequestBody(req) : {};
-    const trustedQuery = { ...query, tenant_id: hrxAuthz.context.tenant_id, actor_id: hrxAuthz.context.actor_id };
-    const result = await handleHrxApiRequest({ pathname, method: req.method, query: trustedQuery, body, context: HRX_RUNTIME });
+    const result = await handleHrxApiRequest({ pathname, method: req.method, query, body, context: HRX_RUNTIME, requestContext: hrxAuthz.context });
     sendJson(res, result.status, { request_id: requestId, ...result.body });
     return;
   }

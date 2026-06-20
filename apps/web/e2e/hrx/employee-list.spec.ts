@@ -15,7 +15,8 @@ test("Employee list fetches /api/hrx/employees without a static fallback", async
   const api = await readWebFile("src/people/hrxApiClient.ts");
 
   assert.match(list, /fetchHrxEmployees/);
-  assert.match(api, /requestJson\(`\/api\/hrx\/employees/);
+  assert.match(api, /requestJson\("\/api\/hrx\/employees"\)/);
+  assert.doesNotMatch(api, /tenant_id|actor_id|HRX_PERMISSION_CONTEXT/);
   assert.match(list, /No mock employee list is rendered/);
   assert.doesNotMatch(list, /mockData|profileRows|matters/);
 });

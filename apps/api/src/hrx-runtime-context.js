@@ -25,13 +25,24 @@ function response(status, body) {
   return { status, body };
 }
 
-function requireTenant(query = {}) {
-  if (query.tenant_id !== SYNTHETIC_TENANT) {
-    const error = new Error("HRX synthetic tenant is required");
-    error.safe_error_code = "HRX_API_TENANT_REQUIRED";
+function requireTrustedRequestContext(requestContext = {}) {
+  const tenantId = typeof requestContext.tenant_id === "string" ? requestContext.tenant_id.trim() : "";
+  const actorId = typeof requestContext.actor_id === "string" ? requestContext.actor_id.trim() : "";
+  if (!tenantId) {
+    const error = new Error("HRX trusted tenant context is required");
+    error.safe_error_code = "HRX_TENANT_CONTEXT_REQUIRED";
     throw error;
   }
-  return query.tenant_id;
+  if (!actorId) {
+    const error = new Error("HRX trusted actor context is required");
+    error.safe_error_code = "HRX_ACTOR_CONTEXT_REQUIRED";
+    throw error;
+  }
+  return Object.freeze({
+    tenant_id: tenantId,
+    actor_id: actorId,
+    actor_role: typeof requestContext.actor_role === "string" && requestContext.actor_role.trim() ? requestContext.actor_role.trim() : "unknown",
+  });
 }
 
 function safeError(error) {
@@ -318,14 +329,10 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
   });
 }
 
-export function handleHrxApiRequest({ pathname, method, query, body = {}, context }) {
+export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, context, requestContext }) {
   try {
-    const tenantId = requireTenant(query);
-    const actorContext = {
-      tenant_id: tenantId,
-      actor_id: query.actor_id ?? "people-ui-runtime",
-      actor_role: "people_ops",
-    };
+    const actorContext = requireTrustedRequestContext(requestContext);
+    const tenantId = actorContext.tenant_id;
 
     if (pathname === "/api/hrx/employees" && method === "GET") {
       return response(200, { outcome: "ok", employees: context.repository.listEmployees({ tenant_id: tenantId }) });

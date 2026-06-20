@@ -26,23 +26,29 @@ test.before(async () => {
 
 test.after(() => new Promise((resolve) => server.close(resolve)));
 
-test("tenant isolation blocks cross-tenant employee document candidate analytics and AI requests", async () => {
-  const requests = [
-    () => json("/api/hrx/employees?tenant_id=tenant-b"),
-    () => json("/api/hrx/documents?tenant_id=tenant-b&employee_id=emp-001"),
-    () => json("/api/hrx/candidate/portal?tenant_id=tenant-b&candidate_id=cand-001"),
-    () => json("/api/hrx/analytics?tenant_id=tenant-b"),
-    () =>
-      json("/api/hrx/ai/assistant?tenant_id=tenant-b&actor_id=hr-001", {
-        method: "POST",
-        body: JSON.stringify({ question: "Summarize leave policy", decision_mode: "advisory" }),
-      }),
-  ];
+test("tenant isolation keeps trusted tenant-b from seeing tenant-a fixture rows", async () => {
+  const employees = await json("/api/hrx/employees");
+  assert.equal(employees.status, 200);
+  assert.deepEqual(employees.body.employees, []);
 
-  for (const request of requests) {
-    const { status, body } = await request();
-    assert.equal(status, 400);
-    assert.equal(body.outcome, "blocked");
-    assert.equal(body.safe_error_code, "HRX_API_TENANT_REQUIRED");
-  }
+  const documents = await json("/api/hrx/documents?employee_id=emp-001");
+  assert.equal(documents.status, 200);
+  assert.deepEqual(documents.body.documents, []);
+
+  const candidate = await json("/api/hrx/candidate/portal?candidate_id=cand-001");
+  assert.equal(candidate.status, 404);
+  assert.equal(candidate.body.safe_error_code, "HRX_CANDIDATE_NOT_FOUND");
+
+  const analytics = await json("/api/hrx/analytics");
+  assert.equal(analytics.status, 200);
+  assert.equal(analytics.body.analytics.tenant_id, "tenant-b");
+  assert.equal(analytics.body.analytics.headcount.total, 0);
+  assert.equal(JSON.stringify(analytics.body).includes("Ari Kim"), false);
+});
+
+test("tenant isolation fails closed when tenant actor context is supplied by query", async () => {
+  const { status, body } = await json("/api/hrx/employees?tenant_id=tenant-b&actor_id=hr-tenant-b");
+  assert.equal(status, 400);
+  assert.equal(body.outcome, "blocked");
+  assert.equal(body.safe_error_code, "HRX_QUERY_CONTEXT_FORBIDDEN");
 });

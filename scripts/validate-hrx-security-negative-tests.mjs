@@ -22,11 +22,11 @@ const checks = [
   },
   {
     file: "apps/api/test/hrx/tenant-isolation.test.js",
-    patterns: [/cross-tenant/i, /HRX_API_TENANT_REQUIRED/i, /employee document candidate analytics and AI/i],
+    patterns: [/trusted tenant-b/i, /HRX_QUERY_CONTEXT_FORBIDDEN/i, /tenant actor context is supplied by query/i],
   },
   {
     file: "apps/api/test/hrx/route-authz.test.js",
-    patterns: [/fails closed/i, /HRX_AUTHZ_DENIED/i, /HRX_ROUTE_POLICY_REQUIRED/i],
+    patterns: [/fails closed/i, /HRX_AUTHZ_DENIED/i, /HRX_ROUTE_POLICY_REQUIRED/i, /HRX_QUERY_CONTEXT_FORBIDDEN/i],
   },
   {
     file: "apps/api/test/hrx/step-up-route.test.js",

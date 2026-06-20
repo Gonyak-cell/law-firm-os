@@ -34,7 +34,7 @@ test("HRX route policy map resolves implemented server routes and denies unknown
 });
 
 test("HRX authz middleware fails closed without trusted tenant actor context", () => {
-  const decision = authorizeHrxApiRequest({ method: "GET", pathname: "/api/hrx/employees", query: { tenant_id: "tenant-a" }, headers: {} });
+  const decision = authorizeHrxApiRequest({ method: "GET", pathname: "/api/hrx/employees", headers: {} });
   assert.equal(decision.ok, false);
   assert.equal(decision.status, 400);
   assert.equal(decision.body.safe_error_code, "HRX_TENANT_CONTEXT_REQUIRED");
@@ -42,7 +42,7 @@ test("HRX authz middleware fails closed without trusted tenant actor context", (
 });
 
 test("HRX API denies route access before runtime when scope is missing", async () => {
-  const { status, body } = await json("/api/hrx/documents?tenant_id=tenant-a&employee_id=emp-001", {
+  const { status, body } = await json("/api/hrx/documents?employee_id=emp-001", {
     headers: { ...ALLOW_HEADERS, "x-lawos-hrx-scopes": "hrx.employee.read" },
   });
   assert.equal(status, 403);
@@ -52,17 +52,18 @@ test("HRX API denies route access before runtime when scope is missing", async (
 });
 
 test("HRX API allows scoped trusted context and rejects unmapped HRX routes", async () => {
-  const allowed = await json("/api/hrx/employees?tenant_id=tenant-a", { headers: ALLOW_HEADERS });
+  const allowed = await json("/api/hrx/employees", { headers: ALLOW_HEADERS });
   assert.equal(allowed.status, 200);
   assert.equal(allowed.body.outcome, "ok");
 
-  const unmapped = await json("/api/hrx/not-mapped?tenant_id=tenant-a", { headers: ALLOW_HEADERS });
+  const unmapped = await json("/api/hrx/not-mapped", { headers: ALLOW_HEADERS });
   assert.equal(unmapped.status, 403);
   assert.equal(unmapped.body.safe_error_code, "HRX_ROUTE_POLICY_REQUIRED");
 });
 
-test("HRX API rejects query tenant mismatch against trusted tenant header", async () => {
-  const { status, body } = await json("/api/hrx/employees?tenant_id=tenant-b", { headers: ALLOW_HEADERS });
+test("HRX API rejects query tenant actor context before runtime", async () => {
+  const { status, body } = await json("/api/hrx/employees?tenant_id=tenant-a&actor_id=query-user", { headers: ALLOW_HEADERS });
   assert.equal(status, 400);
-  assert.equal(body.safe_error_code, "HRX_TENANT_CONTEXT_MISMATCH");
+  assert.equal(body.safe_error_code, "HRX_QUERY_CONTEXT_FORBIDDEN");
+  assert.deepEqual(body.forbidden_query_keys, ["tenant_id", "actor_id"]);
 });

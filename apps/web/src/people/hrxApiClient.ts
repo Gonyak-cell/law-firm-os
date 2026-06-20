@@ -1,37 +1,10 @@
-const PERMISSION_CONTEXT_HEADER = "x-lawos-permission-context";
-const TENANT_ID = "tenant-a";
-const ACTOR_ID = "people-ui-runtime";
-
-const HRX_PERMISSION_CONTEXT = {
-  principal: {
-    user_id: ACTOR_ID,
-    tenant_id: TENANT_ID,
-    role_ids: ["people_ops"],
-    hrx_scopes: [
-      "hrx.employee.read",
-      "hrx.document.read",
-      "hrx.leave.read",
-      "hrx.leave.submit",
-      "hrx.approval.read",
-      "hrx.approval.write",
-      "hrx.candidate.read",
-      "hrx.recruiting.write",
-      "hrx.policy.write",
-      "hrx.audit.read",
-      "hrx.compensation.masked.read",
-      "hrx.analytics.read",
-      "hrx.ai.ask",
-      "hrx.ai.review"
-    ],
-    allowed_purposes: ["people_operations", "employee_self_service"]
-  },
-  rules: [{ id: "hrx_people_ui_allow", effect: "allow", action: "*" }],
-  object_acl: []
-};
-
-function query(params = {}) {
-  const search = new URLSearchParams({ tenant_id: TENANT_ID, actor_id: ACTOR_ID, ...params });
-  return search.toString();
+function withQuery(path, params = {}) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== "") search.set(key, String(value));
+  }
+  const suffix = search.toString();
+  return suffix ? `${path}?${suffix}` : path;
 }
 
 async function requestJson(path, options = {}) {
@@ -40,8 +13,8 @@ async function requestJson(path, options = {}) {
   try {
     response = await fetch(path, {
       ...options,
+      credentials: "same-origin",
       headers: {
-        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(HRX_PERMISSION_CONTEXT),
         "content-type": "application/json",
         ...(options.headers ?? {})
       }
@@ -57,14 +30,14 @@ async function requestJson(path, options = {}) {
 }
 
 export async function fetchHrxEmployees() {
-  const result = await requestJson(`/api/hrx/employees?${query()}`);
+  const result = await requestJson("/api/hrx/employees");
   if (result.kind !== "data" || !Array.isArray(result.body.employees)) return { kind: "error" };
   return { kind: "data", employees: result.body.employees };
 }
 
 export async function fetchHrxEmployeeProfile(employeeId) {
   if (!employeeId) return { kind: "empty" };
-  const result = await requestJson(`/api/hrx/employees/${encodeURIComponent(employeeId)}?${query()}`);
+  const result = await requestJson(`/api/hrx/employees/${encodeURIComponent(employeeId)}`);
   if (result.kind !== "data" || !result.body.employee) return { kind: "error" };
   return {
     kind: "data",
@@ -76,14 +49,14 @@ export async function fetchHrxEmployeeProfile(employeeId) {
 
 export async function fetchHrxDocuments(employeeId) {
   if (!employeeId) return { kind: "empty" };
-  const result = await requestJson(`/api/hrx/documents?${query({ employee_id: employeeId })}`);
+  const result = await requestJson(withQuery("/api/hrx/documents", { employee_id: employeeId }));
   if (result.kind !== "data" || !Array.isArray(result.body.documents)) return { kind: "error" };
   return { kind: "data", documents: result.body.documents };
 }
 
 export async function fetchHrxLeaveState(employeeId) {
   if (!employeeId) return { kind: "empty" };
-  const result = await requestJson(`/api/hrx/leave?${query({ employee_id: employeeId, policy_id: "pto-us" })}`);
+  const result = await requestJson(withQuery("/api/hrx/leave", { employee_id: employeeId, policy_id: "pto-us" }));
   if (result.kind !== "data") return { kind: "error" };
   return {
     kind: "data",
@@ -94,7 +67,7 @@ export async function fetchHrxLeaveState(employeeId) {
 
 export async function submitHrxLeaveRequest(employeeId, form) {
   if (!employeeId) return { kind: "empty" };
-  const result = await requestJson(`/api/hrx/leave?${query()}`, {
+  const result = await requestJson("/api/hrx/leave", {
     method: "POST",
     body: JSON.stringify({
       request_id: `leave-${employeeId}-${Date.now()}`,
@@ -111,13 +84,13 @@ export async function submitHrxLeaveRequest(employeeId, form) {
 }
 
 export async function fetchHrxApprovals() {
-  const result = await requestJson(`/api/hrx/approvals?${query()}`);
+  const result = await requestJson("/api/hrx/approvals");
   if (result.kind !== "data" || !Array.isArray(result.body.approvals)) return { kind: "error" };
   return { kind: "data", approvals: result.body.approvals };
 }
 
 export async function resolveHrxApproval(approvalId, action) {
-  const result = await requestJson(`/api/hrx/approvals/${encodeURIComponent(approvalId)}/${action}?${query()}`, {
+  const result = await requestJson(`/api/hrx/approvals/${encodeURIComponent(approvalId)}/${action}`, {
     method: "POST",
     body: JSON.stringify({ decision_reason: `${action}_from_people_ui` })
   });
@@ -126,7 +99,7 @@ export async function resolveHrxApproval(approvalId, action) {
 }
 
 export async function fetchCandidatePortal(candidateId = "cand-001") {
-  const result = await requestJson(`/api/hrx/candidate/portal?${query({ candidate_id: candidateId })}`);
+  const result = await requestJson(withQuery("/api/hrx/candidate/portal", { candidate_id: candidateId }));
   if (result.kind !== "data" || !result.body.candidate || !Array.isArray(result.body.applications)) return { kind: "error" };
   return {
     kind: "data",
@@ -137,7 +110,7 @@ export async function fetchCandidatePortal(candidateId = "cand-001") {
 }
 
 export async function fetchRecruitingPipeline() {
-  const result = await requestJson(`/api/hrx/recruiting/pipeline?${query()}`);
+  const result = await requestJson("/api/hrx/recruiting/pipeline");
   if (result.kind !== "data" || !Array.isArray(result.body.applications)) return { kind: "error" };
   return {
     kind: "data",
@@ -149,7 +122,7 @@ export async function fetchRecruitingPipeline() {
 }
 
 export async function updateHrxApplicationStage(applicationId, stage) {
-  const result = await requestJson(`/api/hrx/recruiting/applications/${encodeURIComponent(applicationId)}/stage?${query()}`, {
+  const result = await requestJson(`/api/hrx/recruiting/applications/${encodeURIComponent(applicationId)}/stage`, {
     method: "POST",
     body: JSON.stringify({ stage, stage_reason: "people_ui_pipeline_update" })
   });
@@ -158,13 +131,13 @@ export async function updateHrxApplicationStage(applicationId, stage) {
 }
 
 export async function fetchHrxPolicies() {
-  const result = await requestJson(`/api/hrx/policies?${query()}`);
+  const result = await requestJson("/api/hrx/policies");
   if (result.kind !== "data" || !Array.isArray(result.body.policies)) return { kind: "error" };
   return { kind: "data", policies: result.body.policies };
 }
 
 export async function createHrxPolicyVersion(form) {
-  const result = await requestJson(`/api/hrx/policies?${query()}`, {
+  const result = await requestJson("/api/hrx/policies", {
     method: "POST",
     body: JSON.stringify(form)
   });
@@ -173,13 +146,13 @@ export async function createHrxPolicyVersion(form) {
 }
 
 export async function fetchHrxAuditEvents() {
-  const result = await requestJson(`/api/hrx/audit?${query()}`);
+  const result = await requestJson("/api/hrx/audit");
   if (result.kind !== "data" || !Array.isArray(result.body.events)) return { kind: "error" };
   return { kind: "data", events: result.body.events };
 }
 
 export async function fetchHrxAnalytics() {
-  const result = await requestJson(`/api/hrx/analytics?${query()}`);
+  const result = await requestJson("/api/hrx/analytics");
   if (result.kind !== "data" || !result.body.analytics) return { kind: "error" };
   return {
     kind: "data",
@@ -189,7 +162,7 @@ export async function fetchHrxAnalytics() {
 }
 
 export async function askHrxAiAssistant(question, options = {}) {
-  const result = await requestJson(`/api/hrx/ai/assistant?${query()}`, {
+  const result = await requestJson("/api/hrx/ai/assistant", {
     method: "POST",
     body: JSON.stringify({
       question,
@@ -209,7 +182,7 @@ export async function askHrxAiAssistant(question, options = {}) {
 }
 
 export async function fetchHrxAiReviews() {
-  const result = await requestJson(`/api/hrx/ai/reviews?${query()}`);
+  const result = await requestJson("/api/hrx/ai/reviews");
   if (result.kind !== "data" || !Array.isArray(result.body.reviews)) return { kind: "error" };
   return { kind: "data", reviews: result.body.reviews };
 }

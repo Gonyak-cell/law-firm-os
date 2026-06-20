@@ -401,6 +401,41 @@
         "npm run hrx:security:validate",
         "npm run hrx:runtime:validate"
       ]
+    },
+    {
+      "id": "HRX-L2-004",
+      "pr": "PR-05",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/middleware/hrx-authz.js",
+        "apps/api/src/hrx-runtime-context.js",
+        "apps/api/src/server.js",
+        "apps/api/test/hrx/route-authz.test.js",
+        "apps/api/test/hrx/tenant-isolation.test.js",
+        "scripts/validate-hrx-context-hardening.mjs"
+      ],
+      "validators": [
+        "npm run hrx:context:validate",
+        "npm run hrx:authz:validate",
+        "npm run hrx:security:validate",
+        "node --test apps/api/test/hrx-runtime-api.test.js apps/api/test/hrx/route-authz.test.js apps/api/test/hrx/tenant-isolation.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L2-005",
+      "pr": "PR-05",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/hrxApiClient.ts",
+        "apps/web/e2e/hrx/employee-list.spec.ts",
+        "apps/web/e2e/hrx/leave-request.spec.ts",
+        "scripts/validate-hrx-context-hardening.mjs"
+      ],
+      "validators": [
+        "npm run hrx:context:validate",
+        "npm --workspace apps/web run test:ui",
+        "npm run web:e2e -- hrx"
+      ]
     }
   ]
 }
