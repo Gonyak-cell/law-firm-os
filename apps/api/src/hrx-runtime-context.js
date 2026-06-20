@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { createDurableAuditStore } from "../../../packages/audit/src/durable-audit-store.js";
 import { createHrxAuditEventStore } from "../../../packages/audit/src/hrx-event-store.js";
-import { createSqlHrxAuditEventStore } from "../../../packages/audit/src/hrx-event-store-sql.js";
 import { createInMemoryHrxDocumentStore, createSqlHrxDocumentStore } from "../../../packages/hrx/src/documents.js";
 import { createApprovalPolicy, createApprovalRequest, resolveApprovalRequest } from "../../../packages/hrx/src/approval.js";
 import { createApplication, transitionApplicationStage } from "../../../packages/hrx/src/recruiting/application.js";
@@ -24,6 +24,7 @@ import { createHrxMatterWorkloadProjection } from "../../../packages/matter/src/
 import { createHrxAiRoute } from "./routes/hrx/ai.js";
 
 const SYNTHETIC_TENANT = "tenant-a";
+export const HRX_RUNTIME_SEED_TENANT_ID = SYNTHETIC_TENANT;
 
 function response(status, body) {
   return { status, body };
@@ -85,6 +86,164 @@ function createSyntheticAiAuthz() {
       }
       return Object.freeze({ effect: "allow", reason: "hrx_ai_synthetic_allow" });
     },
+  });
+}
+
+function hasRow(store, table, where) {
+  return Boolean(store.query("selectOne", { table, where }));
+}
+
+export function seedHrxDurableRuntimeStore(store, { tenant_id: tenantId = SYNTHETIC_TENANT } = {}) {
+  if (!store || typeof store.query !== "function") throw new TypeError("HRX durable runtime seed requires store.query");
+
+  const repository = createSqlHrxRepository({ store, clock: () => "2026-06-20T00:00:00.000Z" });
+  const documents = createSqlHrxDocumentStore({ store });
+  const leaveLedger = createSqlLeaveBalanceLedger({ store });
+  const leaveStore = createSqlLeaveRequestStore({ store });
+
+  const employees = [
+    { tenant_id: tenantId, employee_id: "emp-001", display_name: "Ari Kim", status: "active", source_ref: "CMP-R4:runtime-seed" },
+    { tenant_id: tenantId, employee_id: "emp-002", display_name: "Mina Park", status: "on_leave", source_ref: "CMP-R4:runtime-seed" },
+  ];
+  for (const employee of employees) {
+    if (!hasRow(store, "hrx_employees", { tenant_id: employee.tenant_id, employee_id: employee.employee_id })) {
+      repository.createEmployee(employee);
+    }
+  }
+
+  const profiles = [
+    {
+      tenant_id: tenantId,
+      profile_id: "profile-001",
+      employee_id: "emp-001",
+      employment_type: "full_time",
+      status: "active",
+      effective_from: "2026-01-01",
+      source_ref: "CMP-R4:runtime-seed",
+    },
+    {
+      tenant_id: tenantId,
+      profile_id: "profile-002",
+      employee_id: "emp-002",
+      employment_type: "full_time",
+      status: "active",
+      effective_from: "2026-01-01",
+      source_ref: "CMP-R4:runtime-seed",
+    },
+  ];
+  for (const profile of profiles) {
+    if (!hasRow(store, "hrx_employment_profiles", { tenant_id: profile.tenant_id, profile_id: profile.profile_id })) {
+      repository.createEmploymentProfile(profile);
+    }
+  }
+
+  const links = [
+    {
+      tenant_id: tenantId,
+      link_id: "link-emp-001",
+      employee_id: "emp-001",
+      user_id: "hrx-test-user",
+      purpose: "login_mapping",
+      source_ref: "CMP-R4:runtime-seed",
+    },
+  ];
+  for (const link of links) {
+    if (!hasRow(store, "hrx_employee_user_links", { tenant_id: link.tenant_id, link_id: link.link_id })) {
+      repository.createEmployeeUserLink(link);
+    }
+  }
+
+  const documentRows = [
+    {
+      tenant_id: tenantId,
+      document_id: "doc-001",
+      employee_id: "emp-001",
+      document_type: "policy_ack",
+      source_ref: "DMS:hr-policy-ack-001",
+      source_provider: "dms",
+      source_status: "verified",
+      source_verified_at: "2026-06-20T00:00:00.000Z",
+      source_version_ref: "DMS:hr-policy-ack-001:v1",
+      source_metadata: { provider_document_id: "hr-policy-ack-001", etag_present: true },
+      title: "Policy acknowledgement",
+    },
+    {
+      tenant_id: tenantId,
+      document_id: "doc-002",
+      employee_id: "emp-002",
+      document_type: "leave_notice",
+      source_ref: "DMS:leave-notice-002",
+      source_provider: "dms",
+      source_status: "verified",
+      source_verified_at: "2026-06-20T00:00:00.000Z",
+      source_version_ref: "DMS:leave-notice-002:v1",
+      source_metadata: { provider_document_id: "leave-notice-002", etag_present: true },
+      title: "Leave notice",
+    },
+  ];
+  for (const document of documentRows) {
+    if (!hasRow(store, "hrx_documents", { tenant_id: document.tenant_id, document_id: document.document_id })) {
+      documents.create(document);
+    }
+  }
+
+  const ledgerEntries = [
+    {
+      tenant_id: tenantId,
+      entry_id: "pto-earned-001",
+      employee_id: "emp-001",
+      policy_id: "pto-us",
+      entry_type: "earned",
+      amount: 80,
+      occurred_on: "2026-06-01",
+      source_ref: "PolicyAccrual:2026-06",
+    },
+    {
+      tenant_id: tenantId,
+      entry_id: "pto-used-002",
+      employee_id: "emp-002",
+      policy_id: "pto-us",
+      entry_type: "used",
+      amount: 16,
+      occurred_on: "2026-06-10",
+      source_ref: "LeaveRequest:leave-002",
+    },
+  ];
+  for (const entry of ledgerEntries) {
+    if (!hasRow(store, "hrx_leave_balance_entries", { tenant_id: entry.tenant_id, entry_id: entry.entry_id })) {
+      leaveLedger.append(entry);
+    }
+  }
+
+  const leaveRequests = [
+    {
+      tenant_id: tenantId,
+      request_id: "leave-002",
+      employee_id: "emp-002",
+      policy_id: "pto-us",
+      leave_type: "pto",
+      amount: 16,
+      start_date: "2026-06-10",
+      end_date: "2026-06-11",
+      state: "approved",
+      approver_id: "manager-001",
+      decided_at: "2026-06-10T00:00:00.000Z",
+    },
+  ];
+  for (const leaveRequest of leaveRequests) {
+    if (!hasRow(store, "hrx_leave_requests", { tenant_id: leaveRequest.tenant_id, request_id: leaveRequest.request_id })) {
+      leaveStore.create(leaveRequest);
+    }
+  }
+
+  return Object.freeze({
+    tenant_id: tenantId,
+    employees: employees.length,
+    employment_profiles: profiles.length,
+    employee_user_links: links.length,
+    documents: documentRows.length,
+    leave_balance_entries: ledgerEntries.length,
+    leave_requests: leaveRequests.length,
   });
 }
 
@@ -186,7 +345,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
       approver_id: "manager-001",
     },
   ]);
-  const audit = store ? createSqlHrxAuditEventStore({ store }) : createHrxAuditEventStore();
+  const audit = store ? createDurableAuditStore({ store }) : createHrxAuditEventStore();
   const leaveService = createLeaveRequestService({ store: leaveStore, balanceLedger: leaveLedger, audit });
 
   const approvalPolicy = createApprovalPolicy({

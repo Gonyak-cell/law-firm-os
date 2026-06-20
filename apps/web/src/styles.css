@@ -4470,6 +4470,10 @@ html[data-theme="dark"] .public-preview {
   }
 
   .metric-grid,
+  .clients-metric-grid,
+  .clients-runtime-grid,
+  .matter-runtime-grid,
+  .vault-runtime-grid,
   .home-grid,
   .content-layout,
   .dashboard-grid,
@@ -5223,6 +5227,384 @@ html[data-theme="dark"] .public-preview {
 
 .live-data-review strong {
   color: #2d4778;
+}
+
+.live-data-empty {
+  border-color: #cdd6e4;
+  background: #fbfcff;
+  color: #58657a;
+}
+
+/* --- CMP G2 Clients runtime surface --- */
+
+.clients-surface {
+  gap: 14px;
+}
+
+.clients-metric-grid,
+.clients-runtime-grid,
+.clients-live-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.clients-metric-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.clients-runtime-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.42fr);
+  align-items: start;
+}
+
+.clients-runtime-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.client-review-strip {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #bccde9;
+  border-radius: var(--am-radius-sm);
+  background: #f4f8fe;
+  color: #2d4778;
+  font-size: 12px;
+}
+
+.client-review-strip svg {
+  flex: 0 0 auto;
+}
+
+.client-evidence-list {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 8px 10px;
+  font-size: 12px;
+}
+
+.client-evidence-list span {
+  color: var(--am-text-muted);
+}
+
+.client-evidence-list strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--am-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- CMP G4 Matters runtime surface --- */
+
+.matters-surface {
+  gap: 14px;
+}
+
+.matter-runtime-grid,
+.matter-live-stack,
+.matter-team-roster {
+  display: grid;
+  gap: 12px;
+}
+
+.matter-runtime-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.44fr);
+  align-items: start;
+}
+
+.matter-runtime-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.matter-review-strip,
+.matter-form-footer,
+.matter-boundary-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.matter-review-strip {
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid #bdd8c3;
+  border-radius: var(--am-radius-sm);
+  background: #f2fbf4;
+  color: #24613a;
+  font-size: 12px;
+}
+
+.matter-opening-form,
+.matter-team-form {
+  display: grid;
+  gap: 10px;
+}
+
+.matter-opening-form label,
+.matter-team-form label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  color: var(--am-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.matter-opening-form input,
+.matter-team-form input,
+.matter-team-form select {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text);
+  font: inherit;
+  text-transform: none;
+}
+
+.matter-form-footer {
+  justify-content: space-between;
+  min-height: 34px;
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.matter-form-footer > div {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 6px;
+}
+
+.matter-form-footer span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matter-boundary-card {
+  min-height: 74px;
+  align-items: flex-start;
+  flex-direction: column;
+  padding: 10px;
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface-subtle);
+  font-size: 12px;
+}
+
+.matter-boundary-card svg {
+  color: var(--am-blue);
+}
+
+.matter-boundary-card span {
+  color: var(--am-text-muted);
+}
+
+/* --- CMP G5 Vault/DMS runtime surface --- */
+
+.vault-surface {
+  gap: 14px;
+}
+
+.vault-runtime-grid,
+.portal-runtime-grid,
+.readiness-grid,
+.vault-live-stack,
+.document-detail,
+.email-filing-view {
+  display: grid;
+  gap: 12px;
+}
+
+.vault-runtime-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.44fr);
+  align-items: start;
+}
+
+.portal-runtime-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.54fr);
+  align-items: start;
+}
+
+.readiness-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.42fr);
+  align-items: start;
+}
+
+.vault-runtime-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.portal-runtime-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.readiness-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.vault-safe-strip {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #bdd8c3;
+  border-radius: var(--am-radius-sm);
+  background: #f2fbf4;
+  color: #24613a;
+  font-size: 12px;
+}
+
+.portal-safe-strip {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #c4d7ed;
+  border-radius: var(--am-radius-sm);
+  background: #f2f7fd;
+  color: #24507c;
+  font-size: 12px;
+}
+
+.document-detail,
+.email-filing-view {
+  align-content: start;
+}
+
+.document-detail-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--am-radius-sm);
+  background: var(--am-blue-soft);
+  color: var(--am-blue);
+}
+
+.document-detail strong,
+.email-filing-view strong {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--am-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-detail span,
+.email-filing-view span {
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.vault-property-grid {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 8px 10px;
+  font-size: 12px;
+}
+
+.vault-property-grid strong {
+  color: var(--am-text);
+}
+
+/* --- CMP G6 CRM/Intake runtime surface --- */
+
+.intake-surface {
+  gap: 14px;
+}
+
+.intake-runtime-grid,
+.intake-live-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.intake-runtime-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.intake-runtime-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.intake-safe-strip {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #bdd8c3;
+  border-radius: var(--am-radius-sm);
+  background: #f2fbf4;
+  color: #24613a;
+  font-size: 12px;
+}
+
+/* --- CMP G7 Finance runtime surface --- */
+
+.finance-surface {
+  gap: 14px;
+}
+
+.finance-runtime-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.finance-runtime-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+/* --- CMP G8 Analytics runtime panel --- */
+
+.analytics-runtime-panel {
+  margin-bottom: 12px;
+}
+
+.analytics-runtime-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.analytics-runtime-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.analytics-runtime-actions strong {
+  color: var(--am-text);
+}
+
+/* --- CMP G9 AI runtime panel --- */
+
+.ai-runtime-panel {
+  margin-bottom: 12px;
+}
+
+.ai-runtime-stack {
+  display: grid;
+  gap: 12px;
 }
 
 /* --- HRX People runtime surface --- */

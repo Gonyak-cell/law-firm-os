@@ -3,6 +3,7 @@
 - Pack:
 - PR lane:
 - TUW IDs:
+- CMP TUW IDs:
 - Changed files mapped to TUWs:
 
 ## Gate Evidence
@@ -10,6 +11,14 @@
 - Entry gate evidence:
 - Exit gate evidence:
 - Commands run:
+
+## CMP-R4 Boundary Check
+
+- [ ] This PR cites the CMP TUW IDs it intends to satisfy.
+- [ ] This PR includes an evidence path for every completed CMP TUW.
+- [ ] Any R4 runtime-write-ready claim is backed by persistence, write API, permission, audit, state/idempotency tests, and evidence artifacts.
+- [ ] Descriptor-only, synthetic-only, API-evidence-only, and durable-persistence-open work is not marked complete.
+- [ ] Go-live or production-ready language is blocked unless owner approval and release gates are attached.
 
 ## HRX Boundary Check
 

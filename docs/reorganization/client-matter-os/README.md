@@ -15,6 +15,15 @@ This lane is planning-first. It does not open CRM, Intake, Matter, DMS, Billing,
 Finance, AI, or Portal runtime work until G0 is closed with inventory,
 ownership, boundary, and runtime-readiness evidence.
 
+## CMP R4 Expansion
+
+The newer CMP R4 developer roadmap package is tracked under
+`docs/reorganization/client-matter-os/cmp-v1/`. That package expands the older
+198-TUW G0-G7 plan into a 316-TUW G0-G12 Client-Matter-People implementation
+goal. The two roots must stay separate: this folder preserves the original
+reorganization baseline, while `cmp-v1/` carries the CMP R4 source intake,
+crosswalk, blocker audit, and R4/R5/R6 claim controls.
+
 ## Vault-Style PR Rules
 
 1. Work on an isolated `codex/*` branch.

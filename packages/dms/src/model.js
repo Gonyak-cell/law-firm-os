@@ -191,3 +191,22 @@ export function createDmsDocumentRelation(input) {
     status: input.status ?? "under_review",
   });
 }
+
+const DMS_FACTORIES = Object.freeze({
+  DmsWorkspace: createDmsWorkspace,
+  DmsFolder: createDmsFolder,
+  DmsDocument: createDmsDocument,
+  DmsDocumentVersion: createDmsDocumentVersion,
+  DmsFileObject: createDmsFileObject,
+  DmsRendition: createDmsRendition,
+  DmsExtractedText: createDmsExtractedText,
+  DmsOcrResult: createDmsOcrResult,
+  DmsEmailThread: createDmsEmailThread,
+  DmsDocumentRelation: createDmsDocumentRelation,
+});
+
+export function createDmsCoreRecord(modelType, input) {
+  const factory = DMS_FACTORIES[modelType];
+  if (!factory) throw new Error(`Unknown DMS Core model type ${modelType}`);
+  return factory(input);
+}

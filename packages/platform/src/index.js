@@ -3,3 +3,8 @@ export * from "./model.js";
 export * from "./registry.js";
 export * from "./validators.js";
 export * from "./client-matter-g7.js";
+export * from "./persistence/store-port.js";
+export * from "./persistence/idempotency-store.js";
+export * from "./secrets/secret-guard.js";
+export * from "./ui-readiness-repository.js";
+export * from "./ui-readiness-service.js";
