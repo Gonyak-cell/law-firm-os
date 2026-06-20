@@ -1075,6 +1075,23 @@
       ]
     },
     {
+      "id": "HRX-L5-011",
+      "pr": "PR-11",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/lifecycle/LifecycleBoard.tsx",
+        "apps/web/e2e/hrx/lifecycle-board.spec.ts",
+        "apps/web/src/people/hrxApiClient.ts",
+        "apps/api/src/hrx-runtime-context.js"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui",
+        "node --test apps/api/test/hrx-runtime-api.test.js"
+      ]
+    },
+    {
       "id": "HRX-L5-012",
       "pr": "PR-10",
       "status": "closed",

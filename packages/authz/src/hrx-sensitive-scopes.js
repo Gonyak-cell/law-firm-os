@@ -4,6 +4,7 @@ export const HRX_SENSITIVE_SCOPE_GROUPS = Object.freeze({
   compensation: Object.freeze(["hrx.compensation.read", "hrx.compensation.write"]),
   evaluation: Object.freeze(["hrx.evaluation.read", "hrx.evaluation.review", "hrx.evaluation.write"]),
   candidate: Object.freeze(["hrx.candidate.read", "hrx.candidate.write"]),
+  lifecycle: Object.freeze(["hrx.lifecycle.read", "hrx.lifecycle.write"]),
   payroll: Object.freeze(["hrx.payroll.preview", "hrx.payroll.export"]),
   audit: Object.freeze(["hrx.audit.read", "hrx.audit.append"]),
 });
@@ -16,6 +17,7 @@ export const HRX_SENSITIVITY_REQUIRED_SCOPES = Object.freeze({
   compensation: "hrx.compensation.read",
   evaluation: "hrx.evaluation.read",
   candidate: "hrx.candidate.read",
+  lifecycle: "hrx.lifecycle.read",
   payroll: "hrx.payroll.preview",
   audit: "hrx.audit.read",
 });

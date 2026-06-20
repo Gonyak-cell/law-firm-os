@@ -139,6 +139,47 @@ export async function updateHrxApplicationStage(applicationId, stage) {
   return { kind: "data", application: result.body.application };
 }
 
+export async function fetchHrxLifecycleBoard() {
+  const [onboarding, offboarding] = await Promise.all([
+    requestJson("/api/hrx/lifecycle/onboarding"),
+    requestJson("/api/hrx/lifecycle/offboarding")
+  ]);
+  if (
+    onboarding.kind !== "data" ||
+    offboarding.kind !== "data" ||
+    !Array.isArray(onboarding.body.onboarding) ||
+    !Array.isArray(offboarding.body.offboarding)
+  ) {
+    return { kind: "error" };
+  }
+  return {
+    kind: "data",
+    onboarding: onboarding.body.onboarding,
+    offboarding: offboarding.body.offboarding
+  };
+}
+
+export async function updateHrxOnboardingTask(onboardingId, taskId, status) {
+  const result = await requestJson(
+    `/api/hrx/lifecycle/onboarding/${encodeURIComponent(onboardingId)}/tasks/${encodeURIComponent(taskId)}`,
+    {
+      method: "POST",
+      body: JSON.stringify({ status })
+    }
+  );
+  if (result.kind !== "data" || !result.body.onboarding) return { kind: "error" };
+  return { kind: "data", onboarding: result.body.onboarding };
+}
+
+export async function closeHrxOffboardingCase(offboardingId) {
+  const result = await requestJson(`/api/hrx/lifecycle/offboarding/${encodeURIComponent(offboardingId)}/close`, {
+    method: "POST",
+    body: JSON.stringify({})
+  });
+  if (result.kind !== "data" || !result.body.offboarding) return { kind: "error" };
+  return { kind: "data", offboarding: result.body.offboarding };
+}
+
 export async function fetchHrxPolicies() {
   const result = await requestJson("/api/hrx/policies");
   if (result.kind !== "data" || !Array.isArray(result.body.policies)) return { kind: "error" };

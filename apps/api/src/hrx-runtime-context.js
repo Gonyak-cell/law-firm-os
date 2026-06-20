@@ -15,6 +15,8 @@ import { createHrxPeopleAnalyticsReadModel } from "../../../packages/hrx/src/ana
 import { createLeavePolicy } from "../../../packages/hrx/src/rules/leave-policy.js";
 import { createInMemoryLeaveBalanceLedger, createSqlLeaveBalanceLedger } from "../../../packages/hrx/src/leave/balance.js";
 import { createInMemoryLeaveRequestStore, createLeaveRequestService, createSqlLeaveRequestStore } from "../../../packages/hrx/src/leave/request-service.js";
+import { closeOffboardingCase, createOffboardingCase } from "../../../packages/hrx/src/offboarding.js";
+import { createOnboardingPlan, updateOnboardingTask } from "../../../packages/hrx/src/onboarding.js";
 import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repository.js";
 import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
 import { createHrxMatterWorkloadProjection } from "../../../packages/matter/src/hrx-workload-projection.js";
@@ -265,6 +267,31 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
       approval_ref: "Approval:offer-001",
     }),
   ];
+  const onboardingPlans = [
+    createOnboardingPlan({
+      tenant_id: SYNTHETIC_TENANT,
+      onboarding_id: "onb-001",
+      employee_id: "emp-002",
+      start_date: "2026-08-01",
+      tasks: [
+        { task_id: "policy-ack", title: "Policy acknowledgement", owner_role: "people_ops" },
+        { task_id: "access-provision", title: "Provision core access", owner_role: "it_ops", status: "blocked" },
+      ],
+      document_refs: ["DMS:policy-ack"],
+      access_requests: [{ request_id: "access-001", system_ref: "IdP:core", access_level: "employee" }],
+    }),
+  ];
+  const offboardingCases = [
+    createOffboardingCase({
+      tenant_id: SYNTHETIC_TENANT,
+      offboarding_id: "off-001",
+      employee_id: "emp-001",
+      separation_date: "2026-12-31",
+      access_revocations: [{ system_ref: "IdP:core", revoked: true }],
+      document_returns: [{ document_ref: "DMS:laptop-001", returned: true }],
+      legal_hold_checks: [{ hold_ref: "LegalHold:none", clear: true }],
+    }),
+  ];
   const policies = [
     createLeavePolicy({
       tenant_id: SYNTHETIC_TENANT,
@@ -352,6 +379,8 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
     candidates,
     interviews,
     offers,
+    onboardingPlans,
+    offboardingCases,
     jobOpenings,
     policies,
     aiSourceRegistry,
@@ -538,6 +567,57 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         metadata: { stage: next.stage },
       });
       return response(200, { outcome: "updated", application: next });
+    }
+
+    if (pathname === "/api/hrx/lifecycle/onboarding" && method === "GET") {
+      return response(200, {
+        outcome: "ok",
+        onboarding: context.onboardingPlans.filter((plan) => plan.tenant_id === tenantId).map(clone),
+      });
+    }
+
+    const onboardingTaskMatch = pathname.match(/^\/api\/hrx\/lifecycle\/onboarding\/([^/]+)\/tasks\/([^/]+)$/);
+    if (onboardingTaskMatch && method === "POST") {
+      const onboardingId = decodeURIComponent(onboardingTaskMatch[1]);
+      const taskId = decodeURIComponent(onboardingTaskMatch[2]);
+      const index = context.onboardingPlans.findIndex((plan) => plan.tenant_id === tenantId && plan.onboarding_id === onboardingId);
+      if (index === -1) return response(404, { outcome: "not_found", safe_error_code: "HRX_ONBOARDING_PLAN_NOT_FOUND" });
+      const next = updateOnboardingTask(context.onboardingPlans[index], taskId, { status: body.status });
+      context.onboardingPlans[index] = next;
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.onboarding.task.update",
+        object_type: "OnboardingTask",
+        object_id: taskId,
+        reason: "onboarding_task_updated",
+        metadata: { onboarding_id: next.onboarding_id, status: body.status },
+      });
+      return response(200, { outcome: "updated", onboarding: next });
+    }
+
+    if (pathname === "/api/hrx/lifecycle/offboarding" && method === "GET") {
+      return response(200, {
+        outcome: "ok",
+        offboarding: context.offboardingCases.filter((item) => item.tenant_id === tenantId).map(clone),
+      });
+    }
+
+    const offboardingCloseMatch = pathname.match(/^\/api\/hrx\/lifecycle\/offboarding\/([^/]+)\/close$/);
+    if (offboardingCloseMatch && method === "POST") {
+      const offboardingId = decodeURIComponent(offboardingCloseMatch[1]);
+      const index = context.offboardingCases.findIndex((item) => item.tenant_id === tenantId && item.offboarding_id === offboardingId);
+      if (index === -1) return response(404, { outcome: "not_found", safe_error_code: "HRX_OFFBOARDING_CASE_NOT_FOUND" });
+      const next = closeOffboardingCase({ ...context.offboardingCases[index], ...body });
+      context.offboardingCases[index] = next;
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.offboarding.close",
+        object_type: "OffboardingCase",
+        object_id: next.offboarding_id,
+        reason: "offboarding_case_closed",
+        metadata: { state: next.state },
+      });
+      return response(200, { outcome: "closed", offboarding: next });
     }
 
     if (pathname === "/api/hrx/policies" && method === "GET") {

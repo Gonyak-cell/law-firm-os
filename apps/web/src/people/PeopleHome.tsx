@@ -12,6 +12,7 @@ import { RecruitingPipeline } from "./recruiting/RecruitingPipeline.tsx";
 import { CandidatePortal } from "../candidate/CandidatePortal.tsx";
 import { HRXPolicyConsole } from "../admin/hrx/HRXPolicyConsole.tsx";
 import { HRXAuditViewer } from "../admin/hrx/HRXAuditViewer.tsx";
+import { LifecycleBoard } from "./lifecycle/LifecycleBoard.tsx";
 import { HRAnalytics } from "./analytics/HRAnalytics.tsx";
 import { HRAIAssistant } from "./ai/HRAIAssistant.tsx";
 
@@ -91,6 +92,7 @@ export function PeopleHome({ labels }) {
         <ManagerApprovalQueue />
         <CandidatePortal candidateId="cand-001" />
         <RecruitingPipeline />
+        <LifecycleBoard />
         <HRXPolicyConsole />
         <HRXAuditViewer />
         <HRAnalytics />

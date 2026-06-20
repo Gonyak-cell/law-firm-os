@@ -26,6 +26,8 @@ const HRX_AUTH_HEADERS = Object.freeze({
     "hrx.approval.write",
     "hrx.candidate.read",
     "hrx.candidate.write",
+    "hrx.lifecycle.read",
+    "hrx.lifecycle.write",
     "hrx.policy.read",
     "hrx.policy.write",
     "hrx.analytics.read",
@@ -163,6 +165,35 @@ test("GET and POST recruiting pipeline updates application stage through API", a
   });
   assert.equal(updated.status, 200);
   assert.equal(updated.body.application.stage, "offer");
+});
+
+test("GET and POST lifecycle routes update onboarding and offboarding through API", async () => {
+  const onboarding = await json("/api/hrx/lifecycle/onboarding");
+  assert.equal(onboarding.status, 200);
+  assert.equal(onboarding.body.onboarding[0].onboarding_id, "onb-001");
+  assert.equal(onboarding.body.onboarding[0].tasks[0].status, "pending");
+
+  const updatedTask = await json("/api/hrx/lifecycle/onboarding/onb-001/tasks/policy-ack", {
+    method: "POST",
+    body: JSON.stringify({ status: "completed" }),
+  });
+  assert.equal(updatedTask.status, 200);
+  assert.equal(updatedTask.body.onboarding.tasks.find((task) => task.task_id === "policy-ack").status, "completed");
+
+  const offboarding = await json("/api/hrx/lifecycle/offboarding");
+  assert.equal(offboarding.status, 200);
+  assert.equal(offboarding.body.offboarding[0].offboarding_id, "off-001");
+
+  const closed = await json("/api/hrx/lifecycle/offboarding/off-001/close", {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  assert.equal(closed.status, 200);
+  assert.equal(closed.body.offboarding.state, "closed");
+
+  const audit = await json("/api/hrx/audit");
+  assert.ok(audit.body.events.some((event) => event.action === "hrx.onboarding.task.update"));
+  assert.ok(audit.body.events.some((event) => event.action === "hrx.offboarding.close"));
 });
 
 test("GET and POST /api/hrx/policies manages policy versions through API", async () => {

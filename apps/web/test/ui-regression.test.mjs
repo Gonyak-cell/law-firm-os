@@ -70,3 +70,18 @@ test("HRX audit UI preserves server-owned step-up and no local fallback", async 
   assert.doesNotMatch(challengeSource, /x-lawos-hrx-step-up|tenant-a|actor_id|mfa: true/);
   assert.doesNotMatch(peopleApiSource, /x-lawos-tenant-id|x-lawos-actor-id|x-lawos-hrx-scopes|HRX_PERMISSION_CONTEXT/);
 });
+
+test("HRX lifecycle board stays API-backed from People runtime", async () => {
+  const peopleSource = await readWebFile("src/people/PeopleHome.tsx");
+  const lifecycleSource = await readWebFile("src/people/lifecycle/LifecycleBoard.tsx");
+  const peopleApiSource = await readWebFile("src/people/hrxApiClient.ts");
+
+  assert.match(peopleSource, /LifecycleBoard/);
+  assert.match(lifecycleSource, /fetchHrxLifecycleBoard/);
+  assert.match(lifecycleSource, /updateHrxOnboardingTask/);
+  assert.match(lifecycleSource, /closeHrxOffboardingCase/);
+  assert.match(lifecycleSource, /No local lifecycle fallback is rendered/);
+  assert.match(peopleApiSource, /\/api\/hrx\/lifecycle\/onboarding/);
+  assert.match(peopleApiSource, /\/api\/hrx\/lifecycle\/offboarding/);
+  assert.doesNotMatch(lifecycleSource, /mockData|profileRows|matters/);
+});

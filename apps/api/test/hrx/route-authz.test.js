@@ -32,6 +32,10 @@ test("HRX route policy map resolves implemented server routes and denies unknown
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/employee-user-links" }).required_scope, "hrx.employee.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/employee-user-links/link-001/revoke" }).required_scope, "hrx.employee.write");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/documents" }).required_scope, "hrx.document.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/lifecycle/onboarding" }).required_scope, "hrx.lifecycle.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/lifecycle/onboarding/onb-001/tasks/task-001" }).required_scope, "hrx.lifecycle.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/lifecycle/offboarding" }).required_scope, "hrx.lifecycle.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/lifecycle/offboarding/off-001/close" }).required_scope, "hrx.lifecycle.write");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/not-mapped" }), null);
 });
 
@@ -83,4 +87,15 @@ test("HRX employee user-link write route requires write scope before runtime", a
   assert.equal(status, 403);
   assert.equal(body.safe_error_code, "HRX_AUTHZ_DENIED");
   assert.equal(body.required_scope, "hrx.employee.write");
+});
+
+test("HRX lifecycle write route requires lifecycle write scope before runtime", async () => {
+  const { status, body } = await json("/api/hrx/lifecycle/offboarding/off-001/close", {
+    method: "POST",
+    headers: { ...ALLOW_HEADERS, "x-lawos-hrx-scopes": "hrx.lifecycle.read" },
+    body: JSON.stringify({}),
+  });
+  assert.equal(status, 403);
+  assert.equal(body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(body.required_scope, "hrx.lifecycle.write");
 });

@@ -10,6 +10,7 @@ const cases = new Map([
   ["manager-approval", "apps/web/e2e/hrx/manager-approval.spec.ts"],
   ["candidate-portal", "apps/web/e2e/hrx/candidate-portal.spec.ts"],
   ["recruiting-pipeline", "apps/web/e2e/hrx/recruiting-pipeline.spec.ts"],
+  ["lifecycle-board", "apps/web/e2e/hrx/lifecycle-board.spec.ts"],
   ["hrx-policy-console", "apps/web/e2e/hrx/hrx-policy-console.spec.ts"],
   ["hrx-audit-viewer", "apps/web/e2e/hrx/hrx-audit-viewer.spec.ts"],
   ["hrx-step-up-challenge", "apps/web/e2e/hrx/hrx-step-up-challenge.spec.ts"],

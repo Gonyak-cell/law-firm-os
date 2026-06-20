@@ -28,6 +28,7 @@ for (const file of [
   "apps/web/src/people/approvals/ManagerApprovalQueue.tsx",
   "apps/web/src/candidate/CandidatePortal.tsx",
   "apps/web/src/people/recruiting/RecruitingPipeline.tsx",
+  "apps/web/src/people/lifecycle/LifecycleBoard.tsx",
   "apps/web/src/admin/hrx/HRXPolicyConsole.tsx",
   "apps/web/src/admin/hrx/HRXAuditViewer.tsx",
   "apps/web/src/people/security/HrxStepUpChallenge.tsx",
@@ -39,6 +40,7 @@ for (const file of [
   "apps/web/e2e/hrx/manager-approval.spec.ts",
   "apps/web/e2e/hrx/candidate-portal.spec.ts",
   "apps/web/e2e/hrx/recruiting-pipeline.spec.ts",
+  "apps/web/e2e/hrx/lifecycle-board.spec.ts",
   "apps/web/e2e/hrx/hrx-policy-console.spec.ts",
   "apps/web/e2e/hrx/hrx-audit-viewer.spec.ts",
   "apps/web/e2e/hrx/hrx-step-up-challenge.spec.ts",
@@ -56,6 +58,8 @@ const apiClient = read("apps/web/src/people/hrxApiClient.ts");
 assert(apiClient.includes('credentials: "same-origin"'), "HRX UI client must use same-origin API session");
 assert(apiClient.includes("/api/hrx/employees"), "HRX UI client must fetch employees API");
 assert(apiClient.includes("/api/hrx/audit"), "HRX UI client must fetch audit API");
+assert(apiClient.includes("/api/hrx/lifecycle/onboarding"), "HRX UI client must fetch onboarding lifecycle API");
+assert(apiClient.includes("/api/hrx/lifecycle/offboarding"), "HRX UI client must fetch offboarding lifecycle API");
 assert(apiClient.includes('kind: "step_up_required"'), "HRX UI client must preserve server step-up-required state");
 assert(!/x-lawos-tenant-id|x-lawos-actor-id|x-lawos-hrx-scopes|HRX_PERMISSION_CONTEXT/.test(apiClient), "HRX UI client must not fabricate trusted tenant, actor, or scope headers");
 assert(!/allow.*hrx|hrx.*allow|required_scope|evaluateHrxPolicy/.test(apiClient), "HRX UI client must not implement local HRX allow rules");
@@ -87,6 +91,12 @@ const recruiting = read("apps/web/src/people/recruiting/RecruitingPipeline.tsx")
 assert(recruiting.includes("updateHrxApplicationStage"), "Recruiting UI must update application stages through API");
 assert(recruiting.includes("Interview") && recruiting.includes("Offer"), "Recruiting UI must render interview and offer state");
 
+const lifecycle = read("apps/web/src/people/lifecycle/LifecycleBoard.tsx");
+assert(lifecycle.includes("fetchHrxLifecycleBoard"), "Lifecycle UI must read onboarding/offboarding through API");
+assert(lifecycle.includes("updateHrxOnboardingTask"), "Lifecycle UI must update onboarding tasks through API");
+assert(lifecycle.includes("closeHrxOffboardingCase"), "Lifecycle UI must close offboarding cases through API");
+assert(lifecycle.includes("No local lifecycle fallback is rendered"), "Lifecycle UI must fail closed without local fallback");
+
 const policy = read("apps/web/src/admin/hrx/HRXPolicyConsole.tsx");
 assert(policy.includes("fetchHrxPolicies") && policy.includes("createHrxPolicyVersion"), "Policy console must read and create policy versions through API");
 
@@ -108,6 +118,7 @@ for (const file of [
   "apps/web/src/people/approvals/ManagerApprovalQueue.tsx",
   "apps/web/src/candidate/CandidatePortal.tsx",
   "apps/web/src/people/recruiting/RecruitingPipeline.tsx",
+  "apps/web/src/people/lifecycle/LifecycleBoard.tsx",
   "apps/web/src/admin/hrx/HRXPolicyConsole.tsx",
   "apps/web/src/admin/hrx/HRXAuditViewer.tsx",
 ]) {
@@ -124,6 +135,7 @@ for (const name of [
   "manager-approval",
   "candidate-portal",
   "recruiting-pipeline",
+  "lifecycle-board",
   "hrx-policy-console",
   "hrx-audit-viewer",
   "hrx-step-up-challenge",
