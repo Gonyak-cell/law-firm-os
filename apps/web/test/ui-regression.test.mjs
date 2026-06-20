@@ -200,6 +200,7 @@ test("Matters runtime surface is routed and live Matter Core backed", async () =
   const navSource = await readWebFile("src/data/nav.js");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const mattersSource = await readWebFile("src/components/MattersSurface.jsx");
+  const matterVaultSource = await readWebFile("src/components/MatterVaultPanel.jsx");
   const openingSource = await readWebFile("src/components/MatterOpeningWizard.jsx");
   const rosterSource = await readWebFile("src/components/MatterTeamRoster.jsx");
   const apiClientSource = await readWebFile("src/data/apiClient.js");
@@ -210,11 +211,18 @@ test("Matters runtime surface is routed and live Matter Core backed", async () =
   assert.match(shellSource, /matters: \["Matter home"/);
   assert.match(mattersSource, /data-cmp-g4-live-matters="true"/);
   assert.match(mattersSource, /fetchMatterRecords/);
+  assert.match(mattersSource, /MatterVaultPanel/);
+  assert.match(matterVaultSource, /data-mv-matter-vault-panel="true"/);
+  assert.match(matterVaultSource, /fetchMatterVaultSummary/);
+  assert.match(matterVaultSource, /fetchMatterTimeline/);
+  assert.match(matterVaultSource, /raw storage paths, and denied counts stay hidden/);
   assert.match(openingSource, /data-cmp-g4-opening-wizard="true"/);
   assert.match(openingSource, /createMatterOpening/);
   assert.match(rosterSource, /data-cmp-g4-team-roster="true"/);
   assert.match(rosterSource, /addMatterTeamMember/);
   assert.match(apiClientSource, /\/api\/matters/);
+  assert.match(apiClientSource, /\/vault-summary/);
+  assert.match(apiClientSource, /\/timeline/);
   assert.match(apiClientSource, /production_ready_claim/);
   assert.doesNotMatch(mattersSource, /mockData|from "\.\.\/data\/mockData/);
 });
