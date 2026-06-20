@@ -21,3 +21,7 @@ export * from "./closing-service.js";
 export * from "./visibility-service.js";
 export * from "./audit.js";
 export * from "./intake-dependency-guard.js";
+export * from "./matter-vault-link.js";
+export * from "./matter-vault-link-repository.js";
+export * from "./matter-opening-orchestrator.js";
+export * from "./timeline-projection.js";

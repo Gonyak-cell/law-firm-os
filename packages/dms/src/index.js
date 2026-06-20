@@ -11,6 +11,7 @@ export * from "./storage/local-storage-adapter.js";
 export * from "./storage/s3-storage-adapter.js";
 export * from "./storage/sharepoint-storage-adapter.js";
 export * from "./vault-object.js";
+export * from "./vault-permission-service.js";
 export * from "./workspace-service.js";
 export * from "./folder-service.js";
 export * from "./document-service.js";
