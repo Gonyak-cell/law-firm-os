@@ -14,6 +14,7 @@ import { createLeavePolicy } from "../../../packages/hrx/src/rules/leave-policy.
 import { createInMemoryLeaveBalanceLedger } from "../../../packages/hrx/src/leave/balance.js";
 import { createInMemoryLeaveRequestStore, createLeaveRequestService } from "../../../packages/hrx/src/leave/request-service.js";
 import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repository.js";
+import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
 import { createHrxMatterWorkloadProjection } from "../../../packages/matter/src/hrx-workload-projection.js";
 import { createHrxAiRoute } from "./routes/hrx/ai.js";
 
@@ -71,8 +72,8 @@ function createSyntheticAiAuthz() {
   });
 }
 
-export function createHrxRuntimeContext() {
-  const repository = createInMemoryHrxRepository({
+export function createHrxRuntimeContext({ repository: providedRepository, store } = {}) {
+  const repository = providedRepository ?? (store ? createSqlHrxRepository({ store }) : createInMemoryHrxRepository({
     employees: [
       { tenant_id: SYNTHETIC_TENANT, employee_id: "emp-001", display_name: "Ari Kim", status: "active" },
       { tenant_id: SYNTHETIC_TENANT, employee_id: "emp-002", display_name: "Mina Park", status: "on_leave" },
@@ -95,7 +96,7 @@ export function createHrxRuntimeContext() {
         effective_from: "2026-01-01",
       },
     ],
-  });
+  }));
   const documents = createInMemoryHrxDocumentStore([
     {
       tenant_id: SYNTHETIC_TENANT,

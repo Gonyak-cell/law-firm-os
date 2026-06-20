@@ -1,10 +1,20 @@
 #!/usr/bin/env node
 import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { createInMemoryHrxRepository } from "../packages/hrx/src/repository.js";
+import { createSqlHrxRepository } from "../packages/hrx/src/repository-sql.js";
+import { createFileHrxStore } from "../packages/hrx/src/store/file-store.js";
+import { runHrxMigrations } from "../packages/hrx/src/migrations/index.js";
 
 const dryRun = process.argv.includes("--dry-run");
-if (!dryRun) {
-  console.error("HRX fixture seeding is dry-run only in HRX-P04. Pass --dry-run.");
+const storeFileIndex = process.argv.indexOf("--store-file");
+const storeFile =
+  storeFileIndex === -1
+    ? undefined
+    : process.argv[storeFileIndex + 1] && resolve(process.argv[storeFileIndex + 1]);
+
+if (!dryRun && !storeFile) {
+  console.error("HRX fixture seeding requires --store-file unless --dry-run is set.");
   process.exit(1);
 }
 
@@ -24,11 +34,25 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-const repository = createInMemoryHrxRepository({
-  employees: fixture.employees,
-  employment_profiles: fixture.employment_profiles,
-});
+let repository;
+let store;
 
-console.log("HRX synthetic fixture dry-run passed.");
+if (storeFile) {
+  store = createFileHrxStore({ filePath: storeFile });
+  runHrxMigrations(store);
+  repository = createSqlHrxRepository({ store });
+  for (const employee of fixture.employees) repository.createEmployee(employee);
+  for (const profile of fixture.employment_profiles) repository.createEmploymentProfile(profile);
+} else {
+  repository = createInMemoryHrxRepository({
+    employees: fixture.employees,
+    employment_profiles: fixture.employment_profiles,
+  });
+}
+
+console.log("HRX synthetic fixture seed passed.");
+console.log(`dry_run: ${dryRun}`);
+console.log(`repository_mode: ${storeFile ? "file-backed" : "in-memory-fixture"}`);
 console.log(`employees: ${repository.listEmployees({ tenant_id: "tenant-synthetic" }).length}`);
 console.log(`employment_profiles: ${repository.listEmploymentProfiles({ tenant_id: "tenant-synthetic" }).length}`);
+store?.close();

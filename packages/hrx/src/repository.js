@@ -1,5 +1,7 @@
 import { createEmployee, createEmploymentProfile } from "./schema.js";
 
+export const HRX_IN_MEMORY_REPOSITORY_SCOPE = "test_fixture_only";
+
 function clone(value) {
   return value ? JSON.parse(JSON.stringify(value)) : undefined;
 }
@@ -23,6 +25,8 @@ function missing(entity, ref) {
 }
 
 export function createInMemoryHrxRepository(seed = {}) {
+  // This repository is retained for synthetic fixtures and focused unit tests.
+  // Runtime durable persistence uses repository-sql.js through the HRX store port.
   const employees = new Map();
   const profiles = new Map();
 

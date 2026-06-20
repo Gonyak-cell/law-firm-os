@@ -106,6 +106,160 @@
       "validators": [
         "npm run hrx:release:validate"
       ]
+    },
+    {
+      "id": "HRX-L1-001",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/store/port.js",
+        "packages/hrx/src/store/file-store.js"
+      ],
+      "validators": [
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-002",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/repository-sql.js",
+        "packages/hrx/test/repository-sql.test.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/repository-sql.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-003",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/repository-sql.js",
+        "packages/hrx/test/repository-sql.test.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/repository-sql.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-004",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/repository-sql.js",
+        "packages/hrx/src/identity-link.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/repository-sql.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-005",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/migrations/index.js",
+        "scripts/migrate-hrx.mjs",
+        "packages/hrx/test/migration.test.js"
+      ],
+      "validators": [
+        "npm run db:migrate:test",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-007",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/hrx-runtime-context.js",
+        "apps/api/test/hrx/durability.test.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx/durability.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-008",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "scripts/seed-hrx-fixtures.mjs",
+        "packages/hrx/fixtures/seed-employees.synthetic.json"
+      ],
+      "validators": [
+        "node scripts/seed-hrx-fixtures.mjs --dry-run",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-009",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/repository.js",
+        "packages/hrx/src/repository-sql.js"
+      ],
+      "validators": [
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-010",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "apps/api/test/hrx/durability.test.js",
+        "packages/hrx/src/store/file-store.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx/durability.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-011",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/test/repository-sql.test.js",
+        "packages/hrx/src/store/file-store.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/repository-sql.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-012",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/test/migration.test.js",
+        "packages/hrx/src/migrations/index.js"
+      ],
+      "validators": [
+        "npm run db:migrate:test",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-014",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-persistence.mjs",
+        "package.json"
+      ],
+      "validators": [
+        "npm run hrx:persistence:validate"
+      ]
     }
   ]
 }

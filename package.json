@@ -130,6 +130,7 @@
     "rp30:hrx:validate": "node scripts/validate-rp30-hrx-people-contract.mjs",
     "hrx:runtime:validate": "node scripts/validate-hrx-runtime-readiness.mjs",
     "hrx:runtime:validate:expect-not-ready": "node scripts/validate-hrx-runtime-readiness.mjs --expect-not-ready",
+    "hrx:persistence:validate": "node scripts/validate-hrx-persistence.mjs",
     "hrx:security:validate": "node scripts/validate-hrx-security-negative-tests.mjs",
     "hrx:enterprise:validate": "node scripts/validate-hrx-enterprise-readiness.mjs",
     "hrx:no-premature-claim:validate": "node scripts/validate-hrx-no-premature-claim.mjs",
