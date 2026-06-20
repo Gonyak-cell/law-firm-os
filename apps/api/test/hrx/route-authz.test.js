@@ -11,7 +11,7 @@ const ALLOW_HEADERS = Object.freeze({
   "x-lawos-tenant-id": "tenant-a",
   "x-lawos-actor-id": "hrx-authz-user",
   "x-lawos-actor-role": "people_ops",
-  "x-lawos-hrx-scopes": "hrx.employee.read,hrx.document.read",
+  "x-lawos-hrx-scopes": "hrx.employee.read,hrx.employee.write,hrx.document.read",
 });
 
 async function json(path, options = {}) {
@@ -29,6 +29,8 @@ test.after(() => new Promise((resolve) => server.close(resolve)));
 
 test("HRX route policy map resolves implemented server routes and denies unknown routes", () => {
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/employees" }).required_scope, "hrx.employee.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/employee-user-links" }).required_scope, "hrx.employee.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/employee-user-links/link-001/revoke" }).required_scope, "hrx.employee.write");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/documents" }).required_scope, "hrx.document.read");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/not-mapped" }), null);
 });
@@ -66,4 +68,19 @@ test("HRX API rejects query tenant actor context before runtime", async () => {
   assert.equal(status, 400);
   assert.equal(body.safe_error_code, "HRX_QUERY_CONTEXT_FORBIDDEN");
   assert.deepEqual(body.forbidden_query_keys, ["tenant_id", "actor_id"]);
+});
+
+test("HRX employee user-link write route requires write scope before runtime", async () => {
+  const { status, body } = await json("/api/hrx/employee-user-links", {
+    method: "POST",
+    headers: { ...ALLOW_HEADERS, "x-lawos-hrx-scopes": "hrx.employee.read" },
+    body: JSON.stringify({
+      link_id: "link-authz-denied",
+      employee_id: "emp-001",
+      user_id: "iam-authz-denied",
+    }),
+  });
+  assert.equal(status, 403);
+  assert.equal(body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(body.required_scope, "hrx.employee.write");
 });

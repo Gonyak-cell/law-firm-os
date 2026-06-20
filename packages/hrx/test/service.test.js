@@ -62,3 +62,31 @@ test("HRX service denies when authz port denies", async () => {
     /test_deny/,
   );
 });
+
+test("HRX service creates lists and revokes EmployeeUserLink with audit evidence", async () => {
+  const audit = auditRecorder();
+  const service = createHrxService({
+    repository: createInMemoryHrxRepository({
+      employees: [{ tenant_id: "tenant-a", employee_id: "emp-001", display_name: "Ari Kim", status: "active" }],
+    }),
+    authz: allowAuthz(),
+    audit,
+  });
+  const context = { tenant_id: "tenant-a", actor_id: "user-a", actor_role: "hr_admin" };
+  const link = await service.createEmployeeUserLink(context, {
+    link_id: "link-001",
+    employee_id: "emp-001",
+    user_id: "iam-user-001",
+  });
+  assert.equal(link.purpose, "login_mapping");
+
+  const links = await service.listEmployeeUserLinks(context, { employee_id: "emp-001" });
+  assert.equal(links.length, 1);
+
+  const revoked = await service.revokeEmployeeUserLink(context, { link_id: "link-001" });
+  assert.equal(revoked, true);
+  assert.deepEqual(
+    audit.events.map((event) => event.action),
+    ["hrx.employee_user_link.create", "hrx.employee_user_link.read", "hrx.employee_user_link.revoke"],
+  );
+});

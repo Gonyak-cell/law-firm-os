@@ -1,4 +1,9 @@
-export const HRX_PEOPLE_GRAPH_EDGE_TYPES = Object.freeze(["employee_org", "employee_manager", "employee_matter"]);
+export const HRX_PEOPLE_GRAPH_EDGE_TYPES = Object.freeze([
+  "employee_org",
+  "employee_manager",
+  "employee_matter",
+  "employee_workload",
+]);
 
 function requiredString(input, field) {
   const value = input?.[field];

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createHrxOrgHistoryEntry, createHrxOrgUnit } from "../src/org.js";
+import { createHrxOrgHistoryEntry, createHrxOrgUnit, createInMemoryHrxOrgDirectory } from "../src/org.js";
 import { createHrxReportingLine } from "../src/reporting-line.js";
 
 test("HRX org model creates effective-dated org units and history", () => {
@@ -52,4 +52,35 @@ test("HRX reporting line supports solid and dotted manager lines", () => {
       }),
     /must not equal/,
   );
+});
+
+test("HRX org directory creates lists and updates effective-dated org tree nodes", () => {
+  const directory = createInMemoryHrxOrgDirectory();
+  directory.create({
+    tenant_id: "tenant-a",
+    org_unit_id: "org-root",
+    display_name: "Firm",
+    effective_from: "2026-01-01",
+  });
+  directory.create({
+    tenant_id: "tenant-a",
+    org_unit_id: "org-litigation",
+    display_name: "Litigation",
+    parent_org_unit_id: "org-root",
+    effective_from: "2026-01-01",
+  });
+  assert.equal(directory.list({ tenant_id: "tenant-a", parent_org_unit_id: "org-root" }).length, 1);
+
+  const updated = directory.update(
+    { tenant_id: "tenant-a", org_unit_id: "org-litigation" },
+    {
+      display_name: "Disputes",
+      parent_org_unit_id: null,
+      effective_from: "2026-07-01",
+      change_type: "parent_changed",
+    },
+  );
+  assert.equal(updated.display_name, "Disputes");
+  assert.equal(updated.effective_from, "2026-07-01");
+  assert.equal(directory.history({ tenant_id: "tenant-a", org_unit_id: "org-litigation" }).at(-1).change_type, "parent_changed");
 });

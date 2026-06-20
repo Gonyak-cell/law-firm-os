@@ -108,6 +108,15 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
         effective_from: "2026-01-01",
       },
     ],
+    employee_user_links: [
+      {
+        tenant_id: SYNTHETIC_TENANT,
+        link_id: "link-emp-001",
+        employee_id: "emp-001",
+        user_id: "hrx-test-user",
+        purpose: "login_mapping",
+      },
+    ],
   }));
   const documents = store ? createSqlHrxDocumentStore({ store }) : createInMemoryHrxDocumentStore([
     {
@@ -346,6 +355,52 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
 
     if (pathname === "/api/hrx/employees" && method === "GET") {
       return response(200, { outcome: "ok", employees: context.repository.listEmployees({ tenant_id: tenantId }) });
+    }
+
+    if (pathname === "/api/hrx/employee-user-links" && method === "GET") {
+      const links = context.repository.listEmployeeUserLinks({
+        tenant_id: tenantId,
+        employee_id: query.employee_id,
+        user_id: query.user_id,
+      });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.employee_user_link.read",
+        object_type: "EmployeeUserLink",
+        object_id: query.employee_id ?? query.user_id ?? "list",
+        reason: "employee_user_links_listed",
+        metadata: { result_count: links.length },
+      });
+      return response(200, { outcome: "ok", links });
+    }
+
+    if (pathname === "/api/hrx/employee-user-links" && method === "POST") {
+      const link = context.repository.createEmployeeUserLink({ ...body, tenant_id: tenantId });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.employee_user_link.create",
+        object_type: "EmployeeUserLink",
+        object_id: link.link_id,
+        reason: "employee_user_link_created",
+        metadata: { employee_id: link.employee_id, user_id: link.user_id, purpose: link.purpose },
+      });
+      return response(201, { outcome: "created", link });
+    }
+
+    const employeeUserLinkRevokeMatch = pathname.match(/^\/api\/hrx\/employee-user-links\/([^/]+)\/revoke$/);
+    if (employeeUserLinkRevokeMatch && method === "POST") {
+      const linkId = decodeURIComponent(employeeUserLinkRevokeMatch[1]);
+      const revoked = context.repository.revokeEmployeeUserLink({ tenant_id: tenantId, link_id: linkId });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.employee_user_link.revoke",
+        object_type: "EmployeeUserLink",
+        object_id: linkId,
+        reason: revoked ? "employee_user_link_revoked" : "employee_user_link_revoke_missing",
+        metadata: { revoked },
+      });
+      if (!revoked) return response(404, { outcome: "not_found", safe_error_code: "HRX_EMPLOYEE_USER_LINK_NOT_FOUND" });
+      return response(200, { outcome: "revoked", revoked });
     }
 
     const employeeMatch = pathname.match(/^\/api\/hrx\/employees\/([^/]+)$/);

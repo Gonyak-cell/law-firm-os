@@ -69,3 +69,27 @@ test("in-memory HRX repository enforces Employee/Profile boundaries", () => {
     /must not include user_id/,
   );
 });
+
+test("in-memory HRX repository supports EmployeeUserLink lifecycle without identity conflation", () => {
+  const repo = createInMemoryHrxRepository();
+  repo.createEmployee(employeeInput);
+  const link = repo.createEmployeeUserLink({
+    tenant_id: "tenant-a",
+    link_id: "link-001",
+    employee_id: "emp-001",
+    user_id: "iam-user-001",
+  });
+  assert.equal(link.purpose, "login_mapping");
+  assert.equal(repo.listEmployeeUserLinks({ tenant_id: "tenant-a", employee_id: "emp-001" }).length, 1);
+  assert.throws(
+    () =>
+      repo.createEmployeeUserLink({
+        tenant_id: "tenant-a",
+        link_id: "link-002",
+        employee_id: "emp-001",
+        user_id: "emp-001",
+      }),
+    /must remain separate/,
+  );
+  assert.equal(repo.revokeEmployeeUserLink({ tenant_id: "tenant-a", link_id: "link-001" }), true);
+});

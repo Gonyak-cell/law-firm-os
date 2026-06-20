@@ -28,7 +28,15 @@ test("people graph persists employee org manager matter edges", () => {
     to_ref: "matter-001",
     effective_from: "2026-06-19",
   });
-  assert.equal(graph.list({ tenant_id: "tenant-a", from_employee_id: "emp-001" }).length, 3);
+  graph.add({
+    tenant_id: "tenant-a",
+    edge_id: "edge-004",
+    edge_type: "employee_workload",
+    from_employee_id: "emp-001",
+    to_ref: "workload:aggregate:2026-06",
+    effective_from: "2026-06-19",
+  });
+  assert.equal(graph.list({ tenant_id: "tenant-a", from_employee_id: "emp-001" }).length, 4);
 });
 
 test("people graph rejects client detail leakage", () => {

@@ -48,7 +48,15 @@ async function audit(auditPort, context, event) {
 }
 
 export function createHrxService({ repository, authz, audit: auditPort } = {}) {
-  requirePort(repository, "repository", ["createEmployee", "getEmployee", "updateEmployee", "createEmploymentProfile"]);
+  requirePort(repository, "repository", [
+    "createEmployee",
+    "getEmployee",
+    "updateEmployee",
+    "createEmploymentProfile",
+    "createEmployeeUserLink",
+    "listEmployeeUserLinks",
+    "revokeEmployeeUserLink",
+  ]);
   requirePort(authz, "authz", ["evaluate"]);
   requirePort(auditPort, "audit", ["append"]);
 
@@ -119,6 +127,70 @@ export function createHrxService({ repository, authz, audit: auditPort } = {}) {
         object_id: profile.profile_id,
       });
       return profile;
+    },
+
+    async createEmployeeUserLink(context, input) {
+      requireContext(context);
+      await authorize(authz, context, "hrx.employee_user_link.create", {
+        tenant_id: context.tenant_id,
+        resource_type: "hrx.employee_user_link",
+        resource_id: input?.link_id ?? null,
+      });
+      const link = repository.createEmployeeUserLink({ ...input, tenant_id: context.tenant_id });
+      await audit(auditPort, context, {
+        event_type: "hrx.employee_user_link.created",
+        action: "hrx.employee_user_link.create",
+        object_type: "EmployeeUserLink",
+        object_id: link.link_id,
+        metadata: {
+          employee_id: link.employee_id,
+          user_id: link.user_id,
+          purpose: link.purpose,
+        },
+      });
+      return link;
+    },
+
+    async listEmployeeUserLinks(context, query = {}) {
+      requireContext(context);
+      await authorize(authz, context, "hrx.employee_user_link.read", {
+        tenant_id: context.tenant_id,
+        resource_type: "hrx.employee_user_link",
+        resource_id: query.employee_id ?? query.user_id ?? "list",
+      });
+      const links = repository.listEmployeeUserLinks({ ...query, tenant_id: context.tenant_id });
+      await audit(auditPort, context, {
+        event_type: "hrx.employee_user_link.listed",
+        action: "hrx.employee_user_link.read",
+        object_type: "EmployeeUserLink",
+        object_id: query.employee_id ?? query.user_id ?? "list",
+        metadata: {
+          result_count: links.length,
+          employee_id: query.employee_id ?? null,
+          user_id: query.user_id ?? null,
+        },
+      });
+      return links;
+    },
+
+    async revokeEmployeeUserLink(context, ref) {
+      requireContext(context);
+      await authorize(authz, context, "hrx.employee_user_link.revoke", {
+        tenant_id: context.tenant_id,
+        resource_type: "hrx.employee_user_link",
+        resource_id: ref?.link_id ?? null,
+      });
+      const revoked = repository.revokeEmployeeUserLink({ ...ref, tenant_id: context.tenant_id });
+      await audit(auditPort, context, {
+        event_type: "hrx.employee_user_link.revoked",
+        action: "hrx.employee_user_link.revoke",
+        object_type: "EmployeeUserLink",
+        object_id: ref?.link_id ?? null,
+        metadata: {
+          revoked,
+        },
+      });
+      return revoked;
     },
   });
 }

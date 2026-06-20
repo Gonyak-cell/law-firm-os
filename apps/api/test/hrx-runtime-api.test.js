@@ -18,6 +18,7 @@ const HRX_AUTH_HEADERS = Object.freeze({
   }),
   "x-lawos-hrx-scopes": [
     "hrx.employee.read",
+    "hrx.employee.write",
     "hrx.document.read",
     "hrx.leave.read",
     "hrx.leave.write",
@@ -60,6 +61,34 @@ test("GET /api/hrx/employees/:id returns profile with compensation masked", asyn
   assert.equal(body.employee.employee_id, "emp-001");
   assert.equal(body.employment_profile.employee_id, "emp-001");
   assert.equal(body.masked_compensation_ref, null);
+});
+
+test("GET POST revoke /api/hrx/employee-user-links manages audited login mappings", async () => {
+  const before = await json("/api/hrx/employee-user-links?employee_id=emp-001");
+  assert.equal(before.status, 200);
+  assert.ok(before.body.links.some((link) => link.link_id === "link-emp-001"));
+
+  const created = await json("/api/hrx/employee-user-links", {
+    method: "POST",
+    body: JSON.stringify({
+      link_id: "link-api-001",
+      employee_id: "emp-002",
+      user_id: "iam-user-api-001",
+    }),
+  });
+  assert.equal(created.status, 201);
+  assert.equal(created.body.link.purpose, "login_mapping");
+
+  const revoked = await json("/api/hrx/employee-user-links/link-api-001/revoke", {
+    method: "POST",
+    body: JSON.stringify({ reason: "test cleanup" }),
+  });
+  assert.equal(revoked.status, 200);
+  assert.equal(revoked.body.revoked, true);
+
+  const audit = await json("/api/hrx/audit");
+  assert.ok(audit.body.events.some((event) => event.action === "hrx.employee_user_link.create"));
+  assert.ok(audit.body.events.some((event) => event.action === "hrx.employee_user_link.revoke"));
 });
 
 test("GET /api/hrx/documents returns metadata source refs only", async () => {

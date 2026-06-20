@@ -1,0 +1,79 @@
+{
+  "schema_version": "law-firm-os.hrx-runtime-contract.v0.1",
+  "status": "core_domain_runtime_contract",
+  "boundary": {
+    "current_state": "runtime_api_evidence_only__durable_persistence_open",
+    "target_state": "runtime_write_ready__durable_persistence_guarded",
+    "runtime_ready": false,
+    "enterprise_ready": false,
+    "go_live_claim_allowed": false,
+    "requires_l8_owner_sign_off": true
+  },
+  "core_hris_entities": [
+    "Employee",
+    "EmploymentProfile",
+    "EmployeeUserLink",
+    "OrgUnit",
+    "OrgHistoryEntry",
+    "ReportingLine",
+    "Assignment",
+    "HRDocument",
+    "EmploymentContract",
+    "CompensationRecordMetadata",
+    "PayrollExportPreviewBoundary",
+    "RetentionPolicy",
+    "LegalHold",
+    "PeopleGraphEdge",
+    "HRLegalRiskWorkflow"
+  ],
+  "runtime_surfaces": {
+    "employee_user_link_api": {
+      "routes": [
+        "GET /api/hrx/employee-user-links",
+        "POST /api/hrx/employee-user-links",
+        "POST /api/hrx/employee-user-links/:link_id/revoke"
+      ],
+      "audit_required": true,
+      "tenant_context_source": "trusted_request_context_only",
+      "identity_conflation_allowed": false
+    },
+    "org_directory": {
+      "operations": [
+        "create",
+        "list",
+        "update",
+        "history"
+      ],
+      "effective_date_required": true
+    },
+    "document_source_boundary": {
+      "contract_ref": "contracts/hrx-document-source-boundary.json",
+      "document_body_storage_allowed": false,
+      "metadata_only": true
+    }
+  },
+  "blocked_claims_until_l8_owner_signoff": [
+    "go-live",
+    "R4",
+    "enterprise-ready",
+    "production-ready HRX",
+    "durable persistence fully guarded"
+  ],
+  "tuw_ids": [
+    "HRX-L3-001",
+    "HRX-L3-002",
+    "HRX-L3-003",
+    "HRX-L3-004",
+    "HRX-L3-005",
+    "HRX-L3-006",
+    "HRX-L3-007",
+    "HRX-L3-008",
+    "HRX-L3-009",
+    "HRX-L3-010",
+    "HRX-L3-011",
+    "HRX-L3-012",
+    "HRX-L3-013",
+    "HRX-L3-014",
+    "HRX-L3-015"
+  ]
+}

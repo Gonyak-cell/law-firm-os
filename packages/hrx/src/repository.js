@@ -1,3 +1,4 @@
+import { createLoginMapping } from "./identity-link.js";
 import { createEmployee, createEmploymentProfile } from "./schema.js";
 
 export const HRX_IN_MEMORY_REPOSITORY_SCOPE = "test_fixture_only";
@@ -29,6 +30,7 @@ export function createInMemoryHrxRepository(seed = {}) {
   // Runtime durable persistence uses repository-sql.js through the HRX store port.
   const employees = new Map();
   const profiles = new Map();
+  const employeeUserLinks = new Map();
 
   const repository = {
     createEmployee(input) {
@@ -75,6 +77,11 @@ export function createInMemoryHrxRepository(seed = {}) {
       for (const profile of profiles.values()) {
         if (profile.tenant_id === ref.tenant_id && profile.employee_id === ref.employee_id) {
           throw new Error("Employee cannot be deleted while EmploymentProfile rows exist");
+        }
+      }
+      for (const link of employeeUserLinks.values()) {
+        if (link.tenant_id === ref.tenant_id && link.employee_id === ref.employee_id) {
+          throw new Error("Employee cannot be deleted while EmployeeUserLink rows exist");
         }
       }
       return employees.delete(employeeKey);
@@ -127,9 +134,49 @@ export function createInMemoryHrxRepository(seed = {}) {
       requireRef(ref, "profile_id");
       return profiles.delete(key(ref.tenant_id, ref.profile_id));
     },
+
+    createEmployeeUserLink(input) {
+      const link = createLoginMapping(input);
+      const employee = employees.get(key(link.tenant_id, link.employee_id));
+      if (!employee) throw new ReferenceError(`EmployeeUserLink employee not found: ${link.employee_id}`);
+      const linkKey = key(link.tenant_id, link.link_id);
+      if (employeeUserLinks.has(linkKey)) throw new Error(`EmployeeUserLink already exists: ${link.link_id}`);
+      const duplicateUserPurpose = [...employeeUserLinks.values()].some(
+        (current) =>
+          current.tenant_id === link.tenant_id &&
+          current.user_id === link.user_id &&
+          current.purpose === link.purpose,
+      );
+      if (duplicateUserPurpose) throw new Error(`EmployeeUserLink already exists for user/purpose: ${link.user_id}`);
+      employeeUserLinks.set(linkKey, clone(link));
+      return clone(link);
+    },
+
+    getEmployeeUserLink(ref) {
+      requireRef(ref, "link_id");
+      return clone(employeeUserLinks.get(key(ref.tenant_id, ref.link_id)));
+    },
+
+    listEmployeeUserLinks(query) {
+      if (!query || typeof query.tenant_id !== "string" || query.tenant_id.trim() === "") {
+        throw new TypeError("query tenant_id is required");
+      }
+      return [...employeeUserLinks.values()]
+        .filter((link) => link.tenant_id === query.tenant_id)
+        .filter((link) => !query.employee_id || link.employee_id === query.employee_id)
+        .filter((link) => !query.user_id || link.user_id === query.user_id)
+        .sort((left, right) => left.link_id.localeCompare(right.link_id))
+        .map(clone);
+    },
+
+    revokeEmployeeUserLink(ref) {
+      requireRef(ref, "link_id");
+      return employeeUserLinks.delete(key(ref.tenant_id, ref.link_id));
+    },
   };
 
   for (const employee of seed.employees ?? []) repository.createEmployee(employee);
   for (const profile of seed.employment_profiles ?? []) repository.createEmploymentProfile(profile);
+  for (const link of seed.employee_user_links ?? []) repository.createEmployeeUserLink(link);
   return repository;
 }
