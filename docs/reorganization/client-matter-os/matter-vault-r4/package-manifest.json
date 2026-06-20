@@ -43,7 +43,7 @@
   "closed_tuws": 118,
   "not_closed_tuws": 0,
   "launch_readiness_lane": {
-    "current_boundary": "repo_implementation_evidence_closeout_complete__owner_authority_received__external_receipts_absent",
+    "current_boundary": "repo_implementation_evidence_closeout_complete__owner_authority_received__external_execution_authorized__external_receipts_absent",
     "target_state": "owner_authorized_launch_with_external_smoke_and_migration_receipts",
     "owner_release_authority_received": true,
     "external_production_smoke_receipt_received": false,
@@ -53,8 +53,11 @@
     "validator": "npm run matter-vault:r4:launch:validate"
   },
   "external_receipt_lane": {
-    "external_production_smoke_status": "blocked_missing_external_environment",
-    "production_migration_operator_status": "blocked_missing_operator_environment",
+    "execution_authorization_received": true,
+    "environment_tier": "production-equivalent",
+    "production_migration_scope": "pilot_tenant_dry_run_only",
+    "external_production_smoke_status": "authorized_pending_external_environment",
+    "production_migration_operator_status": "authorized_pending_operator_environment",
     "external_production_smoke_receipt_received": false,
     "production_migration_operator_receipt_received": false,
     "actual_launch_go_live_completed_claim": false,

@@ -1,7 +1,7 @@
 # Matter-Vault R4 Go/No-Go Checklist
 
-Status: owner-authority-recorded
-Date: 2026-06-20
+Status: external-execution-authorized
+Date: 2026-06-21
 
 Current decision: `owner_authorized_release_cutover_pending_external_receipts`
 
@@ -24,9 +24,10 @@ Current decision: `owner_authorized_release_cutover_pending_external_receipts`
 | Migration dry-run | `node scripts/backfill-matter-vault-links.mjs`; `node scripts/backfill-vault-workspaces.mjs` | Pass, failed rows empty |
 | Duplicate workspace audit | `node scripts/audit-duplicate-vault-workspaces.mjs` | Pass |
 | Rollback rehearsal | `node scripts/drill-matter-vault-backup-restore.mjs` | Receipt recorded |
-| External production smoke | `launch/external-production-smoke-receipt.json` | Blocked pending external environment |
+| External receipt execution authorization | `launch/external-receipt-execution-authorization.json` | Received for production-equivalent smoke and pilot tenant dry-run migration |
+| External production smoke | `launch/external-production-smoke-receipt.json` | Authorized, pending external environment |
 | Owner release authority | `launch/owner-release-authority-receipt.json` | Received for release/cutover progression |
-| Production migration operator receipt | `launch/production-migration-operator-receipt.json` | Blocked pending operator environment |
+| Production migration operator receipt | `launch/production-migration-operator-receipt.json` | Authorized for pilot tenant dry-run, pending operator environment |
 
 ## Automatic No-Go
 

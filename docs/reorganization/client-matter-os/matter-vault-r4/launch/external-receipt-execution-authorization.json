@@ -1,0 +1,19 @@
+{
+  "schema_version": "law-firm-os.matter-vault-r4-external-receipt-execution-authorization.v0.1",
+  "date": "2026-06-21",
+  "timezone": "Asia/Seoul",
+  "release_lane": "Matter-Vault R4",
+  "authorization_type": "external_receipt_execution",
+  "received_in_thread": true,
+  "approver": "jws",
+  "environment_tier": "production-equivalent",
+  "external_production_smoke_authorized": true,
+  "production_migration_scope": "pilot_tenant_dry_run_only",
+  "failure_policy": "stop_immediately_record_rollback_no_go",
+  "actual_launch_go_live_completed_claim": false,
+  "production_ready_completed_claim": false,
+  "approval_text": [
+    "Matter-Vault R4 external receipt 진행합니다.",
+    "production-equivalent 환경에서 external production smoke를 실행하고, production migration은 pilot tenant dry-run까지만 허용합니다. 실패 시 즉시 중단하고 rollback/no-go로 기록합니다. actual launch/go-live completed 또는 production-ready completed claim은 external smoke와 migration operator receipt가 모두 PASS로 기록되기 전까지 하지 않습니다."
+  ]
+}

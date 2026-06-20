@@ -7,7 +7,7 @@ const MV_ROOT = path.join(ROOT, "docs/reorganization/client-matter-os/matter-vau
 const LAUNCH_ROOT = path.join(MV_ROOT, "launch");
 
 const errors = [];
-const currentBoundary = "repo_implementation_evidence_closeout_complete__owner_authority_received__external_receipts_absent";
+const currentBoundary = "repo_implementation_evidence_closeout_complete__owner_authority_received__external_execution_authorized__external_receipts_absent";
 const targetState = "owner_authorized_launch_with_external_smoke_and_migration_receipts";
 const currentDecision = "owner_authorized_release_cutover_pending_external_receipts";
 
@@ -61,6 +61,7 @@ const requiredFiles = [
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/uat-results.md",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/owner-decision-template.md",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/owner-release-authority-receipt.json",
+  "docs/reorganization/client-matter-os/matter-vault-r4/launch/external-receipt-execution-authorization.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/external-production-smoke-receipt.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/production-migration-operator-receipt.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/remaining-external-receipts.md",
@@ -78,6 +79,7 @@ if (errors.length === 0) {
   const manifest = readJson("docs/reorganization/client-matter-os/matter-vault-r4/package-manifest.json");
   const receipt = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/launch-readiness-receipt.json");
   const ownerReceipt = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/owner-release-authority-receipt.json");
+  const executionAuthorization = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/external-receipt-execution-authorization.json");
   const externalSmokeReceipt = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/external-production-smoke-receipt.json");
   const productionMigrationReceipt = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/production-migration-operator-receipt.json");
   const migrationReceipt = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/migration-dry-run-receipt.json");
@@ -111,8 +113,11 @@ if (errors.length === 0) {
   assert(manifest.launch_readiness_lane?.external_production_smoke_receipt_received === false, "manifest external production smoke must remain false");
   assert(manifest.launch_readiness_lane?.migration_operator_receipt_received === false, "manifest migration operator receipt must remain false");
   assert(manifest.launch_readiness_lane?.launch_authorization_claim === false, "manifest launch authorization claim must remain false");
-  assert(manifest.external_receipt_lane?.external_production_smoke_status === "blocked_missing_external_environment", "manifest external smoke status mismatch");
-  assert(manifest.external_receipt_lane?.production_migration_operator_status === "blocked_missing_operator_environment", "manifest production migration status mismatch");
+  assert(manifest.external_receipt_lane?.execution_authorization_received === true, "manifest execution authorization must be received");
+  assert(manifest.external_receipt_lane?.environment_tier === "production-equivalent", "manifest environment tier mismatch");
+  assert(manifest.external_receipt_lane?.production_migration_scope === "pilot_tenant_dry_run_only", "manifest production migration scope mismatch");
+  assert(manifest.external_receipt_lane?.external_production_smoke_status === "authorized_pending_external_environment", "manifest external smoke status mismatch");
+  assert(manifest.external_receipt_lane?.production_migration_operator_status === "authorized_pending_operator_environment", "manifest production migration status mismatch");
   assert(manifest.external_receipt_lane?.external_production_smoke_receipt_received === false, "manifest external smoke receipt must remain false");
   assert(manifest.external_receipt_lane?.production_migration_operator_receipt_received === false, "manifest production migration receipt must remain false");
   assert(manifest.external_receipt_lane?.actual_launch_go_live_completed_claim === false, "manifest actual launch/go-live completed claim must remain false");
@@ -137,12 +142,21 @@ if (errors.length === 0) {
   assert(ownerReceipt.go_live_claim === false, "owner receipt go_live_claim must remain false");
   assert(ownerReceipt.production_ready_claim === false, "owner receipt production_ready_claim must remain false");
 
-  assert(externalSmokeReceipt.status === "blocked_missing_external_environment", "external smoke receipt must remain blocked");
+  assert(executionAuthorization.schema_version === "law-firm-os.matter-vault-r4-external-receipt-execution-authorization.v0.1", "execution authorization schema mismatch");
+  assert(executionAuthorization.external_production_smoke_authorized === true, "external production smoke authorization must be received");
+  assert(executionAuthorization.production_migration_scope === "pilot_tenant_dry_run_only", "production migration authorization scope mismatch");
+  assert(executionAuthorization.actual_launch_go_live_completed_claim === false, "execution authorization launch/go-live completed claim must remain false");
+  assert(executionAuthorization.production_ready_completed_claim === false, "execution authorization production-ready completed claim must remain false");
+
+  assert(externalSmokeReceipt.status === "authorized_pending_external_environment", "external smoke receipt must be authorized pending environment");
+  assert(externalSmokeReceipt.execution_authorization_received === true, "external smoke execution authorization must be received");
   assert(externalSmokeReceipt.operator_receipt_received === false, "external smoke operator receipt must remain false");
   assert(externalSmokeReceipt.launch_authorization_claim === false, "external smoke launch authorization claim must remain false");
   assert(externalSmokeReceipt.go_live_claim === false, "external smoke go_live_claim must remain false");
   assert(externalSmokeReceipt.production_ready_claim === false, "external smoke production_ready_claim must remain false");
-  assert(productionMigrationReceipt.status === "blocked_missing_operator_environment", "production migration receipt must remain blocked");
+  assert(productionMigrationReceipt.status === "authorized_pending_operator_environment", "production migration receipt must be authorized pending operator environment");
+  assert(productionMigrationReceipt.execution_authorization_received === true, "production migration execution authorization must be received");
+  assert(productionMigrationReceipt.authorized_scope === "pilot_tenant_dry_run_only", "production migration scope must remain pilot tenant dry-run only");
   assert(productionMigrationReceipt.operator_receipt_received === false, "production migration operator receipt must remain false");
   assert(productionMigrationReceipt.launch_authorization_claim === false, "production migration launch authorization claim must remain false");
   assert(productionMigrationReceipt.go_live_claim === false, "production migration go_live_claim must remain false");
@@ -198,6 +212,7 @@ const forbidden = [
 for (const file of [
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/launch-readiness-receipt.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/owner-release-authority-receipt.json",
+  "docs/reorganization/client-matter-os/matter-vault-r4/launch/external-receipt-execution-authorization.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/external-production-smoke-receipt.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/production-migration-operator-receipt.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/migration-dry-run-receipt.json",
@@ -223,5 +238,6 @@ console.log("launch_authorization_claim: false");
 console.log("owner_release_authority_received: true");
 console.log("external_production_smoke_receipt_received: false");
 console.log("production_migration_operator_receipt_received: false");
-console.log("external_production_smoke_status: blocked_missing_external_environment");
-console.log("production_migration_operator_status: blocked_missing_operator_environment");
+console.log("execution_authorization_received: true");
+console.log("external_production_smoke_status: authorized_pending_external_environment");
+console.log("production_migration_operator_status: authorized_pending_operator_environment");
