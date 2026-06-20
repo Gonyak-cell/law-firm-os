@@ -43,9 +43,9 @@
   "closed_tuws": 118,
   "not_closed_tuws": 0,
   "launch_readiness_lane": {
-    "current_boundary": "repo_implementation_evidence_closeout_complete__launch_authority_absent",
+    "current_boundary": "repo_implementation_evidence_closeout_complete__owner_authority_received__external_receipts_absent",
     "target_state": "owner_authorized_launch_with_external_smoke_and_migration_receipts",
-    "owner_release_authority_received": false,
+    "owner_release_authority_received": true,
     "external_production_smoke_receipt_received": false,
     "migration_operator_receipt_received": false,
     "rollback_rehearsal_receipt_present": true,

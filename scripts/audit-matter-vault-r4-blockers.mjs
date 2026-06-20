@@ -19,7 +19,12 @@ const scans = [
   {
     id: "launch-claim-separated",
     file: "docs/reorganization/client-matter-os/matter-vault-r4/signoff.md",
-    required: [/Launch\/go-live owner approval \| not approved/],
+    required: [
+      /Owner release authority \| received for release\/cutover progression/,
+      /External production smoke receipt \| pending/,
+      /Production migration operator receipt \| pending/,
+      /Actual launch\/go-live completed claim \| false/,
+    ],
     forbidden: [/go-live approved/i],
   },
   {

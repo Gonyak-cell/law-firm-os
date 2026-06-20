@@ -6,6 +6,7 @@
 | R4 validator | passed |
 | Launch-readiness packet | prepared |
 | External production smoke receipt | pending |
-| Owner release authority | pending |
+| Owner release authority | received for release/cutover progression |
+| Production migration operator receipt | pending |
 | Production deployment | not requested |
-| Launch/go-live owner approval | not approved |
+| Actual launch/go-live completed claim | false |

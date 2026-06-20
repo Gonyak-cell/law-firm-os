@@ -9,7 +9,7 @@
     "implementation_validator": "npm run matter-vault:r4:validate",
     "readiness_validator": "npm run matter-vault:r4:readiness"
   },
-  "current_boundary": "repo_implementation_evidence_closeout_complete__launch_authority_absent",
+  "current_boundary": "repo_implementation_evidence_closeout_complete__owner_authority_received__external_receipts_absent",
   "target_state": "owner_authorized_launch_with_external_smoke_and_migration_receipts",
   "claim_policy": {
     "owner_signoff_required": true,
@@ -91,7 +91,8 @@
   "known_limitations": [
     "This contract is an evidence checklist, not release authority.",
     "External production smoke evidence is not present in this repo lane.",
-    "Owner release authority is not present in this repo lane.",
+    "Owner release authority is present for release/cutover progression only.",
+    "Production migration operator evidence is not present in this repo lane.",
     "Matter remains case execution owner; Vault/DMS remains document owner."
   ]
 }

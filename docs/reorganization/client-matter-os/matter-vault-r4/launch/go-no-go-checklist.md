@@ -1,9 +1,9 @@
 # Matter-Vault R4 Go/No-Go Checklist
 
-Status: decision-template
+Status: owner-authority-recorded
 Date: 2026-06-20
 
-Current decision: `not_authorized`
+Current decision: `owner_authorized_release_cutover_pending_external_receipts`
 
 ## Required Passes
 
@@ -24,8 +24,9 @@ Current decision: `not_authorized`
 | Migration dry-run | `node scripts/backfill-matter-vault-links.mjs`; `node scripts/backfill-vault-workspaces.mjs` | Pass, failed rows empty |
 | Duplicate workspace audit | `node scripts/audit-duplicate-vault-workspaces.mjs` | Pass |
 | Rollback rehearsal | `node scripts/drill-matter-vault-backup-restore.mjs` | Receipt recorded |
-| External production smoke | Manual external receipt | Required before launch |
-| Owner release authority | Manual owner receipt | Required before launch |
+| External production smoke | Manual external receipt | Pending |
+| Owner release authority | `launch/owner-release-authority-receipt.json` | Received for release/cutover progression |
+| Production migration operator receipt | Manual operator receipt | Pending |
 
 ## Automatic No-Go
 
@@ -36,6 +37,6 @@ Current decision: `not_authorized`
 - Duplicate Vault workspace audit finds duplicate workspace ownership.
 - Rollback rehearsal is missing.
 - External production smoke receipt is absent.
-- Owner release authority is absent.
+- Production migration operator receipt is absent.
 
 Automation cannot convert this checklist into a launch decision.
