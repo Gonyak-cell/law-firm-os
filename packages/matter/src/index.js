@@ -25,3 +25,5 @@ export * from "./matter-vault-link.js";
 export * from "./matter-vault-link-repository.js";
 export * from "./matter-opening-orchestrator.js";
 export * from "./timeline-projection.js";
+export * from "./matter-opening-service.js";
+export * from "./timeline-repository.js";

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
 
-const cases = new Map([
+const hrxCases = new Map([
   ["people-home", "apps/web/e2e/hrx/people-home.spec.ts"],
   ["employee-list", "apps/web/e2e/hrx/employee-list.spec.ts"],
   ["employee-profile", "apps/web/e2e/hrx/employee-profile.spec.ts"],
@@ -18,9 +18,14 @@ const cases = new Map([
   ["hrx-ai-assistant", "apps/web/e2e/hrx/hrx-ai-assistant.spec.ts"],
 ]);
 
+const cases = new Map([
+  ["matter-vault", "apps/web/e2e/matter-vault.spec.ts"],
+  ...hrxCases,
+]);
+
 const requested = process.argv.slice(2);
 const selected = requested.length === 0 || requested.includes("hrx")
-  ? [...cases.values()]
+  ? [...hrxCases.values()]
   : requested.map((name) => cases.get(name));
 
 if (!requested.includes("hrx") && selected.some((file) => !file)) {

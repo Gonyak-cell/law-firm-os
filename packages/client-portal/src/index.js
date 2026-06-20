@@ -10,3 +10,4 @@ export * from "./matter-vault-projection-service.js";
 export * from "./rfi-service.js";
 export * from "./approval-service.js";
 export * from "./secure-link-service.js";
+export * from "./projection-service.js";

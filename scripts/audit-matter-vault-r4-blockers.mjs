@@ -22,6 +22,18 @@ const scans = [
     required: [/Launch\/go-live owner approval \| not approved/],
     forbidden: [/go-live approved/i],
   },
+  {
+    id: "crosswalk-closed",
+    file: "docs/reorganization/client-matter-os/matter-vault-r4/package-manifest.json",
+    required: [/"closed_tuws": 118/, /"not_closed_tuws": 0/, /"go_live_claim": false/],
+    forbidden: [/"not_closed_tuws": [1-9]/, /"go_live_claim": true/],
+  },
+  {
+    id: "loop-closeout-recorded",
+    file: "docs/reorganization/client-matter-os/matter-vault-r4/loop-closeout.md",
+    required: [/Closed TUWs: 118\/118/, /Go-live claim: false/],
+    forbidden: [/go-live approved/i],
+  },
 ];
 
 const findings = [];

@@ -1,0 +1,2131 @@
+{
+  "generated_at": "2026-06-20T14:00:24.490Z",
+  "total_target_mappings": 118,
+  "mappings": [
+    {
+      "tuw_id": "MV-G0-W00-T001",
+      "gate": "MV-G0",
+      "pr_wave": "PR-01",
+      "priority": "P0",
+      "task": "Confirm Matter/Vault ownership boundary",
+      "loop_stream": "MV-H1-crosswalk-boundary",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/ownership.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/ownership.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G0-W00-T002",
+      "gate": "MV-G0",
+      "pr_wave": "PR-01",
+      "priority": "P0",
+      "task": "Define MatterVaultLink contract",
+      "loop_stream": "MV-H1-crosswalk-boundary",
+      "target_path": "packages/matter/src/matter-vault-link.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/matter/src/matter-vault-link.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G0-W00-T003",
+      "gate": "MV-G0",
+      "pr_wave": "PR-01",
+      "priority": "P0",
+      "task": "Write no-iframe/no-byte-in-Matter decision record",
+      "loop_stream": "MV-H1-crosswalk-boundary",
+      "target_path": "docs/adr/matter-vault-boundary.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/adr/matter-vault-boundary.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G0-W00-T004",
+      "gate": "MV-G0",
+      "pr_wave": "PR-01",
+      "priority": "P0",
+      "task": "Add R4 claim guard for Matter-Vault",
+      "loop_stream": "MV-H1-crosswalk-boundary",
+      "target_path": "scripts/audit-matter-vault-r4-blockers.mjs",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "scripts/audit-matter-vault-r4-blockers.mjs"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G0-W00-T005",
+      "gate": "MV-G0",
+      "pr_wave": "PR-01",
+      "priority": "P0",
+      "task": "Update module boundary docs",
+      "loop_stream": "MV-H1-crosswalk-boundary",
+      "target_path": "docs/reorganization/client-matter-os/module-boundary.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/module-boundary.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G0-W00-T006",
+      "gate": "MV-G0",
+      "pr_wave": "PR-01",
+      "priority": "P0",
+      "task": "Add API route matrix",
+      "loop_stream": "MV-H1-crosswalk-boundary",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/api-matrix.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/api-matrix.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G0-W00-T007",
+      "gate": "MV-G0",
+      "pr_wave": "PR-01",
+      "priority": "P0",
+      "task": "Add event taxonomy",
+      "loop_stream": "MV-H1-crosswalk-boundary",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/event-taxonomy.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/event-taxonomy.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G0-W00-T008",
+      "gate": "MV-G0",
+      "pr_wave": "PR-01",
+      "priority": "P1",
+      "task": "Add UI IA spec",
+      "loop_stream": "MV-H1-crosswalk-boundary",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/ui-ia.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/ui-ia.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G0-W00-T009",
+      "gate": "MV-G0",
+      "pr_wave": "PR-01",
+      "priority": "P1",
+      "task": "Add PR template fields for Matter/Vault evidence",
+      "loop_stream": "MV-H1-crosswalk-boundary",
+      "target_path": ".github/pull_request_template.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        ".github/pull_request_template.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G0-W00-T010",
+      "gate": "MV-G0",
+      "pr_wave": "PR-01",
+      "priority": "P1",
+      "task": "Create baseline closeout report",
+      "loop_stream": "MV-H1-crosswalk-boundary",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/g0-closeout.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/g0-closeout.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G1-W01-T001",
+      "gate": "MV-G1",
+      "pr_wave": "PR-02",
+      "priority": "P0",
+      "task": "Create repository interface",
+      "loop_stream": "MV-H2-persistence-target-mapping",
+      "target_path": "packages/platform/src/persistence/repository.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/platform/src/persistence/repository.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G1-W01-T002",
+      "gate": "MV-G1",
+      "pr_wave": "PR-02",
+      "priority": "P0",
+      "task": "Create migration runner",
+      "loop_stream": "MV-H2-persistence-target-mapping",
+      "target_path": "packages/platform/src/persistence/migration-runner.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/platform/src/persistence/migration-runner.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G1-W01-T003",
+      "gate": "MV-G1",
+      "pr_wave": "PR-02",
+      "priority": "P0",
+      "task": "Create unit-of-work transaction boundary",
+      "loop_stream": "MV-H2-persistence-target-mapping",
+      "target_path": "packages/platform/src/persistence/unit-of-work.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/platform/src/persistence/unit-of-work.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G1-W01-T004",
+      "gate": "MV-G1",
+      "pr_wave": "PR-02",
+      "priority": "P0",
+      "task": "Create idempotency store",
+      "loop_stream": "MV-H2-persistence-target-mapping",
+      "target_path": "packages/platform/src/persistence/idempotency-store.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/platform/src/persistence/idempotency-store.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G1-W01-T005",
+      "gate": "MV-G1",
+      "pr_wave": "PR-02",
+      "priority": "P0",
+      "task": "Create outbox table/service",
+      "loop_stream": "MV-H2-persistence-target-mapping",
+      "target_path": "packages/platform/src/persistence/outbox.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/platform/src/persistence/outbox.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G1-W01-T006",
+      "gate": "MV-G1",
+      "pr_wave": "PR-02",
+      "priority": "P0",
+      "task": "Add DB migrations for Matter/Vault core",
+      "loop_stream": "MV-H2-persistence-target-mapping",
+      "target_path": "packages/platform/migrations/001_matter_vault_core.sql",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/platform/migrations/001_matter_vault_core.sql"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G1-W01-T007",
+      "gate": "MV-G1",
+      "pr_wave": "PR-02",
+      "priority": "P0",
+      "task": "Add seed/synthetic separation",
+      "loop_stream": "MV-H2-persistence-target-mapping",
+      "target_path": "packages/platform/src/persistence/seed-mode.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/platform/src/persistence/seed-mode.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G1-W01-T008",
+      "gate": "MV-G1",
+      "pr_wave": "PR-02",
+      "priority": "P1",
+      "task": "Add rollback test harness",
+      "loop_stream": "MV-H2-persistence-target-mapping",
+      "target_path": "packages/platform/test/transaction-rollback.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/platform/test/transaction-rollback.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G1-W01-T009",
+      "gate": "MV-G1",
+      "pr_wave": "PR-02",
+      "priority": "P1",
+      "task": "Add production Map repository blocker",
+      "loop_stream": "MV-H2-persistence-target-mapping",
+      "target_path": "scripts/audit-no-in-memory-production.mjs",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "scripts/audit-no-in-memory-production.mjs"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G1-W01-T010",
+      "gate": "MV-G1",
+      "pr_wave": "PR-02",
+      "priority": "P1",
+      "task": "Wire apps/api context creation to repositories",
+      "loop_stream": "MV-H2-persistence-target-mapping",
+      "target_path": "apps/api/src/runtime-factory.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/src/runtime-factory.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G1-W01-T011",
+      "gate": "MV-G1",
+      "pr_wave": "PR-02",
+      "priority": "P1",
+      "task": "Add persistence smoke test",
+      "loop_stream": "MV-H2-persistence-target-mapping",
+      "target_path": "apps/api/test/matter-vault-persistence.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/test/matter-vault-persistence.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G1-W01-T012",
+      "gate": "MV-G1",
+      "pr_wave": "PR-02",
+      "priority": "P1",
+      "task": "Publish persistence evidence report",
+      "loop_stream": "MV-H2-persistence-target-mapping",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/persistence-report.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/persistence-report.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G2-W02-T001",
+      "gate": "MV-G2",
+      "pr_wave": "PR-03/04",
+      "priority": "P0",
+      "task": "Implement MatterVaultLink repository",
+      "loop_stream": "MV-H3-opening-api-hardening",
+      "target_path": "packages/matter/src/matter-vault-link-repository.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/matter/src/matter-vault-link-repository.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G2-W02-T002",
+      "gate": "MV-G2",
+      "pr_wave": "PR-03/04",
+      "priority": "P0",
+      "task": "Implement MatterOpeningOrchestrator",
+      "loop_stream": "MV-H3-opening-api-hardening",
+      "target_path": "packages/matter/src/matter-opening-orchestrator.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/matter/src/matter-opening-orchestrator.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G2-W02-T003",
+      "gate": "MV-G2",
+      "pr_wave": "PR-03/04",
+      "priority": "P0",
+      "task": "Enforce clearance token before Vault workspace",
+      "loop_stream": "MV-H3-opening-api-hardening",
+      "target_path": "packages/matter/src/matter-opening-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/matter/src/matter-opening-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G2-W02-T004",
+      "gate": "MV-G2",
+      "pr_wave": "PR-03/04",
+      "priority": "P0",
+      "task": "Create Vault workspace service command",
+      "loop_stream": "MV-H3-opening-api-hardening",
+      "target_path": "packages/dms/src/vault-workspace-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/vault-workspace-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G2-W02-T005",
+      "gate": "MV-G2",
+      "pr_wave": "PR-03/04",
+      "priority": "P0",
+      "task": "Create default folder strategy",
+      "loop_stream": "MV-H3-opening-api-hardening",
+      "target_path": "packages/dms/src/folder-template-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/folder-template-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G2-W02-T006",
+      "gate": "MV-G2",
+      "pr_wave": "PR-03/04",
+      "priority": "P0",
+      "task": "Create Matter ACL permission envelope",
+      "loop_stream": "MV-H3-opening-api-hardening",
+      "target_path": "packages/authz/src/matter-permission-envelope.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/authz/src/matter-permission-envelope.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G2-W02-T007",
+      "gate": "MV-G2",
+      "pr_wave": "PR-03/04",
+      "priority": "P0",
+      "task": "Persist MatterVaultLink in transaction",
+      "loop_stream": "MV-H3-opening-api-hardening",
+      "target_path": "packages/matter/src/matter-vault-link.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/matter/src/matter-vault-link.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G2-W02-T008",
+      "gate": "MV-G2",
+      "pr_wave": "PR-03/04",
+      "priority": "P1",
+      "task": "Create idempotent workspace by matter_id",
+      "loop_stream": "MV-H3-opening-api-hardening",
+      "target_path": "packages/dms/src/vault-workspace-repository.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/vault-workspace-repository.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G2-W02-T009",
+      "gate": "MV-G2",
+      "pr_wave": "PR-03/04",
+      "priority": "P1",
+      "task": "Add compensation/outbox fallback for workspace create failure",
+      "loop_stream": "MV-H3-opening-api-hardening",
+      "target_path": "packages/platform/src/persistence/outbox.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/platform/src/persistence/outbox.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G2-W02-T010",
+      "gate": "MV-G2",
+      "pr_wave": "PR-03/04",
+      "priority": "P1",
+      "task": "Add /api/matters POST orchestration",
+      "loop_stream": "MV-H3-opening-api-hardening",
+      "target_path": "apps/api/src/routes/matters.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/src/routes/matters.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G2-W02-T011",
+      "gate": "MV-G2",
+      "pr_wave": "PR-03/04",
+      "priority": "P1",
+      "task": "Add /api/vault/workspaces internal command route",
+      "loop_stream": "MV-H3-opening-api-hardening",
+      "target_path": "apps/api/src/routes/vault.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/src/routes/vault.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G2-W02-T012",
+      "gate": "MV-G2",
+      "pr_wave": "PR-03/04",
+      "priority": "P1",
+      "task": "Add duplicate opening idempotency test",
+      "loop_stream": "MV-H3-opening-api-hardening",
+      "target_path": "apps/api/test/e2e/matter-opening-vault.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/test/e2e/matter-opening-vault.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G2-W02-T013",
+      "gate": "MV-G2",
+      "pr_wave": "PR-03/04",
+      "priority": "P1",
+      "task": "Add partial failure rollback test",
+      "loop_stream": "MV-H3-opening-api-hardening",
+      "target_path": "apps/api/test/e2e/matter-vault-rollback.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/test/e2e/matter-vault-rollback.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G2-W02-T014",
+      "gate": "MV-G2",
+      "pr_wave": "PR-03/04",
+      "priority": "P1",
+      "task": "Add opening closeout report",
+      "loop_stream": "MV-H3-opening-api-hardening",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/opening-report.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/opening-report.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T001",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P0",
+      "task": "Implement StorageAdapter interface",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "packages/dms/src/storage/storage-adapter.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/storage/storage-adapter.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T002",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P0",
+      "task": "Implement local storage adapter",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "packages/dms/src/storage/local-storage-adapter.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/storage/local-storage-adapter.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T003",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P0",
+      "task": "Add S3 adapter skeleton",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "packages/dms/src/storage/s3-storage-adapter.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/storage/s3-storage-adapter.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T004",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P0",
+      "task": "Add SharePoint adapter skeleton",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "packages/dms/src/storage/sharepoint-storage-adapter.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/storage/sharepoint-storage-adapter.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T005",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P0",
+      "task": "Implement FileObject repository",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "packages/dms/src/file-object-repository.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/file-object-repository.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T006",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P0",
+      "task": "Implement Document repository",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "packages/dms/src/document-repository.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/document-repository.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T007",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P0",
+      "task": "Implement DocumentVersion repository",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "packages/dms/src/version-repository.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/version-repository.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T008",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P1",
+      "task": "Enforce workspace/matter consistency on upload",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "packages/dms/src/document-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/document-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T009",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P1",
+      "task": "Compute and persist sha256 lineage",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "packages/dms/src/hash-lineage-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/hash-lineage-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T010",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P1",
+      "task": "Implement immutable version create",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "packages/dms/src/version-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/version-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T011",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P1",
+      "task": "Implement checkout lock service",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "packages/dms/src/checkout-lock-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/checkout-lock-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T012",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P1",
+      "task": "Add document upload API route",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "apps/api/src/routes/vault.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/src/routes/vault.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T013",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P1",
+      "task": "Add file download route with permission decision",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "apps/api/src/routes/vault.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/src/routes/vault.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T014",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P1",
+      "task": "Add no raw path response test",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "apps/api/test/e2e/vault-storage-security.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/test/e2e/vault-storage-security.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T015",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P1",
+      "task": "Add hash mismatch detection test",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "packages/dms/test/hash-lineage.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/test/hash-lineage.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G3-W03-T016",
+      "gate": "MV-G3",
+      "pr_wave": "PR-05",
+      "priority": "P2",
+      "task": "Add document runtime evidence report",
+      "loop_stream": "MV-H3-document-api-hardening",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/document-runtime-report.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/document-runtime-report.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G4-W04-T001",
+      "gate": "MV-G4",
+      "pr_wave": "PR-06",
+      "priority": "P0",
+      "task": "Implement Matter ACL to Vault ACL inheritance",
+      "loop_stream": "MV-H4-security-audit-hardening",
+      "target_path": "packages/dms/src/vault-permission-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/vault-permission-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G4-W04-T002",
+      "gate": "MV-G4",
+      "pr_wave": "PR-06",
+      "priority": "P0",
+      "task": "Implement Vault ObjectACL overlay",
+      "loop_stream": "MV-H4-security-audit-hardening",
+      "target_path": "packages/authz/src/vault-object-acl.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/authz/src/vault-object-acl.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G4-W04-T003",
+      "gate": "MV-G4",
+      "pr_wave": "PR-06",
+      "priority": "P0",
+      "task": "Implement privilege label service",
+      "loop_stream": "MV-H4-security-audit-hardening",
+      "target_path": "packages/dms/src/privilege-label-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/privilege-label-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G4-W04-T004",
+      "gate": "MV-G4",
+      "pr_wave": "PR-06",
+      "priority": "P0",
+      "task": "Implement legal hold service",
+      "loop_stream": "MV-H4-security-audit-hardening",
+      "target_path": "packages/dms/src/legal-hold-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/legal-hold-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G4-W04-T005",
+      "gate": "MV-G4",
+      "pr_wave": "PR-06",
+      "priority": "P0",
+      "task": "Implement retention policy service",
+      "loop_stream": "MV-H4-security-audit-hardening",
+      "target_path": "packages/dms/src/retention-policy-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/retention-policy-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G4-W04-T006",
+      "gate": "MV-G4",
+      "pr_wave": "PR-06",
+      "priority": "P0",
+      "task": "Wire sensitive read audit for document view/download",
+      "loop_stream": "MV-H4-security-audit-hardening",
+      "target_path": "apps/api/src/middleware/sensitive-read-audit.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/src/middleware/sensitive-read-audit.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G4-W04-T007",
+      "gate": "MV-G4",
+      "pr_wave": "PR-06",
+      "priority": "P0",
+      "task": "Persist document.viewed audit",
+      "loop_stream": "MV-H4-security-audit-hardening",
+      "target_path": "packages/dms/src/document-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/document-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G4-W04-T008",
+      "gate": "MV-G4",
+      "pr_wave": "PR-06",
+      "priority": "P1",
+      "task": "Persist document.downloaded audit",
+      "loop_stream": "MV-H4-security-audit-hardening",
+      "target_path": "packages/dms/src/storage/download-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/storage/download-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G4-W04-T009",
+      "gate": "MV-G4",
+      "pr_wave": "PR-06",
+      "priority": "P1",
+      "task": "Block delete/share/export under legal hold",
+      "loop_stream": "MV-H4-security-audit-hardening",
+      "target_path": "packages/dms/src/legal-hold-guard.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/legal-hold-guard.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G4-W04-T010",
+      "gate": "MV-G4",
+      "pr_wave": "PR-06",
+      "priority": "P1",
+      "task": "Ensure denied document count hidden",
+      "loop_stream": "MV-H4-security-audit-hardening",
+      "target_path": "packages/dms/src/vault-projection.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/vault-projection.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G4-W04-T011",
+      "gate": "MV-G4",
+      "pr_wave": "PR-06",
+      "priority": "P1",
+      "task": "Add tenant leak tests",
+      "loop_stream": "MV-H4-security-audit-hardening",
+      "target_path": "apps/api/test/security/matter-vault-tenant-leak.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/test/security/matter-vault-tenant-leak.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G4-W04-T012",
+      "gate": "MV-G4",
+      "pr_wave": "PR-06",
+      "priority": "P1",
+      "task": "Add ethical wall tests",
+      "loop_stream": "MV-H4-security-audit-hardening",
+      "target_path": "apps/api/test/security/matter-vault-ethical-wall.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/test/security/matter-vault-ethical-wall.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G4-W04-T013",
+      "gate": "MV-G4",
+      "pr_wave": "PR-06",
+      "priority": "P1",
+      "task": "Add legal hold deletion tests",
+      "loop_stream": "MV-H4-security-audit-hardening",
+      "target_path": "apps/api/test/security/matter-vault-legal-hold.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/test/security/matter-vault-legal-hold.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G4-W04-T014",
+      "gate": "MV-G4",
+      "pr_wave": "PR-06",
+      "priority": "P1",
+      "task": "Add permission/audit closeout report",
+      "loop_stream": "MV-H4-security-audit-hardening",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/permission-audit-report.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/permission-audit-report.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G5-W05-T001",
+      "gate": "MV-G5",
+      "pr_wave": "PR-08",
+      "priority": "P0",
+      "task": "Implement VaultSearchIndex repository",
+      "loop_stream": "MV-H4-search-ai-portal-hardening",
+      "target_path": "packages/dms/src/search/index-repository.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/search/index-repository.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G5-W05-T002",
+      "gate": "MV-G5",
+      "pr_wave": "PR-08",
+      "priority": "P0",
+      "task": "Implement ACL-filtered search service",
+      "loop_stream": "MV-H4-search-ai-portal-hardening",
+      "target_path": "packages/dms/src/search/acl-filter.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/search/acl-filter.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G5-W05-T003",
+      "gate": "MV-G5",
+      "pr_wave": "PR-08",
+      "priority": "P0",
+      "task": "Require permission_decision_id before search",
+      "loop_stream": "MV-H4-search-ai-portal-hardening",
+      "target_path": "packages/dms/src/search/search-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/search/search-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G5-W05-T004",
+      "gate": "MV-G5",
+      "pr_wave": "PR-08",
+      "priority": "P0",
+      "task": "Index only non-excluded versions",
+      "loop_stream": "MV-H4-search-ai-portal-hardening",
+      "target_path": "packages/dms/src/search/indexer.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/src/search/indexer.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G5-W05-T005",
+      "gate": "MV-G5",
+      "pr_wave": "PR-08",
+      "priority": "P0",
+      "task": "Implement RetrievalEvidence ledger",
+      "loop_stream": "MV-H4-search-ai-portal-hardening",
+      "target_path": "packages/ai-governance/src/retrieval-evidence.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/ai-governance/src/retrieval-evidence.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G5-W05-T006",
+      "gate": "MV-G5",
+      "pr_wave": "PR-08",
+      "priority": "P0",
+      "task": "Require permission-before-AI",
+      "loop_stream": "MV-H4-search-ai-portal-hardening",
+      "target_path": "packages/ai-governance/src/retrieval-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/ai-governance/src/retrieval-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G5-W05-T007",
+      "gate": "MV-G5",
+      "pr_wave": "PR-08",
+      "priority": "P0",
+      "task": "Block privileged docs from AI by default",
+      "loop_stream": "MV-H4-search-ai-portal-hardening",
+      "target_path": "packages/ai-governance/src/source-policy.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/ai-governance/src/source-policy.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G5-W05-T008",
+      "gate": "MV-G5",
+      "pr_wave": "PR-08",
+      "priority": "P1",
+      "task": "Implement PortalProjection service",
+      "loop_stream": "MV-H4-search-ai-portal-hardening",
+      "target_path": "packages/client-portal/src/projection-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/client-portal/src/projection-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G5-W05-T009",
+      "gate": "MV-G5",
+      "pr_wave": "PR-08",
+      "priority": "P1",
+      "task": "Implement DataRoomProjection item service",
+      "loop_stream": "MV-H4-search-ai-portal-hardening",
+      "target_path": "packages/data-room/src/projection-service.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/data-room/src/projection-service.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G5-W05-T010",
+      "gate": "MV-G5",
+      "pr_wave": "PR-08",
+      "priority": "P1",
+      "task": "Add search result silent omission tests",
+      "loop_stream": "MV-H4-search-ai-portal-hardening",
+      "target_path": "apps/api/test/e2e/vault-search-acl.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/test/e2e/vault-search-acl.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G5-W05-T011",
+      "gate": "MV-G5",
+      "pr_wave": "PR-08",
+      "priority": "P1",
+      "task": "Add AI unauthorized source absent tests",
+      "loop_stream": "MV-H4-search-ai-portal-hardening",
+      "target_path": "apps/api/test/e2e/ai-vault-permission.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/test/e2e/ai-vault-permission.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G5-W05-T012",
+      "gate": "MV-G5",
+      "pr_wave": "PR-08",
+      "priority": "P1",
+      "task": "Add portal projection exclusion tests",
+      "loop_stream": "MV-H4-search-ai-portal-hardening",
+      "target_path": "apps/api/test/e2e/portal-vault-projection.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/test/e2e/portal-vault-projection.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T001",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P0",
+      "task": "Implement MatterTimelineEvent repository",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "packages/matter/src/timeline-repository.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/matter/src/timeline-repository.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T002",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P0",
+      "task": "Project vault.document.uploaded to Matter timeline",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "packages/matter/src/timeline-projection.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/matter/src/timeline-projection.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T003",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P0",
+      "task": "Project email.filed to Matter timeline",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "packages/matter/src/timeline-projection.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/matter/src/timeline-projection.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T004",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P0",
+      "task": "Project secure link events safely",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "packages/matter/src/timeline-projection.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/matter/src/timeline-projection.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T005",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P0",
+      "task": "Implement /api/matters/:id/command-center",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "apps/api/src/routes/matters.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/src/routes/matters.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T006",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P0",
+      "task": "Implement /api/matters/:id/vault-summary",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "apps/api/src/routes/matters.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/src/routes/matters.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T007",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P0",
+      "task": "Implement real vault API client",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "apps/web/src/data/vaultApiClient.ts",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/web/src/data/vaultApiClient.ts"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T008",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P1",
+      "task": "Implement MatterVaultPanel",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "apps/web/src/components/MatterVaultPanel.jsx",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/web/src/components/MatterVaultPanel.jsx"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T009",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P1",
+      "task": "Implement VaultDocumentTable",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "apps/web/src/components/VaultDocumentTable.jsx",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/web/src/components/VaultDocumentTable.jsx"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T010",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P1",
+      "task": "Implement DocumentDetail and VersionHistory",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "apps/web/src/components/VaultDocumentDetail.jsx",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/web/src/components/VaultDocumentDetail.jsx"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T011",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P1",
+      "task": "Implement VaultSecurityBadges",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "apps/web/src/components/VaultSecurityBadges.jsx",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/web/src/components/VaultSecurityBadges.jsx"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T012",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P1",
+      "task": "Add Matter breadcrumb in Vault screens",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "apps/web/src/components/VaultBreadcrumb.jsx",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/web/src/components/VaultBreadcrumb.jsx"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T013",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P1",
+      "task": "Add loading/empty/denied/review/error UI states",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "apps/web/src/components/primitives.jsx",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/web/src/components/primitives.jsx"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T014",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P1",
+      "task": "Add Playwright Matter→Vault document upload test",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "apps/web/e2e/matter-vault.spec.ts",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/web/e2e/matter-vault.spec.ts"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T015",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P1",
+      "task": "Add a11y keyboard navigation test",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "apps/web/test/matter-vault-a11y.test.mjs",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/web/test/matter-vault-a11y.test.mjs"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G6-W06-T016",
+      "gate": "MV-G6",
+      "pr_wave": "PR-07/09/10",
+      "priority": "P2",
+      "task": "Add UI closeout report",
+      "loop_stream": "MV-H5-ui-timeline-hardening",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/ui-closeout-report.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/ui-closeout-report.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G7-W07-T001",
+      "gate": "MV-G7",
+      "pr_wave": "PR-11",
+      "priority": "P0",
+      "task": "Inventory existing Matter/DMS synthetic records",
+      "loop_stream": "MV-H4-migration-hardening",
+      "target_path": "scripts/inventory-matter-vault-records.mjs",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "scripts/inventory-matter-vault-records.mjs"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G7-W07-T002",
+      "gate": "MV-G7",
+      "pr_wave": "PR-11",
+      "priority": "P0",
+      "task": "Create backfill script for MatterVaultLink",
+      "loop_stream": "MV-H4-migration-hardening",
+      "target_path": "scripts/backfill-matter-vault-links.mjs",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "scripts/backfill-matter-vault-links.mjs"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G7-W07-T003",
+      "gate": "MV-G7",
+      "pr_wave": "PR-11",
+      "priority": "P0",
+      "task": "Create legacy document workspace mapping",
+      "loop_stream": "MV-H4-migration-hardening",
+      "target_path": "scripts/backfill-vault-workspaces.mjs",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "scripts/backfill-vault-workspaces.mjs"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G7-W07-T004",
+      "gate": "MV-G7",
+      "pr_wave": "PR-11",
+      "priority": "P0",
+      "task": "Add duplicate workspace detection",
+      "loop_stream": "MV-H4-migration-hardening",
+      "target_path": "scripts/audit-duplicate-vault-workspaces.mjs",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "scripts/audit-duplicate-vault-workspaces.mjs"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G7-W07-T005",
+      "gate": "MV-G7",
+      "pr_wave": "PR-11",
+      "priority": "P0",
+      "task": "Add migration dry-run report",
+      "loop_stream": "MV-H4-migration-hardening",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/migration-dry-run.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/migration-dry-run.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G7-W07-T006",
+      "gate": "MV-G7",
+      "pr_wave": "PR-11",
+      "priority": "P0",
+      "task": "Add rollback plan",
+      "loop_stream": "MV-H4-migration-hardening",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/rollback-plan.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/rollback-plan.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G7-W07-T007",
+      "gate": "MV-G7",
+      "pr_wave": "PR-11",
+      "priority": "P0",
+      "task": "Add reconciliation report",
+      "loop_stream": "MV-H4-migration-hardening",
+      "target_path": "scripts/reconcile-matter-vault-backfill.mjs",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "scripts/reconcile-matter-vault-backfill.mjs"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G7-W07-T008",
+      "gate": "MV-G7",
+      "pr_wave": "PR-11",
+      "priority": "P1",
+      "task": "Add failed row dashboard data",
+      "loop_stream": "MV-H4-migration-hardening",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/migration-failed-rows.json",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/migration-failed-rows.json"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G7-W07-T009",
+      "gate": "MV-G7",
+      "pr_wave": "PR-11",
+      "priority": "P1",
+      "task": "Add owner signoff checklist",
+      "loop_stream": "MV-H4-migration-hardening",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/migration-signoff.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/migration-signoff.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G7-W07-T010",
+      "gate": "MV-G7",
+      "pr_wave": "PR-11",
+      "priority": "P1",
+      "task": "Add migration closeout report",
+      "loop_stream": "MV-H4-migration-hardening",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/migration-closeout.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/migration-closeout.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G8-W08-T001",
+      "gate": "MV-G8",
+      "pr_wave": "PR-12",
+      "priority": "P0",
+      "task": "Create Matter-Vault E2E workflow suite",
+      "loop_stream": "MV-H6-evidence-closeout",
+      "target_path": "apps/api/test/e2e/matter-vault-workflow.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/test/e2e/matter-vault-workflow.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G8-W08-T002",
+      "gate": "MV-G8",
+      "pr_wave": "PR-12",
+      "priority": "P0",
+      "task": "Create security regression suite",
+      "loop_stream": "MV-H6-evidence-closeout",
+      "target_path": "apps/api/test/security/matter-vault-security.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/test/security/matter-vault-security.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G8-W08-T003",
+      "gate": "MV-G8",
+      "pr_wave": "PR-12",
+      "priority": "P0",
+      "task": "Create audit completeness suite",
+      "loop_stream": "MV-H6-evidence-closeout",
+      "target_path": "apps/api/test/audit/matter-vault-audit.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/test/audit/matter-vault-audit.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G8-W08-T004",
+      "gate": "MV-G8",
+      "pr_wave": "PR-12",
+      "priority": "P0",
+      "task": "Create idempotency suite",
+      "loop_stream": "MV-H6-evidence-closeout",
+      "target_path": "apps/api/test/idempotency/matter-vault-idempotency.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/test/idempotency/matter-vault-idempotency.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G8-W08-T005",
+      "gate": "MV-G8",
+      "pr_wave": "PR-12",
+      "priority": "P0",
+      "task": "Create state transition tests",
+      "loop_stream": "MV-H6-evidence-closeout",
+      "target_path": "packages/dms/test/document-state-machine.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "packages/dms/test/document-state-machine.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G8-W08-T006",
+      "gate": "MV-G8",
+      "pr_wave": "PR-12",
+      "priority": "P0",
+      "task": "Create performance smoke test",
+      "loop_stream": "MV-H6-evidence-closeout",
+      "target_path": "apps/api/test/perf/matter-vault-smoke.test.js",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "apps/api/test/perf/matter-vault-smoke.test.js"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G8-W08-T007",
+      "gate": "MV-G8",
+      "pr_wave": "PR-12",
+      "priority": "P0",
+      "task": "Create backup/restore drill",
+      "loop_stream": "MV-H6-evidence-closeout",
+      "target_path": "scripts/drill-matter-vault-backup-restore.mjs",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "scripts/drill-matter-vault-backup-restore.mjs"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G8-W08-T008",
+      "gate": "MV-G8",
+      "pr_wave": "PR-12",
+      "priority": "P1",
+      "task": "Create UAT script package",
+      "loop_stream": "MV-H6-evidence-closeout",
+      "target_path": "docs/uat/matter-vault-uat-scripts.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/uat/matter-vault-uat-scripts.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G8-W08-T009",
+      "gate": "MV-G8",
+      "pr_wave": "PR-12",
+      "priority": "P1",
+      "task": "Create R4 readiness validator",
+      "loop_stream": "MV-H6-evidence-closeout",
+      "target_path": "scripts/validate-matter-vault-r4-readiness.mjs",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "scripts/validate-matter-vault-r4-readiness.mjs"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G8-W08-T010",
+      "gate": "MV-G8",
+      "pr_wave": "PR-12",
+      "priority": "P1",
+      "task": "Create R4 evidence matrix",
+      "loop_stream": "MV-H6-evidence-closeout",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/evidence-matrix.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/evidence-matrix.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G8-W08-T011",
+      "gate": "MV-G8",
+      "pr_wave": "PR-12",
+      "priority": "P1",
+      "task": "Create launch no-go guard",
+      "loop_stream": "MV-H6-evidence-closeout",
+      "target_path": "scripts/audit-matter-vault-no-go-claim.mjs",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "scripts/audit-matter-vault-no-go-claim.mjs"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G8-W08-T012",
+      "gate": "MV-G8",
+      "pr_wave": "PR-12",
+      "priority": "P1",
+      "task": "Create R4 closeout packet",
+      "loop_stream": "MV-H6-evidence-closeout",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/r4-closeout.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/r4-closeout.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G8-W08-T013",
+      "gate": "MV-G8",
+      "pr_wave": "PR-12",
+      "priority": "P1",
+      "task": "Run npm test and targeted gate commands",
+      "loop_stream": "MV-H6-evidence-closeout",
+      "target_path": "CI",
+      "classification": "launch_only_external_receipt",
+      "implemented_by": [
+        "local validator bundle",
+        "GitHub PR checks when available"
+      ],
+      "exists": false,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    },
+    {
+      "tuw_id": "MV-G8-W08-T014",
+      "gate": "MV-G8",
+      "pr_wave": "PR-12",
+      "priority": "P1",
+      "task": "PM/Tech Lead/QA/Security signoff",
+      "loop_stream": "MV-H6-evidence-closeout",
+      "target_path": "docs/reorganization/client-matter-os/matter-vault-r4/signoff.md",
+      "classification": "implemented_literal",
+      "implemented_by": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/signoff.md"
+      ],
+      "exists": true,
+      "verification": [
+        "npm run matter-vault:r4:validate",
+        "npm run matter-vault:r4:readiness"
+      ]
+    }
+  ]
+}
