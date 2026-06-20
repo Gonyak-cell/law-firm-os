@@ -80,12 +80,21 @@ if (await exists("scripts/validate-rp30-hrx-people-contract.mjs")) {
 
 const runtimeEvidence = [
   ["db_or_schema", "packages/hrx/src/schema.js"],
-  ["repository", "packages/hrx/src/repository.js"],
+  ["store_port", "packages/hrx/src/store/port.js"],
+  ["sql_repository", "packages/hrx/src/repository-sql.js"],
+  ["migration_runner", "packages/hrx/src/migrations/index.js"],
+  ["documents_leave_audit_migration", "packages/hrx/src/migrations/002_hrx_documents_leave_audit.sql"],
   ["employee_user_link", "packages/hrx/src/identity-link.js"],
   ["tenant_actor_api_context", "apps/api/src/middleware/tenant-context.js"],
+  ["actor_api_context", "apps/api/src/middleware/actor-context.js"],
   ["hrx_api_route", "apps/api/src/routes/hrx/employees.js"],
+  ["hrx_route_policy_map", "apps/api/src/routes/hrx/route-policy-map.js"],
+  ["hrx_route_authz_middleware", "apps/api/src/middleware/hrx-authz.js"],
   ["authz_scope", "packages/authz/src/hrx-sensitive-scopes.js"],
-  ["audit_event_store", "packages/audit/src/hrx-event-store.js"],
+  ["durable_audit_event_store", "packages/audit/src/hrx-event-store-sql.js"],
+  ["audit_hash_chain", "packages/audit/src/hrx-hash-chain.js"],
+  ["step_up_context", "apps/api/src/middleware/hrx-step-up-context.js"],
+  ["step_up_session_store", "packages/authz/src/hrx-step-up-session.js"],
   ["api_backed_people_ui", "apps/web/src/people/PeopleHome.tsx"],
   ["hrx_e2e_receipt", "apps/web/e2e/hrx/people-home.spec.ts"],
 ];

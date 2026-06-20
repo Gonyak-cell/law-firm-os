@@ -1,25 +1,40 @@
 # HRX TUW Governance
 
 Status: accepted
-Date: 2026-06-19
-TUW: HRX-ENT-L1-W01-T01
+Date: 2026-06-20
+TUW: HRX-L0-007
 
 ## Required Mapping
 
 Every HRX change must be mapped to all of the following:
 
 - Source TUW ID.
-- Execution pack ID.
-- PR lane.
+- Roadmap layer.
+- PR sequence.
 - Changed file path.
 - Entry gate.
 - Exit gate.
 - Validation command or human review gate.
 - Allowed claim and blocked claim.
+- Current status.
+- Evidence link or explicit gap.
+
+## Imported Backlog
+
+The canonical backlog for this roadmap is `docs/hrx-enterprise/roadmap-package/HRX_Roadmap_03_TUW_BACKLOG.csv`.
+
+| Count | Value |
+| --- | --- |
+| Total TUWs | 127 |
+| P0 TUWs | 63 |
+| P1 TUWs | 64 |
+| PR sequence | PR-00 through PR-15 |
+| Current boundary | `runtime_api_evidence_only__durable_persistence_open` |
+| Target state | `runtime_write_ready__durable_persistence_guarded` |
 
 ## Sequential Rule
 
-Packs execute in order. A later pack may be drafted for planning, but implementation does not begin until the previous pack exit gate has current repo evidence.
+PR sequences execute in order. A later PR may be drafted for planning, but implementation does not begin until the previous PR exit gate has current repo evidence or an explicit owner decision changes the sequence.
 
 ## Evidence Rule
 
@@ -39,17 +54,20 @@ Each HRX pull request must include:
 
 | Pack Range | Allowed Claim | Blocked Claim |
 | --- | --- | --- |
-| HRX-P01 to HRX-P02 | Boundary and governance in place | Runtime-ready or production-ready |
-| HRX-P03 to HRX-P06 | Runtime foundation or trust slice by scope | API/UI/e2e or enterprise HRIS readiness |
-| HRX-P07 to HRX-P13 | Specific API, UI, and workflow slices by gate | Full enterprise HRIS readiness |
-| HRX-P14 to HRX-P17 | AI, analytics, and hardening by gate | AI final decisions or payroll calculation runtime |
-| HRX-P18 | Release package ready for human decision | Go-live without human receipt |
+| PR-00 | Roadmap governance and claim boundary in place | Runtime-ready or production-ready |
+| PR-01 to PR-02 | Durable persistence slice by scope | Full runtime-write-ready |
+| PR-03 to PR-05 | Trust boundary slice by scope | Enterprise HRIS readiness |
+| PR-06 to PR-11 | Core HRIS, workflows, portal/API slices by gate | Full product readiness |
+| PR-12 to PR-14 | AI, analytics, and hardening by gate | AI final decisions or payroll calculation runtime |
+| PR-15 | Release decision package ready for human review | Go-live without human receipt |
 
 ## Validator Separation
 
 The RP30 HRX People validator proves descriptor and closeout-contract continuity. It does not prove runtime readiness.
 
 The HRX runtime readiness validator proves runtime evidence only when the required DB, repository, service, API, authz, audit, UI/e2e, observability, and release evidence exists.
+
+The HRX no-premature-claim validator blocks docs or contracts from presenting the target state as current state before the PR-15 owner decision gate.
 
 ## No-Go Conditions
 

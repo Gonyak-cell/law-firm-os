@@ -1,0 +1,24 @@
+{
+  "package": "HRX Enterprise Roadmap Delivery Package",
+  "date": "2026-06-20",
+  "base_branch": "codex/lawos-current-work-snapshot",
+  "target_state": "runtime_write_ready__durable_persistence_guarded",
+  "tuW_count": 127,
+  "p0_count": 63,
+  "files": [
+    "00_PACKAGE_README.md",
+    "01_MASTER_ROADMAP.md",
+    "02_PYRAMID_TOC.md",
+    "03_TUW_BACKLOG.csv",
+    "03_TUW_ISSUE_IMPORT.json",
+    "04_PR_SEQUENCE.md",
+    "05_ACCEPTANCE_GATES.md",
+    "06_VALIDATOR_TEST_PLAN.md",
+    "07_ARCHITECTURE_DATA_MODEL.md",
+    "08_RISK_REGISTER.md",
+    "09_30_60_90_PLAN.md",
+    "10_DEV_HANDOFF_CHECKLIST.md",
+    "11_DECISION_LOG_TEMPLATE.md",
+    "12_GO_NO_GO_TEMPLATE.md"
+  ]
+}

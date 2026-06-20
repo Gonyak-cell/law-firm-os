@@ -1,7 +1,11 @@
 # HRX Go-Live No-Go Checklist
 
-Status: release-package-ready
-Date: 2026-06-19
+Status: go-no-go-template
+Date: 2026-06-20
+
+Current boundary: `runtime_api_evidence_only__durable_persistence_open`
+
+This checklist is a PR-15 decision template. It is not go-live authorization and it does not claim `runtime_write_ready__durable_persistence_guarded`.
 
 ## Required Passes
 
@@ -19,7 +23,7 @@ Date: 2026-06-19
 ## Automatic No-Go
 
 - Runtime, authz, audit, API, e2e, security, compliance, backup, or rollback gate fails.
-- Any P0 item in HRX-P01 through HRX-P18 lacks current evidence.
+- Any P0 item in PR-00 through PR-15 lacks current evidence.
 - Feature flag default is enabled for a high-risk HRX module.
 - Payroll execution is enabled.
 - AI produces or stores final hire, fire, pay, evaluation, discipline, or termination decision.
@@ -30,7 +34,7 @@ Date: 2026-06-19
 
 | Field | Value |
 | --- | --- |
-| Release package | HRX-P01 through HRX-P18 |
+| Release package | PR-00 through PR-15 |
 | Prepared by | Codex implementation lane |
 | Decision owner | Human release authority |
 | Current decision | Not go-live authorized by automation |

@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "date": "2026-06-20",
+  "current_boundary": "runtime_api_evidence_only__durable_persistence_open",
+  "target_state": "runtime_write_ready__durable_persistence_guarded",
+  "entries": [
+    {
+      "id": "HRX-L0-001",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/00-boundary-decision.md",
+        "docs/hrx-enterprise/acceptance-gates.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:no-premature-claim:validate"
+      ]
+    },
+    {
+      "id": "HRX-L0-002",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/plan-intake.md",
+        "docs/hrx-enterprise/roadmap-package/"
+      ],
+      "validators": [
+        "npm run hrx:release:validate"
+      ]
+    },
+    {
+      "id": "HRX-L0-003",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/03-release-gates.md",
+        "docs/hrx-enterprise/go-live-checklist.md",
+        "docs/hrx-enterprise/cutover-runbook.md"
+      ],
+      "validators": [
+        "npm run hrx:runtime:validate:expect-not-ready",
+        "npm run hrx:release:validate"
+      ]
+    },
+    {
+      "id": "HRX-L0-004",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-no-premature-claim.mjs",
+        "scripts/validate-hrx-release-readiness.mjs",
+        "package.json"
+      ],
+      "validators": [
+        "npm run hrx:no-premature-claim:validate",
+        "npm run hrx:release:validate"
+      ]
+    },
+    {
+      "id": "HRX-L0-005",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/01-terminology.md"
+      ],
+      "validators": [
+        "npm run hrx:no-premature-claim:validate"
+      ]
+    },
+    {
+      "id": "HRX-L0-006",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/dev-handoff-receipt.md",
+        "docs/hrx-enterprise/owner-decision-template.md",
+        "docs/hrx-enterprise/go-no-go-template.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate"
+      ]
+    },
+    {
+      "id": "HRX-L0-007",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/tuw-traceability-matrix.md",
+        "docs/hrx-enterprise/sequential-pack-pr-board.md",
+        "scripts/generate-hrx-roadmap-traceability.mjs"
+      ],
+      "validators": [
+        "npm run hrx:roadmap:traceability:generate",
+        "npm run hrx:release:validate"
+      ]
+    },
+    {
+      "id": "HRX-L0-008",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/risk-register.md",
+        "docs/hrx-enterprise/roadmap-package/HRX_Roadmap_08_RISK_REGISTER.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate"
+      ]
+    }
+  ]
+}

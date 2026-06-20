@@ -1,7 +1,11 @@
 # HRX Cutover And Rollback Runbook
 
-Status: release-package-ready
-Date: 2026-06-19
+Status: cutover-template
+Date: 2026-06-20
+
+Current boundary: `runtime_api_evidence_only__durable_persistence_open`
+
+This runbook is a PR-15 release-control template. It is not a deployment receipt, go-live authorization, or current `runtime_write_ready__durable_persistence_guarded` claim.
 
 ## Preconditions
 
