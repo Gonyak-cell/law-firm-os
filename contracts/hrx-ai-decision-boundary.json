@@ -1,0 +1,35 @@
+{
+  "schema_version": "law-firm-os.hrx-ai-decision-boundary.v0.1",
+  "tuw_id": "HRX-ENT-L0-W01-T04",
+  "status": "accepted",
+  "decision": "explanation_and_retrieval_only_until_human_review_gate",
+  "source_grounded_required": true,
+  "human_review_required_for_high_risk_outputs": true,
+  "allowed_ai_outputs": [
+    "policy_explanation",
+    "source_grounded_answer",
+    "draft_review_packet",
+    "risk_flag_for_human_review",
+    "insufficient_sources"
+  ],
+  "blocked_final_decisions": [
+    "hire",
+    "reject_candidate",
+    "fire",
+    "discipline",
+    "pay_change",
+    "promotion",
+    "performance_rating",
+    "termination"
+  ],
+  "required_controls": [
+    "permission_filtered_retrieval",
+    "source_citations",
+    "audit_metadata",
+    "human_review_queue",
+    "no_final_judgment_guard"
+  ],
+  "readiness_claim": "boundary_only",
+  "runtime_ready": false,
+  "production_ready": false
+}

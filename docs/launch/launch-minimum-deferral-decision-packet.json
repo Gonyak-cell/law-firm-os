@@ -14,10 +14,10 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "source_missing_deferral_target_count": 115,
+    "source_missing_deferral_target_count": 117,
     "source_minimum_bundle_decision_id_count": 4,
     "placeholder_decision_row_count": 4,
-    "covered_target_count_if_owner_rows_are_completed": 115,
+    "covered_target_count_if_owner_rows_are_completed": 117,
     "uncovered_target_count_if_owner_rows_are_completed": 0,
     "placeholder_row_count": 4
   },
@@ -32,8 +32,10 @@
       "approval_signature_required_placeholder": "<APPROVAL_SIGNATURE_REFERENCE_REQUIRED>",
       "status_to_use_after_approval": "deferred(시한 명기)",
       "coverage_domain": "go_live_gate_evidence",
-      "covered_target_count": 29,
+      "covered_target_count": 31,
       "covered_target_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03",
         "ACC-GL-G10-G10-E01",
         "ACC-GL-G10-G10-E02",
         "ACC-GL-G10-G10-E03",

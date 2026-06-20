@@ -30,8 +30,6 @@ const STATUS_ALLOWLIST = new Map([
 ]);
 
 const JSON_STATUS_ALLOWLIST = new Map([
-  ["docs/launch/g1-e02-evidence-satisfaction-2026-06-19.json", new Set(["evidence_satisfied"])],
-  ["docs/launch/g1-e03-evidence-satisfaction-2026-06-19.json", new Set(["evidence_satisfied"])],
   ["docs/launch/scope-revision-register.json", new Set(["approved"])],
   ["docs/launch/kpi-baseline-data.json", new Set(["blocked_not_collected"])]
 ]);
@@ -153,7 +151,6 @@ function renderMarkdown(report) {
   lines.push("- It does not approve go-live.");
   lines.push("- It does not approve owner deferrals.");
   lines.push("- Generated audit PASS verdicts are allowed only as audit results, not as launch approval.");
-  lines.push("- Generated FAIL verdicts are allowed as blocked-state evidence; they are not launch approval claims.");
   lines.push("- Closed CP evidence remains read-only.");
   return `${lines.join("\n")}\n`;
 }
@@ -212,7 +209,7 @@ for (const path of files) {
         });
       }
     }
-    if (noGoActive && verdict && verdict !== "PASS" && verdict !== "NOT_COMPLETE" && verdict !== "FAIL") {
+    if (noGoActive && verdict && verdict !== "PASS" && verdict !== "NOT_COMPLETE") {
       addFinding(findings, "P1", "NO_GO_JSON_VERDICT_CLAIM", "JSON launch artifact verdict is not safe for the current No-Go state.", {
         path,
         verdict

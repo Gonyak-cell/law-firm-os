@@ -30,7 +30,7 @@ Generated at: 2026-06-18T15:00:41.879Z
 
 | Gate | Dimension | Failed evidence slots | Required action |
 | --- | --- | --- | --- |
-| G1 | completion |  | Full gate evidence must be supplied or owner-approved deferral must be recorded in the launch decision register. |
+| G1 | completion | G1-E02 deferred_item_rejudgment_register -> blocking_remaining_count_zero<br>G1-E03 hardening_coverage_matrix -> all_missing_cells_adjudicated_or_zero | Full gate evidence must be supplied or owner-approved deferral must be recorded in the launch decision register. |
 | G2 | runtime | G2-E01 wave1_runtime_ready_matrix -> approved_wave1_runtime_ready_completeness_rule_satisfied<br>G2-E02 runtime_integration_test_output -> all_tests_pass_with_timestamp<br>G2-E03 rtg_001_005_attestation_links -> all_links_resolve | Full gate evidence must be supplied or owner-approved deferral must be recorded in the launch decision register. |
 | G3 | security | G3-E01 verification_gate_production_rerun -> seven_of_seven_pass<br>G3-E02 ethical_wall_blocking_results -> five_of_five_pass_with_audit<br>G3-E03 penetration_test_adjudication -> open_p0_p1_zero<br>G3-E04 bypass_mapping_results -> all_rows_green | Full gate evidence must be supplied or owner-approved deferral must be recorded in the launch decision register. |
 | G4 | infrastructure_dr | G4-E01 backup_restore_rehearsal -> meets_approved_rpo_rto<br>G4-E02 worm_chain_operation -> hash_verify_mutation_block_and_hold_purge_block<br>G4-E03 deployment_rollback_roundtrip -> start_end_timestamp_pairs_present<br>G4-E04 performance_acceptance_report -> all_metrics_within_approved_thresholds | Full gate evidence must be supplied or owner-approved deferral must be recorded in the launch decision register. |

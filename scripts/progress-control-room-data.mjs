@@ -72,6 +72,40 @@ function listPackManifests(root) {
     });
 }
 
+function readActivePack(root, nextQueue) {
+  if (!nextQueue?.pack_id) return null;
+
+  const packDir = nextQueue.pack_id.toLowerCase();
+  const manifestPath = path.join("docs/closeout-packs", packDir, "manifest.json");
+  const manifest = readJsonIfExists(root, manifestPath);
+  if (!manifest) return null;
+
+  const receiptPath = path.join("artifacts/closeout-pack-claude-review", packDir, "review-receipt.json");
+  const validReceipts = manifest.pack_level_claude_review?.valid_review_receipts || manifest.valid_review_receipts || [];
+  const invalidAttempts = manifest.pack_level_claude_review?.invalid_review_attempts || manifest.invalid_review_attempts || [];
+
+  return {
+    pack: manifest.pack_id || nextQueue.pack_id,
+    status: manifest.status || "unknown",
+    productionReady: manifest.production_ready === true,
+    implementationLayer: manifest.implementation_layer || "unknown",
+    runtimeReady: manifest.runtime_ready === true,
+    productionReadyFlag: manifest.production_ready_flag || null,
+    reviewStatus: manifest.pack_level_claude_review?.status || "unknown",
+    validReceiptCount: Array.isArray(validReceipts) ? validReceipts.length : 0,
+    invalidAttemptCount: Array.isArray(invalidAttempts) ? invalidAttempts.length : 0,
+    canonicalReceiptPresent: fs.existsSync(path.join(root, receiptPath)),
+    units: manifest.unit_count ?? nextQueue.unit_count ?? 0,
+    risk: manifest.risk_class || nextQueue.risk_class || "A",
+    range: nextQueue.range_description || manifest.plan_binding_snapshot?.range?.description || null,
+    primarySubphase: manifest.primary_subphase_id || null,
+    nextSubphase: manifest.next_subphase || null,
+    deliveryCounts: manifest.delivery_counts || {},
+    manifestPath,
+    receiptPath,
+  };
+}
+
 function readCloseoutCommits(root, manifestUnits) {
   const output = execSync("git log --date=iso-strict --pretty=format:'%h%x09%cI%x09%s' --all --max-count=2000", {
     cwd: root,
@@ -107,6 +141,8 @@ export function getProgressSnapshot({ root = defaultRoot, now = new Date() } = {
   const plan = readJson(root, "docs/closeout-pack-plan/closeout-pack-plan.json");
   const queue = readJson(root, "docs/closeout-pack-plan/next-pack-queue.json");
   const implementationLayerLedger = readJsonIfExists(root, "docs/closeout-pack-plan/implementation-layer-ledger.json");
+  const nextQueue = queue.packs[0] || null;
+  const activePack = readActivePack(root, nextQueue);
 
   const total = plan.expanded_product_scope.expanded_total_units;
   const hrxUnitsInPlan = plan.expanded_product_scope.hrx_units_in_plan_source === true;
@@ -154,13 +190,24 @@ export function getProgressSnapshot({ root = defaultRoot, now = new Date() } = {
     riskUnits[manifest.risk] = (riskUnits[manifest.risk] || 0) + manifest.units;
   }
 
-  const etaRates = [150, 175, 200, 225, 250].map((rate) => {
+  const etaScenarioRates = [
+    150, 175, 200, 225, 250,
+    300, 350, 400, 450, 500,
+    550, 600, 650, 700,
+  ];
+  const oneHourRate = windows.find((window) => window.hours === 1)?.rate || 200;
+  const activeEtaRate = etaScenarioRates.reduce((best, rate) => (
+    Math.abs(rate - oneHourRate) < Math.abs(best - oneHourRate) ? rate : best
+  ), etaScenarioRates[0]);
+
+  const etaRates = etaScenarioRates.map((rate) => {
     const hours = remaining / rate;
     const eta = new Date(now.getTime() + hours * 3600 * 1000);
     return {
       rate,
       days: round(hours / 24, 1),
       eta: labelFromKst(formatKst(eta)),
+      active: rate === activeEtaRate,
     };
   });
 
@@ -209,7 +256,8 @@ export function getProgressSnapshot({ root = defaultRoot, now = new Date() } = {
     })),
     etaRates,
     implementationLayers,
-    nextQueue: queue.packs[0],
+    activePack,
+    nextQueue,
     planSummary: plan.summary,
   };
 }

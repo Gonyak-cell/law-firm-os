@@ -18,11 +18,11 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "missing_deferral_target_count": 115,
-    "crosswalk_row_count": 115,
-    "action_linked_count": 115,
+    "missing_deferral_target_count": 117,
+    "crosswalk_row_count": 117,
+    "action_linked_count": 117,
     "missing_action_source_count": 0,
-    "gate_manual_intake_link_count": 29,
+    "gate_manual_intake_link_count": 31,
     "l9_manual_intake_link_count": 5,
     "blocked_wp_owner_action_link_count": 70,
     "phase_exit_link_count": 11,
@@ -37,7 +37,7 @@
     },
     {
       "value": "go_live_gate_evidence",
-      "count": 29
+      "count": 31
     },
     {
       "value": "phase_exit",
@@ -55,7 +55,7 @@
     },
     {
       "value": "manual_intake_and_failed_gate_action",
-      "count": 29
+      "count": 31
     },
     {
       "value": "phase_exit_readiness_audit",
@@ -67,6 +67,52 @@
     }
   ],
   "crosswalk_rows": [
+    {
+      "coverage_id": "ACC-GL-G1-G1-E02",
+      "domain": "go_live_gate_evidence",
+      "coverage_status": "missing_owner_deferral",
+      "accepted_decision_ids": [
+        "ACC-GL-G1-G1-E02",
+        "COVERAGE-GATE-G1",
+        "COVERAGE-ALL-GO-LIVE"
+      ],
+      "action_source": "manual_intake_and_failed_gate_action",
+      "action_ref": "GL-G1-G1-E02",
+      "gate_id": "G1",
+      "evidence_id": "G1-E02",
+      "required_state": "blocking_remaining_count_zero",
+      "related_blocked_work_package_ids": [
+        "LT-L0-W01",
+        "LT-L0-W02",
+        "LT-L0-W03",
+        "LT-L0-W05",
+        "LT-L8-W02"
+      ],
+      "next_required_action": "Provide required gate evidence, or record an owner-approved deferral using one accepted decision ID."
+    },
+    {
+      "coverage_id": "ACC-GL-G1-G1-E03",
+      "domain": "go_live_gate_evidence",
+      "coverage_status": "missing_owner_deferral",
+      "accepted_decision_ids": [
+        "ACC-GL-G1-G1-E03",
+        "COVERAGE-GATE-G1",
+        "COVERAGE-ALL-GO-LIVE"
+      ],
+      "action_source": "manual_intake_and_failed_gate_action",
+      "action_ref": "GL-G1-G1-E03",
+      "gate_id": "G1",
+      "evidence_id": "G1-E03",
+      "required_state": "all_missing_cells_adjudicated_or_zero",
+      "related_blocked_work_package_ids": [
+        "LT-L0-W01",
+        "LT-L0-W02",
+        "LT-L0-W03",
+        "LT-L0-W05",
+        "LT-L8-W02"
+      ],
+      "next_required_action": "Provide required gate evidence, or record an owner-approved deferral using one accepted decision ID."
+    },
     {
       "coverage_id": "ACC-GL-G2-G2-E01",
       "domain": "go_live_gate_evidence",

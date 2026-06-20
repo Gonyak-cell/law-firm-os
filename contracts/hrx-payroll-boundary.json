@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.hrx-payroll-boundary.v0.1",
+  "tuw_id": "HRX-ENT-L0-W01-T03",
+  "status": "accepted",
+  "decision": "payroll_export_preview_before_calculation_runtime",
+  "calculation_runtime": false,
+  "export_preview": true,
+  "human_review_required": true,
+  "allowed_outputs": [
+    "payroll_export_preview",
+    "payroll_reconciliation_summary",
+    "human_review_packet",
+    "external_payroll_connector_payload_draft"
+  ],
+  "blocked_outputs": [
+    "net_pay_calculation",
+    "tax_withholding_calculation",
+    "payroll_final_approval",
+    "payroll_disbursement_instruction",
+    "payroll_provider_execution"
+  ],
+  "required_controls": [
+    "tenant_scope",
+    "actor_context",
+    "permission_decision",
+    "audit_event",
+    "human_review"
+  ],
+  "readiness_claim": "boundary_only",
+  "runtime_ready": false,
+  "production_ready": false
+}

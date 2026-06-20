@@ -14,14 +14,56 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "source_missing_deferral_target_count": 115,
-    "template_row_count": 115,
-    "recommended_decision_id_count": 115,
-    "placeholder_row_count": 115,
+    "source_missing_deferral_target_count": 117,
+    "template_row_count": 117,
+    "recommended_decision_id_count": 117,
+    "placeholder_row_count": 117,
     "primary_lane_count": 8,
     "unclassified_target_count": 0
   },
   "template_rows": [
+    {
+      "coverage_id": "ACC-GL-G1-G1-E02",
+      "domain": "go_live_gate_evidence",
+      "primary_resolution_lane": "go_live_gate_evidence",
+      "action_source": "manual_intake_and_failed_gate_action",
+      "action_ref": "GL-G1-G1-E02",
+      "recommended_decision_id": "ACC-GL-G1-G1-E02",
+      "alternative_decision_ids": [
+        "COVERAGE-GATE-G1",
+        "COVERAGE-ALL-GO-LIVE"
+      ],
+      "title": "Owner deferral template for ACC-GL-G1-G1-E02",
+      "owner_required_placeholder": "<OWNER_ROLE_AND_NAME_REQUIRED>",
+      "decision_required_placeholder": "<OWNER_DEFERRAL_DECISION_REQUIRED>",
+      "basis_required_placeholder": "<OWNER_DEFERRAL_BASIS_REQUIRED>",
+      "date_or_revisit_gate_required_placeholder": "<TARGET_DATE_OR_REVISIT_GATE_REQUIRED>",
+      "approval_signature_required_placeholder": "<APPROVAL_SIGNATURE_REFERENCE_REQUIRED>",
+      "status_to_use_after_approval": "deferred(시한 명기)",
+      "template_only_not_approved": true,
+      "next_required_action": "Provide required gate evidence, or record an owner-approved deferral using one accepted decision ID."
+    },
+    {
+      "coverage_id": "ACC-GL-G1-G1-E03",
+      "domain": "go_live_gate_evidence",
+      "primary_resolution_lane": "go_live_gate_evidence",
+      "action_source": "manual_intake_and_failed_gate_action",
+      "action_ref": "GL-G1-G1-E03",
+      "recommended_decision_id": "ACC-GL-G1-G1-E03",
+      "alternative_decision_ids": [
+        "COVERAGE-GATE-G1",
+        "COVERAGE-ALL-GO-LIVE"
+      ],
+      "title": "Owner deferral template for ACC-GL-G1-G1-E03",
+      "owner_required_placeholder": "<OWNER_ROLE_AND_NAME_REQUIRED>",
+      "decision_required_placeholder": "<OWNER_DEFERRAL_DECISION_REQUIRED>",
+      "basis_required_placeholder": "<OWNER_DEFERRAL_BASIS_REQUIRED>",
+      "date_or_revisit_gate_required_placeholder": "<TARGET_DATE_OR_REVISIT_GATE_REQUIRED>",
+      "approval_signature_required_placeholder": "<APPROVAL_SIGNATURE_REFERENCE_REQUIRED>",
+      "status_to_use_after_approval": "deferred(시한 명기)",
+      "template_only_not_approved": true,
+      "next_required_action": "Provide required gate evidence, or record an owner-approved deferral using one accepted decision ID."
+    },
     {
       "coverage_id": "ACC-GL-G2-G2-E01",
       "domain": "go_live_gate_evidence",

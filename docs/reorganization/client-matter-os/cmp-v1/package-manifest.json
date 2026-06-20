@@ -1,0 +1,31 @@
+{
+  "package": "CMP R4 Developer Roadmap Package",
+  "package_date": "2026-06-20",
+  "generated_from": "/Users/jws/Documents/Codex/CMP-2/CMP_R4_Developer_Roadmap_Package_v1.0.zip",
+  "generated_at": "2026-06-20T09:05:41.838Z",
+  "current_repo_ref": "codex/hrx-release-go-no-go-package@272156503",
+  "total_tuws": 316,
+  "gate_counts": {
+    "CMP-G0": 21,
+    "CMP-G1": 24,
+    "CMP-G2": 19,
+    "CMP-G3": 24,
+    "CMP-G4": 23,
+    "CMP-G5": 32,
+    "CMP-G6": 22,
+    "CMP-G7": 26,
+    "CMP-G8": 14,
+    "CMP-G9": 18,
+    "CMP-G10": 17,
+    "CMP-G11": 48,
+    "CMP-G12": 28
+  },
+  "priority_counts": {
+    "P0": 88,
+    "P1": 139,
+    "P2": 89
+  },
+  "current_completion_claim": "not_r4_ready",
+  "production_ready_claim": false,
+  "go_live_claim": false
+}

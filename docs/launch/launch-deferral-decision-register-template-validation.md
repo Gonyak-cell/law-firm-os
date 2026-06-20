@@ -6,11 +6,11 @@ Verdict: PASS
 
 ## Summary
 
-- template_row_count: 115
-- source_missing_deferral_target_count: 115
+- template_row_count: 117
+- source_missing_deferral_target_count: 117
 - decision_register_total_rows: 0
 - decision_register_valid_deferred_rows: 0
-- placeholder_row_count: 115
+- placeholder_row_count: 117
 - finding_count: 0
 - p0_count: 0
 - p1_count: 0

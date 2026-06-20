@@ -22,10 +22,10 @@
     "blocked_work_package_count": 70,
     "recorded_work_package_count": 2,
     "failed_gate_count": 10,
-    "failed_gate_evidence_slot_count": 29,
+    "failed_gate_evidence_slot_count": 31,
     "l9_stabilization_closure_slot_count": 5,
-    "total_manual_intake_row_count": 34,
-    "pending_manual_intake_row_count": 34,
+    "total_manual_intake_row_count": 36,
+    "pending_manual_intake_row_count": 36,
     "evidence_satisfied_manual_intake_row_count": 0,
     "owner_deferred_manual_intake_row_count": 0,
     "phase_count": 11,
@@ -123,8 +123,8 @@
     {
       "gate_id": "G1",
       "status": "fail",
-      "failed_evidence_slot_count": 0,
-      "manual_intake_row_count": 0,
+      "failed_evidence_slot_count": 2,
+      "manual_intake_row_count": 2,
       "related_blocked_work_package_count": 5
     },
     {

@@ -1,0 +1,1750 @@
+{
+  "schema_version": 1,
+  "date": "2026-06-20",
+  "current_boundary": "runtime_api_evidence_only__durable_persistence_open",
+  "target_state": "runtime_write_ready__durable_persistence_guarded",
+  "entries": [
+    {
+      "id": "HRX-L0-001",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/00-boundary-decision.md",
+        "docs/hrx-enterprise/acceptance-gates.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:no-premature-claim:validate"
+      ]
+    },
+    {
+      "id": "HRX-L0-002",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/plan-intake.md",
+        "docs/hrx-enterprise/roadmap-package/"
+      ],
+      "validators": [
+        "npm run hrx:release:validate"
+      ]
+    },
+    {
+      "id": "HRX-L0-003",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/03-release-gates.md",
+        "docs/hrx-enterprise/go-live-checklist.md",
+        "docs/hrx-enterprise/cutover-runbook.md"
+      ],
+      "validators": [
+        "npm run hrx:runtime:validate:expect-not-ready",
+        "npm run hrx:release:validate"
+      ]
+    },
+    {
+      "id": "HRX-L0-004",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-no-premature-claim.mjs",
+        "scripts/validate-hrx-release-readiness.mjs",
+        "package.json"
+      ],
+      "validators": [
+        "npm run hrx:no-premature-claim:validate",
+        "npm run hrx:release:validate"
+      ]
+    },
+    {
+      "id": "HRX-L0-005",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/01-terminology.md"
+      ],
+      "validators": [
+        "npm run hrx:no-premature-claim:validate"
+      ]
+    },
+    {
+      "id": "HRX-L0-006",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/dev-handoff-receipt.md",
+        "docs/hrx-enterprise/owner-decision-template.md",
+        "docs/hrx-enterprise/go-no-go-template.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate"
+      ]
+    },
+    {
+      "id": "HRX-L0-007",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/tuw-traceability-matrix.md",
+        "docs/hrx-enterprise/sequential-pack-pr-board.md",
+        "scripts/generate-hrx-roadmap-traceability.mjs"
+      ],
+      "validators": [
+        "npm run hrx:roadmap:traceability:generate",
+        "npm run hrx:release:validate"
+      ]
+    },
+    {
+      "id": "HRX-L0-008",
+      "pr": "PR-00",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/risk-register.md",
+        "docs/hrx-enterprise/roadmap-package/HRX_Roadmap_08_RISK_REGISTER.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-001",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/store/port.js",
+        "packages/hrx/src/store/file-store.js"
+      ],
+      "validators": [
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-002",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/repository-sql.js",
+        "packages/hrx/test/repository-sql.test.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/repository-sql.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-003",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/repository-sql.js",
+        "packages/hrx/test/repository-sql.test.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/repository-sql.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-004",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/repository-sql.js",
+        "packages/hrx/src/identity-link.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/repository-sql.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-005",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/migrations/index.js",
+        "scripts/migrate-hrx.mjs",
+        "packages/hrx/test/migration.test.js"
+      ],
+      "validators": [
+        "npm run db:migrate:test",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-006",
+      "pr": "PR-02",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/migrations/002_hrx_documents_leave_audit.sql",
+        "packages/hrx/src/documents.js",
+        "packages/hrx/src/leave/balance.js",
+        "packages/hrx/src/leave/request-service.js",
+        "packages/audit/src/hrx-event-store-sql.js",
+        "packages/audit/src/hrx-hash-chain.js"
+      ],
+      "validators": [
+        "npm run db:migrate:test",
+        "node --test packages/hrx/test/documents-sql.test.js packages/hrx/test/leave-sql.test.js packages/audit/test/hrx-event-store-sql.test.js apps/api/test/hrx/durability.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-007",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/hrx-runtime-context.js",
+        "apps/api/test/hrx/durability.test.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx/durability.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-008",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "scripts/seed-hrx-fixtures.mjs",
+        "packages/hrx/fixtures/seed-employees.synthetic.json"
+      ],
+      "validators": [
+        "node scripts/seed-hrx-fixtures.mjs --dry-run",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-009",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/repository.js",
+        "packages/hrx/src/repository-sql.js"
+      ],
+      "validators": [
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-010",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "apps/api/test/hrx/durability.test.js",
+        "packages/hrx/src/store/file-store.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx/durability.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-011",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/test/repository-sql.test.js",
+        "packages/hrx/src/store/file-store.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/repository-sql.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-012",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/test/migration.test.js",
+        "packages/hrx/src/migrations/index.js"
+      ],
+      "validators": [
+        "npm run db:migrate:test",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-013",
+      "pr": "PR-02",
+      "status": "closed",
+      "evidence": [
+        "scripts/hrx-backup-restore-smoke.mjs",
+        "apps/api/test/hrx/durability.test.js"
+      ],
+      "validators": [
+        "node scripts/hrx-backup-restore-smoke.mjs --dry-run",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L1-014",
+      "pr": "PR-01",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-persistence.mjs",
+        "package.json"
+      ],
+      "validators": [
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-001",
+      "pr": "PR-03",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/routes/hrx/route-policy-map.js",
+        "apps/api/test/hrx/route-authz.test.js"
+      ],
+      "validators": [
+        "npm run hrx:authz:validate",
+        "node --test apps/api/test/hrx/route-authz.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L2-002",
+      "pr": "PR-03",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/middleware/hrx-authz.js",
+        "apps/api/test/hrx/route-authz.test.js"
+      ],
+      "validators": [
+        "npm run hrx:authz:validate",
+        "npm run hrx:security:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-003",
+      "pr": "PR-03",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/server.js",
+        "apps/api/test/hrx-runtime-api.test.js",
+        "apps/api/test/hrx/route-authz.test.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx-runtime-api.test.js apps/api/test/hrx/route-authz.test.js",
+        "npm run hrx:authz:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-004",
+      "pr": "PR-05",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/middleware/hrx-authz.js",
+        "apps/api/src/hrx-runtime-context.js",
+        "apps/api/src/server.js",
+        "apps/api/test/hrx/route-authz.test.js",
+        "apps/api/test/hrx/tenant-isolation.test.js",
+        "scripts/validate-hrx-context-hardening.mjs"
+      ],
+      "validators": [
+        "npm run hrx:context:validate",
+        "npm run hrx:authz:validate",
+        "npm run hrx:security:validate",
+        "node --test apps/api/test/hrx-runtime-api.test.js apps/api/test/hrx/route-authz.test.js apps/api/test/hrx/tenant-isolation.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L2-005",
+      "pr": "PR-05",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/hrxApiClient.ts",
+        "apps/web/e2e/hrx/employee-list.spec.ts",
+        "apps/web/e2e/hrx/leave-request.spec.ts",
+        "scripts/validate-hrx-context-hardening.mjs"
+      ],
+      "validators": [
+        "npm run hrx:context:validate",
+        "npm --workspace apps/web run test:ui",
+        "npm run web:e2e -- hrx"
+      ]
+    },
+    {
+      "id": "HRX-L2-006",
+      "pr": "PR-04",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/middleware/hrx-step-up-context.js",
+        "apps/api/test/hrx-step-up.test.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx-step-up.test.js",
+        "npm run hrx:security:validate",
+        "npm run hrx:runtime:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-007",
+      "pr": "PR-04",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/middleware/hrx-step-up.js",
+        "apps/api/src/middleware/hrx-step-up-context.js",
+        "apps/api/src/server.js",
+        "apps/api/test/hrx/step-up-route.test.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx-step-up.test.js apps/api/test/hrx/step-up-route.test.js",
+        "npm run hrx:security:validate",
+        "npm run hrx:runtime:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-008",
+      "pr": "PR-03",
+      "status": "closed",
+      "evidence": [
+        "packages/audit/src/hrx-event-store-sql.js",
+        "packages/audit/test/hrx-event-store-sql.test.js"
+      ],
+      "validators": [
+        "node --test packages/audit/test/hrx-event-store-sql.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-009",
+      "pr": "PR-03",
+      "status": "closed",
+      "evidence": [
+        "packages/audit/src/hrx-hash-chain.js",
+        "packages/audit/test/hrx-event-store-sql.test.js"
+      ],
+      "validators": [
+        "node --test packages/audit/test/hrx-event-store-sql.test.js",
+        "npm run hrx:persistence:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-016",
+      "pr": "PR-03",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-route-authz.mjs",
+        "package.json",
+        "apps/api/test/hrx/route-authz.test.js"
+      ],
+      "validators": [
+        "npm run hrx:authz:validate",
+        "npm run hrx:security:validate"
+      ]
+    },
+    {
+      "id": "HRX-L3-001",
+      "pr": "PR-07",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/routes/hrx/employees.js",
+        "apps/api/src/hrx-runtime-context.js",
+        "apps/api/src/routes/hrx/route-policy-map.js",
+        "packages/hrx/src/service.js",
+        "packages/hrx/src/repository.js",
+        "apps/api/test/hrx/employees.test.js",
+        "apps/api/test/hrx-runtime-api.test.js"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "node --test apps/api/test/hrx/employees.test.js apps/api/test/hrx-runtime-api.test.js packages/hrx/test/service.test.js packages/hrx/test/repository.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L3-002",
+      "pr": "PR-07",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/org.js",
+        "packages/hrx/test/org.test.js"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "node --test packages/hrx/test/org.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L3-003",
+      "pr": "PR-07",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/reporting-line.js",
+        "packages/hrx/src/employment-profile.js",
+        "packages/hrx/test/org.test.js"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "node --test packages/hrx/test/org.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L3-004",
+      "pr": "PR-07",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/assignment.js",
+        "packages/hrx/test/assignment.test.js"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "node --test packages/hrx/test/assignment.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L3-005",
+      "pr": "PR-06",
+      "status": "closed",
+      "evidence": [
+        "contracts/hrx-document-source-boundary.json",
+        "packages/hrx/src/documents/source-adapter.js",
+        "packages/hrx/src/documents.js",
+        "apps/api/src/routes/hrx/documents.js",
+        "packages/hrx/test/document-source-adapter.test.js",
+        "apps/api/test/hrx/documents.test.js"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "node --test packages/hrx/test/document-source-adapter.test.js packages/hrx/test/documents-sql.test.js apps/api/test/hrx/documents.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L3-006",
+      "pr": "PR-06",
+      "status": "closed",
+      "evidence": [
+        "packages/integrations-core/src/hrx-m365-doc-source.js",
+        "packages/integrations-core/test/hrx-m365-doc-source.test.js",
+        "contracts/hrx-document-source-boundary.json"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "node --test packages/integrations-core/test/hrx-m365-doc-source.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L3-007",
+      "pr": "PR-07",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/contracts.js",
+        "packages/hrx/test/contracts.test.js"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "node --test packages/hrx/test/contracts.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L3-008",
+      "pr": "PR-07",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/compensation.js",
+        "packages/hrx/test/compensation.test.js"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "node --test packages/hrx/test/compensation.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L3-009",
+      "pr": "PR-07",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/payroll-boundary.js",
+        "apps/api/src/routes/hrx/payroll.js",
+        "apps/api/test/hrx/payroll.test.js"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "node --test apps/api/test/hrx/payroll.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L3-010",
+      "pr": "PR-07",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/retention.js",
+        "packages/hrx/src/legal-hold.js",
+        "packages/hrx/test/retention.test.js"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "node --test packages/hrx/test/retention.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L3-011",
+      "pr": "PR-07",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/legal-hold.js",
+        "packages/hrx/test/retention.test.js"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "node --test packages/hrx/test/retention.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L3-012",
+      "pr": "PR-07",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/people-graph.js",
+        "packages/hrx/test/people-graph.test.js"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "node --test packages/hrx/test/people-graph.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L3-013",
+      "pr": "PR-07",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/legal-risk.js",
+        "packages/hrx/test/legal-risk.test.js"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "node --test packages/hrx/test/legal-risk.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L3-014",
+      "pr": "PR-07",
+      "status": "closed",
+      "evidence": [
+        "contracts/hrx-runtime-contract.json",
+        "scripts/validate-hrx-core-domain.mjs"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "npm run hrx:no-premature-claim:validate"
+      ]
+    },
+    {
+      "id": "HRX-L3-015",
+      "pr": "PR-07",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-core-domain.mjs",
+        "package.json"
+      ],
+      "validators": [
+        "npm run hrx:core:validate",
+        "npm test"
+      ]
+    },
+    {
+      "id": "HRX-L4-001",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/rules/leave-policy.js",
+        "packages/hrx/test/leave-policy.test.js",
+        "scripts/validate-hrx-workflows.mjs"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/leave-policy.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-002",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/leave/request-service.js",
+        "packages/hrx/test/leave-sql.test.js",
+        "apps/api/test/hrx/leave.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/leave-sql.test.js apps/api/test/hrx/leave.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-003",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/attendance.js",
+        "packages/hrx/test/attendance.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/attendance.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-004",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/overtime.js",
+        "packages/hrx/test/overtime.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/overtime.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-005",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/approval.js",
+        "packages/hrx/test/approval.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/approval.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-006",
+      "pr": "PR-09",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/recruiting/state-machine.js",
+        "packages/hrx/test/recruiting-state-machine.test.js",
+        "scripts/validate-hrx-workflows.mjs"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/recruiting-state-machine.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-007",
+      "pr": "PR-09",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/recruiting/consent.js",
+        "packages/hrx/test/consent.test.js",
+        "apps/api/src/routes/hrx/recruiting.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/consent.test.js apps/api/test/hrx/recruiting.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-008",
+      "pr": "PR-09",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/recruiting/interview-feedback.js",
+        "packages/hrx/test/interview-feedback.test.js",
+        "apps/api/test/hrx/recruiting.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/interview-feedback.test.js apps/api/test/hrx/recruiting.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-009",
+      "pr": "PR-09",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/recruiting/offer.js",
+        "packages/hrx/test/offer.test.js",
+        "apps/api/src/routes/hrx/recruiting.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/offer.test.js apps/api/test/hrx/recruiting.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-010",
+      "pr": "PR-09",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/recruiting/convert-to-employee.js",
+        "packages/hrx/test/convert-to-employee.test.js",
+        "apps/api/test/hrx/recruiting.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/convert-to-employee.test.js apps/api/test/hrx/recruiting.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-011",
+      "pr": "PR-09",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/onboarding.js",
+        "apps/api/src/routes/hrx/lifecycle.js",
+        "packages/hrx/test/onboarding.test.js",
+        "apps/api/test/hrx/lifecycle.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/onboarding.test.js apps/api/test/hrx/lifecycle.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-012",
+      "pr": "PR-09",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/offboarding.js",
+        "apps/api/src/routes/hrx/lifecycle.js",
+        "packages/hrx/test/offboarding.test.js",
+        "apps/api/test/hrx/lifecycle.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/offboarding.test.js apps/api/test/hrx/lifecycle.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-013",
+      "pr": "PR-09",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/legal-risk.js",
+        "packages/hrx/test/legal-risk.test.js",
+        "scripts/validate-hrx-workflows.mjs"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/legal-risk.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-014",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/payroll-export-service.js",
+        "apps/api/src/routes/hrx/payroll.js",
+        "packages/hrx/test/payroll-export-service.test.js",
+        "apps/api/test/hrx/payroll.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/payroll-export-service.test.js apps/api/test/hrx/payroll.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-015",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/payroll-reconciliation.js",
+        "packages/hrx/test/payroll-reconciliation.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/payroll-reconciliation.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-016",
+      "pr": "PR-08",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/retention-job.js",
+        "packages/hrx/test/retention-job.test.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test packages/hrx/test/retention-job.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-017",
+      "pr": "PR-09",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/routes/hrx/lifecycle.js",
+        "apps/api/test/hrx/lifecycle.test.js",
+        "scripts/validate-hrx-workflows.mjs"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test apps/api/test/hrx/lifecycle.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-018",
+      "pr": "PR-09",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/routes/hrx/recruiting.js",
+        "apps/api/test/hrx/recruiting.test.js",
+        "scripts/validate-hrx-workflows.mjs"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test apps/api/test/hrx/recruiting.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-019",
+      "pr": "PR-09",
+      "status": "closed",
+      "evidence": [
+        "apps/api/test/hrx/workflow-audit.test.js",
+        "apps/api/src/routes/hrx/recruiting.js",
+        "apps/api/src/routes/hrx/lifecycle.js"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "node --test apps/api/test/hrx/workflow-audit.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L4-020",
+      "pr": "PR-09",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-workflows.mjs",
+        "package.json"
+      ],
+      "validators": [
+        "npm run hrx:workflows:validate",
+        "npm test"
+      ]
+    },
+    {
+      "id": "HRX-L5-001",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/hrxApiClient.ts",
+        "apps/web/e2e/hrx/employee-list.spec.ts",
+        "scripts/validate-hrx-ui-api-backed.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-002",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/employees/EmployeeList.tsx",
+        "apps/web/e2e/hrx/employee-list.spec.ts",
+        "apps/web/test/ui-regression.test.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-003",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/employees/EmployeeProfile.tsx",
+        "apps/web/e2e/hrx/employee-profile.spec.ts",
+        "scripts/validate-hrx-ui-api-backed.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-004",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/documents/HRDocumentWorkspace.tsx",
+        "apps/web/e2e/hrx/hr-documents.spec.ts",
+        "scripts/validate-hrx-ui-api-backed.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-005",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/leave/LeaveRequestPage.tsx",
+        "apps/web/e2e/hrx/leave-request.spec.ts",
+        "scripts/validate-hrx-ui-api-backed.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-006",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/approvals/ManagerApprovalQueue.tsx",
+        "apps/web/e2e/hrx/manager-approval.spec.ts",
+        "scripts/validate-hrx-ui-api-backed.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-007",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/candidate/CandidatePortal.tsx",
+        "apps/web/e2e/hrx/candidate-portal.spec.ts",
+        "scripts/validate-hrx-ui-api-backed.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-008",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/recruiting/RecruitingPipeline.tsx",
+        "apps/web/e2e/hrx/recruiting-pipeline.spec.ts",
+        "apps/api/src/hrx-runtime-context.js"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui",
+        "node --test apps/api/test/hrx-runtime-api.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L5-009",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/admin/hrx/HRXPolicyConsole.tsx",
+        "apps/web/e2e/hrx/hrx-policy-console.spec.ts",
+        "scripts/validate-hrx-ui-api-backed.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-010",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/admin/hrx/HRXAuditViewer.tsx",
+        "apps/web/src/people/security/HrxStepUpChallenge.tsx",
+        "apps/web/e2e/hrx/hrx-audit-viewer.spec.ts"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui",
+        "node --test apps/api/test/hrx/step-up-route.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L5-011",
+      "pr": "PR-11",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/lifecycle/LifecycleBoard.tsx",
+        "apps/web/e2e/hrx/lifecycle-board.spec.ts",
+        "apps/web/src/people/hrxApiClient.ts",
+        "apps/api/src/hrx-runtime-context.js"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui",
+        "node --test apps/api/test/hrx-runtime-api.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L5-012",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/security/HrxStepUpChallenge.tsx",
+        "apps/web/e2e/hrx/hrx-step-up-challenge.spec.ts",
+        "apps/web/test/ui-regression.test.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-013",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "apps/web/e2e/hrx/*.spec.ts",
+        "scripts/run-web-e2e.mjs"
+      ],
+      "validators": [
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L5-014",
+      "pr": "PR-10",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-ui-api-backed.mjs",
+        "package.json"
+      ],
+      "validators": [
+        "npm run hrx:ui:validate",
+        "npm run web:e2e",
+        "npm --workspace apps/web run test:ui"
+      ]
+    },
+    {
+      "id": "HRX-L6-001",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/ai/source-ingestion.js",
+        "packages/hrx/test/ai-source-ingestion.test.js",
+        "packages/hrx/src/migrations/003_hrx_ai_analytics.sql"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/ai-source-ingestion.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-002",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/ai/citation-validator.js",
+        "packages/hrx/src/ai/answer-schema.js",
+        "packages/hrx/test/ai-citation-validator.test.js"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/ai-citation-validator.test.js packages/hrx/test/ai-answer-schema.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-003",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/ai/model-gateway.js",
+        "packages/hrx/test/ai-model-gateway.test.js",
+        "scripts/validate-hrx-ai-analytics.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/ai-model-gateway.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-004",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/ai/decision-guard.js",
+        "packages/hrx/test/ai-decision-guard.test.js",
+        "apps/api/src/routes/hrx/ai.js"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/ai-decision-guard.test.js apps/api/test/hrx/ai.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-005",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/ai/review-queue-sql.js",
+        "packages/hrx/test/ai-review-queue-sql.test.js",
+        "apps/api/src/hrx-runtime-context.js"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/ai-review-queue-sql.test.js apps/api/test/hrx/ai.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-006",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/ai/audit.js",
+        "packages/hrx/test/ai-audit.test.js",
+        "apps/api/src/routes/hrx/ai.js"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/ai-audit.test.js apps/api/test/hrx/ai.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-007",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/ai/rag.js",
+        "packages/hrx/test/ai-rag-authz.test.js",
+        "scripts/validate-hrx-ai-analytics.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/ai-rag-authz.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-008",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/analytics-snapshot.js",
+        "packages/hrx/test/analytics-snapshot.test.js",
+        "packages/hrx/src/migrations/003_hrx_ai_analytics.sql"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/analytics-snapshot.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-009",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/matter/src/hrx-workload-projection.js",
+        "packages/matter/test/hrx-workload-projection.test.js",
+        "packages/hrx/src/analytics.js"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/matter/test/hrx-workload-projection.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-010",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/analytics.js",
+        "packages/hrx/test/analytics.test.js",
+        "apps/api/test/hrx/ai.test.js"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/analytics.test.js apps/api/test/hrx/ai.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-011",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/analytics-export.js",
+        "packages/hrx/test/analytics-export.test.js",
+        "scripts/validate-hrx-ai-analytics.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/analytics-export.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-012",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/ai/HRAIAssistant.tsx",
+        "apps/web/e2e/hrx/hrx-ai-assistant.spec.ts",
+        "apps/web/src/people/hrxApiClient.ts"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "npm run web:e2e -- hrx-ai-assistant"
+      ]
+    },
+    {
+      "id": "HRX-L6-013",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/analytics/HRAnalytics.tsx",
+        "apps/web/e2e/hrx/hrx-analytics.spec.ts",
+        "apps/api/src/hrx-runtime-context.js"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "npm run web:e2e -- hrx-analytics"
+      ]
+    },
+    {
+      "id": "HRX-L6-014",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-ai-analytics.mjs",
+        "package.json",
+        "docs/hrx-enterprise/tuw-traceability-matrix.md"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "npm test"
+      ]
+    },
+    {
+      "id": "HRX-L2-010",
+      "pr": "PR-03/04/05",
+      "status": "closed",
+      "evidence": [
+        "apps/api/src/middleware/hrx-audit-write.js",
+        "apps/api/src/hrx-runtime-context.js",
+        "scripts/validate-hrx-route-authz.mjs"
+      ],
+      "validators": [
+        "npm run hrx:authz:validate",
+        "npm run hrx:security:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-011",
+      "pr": "PR-03/04/05",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/field-masker.js",
+        "packages/hrx/test/field-masker.test.js",
+        "packages/authz/src/hrx-compensation-policy.js",
+        "packages/authz/src/hrx-evaluation-policy.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/field-masker.test.js",
+        "npm run hrx:security:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-012",
+      "pr": "PR-03/04/05",
+      "status": "closed",
+      "evidence": [
+        "packages/authz/src/hrx-break-glass.js",
+        "packages/authz/test/hrx-break-glass.test.js",
+        "packages/authz/src/hrx-step-up-session.js"
+      ],
+      "validators": [
+        "node --test packages/authz/test/hrx-break-glass.test.js",
+        "npm run hrx:security:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-013",
+      "pr": "PR-03/04/05",
+      "status": "closed",
+      "evidence": [
+        "packages/authz/src/hrx-compensation-policy.js",
+        "packages/authz/test/hrx-compensation-policy.test.js",
+        "packages/authz/src/hrx-step-up-session.js"
+      ],
+      "validators": [
+        "node --test packages/authz/test/hrx-compensation-policy.test.js",
+        "npm run hrx:security:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-014",
+      "pr": "PR-03/04/05",
+      "status": "closed",
+      "evidence": [
+        "packages/authz/src/hrx-evaluation-policy.js",
+        "packages/authz/test/hrx-evaluation-policy.test.js",
+        "packages/hrx/src/field-masker.js"
+      ],
+      "validators": [
+        "node --test packages/authz/test/hrx-evaluation-policy.test.js packages/hrx/test/field-masker.test.js",
+        "npm run hrx:security:validate"
+      ]
+    },
+    {
+      "id": "HRX-L2-015",
+      "pr": "PR-03/04/05",
+      "status": "closed",
+      "evidence": [
+        "packages/authz/src/hrx-candidate-policy.js",
+        "packages/authz/test/hrx-candidate-policy.test.js"
+      ],
+      "validators": [
+        "node --test packages/authz/test/hrx-candidate-policy.test.js",
+        "npm run hrx:security:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-001",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "packages/authz/src/sso-subject-map.js",
+        "packages/authz/test/sso-subject-map.test.js"
+      ],
+      "validators": [
+        "node --test packages/authz/test/sso-subject-map.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-002",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/scim-boundary.js",
+        "packages/hrx/test/scim-boundary.test.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/scim-boundary.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-003",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "packages/authz/src/hrx-step-up-session.js",
+        "packages/authz/test/hrx-step-up-session.test.js"
+      ],
+      "validators": [
+        "node --test packages/authz/test/hrx-step-up-session.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-004",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "apps/api/test/hrx/tenant-isolation.test.js",
+        "apps/api/src/hrx-runtime-context.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx/tenant-isolation.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-005",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/observability.js",
+        "packages/hrx/test/observability.test.js",
+        "apps/api/src/middleware/metrics.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/observability.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-006",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/slo-definition.md",
+        "packages/hrx/src/observability.js"
+      ],
+      "validators": [
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-007",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/compliance-report.js",
+        "packages/hrx/test/compliance-report.test.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/compliance-report.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-008",
+      "pr": "PR-13",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/retention-job.js",
+        "packages/hrx/test/retention-job.test.js"
+      ],
+      "validators": [
+        "node --test packages/hrx/test/retention-job.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-009",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "scripts/hrx-backup-restore-smoke.mjs"
+      ],
+      "validators": [
+        "node scripts/hrx-backup-restore-smoke.mjs --dry-run",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-010",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/dr-runbook.md",
+        "scripts/hrx-backup-restore-smoke.mjs"
+      ],
+      "validators": [
+        "node scripts/hrx-backup-restore-smoke.mjs --dry-run",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-011",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "apps/api/test/hrx/performance-smoke.test.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx/performance-smoke.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-012",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "apps/api/test/hrx/security-regression.test.js",
+        "apps/api/test/hrx/step-up-route.test.js",
+        "apps/api/test/hrx/route-authz.test.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx/security-regression.test.js apps/api/test/hrx/step-up-route.test.js apps/api/test/hrx/route-authz.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-013",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "apps/api/test/hrx/secret-exposure.test.js"
+      ],
+      "validators": [
+        "node --test apps/api/test/hrx/secret-exposure.test.js",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-014",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/uat-scenarios.md"
+      ],
+      "validators": [
+        "npm run web:e2e",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L7-015",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/uat-results.md"
+      ],
+      "validators": [
+        "npm run web:e2e",
+        "node scripts/hrx-backup-restore-smoke.mjs --dry-run",
+        "node --test apps/api/test/hrx/performance-smoke.test.js apps/api/test/hrx/security-regression.test.js apps/api/test/hrx/secret-exposure.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L7-016",
+      "pr": "PR-14",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-enterprise-readiness.mjs",
+        "docs/hrx-enterprise/tuw-traceability-matrix.md"
+      ],
+      "validators": [
+        "npm run hrx:enterprise:validate",
+        "npm test"
+      ]
+    },
+    {
+      "id": "HRX-L8-001",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "contracts/hrx-release-readiness.json",
+        "scripts/validate-hrx-release-readiness.mjs"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-002",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/cutover-runbook.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:launch-blockers:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-003",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/go-live-checklist.md",
+        "contracts/hrx-release-readiness.json"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:r4-claim:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-004",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/owner-decision-template.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:no-premature-claim:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-005",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-r4-claim.mjs",
+        "contracts/hrx-release-readiness.json"
+      ],
+      "validators": [
+        "npm run hrx:r4-claim:validate",
+        "npm run hrx:no-premature-claim:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-006",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/production-readiness-evidence.md",
+        "docs/hrx-enterprise/uat-results.md",
+        "docs/hrx-enterprise/dr-runbook.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:enterprise:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-007",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/release-notes-template.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:r4-claim:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-008",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/post-release-monitoring.md",
+        "packages/hrx/src/observability.js"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "node --test packages/hrx/test/observability.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L8-009",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-launch-blockers.mjs",
+        "contracts/hrx-feature-flags.json"
+      ],
+      "validators": [
+        "npm run hrx:launch-blockers:validate",
+        "npm run hrx:release:validate"
+      ]
+    },
+    {
+      "id": "HRX-L8-010",
+      "pr": "PR-15",
+      "status": "closed",
+      "evidence": [
+        "docs/hrx-enterprise/dev-handoff-closeout.md",
+        "docs/hrx-enterprise/owner-decision-template.md"
+      ],
+      "validators": [
+        "npm run hrx:release:validate",
+        "npm run hrx:no-premature-claim:validate"
+      ]
+    }
+  ]
+}

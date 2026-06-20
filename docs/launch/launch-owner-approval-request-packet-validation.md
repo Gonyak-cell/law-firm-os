@@ -10,7 +10,7 @@ Verdict: PASS
 - pending_receipt_slot_count: 4
 - real_owner_receipt_count: 0
 - copy_allowed_count: 0
-- target_count_by_pending_requests: 115
+- target_count_by_pending_requests: 117
 - response_field_count: 7
 - finding_count: 0
 - p0_count: 0

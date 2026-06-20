@@ -1,21 +1,14 @@
 // Master Data bounded context (read surface).
 //
-// Serves the three GET descriptors of contracts/master-data-contract.json v0.21
-// (records_search, relationship_lookup, client_group_resolution) with the
-// contract's request/response fields, error-code taxonomy, and UI-state catalog.
-//
-// SYNTHETIC DATA NOTICE: the master-data contract and packages/master-data are
-// descriptor-only (no persistence, no real client data). The rows served here come
-// from `createMasterDataSyntheticFixture()` exported by packages/master-data
-// (fixture tenant `tenant_rp04_synthetic`). Matter-core enrichment comes from
-// `createMatterCoreSyntheticFixture()` in packages/matter, which uses a different
-// synthetic tenant (`tenant_rp05_synthetic`), so the enrichment is attached as an
-// explicitly flagged synthetic crosswalk, not a real tenant-scoped join.
+// Serves the three GET operations of contracts/master-data-contract.json v0.21
+// through a repository-backed runtime context with the contract's response fields,
+// error-code taxonomy, and UI-state catalog.
 import {
   MASTER_DATA_API_REFERENCE_SURFACE,
   MASTER_DATA_CP156_HIDDEN_SOURCE_FIELDS,
   MASTER_DATA_PROGRAM_CONTRACT,
   MASTER_DATA_UI_SURFACE_STATES,
+  createMasterDataRepository,
   createMasterDataSyntheticFixture,
 } from "../../../packages/master-data/src/index.js";
 import { createMatterCoreSyntheticFixture } from "../../../packages/matter/src/index.js";
@@ -43,21 +36,33 @@ const SUPPORTED_FILTER_KEYS = Object.freeze({
   relationships: ["status", "relationship_type", "direction", "from_entity_id", "to_entity_id"],
 });
 
-const masterDataFixture = createMasterDataSyntheticFixture();
-const matterFixture = createMatterCoreSyntheticFixture();
+export const MASTER_DATA_RUNTIME_SEED = createMasterDataSyntheticFixture();
+const matterSeed = createMatterCoreSyntheticFixture();
 
-const matterRecord = matterFixture.records.find((record) => record.model_type === "Matter");
-const matterMembers = matterFixture.records.filter((record) => record.model_type === "MatterMember");
+const matterRecord = matterSeed.records.find((record) => record.model_type === "Matter");
+const matterMembers = matterSeed.records.filter((record) => record.model_type === "MatterMember");
 
-// matter-core v0.1 enrichment, flagged as a synthetic crosswalk (see notice above).
-const MATTER_CORE_ENRICHMENT = Object.freeze({
-  source_fixture_id: matterFixture.fixture_id,
-  synthetic_crosswalk: true,
+const DEFAULT_MATTER_CORE_ENRICHMENT = Object.freeze({
+  source_fixture_id: matterSeed.fixture_id,
+  runtime_seed_crosswalk: true,
   matter_id: matterRecord?.matter_id ?? null,
   matter_title: matterRecord?.title ?? null,
   matter_status: matterRecord?.status ?? null,
   member_roles: Object.freeze(matterMembers.map((member) => member.role)),
 });
+
+export function createMasterDataRuntimeContext({
+  repository = createMasterDataRepository({ seedRecords: MASTER_DATA_RUNTIME_SEED.records }),
+  matterCoreEnrichment = DEFAULT_MATTER_CORE_ENRICHMENT,
+} = {}) {
+  return Object.freeze({
+    repository,
+    seed_ref: MASTER_DATA_RUNTIME_SEED.fixture_id,
+    matter_core_enrichment: matterCoreEnrichment,
+  });
+}
+
+const DEFAULT_MASTER_DATA_RUNTIME = createMasterDataRuntimeContext();
 
 export const MASTER_DATA_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "master-data",
@@ -67,8 +72,8 @@ export const MASTER_DATA_BOUNDED_CONTEXT = Object.freeze({
   api_surface_id: MASTER_DATA_API_REFERENCE_SURFACE.api_surface_id,
   ui_surface_id: MASTER_DATA_UI_SURFACE_STATES.surface_id,
   endpoints: MASTER_DATA_API_REFERENCE_SURFACE.endpoints,
-  data_source: masterDataFixture.fixture_id,
-  synthetic_only: true,
+  data_source: "master_data_runtime_repository",
+  runtime_persistence: "file_backed_repository",
   uses_real_client_data: false,
   fail_closed: true,
 });
@@ -86,7 +91,7 @@ function primaryIdOf(record) {
   }
 }
 
-function serializeRecord(record) {
+function serializeRecord(record, runtime) {
   const out = {};
   const omitted = [];
   for (const [key, value] of Object.entries(record)) {
@@ -97,7 +102,7 @@ function serializeRecord(record) {
     out[key] = value;
   }
   out.resource_id = primaryIdOf(record);
-  out.matter_core_enrichment = MATTER_CORE_ENRICHMENT;
+  out.matter_core_enrichment = runtime.matter_core_enrichment;
   return { item: out, omitted };
 }
 
@@ -218,7 +223,7 @@ function applyFilters(records, filters) {
   );
 }
 
-function listResponse({ records, query, context, requestId, action, resourceType, supportedFilterKeys }) {
+function listResponse({ records, query, context, requestId, action, resourceType, supportedFilterKeys, runtime }) {
   const invalid = validateCommonQuery(query, requestId);
   if (invalid) return invalid;
 
@@ -248,7 +253,7 @@ function listResponse({ records, query, context, requestId, action, resourceType
   }
   scoped = applyFilters(scoped, filters);
 
-  const serialized = scoped.map(serializeRecord);
+  const serialized = scoped.map((record) => serializeRecord(record, runtime));
   const omittedFields = [...new Set(serialized.flatMap((entry) => entry.omitted))];
   const { allowed, omittedCount } = trimItemsByPermission({
     context,
@@ -280,8 +285,8 @@ function listResponse({ records, query, context, requestId, action, resourceType
   };
 }
 
-export function handleRecordsSearch({ query, context, requestId }) {
-  const records = masterDataFixture.records.filter((record) => record.model_type !== "Relationship");
+export function handleRecordsSearch({ query, context, requestId, runtime = DEFAULT_MASTER_DATA_RUNTIME }) {
+  const records = runtime.repository.list({ tenant_id: query.tenant_id }).filter((record) => record.model_type !== "Relationship");
   return listResponse({
     records,
     query,
@@ -290,11 +295,12 @@ export function handleRecordsSearch({ query, context, requestId }) {
     action: "search",
     resourceType: "master_data_record",
     supportedFilterKeys: SUPPORTED_FILTER_KEYS.records,
+    runtime,
   });
 }
 
-export function handleRelationshipLookup({ query, context, requestId }) {
-  const records = masterDataFixture.records.filter((record) => record.model_type === "Relationship");
+export function handleRelationshipLookup({ query, context, requestId, runtime = DEFAULT_MASTER_DATA_RUNTIME }) {
+  const records = runtime.repository.list({ tenant_id: query.tenant_id, model_type: "Relationship" });
   return listResponse({
     records,
     query,
@@ -303,10 +309,11 @@ export function handleRelationshipLookup({ query, context, requestId }) {
     action: "search",
     resourceType: "master_data_relationship",
     supportedFilterKeys: SUPPORTED_FILTER_KEYS.relationships,
+    runtime,
   });
 }
 
-export function handleClientGroupResolution({ clientGroupId, query, context, requestId }) {
+export function handleClientGroupResolution({ clientGroupId, query, context, requestId, runtime = DEFAULT_MASTER_DATA_RUNTIME }) {
   const invalid = validateCommonQuery(query, requestId);
   if (invalid) return invalid;
 
@@ -322,12 +329,11 @@ export function handleClientGroupResolution({ clientGroupId, query, context, req
   const gated = gateDecisionResponse(decision, requestId, query.audit_hint_ref);
   if (gated) return gated;
 
-  const group = masterDataFixture.records.find(
-    (record) =>
-      record.model_type === "ClientGroup" &&
-      record.client_group_id === clientGroupId &&
-      record.tenant_id === query.tenant_id,
-  );
+  const group = runtime.repository.get({
+    tenant_id: query.tenant_id,
+    model_type: "ClientGroup",
+    id: clientGroupId,
+  });
   if (!group) {
     // Unknown and out-of-tenant ids are indistinguishable: empty-state shape, no existence leak.
     return {
@@ -347,7 +353,7 @@ export function handleClientGroupResolution({ clientGroupId, query, context, req
 
   const { allowed } = trimItemsByPermission({
     context,
-    items: [serializeRecord(group).item],
+    items: [serializeRecord(group, runtime).item],
     action: "view",
     resourceType: "master_data_client_group",
   });
@@ -360,9 +366,11 @@ export function handleClientGroupResolution({ clientGroupId, query, context, req
 
   const item = allowed[0];
   item.members = group.member_entity_ids.map((entityId) => {
-    const entity = masterDataFixture.records.find(
-      (record) => record.model_type === "Entity" && record.entity_id === entityId,
-    );
+    const entity = runtime.repository.get({
+      tenant_id: query.tenant_id,
+      model_type: "Entity",
+      id: entityId,
+    });
     return {
       entity_id: entityId,
       display_name: entity?.display_name ?? null,

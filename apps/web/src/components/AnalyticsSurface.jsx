@@ -1,4 +1,5 @@
 import React from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
   CalendarDays,
@@ -12,15 +13,89 @@ import {
   PanelRightOpen,
   PlayCircle,
   Plus,
+  RefreshCw,
   Save,
   Search,
+  ShieldCheck,
   Table2,
   X,
   Zap
 } from "lucide-react";
 import { DataTable, MiniLineChart, Panel, QueryBlock } from "./primitives.jsx";
+import { fetchAnalyticsDashboards } from "../data/apiClient.js";
 
-export function AnalyticsSurface({ labels, variant, onSave }) {
+const ANALYTICS_PERMISSION_REF = "ui_cmp_g8_analytics_live";
+const ANALYTICS_AUDIT_HINT_REF = "ui_cmp_g8_analytics_probe";
+
+function dashboardRows(items) {
+  return items.map((item) => [item.dashboard_id, item.title, item.dashboard_type, item.metric_value, item.matter_detail_omitted ? "omitted" : "review"]);
+}
+
+function AnalyticsRuntimePanel({ liveCtx = "allow" }) {
+  const [result, setResult] = useState(null);
+  const [refreshToken, setRefreshToken] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setResult(null);
+    fetchAnalyticsDashboards({
+      ctx: liveCtx,
+      permissionRef: ANALYTICS_PERMISSION_REF,
+      auditHintRef: ANALYTICS_AUDIT_HINT_REF
+    }).then((next) => {
+      if (!cancelled) setResult(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [liveCtx, refreshToken]);
+
+  const items = result?.kind === "data" ? result.items : [];
+  const metrics = useMemo(
+    () => ({
+      dashboards: items.length,
+      safe: items.filter((item) => item.raw_matter_detail_included === false).length
+    }),
+    [items]
+  );
+
+  let body;
+  if (result === null) {
+    body = <div className="live-data-state live-data-loading"><strong>Loading analytics</strong> Reading live dashboards from the API.</div>;
+  } else if (result.kind === "error") {
+    body = <div className="live-data-state live-data-error"><strong>Analytics API unavailable</strong> Start the Law Firm OS API and reload.</div>;
+  } else if (result.uiState === "denied") {
+    body = <div className="live-data-state live-data-denied"><strong>Access denied</strong> The permission gate blocked this Analytics request.</div>;
+  } else if (result.uiState === "review_required" || result.outcome === "review_required") {
+    body = <div className="live-data-state live-data-review"><strong>Review required</strong> This dashboard request requires review.</div>;
+  } else {
+    body = (
+      <div className="analytics-runtime-stack">
+        <div className="intake-safe-strip">
+          <ShieldCheck size={15} />
+          <span>Read models are API-backed; source objects and raw matter detail remain omitted.</span>
+        </div>
+        <DataTable columns={["Dashboard", "Title", "Type", "Metric", "Matter detail"]} rows={dashboardRows(items)} />
+      </div>
+    );
+  }
+
+  return (
+    <Panel title="CMP-G8 Analytics Runtime" meta="/api/analytics/dashboards" className="analytics-runtime-panel" data-cmp-g8-analytics-runtime="true">
+      <div className="analytics-runtime-actions">
+        <strong>{metrics.dashboards} dashboards</strong>
+        <span>{metrics.safe} safe projections</span>
+        <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
+          <RefreshCw size={15} />
+          Refresh
+        </button>
+      </div>
+      {body}
+    </Panel>
+  );
+}
+
+export function AnalyticsSurface({ labels, variant, onSave, liveCtx = "allow" }) {
   if (variant === "dataTable" || variant === "dataTablePicker") {
     return <DataTableBuilderSurface showPicker={variant === "dataTablePicker"} />;
   }
@@ -73,6 +148,7 @@ export function AnalyticsSurface({ labels, variant, onSave }) {
             </button>
           </div>
         </div>
+        <AnalyticsRuntimePanel liveCtx={liveCtx} />
         <div className="builder-body">
           <aside className="query-rail">
             <QueryBlock title="Event" value="[Matter] Element Changed" meta="where document_status is redline_v12" />

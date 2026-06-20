@@ -558,13 +558,13 @@
 
     .eta-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
-      gap: 8px;
+      grid-template-columns: repeat(auto-fit, minmax(94px, 1fr));
+      gap: 7px;
     }
 
     .eta-card {
-      min-height: 126px;
-      padding: 11px;
+      min-height: 96px;
+      padding: 9px;
       border: 1px solid var(--line);
       border-radius: var(--r);
       background: #ffffff;
@@ -577,16 +577,16 @@
 
     .eta-card strong {
       display: block;
-      margin: 8px 0 6px;
+      margin: 6px 0 4px;
       color: #102027;
       font-family: var(--mono);
-      font-size: 17px;
+      font-size: 15px;
       line-height: 1.2;
     }
 
     .eta-card span {
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11px;
       line-height: 1.35;
     }
 
@@ -598,6 +598,10 @@
     .queue-card {
       display: grid;
       gap: 10px;
+    }
+
+    .queue-main.active-pack {
+      background: linear-gradient(180deg, #173b49, #102e3a);
     }
 
     .queue-main {
@@ -822,9 +826,12 @@
       }
 
       .metric-grid,
-      .eta-grid,
       .split-mini {
         grid-template-columns: 1fr;
+      }
+
+      .eta-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .bars {
@@ -1013,6 +1020,26 @@
         <aside class="side-stack">
           <section class="panel">
             <div class="panel-head">
+              <h2>진행 중 Pack</h2>
+              <span class="chip blue" data-field="active-pack-status">pending</span>
+            </div>
+            <div class="panel-body queue-card">
+              <div class="queue-main active-pack">
+                <div>
+                  <span class="caption">Worktree closeout pack</span>
+                  <strong data-field="active-pack">CP00-168</strong>
+                </div>
+                <span class="chip green">Risk <span data-field="active-pack-risk">A</span></span>
+              </div>
+              <div class="info-line"><span>Units</span><strong data-field="active-pack-units">10</strong></div>
+              <div class="info-line"><span>Range</span><strong data-field="active-pack-range">RP04.P06.M05.S18-RP04.P06.M06.S05</strong></div>
+              <div class="info-line"><span>Claude review</span><strong data-field="active-pack-review">pending</strong></div>
+              <div class="info-line"><span>Closeout gate</span><strong data-field="active-pack-gate">awaiting receipt</strong></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
               <h2>다음 Queue</h2>
               <span class="chip amber">locked</span>
             </div>
@@ -1037,11 +1064,20 @@
             </div>
             <div class="panel-body">
               <div class="eta-grid" id="eta-grid">
-                <div class="eta-card"><small class="mini-label">150/h</small><strong>06-23 09:47</strong><span>13.7 days</span></div>
-                <div class="eta-card"><small class="mini-label">175/h</small><strong>06-21 10:53</strong><span>11.7 days</span></div>
-                <div class="eta-card active"><small class="mini-label">200/h</small><strong>06-19 23:43</strong><span>10.3 days</span></div>
-                <div class="eta-card"><small class="mini-label">225/h</small><strong>06-18 20:22</strong><span>9.1 days</span></div>
-                <div class="eta-card"><small class="mini-label">250/h</small><strong>06-17 22:29</strong><span>8.2 days</span></div>
+                <div class="eta-card"><small class="mini-label">150/h</small><strong>--:--</strong><span>-- days</span></div>
+                <div class="eta-card"><small class="mini-label">175/h</small><strong>--:--</strong><span>-- days</span></div>
+                <div class="eta-card"><small class="mini-label">200/h</small><strong>--:--</strong><span>-- days</span></div>
+                <div class="eta-card"><small class="mini-label">225/h</small><strong>--:--</strong><span>-- days</span></div>
+                <div class="eta-card"><small class="mini-label">250/h</small><strong>--:--</strong><span>-- days</span></div>
+                <div class="eta-card"><small class="mini-label">300/h</small><strong>--:--</strong><span>-- days</span></div>
+                <div class="eta-card"><small class="mini-label">350/h</small><strong>--:--</strong><span>-- days</span></div>
+                <div class="eta-card"><small class="mini-label">400/h</small><strong>--:--</strong><span>-- days</span></div>
+                <div class="eta-card"><small class="mini-label">450/h</small><strong>--:--</strong><span>-- days</span></div>
+                <div class="eta-card"><small class="mini-label">500/h</small><strong>--:--</strong><span>-- days</span></div>
+                <div class="eta-card"><small class="mini-label">550/h</small><strong>--:--</strong><span>-- days</span></div>
+                <div class="eta-card"><small class="mini-label">600/h</small><strong>--:--</strong><span>-- days</span></div>
+                <div class="eta-card"><small class="mini-label">650/h</small><strong>--:--</strong><span>-- days</span></div>
+                <div class="eta-card"><small class="mini-label">700/h</small><strong>--:--</strong><span>-- days</span></div>
               </div>
             </div>
           </section>
@@ -1180,6 +1216,10 @@
       return String(packId || "").replace("CP00-", "CP");
     }
 
+    function statusLabel(value) {
+      return String(value || "unknown").replaceAll("_", " ");
+    }
+
     function updateVelocityWindow(windowKey = currentWindow) {
       currentWindow = windowKey;
       const data = velocity[windowKey];
@@ -1195,7 +1235,7 @@
       if (!grid || !Array.isArray(etaRates)) return;
       grid.innerHTML = etaRates
         .map((item) => `
-          <div class="eta-card ${item.rate === 200 ? "active" : ""}">
+          <div class="eta-card ${item.active ? "active" : ""}">
             <small class="mini-label">${item.rate}/H</small>
             <strong>${item.eta.slice(5)}</strong>
             <span>${item.days} days</span>
@@ -1289,7 +1329,9 @@
         ]),
       );
 
-      text("subtitle", `완료 pack manifest와 git closeout commit 기준. Live cursor는 ${data.liveCursor.pack_id}, 다음 queue는 ${data.nextQueue.pack_id}입니다.`);
+      const activePack = data.activePack;
+      const activePackSummary = activePack ? ` 진행 중 pack은 ${activePack.pack}(${statusLabel(activePack.status)})입니다.` : "";
+      text("subtitle", `완료 pack manifest와 git closeout commit 기준. Live cursor는 ${data.liveCursor.pack_id}, 다음 queue는 ${data.nextQueue.pack_id}입니다.${activePackSummary}`);
       text("snapshot-label", data.snapshotLabel);
       text("snapshot-time", data.snapshotLabel.slice(11));
       text("latest-pack", data.latest?.pack || data.liveCursor.pack_id);
@@ -1312,6 +1354,21 @@
       text("next-queue-risk", data.nextQueue.risk_class);
       text("next-queue-units", number(data.nextQueue.unit_count));
       text("next-queue-range", data.nextQueue.range_description);
+
+      text("active-pack", activePack?.pack || "none");
+      text("active-pack-status", statusLabel(activePack?.status || "none"));
+      text("active-pack-risk", activePack?.risk || "-");
+      text("active-pack-units", number(activePack?.units || 0));
+      text("active-pack-range", activePack?.range || "-");
+      text("active-pack-review", statusLabel(activePack?.reviewStatus || "none"));
+      text(
+        "active-pack-gate",
+        activePack?.productionReady
+          ? "production ready"
+          : activePack?.canonicalReceiptPresent
+            ? "receipt present"
+            : "awaiting valid receipt",
+      );
 
       document.querySelector("#progress-ring")?.style.setProperty("--value", data.progress);
       const fill = document.querySelector("#progress-track-fill");

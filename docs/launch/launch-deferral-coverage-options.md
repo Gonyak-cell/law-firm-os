@@ -14,24 +14,24 @@ Generated at: 2026-06-18T17:03:53.470Z
 
 ## Summary
 
-- missing_deferral_target_count: 115
-- template_row_count: 115
-- intake_target_count: 115
+- missing_deferral_target_count: 117
+- template_row_count: 117
+- intake_target_count: 117
 - minimum_bundle_decision_id_count: 4
-- minimum_bundle_covered_target_count: 115
+- minimum_bundle_covered_target_count: 117
 - minimum_bundle_uncovered_target_count: 0
 - domain_aggregate_option_count: 4
-- gate_option_count: 9
+- gate_option_count: 10
 - blocked_wp_phase_option_count: 11
 - phase_exit_option_count: 11
-- exact_target_option_count: 115
-- not_approved_option_count: 150
+- exact_target_option_count: 117
+- not_approved_option_count: 153
 
 ## Minimum All-Target Routing Bundle
 
 | Decision ID | Domain | Targets | Owner basis required |
 | --- | --- | ---: | --- |
-| COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 29 | Owner accepts deferring all currently failed go-live gate evidence slots. |
+| COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 31 | Owner accepts deferring all currently failed go-live gate evidence slots. |
 | COVERAGE-L9-STABILIZATION | l9_stabilization_closure | 5 | Owner accepts deferring all currently blocked L9 stabilization closure criteria. |
 | COVERAGE-ALL-BLOCKED-WP | blocked_work_package | 70 | Owner accepts deferring all currently blocked PRE-L9 launch work packages. |
 | COVERAGE-ALL-PHASE-EXITS | phase_exit | 11 | Owner accepts deferring all currently blocked PRE-L9 phase exits. |
@@ -40,7 +40,7 @@ Generated at: 2026-06-18T17:03:53.470Z
 
 | Decision ID | Domain | Targets |
 | --- | --- | ---: |
-| COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 29 |
+| COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 31 |
 | COVERAGE-L9-STABILIZATION | l9_stabilization_closure | 5 |
 | COVERAGE-ALL-BLOCKED-WP | blocked_work_package | 70 |
 | COVERAGE-ALL-PHASE-EXITS | phase_exit | 11 |
@@ -49,6 +49,7 @@ Generated at: 2026-06-18T17:03:53.470Z
 
 | Decision ID | Targets |
 | --- | ---: |
+| COVERAGE-GATE-G1 | 2 |
 | COVERAGE-GATE-G10 | 3 |
 | COVERAGE-GATE-G2 | 3 |
 | COVERAGE-GATE-G3 | 4 |

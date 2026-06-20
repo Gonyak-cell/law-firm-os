@@ -15,12 +15,12 @@ Generated at: 2026-06-18T23:52:14.356Z
 ## Summary
 
 - minimum_decision_row_count: 4
-- unique_target_id_count: 115
-- source_missing_deferral_target_count: 115
+- unique_target_id_count: 117
+- source_missing_deferral_target_count: 117
 - uncovered_target_count_if_owner_rows_are_completed: 0
 - unmatched_target_count: 0
 - aggregate_not_accepted_target_count: 0
-- go_live_target_count: 29
+- go_live_target_count: 31
 - l9_target_count: 5
 - blocked_wp_target_count: 70
 - phase_exit_target_count: 11
@@ -29,7 +29,7 @@ Generated at: 2026-06-18T23:52:14.356Z
 
 | Decision ID | Domain | Targets | Audit missing count | Target detail state |
 | --- | --- | ---: | ---: | --- |
-| COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 29 | 29 | all_targets_matched_and_aggregate_accepted |
+| COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 31 | 31 | all_targets_matched_and_aggregate_accepted |
 | COVERAGE-L9-STABILIZATION | l9_stabilization_closure | 5 | 5 | all_targets_matched_and_aggregate_accepted |
 | COVERAGE-ALL-BLOCKED-WP | blocked_work_package | 70 | 70 | all_targets_matched_and_aggregate_accepted |
 | COVERAGE-ALL-PHASE-EXITS | phase_exit | 11 | 11 | all_targets_matched_and_aggregate_accepted |
@@ -38,6 +38,8 @@ Generated at: 2026-06-18T23:52:14.356Z
 
 | Target ID | Label | Coverage status | Aggregate accepted |
 | --- | --- | --- | --- |
+| ACC-GL-G1-G1-E02 | G1 G1-E02 | missing_owner_deferral | true |
+| ACC-GL-G1-G1-E03 | G1 G1-E03 | missing_owner_deferral | true |
 | ACC-GL-G10-G10-E01 | G10 G10-E01 | missing_owner_deferral | true |
 | ACC-GL-G10-G10-E02 | G10 G10-E02 | missing_owner_deferral | true |
 | ACC-GL-G10-G10-E03 | G10 G10-E03 | missing_owner_deferral | true |

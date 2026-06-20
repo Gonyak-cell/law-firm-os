@@ -1,0 +1,1272 @@
+[
+  {
+    "title": "[P0] HRX-L0-001 현재 HRX runtime evidence와 production readiness 경계 문서화",
+    "body": "Layer: L0\nEpic: Boundary\nTarget files: docs/hrx-enterprise/00-boundary-decision.md\nAcceptance: R4/go-live/enterprise claim 금지 문구와 source evidence register 포함\nTests: npm run hrx:release:validate\nDependencies: none\nPR: PR-00\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L0",
+      "P0",
+      "boundary"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L0-002 Drive planning-only 문서와 GitHub runtime evidence 간 source-of-truth hierarchy 정리",
+    "body": "Layer: L0\nEpic: Boundary\nTarget files: docs/hrx-enterprise/plan-intake.md\nAcceptance: Drive=planning, GitHub=snapshot runtime evidence, conflict policy 명시\nTests: npm run hrx:release:validate\nDependencies: none\nPR: PR-00\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L0",
+      "P0",
+      "boundary"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L0-003 CMP-G3/G12 readiness string 유지 및 승격 조건 정의",
+    "body": "Layer: L0\nEpic: Boundary\nTarget files: docs/hrx-enterprise/03-release-gates.md\nAcceptance: runtime_api_evidence_only__durable_persistence_open 승격 조건 정의\nTests: npm run hrx:release:validate\nDependencies: none\nPR: PR-00\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L0",
+      "P0",
+      "boundary"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L0-004 R4/go-live 금지 validator rule 작성",
+    "body": "Layer: L0\nEpic: Boundary\nTarget files: scripts/validate-hrx-no-premature-claim.mjs\nAcceptance: forbidden readiness string 검출 시 실패\nTests: npm run hrx:release:validate\nDependencies: none\nPR: PR-00\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L0",
+      "P0",
+      "boundary"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L0-005 기존 descriptor-only evidence를 runtime evidence와 분리",
+    "body": "Layer: L0\nEpic: Boundary\nTarget files: docs/hrx-enterprise/01-terminology.md\nAcceptance: descriptor, fixture, runtime API evidence, durable runtime 용어 구분\nTests: npm run hrx:release:validate\nDependencies: none\nPR: PR-00\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L0",
+      "P1",
+      "boundary"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L0-006 개발팀 handoff receipt template 고정",
+    "body": "Layer: L0\nEpic: Boundary\nTarget files: docs/hrx-enterprise/dev-handoff-receipt.md\nAcceptance: PR/owner/validator/evidence field 포함\nTests: npm run hrx:release:validate\nDependencies: none\nPR: PR-00\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L0",
+      "P1",
+      "boundary"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L0-007 TUW traceability matrix 기준 수립",
+    "body": "Layer: L0\nEpic: Boundary\nTarget files: docs/hrx-enterprise/tuw-traceability-matrix.md\nAcceptance: 모든 TUW가 file/test/validator/status를 가진다\nTests: npm run hrx:release:validate\nDependencies: none\nPR: PR-00\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L0",
+      "P1",
+      "boundary"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L0-008 roadmap risk register baseline",
+    "body": "Layer: L0\nEpic: Boundary\nTarget files: docs/hrx-enterprise/risk-register.md\nAcceptance: P0/P1 risk와 owner/mitigation 포함\nTests: npm run hrx:release:validate\nDependencies: none\nPR: PR-00\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L0",
+      "P1",
+      "boundary"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L1-001 DB adapter port 정의",
+    "body": "Layer: L1\nEpic: Durable Persistence\nTarget files: packages/hrx/src/store/port.js\nAcceptance: query/transaction/migrate/close interface 정의\nTests: npm run hrx:persistence:validate; npm test\nDependencies: L0\nPR: PR-01/02\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L1",
+      "P0",
+      "durable-persistence"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L1-002 SQL-backed Employee repository 구현",
+    "body": "Layer: L1\nEpic: Durable Persistence\nTarget files: packages/hrx/src/repository-sql.js\nAcceptance: Employee CRUD가 DB transaction 안에서 동작\nTests: npm run hrx:persistence:validate; npm test\nDependencies: L0\nPR: PR-01/02\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L1",
+      "P0",
+      "durable-persistence"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L1-003 SQL-backed EmploymentProfile repository 구현",
+    "body": "Layer: L1\nEpic: Durable Persistence\nTarget files: packages/hrx/src/repository-sql.js\nAcceptance: EmploymentProfile CRUD/FK validation DB-backed\nTests: npm run hrx:persistence:validate; npm test\nDependencies: L0\nPR: PR-01/02\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L1",
+      "P0",
+      "durable-persistence"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L1-004 EmployeeUserLink repository/API 기반 준비",
+    "body": "Layer: L1\nEpic: Durable Persistence\nTarget files: packages/hrx/src/identity-link.js\nAcceptance: login_mapping 외 purpose 차단\nTests: npm run hrx:persistence:validate; npm test\nDependencies: L0\nPR: PR-01/02\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L1",
+      "P0",
+      "durable-persistence"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L1-005 migration runner 구현",
+    "body": "Layer: L1\nEpic: Durable Persistence\nTarget files: packages/hrx/src/migrations/index.js; scripts/migrate-hrx.mjs\nAcceptance: 001_hrx_core.sql idempotent apply\nTests: npm run hrx:persistence:validate; npm test\nDependencies: L0\nPR: PR-01/02\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L1",
+      "P0",
+      "durable-persistence"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L1-006 documents/leave/audit migration 작성",
+    "body": "Layer: L1\nEpic: Durable Persistence\nTarget files: packages/hrx/src/migrations/002_hrx_documents_leave_audit.sql\nAcceptance: HRDocument/Leave/Audit tables 생성\nTests: npm run hrx:persistence:validate; npm test\nDependencies: L0\nPR: PR-01/02\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L1",
+      "P0",
+      "durable-persistence"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L1-007 runtime context store injection",
+    "body": "Layer: L1\nEpic: Durable Persistence\nTarget files: apps/api/src/hrx-runtime-context.js\nAcceptance: createHrxRuntimeContext({store}) 지원\nTests: npm run hrx:persistence:validate; npm test\nDependencies: L0\nPR: PR-01/02\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L1",
+      "P0",
+      "durable-persistence"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L1-008 seed runner 구현",
+    "body": "Layer: L1\nEpic: Durable Persistence\nTarget files: scripts/seed-hrx-fixtures.mjs\nAcceptance: synthetic fixture를 DB에 seed\nTests: npm run hrx:persistence:validate; npm test\nDependencies: L0\nPR: PR-01/02\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L1",
+      "P0",
+      "durable-persistence"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L1-009 in-memory repository를 test fixture로 격하",
+    "body": "Layer: L1\nEpic: Durable Persistence\nTarget files: packages/hrx/src/repository.js\nAcceptance: production runtime default에서 제외\nTests: npm run hrx:persistence:validate; npm test\nDependencies: L0\nPR: PR-01/02\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L1",
+      "P0",
+      "durable-persistence"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L1-010 restart durability test",
+    "body": "Layer: L1\nEpic: Durable Persistence\nTarget files: apps/api/test/hrx/durability.test.js\nAcceptance: write -> restart -> read pass\nTests: npm run hrx:persistence:validate; npm test\nDependencies: L0\nPR: PR-01/02\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L1",
+      "P0",
+      "durable-persistence"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L1-011 repository transaction rollback test",
+    "body": "Layer: L1\nEpic: Durable Persistence\nTarget files: packages/hrx/test/repository-sql.test.js\nAcceptance: invalid write rollback\nTests: npm run hrx:persistence:validate; npm test\nDependencies: L0\nPR: PR-01/02\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L1",
+      "P1",
+      "durable-persistence"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L1-012 migration non-destructive validator 강화",
+    "body": "Layer: L1\nEpic: Durable Persistence\nTarget files: packages/hrx/test/migration.test.js\nAcceptance: DROP/TRUNCATE/unsafe DELETE 차단\nTests: npm run hrx:persistence:validate; npm test\nDependencies: L0\nPR: PR-01/02\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L1",
+      "P1",
+      "durable-persistence"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L1-013 backup/restore smoke seed",
+    "body": "Layer: L1\nEpic: Durable Persistence\nTarget files: scripts/hrx-backup-restore-smoke.mjs\nAcceptance: backup hash/count restore 검증\nTests: npm run hrx:persistence:validate; npm test\nDependencies: L0\nPR: PR-01/02\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L1",
+      "P1",
+      "durable-persistence"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L1-014 persistence validator",
+    "body": "Layer: L1\nEpic: Durable Persistence\nTarget files: scripts/validate-hrx-persistence.mjs\nAcceptance: in-memory-only default이면 실패\nTests: npm run hrx:persistence:validate; npm test\nDependencies: L0\nPR: PR-01/02\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L1",
+      "P1",
+      "durable-persistence"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L2-001 HRX route policy map 작성",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: apps/api/src/routes/hrx/route-policy-map.js\nAcceptance: 모든 /api/hrx/* route에 action/sensitivity/required_scope 존재\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L2",
+      "P0",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L2-002 HRX authz middleware 구현",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: apps/api/src/middleware/hrx-authz.js\nAcceptance: evaluateHrxPolicy를 route마다 호출\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L2",
+      "P0",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L2-003 server HRX path authz wiring",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: apps/api/src/server.js\nAcceptance: HRX도 fail-closed permission path를 통과\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L2",
+      "P0",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L2-004 query tenant/actor fallback 제거",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: apps/api/src/middleware/tenant-context.js; actor-context.js\nAcceptance: tenant/actor는 trusted header/session only\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L2",
+      "P0",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L2-005 UI hardcoded tenant/scopes 제거",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: apps/web/src/people/hrxApiClient.ts\nAcceptance: client는 permission allow rule을 만들지 않음\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L2",
+      "P0",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L2-006 step-up token parser",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: apps/api/src/middleware/hrx-step-up-context.js\nAcceptance: fresh MFA token parse/validate\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L2",
+      "P0",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L2-007 step-up enforcement",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: apps/api/src/middleware/hrx-step-up.js; hrx-runtime-context.js\nAcceptance: comp/eval/payroll/audit route without step-up -> 403\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L2",
+      "P0",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L2-008 durable audit event store",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: packages/audit/src/hrx-event-store-sql.js\nAcceptance: audit append/list DB-backed\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L2",
+      "P0",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L2-009 audit hash chain",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: packages/audit/src/hrx-hash-chain.js\nAcceptance: previous_hash/event_hash 생성\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L2",
+      "P0",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L2-010 route audit wrapper",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: apps/api/src/middleware/hrx-audit-write.js\nAcceptance: 모든 HRX sensitive route audit write\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L2",
+      "P0",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L2-011 field masking policy binding",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: packages/hrx/src/field-masker.js\nAcceptance: authz decision에 따른 field-level masking\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L2",
+      "P0",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L2-012 break-glass route and audit",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: packages/authz/src/hrx-break-glass.js\nAcceptance: reason/expiry/step-up/audit 필수\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L2",
+      "P1",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L2-013 compensation policy hardening",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: packages/authz/src/hrx-compensation-policy.js\nAcceptance: scope+purpose+step-up 없으면 denied/masked\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L2",
+      "P1",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L2-014 evaluation policy hardening",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: packages/authz/src/hrx-evaluation-policy.js\nAcceptance: reviewer/audit-on-read/final-score block\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L2",
+      "P1",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L2-015 candidate policy hardening",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: packages/authz/src/hrx-candidate-policy.js\nAcceptance: candidate/Party contamination 차단\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L2",
+      "P1",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L2-016 security negative validator",
+    "body": "Layer: L2\nEpic: Trust Boundary\nTarget files: scripts/validate-hrx-route-authz.mjs\nAcceptance: route without policy map이면 실패\nTests: npm run hrx:authz:validate; npm run hrx:security:validate; npm test\nDependencies: L1\nPR: PR-03/04/05\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L2",
+      "P1",
+      "trust-boundary"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L3-001 Employee/UserLink API 구현",
+    "body": "Layer: L3\nEpic: Core HRIS\nTarget files: apps/api/src/routes/hrx/employees.js; packages/hrx/src/identity-link.js\nAcceptance: EmployeeUserLink create/list/revoke audited\nTests: npm run hrx:core:validate; npm test\nDependencies: L1,L2\nPR: PR-06/07\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L3",
+      "P0",
+      "core-hris"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L3-002 OrgUnit model",
+    "body": "Layer: L3\nEpic: Core HRIS\nTarget files: packages/hrx/src/org.js\nAcceptance: org tree create/list/update with effective date\nTests: npm run hrx:core:validate; npm test\nDependencies: L1,L2\nPR: PR-06/07\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L3",
+      "P1",
+      "core-hris"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L3-003 ReportingLine model",
+    "body": "Layer: L3\nEpic: Core HRIS\nTarget files: packages/hrx/src/org.js; employment-profile.js\nAcceptance: manager/dotted-line support\nTests: npm run hrx:core:validate; npm test\nDependencies: L1,L2\nPR: PR-06/07\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L3",
+      "P1",
+      "core-hris"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L3-004 Role/Position/PracticeGroup assignment",
+    "body": "Layer: L3\nEpic: Core HRIS\nTarget files: packages/hrx/src/assignment.js\nAcceptance: effective-dated assignment capacity\nTests: npm run hrx:core:validate; npm test\nDependencies: L1,L2\nPR: PR-06/07\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L3",
+      "P1",
+      "core-hris"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L3-005 HRDocument source boundary",
+    "body": "Layer: L3\nEpic: Core HRIS\nTarget files: contracts/hrx-document-source-boundary.json; packages/hrx/src/documents/source-adapter.js\nAcceptance: source_ref verified, body never stored\nTests: npm run hrx:core:validate; npm test\nDependencies: L1,L2\nPR: PR-06/07\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L3",
+      "P0",
+      "core-hris"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L3-006 M365/DMS source adapter stub",
+    "body": "Layer: L3\nEpic: Core HRIS\nTarget files: packages/integrations-core/src/hrx-m365-doc-source.js\nAcceptance: no secret/body; metadata verification only\nTests: npm run hrx:core:validate; npm test\nDependencies: L1,L2\nPR: PR-06/07\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L3",
+      "P1",
+      "core-hris"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L3-007 EmploymentContract lifecycle skeleton",
+    "body": "Layer: L3\nEpic: Core HRIS\nTarget files: packages/hrx/src/contracts.js\nAcceptance: draft/approve/signature_ref metadata\nTests: npm run hrx:core:validate; npm test\nDependencies: L1,L2\nPR: PR-06/07\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L3",
+      "P1",
+      "core-hris"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L3-008 Compensation metadata store",
+    "body": "Layer: L3\nEpic: Core HRIS\nTarget files: packages/hrx/src/compensation.js\nAcceptance: encrypted/masked refs only\nTests: npm run hrx:core:validate; npm test\nDependencies: L1,L2\nPR: PR-06/07\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L3",
+      "P0",
+      "core-hris"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L3-009 Payroll profile boundary",
+    "body": "Layer: L3\nEpic: Core HRIS\nTarget files: packages/hrx/src/payroll-boundary.js\nAcceptance: calculation/disbursement fields blocked\nTests: npm run hrx:core:validate; npm test\nDependencies: L1,L2\nPR: PR-06/07\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L3",
+      "P0",
+      "core-hris"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L3-010 Retention policy model",
+    "body": "Layer: L3\nEpic: Core HRIS\nTarget files: packages/hrx/src/retention.js\nAcceptance: object_type retention/legal hold override\nTests: npm run hrx:core:validate; npm test\nDependencies: L1,L2\nPR: PR-06/07\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L3",
+      "P0",
+      "core-hris"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L3-011 Legal hold model",
+    "body": "Layer: L3\nEpic: Core HRIS\nTarget files: packages/hrx/src/legal-hold.js\nAcceptance: hold blocks purge/delete\nTests: npm run hrx:core:validate; npm test\nDependencies: L1,L2\nPR: PR-06/07\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L3",
+      "P0",
+      "core-hris"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L3-012 PeopleGraph edge model",
+    "body": "Layer: L3\nEpic: Core HRIS\nTarget files: packages/hrx/src/people-graph.js\nAcceptance: Employee/Org/Matter/Workload aggregate edges\nTests: npm run hrx:core:validate; npm test\nDependencies: L1,L2\nPR: PR-06/07\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L3",
+      "P1",
+      "core-hris"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L3-013 HR risk event model",
+    "body": "Layer: L3\nEpic: Core HRIS\nTarget files: packages/hrx/src/legal-risk.js\nAcceptance: privilege flag/status/owner\nTests: npm run hrx:core:validate; npm test\nDependencies: L1,L2\nPR: PR-06/07\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L3",
+      "P1",
+      "core-hris"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L3-014 schema contract update",
+    "body": "Layer: L3\nEpic: Core HRIS\nTarget files: contracts/hrx-runtime-contract.json\nAcceptance: core HRIS entities included\nTests: npm run hrx:core:validate; npm test\nDependencies: L1,L2\nPR: PR-06/07\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L3",
+      "P1",
+      "core-hris"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L3-015 core HRIS validator",
+    "body": "Layer: L3\nEpic: Core HRIS\nTarget files: scripts/validate-hrx-core-domain.mjs\nAcceptance: missing schema/repo tests fail\nTests: npm run hrx:core:validate; npm test\nDependencies: L1,L2\nPR: PR-06/07\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L3",
+      "P1",
+      "core-hris"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L4-001 Leave policy versioning",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/rules/leave-policy.js\nAcceptance: policy version/effective date/carryover\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L4",
+      "P1",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L4-002 Leave request DB-backed workflow",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/leave/request-service.js\nAcceptance: submit/approve/reject/cancel durable\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L4",
+      "P0",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L4-003 Attendance record model",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/attendance.js\nAcceptance: source_ref/import/manual correction\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L4",
+      "P1",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L4-004 Overtime request workflow",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/overtime.js\nAcceptance: request/approval/payroll-preview boundary\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L4",
+      "P1",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L4-005 Generic HR approval workflow",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/approval.js\nAcceptance: route/steps/delegation/escalation\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L4",
+      "P0",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L4-006 Recruiting state machine",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/recruiting/state-machine.js\nAcceptance: invalid stage transition blocked\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L4",
+      "P1",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L4-007 Candidate consent/privacy",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/recruiting/consent.js\nAcceptance: consent before processing\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L4",
+      "P0",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L4-008 Interview feedback metadata",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/recruiting/interview-feedback.js\nAcceptance: sensitive source refs only\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L4",
+      "P1",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L4-009 Offer workflow",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/recruiting/offer.js\nAcceptance: approval + masked compensation ref\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L4",
+      "P1",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L4-010 Candidate to Employee conversion",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/recruiting/convert-to-employee.js\nAcceptance: explicit approval; no CRM Party contamination\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L4",
+      "P0",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L4-011 Onboarding plan",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/onboarding.js\nAcceptance: tasks/document/access/equipment/policy\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L4",
+      "P1",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L4-012 Offboarding case",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/offboarding.js\nAcceptance: last day/access revoke/legal hold\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L4",
+      "P0",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L4-013 HR legal risk workflow",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/legal-risk.js\nAcceptance: privileged review/status/audit\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L4",
+      "P1",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L4-014 Payroll export review",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/payroll-export-service.js\nAcceptance: preview -> approve -> export artifact\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L4",
+      "P0",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L4-015 Payroll reconciliation metadata",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/payroll-reconciliation.js\nAcceptance: provider result metadata only\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L4",
+      "P1",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L4-016 Retention purge job",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: packages/hrx/src/retention-job.js\nAcceptance: legal hold blocks purge\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L4",
+      "P0",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L4-017 Lifecycle API routes",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: apps/api/src/routes/hrx/lifecycle.js\nAcceptance: onboarding/offboarding endpoints\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L4",
+      "P1",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L4-018 Recruiting API routes",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: apps/api/src/routes/hrx/recruiting.js\nAcceptance: candidate/job/application/offer endpoints\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L4",
+      "P1",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L4-019 Workflow audit coverage",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: apps/api/test/hrx/workflow-audit.test.js\nAcceptance: every transition writes audit\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L4",
+      "P0",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L4-020 Workflow validator",
+    "body": "Layer: L4\nEpic: People Ops Workflows\nTarget files: scripts/validate-hrx-workflows.mjs\nAcceptance: workflow routes/tests/gates enforced\nTests: npm run hrx:workflows:validate; npm test\nDependencies: L1-L3\nPR: PR-08/09\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L4",
+      "P1",
+      "people-ops-workflows"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L5-001 People UI session context",
+    "body": "Layer: L5\nEpic: Portal/API\nTarget files: apps/web/src/people/hrxApiClient.ts\nAcceptance: no hardcoded tenant/scopes\nTests: npm run web:e2e; npm --workspace apps/web run test:ui\nDependencies: L2-L4\nPR: PR-10/11\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L5",
+      "P0",
+      "portal/api"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L5-002 Employee list production states",
+    "body": "Layer: L5\nEpic: Portal/API\nTarget files: apps/web/src/people/employees/EmployeeList.tsx\nAcceptance: loading/empty/denied/error\nTests: npm run web:e2e; npm --workspace apps/web run test:ui\nDependencies: L2-L4\nPR: PR-10/11\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L5",
+      "P1",
+      "portal/api"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L5-003 Employee profile masked fields",
+    "body": "Layer: L5\nEpic: Portal/API\nTarget files: apps/web/src/people/employees/EmployeeProfile.tsx\nAcceptance: sensitive fields masked by policy\nTests: npm run web:e2e; npm --workspace apps/web run test:ui\nDependencies: L2-L4\nPR: PR-10/11\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L5",
+      "P1",
+      "portal/api"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L5-004 HR Document workspace source status",
+    "body": "Layer: L5\nEpic: Portal/API\nTarget files: apps/web/src/people/documents/HRDocumentWorkspace.tsx\nAcceptance: source verified/unavailable/body blocked\nTests: npm run web:e2e; npm --workspace apps/web run test:ui\nDependencies: L2-L4\nPR: PR-10/11\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L5",
+      "P1",
+      "portal/api"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L5-005 Leave self-service durable UX",
+    "body": "Layer: L5\nEpic: Portal/API\nTarget files: apps/web/src/people/leave/LeaveRequestPage.tsx\nAcceptance: submit refreshes DB-backed state\nTests: npm run web:e2e; npm --workspace apps/web run test:ui\nDependencies: L2-L4\nPR: PR-10/11\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L5",
+      "P1",
+      "portal/api"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L5-006 Manager approval queue",
+    "body": "Layer: L5\nEpic: Portal/API\nTarget files: apps/web/src/people/approvals/ManagerApprovalQueue.tsx\nAcceptance: approve/reject with audit\nTests: npm run web:e2e; npm --workspace apps/web run test:ui\nDependencies: L2-L4\nPR: PR-10/11\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L5",
+      "P1",
+      "portal/api"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L5-007 Candidate portal consent view",
+    "body": "Layer: L5\nEpic: Portal/API\nTarget files: apps/web/src/candidate/CandidatePortal.tsx\nAcceptance: candidate-scoped status/docs/consent\nTests: npm run web:e2e; npm --workspace apps/web run test:ui\nDependencies: L2-L4\nPR: PR-10/11\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L5",
+      "P1",
+      "portal/api"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L5-008 Recruiting pipeline admin",
+    "body": "Layer: L5\nEpic: Portal/API\nTarget files: apps/web/src/people/recruiting/RecruitingPipeline.tsx\nAcceptance: stage update/offer/interview state\nTests: npm run web:e2e; npm --workspace apps/web run test:ui\nDependencies: L2-L4\nPR: PR-10/11\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L5",
+      "P1",
+      "portal/api"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L5-009 HRX Policy Console",
+    "body": "Layer: L5\nEpic: Portal/API\nTarget files: apps/web/src/admin/hrx/HRXPolicyConsole.tsx\nAcceptance: policy versioning + authz\nTests: npm run web:e2e; npm --workspace apps/web run test:ui\nDependencies: L2-L4\nPR: PR-10/11\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L5",
+      "P0",
+      "portal/api"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L5-010 HRX Audit Viewer",
+    "body": "Layer: L5\nEpic: Portal/API\nTarget files: apps/web/src/admin/hrx/HRXAuditViewer.tsx\nAcceptance: step-up + audit scope required\nTests: npm run web:e2e; npm --workspace apps/web run test:ui\nDependencies: L2-L4\nPR: PR-10/11\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L5",
+      "P0",
+      "portal/api"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L5-011 Lifecycle board",
+    "body": "Layer: L5\nEpic: Portal/API\nTarget files: apps/web/src/people/lifecycle/LifecycleBoard.tsx\nAcceptance: on/offboarding task board\nTests: npm run web:e2e; npm --workspace apps/web run test:ui\nDependencies: L2-L4\nPR: PR-10/11\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L5",
+      "P1",
+      "portal/api"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L5-012 Step-up challenge UI",
+    "body": "Layer: L5\nEpic: Portal/API\nTarget files: apps/web/src/people/security/HrxStepUpChallenge.tsx\nAcceptance: sensitive panel challenge\nTests: npm run web:e2e; npm --workspace apps/web run test:ui\nDependencies: L2-L4\nPR: PR-10/11\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L5",
+      "P0",
+      "portal/api"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L5-013 Portal e2e suite",
+    "body": "Layer: L5\nEpic: Portal/API\nTarget files: apps/web/e2e/hrx/*.spec.ts\nAcceptance: critical flows pass\nTests: npm run web:e2e; npm --workspace apps/web run test:ui\nDependencies: L2-L4\nPR: PR-10/11\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L5",
+      "P0",
+      "portal/api"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L5-014 UI regression validator",
+    "body": "Layer: L5\nEpic: Portal/API\nTarget files: scripts/validate-hrx-ui-api-backed.mjs\nAcceptance: static fallback/hardcoded allow rules fail\nTests: npm run web:e2e; npm --workspace apps/web run test:ui\nDependencies: L2-L4\nPR: PR-10/11\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L5",
+      "P1",
+      "portal/api"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L6-001 HR policy source ingestion",
+    "body": "Layer: L6\nEpic: AI & Analytics\nTarget files: packages/hrx/src/ai/source-ingestion.js\nAcceptance: source_ref/chunk_id/hash indexed\nTests: npm run hrx:ai:validate; npm test\nDependencies: L2-L5\nPR: PR-12\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L6",
+      "P1",
+      "ai-&-analytics"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L6-002 Citation validator",
+    "body": "Layer: L6\nEpic: AI & Analytics\nTarget files: packages/hrx/src/ai/citation-validator.js\nAcceptance: answers without allowed citations fail\nTests: npm run hrx:ai:validate; npm test\nDependencies: L2-L5\nPR: PR-12\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L6",
+      "P0",
+      "ai-&-analytics"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L6-003 Model gateway boundary",
+    "body": "Layer: L6\nEpic: AI & Analytics\nTarget files: packages/hrx/src/ai/model-gateway.js\nAcceptance: external call disabled unless configured\nTests: npm run hrx:ai:validate; npm test\nDependencies: L2-L5\nPR: PR-12\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L6",
+      "P1",
+      "ai-&-analytics"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L6-004 Decision guard expansion",
+    "body": "Layer: L6\nEpic: AI & Analytics\nTarget files: packages/hrx/src/ai/decision-guard.js\nAcceptance: hire/fire/pay/eval/discipline final decision blocked\nTests: npm run hrx:ai:validate; npm test\nDependencies: L2-L5\nPR: PR-12\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L6",
+      "P0",
+      "ai-&-analytics"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L6-005 AI review queue SQL",
+    "body": "Layer: L6\nEpic: AI & Analytics\nTarget files: packages/hrx/src/ai/review-queue-sql.js\nAcceptance: review items durable\nTests: npm run hrx:ai:validate; npm test\nDependencies: L2-L5\nPR: PR-12\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L6",
+      "P0",
+      "ai-&-analytics"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L6-006 Prompt/retrieval/output durable audit",
+    "body": "Layer: L6\nEpic: AI & Analytics\nTarget files: packages/hrx/src/ai/audit.js\nAcceptance: AI interactions audit hashed\nTests: npm run hrx:ai:validate; npm test\nDependencies: L2-L5\nPR: PR-12\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L6",
+      "P0",
+      "ai-&-analytics"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L6-007 Permission-aware retrieval integration",
+    "body": "Layer: L6\nEpic: AI & Analytics\nTarget files: packages/hrx/src/ai/rag.js\nAcceptance: evaluateHrxPolicy for each source\nTests: npm run hrx:ai:validate; npm test\nDependencies: L2-L5\nPR: PR-12\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L6",
+      "P0",
+      "ai-&-analytics"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L6-008 People analytics snapshot store",
+    "body": "Layer: L6\nEpic: AI & Analytics\nTarget files: packages/hrx/src/analytics-snapshot.js\nAcceptance: periodic snapshot durable\nTests: npm run hrx:ai:validate; npm test\nDependencies: L2-L5\nPR: PR-12\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L6",
+      "P1",
+      "ai-&-analytics"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L6-009 Utilization projection hardening",
+    "body": "Layer: L6\nEpic: AI & Analytics\nTarget files: packages/matter/src/hrx-workload-projection.js\nAcceptance: no row-level Matter details\nTests: npm run hrx:ai:validate; npm test\nDependencies: L2-L5\nPR: PR-12\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L6",
+      "P1",
+      "ai-&-analytics"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L6-010 Turnover/headcount/leave metrics",
+    "body": "Layer: L6\nEpic: AI & Analytics\nTarget files: packages/hrx/src/analytics.js\nAcceptance: tenant aggregate only\nTests: npm run hrx:ai:validate; npm test\nDependencies: L2-L5\nPR: PR-12\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L6",
+      "P1",
+      "ai-&-analytics"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L6-011 Analytics export policy",
+    "body": "Layer: L6\nEpic: AI & Analytics\nTarget files: packages/hrx/src/analytics-export.js\nAcceptance: role/scope/step-up if sensitive\nTests: npm run hrx:ai:validate; npm test\nDependencies: L2-L5\nPR: PR-12\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L6",
+      "P1",
+      "ai-&-analytics"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L6-012 AI assistant UI citations",
+    "body": "Layer: L6\nEpic: AI & Analytics\nTarget files: apps/web/src/people/ai/HRAIAssistant.tsx\nAcceptance: citations/review state visible\nTests: npm run hrx:ai:validate; npm test\nDependencies: L2-L5\nPR: PR-12\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L6",
+      "P1",
+      "ai-&-analytics"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L6-013 Analytics UI privacy",
+    "body": "Layer: L6\nEpic: AI & Analytics\nTarget files: apps/web/src/people/analytics/HRAnalytics.tsx\nAcceptance: no row-level sensitive details\nTests: npm run hrx:ai:validate; npm test\nDependencies: L2-L5\nPR: PR-12\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L6",
+      "P1",
+      "ai-&-analytics"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L6-014 AI/analytics validator",
+    "body": "Layer: L6\nEpic: AI & Analytics\nTarget files: scripts/validate-hrx-ai-analytics.mjs\nAcceptance: source/citation/no-final-judgment tests enforced\nTests: npm run hrx:ai:validate; npm test\nDependencies: L2-L5\nPR: PR-12\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L6",
+      "P1",
+      "ai-&-analytics"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L7-001 SSO subject map integration",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: packages/authz/src/sso-subject-map.js\nAcceptance: User subject -> tenant/actor only\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L7",
+      "P0",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L7-002 SCIM boundary",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: packages/hrx/src/scim-boundary.js\nAcceptance: SCIM creates User not Employee unless approved flow\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L7",
+      "P1",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L7-003 MFA/step-up evidence store",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: packages/authz/src/hrx-step-up-session.js\nAcceptance: fresh MFA token tracked\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L7",
+      "P0",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L7-004 Tenant isolation e2e",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: apps/api/test/hrx/tenant-isolation.test.js\nAcceptance: cross-tenant all HRX routes denied\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L7",
+      "P0",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L7-005 Observability metrics",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: packages/hrx/src/observability.js\nAcceptance: latency/error/security counters\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L7",
+      "P1",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L7-006 SLO definitions",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: docs/hrx-enterprise/slo-definition.md\nAcceptance: availability/latency/audit write SLO\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L7",
+      "P1",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L7-007 Compliance report",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: packages/hrx/src/compliance-report.js\nAcceptance: access/change/retention report\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L7",
+      "P0",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L7-008 Retention/purge execution",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: packages/hrx/src/retention-job.js\nAcceptance: due purge executes unless legal hold\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L7",
+      "P0",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L7-009 Backup/restore smoke",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: scripts/hrx-backup-restore-smoke.mjs\nAcceptance: restore hash/count match\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L7",
+      "P0",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L7-010 DR runbook",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: docs/hrx-enterprise/dr-runbook.md\nAcceptance: restore/RPO/RTO steps\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L7",
+      "P1",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L7-011 Performance smoke",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: apps/api/test/hrx/performance-smoke.test.js\nAcceptance: baseline latency threshold\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L7",
+      "P1",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L7-012 Security regression",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: apps/api/test/hrx/security-regression.test.js\nAcceptance: authz/audit/step-up negative\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L7",
+      "P0",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L7-013 Secret exposure test",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: apps/api/test/hrx/secret-exposure.test.js\nAcceptance: no secret in responses/logs\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L7",
+      "P0",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L7-014 UAT scenario pack",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: docs/hrx-enterprise/uat-scenarios.md\nAcceptance: employee/HR/admin/candidate scenarios\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L7",
+      "P1",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L7-015 UAT execution evidence",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: docs/hrx-enterprise/uat-results.md\nAcceptance: executed results not planning-only\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L7",
+      "P1",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L7-016 Enterprise hardening validator",
+    "body": "Layer: L7\nEpic: Enterprise Hardening\nTarget files: scripts/validate-hrx-enterprise-readiness.mjs\nAcceptance: all P0 gates required\nTests: npm run hrx:enterprise:validate; npm test\nDependencies: L1-L6\nPR: PR-13/14\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L7",
+      "P0",
+      "enterprise-hardening"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L8-001 Release readiness contract",
+    "body": "Layer: L8\nEpic: Release & Go/No-Go\nTarget files: contracts/hrx-release-readiness.json\nAcceptance: all gates listed\nTests: npm run hrx:release:validate; npm run hrx:enterprise:validate\nDependencies: L1-L7\nPR: PR-15\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L8",
+      "P0",
+      "release-&-go/no-go"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L8-002 Cutover runbook",
+    "body": "Layer: L8\nEpic: Release & Go/No-Go\nTarget files: docs/hrx-enterprise/cutover-runbook.md\nAcceptance: rollback/owner/decision points\nTests: npm run hrx:release:validate; npm run hrx:enterprise:validate\nDependencies: L1-L7\nPR: PR-15\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L8",
+      "P0",
+      "release-&-go/no-go"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L8-003 Go/no-go checklist",
+    "body": "Layer: L8\nEpic: Release & Go/No-Go\nTarget files: docs/hrx-enterprise/go-live-checklist.md\nAcceptance: P0 gate pass + owner approval required\nTests: npm run hrx:release:validate; npm run hrx:enterprise:validate\nDependencies: L1-L7\nPR: PR-15\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L8",
+      "P0",
+      "release-&-go/no-go"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L8-004 Owner decision template",
+    "body": "Layer: L8\nEpic: Release & Go/No-Go\nTarget files: docs/hrx-enterprise/owner-decision-template.md\nAcceptance: human approval separated from validator\nTests: npm run hrx:release:validate; npm run hrx:enterprise:validate\nDependencies: L1-L7\nPR: PR-15\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L8",
+      "P1",
+      "release-&-go/no-go"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L8-005 R4 claim validator",
+    "body": "Layer: L8\nEpic: Release & Go/No-Go\nTarget files: scripts/validate-hrx-r4-claim.mjs\nAcceptance: forbidden claim fails\nTests: npm run hrx:release:validate; npm run hrx:enterprise:validate\nDependencies: L1-L7\nPR: PR-15\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L8",
+      "P0",
+      "release-&-go/no-go"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L8-006 Production readiness evidence pack",
+    "body": "Layer: L8\nEpic: Release & Go/No-Go\nTarget files: docs/hrx-enterprise/production-readiness-evidence.md\nAcceptance: links to test/backup/UAT/audit reports\nTests: npm run hrx:release:validate; npm run hrx:enterprise:validate\nDependencies: L1-L7\nPR: PR-15\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L8",
+      "P1",
+      "release-&-go/no-go"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L8-007 Release notes template",
+    "body": "Layer: L8\nEpic: Release & Go/No-Go\nTarget files: docs/hrx-enterprise/release-notes-template.md\nAcceptance: known limitations explicitly listed\nTests: npm run hrx:release:validate; npm run hrx:enterprise:validate\nDependencies: L1-L7\nPR: PR-15\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L8",
+      "P1",
+      "release-&-go/no-go"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L8-008 Post-release monitoring plan",
+    "body": "Layer: L8\nEpic: Release & Go/No-Go\nTarget files: docs/hrx-enterprise/post-release-monitoring.md\nAcceptance: alerts/metrics/on-call\nTests: npm run hrx:release:validate; npm run hrx:enterprise:validate\nDependencies: L1-L7\nPR: PR-15\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L8",
+      "P1",
+      "release-&-go/no-go"
+    ]
+  },
+  {
+    "title": "[P0] HRX-L8-009 Final launch blocker audit",
+    "body": "Layer: L8\nEpic: Release & Go/No-Go\nTarget files: scripts/validate-hrx-launch-blockers.mjs\nAcceptance: open P0 fails\nTests: npm run hrx:release:validate; npm run hrx:enterprise:validate\nDependencies: L1-L7\nPR: PR-15\nRisk: enterprise-ready claim invalid",
+    "labels": [
+      "hrx",
+      "L8",
+      "P0",
+      "release-&-go/no-go"
+    ]
+  },
+  {
+    "title": "[P1] HRX-L8-010 Handoff closeout",
+    "body": "Layer: L8\nEpic: Release & Go/No-Go\nTarget files: docs/hrx-enterprise/dev-handoff-closeout.md\nAcceptance: developer/QA/owner signatures\nTests: npm run hrx:release:validate; npm run hrx:enterprise:validate\nDependencies: L1-L7\nPR: PR-15\nRisk: scope drift / weak runtime maturity",
+    "labels": [
+      "hrx",
+      "L8",
+      "P1",
+      "release-&-go/no-go"
+    ]
+  }
+]

@@ -10,29 +10,29 @@
           "ref": "docs/launch/g1-completion-evidence-index.md"
         },
         "G1-E02": {
-          "status": "satisfied",
-          "ref": "docs/launch/g1-e02-evidence-satisfaction-2026-06-19.json"
+          "status": "blocked_pending_human_acceptance",
+          "ref": "docs/launch/g1-completion-evidence-index.md"
         },
         "G1-E03": {
-          "status": "satisfied",
-          "ref": "docs/launch/g1-e03-evidence-satisfaction-2026-06-19.json"
+          "status": "blocked_pending_human_acceptance",
+          "ref": "docs/launch/g1-completion-evidence-index.md"
         }
       }
     },
     "G2": {
-      "criteria_status": "blocked_pending_runtime_targets",
+      "criteria_status": "blocked_pending_runtime_ready_evidence",
       "evidence": {
         "G2-E01": {
-          "status": "blocked_pending_runtime_targets",
-          "ref": "docs/launch/g2-runtime-readiness-blocker-2026-06-19.json"
+          "status": "blocked_pending_wave1_matrix",
+          "ref": "docs/closeout-pack-plan/implementation-layer-ledger.json"
         },
         "G2-E02": {
-          "status": "blocked_empty_runtime_validation_scope",
-          "ref": "docs/launch/g2-runtime-readiness-blocker-2026-06-19.json"
+          "status": "blocked_pending_runtime_integration_output",
+          "ref": "scripts/validate-runtime-readiness.mjs"
         },
         "G2-E03": {
-          "status": "blocked_pending_rtg_target_links",
-          "ref": "docs/launch/g2-runtime-readiness-blocker-2026-06-19.json"
+          "status": "blocked_pending_rtg_links",
+          "ref": "contracts/runtime-readiness-contract.json"
         }
       }
     },

@@ -7,7 +7,16 @@ import { GlobalSearch, LoadingSurface, Rail, Sidebar, Topbar } from "./component
 import { AuthSurface } from "./components/AuthSurface.jsx";
 import { HomeSurface } from "./components/HomeSurface.jsx";
 import { ContentSurface } from "./components/ContentSurface.jsx";
+import { ClientsSurface } from "./components/ClientsSurface.jsx";
+import { MattersSurface } from "./components/MattersSurface.jsx";
+import { VaultSurface } from "./components/VaultSurface.jsx";
+import { PortalSurface } from "./components/PortalSurface.jsx";
+import { ReadinessSurface } from "./components/ReadinessSurface.jsx";
+import { OpsSurface } from "./components/OpsSurface.jsx";
+import { IntakeSurface } from "./components/IntakeSurface.jsx";
+import { FinanceSurface } from "./components/FinanceSurface.jsx";
 import { ProfilesSurface } from "./components/ProfilesSurface.jsx";
+import { PeopleHome } from "./people/PeopleHome.tsx";
 import { AnalyticsSurface } from "./components/AnalyticsSurface.jsx";
 import { DashboardsSurface } from "./components/DashboardsSurface.jsx";
 import { AskSurface } from "./components/AskSurface.jsx";
@@ -164,6 +173,16 @@ export function App() {
             />
           )}
           {view === "content" && <ContentSurface labels={labels} />}
+          {view === "clients" && (
+            <ClientsSurface labels={labels} dataMode={initialDataMode} liveCtx={initialLiveCtx} />
+          )}
+          {view === "matters" && <MattersSurface labels={labels} liveCtx={initialLiveCtx} />}
+          {view === "vault" && <VaultSurface labels={labels} liveCtx={initialLiveCtx} />}
+          {view === "portal" && <PortalSurface labels={labels} liveCtx={initialLiveCtx} />}
+          {view === "readiness" && <ReadinessSurface labels={labels} liveCtx={initialLiveCtx} />}
+          {view === "ops" && <OpsSurface labels={labels} liveCtx={initialLiveCtx} />}
+          {view === "intake" && <IntakeSurface labels={labels} liveCtx={initialLiveCtx} />}
+          {view === "finance" && <FinanceSurface labels={labels} liveCtx={initialLiveCtx} />}
           {view === "profiles" && (
             <ProfilesSurface
               labels={labels}
@@ -178,9 +197,10 @@ export function App() {
               liveCtx={initialLiveCtx}
             />
           )}
-          {view === "analytics" && <AnalyticsSurface labels={labels} variant={initialVariant} onSave={() => setModal("save")} />}
+          {view === "people" && <PeopleHome labels={labels} />}
+          {view === "analytics" && <AnalyticsSurface labels={labels} variant={initialVariant} liveCtx={initialLiveCtx} onSave={() => setModal("save")} />}
           {view === "dashboards" && <DashboardsSurface labels={labels} setView={setView} variant={initialVariant} onCreateDashboard={() => setModal("createDashboard")} />}
-          {view === "ask" && <AskSurface labels={labels} variant={initialVariant} />}
+          {view === "ask" && <AskSurface labels={labels} variant={initialVariant} liveCtx={initialLiveCtx} />}
           {view === "experiments" && <ExperimentsSurface labels={labels} variant={initialVariant} onConfirm={() => setModal("confirm")} onNewExperiment={() => setModal("newExperiment")} />}
           {view === "admin" && <AdminSurface labels={labels} variant={initialVariant} onInvite={() => setModal("invite")} onProfilePicture={() => setModal("profilePicture")} />}
           {view === "dark" && <ThemeSurface labels={labels} theme={theme} setTheme={setTheme} variant={initialVariant} />}

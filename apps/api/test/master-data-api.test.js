@@ -59,7 +59,7 @@ test("records happy path returns tenant-scoped synthetic items with matter-core 
   for (const item of body.items) {
     assert.equal(item.tenant_id, TENANT);
     assert.equal(item.synthetic_only, true);
-    assert.equal(item.matter_core_enrichment.synthetic_crosswalk, true);
+    assert.equal(item.matter_core_enrichment.runtime_seed_crosswalk, true);
     assert.equal(item.matter_core_enrichment.matter_id, "matter_rp05_synthetic_opening");
   }
 });

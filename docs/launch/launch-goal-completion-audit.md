@@ -15,7 +15,7 @@ Verdict: NOT_COMPLETE
 
 | Requirement | Status | Evidence |
 | --- | --- | --- |
-| cp_closeout_completed_before_launch | failed | scripts/validate-final-product-completion-gate.mjs<br>docs/closeout-pack-plan/closeout-pack-plan.json |
+| cp_closeout_completed_before_launch | satisfied | scripts/validate-final-product-completion-gate.mjs<br>docs/closeout-pack-plan/closeout-pack-plan.json |
 | launch_tuw_ledger_valid_72_wp_344_tuw | satisfied | workbook/launch-tuw/launch-tuw-ledger.json<br>workbook/launch-tuw/validate-launch-tuw-ledger.mjs |
 | launch_planning_authority_traceable | satisfied | /Users/jws/Downloads/LAUNCH_TUW_PACKAGE_PART1_COMBINED.md<br>workbook/launch-tuw<br>docs/launch/launch-authority-traceability-audit.json |
 | implementation_layer_ledger_valid | satisfied | docs/closeout-pack-plan/implementation-layer-ledger.json<br>scripts/validate-implementation-layer-ledger.mjs |
@@ -79,8 +79,8 @@ Verdict: NOT_COMPLETE
 
 ## Manual Evidence Intake
 
-- Total intake rows: 34
-- Pending intake rows: 34
+- Total intake rows: 36
+- Pending intake rows: 36
 - Evidence-satisfied rows: 0
 - Owner-deferred rows: 0
 - Coverage-eligible valid deferred rows: 0
@@ -88,8 +88,8 @@ Verdict: NOT_COMPLETE
 
 ## Evidence Acceptance Matrix
 
-- Total acceptance rows: 34
-- Pending acceptance rows: 34
+- Total acceptance rows: 36
+- Pending acceptance rows: 36
 - Evidence-satisfied acceptance rows: 0
 - Owner-deferred acceptance rows: 0
 - Missing-intake acceptance rows: 0
@@ -120,46 +120,46 @@ Verdict: NOT_COMPLETE
 - Coverage-eligible valid deferred decisions: 0
 - Non-coverage valid deferred decisions: 0
 - All required deferrals covered: false
-- Missing go-live deferrals: 29
+- Missing go-live deferrals: 31
 - Missing L9 deferrals: 5
 - Missing blocked-WP deferrals: 70
 - Missing phase-exit deferrals: 11
 
 ## Decision ID Contract
 
-- Accepted decision ID mentions checked: 340
-- Unique accepted decision IDs checked: 150
+- Accepted decision ID mentions checked: 346
+- Unique accepted decision IDs checked: 153
 - Unclassified decision IDs: 0
 - Domain mismatches: 0
 - Cross-domain decision IDs: 0
 
 ## Deferral Action Crosswalk
 
-- Missing deferral targets: 115
-- Action-linked targets: 115
+- Missing deferral targets: 117
+- Action-linked targets: 117
 - Missing action sources: 0
-- Gate manual-intake links: 29
+- Gate manual-intake links: 31
 - L9 manual-intake links: 5
 - Blocked-WP owner-action links: 70
 - Phase-exit links: 11
 
 ## Deferral Resolution Lanes
 
-- Classified targets: 115
+- Classified targets: 117
 - Primary lanes: 8
 - Unclassified targets: 0
 - Lane findings: 0
 
 ## Decision Register Template
 
-- Template rows: 115
-- Placeholder rows: 115
+- Template rows: 117
+- Placeholder rows: 117
 - Decision register current rows: 0
 - Template validation findings: 0
 
 ## Deferral Intake Batches
 
-- Intake targets: 115
+- Intake targets: 117
 - Batches: 8
 - Non-empty batches: 8
 - Decision register current rows: 0
@@ -168,7 +168,7 @@ Verdict: NOT_COMPLETE
 ## Deferral Coverage Options
 
 - Minimum bundle decision IDs: 4
-- Minimum bundle covered targets: 115
+- Minimum bundle covered targets: 117
 - Minimum bundle uncovered targets: 0
 - Decision register current rows: 0
 - Options validation findings: 0
@@ -176,7 +176,7 @@ Verdict: NOT_COMPLETE
 ## Minimum Deferral Decision Packet
 
 - Placeholder decision rows: 4
-- Covered targets if owner rows are completed: 115
+- Covered targets if owner rows are completed: 117
 - Uncovered targets if owner rows are completed: 0
 - Decision register current rows: 0
 - Packet validation findings: 0
@@ -184,7 +184,7 @@ Verdict: NOT_COMPLETE
 ## Minimum Deferral Target Annex
 
 - Minimum decision rows: 4
-- Unique target IDs: 115
+- Unique target IDs: 117
 - Unmatched targets: 0
 - Aggregate-not-accepted targets: 0
 - Annex validation findings: 0
@@ -192,10 +192,10 @@ Verdict: NOT_COMPLETE
 ## Owner Decision Intake Runbook
 
 - Minimum owner rows: 4
-- Targets if minimum owner rows are completed: 115
+- Targets if minimum owner rows are completed: 117
 - Decision register current rows: 0
 - Valid applied minimum decision rows: 0
-- Remaining targets after valid applied rows: 115
+- Remaining targets after valid applied rows: 117
 - Runbook validation findings: 0
 
 ## Owner Approval Receipt Ledger
@@ -210,7 +210,7 @@ Verdict: NOT_COMPLETE
 
 - Request cards: 4
 - Pending receipt slots: 4
-- Targets by pending requests: 115
+- Targets by pending requests: 117
 - Request packet findings: 0
 
 ## Owner Response Intake
@@ -271,7 +271,7 @@ Verdict: NOT_COMPLETE
 - Application coverage ready: false
 - Valid applied minimum decision rows: 0
 - Missing minimum decision rows: 4
-- Remaining targets after valid applied rows: 115
+- Remaining targets after valid applied rows: 117
 - Application findings: 0
 
 ## No-Go Guard
@@ -296,7 +296,7 @@ Verdict: NOT_COMPLETE
 
 | Command | Exit |
 | --- | ---: |
-| node scripts/validate-final-product-completion-gate.mjs | 1 |
+| node scripts/validate-final-product-completion-gate.mjs | 0 |
 | node scripts/validate-implementation-layer-ledger.mjs | 0 |
 | node workbook/launch-tuw/validate-launch-tuw-ledger.mjs | 0 |
 | node scripts/audit-launch-authority-traceability.mjs | 0 |

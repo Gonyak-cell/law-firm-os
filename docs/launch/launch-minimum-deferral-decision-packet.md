@@ -14,10 +14,10 @@ Generated at: 2026-06-18T17:07:16.307Z
 
 ## Summary
 
-- source_missing_deferral_target_count: 115
+- source_missing_deferral_target_count: 117
 - source_minimum_bundle_decision_id_count: 4
 - placeholder_decision_row_count: 4
-- covered_target_count_if_owner_rows_are_completed: 115
+- covered_target_count_if_owner_rows_are_completed: 117
 - uncovered_target_count_if_owner_rows_are_completed: 0
 - placeholder_row_count: 4
 
@@ -25,7 +25,7 @@ Generated at: 2026-06-18T17:07:16.307Z
 
 | Decision ID | Title | Owner | Decision | Basis | Date/revisit gate | Approval signature | Status to use only after approval | Targets |
 | --- | --- | --- | --- | --- | --- | --- | --- | ---: |
-| COVERAGE-ALL-GO-LIVE | Owner deferral for all failed G1-G10 gate evidence | <OWNER_ROLE_AND_NAME_REQUIRED> | <OWNER_DEFERRAL_DECISION_REQUIRED> | <OWNER_DEFERRAL_BASIS_REQUIRED> | <TARGET_DATE_OR_REVISIT_GATE_REQUIRED> | <APPROVAL_SIGNATURE_REFERENCE_REQUIRED> | deferred(시한 명기) | 29 |
+| COVERAGE-ALL-GO-LIVE | Owner deferral for all failed G1-G10 gate evidence | <OWNER_ROLE_AND_NAME_REQUIRED> | <OWNER_DEFERRAL_DECISION_REQUIRED> | <OWNER_DEFERRAL_BASIS_REQUIRED> | <TARGET_DATE_OR_REVISIT_GATE_REQUIRED> | <APPROVAL_SIGNATURE_REFERENCE_REQUIRED> | deferred(시한 명기) | 31 |
 | COVERAGE-L9-STABILIZATION | Owner deferral for all L9 stabilization criteria | <OWNER_ROLE_AND_NAME_REQUIRED> | <OWNER_DEFERRAL_DECISION_REQUIRED> | <OWNER_DEFERRAL_BASIS_REQUIRED> | <TARGET_DATE_OR_REVISIT_GATE_REQUIRED> | <APPROVAL_SIGNATURE_REFERENCE_REQUIRED> | deferred(시한 명기) | 5 |
 | COVERAGE-ALL-BLOCKED-WP | Owner deferral for all blocked launch work packages | <OWNER_ROLE_AND_NAME_REQUIRED> | <OWNER_DEFERRAL_DECISION_REQUIRED> | <OWNER_DEFERRAL_BASIS_REQUIRED> | <TARGET_DATE_OR_REVISIT_GATE_REQUIRED> | <APPROVAL_SIGNATURE_REFERENCE_REQUIRED> | deferred(시한 명기) | 70 |
 | COVERAGE-ALL-PHASE-EXITS | Owner deferral for all PRE-L9 phase exits | <OWNER_ROLE_AND_NAME_REQUIRED> | <OWNER_DEFERRAL_DECISION_REQUIRED> | <OWNER_DEFERRAL_BASIS_REQUIRED> | <TARGET_DATE_OR_REVISIT_GATE_REQUIRED> | <APPROVAL_SIGNATURE_REFERENCE_REQUIRED> | deferred(시한 명기) | 11 |

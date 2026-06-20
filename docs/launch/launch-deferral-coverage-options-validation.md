@@ -6,11 +6,11 @@ Verdict: PASS
 
 ## Summary
 
-- missing_deferral_target_count: 115
+- missing_deferral_target_count: 117
 - minimum_bundle_decision_id_count: 4
-- minimum_bundle_covered_target_count: 115
+- minimum_bundle_covered_target_count: 117
 - minimum_bundle_uncovered_target_count: 0
-- option_count: 150
+- option_count: 153
 - decision_register_total_rows: 0
 - decision_register_valid_deferred_rows: 0
 - finding_count: 0

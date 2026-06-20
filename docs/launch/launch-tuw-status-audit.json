@@ -73,7 +73,10 @@
       "G1": {
         "status": "fail",
         "missing_evidence": [],
-        "failed_evidence": []
+        "failed_evidence": [
+          "G1-E02",
+          "G1-E03"
+        ]
       },
       "G2": {
         "status": "fail",

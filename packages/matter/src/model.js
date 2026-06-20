@@ -80,6 +80,7 @@ export function createMatterMember(input) {
   return freezeRecord({
     ...baseRecord("MatterMember", input),
     member_id: input.member_id,
+    employee_id: input.employee_id ?? null,
     user_id: input.user_id,
     role: input.role,
     status: input.status,
@@ -385,4 +386,3 @@ export function createMatterCoreSyntheticFixture() {
     model_definition_count: Object.keys(MATTER_CORE_MODEL_DEFINITIONS).length,
   });
 }
-
