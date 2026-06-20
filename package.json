@@ -136,6 +136,7 @@
     "hrx:core:validate": "node scripts/validate-hrx-core-domain.mjs",
     "hrx:workflows:validate": "node scripts/validate-hrx-workflows.mjs",
     "hrx:ui:validate": "node scripts/validate-hrx-ui-api-backed.mjs",
+    "hrx:ai:validate": "node scripts/validate-hrx-ai-analytics.mjs",
     "hrx:security:validate": "node scripts/validate-hrx-security-negative-tests.mjs",
     "hrx:enterprise:validate": "node scripts/validate-hrx-enterprise-readiness.mjs",
     "hrx:no-premature-claim:validate": "node scripts/validate-hrx-no-premature-claim.mjs",

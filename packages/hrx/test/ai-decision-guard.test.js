@@ -2,12 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { assertHrxNoFinalDecision, enforceHrxNoFinalDecisionGuard } from "../src/ai/decision-guard.js";
 
-test("AI decision guard blocks final hire, fire, pay, and evaluation decisions", () => {
+test("AI decision guard blocks final hire, fire, pay, evaluation, discipline, and termination decisions", () => {
   const cases = [
     { decision_domain: "hire", final_decision: true },
     { question: "Should we terminate this employee now?", decision_mode: "final" },
     { action: "decide_salary_raise", request: "Set pay for employee", decision_domain: "pay" },
     { question: "Set final performance rating", decision_mode: "final" },
+    { decision_domain: "discipline", final_decision: true },
+    { decision_domain: "termination", decision_mode: "final" },
   ];
 
   for (const input of cases) {

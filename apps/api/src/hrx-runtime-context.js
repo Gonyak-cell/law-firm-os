@@ -11,6 +11,7 @@ import { createOffer } from "../../../packages/hrx/src/recruiting/offer.js";
 import { createHrxAiSourceRegistry } from "../../../packages/hrx/src/ai/source-registry.js";
 import { createHrxPermissionAwareRetriever } from "../../../packages/hrx/src/ai/rag.js";
 import { createInMemoryHrxAiReviewQueue } from "../../../packages/hrx/src/ai/review-queue.js";
+import { createSqlHrxAiReviewQueue } from "../../../packages/hrx/src/ai/review-queue-sql.js";
 import { createHrxPeopleAnalyticsReadModel } from "../../../packages/hrx/src/analytics.js";
 import { createLeavePolicy } from "../../../packages/hrx/src/rules/leave-policy.js";
 import { createInMemoryLeaveBalanceLedger, createSqlLeaveBalanceLedger } from "../../../packages/hrx/src/leave/balance.js";
@@ -338,7 +339,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
     },
   ]);
   const aiRetriever = createHrxPermissionAwareRetriever({ registry: aiSourceRegistry, authz: createSyntheticAiAuthz() });
-  const aiReviewQueue = createInMemoryHrxAiReviewQueue();
+  const aiReviewQueue = store ? createSqlHrxAiReviewQueue({ store }) : createInMemoryHrxAiReviewQueue();
   const aiRoute = createHrxAiRoute({ retriever: aiRetriever, reviewQueue: aiReviewQueue, audit });
   const matterAssignments = Object.freeze([
     Object.freeze({

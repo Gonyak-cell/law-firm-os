@@ -11,6 +11,9 @@ const PRIMARY_KEYS = Object.freeze({
   hrx_leave_balance_entries: ["tenant_id", "entry_id"],
   hrx_leave_requests: ["tenant_id", "request_id"],
   hrx_audit_events: ["tenant_id", "event_id"],
+  hrx_ai_review_items: ["tenant_id", "review_id"],
+  hrx_ai_source_chunks: ["tenant_id", "source_ref", "chunk_id"],
+  hrx_analytics_snapshots: ["tenant_id", "snapshot_id"],
 });
 
 const TABLES = Object.freeze([...HRX_DURABLE_CORE_TABLES, ...HRX_DURABLE_WORKFLOW_TABLES]);

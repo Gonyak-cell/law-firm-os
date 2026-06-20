@@ -29,6 +29,8 @@ test("people analytics read model is tenant scoped across headcount leave recrui
   });
 
   assert.equal(analytics.headcount.total, 3);
+  assert.equal(analytics.metric_grain, "tenant_aggregate");
+  assert.equal(analytics.privacy.employee_identifiers_included, false);
   assert.equal(analytics.headcount.active, 1);
   assert.equal(analytics.leave.approved_hours, 8);
   assert.equal(analytics.recruiting_funnel.offer_count, 1);

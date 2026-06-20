@@ -26,6 +26,7 @@ for (const file of [
   "packages/hrx/src/migrations/index.js",
   "packages/hrx/src/migrations/001_hrx_core.sql",
   "packages/hrx/src/migrations/002_hrx_documents_leave_audit.sql",
+  "packages/hrx/src/migrations/003_hrx_ai_analytics.sql",
   "packages/audit/src/hrx-event-store-sql.js",
   "packages/audit/src/hrx-hash-chain.js",
   "scripts/migrate-hrx.mjs",
@@ -161,4 +162,4 @@ if (errors.length > 0) {
 console.log("HRX persistence validation passed.");
 console.log("durable_store: file-backed");
 console.log("core_tables: hrx_employees, hrx_employment_profiles, hrx_employee_user_links");
-console.log("workflow_tables: hrx_documents, hrx_leave_balance_entries, hrx_leave_requests, hrx_audit_events");
+console.log("workflow_tables: hrx_documents, hrx_leave_balance_entries, hrx_leave_requests, hrx_audit_events, hrx_ai_review_items, hrx_ai_source_chunks, hrx_analytics_snapshots");

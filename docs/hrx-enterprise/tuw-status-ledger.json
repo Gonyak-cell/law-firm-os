@@ -1132,6 +1132,202 @@
         "npm run web:e2e",
         "npm --workspace apps/web run test:ui"
       ]
+    },
+    {
+      "id": "HRX-L6-001",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/ai/source-ingestion.js",
+        "packages/hrx/test/ai-source-ingestion.test.js",
+        "packages/hrx/src/migrations/003_hrx_ai_analytics.sql"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/ai-source-ingestion.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-002",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/ai/citation-validator.js",
+        "packages/hrx/src/ai/answer-schema.js",
+        "packages/hrx/test/ai-citation-validator.test.js"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/ai-citation-validator.test.js packages/hrx/test/ai-answer-schema.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-003",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/ai/model-gateway.js",
+        "packages/hrx/test/ai-model-gateway.test.js",
+        "scripts/validate-hrx-ai-analytics.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/ai-model-gateway.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-004",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/ai/decision-guard.js",
+        "packages/hrx/test/ai-decision-guard.test.js",
+        "apps/api/src/routes/hrx/ai.js"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/ai-decision-guard.test.js apps/api/test/hrx/ai.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-005",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/ai/review-queue-sql.js",
+        "packages/hrx/test/ai-review-queue-sql.test.js",
+        "apps/api/src/hrx-runtime-context.js"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/ai-review-queue-sql.test.js apps/api/test/hrx/ai.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-006",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/ai/audit.js",
+        "packages/hrx/test/ai-audit.test.js",
+        "apps/api/src/routes/hrx/ai.js"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/ai-audit.test.js apps/api/test/hrx/ai.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-007",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/ai/rag.js",
+        "packages/hrx/test/ai-rag-authz.test.js",
+        "scripts/validate-hrx-ai-analytics.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/ai-rag-authz.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-008",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/analytics-snapshot.js",
+        "packages/hrx/test/analytics-snapshot.test.js",
+        "packages/hrx/src/migrations/003_hrx_ai_analytics.sql"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/analytics-snapshot.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-009",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/matter/src/hrx-workload-projection.js",
+        "packages/matter/test/hrx-workload-projection.test.js",
+        "packages/hrx/src/analytics.js"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/matter/test/hrx-workload-projection.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-010",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/analytics.js",
+        "packages/hrx/test/analytics.test.js",
+        "apps/api/test/hrx/ai.test.js"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/analytics.test.js apps/api/test/hrx/ai.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-011",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "packages/hrx/src/analytics-export.js",
+        "packages/hrx/test/analytics-export.test.js",
+        "scripts/validate-hrx-ai-analytics.mjs"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "node --test packages/hrx/test/analytics-export.test.js"
+      ]
+    },
+    {
+      "id": "HRX-L6-012",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/ai/HRAIAssistant.tsx",
+        "apps/web/e2e/hrx/hrx-ai-assistant.spec.ts",
+        "apps/web/src/people/hrxApiClient.ts"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "npm run web:e2e -- hrx-ai-assistant"
+      ]
+    },
+    {
+      "id": "HRX-L6-013",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "apps/web/src/people/analytics/HRAnalytics.tsx",
+        "apps/web/e2e/hrx/hrx-analytics.spec.ts",
+        "apps/api/src/hrx-runtime-context.js"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "npm run web:e2e -- hrx-analytics"
+      ]
+    },
+    {
+      "id": "HRX-L6-014",
+      "pr": "PR-12",
+      "status": "closed",
+      "evidence": [
+        "scripts/validate-hrx-ai-analytics.mjs",
+        "package.json",
+        "docs/hrx-enterprise/tuw-traceability-matrix.md"
+      ],
+      "validators": [
+        "npm run hrx:ai:validate",
+        "npm test"
+      ]
     }
   ]
 }

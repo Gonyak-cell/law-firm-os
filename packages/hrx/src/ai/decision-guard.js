@@ -1,10 +1,12 @@
-export const HRX_AI_FINAL_DECISION_DOMAINS = Object.freeze(["hire", "fire", "pay", "evaluation"]);
+export const HRX_AI_FINAL_DECISION_DOMAINS = Object.freeze(["hire", "fire", "pay", "evaluation", "discipline", "termination"]);
 
 const DOMAIN_KEYWORDS = Object.freeze({
   hire: Object.freeze(["hire", "hiring", "make offer", "extend offer", "reject candidate", "select candidate"]),
   fire: Object.freeze(["fire", "terminate", "dismiss", "lay off", "offboard for cause"]),
   pay: Object.freeze(["pay", "salary", "compensation", "bonus", "raise", "equity"]),
   evaluation: Object.freeze(["performance rating", "rate performance", "evaluation score", "promotion rating", "discipline"]),
+  discipline: Object.freeze(["discipline", "disciplinary action", "warning letter", "suspend employee"]),
+  termination: Object.freeze(["termination", "terminate employment", "separation for cause"]),
 });
 
 function normalizeText(value) {

@@ -61,8 +61,9 @@ export function HRAIAssistant() {
       ) : (
         <div className="hrx-ai-result">
           <strong>{result.outcome}</strong>
+          <span>Review state: {result.review_item ? result.review_item.state : "not_required"}</span>
           <span>{result.review_item ? result.review_item.reason : result.answer?.reason ?? "cited_answer"}</span>
-          <em>{result.citations.map((citation) => citation.source_ref).join(", ") || "review queue"}</em>
+          <em>Citations: {result.citations.map((citation) => citation.source_ref).join(", ") || "review queue"}</em>
         </div>
       )}
       <DataTable columns={["Review", "Risk", "State", "Reason"]} rows={reviewRows} />

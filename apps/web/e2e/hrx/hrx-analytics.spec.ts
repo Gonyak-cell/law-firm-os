@@ -19,6 +19,8 @@ test("HR analytics panel fetches tenant-scoped analytics API without static fall
   assert.match(component, /fetchHrxAnalytics/);
   assert.match(api, /\/api\/hrx\/analytics/);
   assert.match(component, /Tenant-scoped analytics read model/);
+  assert.match(component, /Aggregate only/);
+  assert.match(component, /row_level_details_included/);
   assert.match(component, /No static metric fallback is rendered/);
   assert.doesNotMatch(component, /mockData|profileRows|matters/);
 });

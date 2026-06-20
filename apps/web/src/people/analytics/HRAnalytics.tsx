@@ -43,6 +43,11 @@ export function HRAnalytics() {
             <strong>{analytics.workload.total_hours}</strong>
             <span>Workload hours</span>
           </div>
+          <div>
+            <BarChart3 size={16} />
+            <strong>{analytics.metric_grain}</strong>
+            <span>Aggregate only</span>
+          </div>
         </div>
         <DataTable
           columns={["Metric", "Value", "Scope"]}
@@ -50,7 +55,8 @@ export function HRAnalytics() {
             ["Active employees", analytics.headcount.active, "tenant"],
             ["Turnover rate", `${analytics.turnover.turnover_rate_pct}%`, "tenant"],
             ["Applications", analytics.recruiting_funnel.total_applications, "tenant"],
-            ["Avg capacity", `${analytics.workload.average_capacity_pct}%`, "aggregated"]
+            ["Avg capacity", `${analytics.workload.average_capacity_pct}%`, "aggregated"],
+            ["Row details", String(analytics.row_level_details_included), "blocked"]
           ]}
         />
       </>

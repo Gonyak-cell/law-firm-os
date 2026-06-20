@@ -35,7 +35,13 @@ export function createHrxPeopleAnalyticsReadModel(input = {}) {
   return Object.freeze({
     tenant_id: tenantId,
     generated_from: "hrx_runtime_read_model",
+    metric_grain: "tenant_aggregate",
     row_level_details_included: false,
+    privacy: Object.freeze({
+      employee_identifiers_included: false,
+      matter_identifiers_included: false,
+      document_bodies_included: false,
+    }),
     headcount: Object.freeze({
       total: employees.length,
       active: activeEmployees.length,

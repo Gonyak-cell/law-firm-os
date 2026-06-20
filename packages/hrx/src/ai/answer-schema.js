@@ -1,3 +1,5 @@
+import { validateHrxAiCitations } from "./citation-validator.js";
+
 export const HRX_AI_ANSWER_STATUSES = Object.freeze(["answered", "insufficient_sources", "blocked", "review_required"]);
 
 const BLOCKED_ANSWER_FIELDS = Object.freeze(["prompt", "raw_prompt", "raw_model_output", "trace", "retrieved_payloads"]);
@@ -70,18 +72,21 @@ export function createHrxInsufficientSourcesAnswer(reason = "hrx_ai_no_allowed_s
 }
 
 export function groundHrxAiAnswer(input = {}) {
-  const allowedRefs = new Set((input.allowed_sources ?? []).map((source) => source.source_ref));
   const answer = createHrxAiAnswer(input);
   if (answer.status === "insufficient_sources") return answer;
-  const unauthorizedRefs = answer.source_refs.filter((sourceRef) => !allowedRefs.has(sourceRef));
-  if (unauthorizedRefs.length > 0) {
+  const citationDecision = validateHrxAiCitations({
+    answer,
+    allowed_sources: input.allowed_sources ?? [],
+    allowed_source_refs: input.allowed_source_refs ?? [],
+  });
+  if (!citationDecision.ok) {
     return Object.freeze({
       status: "insufficient_sources",
       answer: null,
       citations: Object.freeze([]),
       source_refs: Object.freeze([]),
-      reason: "hrx_ai_citation_not_in_allowed_sources",
-      rejected_source_refs: Object.freeze(unauthorizedRefs),
+      reason: citationDecision.reason,
+      rejected_source_refs: citationDecision.rejected_source_refs,
     });
   }
   return answer;

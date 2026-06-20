@@ -13,6 +13,9 @@ export const HRX_DURABLE_WORKFLOW_TABLES = Object.freeze([
   "hrx_leave_balance_entries",
   "hrx_leave_requests",
   "hrx_audit_events",
+  "hrx_ai_review_items",
+  "hrx_ai_source_chunks",
+  "hrx_analytics_snapshots",
 ]);
 
 export function assertHrxStorePort(store) {

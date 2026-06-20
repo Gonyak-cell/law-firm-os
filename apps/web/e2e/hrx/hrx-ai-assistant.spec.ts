@@ -21,6 +21,8 @@ test("HR AI assistant uses API route and human review queue without local fallba
   assert.match(api, /\/api\/hrx\/ai\/assistant/);
   assert.match(api, /\/api\/hrx\/ai\/reviews/);
   assert.match(component, /human review queue/);
+  assert.match(component, /Citations:/);
+  assert.match(component, /Review state:/);
   assert.match(component, /No local assistant fallback is rendered/);
   assert.doesNotMatch(component, /mockData|profileRows|matters/);
 });
