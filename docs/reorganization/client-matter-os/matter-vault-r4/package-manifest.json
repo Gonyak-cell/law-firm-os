@@ -52,9 +52,18 @@
     "launch_authorization_claim": false,
     "validator": "npm run matter-vault:r4:launch:validate"
   },
+  "external_receipt_lane": {
+    "external_production_smoke_status": "blocked_missing_external_environment",
+    "production_migration_operator_status": "blocked_missing_operator_environment",
+    "external_production_smoke_receipt_received": false,
+    "production_migration_operator_receipt_received": false,
+    "actual_launch_go_live_completed_claim": false,
+    "validator": "npm run matter-vault:r4:external-receipts:validate"
+  },
   "validators": [
     "npm run matter-vault:r4:readiness",
     "npm run matter-vault:r4:no-go",
-    "npm run matter-vault:r4:launch:validate"
+    "npm run matter-vault:r4:launch:validate",
+    "npm run matter-vault:r4:external-receipts:validate"
   ]
 }

@@ -24,9 +24,9 @@ Current decision: `owner_authorized_release_cutover_pending_external_receipts`
 | Migration dry-run | `node scripts/backfill-matter-vault-links.mjs`; `node scripts/backfill-vault-workspaces.mjs` | Pass, failed rows empty |
 | Duplicate workspace audit | `node scripts/audit-duplicate-vault-workspaces.mjs` | Pass |
 | Rollback rehearsal | `node scripts/drill-matter-vault-backup-restore.mjs` | Receipt recorded |
-| External production smoke | Manual external receipt | Pending |
+| External production smoke | `launch/external-production-smoke-receipt.json` | Blocked pending external environment |
 | Owner release authority | `launch/owner-release-authority-receipt.json` | Received for release/cutover progression |
-| Production migration operator receipt | Manual operator receipt | Pending |
+| Production migration operator receipt | `launch/production-migration-operator-receipt.json` | Blocked pending operator environment |
 
 ## Automatic No-Go
 
@@ -36,7 +36,7 @@ Current decision: `owner_authorized_release_cutover_pending_external_receipts`
 - Migration dry-run produces failed rows.
 - Duplicate Vault workspace audit finds duplicate workspace ownership.
 - Rollback rehearsal is missing.
-- External production smoke receipt is absent.
-- Production migration operator receipt is absent.
+- External production smoke receipt is absent or blocked.
+- Production migration operator receipt is absent or blocked.
 
 Automation cannot convert this checklist into a launch decision.

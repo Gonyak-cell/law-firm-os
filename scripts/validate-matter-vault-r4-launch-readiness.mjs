@@ -61,6 +61,9 @@ const requiredFiles = [
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/uat-results.md",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/owner-decision-template.md",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/owner-release-authority-receipt.json",
+  "docs/reorganization/client-matter-os/matter-vault-r4/launch/external-production-smoke-receipt.json",
+  "docs/reorganization/client-matter-os/matter-vault-r4/launch/production-migration-operator-receipt.json",
+  "docs/reorganization/client-matter-os/matter-vault-r4/launch/remaining-external-receipts.md",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/launch-readiness-receipt.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/migration-dry-run-receipt.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/rollback-rehearsal-receipt.json",
@@ -75,6 +78,8 @@ if (errors.length === 0) {
   const manifest = readJson("docs/reorganization/client-matter-os/matter-vault-r4/package-manifest.json");
   const receipt = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/launch-readiness-receipt.json");
   const ownerReceipt = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/owner-release-authority-receipt.json");
+  const externalSmokeReceipt = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/external-production-smoke-receipt.json");
+  const productionMigrationReceipt = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/production-migration-operator-receipt.json");
   const migrationReceipt = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/migration-dry-run-receipt.json");
   const rollbackReceipt = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/rollback-rehearsal-receipt.json");
   const linkDryRun = readJson("docs/reorganization/client-matter-os/matter-vault-r4/backfill-matter-vault-links-dry-run.json");
@@ -106,6 +111,11 @@ if (errors.length === 0) {
   assert(manifest.launch_readiness_lane?.external_production_smoke_receipt_received === false, "manifest external production smoke must remain false");
   assert(manifest.launch_readiness_lane?.migration_operator_receipt_received === false, "manifest migration operator receipt must remain false");
   assert(manifest.launch_readiness_lane?.launch_authorization_claim === false, "manifest launch authorization claim must remain false");
+  assert(manifest.external_receipt_lane?.external_production_smoke_status === "blocked_missing_external_environment", "manifest external smoke status mismatch");
+  assert(manifest.external_receipt_lane?.production_migration_operator_status === "blocked_missing_operator_environment", "manifest production migration status mismatch");
+  assert(manifest.external_receipt_lane?.external_production_smoke_receipt_received === false, "manifest external smoke receipt must remain false");
+  assert(manifest.external_receipt_lane?.production_migration_operator_receipt_received === false, "manifest production migration receipt must remain false");
+  assert(manifest.external_receipt_lane?.actual_launch_go_live_completed_claim === false, "manifest actual launch/go-live completed claim must remain false");
 
   assert(receipt.current_boundary === currentBoundary, "launch receipt boundary mismatch");
   assert(receipt.repo_evidence_complete === true, "launch receipt must record repo evidence complete");
@@ -127,6 +137,17 @@ if (errors.length === 0) {
   assert(ownerReceipt.go_live_claim === false, "owner receipt go_live_claim must remain false");
   assert(ownerReceipt.production_ready_claim === false, "owner receipt production_ready_claim must remain false");
 
+  assert(externalSmokeReceipt.status === "blocked_missing_external_environment", "external smoke receipt must remain blocked");
+  assert(externalSmokeReceipt.operator_receipt_received === false, "external smoke operator receipt must remain false");
+  assert(externalSmokeReceipt.launch_authorization_claim === false, "external smoke launch authorization claim must remain false");
+  assert(externalSmokeReceipt.go_live_claim === false, "external smoke go_live_claim must remain false");
+  assert(externalSmokeReceipt.production_ready_claim === false, "external smoke production_ready_claim must remain false");
+  assert(productionMigrationReceipt.status === "blocked_missing_operator_environment", "production migration receipt must remain blocked");
+  assert(productionMigrationReceipt.operator_receipt_received === false, "production migration operator receipt must remain false");
+  assert(productionMigrationReceipt.launch_authorization_claim === false, "production migration launch authorization claim must remain false");
+  assert(productionMigrationReceipt.go_live_claim === false, "production migration go_live_claim must remain false");
+  assert(productionMigrationReceipt.production_ready_claim === false, "production migration production_ready_claim must remain false");
+
   assert(migrationReceipt.dry_run === true, "migration receipt must be dry-run");
   assert(Array.isArray(migrationReceipt.failed_rows) && migrationReceipt.failed_rows.length === 0, "migration receipt failed_rows must be empty");
   assert(migrationReceipt.production_migration_operator_receipt_received === false, "migration operator receipt must remain false");
@@ -139,6 +160,7 @@ if (errors.length === 0) {
   assert(Array.isArray(workspaceDryRun.failed_rows) && workspaceDryRun.failed_rows.length === 0, "Vault workspace backfill failed_rows must be empty");
 
   assert(packageJson.scripts?.["matter-vault:r4:launch:validate"] === "node scripts/validate-matter-vault-r4-launch-readiness.mjs", "package script matter-vault:r4:launch:validate missing");
+  assert(packageJson.scripts?.["matter-vault:r4:external-receipts:validate"] === "node scripts/validate-matter-vault-r4-external-receipts.mjs", "package script matter-vault:r4:external-receipts:validate missing");
 
   requireText("docs/reorganization/client-matter-os/matter-vault-r4/launch/launch-readiness.md", [
     currentBoundary,
@@ -160,6 +182,10 @@ if (errors.length === 0) {
     "Owner release authority received | true",
     "External production smoke receipt received | false",
   ]);
+  requireText("docs/reorganization/client-matter-os/matter-vault-r4/launch/remaining-external-receipts.md", [
+    "External production smoke and production migration operator receipts are absent",
+    "actual launch/go-live completed and production-ready completed claims remain false",
+  ]);
 }
 
 const forbidden = [
@@ -172,6 +198,8 @@ const forbidden = [
 for (const file of [
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/launch-readiness-receipt.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/owner-release-authority-receipt.json",
+  "docs/reorganization/client-matter-os/matter-vault-r4/launch/external-production-smoke-receipt.json",
+  "docs/reorganization/client-matter-os/matter-vault-r4/launch/production-migration-operator-receipt.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/migration-dry-run-receipt.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/rollback-rehearsal-receipt.json",
 ]) {
@@ -195,3 +223,5 @@ console.log("launch_authorization_claim: false");
 console.log("owner_release_authority_received: true");
 console.log("external_production_smoke_receipt_received: false");
 console.log("production_migration_operator_receipt_received: false");
+console.log("external_production_smoke_status: blocked_missing_external_environment");
+console.log("production_migration_operator_status: blocked_missing_operator_environment");

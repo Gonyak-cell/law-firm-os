@@ -21,6 +21,8 @@ This packet gathers engineering evidence and records owner release authority for
 | Migration | `launch/migration-dry-run-receipt.json` | dry-run receipt only |
 | Rollback | `launch/rollback-rehearsal-receipt.json` | documented rehearsal only |
 | Owner authority | `launch/owner-release-authority-receipt.json` | received for release/cutover progression |
+| External production smoke | `launch/external-production-smoke-receipt.json` | blocked, missing external environment |
+| Production migration operator | `launch/production-migration-operator-receipt.json` | blocked, missing operator environment |
 
 ## Boundary
 

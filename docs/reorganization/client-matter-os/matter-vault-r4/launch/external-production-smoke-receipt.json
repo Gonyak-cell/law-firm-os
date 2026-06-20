@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.matter-vault-r4-external-production-smoke-receipt.v0.1",
+  "date": "2026-06-20",
+  "release_lane": "Matter-Vault R4",
+  "receipt_type": "external_production_smoke",
+  "status": "blocked_missing_external_environment",
+  "operator_receipt_received": false,
+  "required_environment": [
+    "MATTER_VAULT_R4_PRODUCTION_BASE_URL",
+    "MATTER_VAULT_R4_PRODUCTION_TENANT_ID",
+    "MATTER_VAULT_R4_OPERATOR_ACTOR",
+    "MATTER_VAULT_R4_OPERATOR_TOKEN"
+  ],
+  "available_environment": [],
+  "smoke_cases": [
+    "matter_opening_orchestration",
+    "vault_summary",
+    "document_upload_facade",
+    "version_detail_panel",
+    "legal_hold",
+    "ethical_wall",
+    "search_ai_retrieval",
+    "portal_projection",
+    "timeline_projection",
+    "audit_linkage"
+  ],
+  "failed_cases": [],
+  "blocked_reason": "No external production or production-equivalent environment variables are configured in this workspace.",
+  "launch_authorization_claim": false,
+  "go_live_claim": false,
+  "production_ready_claim": false
+}
