@@ -1,0 +1,10 @@
+{
+  "schema_version": "law-firm-os.matter-vault-r4-migration-dry-run-receipt.v0.1",
+  "date": "2026-06-20",
+  "dry_run": true,
+  "matter_vault_link_backfill": "passed_local_dry_run",
+  "vault_workspace_backfill": "passed_local_dry_run",
+  "duplicate_workspace_audit": "passed_local_audit",
+  "failed_rows": [],
+  "production_migration_operator_receipt_received": false
+}

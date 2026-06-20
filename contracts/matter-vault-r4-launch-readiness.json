@@ -1,0 +1,97 @@
+{
+  "schema_version": "law-firm-os.matter-vault-r4-launch-readiness.v0.1",
+  "date": "2026-06-20",
+  "release_lane": "Matter-Vault R4 launch readiness",
+  "implementation_baseline": {
+    "base_pr": 67,
+    "closeout_pr": 68,
+    "merge_commit": "1a6bdffdbc1244f73533973e728aac5be1a211cb",
+    "implementation_validator": "npm run matter-vault:r4:validate",
+    "readiness_validator": "npm run matter-vault:r4:readiness"
+  },
+  "current_boundary": "repo_implementation_evidence_closeout_complete__launch_authority_absent",
+  "target_state": "owner_authorized_launch_with_external_smoke_and_migration_receipts",
+  "claim_policy": {
+    "owner_signoff_required": true,
+    "external_production_smoke_required": true,
+    "migration_operator_receipt_required": true,
+    "rollback_rehearsal_receipt_required": true,
+    "launch_authorization_claim_allowed": false,
+    "go_live_claim_allowed": false,
+    "production_ready_claim_allowed": false
+  },
+  "required_gates": [
+    {
+      "id": "MV-LG-01",
+      "name": "Matter-Vault R4 implementation validator",
+      "command": "npm run matter-vault:r4:validate",
+      "required_state": "pass"
+    },
+    {
+      "id": "MV-LG-02",
+      "name": "Matter-Vault R4 readiness validator",
+      "command": "npm run matter-vault:r4:readiness",
+      "required_state": "pass_closed_118"
+    },
+    {
+      "id": "MV-LG-03",
+      "name": "No premature launch claim",
+      "command": "npm run matter-vault:r4:no-go",
+      "required_state": "pass_false_claim"
+    },
+    {
+      "id": "MV-LG-04",
+      "name": "Blocker audit",
+      "command": "npm run matter-vault:r4:blockers",
+      "required_state": "pass"
+    },
+    {
+      "id": "MV-LG-05",
+      "name": "CMP v1, G4 Matter, and G5 Vault guard",
+      "command": "npm run client-matter:cmp-v1:validate && npm run client-matter:cmp-v1:g4:validate && npm run client-matter:cmp-v1:g5:validate",
+      "required_state": "pass"
+    },
+    {
+      "id": "MV-LG-06",
+      "name": "API, web, build, and root tests",
+      "command": "npm --workspace apps/api run test && npm --workspace apps/web run test:ui && npm --workspace apps/web run build && npm test",
+      "required_state": "pass"
+    },
+    {
+      "id": "MV-LG-07",
+      "name": "Matter-Vault UAT receipt",
+      "command": "npm run web:e2e -- matter-vault",
+      "required_state": "pass_local_synthetic"
+    },
+    {
+      "id": "MV-LG-08",
+      "name": "Migration and duplicate workspace dry-run",
+      "command": "node scripts/backfill-matter-vault-links.mjs && node scripts/backfill-vault-workspaces.mjs && node scripts/audit-duplicate-vault-workspaces.mjs",
+      "required_state": "pass_dry_run"
+    },
+    {
+      "id": "MV-LG-09",
+      "name": "Rollback rehearsal",
+      "command": "node scripts/drill-matter-vault-backup-restore.mjs",
+      "required_state": "documented_dry_run"
+    },
+    {
+      "id": "MV-LG-10",
+      "name": "External production smoke receipt",
+      "command": "manual external receipt",
+      "required_state": "received_before_launch_authority"
+    },
+    {
+      "id": "MV-LG-11",
+      "name": "Owner release authority",
+      "command": "manual owner release receipt",
+      "required_state": "signed_before_any_launch_claim"
+    }
+  ],
+  "known_limitations": [
+    "This contract is an evidence checklist, not release authority.",
+    "External production smoke evidence is not present in this repo lane.",
+    "Owner release authority is not present in this repo lane.",
+    "Matter remains case execution owner; Vault/DMS remains document owner."
+  ]
+}
