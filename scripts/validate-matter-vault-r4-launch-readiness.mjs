@@ -7,8 +7,9 @@ const MV_ROOT = path.join(ROOT, "docs/reorganization/client-matter-os/matter-vau
 const LAUNCH_ROOT = path.join(MV_ROOT, "launch");
 
 const errors = [];
-const currentBoundary = "repo_implementation_evidence_closeout_complete__launch_authority_absent";
+const currentBoundary = "repo_implementation_evidence_closeout_complete__owner_authority_received__external_receipts_absent";
 const targetState = "owner_authorized_launch_with_external_smoke_and_migration_receipts";
+const currentDecision = "owner_authorized_release_cutover_pending_external_receipts";
 
 function add(message) {
   errors.push(message);
@@ -59,6 +60,7 @@ const requiredFiles = [
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/production-smoke-plan.md",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/uat-results.md",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/owner-decision-template.md",
+  "docs/reorganization/client-matter-os/matter-vault-r4/launch/owner-release-authority-receipt.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/launch-readiness-receipt.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/migration-dry-run-receipt.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/rollback-rehearsal-receipt.json",
@@ -72,6 +74,7 @@ if (errors.length === 0) {
   const contract = readJson("contracts/matter-vault-r4-launch-readiness.json");
   const manifest = readJson("docs/reorganization/client-matter-os/matter-vault-r4/package-manifest.json");
   const receipt = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/launch-readiness-receipt.json");
+  const ownerReceipt = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/owner-release-authority-receipt.json");
   const migrationReceipt = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/migration-dry-run-receipt.json");
   const rollbackReceipt = readJson("docs/reorganization/client-matter-os/matter-vault-r4/launch/rollback-rehearsal-receipt.json");
   const linkDryRun = readJson("docs/reorganization/client-matter-os/matter-vault-r4/backfill-matter-vault-links-dry-run.json");
@@ -99,19 +102,30 @@ if (errors.length === 0) {
   assert(manifest.production_ready_claim === false, "manifest production_ready_claim must remain false");
   assert(manifest.go_live_claim === false, "manifest go_live_claim must remain false");
   assert(manifest.launch_readiness_lane?.current_boundary === currentBoundary, "manifest launch readiness boundary mismatch");
-  assert(manifest.launch_readiness_lane?.owner_release_authority_received === false, "manifest owner release authority must remain false");
+  assert(manifest.launch_readiness_lane?.owner_release_authority_received === true, "manifest owner release authority must be received");
   assert(manifest.launch_readiness_lane?.external_production_smoke_receipt_received === false, "manifest external production smoke must remain false");
+  assert(manifest.launch_readiness_lane?.migration_operator_receipt_received === false, "manifest migration operator receipt must remain false");
   assert(manifest.launch_readiness_lane?.launch_authorization_claim === false, "manifest launch authorization claim must remain false");
 
   assert(receipt.current_boundary === currentBoundary, "launch receipt boundary mismatch");
   assert(receipt.repo_evidence_complete === true, "launch receipt must record repo evidence complete");
   assert(receipt.closed_tuws === 118 && receipt.not_closed_tuws === 0, "launch receipt TUW counts mismatch");
   assert(receipt.external_production_smoke_receipt_received === false, "external production smoke receipt must remain false");
-  assert(receipt.owner_release_authority_received === false, "owner release authority must remain false");
-  assert(receipt.current_decision === "not_authorized", "launch receipt current decision must be not_authorized");
+  assert(receipt.owner_release_authority_received === true, "owner release authority must be received");
+  assert(receipt.current_decision === currentDecision, "launch receipt current decision mismatch");
   assert(receipt.launch_authorization_claim === false, "launch receipt launch authorization claim must remain false");
   assert(receipt.go_live_claim === false, "launch receipt go_live_claim must remain false");
   assert(receipt.production_ready_claim === false, "launch receipt production_ready_claim must remain false");
+
+  assert(ownerReceipt.schema_version === "law-firm-os.matter-vault-r4-owner-release-authority-receipt.v0.1", "owner receipt schema mismatch");
+  assert(ownerReceipt.owner_release_authority_received === true, "owner receipt must record authority received");
+  assert(ownerReceipt.scope === "release_cutover_progression", "owner receipt scope mismatch");
+  assert(ownerReceipt.approved_baseline?.merge_commit === "75f82b3b87f45e95ffbb3d50f2f39982fc3ea239", "owner receipt baseline merge commit mismatch");
+  assert(ownerReceipt.external_production_smoke_receipt_received === false, "owner receipt must keep external production smoke false");
+  assert(ownerReceipt.production_migration_operator_receipt_received === false, "owner receipt must keep production migration operator false");
+  assert(ownerReceipt.launch_authorization_claim === false, "owner receipt launch authorization claim must remain false");
+  assert(ownerReceipt.go_live_claim === false, "owner receipt go_live_claim must remain false");
+  assert(ownerReceipt.production_ready_claim === false, "owner receipt production_ready_claim must remain false");
 
   assert(migrationReceipt.dry_run === true, "migration receipt must be dry-run");
   assert(Array.isArray(migrationReceipt.failed_rows) && migrationReceipt.failed_rows.length === 0, "migration receipt failed_rows must be empty");
@@ -128,10 +142,10 @@ if (errors.length === 0) {
 
   requireText("docs/reorganization/client-matter-os/matter-vault-r4/launch/launch-readiness.md", [
     currentBoundary,
-    "It does not authorize launch, production traffic, or go-live claims.",
+    "It does not authorize actual launch/go-live completed or production-ready completed claims.",
   ]);
   requireText("docs/reorganization/client-matter-os/matter-vault-r4/launch/go-no-go-checklist.md", [
-    "Current decision: `not_authorized`",
+    `Current decision: \`${currentDecision}\``,
     "Automation cannot convert this checklist into a launch decision.",
   ]);
   requireText("docs/reorganization/client-matter-os/matter-vault-r4/launch/cutover-rollback-runbook.md", [
@@ -142,8 +156,8 @@ if (errors.length === 0) {
     /External production smoke receipt is absent|not an external production receipt|Pending smoke cases do not authorize launch/,
   ]);
   requireText("docs/reorganization/client-matter-os/matter-vault-r4/launch/owner-decision-template.md", [
-    "Current decision | `not_authorized`",
-    "Owner release authority received | false",
+    `Current decision | \`${currentDecision}\``,
+    "Owner release authority received | true",
     "External production smoke receipt received | false",
   ]);
 }
@@ -157,6 +171,7 @@ const forbidden = [
 
 for (const file of [
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/launch-readiness-receipt.json",
+  "docs/reorganization/client-matter-os/matter-vault-r4/launch/owner-release-authority-receipt.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/migration-dry-run-receipt.json",
   "docs/reorganization/client-matter-os/matter-vault-r4/launch/rollback-rehearsal-receipt.json",
 ]) {
@@ -177,4 +192,6 @@ console.log("Matter-Vault R4 launch readiness validation passed.");
 console.log(`current_boundary: ${currentBoundary}`);
 console.log("closed_tuws: 118");
 console.log("launch_authorization_claim: false");
-console.log("owner_release_authority_received: false");
+console.log("owner_release_authority_received: true");
+console.log("external_production_smoke_receipt_received: false");
+console.log("production_migration_operator_receipt_received: false");
