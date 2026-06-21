@@ -30,6 +30,8 @@
     "final-product-completion-gate:validate": "node scripts/validate-final-product-completion-gate.mjs",
     "runtime-readiness:contract:validate": "node scripts/validate-runtime-readiness-contract.mjs",
     "runtime-readiness:validate": "node scripts/validate-runtime-readiness.mjs",
+    "runtime-spine:plan:validate": "node scripts/validate-runtime-spine-plan.mjs",
+    "runtime-spine:readiness:validate": "node scripts/validate-runtime-spine-readiness.mjs",
     "implementation-layer:generate": "node scripts/generate-implementation-layer-ledger.mjs",
     "implementation-layer:validate": "node scripts/validate-implementation-layer-ledger.mjs",
     "closeout-pack:review:baseline": "node scripts/generate-closeout-pack-claude-review-baseline.mjs",
