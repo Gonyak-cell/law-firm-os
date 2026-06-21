@@ -3,6 +3,8 @@
   "baseline_commit": "41268c4becac7d06948d10c173d30635e108c5e1",
   "runtime_ready_candidate": true,
   "actual_launch_go_live_claim": false,
+  "final_go_live_approval_recorded": true,
+  "final_go_live_decision_ref": "docs/launch/final-go-live-decision.json",
   "lt_terminal_closeout_claim": false,
   "launch_go_live_terminal_claim": false,
   "g0_scope_ready_candidate": true,
@@ -21,6 +23,7 @@
       "LT-L2-W03",
       "LT-L2-W07"
     ],
+    "final_go_live_approval_recorded": true,
     "actual_launch_go_live_claim": false
   },
   "documents": [
@@ -41,7 +44,9 @@
     "docs/runtime-spine/launch-tuw-crosswalk.md",
     "docs/runtime-spine/rtg-005-responsibility-map.md",
     "docs/runtime-spine/qa-checklist.md",
-    "docs/runtime-spine/rollback-migration-notes.md"
+    "docs/runtime-spine/rollback-migration-notes.md",
+    "docs/launch/final-go-live-decision.json",
+    "docs/launch/final-go-live-decision.md"
   ],
   "validators": [
     "npm run runtime-spine:plan:validate",
@@ -55,6 +60,7 @@
     "npm run runtime-spine:rs5:app-surface:validate",
     "npm run runtime-spine:rs6:integration:validate",
     "npm run runtime-spine:launch-crosswalk:validate",
+    "npm run launch:final-go-live-decision:validate",
     "npm run runtime-readiness:contract:validate",
     "npm run runtime-readiness:validate",
     "npm run client-matter:cmp-v1:validate",

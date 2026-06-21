@@ -1,6 +1,6 @@
 # Launch Receipt Intake Action Packet
 
-Status: external_receipts_received_pending_launch_acceptance_and_final_go_live_decision
+Status: external_receipts_received_final_go_live_approval_recorded_pending_cutover_execution
 Date: 2026-06-21
 Prepared for: LCX7
 Related PR: https://github.com/Gonyak-cell/law-firm-os/pull/83

@@ -7,10 +7,10 @@ Verdict: PASS
 ## Summary
 
 - register_exists: true
-- total_rows: 4
-- decided_rows: 0
+- total_rows: 5
+- decided_rows: 1
 - deferred_rows: 4
-- valid_decided_rows: 0
+- valid_decided_rows: 1
 - valid_deferred_rows: 4
 - coverage_eligible_valid_deferred_rows: 4
 - non_coverage_valid_deferred_rows: 0

@@ -15,10 +15,10 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "scanned_file_count": 203,
+    "scanned_file_count": 207,
     "no_go_active": false,
-    "markdown_status_count": 81,
-    "json_status_count": 3,
+    "markdown_status_count": 82,
+    "json_status_count": 4,
     "generated_pass_json_count": 36,
     "forbidden_true_claim_count": 0,
     "finding_count": 0,
@@ -83,7 +83,7 @@
     {
       "path": "docs/launch/cutover-runbook.md",
       "type": "markdown",
-      "status": "blocked_pending_go_no_go_and_owner_approval",
+      "status": "go_no_go_approved_pending_cutover_execution",
       "status_policy": "not_applicable"
     },
     {
@@ -123,6 +123,36 @@
       "status_policy": "not_applicable"
     },
     {
+      "path": "docs/launch/final-go-live-decision-validation.json",
+      "type": "json",
+      "status": null,
+      "verdict": "PASS",
+      "status_policy": "not_applicable",
+      "generated_pass_json": false,
+      "forbidden_true_claims": []
+    },
+    {
+      "path": "docs/launch/final-go-live-decision-validation.md",
+      "type": "markdown",
+      "status": null,
+      "status_policy": "not_applicable"
+    },
+    {
+      "path": "docs/launch/final-go-live-decision.json",
+      "type": "json",
+      "status": "final_go_live_approval_recorded_pending_cutover_execution",
+      "verdict": null,
+      "status_policy": "not_applicable",
+      "generated_pass_json": false,
+      "forbidden_true_claims": []
+    },
+    {
+      "path": "docs/launch/final-go-live-decision.md",
+      "type": "markdown",
+      "status": "final_go_live_approval_recorded_pending_cutover_execution",
+      "status_policy": "not_applicable"
+    },
+    {
       "path": "docs/launch/g1-completion-evidence-index.md",
       "type": "markdown",
       "status": "blocked_pending_human_acceptance",
@@ -143,7 +173,7 @@
     {
       "path": "docs/launch/go-no-go-decision.md",
       "type": "markdown",
-      "status": "blocked_not_held",
+      "status": "final_go_live_approval_recorded_pending_cutover_execution",
       "status_policy": "not_applicable"
     },
     {
@@ -542,7 +572,7 @@
     {
       "path": "docs/launch/launch-decision-register.md",
       "type": "markdown",
-      "status": "template_ready_no_decisions_recorded",
+      "status": "final_go_live_decision_recorded",
       "status_policy": "not_applicable"
     },
     {
@@ -773,7 +803,7 @@
     {
       "path": "docs/launch/launch-external-receipt-ledger.json",
       "type": "json",
-      "status": "external_receipts_received_pending_launch_acceptance_and_final_go_live_decision",
+      "status": "external_receipts_received_final_go_live_approval_recorded_pending_cutover_execution",
       "verdict": null,
       "status_policy": "not_applicable",
       "generated_pass_json": false,
@@ -782,7 +812,7 @@
     {
       "path": "docs/launch/launch-external-receipt-ledger.md",
       "type": "markdown",
-      "status": "external_receipts_received_pending_launch_acceptance_and_final_go_live_decision",
+      "status": "external_receipts_received_final_go_live_approval_recorded_pending_cutover_execution",
       "status_policy": "not_applicable"
     },
     {
@@ -1133,7 +1163,7 @@
     {
       "path": "docs/launch/launch-receipt-intake-action-packet.md",
       "type": "markdown",
-      "status": "external_receipts_received_pending_launch_acceptance_and_final_go_live_decision",
+      "status": "external_receipts_received_final_go_live_approval_recorded_pending_cutover_execution",
       "status_policy": "not_applicable"
     },
     {
@@ -1202,7 +1232,7 @@
     {
       "path": "docs/launch/locked-domain-unlock-packets.md",
       "type": "markdown",
-      "status": "external_receipts_received_pending_launch_acceptance_and_final_go_live_decision",
+      "status": "external_receipts_received_final_go_live_approval_recorded_pending_cutover_execution",
       "status_policy": "not_applicable"
     },
     {

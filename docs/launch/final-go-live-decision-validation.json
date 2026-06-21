@@ -1,0 +1,35 @@
+{
+  "schema_version": "law-firm-os.final-go-live-decision.validation.v0.1",
+  "generated_at": "2026-06-21T10:39:55.308Z",
+  "source_refs": [
+    "docs/launch/final-go-live-decision.json",
+    "docs/launch/final-go-live-decision.md",
+    "docs/launch/launch-external-receipt-ledger.json",
+    "docs/launch/launch-decision-register.md",
+    "docs/runtime-spine/runtime-spine-ledger.json",
+    "docs/runtime-spine/evidence/runtime-spine-evidence-index.json",
+    "docs/launch/go-no-go-decision.md",
+    "docs/launch/cutover-runbook.md"
+  ],
+  "verdict": "PASS",
+  "summary": {
+    "final_go_live_approval_recorded": true,
+    "actual_launch_go_live_claim": false,
+    "production_cutover_executed_by_this_decision": false,
+    "external_receipt_lane_count": 8,
+    "real_external_receipt_count": 8,
+    "pending_external_receipt_count": 0,
+    "decision_register_final_row_count": 1,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "boundary": {
+    "validates_final_go_live_approval_only": true,
+    "production_cutover_executed_by_validation": false,
+    "company_wide_rollout_executed_by_validation": false,
+    "lt_terminal_closeout_approved_by_validation": false,
+    "actual_launch_go_live_claim_by_validation": false
+  },
+  "findings": []
+}
