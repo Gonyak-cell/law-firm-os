@@ -22,7 +22,7 @@ This evidence file records P0 progress only. It does not claim desktop shell imp
 | MDT-P0-W02-T01 | complete | `docs/ui-reference/brand/mater/`, `apps/web/src/assets/mater-logo.svg` |
 | MDT-P0-W02-T02 | complete | `apps/web/src/components/MaterSplash.jsx`, `apps/web/src/styles.css` |
 | MDT-P0-W02-T03 | complete | `apps/web/src/components/Shell.jsx`, `apps/web/src/components/AuthSurface.jsx` |
-| MDT-P0-W02-T04 | pending | not started |
+| MDT-P0-W02-T04 | complete | `apps/web/test/ui-regression.test.mjs` |
 | MDT-P0-W02-T05 | pending | phase terminal not reached |
 
 ## MDT-P0-W01-T01 - Audit Current Desktop and Branding Truth
@@ -350,3 +350,35 @@ Act:
 
 - `MDT-P0-W02-T03` is complete.
 - Next TUW is `MDT-P0-W02-T04`.
+
+## MDT-P0-W02-T04 - Verify Branding UI Build and Regression
+
+Plan:
+
+- Add UI regression coverage for `mater` startup branding.
+- Run the exact ledger build-and-test verification command.
+- Keep Matter domain terms and launch safety tests intact.
+
+Do:
+
+- Added `mater startup branding uses shared splash and brand constants` to `apps/web/test/ui-regression.test.mjs`.
+
+Check:
+
+```bash
+npm --workspace apps/web run build && npm --workspace apps/web run test:ui
+node scripts/validate-mater-branding.mjs
+git diff --check -- apps/web/test/ui-regression.test.mjs
+```
+
+Results:
+
+- Web build passed: `1679 modules transformed`, built in `699ms`.
+- UI regression passed: `17` tests, `17` pass, `0` fail.
+- Branding validator passed with `planned_product_brand_changes: 0` and `unclassified_user_facing_misuse: 0`.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P0-W02-T04` is complete.
+- Next TUW is `MDT-P0-W02-T05`, the P0 terminal TUW.

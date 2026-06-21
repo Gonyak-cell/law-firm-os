@@ -42,6 +42,24 @@ test("sample UI regression harness preserves current routable surfaces", async (
   }
 });
 
+test("mater startup branding uses shared splash and brand constants", async () => {
+  const brandSource = await readWebFile("src/brand/brand.js");
+  const splashSource = await readWebFile("src/components/MaterSplash.jsx");
+  const shellSource = await readWebFile("src/components/Shell.jsx");
+  const authSource = await readWebFile("src/components/AuthSurface.jsx");
+  const i18nSource = await readWebFile("src/i18n.js");
+
+  assert.match(brandSource, /PRODUCT_BRAND\s*=\s*"mater"/);
+  assert.match(brandSource, /UI_BRAND\s*=\s*"mater by AMIC"/);
+  assert.match(splashSource, /PRODUCT_BRAND\.split\(""\)/);
+  assert.match(splashSource, /aria-label=\{UI_BRAND\}/);
+  assert.match(shellSource, /<MaterSplash \/>/);
+  assert.match(authSource, /<MaterSplash compact className="auth-splash" \/>/);
+  assert.match(i18nSource, /PRODUCT_BRAND/);
+  assert.doesNotMatch(i18nSource, /Ask matter|Search or ask matter|Loading your matter workspace/);
+  assert.doesNotMatch(i18nSource, /matter에게 질문|matter 작업공간|matter는/);
+});
+
 test("Finance runtime surface is routed and live Finance backed", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const navSource = await readWebFile("src/data/nav.js");
