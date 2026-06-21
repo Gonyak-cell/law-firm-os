@@ -10,7 +10,7 @@ Verdict: PASS
 - pending_receipt_slot_count: 0
 - real_owner_receipt_count: 4
 - copy_allowed_count: 4
-- decision_register_total_rows: 4
+- decision_register_total_rows: 5
 - decision_register_valid_deferred_rows: 4
 - target_count_if_all_receipts_are_completed: 117
 - finding_count: 0
