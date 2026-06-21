@@ -1,6 +1,6 @@
 # LCX-DESK-02 Auth Session Evidence
 
-Status: in_progress
+Status: P2_complete
 Branch: `codex/mater-desktop-69-tuw-implementation`
 Scope: P2 auth/session planning, main-process coordinator, preload session API, and cleanup evidence
 Source ledger: `docs/desktop/mater-desktop-loop-tuw-ledger.json`
@@ -20,7 +20,7 @@ This evidence file records P2 auth/session progress only. It does not claim prod
 | MDT-P2-W02-T01 | complete | `apps/desktop/src/main/auth.js`, `apps/desktop/test/auth-coordinator.test.mjs` |
 | MDT-P2-W02-T02 | complete | `apps/desktop/src/preload/session.js` |
 | MDT-P2-W02-T03 | complete | `apps/desktop/test/session-cleanup.test.mjs` |
-| MDT-P2-W02-T04 | pending | phase terminal not reached |
+| MDT-P2-W02-T04 | complete | P2 terminal closure recorded here |
 
 ## MDT-P2-W01-T01 - Write OIDC PKCE Session Plan
 
@@ -268,3 +268,49 @@ Act:
 
 - `MDT-P2-W02-T03` is complete.
 - Next TUW is `MDT-P2-W02-T04`, the P2 terminal TUW.
+
+## MDT-P2-W02-T04 - Close Auth/Session Evidence
+
+Plan:
+
+- Close P2 only at the phase terminal TUW.
+- Re-run session tests, token grep, cleanup contract validator, desktop security validator, desktop smoke, and loop ledger validator.
+- Record remaining blockers and non-claims.
+
+Do:
+
+- Reviewed `MDT-P2-W01` and `MDT-P2-W02` evidence in this file.
+- Confirmed auth/session work is bounded to main-process coordinator, preload session API, cleanup contract, and tests.
+
+Check:
+
+```bash
+npm --workspace apps/desktop run test:session && rg -n "access_token|refresh_token" apps/desktop/src apps/web/src
+npm --workspace apps/desktop run test:smoke
+node scripts/validate-desktop-session-cleanup-contract.mjs
+node scripts/validate-mater-desktop-security.mjs
+node scripts/validate-mater-desktop-loop-tuw-plan.mjs
+git diff --check
+```
+
+Results:
+
+- Session tests passed: `6` tests, `6` pass, `0` fail.
+- token grep output is limited to `FORBIDDEN_RENDERER_TOKEN_FIELDS` in `apps/desktop/src/main/auth.js`.
+- Desktop smoke passed: `14` tests, `14` pass, `0` fail.
+- Cleanup contract validator passed with `required_cache_class_count: 9`, `logout_wipes_all_required_cache_classes: true`, and `tenant_switch_wipes_all_required_cache_classes: true`.
+- Desktop security validator passed with `findings: []` and `preload_policy: preload_allowlist_checked`.
+- Loop TUW ledger validator passed with `phase_count: 8`, `work_package_count: 16`, and `tuw_count: 69`.
+- `git diff --check` passed.
+
+Remaining blockers and non-claims:
+
+- Production IdP configuration is not implemented.
+- Real OS secure-store adapter is not implemented.
+- Production go-live, public release, and owner approval remain false because no explicit receipt was recorded.
+- File bridge remains not implemented before P4.
+
+Act:
+
+- P2 is closed at its terminal TUW, `MDT-P2-W02-T04`.
+- Next ledger TUW is `MDT-P3-W01-T01`.
