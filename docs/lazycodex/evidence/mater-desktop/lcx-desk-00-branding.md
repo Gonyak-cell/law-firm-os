@@ -16,7 +16,7 @@ This evidence file records P0 progress only. It does not claim desktop shell imp
 | MDT-P0-W01-T01 | complete | `docs/desktop/mater-desktop-current-state-audit.md` |
 | MDT-P0-W01-T02 | complete | `docs/launch/mater-naming-rules.md` |
 | MDT-P0-W01-T03 | complete | `apps/web/src/brand/brand.js` |
-| MDT-P0-W01-T04 | pending | not started |
+| MDT-P0-W01-T04 | complete | `docs/launch/mater-branding-backlog.md` |
 | MDT-P0-W01-T05 | pending | not started |
 | MDT-P0-W01-T06 | pending | terminal not reached |
 | MDT-P0-W02-T01 | pending | not started |
@@ -132,3 +132,36 @@ Act:
 
 - `MDT-P0-W01-T03` is complete.
 - Next TUW is `MDT-P0-W01-T04`.
+
+## MDT-P0-W01-T04 - Create String Classification Backlog
+
+Plan:
+
+- Scan current web user-facing brand strings and domain Matter strings.
+- Classify planned text changes separately from domain, machine, evidence, and historical references.
+- Keep this TUW planning-only for strings; no user-facing copy is changed here.
+
+Do:
+
+- Added `docs/launch/mater-branding-backlog.md`.
+- Recorded planned product/UI brand changes for web copy.
+- Recorded preserve rules for Matter domain objects, runtime identifiers, CSS/test hooks, evidence, and historical records.
+
+Check:
+
+```bash
+rg -n "matter by AMIC|Ask matter|matter에게|matter 작업공간|Loading your matter|matter 시작|matter에 로그인|matter는|Receive emails about news from matter|finish setting up matter|Powered by Ask matter|MatterLogo" apps/web/src --glob '!**/node_modules/**'
+rg -n "product_brand|domain_object|machine_identifier|historical|evidence" docs/launch/mater-branding-backlog.md
+git diff --check -- docs/launch/mater-branding-backlog.md
+```
+
+Results:
+
+- Source scan identified product-brand candidates in `apps/web/src/i18n.js`, `Shell.jsx`, `AuthSurface.jsx`, `MatterModal.jsx`, `ThemeSurface.jsx`, and `AskSurface.jsx`.
+- Backlog verification grep passed for `product_brand`, `domain_object`, `machine_identifier`, `historical`, and `evidence`.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P0-W01-T04` is complete.
+- Next TUW is `MDT-P0-W01-T05`.
