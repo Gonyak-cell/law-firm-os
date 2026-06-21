@@ -19,7 +19,7 @@ This evidence file records P0 progress only. It does not claim desktop shell imp
 | MDT-P0-W01-T04 | complete | `docs/launch/mater-branding-backlog.md` |
 | MDT-P0-W01-T05 | complete | `scripts/validate-mater-branding.mjs` |
 | MDT-P0-W01-T06 | complete | `MDT-P0-W01` terminal closure recorded here |
-| MDT-P0-W02-T01 | pending | not started |
+| MDT-P0-W02-T01 | complete | `docs/ui-reference/brand/mater/`, `apps/web/src/assets/mater-logo.svg` |
 | MDT-P0-W02-T02 | pending | not started |
 | MDT-P0-W02-T03 | pending | not started |
 | MDT-P0-W02-T04 | pending | not started |
@@ -248,3 +248,36 @@ Act:
 
 - `MDT-P0-W01` is closed at its terminal TUW, `MDT-P0-W01-T06`.
 - Next ledger TUW is `MDT-P0-W02-T01`.
+
+## MDT-P0-W02-T01 - Derive mater Logo Assets Without Deleting Originals
+
+Plan:
+
+- Add `mater` derivative assets under separate paths.
+- Preserve all existing `matter-*` brand reference images.
+- Keep this TUW asset-only; reusable splash code starts in `MDT-P0-W02-T02`.
+
+Do:
+
+- Added `apps/web/src/assets/mater-logo.svg`.
+- Added `docs/ui-reference/brand/mater/mater-logo.svg`.
+- Added `docs/ui-reference/brand/mater/README.md`.
+
+Check:
+
+```bash
+find docs/ui-reference/brand apps/web/src/assets -maxdepth 3 -type f | sort
+git diff --check -- apps/web/src/assets/mater-logo.svg docs/ui-reference/brand/mater/mater-logo.svg docs/ui-reference/brand/mater/README.md
+```
+
+Results:
+
+- Asset inventory shows `apps/web/src/assets/mater-logo.svg`.
+- Asset inventory shows `docs/ui-reference/brand/mater/mater-logo.svg` and `docs/ui-reference/brand/mater/README.md`.
+- Existing original reference files remain present: `matter-by-amic-after-login-dock.png`, `matter-by-amic-initial-login-flow.png`, `matter-by-amic-logo.png`, and `matter-logo-only.png`.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P0-W02-T01` is complete.
+- Next TUW is `MDT-P0-W02-T02`.
