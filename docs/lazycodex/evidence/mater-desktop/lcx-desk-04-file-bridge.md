@@ -1,6 +1,6 @@
 # LCX-DESK-04 File Bridge Evidence
 
-Status: in_progress
+Status: P4_complete
 Branch: `codex/mater-desktop-69-tuw-implementation`
 Scope: P4 picker-only file bridge, backend precheck, audit mapping, no silent scan, and temp cache wipe
 Source ledger: `docs/desktop/mater-desktop-loop-tuw-ledger.json`
@@ -21,7 +21,7 @@ This evidence file records P4 file bridge progress only. It does not claim produ
 | MDT-P4-W02-T02 | complete | `apps/desktop/src/main/fileBridge.js`, `apps/desktop/test/file-save-as.test.mjs` |
 | MDT-P4-W02-T03 | complete | `apps/desktop/src/main/tempPreview.js`, `apps/desktop/test/temp-preview-cleanup.test.mjs` |
 | MDT-P4-W02-T04 | complete | `apps/desktop/package.json`, `apps/desktop/test/file-bridge.test.mjs` |
-| MDT-P4-W02-T05 | pending | phase terminal not reached |
+| MDT-P4-W02-T05 | complete | P4 terminal closure recorded in this file |
 
 ## MDT-P4-W01-T01 - Finalize Desktop File Bridge Contract
 
@@ -289,3 +289,41 @@ Act:
 
 - `MDT-P4-W02-T04` is complete.
 - Next TUW is `MDT-P4-W02-T05`, the P4 terminal TUW.
+
+## MDT-P4-W02-T05 - Close File Bridge Evidence
+
+Plan:
+
+- Close P4 only after every file bridge TUW verification has passed in ledger order.
+- Record picker-only access, precheck, audit, cache wipe, and silent scan guard evidence.
+- Keep production go-live, public release, and owner approval claims false.
+
+Do:
+
+- Updated this LCX-DESK-04 evidence file as the P4 terminal closeout.
+
+Check:
+
+```bash
+node scripts/validate-mater-desktop-loop-tuw-plan.mjs
+npm --workspace apps/desktop run test:file-bridge
+npm --workspace apps/desktop run test:smoke
+node scripts/validate-mater-desktop-security.mjs
+rg -n "MDT-P4|picker|precheck|audit|cache wipe|silent scan" docs/lazycodex/evidence/mater-desktop/lcx-desk-04-file-bridge.md
+git diff --check -- docs/lazycodex/evidence/mater-desktop/lcx-desk-04-file-bridge.md
+```
+
+Results:
+
+- picker: file picker opens only through user gesture and trusted gesture preload path.
+- precheck: upload, save-as, and temp preview paths require backend permission precheck before native picker, save dialog, writer, or preview creation.
+- audit: upload, save-as, temp preview, and cache wipe paths record mapped audit events.
+- cache wipe: temp previews are scoped, time-bounded, and removed on logout, tenant switch, and app quit.
+- silent scan: static guard detects directory watch, recursive scan, arbitrary path read, arbitrary path write, and path retention probes while reporting no current findings.
+- Non-claims remain false: production go-live, public release, owner approval, and broad filesystem authority.
+
+Act:
+
+- `MDT-P4-W02` is closed at its terminal TUW, `MDT-P4-W02-T05`.
+- P4 is complete.
+- Next ledger TUW is `MDT-P5-W01-T01`.
