@@ -4,6 +4,39 @@ export const FILE_BRIDGE_CHANNELS = Object.freeze({
   chooseFileForUpload: "fileBridge:choose-file-for-upload"
 });
 
+export const FILE_BRIDGE_AUDIT_MAP = Object.freeze({
+  choose_file_for_upload: Object.freeze({
+    direction: "upload",
+    permission: "file_bridge.upload",
+    auditEvents: Object.freeze({
+      precheckAllowed: "file_bridge.upload.permission_precheck.allowed",
+      precheckDenied: "file_bridge.upload.permission_precheck.denied",
+      pickerCancelled: "file_bridge.upload.picker.cancelled",
+      pickerSelected: "file_bridge.upload.picker.selected"
+    })
+  }),
+  save_document_as: Object.freeze({
+    direction: "download",
+    label: "save-as",
+    permission: "file_bridge.download",
+    auditEvents: Object.freeze({
+      precheckAllowed: "file_bridge.download.permission_precheck.allowed",
+      precheckDenied: "file_bridge.download.permission_precheck.denied",
+      saveDialogOpened: "file_bridge.download.save-as.dialog_opened",
+      saveCompleted: "file_bridge.download.save-as.completed"
+    })
+  }),
+  open_temp_preview: Object.freeze({
+    direction: "download",
+    permission: "file_bridge.preview",
+    auditEvents: Object.freeze({
+      precheckAllowed: "file_bridge.preview.permission_precheck.allowed",
+      precheckDenied: "file_bridge.preview.permission_precheck.denied",
+      previewOpened: "file_bridge.preview.opened"
+    })
+  })
+});
+
 export class FileBridgeError extends Error {
   constructor(code, message) {
     super(message);
@@ -31,8 +64,41 @@ export function selectedFileMetadata(filePath, handleId) {
   };
 }
 
+async function runPermissionPrecheck({ permissionClient, actionId, request }) {
+  const auditMap = FILE_BRIDGE_AUDIT_MAP[actionId];
+  if (!auditMap) throw new FileBridgeError("UNKNOWN_FILE_BRIDGE_ACTION", `Unknown file bridge action: ${actionId}`);
+
+  const precheckRequest = {
+    actionId,
+    permission: auditMap.permission,
+    matterId: request.matterId,
+    documentId: request.documentId,
+    tenantIdHash: request.tenantIdHash
+  };
+
+  const result = await permissionClient.precheckFileBridgeAction(precheckRequest);
+  if (result?.allowed !== true) {
+    throw new FileBridgeError("PERMISSION_DENIED", result?.reason ?? "File bridge permission precheck denied");
+  }
+  return result;
+}
+
+async function recordAuditEvent({ auditLogger, actionId, eventName, payload = {} }) {
+  await auditLogger.record({
+    actionId,
+    eventName,
+    ...payload
+  });
+}
+
 export function createFileBridgeController({
   dialog,
+  permissionClient = {
+    async precheckFileBridgeAction() {
+      return { allowed: false, reason: "permission_client_missing" };
+    }
+  },
+  auditLogger = { async record() {} },
   createHandleId = () => `file-handle-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   pickerOptions = { properties: ["openFile"] }
 } = {}) {
@@ -45,17 +111,50 @@ export function createFileBridgeController({
   return {
     async chooseFileForUpload(request = {}) {
       assertUserGestureContext(request);
+      let precheck;
+      try {
+        precheck = await runPermissionPrecheck({
+          permissionClient,
+          actionId: "choose_file_for_upload",
+          request
+        });
+      } catch (error) {
+        await recordAuditEvent({
+          auditLogger,
+          actionId: "choose_file_for_upload",
+          eventName: FILE_BRIDGE_AUDIT_MAP.choose_file_for_upload.auditEvents.precheckDenied,
+          payload: { reason: error.code ?? "unknown" }
+        });
+        throw error;
+      }
+      await recordAuditEvent({
+        auditLogger,
+        actionId: "choose_file_for_upload",
+        eventName: FILE_BRIDGE_AUDIT_MAP.choose_file_for_upload.auditEvents.precheckAllowed,
+        payload: { decisionId: precheck.decisionId }
+      });
       const result = await dialog.showOpenDialog({
         ...pickerOptions,
         properties: ["openFile"]
       });
       if (result.canceled || result.filePaths.length === 0) {
+        await recordAuditEvent({
+          auditLogger,
+          actionId: "choose_file_for_upload",
+          eventName: FILE_BRIDGE_AUDIT_MAP.choose_file_for_upload.auditEvents.pickerCancelled
+        });
         return { state: "cancelled" };
       }
 
       const filePath = result.filePaths[0];
       const handleId = createHandleId();
       selectedHandles.set(handleId, { filePath, selectedAt: Date.now() });
+      await recordAuditEvent({
+        auditLogger,
+        actionId: "choose_file_for_upload",
+        eventName: FILE_BRIDGE_AUDIT_MAP.choose_file_for_upload.auditEvents.pickerSelected,
+        payload: { handleId }
+      });
       return {
         state: "selected",
         file: selectedFileMetadata(filePath, handleId)

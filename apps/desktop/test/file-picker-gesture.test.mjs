@@ -13,6 +13,14 @@ function fakeDialog(filePath = "/Users/example/Documents/pleading.pdf") {
   };
 }
 
+function allowedPermissionClient() {
+  return {
+    async precheckFileBridgeAction(request) {
+      return { allowed: true, decisionId: `decision-${request.actionId}` };
+    }
+  };
+}
+
 test("file picker is blocked without a user gesture", async () => {
   const dialog = fakeDialog();
   const controller = createFileBridgeController({ dialog, createHandleId: () => "handle-001" });
@@ -27,7 +35,11 @@ test("file picker is blocked without a user gesture", async () => {
 
 test("file picker opens only after a scoped gesture token", async () => {
   const dialog = fakeDialog();
-  const controller = createFileBridgeController({ dialog, createHandleId: () => "handle-001" });
+  const controller = createFileBridgeController({
+    dialog,
+    permissionClient: allowedPermissionClient(),
+    createHandleId: () => "handle-001"
+  });
   const result = await controller.chooseFileForUpload({
     userGesture: true,
     gestureToken: "gesture:click:123"
