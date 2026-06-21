@@ -14,7 +14,7 @@ This evidence file records P5 deep link and notification progress only. It does 
 | TUW | Status | Evidence |
 | --- | --- | --- |
 | MDT-P5-W01-T01 | complete | `contracts/desktop-deep-link-contract.json`, `scripts/validate-desktop-deep-link-contract.mjs` |
-| MDT-P5-W01-T02 | pending | not started |
+| MDT-P5-W01-T02 | complete | `apps/desktop/src/main/deepLinks.js`, `apps/desktop/test/deep-link-parser.test.mjs` |
 | MDT-P5-W01-T03 | pending | not started |
 | MDT-P5-W01-T04 | pending | not started |
 | MDT-P5-W02-T01 | pending | not started |
@@ -53,3 +53,35 @@ Act:
 
 - `MDT-P5-W01-T01` is complete.
 - Next TUW is `MDT-P5-W01-T02`.
+
+## MDT-P5-W01-T02 - Implement Deep Link Parser
+
+Plan:
+
+- Add a route-only parser for `matter`, `document`, `task`, and `auth_callback`.
+- Validate scheme, route type, identifier shape, and unknown query parameters.
+- Keep mutation/download/upload/action execution out of parser output.
+
+Do:
+
+- Added `apps/desktop/src/main/deepLinks.js`.
+- Added `apps/desktop/test/deep-link-parser.test.mjs`.
+
+Check:
+
+```bash
+node apps/desktop/test/deep-link-parser.test.mjs
+git diff --check -- apps/desktop/src/main/deepLinks.js apps/desktop/test/deep-link-parser.test.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-05-deeplink-notification.md
+```
+
+Results:
+
+- Deep link parser tests passed.
+- Parser accepts only matter, document, task, and auth callback route intents.
+- Parser rejects unsupported scheme, unsupported route type, invalid identifier shape, and unknown query parameters.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P5-W01-T02` is complete.
+- Next TUW is `MDT-P5-W01-T03`.
