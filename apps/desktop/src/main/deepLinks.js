@@ -33,6 +33,29 @@ export const DEEP_LINK_ROUTE_SPECS = Object.freeze({
   })
 });
 
+export const DEEP_LINK_AUDIT_EVENTS = Object.freeze({
+  matter: Object.freeze({
+    permission: "deep_link.open.matter",
+    opened: "deep_link.matter.opened",
+    denied: "deep_link.matter.denied"
+  }),
+  document: Object.freeze({
+    permission: "deep_link.open.document",
+    opened: "deep_link.document.opened",
+    denied: "deep_link.document.denied"
+  }),
+  task: Object.freeze({
+    permission: "deep_link.open.task",
+    opened: "deep_link.task.opened",
+    denied: "deep_link.task.denied"
+  }),
+  auth_callback: Object.freeze({
+    permission: null,
+    opened: "deep_link.auth_callback.opened",
+    denied: "deep_link.auth_callback.denied"
+  })
+});
+
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]{1,127}$/;
 const FORBIDDEN_ACTION_HOSTS = new Set([
   "mutate",
@@ -137,5 +160,59 @@ export function parseMaterDeepLink(candidate) {
     [spec.idField]: id,
     matterId: spec.type === "matter" ? id : queryValue(url, "matter"),
     tenantIdHash: queryValue(url, "tenant")
+  };
+}
+
+export async function openMaterDeepLink({
+  url,
+  permissionClient = {
+    async precheckDeepLinkOpen() {
+      return { allowed: false, reason: "permission_client_missing" };
+    }
+  },
+  auditLogger = { async record() {} }
+}) {
+  const intent = parseMaterDeepLink(url);
+  const auditSpec = DEEP_LINK_AUDIT_EVENTS[intent.type];
+
+  if (intent.type === "auth_callback") {
+    await auditLogger.record({
+      eventName: auditSpec.opened,
+      routeType: intent.type
+    });
+    return { state: "open", intent };
+  }
+
+  const precheck = await permissionClient.precheckDeepLinkOpen({
+    routeType: intent.type,
+    permission: auditSpec.permission,
+    matterId: intent.matterId,
+    documentId: intent.documentId,
+    taskId: intent.taskId,
+    tenantIdHash: intent.tenantIdHash
+  });
+
+  if (precheck?.allowed !== true) {
+    await auditLogger.record({
+      eventName: auditSpec.denied,
+      routeType: intent.type,
+      reason: precheck?.reason ?? "permission_denied"
+    });
+    return {
+      state: "denied",
+      reason: precheck?.reason ?? "permission_denied",
+      intent
+    };
+  }
+
+  await auditLogger.record({
+    eventName: auditSpec.opened,
+    routeType: intent.type,
+    decisionId: precheck.decisionId
+  });
+  return {
+    state: "open",
+    intent,
+    permissionDecisionId: precheck.decisionId ?? null
   };
 }

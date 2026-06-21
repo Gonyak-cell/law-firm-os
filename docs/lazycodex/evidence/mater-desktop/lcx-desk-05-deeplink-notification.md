@@ -16,7 +16,7 @@ This evidence file records P5 deep link and notification progress only. It does 
 | MDT-P5-W01-T01 | complete | `contracts/desktop-deep-link-contract.json`, `scripts/validate-desktop-deep-link-contract.mjs` |
 | MDT-P5-W01-T02 | complete | `apps/desktop/src/main/deepLinks.js`, `apps/desktop/test/deep-link-parser.test.mjs` |
 | MDT-P5-W01-T03 | complete | `apps/desktop/src/main/deepLinks.js`, `apps/desktop/test/deep-link-deny.test.mjs` |
-| MDT-P5-W01-T04 | pending | not started |
+| MDT-P5-W01-T04 | complete | `apps/desktop/src/main/deepLinks.js`, `apps/desktop/test/deep-link-open-audit.test.mjs`, `docs/desktop/mater-desktop-deep-link-audit-map.md` |
 | MDT-P5-W02-T01 | pending | not started |
 | MDT-P5-W02-T02 | pending | not started |
 | MDT-P5-W02-T03 | pending | not started |
@@ -119,3 +119,39 @@ Act:
 
 - `MDT-P5-W01-T03` is complete.
 - Next TUW is `MDT-P5-W01-T04`.
+
+## MDT-P5-W01-T04 - Add Permission and Audit on Link Open
+
+Plan:
+
+- Add backend permission recheck for valid workspace route opens.
+- Record open audit and denied audit events.
+- Document deep link permission and audit mapping.
+- Close only `MDT-P5-W01` because this is the work package terminal TUW.
+
+Do:
+
+- Updated `apps/desktop/src/main/deepLinks.js`.
+- Added `apps/desktop/test/deep-link-open-audit.test.mjs`.
+- Added `docs/desktop/mater-desktop-deep-link-audit-map.md`.
+
+Check:
+
+```bash
+node apps/desktop/test/deep-link-open-audit.test.mjs
+node apps/desktop/test/deep-link-parser.test.mjs
+node apps/desktop/test/deep-link-deny.test.mjs
+git diff --check -- apps/desktop/src/main/deepLinks.js apps/desktop/test/deep-link-open-audit.test.mjs docs/desktop/mater-desktop-deep-link-audit-map.md docs/lazycodex/evidence/mater-desktop/lcx-desk-05-deeplink-notification.md
+```
+
+Results:
+
+- Deep link open audit tests passed.
+- Parser and deny tests still passed.
+- Opening valid workspace routes rechecks backend permission and records open or denied audit.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P5-W01` is closed at its terminal TUW, `MDT-P5-W01-T04`.
+- Next ledger TUW is `MDT-P5-W02-T01`.
