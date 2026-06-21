@@ -1,6 +1,6 @@
 # LCX-DESK-05 Deep Link and Notification Evidence
 
-Status: in_progress
+Status: P5_complete
 Branch: `codex/mater-desktop-69-tuw-implementation`
 Scope: P5 route-only deep links, denied action execution, permission/audit on open, and sensitive-safe notifications
 Source ledger: `docs/desktop/mater-desktop-loop-tuw-ledger.json`
@@ -20,7 +20,7 @@ This evidence file records P5 deep link and notification progress only. It does 
 | MDT-P5-W02-T01 | complete | `docs/desktop/mater-desktop-notification-policy.md` |
 | MDT-P5-W02-T02 | complete | `apps/desktop/src/main/notifications.js`, `apps/desktop/test/notification-route-intent.test.mjs` |
 | MDT-P5-W02-T03 | complete | `scripts/validate-mater-desktop-notification-copy.mjs` |
-| MDT-P5-W02-T04 | pending | phase terminal not reached |
+| MDT-P5-W02-T04 | complete | P5 terminal closure recorded in this file |
 
 ## MDT-P5-W01-T01 - Finalize Deep Link Contract
 
@@ -249,3 +249,45 @@ Act:
 
 - `MDT-P5-W02-T03` is complete.
 - Next TUW is `MDT-P5-W02-T04`, the P5 terminal TUW.
+
+## MDT-P5-W02-T04 - Close Deep Link and Notification Evidence
+
+Plan:
+
+- Close P5 only after every deep link and notification TUW verification has passed in ledger order.
+- Record route-only behavior, denylist tests, and notification sensitive-copy audit.
+- Keep production go-live, public release, owner approval, and link-triggered mutation claims false.
+
+Do:
+
+- Updated this LCX-DESK-05 evidence file as the P5 terminal closeout.
+
+Check:
+
+```bash
+node scripts/validate-mater-desktop-loop-tuw-plan.mjs
+node scripts/validate-desktop-deep-link-contract.mjs
+node apps/desktop/test/deep-link-parser.test.mjs
+node apps/desktop/test/deep-link-deny.test.mjs
+node apps/desktop/test/deep-link-open-audit.test.mjs
+node apps/desktop/test/notification-route-intent.test.mjs
+node scripts/validate-mater-desktop-notification-copy.mjs
+npm --workspace apps/desktop run test:smoke
+node scripts/validate-mater-desktop-security.mjs
+rg -n "MDT-P5|route-only|denylist|notification" docs/lazycodex/evidence/mater-desktop/lcx-desk-05-deeplink-notification.md
+git diff --check -- docs/lazycodex/evidence/mater-desktop/lcx-desk-05-deeplink-notification.md
+```
+
+Results:
+
+- route-only: parser and notification click handlers return route intents only.
+- denylist: mutation, download, upload, AI generation, billing write, and delivery execution links are rejected.
+- notification: visible notification copy uses generic templates and sensitive-copy validator passes with probes.
+- Permission/audit: valid workspace deep link opens recheck backend permission and record open or denied audit.
+- Non-claims remain false: production go-live, public release, owner approval, and link-triggered mutation authority.
+
+Act:
+
+- `MDT-P5-W02` is closed at its terminal TUW, `MDT-P5-W02-T04`.
+- P5 is complete.
+- Next ledger TUW is `MDT-P6-W01-T01`.
