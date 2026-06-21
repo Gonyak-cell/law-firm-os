@@ -15,7 +15,7 @@ This evidence file records P3 workspace progress only. It does not claim file br
 | --- | --- | --- |
 | MDT-P3-W01-T01 | complete | `docs/desktop/mater-desktop-route-map.md` |
 | MDT-P3-W01-T02 | complete | `apps/web/src/components/DesktopDeniedState.jsx`, `VaultSurface.jsx`, `MattersSurface.jsx` |
-| MDT-P3-W01-T03 | pending | terminal not reached |
+| MDT-P3-W01-T03 | complete | `apps/web/src/desktop/runtimeContext.js`, `apps/desktop/src/preload/runtime.js` |
 | MDT-P3-W02-T01 | pending | not started |
 | MDT-P3-W02-T02 | pending | not started |
 | MDT-P3-W02-T03 | pending | not started |
@@ -85,3 +85,40 @@ Act:
 
 - `MDT-P3-W01-T02` is complete.
 - Next TUW is `MDT-P3-W01-T03`.
+
+## MDT-P3-W01-T03 - Expose Desktop Runtime Context Without Authority
+
+Plan:
+
+- Expose desktop mode and route source as presentation-only context.
+- Keep mutation, file bridge, auth, audit, and billing authority false.
+- Close only `MDT-P3-W01` because this is the work package terminal TUW.
+
+Do:
+
+- Added `apps/web/src/desktop/runtimeContext.js`.
+- Added `apps/desktop/src/preload/runtime.js`.
+
+Check:
+
+```bash
+rg -n "desktopMode|routeSource|mutate|fileBridge|billing" apps/web/src/desktop apps/desktop/src/preload
+node scripts/validate-mater-desktop-security.mjs
+git diff --check -- apps/web/src/desktop/runtimeContext.js apps/desktop/src/preload/runtime.js docs/lazycodex/evidence/mater-desktop/lcx-desk-03-workspace.md
+```
+
+Results:
+
+- Runtime context grep passed for `desktopMode`, `routeSource`, `mutate`, `fileBridge`, and `billing`.
+- Desktop security validator passed.
+- Context exposes presentation state only and no desktop authority.
+- `git diff --check` passed.
+
+Permission/audit impact:
+
+- Desktop context is presentation-only.
+
+Act:
+
+- `MDT-P3-W01` is closed at its terminal TUW, `MDT-P3-W01-T03`.
+- Next ledger TUW is `MDT-P3-W02-T01`.
