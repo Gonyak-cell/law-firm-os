@@ -7,11 +7,11 @@ Verdict: PASS
 ## Summary
 
 - external_receipt_lane_count: 8
-- real_external_receipt_count: 5
-- approved_external_receipt_count: 5
+- real_external_receipt_count: 6
+- approved_external_receipt_count: 6
 - deferred_external_receipt_count: 0
-- pending_external_receipt_count: 3
-- remaining_queue_ids: LCX7-RI-10, LCX7-RI-11, LCX7-RI-12
+- pending_external_receipt_count: 2
+- remaining_queue_ids: LCX7-RI-11, LCX7-RI-12
 - finding_count: 0
 - p0_count: 0
 - p1_count: 0
