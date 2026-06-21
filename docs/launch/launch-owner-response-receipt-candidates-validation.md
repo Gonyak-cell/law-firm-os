@@ -6,14 +6,14 @@ Verdict: PASS
 
 ## Summary
 
-- receipt_update_candidate_count: 3
-- expected_receipt_update_candidate_count: 3
+- receipt_update_candidate_count: 4
+- expected_receipt_update_candidate_count: 4
 - response_entry_count: 4
-- real_owner_response_count: 3
-- copy_allowed_response_count: 3
-- target_count_by_candidates: 106
-- receipt_ledger_current_real_receipt_count: 2
-- receipt_ledger_current_copy_allowed_count: 2
+- real_owner_response_count: 4
+- copy_allowed_response_count: 4
+- target_count_by_candidates: 117
+- receipt_ledger_current_real_receipt_count: 4
+- receipt_ledger_current_copy_allowed_count: 4
 - finding_count: 0
 - p0_count: 0
 - p1_count: 0

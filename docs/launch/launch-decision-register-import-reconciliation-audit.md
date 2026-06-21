@@ -8,7 +8,7 @@ Verdict: PASS
 
 - decision_register_total_rows: 0
 - valid_deferred_rows: 0
-- import_candidate_count: 3
+- import_candidate_count: 4
 - reconciled_row_count: 0
 - unreconciled_row_count: 0
 - field_mismatch_count: 0

@@ -6,12 +6,12 @@ Verdict: PASS
 
 ## Summary
 
-- import_candidate_count: 3
-- expected_import_candidate_count: 3
-- covered_target_count_by_candidates: 106
-- real_owner_receipt_count: 3
-- pending_receipt_slot_count: 1
-- copy_allowed_count: 3
+- import_candidate_count: 4
+- expected_import_candidate_count: 4
+- covered_target_count_by_candidates: 117
+- real_owner_receipt_count: 4
+- pending_receipt_slot_count: 0
+- copy_allowed_count: 4
 - decision_register_total_rows: 0
 - decision_register_valid_deferred_rows: 0
 - finding_count: 0
