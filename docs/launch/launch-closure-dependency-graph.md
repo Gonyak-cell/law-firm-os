@@ -11,13 +11,13 @@ Verdict: PASS
 - failed_gate_node_count: 10
 - gate_acceptance_node_count: 31
 - l9_closure_node_count: 5
-- pending_acceptance_node_count: 36
+- pending_acceptance_node_count: 0
 - evidence_satisfied_acceptance_node_count: 0
-- owner_deferred_acceptance_node_count: 0
+- owner_deferred_acceptance_node_count: 36
 - missing_intake_acceptance_node_count: 0
 - blocked_wp_node_count: 70
-- owner_approved_deferrals_present: false
-- coverage_eligible_valid_deferred_rows: 0
+- owner_approved_deferrals_present: true
+- coverage_eligible_valid_deferred_rows: 4
 - non_coverage_valid_deferred_rows: 0
 - go_live_all_pass: false
 - finding_count: 0
@@ -67,11 +67,11 @@ Verdict: PASS
 
 ## Acceptance Resolution State
 
-- Pending acceptance nodes: 36
+- Pending acceptance nodes: 0
 - Evidence-satisfied acceptance nodes: 0
-- Owner-deferred acceptance nodes: 0
+- Owner-deferred acceptance nodes: 36
 - Missing-intake acceptance nodes: 0
-- Coverage-eligible valid deferred rows: 0
+- Coverage-eligible valid deferred rows: 4
 
 ## Findings
 

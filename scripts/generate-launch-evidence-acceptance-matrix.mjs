@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
+import { summarizeLaunchDecisionRegister } from "./lib/launch-decision-register.mjs";
 
 const CONTRACT_PATH = "contracts/go-live-gate-contract.json";
 const LAUNCH_AUDIT_PATH = "docs/launch/launch-tuw-status-audit.json";
@@ -117,10 +118,18 @@ function renderMarkdown(report) {
   return `${lines.join("\n")}\n`;
 }
 
+function intakeStatusWithDeferral(currentStatus, ownerDeferred) {
+  if (currentStatus === "evidence_satisfied") return currentStatus;
+  if (ownerDeferred) return "owner_deferred";
+  return currentStatus ?? "missing_intake";
+}
+
 const contract = readJson(CONTRACT_PATH);
 const audit = readJson(LAUNCH_AUDIT_PATH);
 const manualIntake = readJson(MANUAL_INTAKE_PATH);
 const existingReport = existsSync(REPORT_JSON_PATH) ? readJson(REPORT_JSON_PATH) : null;
+const decisionSummary = summarizeLaunchDecisionRegister(DECISION_REGISTER_PATH);
+const validCoverageDeferredDecisionIds = new Set(decisionSummary.valid_coverage_deferred_decision_ids ?? []);
 const evidenceLookup = gateEvidenceLookup(contract);
 const gateIntakeByKey = new Map((manualIntake.gate_intake ?? []).map((row) => [`${row.gate_id}:${row.evidence_id}`, row]));
 const l9IntakeByCriterion = new Map((manualIntake.l9_stabilization_intake ?? []).map((row) => [row.closure_criterion, row]));
@@ -133,8 +142,12 @@ for (const gateId of audit.go_live_readiness.failed_gate_ids ?? []) {
   for (const evidenceId of audit.go_live_readiness.gates?.[gateId]?.failed_evidence ?? []) {
     const evidence = evidenceLookup[evidenceId] ?? {};
     const intake = gateIntakeByKey.get(`${gateId}:${evidenceId}`);
+    const acceptanceId = `ACC-GL-${gateId}-${evidenceId}`;
+    const ownerDeferred = validCoverageDeferredDecisionIds.has(acceptanceId)
+      || validCoverageDeferredDecisionIds.has(`COVERAGE-GATE-${gateId}`)
+      || validCoverageDeferredDecisionIds.has("COVERAGE-ALL-GO-LIVE");
     gateAcceptanceRows.push({
-      acceptance_id: `ACC-GL-${gateId}-${evidenceId}`,
+      acceptance_id: acceptanceId,
       acceptance_type: "go_live_gate_evidence",
       intake_id: intake?.intake_id ?? "",
       gate_id: gateId,
@@ -145,7 +158,7 @@ for (const gateId of audit.go_live_readiness.failed_gate_ids ?? []) {
       gate_criteria: evidence.gate_criteria ?? [],
       current_gate_status: audit.go_live_readiness.gates?.[gateId]?.status ?? "unknown",
       current_evidence_status: "failed",
-      current_intake_status: intake?.intake_status ?? "missing_intake",
+      current_intake_status: intakeStatusWithDeferral(intake?.intake_status, ownerDeferred),
       related_blocked_work_package_ids: blockedWps
         .filter((wp) => (wp.gate_binding ?? []).includes(gateId))
         .map((wp) => wp.wp_id),
@@ -156,13 +169,16 @@ for (const gateId of audit.go_live_readiness.failed_gate_ids ?? []) {
 
 const l9AcceptanceRows = stabilizationRows().map((row) => {
   const intake = l9IntakeByCriterion.get(row.closure_criterion);
+  const acceptanceId = `ACC-${row.intake_id}`;
+  const ownerDeferred = validCoverageDeferredDecisionIds.has(acceptanceId)
+    || validCoverageDeferredDecisionIds.has("COVERAGE-L9-STABILIZATION");
   return {
-    acceptance_id: `ACC-${row.intake_id}`,
+    acceptance_id: acceptanceId,
     acceptance_type: "l9_stabilization_closure_evidence",
     intake_id: row.intake_id,
     closure_criterion: row.closure_criterion,
     current_status: row.current_status,
-    current_intake_status: intake?.intake_status ?? "missing_intake",
+    current_intake_status: intakeStatusWithDeferral(intake?.intake_status, ownerDeferred),
     acceptable_resolution: resolution
   };
 });
@@ -203,9 +219,9 @@ const report = {
     l9_pending_acceptance_row_count: l9AcceptanceRows.filter((row) => row.current_intake_status === "pending_evidence_or_owner_deferral").length,
     l9_evidence_satisfied_acceptance_row_count: l9AcceptanceRows.filter((row) => row.current_intake_status === "evidence_satisfied").length,
     l9_owner_deferred_acceptance_row_count: l9AcceptanceRows.filter((row) => row.current_intake_status === "owner_deferred").length,
-    owner_approved_deferrals_present: audit.launch_decisions.owner_approved_deferrals_present,
-    coverage_eligible_valid_deferred_rows: audit.launch_decisions.coverage_eligible_valid_deferred_rows,
-    non_coverage_valid_deferred_rows: audit.launch_decisions.non_coverage_valid_deferred_rows,
+    owner_approved_deferrals_present: decisionSummary.owner_approved_deferrals_present,
+    coverage_eligible_valid_deferred_rows: decisionSummary.coverage_eligible_valid_deferred_rows,
+    non_coverage_valid_deferred_rows: decisionSummary.non_coverage_valid_deferred_rows,
     go_live_all_pass: audit.go_live_readiness.all_pass
   },
   gate_acceptance_rows: gateAcceptanceRows,

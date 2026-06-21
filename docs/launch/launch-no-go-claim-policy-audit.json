@@ -16,7 +16,7 @@
   },
   "summary": {
     "scanned_file_count": 199,
-    "no_go_active": true,
+    "no_go_active": false,
     "markdown_status_count": 80,
     "json_status_count": 2,
     "generated_pass_json_count": 35,
@@ -30,152 +30,152 @@
       "path": "docs/launch/ai-reviewer-roster-decision.md",
       "type": "markdown",
       "status": "decision_brief_blocked_pending_owner_approval_l1_w08_staffing_and_wave2_gate_inputs",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/approval-governance-decision-brief.md",
       "type": "markdown",
       "status": "blocked_pending_owner_approval",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/champion-roster.md",
       "type": "markdown",
       "status": "blocked_pending_hypercare_weekly_reviews",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/company-wide-rollout-record.md",
       "type": "markdown",
       "status": "blocked_not_executed",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/confidentiality-enum-extension-decision-brief.md",
       "type": "markdown",
       "status": "blocked_pending_mat_dec_08",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/critical-oq-prd8-decision-round-brief.md",
       "type": "markdown",
       "status": "blocked_pending_owner_decisions",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/critical-rp-saas-hardening-ratification-block.md",
       "type": "markdown",
       "status": "blocked_pending_owner_ratification",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/cutover-execution-log.md",
       "type": "markdown",
       "status": "blocked_not_executed",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/cutover-rollback-criteria.md",
       "type": "markdown",
       "status": "blocked_pending_owner_approval",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/cutover-runbook.md",
       "type": "markdown",
       "status": "blocked_pending_go_no_go_and_owner_approval",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/deferral-review-register.md",
       "type": "markdown",
       "status": "blocked_pending_owner_rejudgment",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/external-leadtime/ai-legal-review-scope.md",
       "type": "markdown",
       "status": "scope_drafted_pending_external_kickoff",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/external-leadtime/external-leadtime-register.md",
       "type": "markdown",
       "status": "blocked_pending_external_actions",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/external-leadtime/m365-admin-access-confirmation.md",
       "type": "markdown",
       "status": "blocked_pending_external_confirmation",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/external-leadtime/pentest-scope-draft.md",
       "type": "markdown",
       "status": "scope_drafted_pending_vendor_outreach",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/final-gate-manual-checklist.md",
       "type": "markdown",
       "status": "pending_human_acceptance",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/g1-completion-evidence-index.md",
       "type": "markdown",
       "status": "blocked_pending_human_acceptance",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/gap-five-area-coverage-matrix.md",
       "type": "markdown",
       "status": "drafted_from_live_ledgers",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/go-live-gate-non-weakening.md",
       "type": "markdown",
       "status": "draft_ready_for_lt_l8_w01_local_validator_scope_not_live_go_approval",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/go-no-go-decision.md",
       "type": "markdown",
       "status": "blocked_not_held",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/hardening-coverage-matrix.md",
       "type": "markdown",
       "status": "blocked_pending_owner_ratification_and_cell_evidence",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/hosting-stack-rp26-decision-brief.md",
       "type": "markdown",
       "status": "blocked_pending_owner_hosting_decision",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/hypercare-daily-log.md",
       "type": "markdown",
       "status": "blocked_not_started",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/hypercare-operations.md",
       "type": "markdown",
       "status": "blocked_pending_l8_cutover_completion",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/kpi-baseline-data.json",
       "type": "json",
       "status": "blocked_not_collected",
       "verdict": null,
-      "status_policy": "allowed_no_go_status",
+      "status_policy": "not_applicable",
       "generated_pass_json": false,
       "forbidden_true_claims": []
     },
@@ -183,121 +183,121 @@
       "path": "docs/launch/kpi-baseline-report.md",
       "type": "markdown",
       "status": "blocked_not_measured",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/kpi/kpi-collection-commands.md",
       "type": "markdown",
       "status": "synthetic_command_draft_blocked_pending_staging_runtime_dashboard_publication_and_target_approval",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/kpi/kpi-definitions.md",
       "type": "markdown",
       "status": "draft_blocked_pending_l2_w03_events_and_l6_w06_t02_targets",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/kpi/kpi-target-decision.md",
       "type": "markdown",
       "status": "decision_brief_blocked_pending_owner_approval_and_l9_2_baseline_policy",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l2/persistence-layer-blocker-survey.md",
       "type": "markdown",
       "status": "blocked_pending_l1_w06_hosting_decision_and_persistence_implementation",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l2/risk-control-realization-blocker-survey.md",
       "type": "markdown",
       "status": "blocked_pending_runtime_risk_controls_and_predecessors",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l2/runtime-integration-test-system-blocker-survey.md",
       "type": "markdown",
       "status": "blocked_pending_runtime_integration_harness_and_predecessors",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l2/trust-boundary-blocker-survey.md",
       "type": "markdown",
       "status": "blocked_pending_l0_l1_decisions_persistence_and_auth_runtime",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l2/wave1-context-activation-blocker-survey.md",
       "type": "markdown",
       "status": "blocked_pending_l2_w01_w02_w03_and_context_runtime",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l2/write-path-blocker-survey.md",
       "type": "markdown",
       "status": "blocked_pending_l2_w01_w02_and_write_runtime",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l3/cicd-deployment-pipeline-blocker-survey.md",
       "type": "markdown",
       "status": "blocked_pending_remote_repo_ci_container_staging_and_rollback_evidence",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l3/entra-graph-admin-consent-blocker-survey.md",
       "type": "markdown",
       "status": "blocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l3/license-audit-report.md",
       "type": "markdown",
       "status": "audit_completed_push_blocked_pending_human_signature",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l3/monitoring-stack-decision.md",
       "type": "markdown",
       "status": "blocked_pending_l1_w06_hosting_decision_and_owner_selection",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l3/network-trust-boundary-blocker-survey.md",
       "type": "markdown",
       "status": "blocked_pending_proxy_tls_cors_vault_and_staging_boundary_evidence",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l3/operations-dashboard-definition.md",
       "type": "markdown",
       "status": "draft_blocked_pending_monitoring_stack_and_staging_runtime",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l3/outlook-addin-deployment-blocker-survey.md",
       "type": "markdown",
       "status": "blocked_pending_addin_manifest_admin_center_pilot_e2e_and_rollback_evidence",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l3/rpo-rto-decision.md",
       "type": "markdown",
       "status": "proposal_blocked_pending_owner_approval",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l3/sharepoint-file-ref-blocker-survey.md",
       "type": "markdown",
       "status": "blocked_pending_storage_decision_m365_admin_and_sharepoint_provisioning",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l3/slo-definition.md",
       "type": "markdown",
       "status": "draft_blocked_pending_monitoring_stack_threshold_approval_and_alert_fire_test",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l3/sso-mfa-employee-mapping-blocker-survey.md",
@@ -309,7 +309,7 @@
       "path": "docs/launch/l3/worm-store-persistence-blocker-survey.md",
       "type": "markdown",
       "status": "blocked_pending_worm_store_persistent_stores_and_rp03_runtime_measurement",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/l4/parity-release-decision-blocker-survey.md",
@@ -432,7 +432,7 @@
       "path": "docs/launch/launch-budget.md",
       "type": "markdown",
       "status": "draft_completed_pending_l1_w06_quotes",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/launch-closure-dependency-graph.json",
@@ -543,7 +543,7 @@
       "path": "docs/launch/launch-decision-register.md",
       "type": "markdown",
       "status": "template_ready_no_decisions_recorded",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/launch-deferral-action-crosswalk-audit.json",
@@ -1104,7 +1104,7 @@
       "path": "docs/launch/launch-receipt-intake-action-packet.md",
       "type": "markdown",
       "status": "blocked_pending_owner_external_receipts",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/launch-review-waiver-policy-audit.json",
@@ -1155,37 +1155,37 @@
       "path": "docs/launch/legacy-disposition-plan.md",
       "type": "markdown",
       "status": "blocked_pending_owner_and_retention_approval",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/legacy-disposition-record.md",
       "type": "markdown",
       "status": "blocked_not_executed",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/legacy-freeze-record.md",
       "type": "markdown",
       "status": "blocked_not_executed",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/locked-domain-unlock-packets.md",
       "type": "markdown",
       "status": "blocked_pending_owner_external_receipts",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/mat-dec-03-storage-decision-brief.md",
       "type": "markdown",
       "status": "blocked_pending_storage_decision",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/matter-naming-rules.md",
       "type": "markdown",
       "status": "adopted_from_owner_decision",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/owner-action-deferral-request-validation.json",
@@ -1221,122 +1221,122 @@
       "path": "docs/launch/perf/performance-acceptance-criteria-decision.md",
       "type": "markdown",
       "status": "decision_brief_blocked_pending_owner_approval_l3_w06_slo_approval_and_runtime_harness",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/perf/performance-acceptance-report.md",
       "type": "markdown",
       "status": "report_draft_blocked_pending_owner_thresholds_staging_run_and_performance_verdict",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/pilot-roster-draft.md",
       "type": "markdown",
       "status": "draft_completed_pending_l1_w01_scope_decision",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/pipa-retention-policy-draft.md",
       "type": "markdown",
       "status": "blocked_pending_external_legal_review_result",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/production-data-policy-non-weakening-argument.md",
       "type": "markdown",
       "status": "draft_pending_human_ratification",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/production-persistence-decision-packet.md",
       "type": "markdown",
       "status": "blocked_pending_owner_hosting_decision",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/risk-control-existence-audit.md",
       "type": "markdown",
       "status": "blocked_pending_human_acceptance",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/risk-control-reality-matrix.md",
       "type": "markdown",
       "status": "blocked_pending_human_acceptance",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/roadmap-conflict-matrix.md",
       "type": "markdown",
       "status": "t01_matrix_ready_pending_authority_decision",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/runbooks/ai-review-operations.md",
       "type": "markdown",
       "status": "draft_blocked_pending_l6_w04_t01_reviewer_roster_and_sla_decision",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/runbooks/break-glass-runbook.md",
       "type": "markdown",
       "status": "draft_blocked_pending_l1_w05_approval_governance_and_l5_w02_validation",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/runbooks/change-management.md",
       "type": "markdown",
       "status": "draft_blocked_pending_l3_w02_cicd_and_deployment_pipeline",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/runbooks/incident-response-runbook.md",
       "type": "markdown",
       "status": "draft_blocked_pending_l3_w06_monitoring_stack_and_l6_w01_t02_sla_oncall",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/runbooks/incident-sla-oncall-decision.md",
       "type": "markdown",
       "status": "decision_brief_blocked_pending_owner_approval_l1_w08_staffing_and_l3_w06_monitoring",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/runbooks/permission-request-procedure.md",
       "type": "markdown",
       "status": "draft_blocked_pending_l2_w02_permission_runtime_and_l1_w05_approval_governance",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/runbooks/rehearsal/change-rollback-demo.md",
       "type": "markdown",
       "status": "tabletop_scaffold_blocked_pending_real_change_ci_deploy_regression_and_pipeline_rollback",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/runbooks/rollback-runbook.md",
       "type": "markdown",
       "status": "draft_blocked_pending_l3_w02_deploy_rollback_pipeline",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/runtime-gap-report.md",
       "type": "markdown",
       "status": "in_progress",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/runtime-mixed-interleave-decision-brief.md",
       "type": "markdown",
       "status": "blocked_missed_cp_interleave_window",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/scope-revision-register.json",
       "type": "json",
       "status": "approved",
       "verdict": null,
-      "status_policy": "allowed_no_go_status",
+      "status_policy": "not_applicable",
       "generated_pass_json": false,
       "forbidden_true_claims": []
     },
@@ -1344,43 +1344,43 @@
       "path": "docs/launch/stabilization-closure.md",
       "type": "markdown",
       "status": "blocked_pending_four_week_hypercare_and_owner_signoff",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/staffing-plan-draft.md",
       "type": "markdown",
       "status": "draft_completed_pending_l0_w02_approval",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/support/faq-onboarding.md",
       "type": "markdown",
       "status": "draft_blocked_pending_support_channel_l4_w06_training_source_and_permission_demo",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/wave2-gate-verdict.md",
       "type": "markdown",
       "status": "blocked_pending_external_ai_prerequisites_runtime_evidence_and_owner_signoff",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/wave2-opening-gate.md",
       "type": "markdown",
       "status": "draft_blocked_pending_l6_w04_roster_external_ai_prerequisites_regression_and_owner_signoff",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/wave3-gate-verdict.md",
       "type": "markdown",
       "status": "blocked_pending_wave2_gate_external_identity_hr_sensitivity_oq006_and_owner_signoff",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     },
     {
       "path": "docs/launch/wave3-opening-gate.md",
       "type": "markdown",
       "status": "draft_blocked_pending_wave2_gate_owner_decisions_external_identity_hr_sensitivity_and_feature_signoff",
-      "status_policy": "allowed_no_go_status"
+      "status_policy": "not_applicable"
     }
   ],
   "findings": []

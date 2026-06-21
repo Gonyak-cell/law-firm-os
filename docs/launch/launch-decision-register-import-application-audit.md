@@ -7,12 +7,12 @@ Verdict: PASS
 ## Summary
 
 - import_candidate_count: 4
-- applied_candidate_count: 0
-- pending_application_count: 4
+- applied_candidate_count: 4
+- pending_application_count: 0
 - mismatched_application_count: 0
 - duplicate_register_row_count: 0
-- decision_register_total_rows: 0
-- decision_register_valid_deferred_rows: 0
+- decision_register_total_rows: 4
+- decision_register_valid_deferred_rows: 4
 - finding_count: 0
 - p0_count: 0
 - p1_count: 0
@@ -21,10 +21,10 @@ Verdict: PASS
 
 | Decision ID | Application state | Field mismatches |
 | --- | --- | ---: |
-| COVERAGE-ALL-GO-LIVE | pending_manual_application | 0 |
-| COVERAGE-L9-STABILIZATION | pending_manual_application | 0 |
-| COVERAGE-ALL-BLOCKED-WP | pending_manual_application | 0 |
-| COVERAGE-ALL-PHASE-EXITS | pending_manual_application | 0 |
+| COVERAGE-ALL-GO-LIVE | applied | 0 |
+| COVERAGE-L9-STABILIZATION | applied | 0 |
+| COVERAGE-ALL-BLOCKED-WP | applied | 0 |
+| COVERAGE-ALL-PHASE-EXITS | applied | 0 |
 
 ## Findings
 
