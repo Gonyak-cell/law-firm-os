@@ -17,7 +17,7 @@ This evidence file records P0 progress only. It does not claim desktop shell imp
 | MDT-P0-W01-T02 | complete | `docs/launch/mater-naming-rules.md` |
 | MDT-P0-W01-T03 | complete | `apps/web/src/brand/brand.js` |
 | MDT-P0-W01-T04 | complete | `docs/launch/mater-branding-backlog.md` |
-| MDT-P0-W01-T05 | pending | not started |
+| MDT-P0-W01-T05 | complete | `scripts/validate-mater-branding.mjs` |
 | MDT-P0-W01-T06 | pending | terminal not reached |
 | MDT-P0-W02-T01 | pending | not started |
 | MDT-P0-W02-T02 | pending | not started |
@@ -165,3 +165,37 @@ Act:
 
 - `MDT-P0-W01-T04` is complete.
 - Next TUW is `MDT-P0-W01-T05`.
+
+## MDT-P0-W01-T05 - Add Branding Validator
+
+Plan:
+
+- Add a repo-local branding validator for `mater` naming rules and backlog coverage.
+- Ensure the validator fails on user-facing `matter` product-brand misuse when it is not classified in the backlog.
+- Ensure domain, machine, and historical references remain allowed.
+
+Do:
+
+- Added `scripts/validate-mater-branding.mjs`.
+- The validator checks `PRODUCT_BRAND`, `UI_BRAND`, naming rules, backlog classifications, P0 `apps/desktop` absence, planned product-brand backlog coverage, and exception probes.
+
+Check:
+
+```bash
+node --check scripts/validate-mater-branding.mjs
+node scripts/validate-mater-branding.mjs
+git diff --check -- scripts/validate-mater-branding.mjs
+```
+
+Results:
+
+- Syntax check passed.
+- Branding validator passed with verdict `PASS`.
+- Validator summary: `planned_product_brand_changes: 23`, `preserve_classifications: 7`, `unclassified_user_facing_misuse: 0`.
+- Probe summary: user-facing misuse without backlog `fails`; domain object, machine identifier, and historical probes `pass`.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P0-W01-T05` is complete.
+- Next TUW is `MDT-P0-W01-T06`, the terminal TUW for `MDT-P0-W01`.
