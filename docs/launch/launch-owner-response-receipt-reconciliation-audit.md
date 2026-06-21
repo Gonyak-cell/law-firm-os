@@ -7,11 +7,11 @@ Verdict: PASS
 ## Summary
 
 - receipt_slot_count: 4
-- pending_receipt_slot_count: 4
-- real_owner_receipt_count: 0
-- copy_allowed_count: 0
-- receipt_update_candidate_count: 0
-- reconciled_real_receipt_count: 0
+- pending_receipt_slot_count: 3
+- real_owner_receipt_count: 1
+- copy_allowed_count: 1
+- receipt_update_candidate_count: 1
+- reconciled_real_receipt_count: 1
 - unreconciled_real_receipt_count: 0
 - field_mismatch_count: 0
 - finding_count: 0
@@ -20,7 +20,9 @@ Verdict: PASS
 
 ## Reconciled Receipt Slots
 
-No real owner receipt slots recorded.
+| Decision ID | Receipt status | Candidate match | Field mismatches |
+| --- | --- | --- | ---: |
+| COVERAGE-ALL-GO-LIVE | real_owner_evidence_received | true | 0 |
 
 ## Findings
 

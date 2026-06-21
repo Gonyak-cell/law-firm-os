@@ -15,9 +15,9 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "scanned_file_count": 196,
+    "scanned_file_count": 199,
     "no_go_active": true,
-    "markdown_status_count": 77,
+    "markdown_status_count": 80,
     "json_status_count": 2,
     "generated_pass_json_count": 35,
     "forbidden_true_claim_count": 0,
@@ -1101,6 +1101,12 @@
       "status_policy": "not_applicable"
     },
     {
+      "path": "docs/launch/launch-receipt-intake-action-packet.md",
+      "type": "markdown",
+      "status": "blocked_pending_owner_external_receipts",
+      "status_policy": "allowed_no_go_status"
+    },
+    {
       "path": "docs/launch/launch-review-waiver-policy-audit.json",
       "type": "json",
       "status": null,
@@ -1161,6 +1167,12 @@
       "path": "docs/launch/legacy-freeze-record.md",
       "type": "markdown",
       "status": "blocked_not_executed",
+      "status_policy": "allowed_no_go_status"
+    },
+    {
+      "path": "docs/launch/locked-domain-unlock-packets.md",
+      "type": "markdown",
+      "status": "blocked_pending_owner_external_receipts",
       "status_policy": "allowed_no_go_status"
     },
     {
@@ -1233,6 +1245,12 @@
       "path": "docs/launch/production-data-policy-non-weakening-argument.md",
       "type": "markdown",
       "status": "draft_pending_human_ratification",
+      "status_policy": "allowed_no_go_status"
+    },
+    {
+      "path": "docs/launch/production-persistence-decision-packet.md",
+      "type": "markdown",
+      "status": "blocked_pending_owner_hosting_decision",
       "status_policy": "allowed_no_go_status"
     },
     {

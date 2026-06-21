@@ -18,9 +18,9 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "import_candidate_count": 0,
+    "import_candidate_count": 1,
     "applied_candidate_count": 0,
-    "pending_application_count": 0,
+    "pending_application_count": 1,
     "mismatched_application_count": 0,
     "duplicate_register_row_count": 0,
     "decision_register_total_rows": 0,
@@ -29,6 +29,14 @@
     "p0_count": 0,
     "p1_count": 0
   },
-  "application_rows": [],
+  "application_rows": [
+    {
+      "decision_id": "COVERAGE-ALL-GO-LIVE",
+      "application_state": "pending_manual_application",
+      "line_numbers": [],
+      "field_mismatch_count": 0,
+      "mismatches": []
+    }
+  ],
   "findings": []
 }

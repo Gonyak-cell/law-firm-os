@@ -1,6 +1,6 @@
 # Locked-Domain Unlock Packets
 
-Status: prepared_pending_owner_external_receipts
+Status: blocked_pending_owner_external_receipts
 Date: 2026-06-21
 Prepared for: LCX6
 
@@ -232,4 +232,3 @@ Non-claims:
 | External receipts | Still required |
 | Owner approvals | Still required |
 | Production/go-live | Still blocked |
-
