@@ -17,11 +17,11 @@ Generated at: 2026-06-19T00:15:13.209Z
 
 - response_intake_verdict: PASS
 - response_entry_count: 4
-- pending_response_count: 2
-- real_owner_response_count: 2
-- copy_allowed_response_count: 2
-- receipt_update_candidate_count: 2
-- target_count_by_candidates: 36
+- pending_response_count: 1
+- real_owner_response_count: 3
+- copy_allowed_response_count: 3
+- receipt_update_candidate_count: 3
+- target_count_by_candidates: 106
 - receipt_ledger_current_real_receipt_count: 2
 - receipt_ledger_current_copy_allowed_count: 2
 
@@ -31,6 +31,7 @@ Generated at: 2026-06-19T00:15:13.209Z
 | --- | --- | ---: | --- | --- | --- |
 | COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 31 | real_owner_response_received | true | real_owner_evidence_received |
 | COVERAGE-L9-STABILIZATION | l9_stabilization_closure | 5 | real_owner_response_received | true | real_owner_evidence_received |
+| COVERAGE-ALL-BLOCKED-WP | blocked_work_package | 70 | real_owner_response_received | true | real_owner_evidence_received |
 
 ## Receipt Copy Rule
 

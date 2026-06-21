@@ -8,11 +8,11 @@ Verdict: PASS
 
 - response_entry_count: 4
 - request_card_count: 4
-- pending_response_count: 2
-- real_owner_response_count: 2
-- copy_allowed_count: 2
+- pending_response_count: 1
+- real_owner_response_count: 3
+- copy_allowed_count: 3
 - target_count_if_all_responses_received: 117
-- target_count_by_real_responses: 36
+- target_count_by_real_responses: 106
 - finding_count: 0
 - p0_count: 0
 - p1_count: 0

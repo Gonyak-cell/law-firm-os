@@ -6,13 +6,13 @@ Verdict: PASS
 
 ## Summary
 
-- receipt_update_candidate_count: 2
-- applied_candidate_count: 2
+- receipt_update_candidate_count: 3
+- applied_candidate_count: 3
 - pending_application_count: 0
 - mismatched_application_count: 0
 - missing_receipt_slot_count: 0
-- receipt_ledger_current_real_receipt_count: 2
-- receipt_ledger_current_copy_allowed_count: 2
+- receipt_ledger_current_real_receipt_count: 3
+- receipt_ledger_current_copy_allowed_count: 3
 - finding_count: 0
 - p0_count: 0
 - p1_count: 0
@@ -23,6 +23,7 @@ Verdict: PASS
 | --- | --- | ---: |
 | COVERAGE-ALL-GO-LIVE | applied | 0 |
 | COVERAGE-L9-STABILIZATION | applied | 0 |
+| COVERAGE-ALL-BLOCKED-WP | applied | 0 |
 
 ## Findings
 

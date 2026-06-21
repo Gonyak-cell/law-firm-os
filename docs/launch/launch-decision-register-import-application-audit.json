@@ -18,9 +18,9 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "import_candidate_count": 2,
+    "import_candidate_count": 3,
     "applied_candidate_count": 0,
-    "pending_application_count": 2,
+    "pending_application_count": 3,
     "mismatched_application_count": 0,
     "duplicate_register_row_count": 0,
     "decision_register_total_rows": 0,
@@ -39,6 +39,13 @@
     },
     {
       "decision_id": "COVERAGE-L9-STABILIZATION",
+      "application_state": "pending_manual_application",
+      "line_numbers": [],
+      "field_mismatch_count": 0,
+      "mismatches": []
+    },
+    {
+      "decision_id": "COVERAGE-ALL-BLOCKED-WP",
       "application_state": "pending_manual_application",
       "line_numbers": [],
       "field_mismatch_count": 0,

@@ -7,11 +7,11 @@ Verdict: PASS
 ## Summary
 
 - receipt_slot_count: 4
-- pending_receipt_slot_count: 2
-- real_owner_receipt_count: 2
-- copy_allowed_count: 2
-- receipt_update_candidate_count: 2
-- reconciled_real_receipt_count: 2
+- pending_receipt_slot_count: 1
+- real_owner_receipt_count: 3
+- copy_allowed_count: 3
+- receipt_update_candidate_count: 3
+- reconciled_real_receipt_count: 3
 - unreconciled_real_receipt_count: 0
 - field_mismatch_count: 0
 - finding_count: 0
@@ -24,6 +24,7 @@ Verdict: PASS
 | --- | --- | --- | ---: |
 | COVERAGE-ALL-GO-LIVE | real_owner_evidence_received | true | 0 |
 | COVERAGE-L9-STABILIZATION | real_owner_evidence_received | true | 0 |
+| COVERAGE-ALL-BLOCKED-WP | real_owner_evidence_received | true | 0 |
 
 ## Findings
 
