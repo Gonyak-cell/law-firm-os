@@ -15,7 +15,7 @@ This evidence file records P1 desktop shell progress only. It does not claim fil
 | --- | --- | --- |
 | MDT-P1-W01-T01 | complete | `apps/desktop/package.json`, `apps/desktop/src/main/` |
 | MDT-P1-W01-T02 | complete | `apps/desktop/src/main/window.js` |
-| MDT-P1-W01-T03 | pending | not started |
+| MDT-P1-W01-T03 | complete | `apps/desktop/src/main/origin-policy.js`, `apps/desktop/test/origin-policy.test.mjs` |
 | MDT-P1-W01-T04 | pending | not started |
 | MDT-P1-W01-T05 | pending | terminal not reached |
 | MDT-P1-W02-T01 | pending | not started |
@@ -95,3 +95,40 @@ Act:
 
 - `MDT-P1-W01-T02` is complete.
 - Next TUW is `MDT-P1-W01-T03`.
+
+## MDT-P1-W01-T03 - Define Dev and Packaged Load Policy
+
+Plan:
+
+- Allow only the approved local dev renderer URL and packaged `file:` origin.
+- Deny remote HTTP(S), alternate local ports, and hostname aliases by default.
+- Add Node tests for origin checks and navigation guards.
+
+Do:
+
+- Added `apps/desktop/src/main/origin-policy.js`.
+- Added `apps/desktop/test/origin-policy.test.mjs`.
+- Implemented `installNavigationGuards` for `will-navigate` and `setWindowOpenHandler`.
+
+Check:
+
+```bash
+node apps/desktop/test/origin-policy.test.mjs
+git diff --check -- apps/desktop/src/main/origin-policy.js apps/desktop/test/origin-policy.test.mjs
+```
+
+Results:
+
+- Origin policy tests passed: `3` tests, `3` pass, `0` fail.
+- Tests prove approved dev URL and packaged `file:` origin are allowed.
+- Tests prove `localhost`, alternate port, remote HTTPS, malformed URL, unapproved navigation, and unapproved window open are blocked.
+- `git diff --check` passed.
+
+Permission/audit impact:
+
+- Navigation cannot load untrusted remote content into the desktop shell.
+
+Act:
+
+- `MDT-P1-W01-T03` is complete.
+- Next TUW is `MDT-P1-W01-T04`.
