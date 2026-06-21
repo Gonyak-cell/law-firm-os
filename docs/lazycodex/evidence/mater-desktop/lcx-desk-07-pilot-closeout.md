@@ -17,7 +17,7 @@ This evidence file records P7 pilot closeout progress only. It does not claim ow
 | MDT-P7-W01-T02 | complete | `docs/lazycodex/evidence/mater-desktop/pilot-install-session.md` |
 | MDT-P7-W01-T03 | complete | `docs/lazycodex/evidence/mater-desktop/pilot-native-capabilities.md` |
 | MDT-P7-W01-T04 | complete | `docs/lazycodex/evidence/mater-desktop/pilot-security-audit.md` |
-| MDT-P7-W02-T01 | pending | not started |
+| MDT-P7-W02-T01 | complete | `docs/desktop/mater-desktop-pilot-risk-adjudication.md` |
 | MDT-P7-W02-T02 | pending | not started |
 | MDT-P7-W02-T03 | pending | not started |
 | MDT-P7-W02-T04 | pending | not started |
@@ -153,3 +153,32 @@ Act:
 
 - `MDT-P7-W01` is closed at its terminal TUW, `MDT-P7-W01-T04`.
 - Next ledger TUW is `MDT-P7-W02-T01`.
+
+## MDT-P7-W02-T01 - Adjudicate Pilot Risk Register
+
+Plan:
+
+- Adjudicate failed, blocked, and owner-risk QA items.
+- Include owner, severity, mitigation, and go/no-go impact.
+
+Do:
+
+- Added `docs/desktop/mater-desktop-pilot-risk-adjudication.md`.
+
+Check:
+
+```bash
+rg -n "severity|mitigation|go/no-go|owner" docs/desktop/mater-desktop-pilot-risk-adjudication.md
+git diff --check -- docs/desktop/mater-desktop-pilot-risk-adjudication.md docs/lazycodex/evidence/mater-desktop/lcx-desk-07-pilot-closeout.md
+```
+
+Results:
+
+- Risk adjudication grep passed.
+- Blocked and owner-risk items have owner, severity, mitigation, and go/no-go impact.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P7-W02-T01` is complete.
+- Next TUW is `MDT-P7-W02-T02`.
