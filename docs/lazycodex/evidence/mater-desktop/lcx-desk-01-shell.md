@@ -1,6 +1,6 @@
 # LCX-DESK-01 Shell Evidence
 
-Status: in_progress
+Status: P1_complete
 Branch: `codex/mater-desktop-69-tuw-implementation`
 Scope: P1 desktop shell skeleton, hardened window defaults, origin policy, and startup smoke
 Source ledger: `docs/desktop/mater-desktop-loop-tuw-ledger.json`
@@ -21,7 +21,7 @@ This evidence file records P1 desktop shell progress only. It does not claim fil
 | MDT-P1-W02-T01 | complete | `apps/desktop/src/main/splash.js` |
 | MDT-P1-W02-T02 | complete | `apps/desktop/src/main/splash.js`, `apps/desktop/src/main/window.js`, `apps/desktop/test/splash-handoff.test.mjs` |
 | MDT-P1-W02-T03 | complete | `apps/desktop/src/main/splash.js`, `apps/desktop/src/renderer/offline.html` |
-| MDT-P1-W02-T04 | pending | not started |
+| MDT-P1-W02-T04 | complete | P1 terminal closure recorded here |
 
 ## MDT-P1-W01-T01 - Create apps/desktop Package Skeleton
 
@@ -306,3 +306,53 @@ Act:
 
 - `MDT-P1-W02-T03` is complete.
 - Next TUW is `MDT-P1-W02-T04`, the P1 terminal TUW.
+
+## MDT-P1-W02-T04 - Close Shell Prototype Evidence
+
+Plan:
+
+- Close P1 only at the phase terminal TUW.
+- Re-run desktop smoke, desktop security validator, and loop ledger validator.
+- Record shell startup, security settings, and non-claims.
+
+Do:
+
+- Reviewed `MDT-P1-W01` and `MDT-P1-W02` evidence in this file.
+- Confirmed shell startup smoke, origin guard, splash handoff, reduced-motion behavior, and offline fallback are covered.
+
+Check:
+
+```bash
+npm --workspace apps/desktop run test:smoke
+node scripts/validate-mater-desktop-security.mjs
+node scripts/validate-mater-desktop-loop-tuw-plan.mjs
+git diff --check
+```
+
+Results:
+
+- Desktop smoke passed: `8` tests, `8` pass, `0` fail.
+- Desktop security validator passed with `findings: []` and `checked_files: 9`.
+- Loop TUW ledger validator passed with `phase_count: 8`, `work_package_count: 16`, and `tuw_count: 69`.
+- `git diff --check` passed.
+
+Security settings:
+
+- `nodeIntegration=false`
+- `contextIsolation=true`
+- `sandbox=true`
+- `webSecurity=true`
+- No preload bridge surface is present.
+- Approved renderer targets remain limited to `http://127.0.0.1:5173` and packaged `file:` origin.
+
+non-claims:
+
+- P1 shell prototype does not implement file bridge.
+- P1 shell prototype does not implement auth token storage.
+- P1 shell prototype does not implement signed packaging or update channels.
+- P1 shell prototype does not claim pilot approval, production go-live, public release, or owner approval.
+
+Act:
+
+- P1 is closed at its terminal TUW, `MDT-P1-W02-T04`.
+- Next ledger TUW is `MDT-P2-W01-T01`.
