@@ -23,7 +23,7 @@ system.
 | `docs/runtime-spine/launch-tuw-crosswalk.md` | LT-L2-W01, LT-L2-W02, LT-L2-W03, and LT-L2-W07 remain blocked launch packets |
 | `docs/runtime-spine/evidence/g6-runtime-ready-evidence.json` | RS-6/RTG-001 through RTG-005 passed for repo runtime-ready candidate only |
 | `docs/launch/launch-owner-approval-receipt-ledger.md` | 4 real coverage deferral receipts recorded after owner-response intake |
-| `docs/launch/launch-external-receipt-ledger.md` | LCX7-RI-05 through LCX7-RI-10 receipts recorded; LCX7-RI-11 through LCX7-RI-12 remain pending |
+| `docs/launch/launch-external-receipt-ledger.md` | LCX7-RI-05 through LCX7-RI-11 receipts recorded; LCX7-RI-12 remains pending |
 | `docs/launch/launch-evidence-acceptance-matrix.md` | 36 acceptance rows owner-deferred; external receipt lanes still remain |
 | `docs/launch/launch-no-go-claim-policy-audit.md` | No forbidden true go-live claims |
 
@@ -179,7 +179,7 @@ Non-claims:
 | Outlook/M365 | LCX7-RI-09 receipt recorded; remains subject to G5/M365 launch acceptance and final go-live | Tenant admin confirmation, approved Graph scope register, Entra app registration, admin consent export |
 | HR real data | LCX7-RI-10 receipt recorded; remains subject to G7 launch acceptance, HRX route validation, and final go-live | HR owner approval, identity mapping reconciliation, HR sensitive store count policy, privacy/PIPA receipt |
 | AI | Synthetic-only until external AI policy gate | AI policy approval, source/citation policy, human-review routing, no-final-decision guard receipt |
-| Vault import/sync | Locked until export-only and source-boundary gate | MAT-DEC-03 storage decision, source-of-truth receipt, import/sync reconciliation, rollback-ready attestation |
+| Vault import/sync | LCX7-RI-11 receipt recorded; remains subject to G8 launch acceptance, Vault import/sync validation, and final go-live | MAT-DEC-03 storage decision, source-of-truth receipt, import/sync reconciliation, rollback-ready attestation |
 
 Post-receipt verification:
 
