@@ -22,11 +22,11 @@
     "request_packet_verdict": "PASS",
     "request_card_count": 4,
     "response_entry_count": 4,
-    "pending_response_count": 3,
-    "real_owner_response_count": 1,
-    "copy_allowed_count": 1,
+    "pending_response_count": 2,
+    "real_owner_response_count": 2,
+    "copy_allowed_count": 2,
     "target_count_if_all_responses_received": 117,
-    "target_count_by_real_responses": 31
+    "target_count_by_real_responses": 36
   },
   "required_owner_response_fields": [
     "owner",
@@ -160,16 +160,16 @@
       ],
       "allowed_register_status_after_real_receipt": "deferred(시한 명기)",
       "request_status": "pending_owner_response",
-      "response_status": "pending_owner_response",
-      "owner": "",
-      "decision": "",
-      "basis": "",
-      "date_or_revisit_gate": "",
-      "approval_signature_ref": "",
-      "received_at": "",
-      "recorded_by_human": "",
-      "pending_response_not_approval": true,
-      "copy_to_receipt_ledger_allowed": false
+      "response_status": "real_owner_response_received",
+      "owner": "Operations Owner",
+      "decision": "deferred(시한 명기)",
+      "basis": "L9 stabilization cannot be closed until post-launch monitoring, SLO measurement, support channel roundtrip, incident review, and owner signoff evidence exist. Deferral is accepted as a launch blocker, not as go-live approval.",
+      "date_or_revisit_gate": "GATE-L9-HYPERCARE-SLO-AUDIT-EVIDENCE",
+      "approval_signature_ref": "meeting:lawos-ops-readiness-2026-06-21",
+      "received_at": "2026-06-21T09:05:00Z",
+      "recorded_by_human": "JWS",
+      "pending_response_not_approval": false,
+      "copy_to_receipt_ledger_allowed": true
     },
     {
       "decision_id": "COVERAGE-ALL-BLOCKED-WP",

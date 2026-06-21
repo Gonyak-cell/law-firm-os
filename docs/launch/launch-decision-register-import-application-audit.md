@@ -6,9 +6,9 @@ Verdict: PASS
 
 ## Summary
 
-- import_candidate_count: 1
+- import_candidate_count: 2
 - applied_candidate_count: 0
-- pending_application_count: 1
+- pending_application_count: 2
 - mismatched_application_count: 0
 - duplicate_register_row_count: 0
 - decision_register_total_rows: 0
@@ -22,6 +22,7 @@ Verdict: PASS
 | Decision ID | Application state | Field mismatches |
 | --- | --- | ---: |
 | COVERAGE-ALL-GO-LIVE | pending_manual_application | 0 |
+| COVERAGE-L9-STABILIZATION | pending_manual_application | 0 |
 
 ## Findings
 
