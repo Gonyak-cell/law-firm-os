@@ -16,12 +16,16 @@
     "docs/runtime-spine/baseline-runtime-measurement.md",
     "docs/runtime-spine/runtime-spine-decisions.json",
     "docs/runtime-spine/runtime-spine-ledger.json",
+    "docs/runtime-spine/evidence/g1-persistence-evidence.json",
     "docs/runtime-spine/qa-checklist.md",
     "docs/runtime-spine/rollback-migration-notes.md"
   ],
   "validators": [
     "npm run runtime-spine:plan:validate",
     "npm run runtime-spine:readiness:validate",
+    "npm run runtime-spine:rs1:persistence:validate",
+    "npm run runtime-spine:rs1:tenant-data:validate",
+    "npm run runtime-spine:rs1:persistence-ready:validate",
     "npm run runtime-readiness:contract:validate",
     "npm run runtime-readiness:validate",
     "npm run client-matter:cmp-v1:validate",
@@ -149,11 +153,65 @@
       }
     }
   },
+  "latest_rs1c_validation": {
+    "status": "passed",
+    "recorded_after_commands": true,
+    "date": "2026-06-21",
+    "summary": {
+      "scope": "RS-1C Persistence Ready Candidate",
+      "closed_tuws": [
+        "RS-1-T11",
+        "RS-1-T12",
+        "RS-1-T13",
+        "RS-1-T14"
+      ],
+      "g1_status": "ready_candidate",
+      "rs1_status": "ready_candidate",
+      "data_residency_metadata": "residency_region, data_residency_policy, data_classification",
+      "backup_restore": "synthetic-only scoped backup/restore harness",
+      "tenant_isolation_suite": "repository/idempotency/outbox/backup cross-tenant leakage tests",
+      "evidence_packet": "docs/runtime-spine/evidence/g1-persistence-evidence.json",
+      "runtime_ready_candidate": false,
+      "actual_launch_go_live_claim": false,
+      "commands": [
+        "npm --workspace @law-firm-os/persistence run test",
+        "npm run runtime-spine:rs1:persistence-ready:validate",
+        "npm run runtime-spine:rs1:tenant-data:validate",
+        "npm run runtime-spine:rs1:persistence:validate",
+        "npm run runtime-spine:plan:validate",
+        "npm run runtime-spine:readiness:validate",
+        "npm run runtime-readiness:validate",
+        "npm run client-matter:cmp-v1:validate",
+        "npm run matter-vault:r4:validate",
+        "npm run hrx:runtime:validate",
+        "npm run validate",
+        "npm run api:test",
+        "npm run build",
+        "npm test"
+      ],
+      "results": {
+        "persistence_package_test": "passed; 20/20",
+        "rs1_persistence_ready_validator": "passed",
+        "rs1_tenant_data_validator": "passed",
+        "rs1_persistence_validator": "passed",
+        "runtime_spine_plan": "passed; gates=7; tuws=124",
+        "runtime_spine_readiness_guard": "passed; total_closed_tuws=21; rs1_closed_tuws=14; premature_closed_tuws=0; next_gate=G2",
+        "runtime_readiness": "passed; runtime_target_packs=0",
+        "client_matter_cmp_v1": "passed; tuws=316; gates=13; claim_boundary=not_r4_ready",
+        "matter_vault_r4": "passed; tuws=118; gates=9; launch_go_live_claim=false",
+        "hrx_runtime": "passed",
+        "root_validate": "passed",
+        "api_test": "passed; 131/131",
+        "build": "passed",
+        "root_test": "passed; 4014/4014"
+      }
+    }
+  },
   "future_evidence_slots": [
     {
       "gate": "G1",
       "required_ref": "docs/runtime-spine/evidence/g1-persistence-evidence.json",
-      "status": "planned"
+      "status": "ready_candidate"
     },
     {
       "gate": "G2",

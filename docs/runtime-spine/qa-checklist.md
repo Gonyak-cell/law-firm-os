@@ -29,6 +29,21 @@ Date: 2026-06-21
 | Plan validator exists | closed |
 | Readiness validator exists | closed |
 
+## G1 Checklist
+
+| Item | Status |
+| --- | --- |
+| Synthetic persistence package exists | closed |
+| Production DB and inline credentials are blocked | closed |
+| Tenant base schema and migration history exist | closed |
+| Tenant-scoped runtime repository exists | closed |
+| Stable IDs, idempotency, transaction, outbox, and lifecycle fields exist | closed |
+| Data residency metadata exists | closed |
+| Synthetic backup/restore smoke harness exists | closed |
+| Tenant isolation negative suite exists | closed |
+| G1 persistence evidence packet exists | closed |
+| Runtime-ready and actual launch/go-live claims remain false | closed |
+
 ## Regression Commands
 
 G0 uses the following minimum regression sweep:

@@ -47,6 +47,17 @@ RS-1B extends the synthetic persistence adapter with tenant data spine primitive
 
 Rollback remains synthetic-only. For local test stores, remove the synthetic store file or use `rollbackRuntimeSpineMigrations(connection)` to clear synthetic migration history. There is still no production DB, no production credential, and no real tenant/customer/HR data mutation.
 
+## RS-1C Persistence Ready Candidate
+
+RS-1C closes the remaining G1 persistence evidence:
+
+- data residency metadata: `residency_region`, `data_residency_policy`, `data_classification`
+- backup/restore: `createPersistenceBackup` and `restorePersistenceBackup`
+- tenant isolation suite: repository, idempotency, outbox, and backup leakage negative tests
+- G1 evidence packet: `docs/runtime-spine/evidence/g1-persistence-evidence.json`
+
+Rollback remains synthetic-only. A local synthetic backup can be discarded, and the local synthetic store can be reset by deleting the test store file. This does not approve production DB vendor, hosting, RPO/RTO, credentials, real tenant data access, runtime-ready, or launch/go-live.
+
 ## Future Evidence Required
 
 Runtime migration PRs must record:

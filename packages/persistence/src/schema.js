@@ -1,3 +1,5 @@
+import { createDataResidencyMetadata } from "./residency.js";
+
 export const PERSISTENCE_SCHEMA_VERSION = "law-firm-os.persistence-schema.v0.1";
 
 export const PERSISTENCE_TABLES = Object.freeze([
@@ -51,6 +53,11 @@ export const TENANT_BASE_SCHEMA = Object.freeze({
 
 export function createRuntimeRecord(input = {}) {
   const now = input.created_at ?? new Date(0).toISOString();
+  const residency = createDataResidencyMetadata(input.data_residency ?? {}, {
+    region: input.residency_region ?? "synthetic",
+    policy: input.data_residency_policy ?? "synthetic-only",
+    classification: input.data_classification ?? "internal"
+  });
   const record = {
     tenant_id: input.tenant_id,
     record_id: input.record_id,
@@ -58,6 +65,9 @@ export function createRuntimeRecord(input = {}) {
     payload: input.payload ?? {},
     status: input.status ?? "active",
     retention_class: input.retention_class ?? "standard",
+    residency_region: residency.region,
+    data_residency_policy: residency.policy,
+    data_classification: residency.classification,
     created_at: now,
     updated_at: input.updated_at ?? now,
     archived_at: input.archived_at,
@@ -133,7 +143,8 @@ export const TENANT_DATA_SPINE_SCHEMA = Object.freeze({
     {
       table: "runtime_records",
       tenant_scoped: true,
-      lifecycle_fields: Object.freeze(["status", "archived_at", "deleted_at", "retention_class"])
+      lifecycle_fields: Object.freeze(["status", "archived_at", "deleted_at", "retention_class"]),
+      residency_fields: Object.freeze(["residency_region", "data_residency_policy", "data_classification"])
     },
     {
       table: "runtime_idempotency_keys",
