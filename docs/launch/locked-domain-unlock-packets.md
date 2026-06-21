@@ -23,7 +23,7 @@ system.
 | `docs/runtime-spine/launch-tuw-crosswalk.md` | LT-L2-W01, LT-L2-W02, LT-L2-W03, and LT-L2-W07 remain blocked launch packets |
 | `docs/runtime-spine/evidence/g6-runtime-ready-evidence.json` | RS-6/RTG-001 through RTG-005 passed for repo runtime-ready candidate only |
 | `docs/launch/launch-owner-approval-receipt-ledger.md` | 4 real coverage deferral receipts recorded after owner-response intake |
-| `docs/launch/launch-external-receipt-ledger.md` | LCX7-RI-05 production persistence and LCX7-RI-06 trust-boundary receipts recorded; LCX7-RI-07 through LCX7-RI-12 remain pending |
+| `docs/launch/launch-external-receipt-ledger.md` | LCX7-RI-05 production persistence, LCX7-RI-06 trust-boundary, and LCX7-RI-07 write-path receipts recorded; LCX7-RI-08 through LCX7-RI-12 remain pending |
 | `docs/launch/launch-evidence-acceptance-matrix.md` | 36 acceptance rows owner-deferred; external receipt lanes still remain |
 | `docs/launch/launch-no-go-claim-policy-audit.md` | No forbidden true go-live claims |
 
@@ -115,7 +115,7 @@ Non-claims:
 | Primary blockers | LT-L2-W03 plus LT-L2-W01 and LT-L2-W02 prerequisites |
 | Runtime Spine relation | RS-3 and RS-5 support write/audit shape; launch write path remains predecessor-blocked |
 | Unlock authority | Architecture Owner, Security Owner, Product Owner |
-| Current state | Repo-local write/runtime evidence exists; production-equivalent write path receipts remain external/owner blocked |
+| Current state | LCX7-RI-07 receipt recorded; LT-L2-W03 still requires packet validation, staging write-path smoke, and downstream launch closure evidence |
 
 Required receipts:
 

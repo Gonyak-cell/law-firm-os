@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.launch-external-receipt-ledger.v0.1",
-  "generated_at": "2026-06-21T09:28:00Z",
+  "generated_at": "2026-06-21T09:49:00Z",
   "status": "blocked_pending_remaining_owner_external_receipts",
   "source_refs": [
     "docs/launch/launch-receipt-intake-action-packet.md",
@@ -20,15 +20,15 @@
   },
   "summary": {
     "external_receipt_lane_count": 8,
-    "real_external_receipt_count": 2,
-    "approved_external_receipt_count": 2,
+    "real_external_receipt_count": 3,
+    "approved_external_receipt_count": 3,
     "deferred_external_receipt_count": 0,
-    "pending_external_receipt_count": 6,
+    "pending_external_receipt_count": 5,
     "lcx7_ri_05_receipt_recorded": true,
     "lcx7_ri_06_receipt_recorded": true,
+    "lcx7_ri_07_receipt_recorded": true,
     "all_external_receipts_received": false,
     "remaining_queue_ids": [
-      "LCX7-RI-07",
       "LCX7-RI-08",
       "LCX7-RI-09",
       "LCX7-RI-10",
@@ -140,8 +140,26 @@
         "LT-L2-W01",
         "LT-L2-W02"
       ],
-      "receipt_status": "pending_external_receipt",
-      "pending_reason": "Awaiting production-equivalent write path, unit-of-work, idempotency, outbox, and audit-chain receipts."
+      "post_receipt_validation": [
+        "npm run runtime-spine:rs3:audit:validate",
+        "npm run runtime-spine:rs5:app-surface:validate",
+        "npm run runtime-spine:readiness:validate",
+        "future staging write-path smoke receipts"
+      ],
+      "receipt_status": "real_external_receipt_received",
+      "owner": "Architecture Owner / Security Owner / Product Owner",
+      "decision": "approved",
+      "basis": "Production-equivalent write path, approved Wave 1 write API/event surface, unit-of-work proof for domain write plus audit append, idempotency/replay prevention, durable event outbox, permission-before-write, classification-before-share, rollback/fault-injection behavior, and audit chain verification over the approved persistent audit store are approved for LCX7-RI-07. This approval is intended to unblock LT-L2-W03 and downstream LT-L2-W07 launch closure validation.",
+      "date_or_revisit_gate": "2026-06-21",
+      "approval_signature_ref": "email:lawos-write-path-audit-approval-2026-06-21",
+      "received_at": "2026-06-21T09:49:00Z",
+      "received_at_original": "2026-06-21T18:49:00+09:00",
+      "recorded_by_human": "JWS",
+      "receipt_counts_as_go_live_approval": false,
+      "receipt_counts_as_production_cutover_approval": false,
+      "receipt_counts_as_lt_terminal_closeout": false,
+      "launch_decision_register_copy_allowed": false,
+      "unlock_claim_state": "receipt_recorded_pending_lt_packet_validation"
     },
     {
       "queue_id": "LCX7-RI-08",
