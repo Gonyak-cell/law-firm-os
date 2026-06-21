@@ -60,6 +60,25 @@ test("mater startup branding uses shared splash and brand constants", async () =
   assert.doesNotMatch(i18nSource, /matter에게 질문|matter 작업공간|matter는/);
 });
 
+test("desktop workspace keeps Matter, Vault, denied, and desktop mode routable", async () => {
+  const appSource = await readWebFile("src/App.jsx");
+  const navSource = await readWebFile("src/data/nav.js");
+  const mattersSource = await readWebFile("src/components/MattersSurface.jsx");
+  const vaultSource = await readWebFile("src/components/VaultSurface.jsx");
+  const deniedSource = await readWebFile("src/components/DesktopDeniedState.jsx");
+  const runtimeContextSource = await readWebFile("src/desktop/runtimeContext.js");
+
+  assert.match(navSource, /id: "matters"/);
+  assert.match(navSource, /id: "vault"/);
+  assert.match(appSource, /view === "matters"/);
+  assert.match(appSource, /view === "vault"/);
+  assert.match(mattersSource, /DesktopDeniedState/);
+  assert.match(vaultSource, /DesktopDeniedState/);
+  assert.match(deniedSource, /No row counts, snippets, citations, or document metadata are shown/);
+  assert.match(runtimeContextSource, /desktopMode/);
+  assert.match(runtimeContextSource, /routeSource/);
+});
+
 test("Finance runtime surface is routed and live Finance backed", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const navSource = await readWebFile("src/data/nav.js");

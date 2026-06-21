@@ -18,7 +18,7 @@ This evidence file records P3 workspace progress only. It does not claim file br
 | MDT-P3-W01-T03 | complete | `apps/web/src/desktop/runtimeContext.js`, `apps/desktop/src/preload/runtime.js` |
 | MDT-P3-W02-T01 | complete | `apps/web/test/desktop-permission.test.mjs` |
 | MDT-P3-W02-T02 | complete | `apps/desktop/test/deep-link-permission.test.mjs` |
-| MDT-P3-W02-T03 | pending | not started |
+| MDT-P3-W02-T03 | complete | `apps/web/test/ui-regression.test.mjs` |
 | MDT-P3-W02-T04 | pending | phase terminal not reached |
 
 ## MDT-P3-W01-T01 - Map Desktop Route Intents to Web Routes
@@ -191,3 +191,33 @@ Act:
 
 - `MDT-P3-W02-T02` is complete.
 - Next TUW is `MDT-P3-W02-T03`.
+
+## MDT-P3-W02-T03 - Run Desktop Workspace UI Regression
+
+Plan:
+
+- Add workspace regression coverage for Matter, Vault, denied, and desktop mode surfaces.
+- Run web build and UI regression.
+
+Do:
+
+- Updated `apps/web/test/ui-regression.test.mjs`.
+
+Check:
+
+```bash
+npm --workspace apps/web run build && npm --workspace apps/web run test:ui
+git diff --check -- apps/web/test/ui-regression.test.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-03-workspace.md
+```
+
+Results:
+
+- Web build passed.
+- UI regression passed.
+- Regression covers Matter route, Vault route, `DesktopDeniedState`, `desktopMode`, and `routeSource`.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P3-W02-T03` is complete.
+- Next TUW is `MDT-P3-W02-T04`, the P3 terminal TUW.
