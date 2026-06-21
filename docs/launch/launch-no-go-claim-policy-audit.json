@@ -773,7 +773,7 @@
     {
       "path": "docs/launch/launch-external-receipt-ledger.json",
       "type": "json",
-      "status": "blocked_pending_remaining_owner_external_receipts",
+      "status": "external_receipts_received_pending_launch_acceptance_and_final_go_live_decision",
       "verdict": null,
       "status_policy": "not_applicable",
       "generated_pass_json": false,
@@ -782,7 +782,7 @@
     {
       "path": "docs/launch/launch-external-receipt-ledger.md",
       "type": "markdown",
-      "status": "blocked_pending_remaining_owner_external_receipts",
+      "status": "external_receipts_received_pending_launch_acceptance_and_final_go_live_decision",
       "status_policy": "not_applicable"
     },
     {
@@ -1133,7 +1133,7 @@
     {
       "path": "docs/launch/launch-receipt-intake-action-packet.md",
       "type": "markdown",
-      "status": "blocked_pending_remaining_owner_external_receipts",
+      "status": "external_receipts_received_pending_launch_acceptance_and_final_go_live_decision",
       "status_policy": "not_applicable"
     },
     {
@@ -1202,7 +1202,7 @@
     {
       "path": "docs/launch/locked-domain-unlock-packets.md",
       "type": "markdown",
-      "status": "blocked_pending_remaining_owner_external_receipts",
+      "status": "external_receipts_received_pending_launch_acceptance_and_final_go_live_decision",
       "status_policy": "not_applicable"
     },
     {
