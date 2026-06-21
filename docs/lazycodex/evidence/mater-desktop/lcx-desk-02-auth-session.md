@@ -15,7 +15,7 @@ This evidence file records P2 auth/session progress only. It does not claim prod
 | --- | --- | --- |
 | MDT-P2-W01-T01 | complete | `docs/desktop/mater-desktop-auth-session-plan.md` |
 | MDT-P2-W01-T02 | complete | `contracts/desktop-deep-link-contract.json` |
-| MDT-P2-W01-T03 | pending | not started |
+| MDT-P2-W01-T03 | complete | `docs/desktop/mater-desktop-secure-store-policy.md` |
 | MDT-P2-W01-T04 | pending | terminal not reached |
 | MDT-P2-W02-T01 | pending | not started |
 | MDT-P2-W02-T02 | pending | not started |
@@ -89,3 +89,35 @@ Act:
 
 - `MDT-P2-W01-T02` is complete.
 - Next TUW is `MDT-P2-W01-T03`.
+
+## MDT-P2-W01-T03 - Define Secure Store Policy
+
+Plan:
+
+- Define token location, lifetime, logout deletion, tenant switch invalidation, and cache rules.
+- Keep renderer token persistence forbidden.
+
+Do:
+
+- Added `docs/desktop/mater-desktop-secure-store-policy.md`.
+
+Check:
+
+```bash
+rg -n "token|logout|tenant switch|cache" docs/desktop/mater-desktop-secure-store-policy.md
+git diff --check -- docs/desktop/mater-desktop-secure-store-policy.md docs/lazycodex/evidence/mater-desktop/lcx-desk-02-auth-session.md
+```
+
+Results:
+
+- Secure store policy grep passed for `token`, `logout`, `tenant switch`, and `cache`.
+- `git diff --check` passed.
+
+Permission/audit impact:
+
+- Token and tenant material are not written to renderer localStorage/sessionStorage.
+
+Act:
+
+- `MDT-P2-W01-T03` is complete.
+- Next TUW is `MDT-P2-W01-T04`.
