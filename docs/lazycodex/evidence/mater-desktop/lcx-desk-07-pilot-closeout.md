@@ -14,7 +14,7 @@ This evidence file records P7 pilot closeout progress only. It does not claim ow
 | TUW | Status | Evidence |
 | --- | --- | --- |
 | MDT-P7-W01-T01 | complete | `docs/desktop/mater-desktop-pilot-qa-checklist.md` |
-| MDT-P7-W01-T02 | pending | not started |
+| MDT-P7-W01-T02 | complete | `docs/lazycodex/evidence/mater-desktop/pilot-install-session.md` |
 | MDT-P7-W01-T03 | pending | not started |
 | MDT-P7-W01-T04 | pending | not started |
 | MDT-P7-W02-T01 | pending | not started |
@@ -52,3 +52,36 @@ Act:
 
 - `MDT-P7-W01-T01` is complete.
 - Next TUW is `MDT-P7-W01-T02`.
+
+## MDT-P7-W01-T02 - Observe Install, Launch, Login, Logout, and Cache Wipe
+
+Plan:
+
+- Record install, launch, login, logout, tenant switch, and cache wipe receipts.
+- Keep missing GUI screenshot evidence explicit instead of treating it as owner approval.
+
+Do:
+
+- Added `docs/lazycodex/evidence/mater-desktop/pilot-install-session.md`.
+
+Check:
+
+```bash
+manual QA: record screenshots, command receipts, and cache paths checked
+test -d apps/desktop/dist/mac/mater.app && /usr/bin/codesign --verify --deep --strict --verbose=2 apps/desktop/dist/mac/mater.app && apps/desktop/dist/mac/mater.app/Contents/MacOS/mater
+npm --workspace apps/desktop run test:session
+node apps/desktop/test/temp-preview-cleanup.test.mjs
+git diff --check -- docs/lazycodex/evidence/mater-desktop/pilot-install-session.md docs/lazycodex/evidence/mater-desktop/lcx-desk-07-pilot-closeout.md
+```
+
+Results:
+
+- Command receipts for install, launch, login, logout, tenant switch, and cache wipe were recorded.
+- Cache classes checked are listed in the evidence file.
+- GUI screenshot receipt remains Blocked and is not claimed complete.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P7-W01-T02` is complete as a recorded pilot evidence artifact with screenshot blocker called out.
+- Next TUW is `MDT-P7-W01-T03`.
