@@ -20,7 +20,7 @@ This evidence file records P1 desktop shell progress only. It does not claim fil
 | MDT-P1-W01-T05 | complete | `apps/desktop/test/shell-smoke.test.mjs` |
 | MDT-P1-W02-T01 | complete | `apps/desktop/src/main/splash.js` |
 | MDT-P1-W02-T02 | complete | `apps/desktop/src/main/splash.js`, `apps/desktop/src/main/window.js`, `apps/desktop/test/splash-handoff.test.mjs` |
-| MDT-P1-W02-T03 | pending | not started |
+| MDT-P1-W02-T03 | complete | `apps/desktop/src/main/splash.js`, `apps/desktop/src/renderer/offline.html` |
 | MDT-P1-W02-T04 | pending | not started |
 
 ## MDT-P1-W01-T01 - Create apps/desktop Package Skeleton
@@ -272,3 +272,37 @@ Act:
 
 - `MDT-P1-W02-T02` is complete.
 - Next TUW is `MDT-P1-W02-T03`.
+
+## MDT-P1-W02-T03 - Add Reduced-Motion and Offline Fallback Handling
+
+Plan:
+
+- Add reduced-motion handling to splash startup.
+- Add a non-sensitive offline fallback renderer page.
+- Keep fallback free of client, matter, file, token, and account data.
+
+Do:
+
+- Updated `apps/desktop/src/main/splash.js` with `prefers-reduced-motion` CSS and offline startup fallback copy.
+- Added `apps/desktop/src/renderer/offline.html`.
+- Updated splash handoff test expected fallback copy.
+
+Check:
+
+```bash
+rg -n "reduced|offline|fallback" apps/desktop
+npm --workspace apps/desktop run test:smoke
+git diff --check -- apps/desktop/src/main/splash.js apps/desktop/src/renderer/offline.html apps/desktop/test/splash-handoff.test.mjs
+```
+
+Results:
+
+- Fallback grep passed for `reduced`, `offline`, and `fallback`.
+- Desktop smoke passed: `8` tests, `8` pass, `0` fail.
+- Offline fallback states that no client, matter, file, token, or account data is shown.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P1-W02-T03` is complete.
+- Next TUW is `MDT-P1-W02-T04`, the P1 terminal TUW.

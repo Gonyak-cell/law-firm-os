@@ -85,7 +85,7 @@ test("splash shows bounded fallback on startup timeout", async () => {
 
   assert.equal(splashWindow.closed, false);
   assert.equal(splashWindow.shown, true);
-  assert.match(decodeURIComponent(splashWindow.loadedURL), /Startup fallback is active/);
+  assert.match(decodeURIComponent(splashWindow.loadedURL), /Offline startup fallback is active/);
   assert.equal(handoff.state.fallbackActive, true);
 });
 

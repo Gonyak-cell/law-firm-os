@@ -31,6 +31,7 @@ body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;c
 .pill{position:absolute;top:4px;width:20px;height:58px;border-radius:999px;transform:rotate(31deg)}
 .red{left:10px;background:#ff2d55}.yellow{left:45px;background:#ffcc00}.dot{position:absolute;right:0;bottom:8px;width:22px;height:22px;border-radius:50%;background:#00ca72}
 .word{font-size:42px;font-weight:300}.byline{font-size:13px;color:#0f3a32}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:1ms!important;transition-duration:1ms!important;scroll-behavior:auto!important}.splash{gap:8px}}
 </style>
 </head>
 <body>
@@ -54,7 +55,7 @@ export function fallbackHtml(reason = "startup-timeout") {
 <body>
 <main aria-label="${SPLASH_BRAND} startup fallback">
 <strong>${SPLASH_BRAND}</strong>
-<p>Startup fallback is active.</p>
+<p>Offline startup fallback is active.</p>
 <small>${reason}</small>
 </main>
 </body>
