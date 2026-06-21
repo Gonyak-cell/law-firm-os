@@ -50,14 +50,21 @@ for (const [file, ...patterns] of requiredMarkers) {
 assert(packageJson.scripts?.["runtime-spine:rs1:tenant-data:validate"] === "node scripts/validate-runtime-spine-rs1-tenant-data.mjs", "package script runtime-spine:rs1:tenant-data:validate mismatch");
 
 const rs1 = ledger.spines?.find((spine) => spine.id === "RS-1");
+const gateMap = new Map((ledger.gates ?? []).map((gate) => [gate.id, gate]));
+const g6ReadyCandidate = gateMap.get("G6")?.status === "ready_candidate";
 assert(["in_progress", "ready_candidate"].includes(rs1?.status), "RS-1 must be in_progress or ready_candidate after RS-1B");
 const closed = new Set((rs1?.tuws ?? []).filter((tuw) => tuw.status === "closed").map((tuw) => tuw.id));
 for (const id of ["RS-1-T05", "RS-1-T06", "RS-1-T07", "RS-1-T08", "RS-1-T09", "RS-1-T10"]) {
   assert(closed.has(id), `${id}: must be closed for RS-1B`);
 }
-assert(ledger.rtg_summary?.find((rtg) => rtg.id === "RTG-002")?.status === "partial", "RTG-002 must be partial after tenant-scoped repository negative tests");
-assert(ledger.rtg_summary?.find((rtg) => rtg.id === "RTG-003")?.status === "partial", "RTG-003 must be partial after outbox transaction tests");
-assert(ledger.runtime_ready_candidate_claim === false, "RS-1B must not claim runtime_ready candidate");
+if (g6ReadyCandidate) {
+  assert(ledger.rtg_summary?.find((rtg) => rtg.id === "RTG-002")?.status === "passed", "RTG-002 must be passed at G6");
+  assert(ledger.rtg_summary?.find((rtg) => rtg.id === "RTG-003")?.status === "passed", "RTG-003 must be passed at G6");
+} else {
+  assert(ledger.rtg_summary?.find((rtg) => rtg.id === "RTG-002")?.status === "partial", "RTG-002 must be partial after tenant-scoped repository negative tests");
+  assert(ledger.rtg_summary?.find((rtg) => rtg.id === "RTG-003")?.status === "partial", "RTG-003 must be partial after outbox transaction tests");
+}
+assert(ledger.runtime_ready_candidate_claim === g6ReadyCandidate, "RS-1B runtime_ready_candidate_claim must match G6 ready state");
 assert(ledger.actual_launch_go_live_claim === false, "RS-1B must not claim actual launch/go-live");
 assert(evidence.latest_rs1b_validation?.status === "passed", "RS-1B evidence summary must be recorded as passed");
 
@@ -70,4 +77,4 @@ if (errors.length > 0) {
 console.log("Runtime Spine RS-1 tenant data validation passed.");
 console.log("closed_tuws: RS-1-T05,RS-1-T06,RS-1-T07,RS-1-T08,RS-1-T09,RS-1-T10");
 console.log("tenant_scoped_repository: true");
-console.log("runtime_ready_candidate_claim: false");
+console.log(`runtime_ready_candidate_claim: ${g6ReadyCandidate}`);

@@ -111,7 +111,7 @@ P0/P1 runtime feature and does not close go-live.
 
 ## LCX3 - Production Persistence Decision
 
-Status: pending
+Status: completed
 
 Objective:
 Resolve production persistence decisions required before durable write-runtime
@@ -135,6 +135,15 @@ Acceptance:
 - RS-1 boundary is explicit: ready-candidate versus production persistence.
 - Launch blockers remain authoritative unless owner/external receipts clear
   them.
+
+Done evidence:
+
+- `docs/launch/production-persistence-decision-packet.md`
+- `docs/lazycodex/evidence/lcx3-production-persistence-decision.md`
+- `npm run runtime-spine:rs1:persistence:validate`: PASS.
+- `npm run runtime-spine:rs1:tenant-data:validate`: PASS.
+- `npm run runtime-spine:rs1:persistence-ready:validate`: PASS.
+- `npm run runtime-spine:readiness:validate`: PASS.
 
 ## LCX4 - Client/Matter/People Runtime Flow Drive
 

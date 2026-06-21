@@ -43,8 +43,8 @@ That boundary remains valid for LCX2.
 | `npm run runtime-spine:readiness:validate` | PASS | 121 closed TUWs; launch blockers remain `LT-L2-W01,LT-L2-W02,LT-L2-W03,LT-L2-W07` |
 | `npm run runtime-spine:launch-crosswalk:validate` | PASS | 7 mapped spines; go-live claim remains false |
 | `npm run runtime-spine:rs1:persistence-ready:validate` | PASS | RS-1 ready-candidate validator passed |
-| `npm run runtime-spine:rs1:persistence:validate` | EXPECTED FAIL-CLOSED | `RS-1A must not claim runtime_ready candidate` |
-| `npm run runtime-spine:rs1:tenant-data:validate` | EXPECTED FAIL-CLOSED | RTG-002/RTG-003 partial and RS-1B no ready-candidate guard |
+| `npm run runtime-spine:rs1:persistence:validate` | PASS after LCX3 | synthetic-only; production-ready claim false; runtime-ready candidate follows G6 |
+| `npm run runtime-spine:rs1:tenant-data:validate` | PASS after LCX3 | tenant-scoped repository true; runtime-ready candidate follows G6 |
 | `npm run runtime-spine:rs2:trust-boundary:validate` | PASS | RS-2 trust-boundary ready candidate |
 | `npm run runtime-spine:rs3:audit:validate` | PASS | RS-3 audit ready candidate |
 | `npm run runtime-spine:rs4:canonical-model:validate` | PASS | RS-4 Client-Matter-People canonical model ready candidate |
@@ -68,7 +68,7 @@ That boundary remains valid for LCX2.
 | Package TUW | Package concern | Current repo status | LCX disposition |
 | --- | --- | --- | --- |
 | LFO-COM-P0-001 | Evidence taxonomy and source hierarchy | Package taxonomy exists; final-product gate and Runtime Spine validators enforce several claim boundaries | Covered for LCX2; keep taxonomy as reference, not a new runtime claim |
-| LFO-COM-P0-002 | Durable persistence and migration harness | `runtime-spine:rs1:persistence-ready:validate` passes, but RS-1A/RS-1B subvalidators intentionally fail closed against premature ready claims | Partially covered; move production persistence decision to LCX3 |
+| LFO-COM-P0-002 | Durable persistence and migration harness | RS-1 validators pass after LCX3 maturity-boundary repair; production DB/hosting/WORM/RPO decisions remain owner-blocked | Repo persistence shape covered; production persistence unlock remains LCX6 |
 | LFO-COM-P0-003 | Non-bypassable durable audit | `runtime-spine:rs3:audit:validate` passes | Covered as ready-candidate; LCX5 still needs observable QA |
 | LFO-COM-P0-004 | Authentication and tenant trust boundary | `runtime-spine:rs2:trust-boundary:validate` passes | Covered as ready-candidate; LCX5 must still exercise route behavior |
 | LFO-COM-P0-005 | Runtime permission store and deny-over-allow tests | RS-2/RS-4/CMP G4/G7 validators pass | Covered as repo evidence; manual denied-path QA remains LCX5 |
@@ -115,7 +115,7 @@ The snapshot was regenerated from `packages/master-data/src/index.js`, and
 
 | LCX | Residual |
 | --- | --- |
-| LCX3 | Resolve production persistence decisions and RS-1 fail-closed subvalidator boundaries. |
+| LCX3 | Completed: production persistence boundary packet created and RS-1 maturity validator drift repaired. |
 | LCX4 | Drive Client, Matter, and People flows through code surfaces. |
 | LCX5 | Capture local UI/API manual QA, including denied paths. |
 | LCX6 | Prepare locked-domain external receipt and owner approval packets. |
