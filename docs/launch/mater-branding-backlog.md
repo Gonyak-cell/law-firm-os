@@ -27,29 +27,29 @@ machine identifiers such as `law-firm-os`.
 
 | ID | File | Current text | Target text | Classification | Planned TUW | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| MB-001 | `apps/web/src/i18n.js` | `검색하거나 matter에게 질문` | `검색하거나 mater에게 질문` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-002 | `apps/web/src/i18n.js` | `Ask matter` | `Ask mater` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-003 | `apps/web/src/i18n.js` | `matter 작업공간을 불러오는 중` | `mater 작업공간을 불러오는 중` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-004 | `apps/web/src/i18n.js` | `matter는 사건, 문서, 청구, 권한, 감사 로그를 하나의 운영 분석 화면으로 묶습니다.` | `mater는 사건, 문서, 청구, 권한, 감사 로그를 하나의 운영 분석 화면으로 묶습니다.` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-005 | `apps/web/src/i18n.js` | `matter 시작하기` | `mater 시작하기` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-006 | `apps/web/src/i18n.js` | `matter에 로그인` | `mater에 로그인` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-007 | `apps/web/src/i18n.js` | `matter에게 질문` | `mater에게 질문` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-008 | `apps/web/src/i18n.js` | `Search or ask matter` | `Search or ask mater` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-009 | `apps/web/src/i18n.js` | `Loading your matter workspace` | `Loading your mater workspace` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-010 | `apps/web/src/i18n.js` | `matter brings matters, documents, billing, permissions, and audit evidence into one operating analytics surface.` | `mater brings matters, documents, billing, permissions, and audit evidence into one operating analytics surface.` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-011 | `apps/web/src/i18n.js` | `Get started with matter` | `Get started with mater` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-012 | `apps/web/src/i18n.js` | `Log in to matter` | `Log in to mater` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-013 | `apps/web/src/components/Shell.jsx` | `Ask matter for related insights` | `Ask mater for related insights` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-014 | `apps/web/src/components/AuthSurface.jsx` | `Receive emails about news from matter` | `Receive emails about news from mater` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-015 | `apps/web/src/components/AuthSurface.jsx` | `matter 설정 시작` | `mater 설정 시작` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-016 | `apps/web/src/components/AuthSurface.jsx` | `Set up matter` | `Set up mater` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-017 | `apps/web/src/components/AuthSurface.jsx` | `운영 데이터를 연결해 matter 작업공간을 완성하세요.` | `운영 데이터를 연결해 mater 작업공간을 완성하세요.` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-018 | `apps/web/src/components/AuthSurface.jsx` | `Connect your operating data to finish setting up matter.` | `Connect your operating data to finish setting up mater.` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-019 | `apps/web/src/components/AuthSurface.jsx` | `matter-ready-2026` | `mater-ready-2026` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-020 | `apps/web/src/components/AuthSurface.jsx` | `finish setting up your matter workspace.` | `finish setting up your mater workspace.` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-021 | `apps/web/src/components/MatterModal.jsx` | `Powered by Ask matter.` | `Powered by Ask mater.` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-022 | `apps/web/src/components/ThemeSurface.jsx` | `Created By matter` | `Created By mater` | product_brand | MDT-P0-W02-T03 | planned |
-| MB-023 | `apps/web/src/components/AskSurface.jsx` | `your matter workspace` | `your mater workspace` | product_brand | MDT-P0-W02-T03 | planned |
+| MB-001 | `apps/web/src/i18n.js` | `검색하거나 matter에게 질문` | `검색하거나 mater에게 질문` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-002 | `apps/web/src/i18n.js` | `Ask matter` | `Ask mater` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-003 | `apps/web/src/i18n.js` | `matter 작업공간을 불러오는 중` | `mater 작업공간을 불러오는 중` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-004 | `apps/web/src/i18n.js` | `matter는 사건, 문서, 청구, 권한, 감사 로그를 하나의 운영 분석 화면으로 묶습니다.` | `mater는 사건, 문서, 청구, 권한, 감사 로그를 하나의 운영 분석 화면으로 묶습니다.` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-005 | `apps/web/src/i18n.js` | `matter 시작하기` | `mater 시작하기` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-006 | `apps/web/src/i18n.js` | `matter에 로그인` | `mater에 로그인` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-007 | `apps/web/src/i18n.js` | `matter에게 질문` | `mater에게 질문` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-008 | `apps/web/src/i18n.js` | `Search or ask matter` | `Search or ask mater` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-009 | `apps/web/src/i18n.js` | `Loading your matter workspace` | `Loading your mater workspace` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-010 | `apps/web/src/i18n.js` | `matter brings matters, documents, billing, permissions, and audit evidence into one operating analytics surface.` | `mater brings matters, documents, billing, permissions, and audit evidence into one operating analytics surface.` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-011 | `apps/web/src/i18n.js` | `Get started with matter` | `Get started with mater` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-012 | `apps/web/src/i18n.js` | `Log in to matter` | `Log in to mater` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-013 | `apps/web/src/components/Shell.jsx` | `Ask matter for related insights` | `Ask mater for related insights` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-014 | `apps/web/src/components/AuthSurface.jsx` | `Receive emails about news from matter` | `Receive emails about news from mater` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-015 | `apps/web/src/components/AuthSurface.jsx` | `matter 설정 시작` | `mater 설정 시작` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-016 | `apps/web/src/components/AuthSurface.jsx` | `Set up matter` | `Set up mater` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-017 | `apps/web/src/components/AuthSurface.jsx` | `운영 데이터를 연결해 matter 작업공간을 완성하세요.` | `운영 데이터를 연결해 mater 작업공간을 완성하세요.` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-018 | `apps/web/src/components/AuthSurface.jsx` | `Connect your operating data to finish setting up matter.` | `Connect your operating data to finish setting up mater.` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-019 | `apps/web/src/components/AuthSurface.jsx` | `matter-ready-2026` | `mater-ready-2026` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-020 | `apps/web/src/components/AuthSurface.jsx` | `finish setting up your matter workspace.` | `finish setting up your mater workspace.` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-021 | `apps/web/src/components/MatterModal.jsx` | `Powered by Ask matter.` | `Powered by Ask mater.` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-022 | `apps/web/src/components/ThemeSurface.jsx` | `Created By matter` | `Created By mater` | product_brand | MDT-P0-W02-T03 | complete |
+| MB-023 | `apps/web/src/components/AskSurface.jsx` | `your matter workspace` | `your mater workspace` | product_brand | MDT-P0-W02-T03 | complete |
 | MB-024 | `apps/web/src/components/MatterLogo.jsx` | `matter by AMIC` / `matter` | `UI_BRAND` / `PRODUCT_BRAND` | ui_brand | MDT-P0-W01-T03 | complete |
 
 ## Preserve List

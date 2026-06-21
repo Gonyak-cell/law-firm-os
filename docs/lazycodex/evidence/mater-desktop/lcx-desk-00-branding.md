@@ -21,7 +21,7 @@ This evidence file records P0 progress only. It does not claim desktop shell imp
 | MDT-P0-W01-T06 | complete | `MDT-P0-W01` terminal closure recorded here |
 | MDT-P0-W02-T01 | complete | `docs/ui-reference/brand/mater/`, `apps/web/src/assets/mater-logo.svg` |
 | MDT-P0-W02-T02 | complete | `apps/web/src/components/MaterSplash.jsx`, `apps/web/src/styles.css` |
-| MDT-P0-W02-T03 | pending | not started |
+| MDT-P0-W02-T03 | complete | `apps/web/src/components/Shell.jsx`, `apps/web/src/components/AuthSurface.jsx` |
 | MDT-P0-W02-T04 | pending | not started |
 | MDT-P0-W02-T05 | pending | phase terminal not reached |
 
@@ -313,3 +313,40 @@ Act:
 
 - `MDT-P0-W02-T02` is complete.
 - Next TUW is `MDT-P0-W02-T03`.
+
+## MDT-P0-W02-T03 - Integrate Splash Into Loading and Auth Startup Surfaces
+
+Plan:
+
+- Connect `MaterSplash` to the initial loading surface.
+- Show `mater` startup branding on the first auth surface using shared brand constants.
+- Apply the product-brand backlog rows assigned to this TUW while preserving Matter domain terms and machine identifiers.
+
+Do:
+
+- Updated `apps/web/src/components/Shell.jsx` to render `MaterSplash` in `LoadingSurface`.
+- Updated `apps/web/src/components/AuthSurface.jsx` to render compact `MaterSplash` in the auth card and to use `PRODUCT_BRAND` for startup product copy.
+- Updated user-facing product-brand copy through `PRODUCT_BRAND` in `apps/web/src/i18n.js`, `MatterModal.jsx`, `AskSurface.jsx`, and `ThemeSurface.jsx`.
+- Updated `docs/launch/mater-branding-backlog.md` rows `MB-001` through `MB-023` from `planned` to `complete`.
+- Strengthened `scripts/validate-mater-branding.mjs` so completed backlog rows are no longer allowlisted if old product copy returns.
+
+Check:
+
+```bash
+rg -n "MaterSplash|MatterLogo|PRODUCT_BRAND|UI_BRAND" apps/web/src/components/Shell.jsx apps/web/src/components/AuthSurface.jsx
+node scripts/validate-mater-branding.mjs
+npm --workspace apps/web run build
+git diff --check -- apps/web/src/i18n.js apps/web/src/components/Shell.jsx apps/web/src/components/AuthSurface.jsx apps/web/src/components/MatterModal.jsx apps/web/src/components/AskSurface.jsx apps/web/src/components/ThemeSurface.jsx docs/launch/mater-branding-backlog.md scripts/validate-mater-branding.mjs
+```
+
+Results:
+
+- Startup integration grep found `MaterSplash`, `MatterLogo`, and `PRODUCT_BRAND` in `Shell.jsx` and `AuthSurface.jsx`.
+- Branding validator passed with `planned_product_brand_changes: 0` and `unclassified_user_facing_misuse: 0`.
+- Web build passed: `1679 modules transformed`, built in `680ms`.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P0-W02-T03` is complete.
+- Next TUW is `MDT-P0-W02-T04`.

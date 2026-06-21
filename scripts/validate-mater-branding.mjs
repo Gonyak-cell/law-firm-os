@@ -92,8 +92,9 @@ function productRowsForSource(rows) {
 }
 
 function scanSourceForUnclassifiedProductCopy(rows) {
+  const brandRows = rows.filter((row) => row.id.startsWith("MB-"));
   const plannedRows = productRowsForSource(rows);
-  const sourcePaths = [...new Set(plannedRows.map((row) => row.file))].sort();
+  const sourcePaths = [...new Set(brandRows.map((row) => row.file))].sort();
   const findings = [];
 
   for (const path of sourcePaths) {
