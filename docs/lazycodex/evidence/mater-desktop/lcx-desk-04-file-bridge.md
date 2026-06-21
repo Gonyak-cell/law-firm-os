@@ -14,7 +14,7 @@ This evidence file records P4 file bridge progress only. It does not claim produ
 | TUW | Status | Evidence |
 | --- | --- | --- |
 | MDT-P4-W01-T01 | complete | `contracts/desktop-file-bridge-contract.json`, `scripts/validate-desktop-file-bridge-contract.mjs` |
-| MDT-P4-W01-T02 | pending | not started |
+| MDT-P4-W01-T02 | complete | `apps/desktop/src/main/fileBridge.js`, `apps/desktop/src/preload/fileBridge.js`, `apps/desktop/test/file-picker-gesture.test.mjs` |
 | MDT-P4-W01-T03 | pending | not started |
 | MDT-P4-W01-T04 | pending | not started |
 | MDT-P4-W02-T01 | pending | not started |
@@ -54,3 +54,36 @@ Act:
 
 - `MDT-P4-W01-T01` is complete.
 - Next TUW is `MDT-P4-W01-T02`.
+
+## MDT-P4-W01-T02 - Implement User Gesture File Picker Guard
+
+Plan:
+
+- Add a main-process file picker guard that refuses silent file selection.
+- Add a preload bridge with an explicit IPC allowlist and trusted event gate.
+- Test that the native picker is not called without a user gesture.
+
+Do:
+
+- Added `apps/desktop/src/main/fileBridge.js`.
+- Added `apps/desktop/src/preload/fileBridge.js`.
+- Added `apps/desktop/test/file-picker-gesture.test.mjs`.
+
+Check:
+
+```bash
+node apps/desktop/test/file-picker-gesture.test.mjs
+git diff --check -- apps/desktop/src/main/fileBridge.js apps/desktop/src/preload/fileBridge.js apps/desktop/test/file-picker-gesture.test.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-04-file-bridge.md
+```
+
+Results:
+
+- File picker gesture tests passed.
+- Picker is not invoked when `userGesture` is absent.
+- Preload file bridge source exposes only the allowlisted trusted gesture command.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P4-W01-T02` is complete.
+- Next TUW is `MDT-P4-W01-T03`.
