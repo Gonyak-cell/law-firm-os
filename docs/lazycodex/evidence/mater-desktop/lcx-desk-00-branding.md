@@ -15,7 +15,7 @@ This evidence file records P0 progress only. It does not claim desktop shell imp
 | --- | --- | --- |
 | MDT-P0-W01-T01 | complete | `docs/desktop/mater-desktop-current-state-audit.md` |
 | MDT-P0-W01-T02 | complete | `docs/launch/mater-naming-rules.md` |
-| MDT-P0-W01-T03 | pending | not started |
+| MDT-P0-W01-T03 | complete | `apps/web/src/brand/brand.js` |
 | MDT-P0-W01-T04 | pending | not started |
 | MDT-P0-W01-T05 | pending | not started |
 | MDT-P0-W01-T06 | pending | terminal not reached |
@@ -97,3 +97,38 @@ Act:
 
 - `MDT-P0-W01-T02` is complete.
 - Next TUW is `MDT-P0-W01-T03`.
+
+## MDT-P0-W01-T03 - Centralize Brand Constants
+
+Plan:
+
+- Add a single web brand constants module for the product and UI brand values.
+- Update the currently changed logo component to import product and UI brand values from that module.
+- Keep the change inside P0 web branding scope; do not create `apps/desktop`.
+
+Do:
+
+- Added `apps/web/src/brand/brand.js`.
+- Updated `apps/web/src/components/MatterLogo.jsx` to import `PRODUCT_BRAND`, `UI_BRAND`, `BRAND_BYLINE`, and `BRAND_ORGANIZATION`.
+
+Check:
+
+```bash
+rg -n "PRODUCT_BRAND|UI_BRAND|mater by AMIC" apps/web/src/brand apps/web/src/components
+git diff --check -- apps/web/src/brand/brand.js apps/web/src/components/MatterLogo.jsx
+npm --workspace apps/web run build
+npm --workspace apps/web run test:ui
+```
+
+Results:
+
+- Brand grep passed with `PRODUCT_BRAND` and `UI_BRAND` in `apps/web/src/brand/brand.js`.
+- Logo component grep passed with imports from `../brand/brand` and UI/product brand usage.
+- `git diff --check` passed.
+- Web build passed: `1678 modules transformed`, built in `805ms`.
+- UI tests passed: `16` tests, `16` pass, `0` fail.
+
+Act:
+
+- `MDT-P0-W01-T03` is complete.
+- Next TUW is `MDT-P0-W01-T04`.
