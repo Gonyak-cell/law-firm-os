@@ -19,7 +19,7 @@ This evidence file records P2 auth/session progress only. It does not claim prod
 | MDT-P2-W01-T04 | complete | `contracts/desktop-session-cleanup-contract.json`, `scripts/validate-desktop-session-cleanup-contract.mjs` |
 | MDT-P2-W02-T01 | complete | `apps/desktop/src/main/auth.js`, `apps/desktop/test/auth-coordinator.test.mjs` |
 | MDT-P2-W02-T02 | complete | `apps/desktop/src/preload/session.js` |
-| MDT-P2-W02-T03 | pending | not started |
+| MDT-P2-W02-T03 | complete | `apps/desktop/test/session-cleanup.test.mjs` |
 | MDT-P2-W02-T04 | pending | phase terminal not reached |
 
 ## MDT-P2-W01-T01 - Write OIDC PKCE Session Plan
@@ -230,3 +230,41 @@ Act:
 
 - `MDT-P2-W02-T02` is complete.
 - Next TUW is `MDT-P2-W02-T03`.
+
+## MDT-P2-W02-T03 - Test Token Absence and Cache Cleanup
+
+Plan:
+
+- Add session tests for token absence from renderer-facing status and preload source.
+- Test secure-store and cache cleanup on logout.
+- Add `test:session` workspace script.
+
+Do:
+
+- Updated `apps/desktop/src/main/auth.js`.
+- Updated `apps/desktop/package.json`.
+- Added `apps/desktop/test/session-cleanup.test.mjs`.
+
+Check:
+
+```bash
+npm --workspace apps/desktop run test:session && rg -n "access_token|refresh_token" apps/desktop/src apps/web/src
+git diff --check -- apps/desktop/package.json apps/desktop/src/main/auth.js apps/desktop/test/session-cleanup.test.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-02-auth-session.md
+```
+
+Results:
+
+- Session tests passed.
+- Tests prove token bodies are absent from renderer-facing session status and preload source.
+- Tests prove logout clears secure store and registered cache stores.
+- Token grep output is limited to main-process forbidden token field names and secure-store handling; no renderer token storage was introduced.
+- `git diff --check` passed.
+
+Permission/audit impact:
+
+- No token material remains in renderer code paths.
+
+Act:
+
+- `MDT-P2-W02-T03` is complete.
+- Next TUW is `MDT-P2-W02-T04`, the P2 terminal TUW.

@@ -1,5 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 
+export const FORBIDDEN_RENDERER_TOKEN_FIELDS = Object.freeze(["access_token", "refresh_token", "id_token"]);
+
 export function base64Url(input) {
   return Buffer.from(input)
     .toString("base64")
@@ -35,14 +37,28 @@ export function memorySecureStore() {
   };
 }
 
+export async function wipeSessionCaches({ secureStore, cacheStores = [] } = {}) {
+  await secureStore?.clear?.();
+  for (const cache of cacheStores) {
+    if (typeof cache.clear === "function") await cache.clear();
+    else if (typeof cache.delete === "function") await cache.delete();
+  }
+  return {
+    secureStoreCleared: Boolean(secureStore),
+    cacheStoresCleared: cacheStores.length
+  };
+}
+
 export class MainProcessAuthCoordinator {
   #pending = null;
   #session = { state: "signed_out" };
   #secureStore;
+  #cacheStores;
   #now;
 
-  constructor({ secureStore = memorySecureStore(), now = () => Date.now() } = {}) {
+  constructor({ secureStore = memorySecureStore(), cacheStores = [], now = () => Date.now() } = {}) {
     this.#secureStore = secureStore;
+    this.#cacheStores = cacheStores;
     this.#now = now;
   }
 
@@ -94,7 +110,7 @@ export class MainProcessAuthCoordinator {
   }
 
   async logout() {
-    await this.#secureStore.clear();
+    await wipeSessionCaches({ secureStore: this.#secureStore, cacheStores: this.#cacheStores });
     this.#pending = null;
     this.#session = { state: "signed_out" };
     return this.sessionStatus();

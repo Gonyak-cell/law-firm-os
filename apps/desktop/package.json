@@ -7,7 +7,8 @@
   "description": "mater desktop shell package. P1 skeleton only; no file bridge, auth token storage, or update channel is exposed.",
   "scripts": {
     "start": "electron .",
-    "test:smoke": "node --test test/*.test.mjs"
+    "test:smoke": "node --test test/*.test.mjs",
+    "test:session": "node --test test/auth-coordinator.test.mjs test/session-cleanup.test.mjs"
   },
   "devDependencies": {
     "electron": "^42.4.1"
