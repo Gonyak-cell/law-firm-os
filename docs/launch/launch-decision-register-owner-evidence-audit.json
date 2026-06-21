@@ -15,18 +15,67 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "decision_register_total_rows": 0,
-    "owner_evidence_row_count": 0,
-    "owner_evidence_quality_pass_count": 0,
+    "decision_register_total_rows": 4,
+    "owner_evidence_row_count": 4,
+    "owner_evidence_quality_pass_count": 4,
     "owner_evidence_quality_blocked_count": 0,
     "local_signature_ref_resolves_count": 0,
-    "external_signature_ref_declared_count": 0,
+    "external_signature_ref_declared_count": 4,
     "weak_owner_evidence_row_count": 0,
     "agent_inferred_owner_evidence_row_count": 0,
     "finding_count": 0,
     "p0_count": 0,
     "p1_count": 0
   },
-  "owner_evidence_rows": [],
+  "owner_evidence_rows": [
+    {
+      "decision_id": "COVERAGE-ALL-GO-LIVE",
+      "line_number": 14,
+      "status": "deferred(시한 명기)",
+      "status_kind": "deferred",
+      "deferral_coverage_domain": "go_live_gate_evidence",
+      "valid_register_row": true,
+      "evidence_state": "owner_evidence_quality_pass",
+      "signature_ref_state": "external_ref_declared",
+      "weak_fields": [],
+      "agent_inferred_fields": []
+    },
+    {
+      "decision_id": "COVERAGE-L9-STABILIZATION",
+      "line_number": 15,
+      "status": "deferred(시한 명기)",
+      "status_kind": "deferred",
+      "deferral_coverage_domain": "l9_stabilization_closure",
+      "valid_register_row": true,
+      "evidence_state": "owner_evidence_quality_pass",
+      "signature_ref_state": "external_ref_declared",
+      "weak_fields": [],
+      "agent_inferred_fields": []
+    },
+    {
+      "decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "line_number": 16,
+      "status": "deferred(시한 명기)",
+      "status_kind": "deferred",
+      "deferral_coverage_domain": "blocked_work_package",
+      "valid_register_row": true,
+      "evidence_state": "owner_evidence_quality_pass",
+      "signature_ref_state": "external_ref_declared",
+      "weak_fields": [],
+      "agent_inferred_fields": []
+    },
+    {
+      "decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "line_number": 17,
+      "status": "deferred(시한 명기)",
+      "status_kind": "deferred",
+      "deferral_coverage_domain": "phase_exit",
+      "valid_register_row": true,
+      "evidence_state": "owner_evidence_quality_pass",
+      "signature_ref_state": "external_ref_declared",
+      "weak_fields": [],
+      "agent_inferred_fields": []
+    }
+  ],
   "findings": []
 }

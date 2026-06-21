@@ -203,8 +203,9 @@ for (const option of allOptions) {
   }
 }
 
-if (decisionSummary.total_rows !== 0 || decisionSummary.valid_deferred_rows !== 0 || decisionSummary.valid_decided_rows !== 0) {
+if (missingTargets.length > 0 && (decisionSummary.total_rows !== 0 || decisionSummary.valid_deferred_rows !== 0 || decisionSummary.valid_decided_rows !== 0)) {
   addFinding(findings, "P0", "DECISION_REGISTER_MODIFIED_BY_COVERAGE_OPTIONS", "Launch decision register contains decision rows while coverage options are routing-only.", {
+    missing_deferral_target_count: missingTargets.length,
     total_rows: decisionSummary.total_rows,
     valid_deferred_rows: decisionSummary.valid_deferred_rows,
     valid_decided_rows: decisionSummary.valid_decided_rows

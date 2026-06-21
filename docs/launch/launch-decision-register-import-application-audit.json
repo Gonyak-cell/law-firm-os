@@ -19,12 +19,12 @@
   },
   "summary": {
     "import_candidate_count": 4,
-    "applied_candidate_count": 0,
-    "pending_application_count": 4,
+    "applied_candidate_count": 4,
+    "pending_application_count": 0,
     "mismatched_application_count": 0,
     "duplicate_register_row_count": 0,
-    "decision_register_total_rows": 0,
-    "decision_register_valid_deferred_rows": 0,
+    "decision_register_total_rows": 4,
+    "decision_register_valid_deferred_rows": 4,
     "finding_count": 0,
     "p0_count": 0,
     "p1_count": 0
@@ -32,29 +32,37 @@
   "application_rows": [
     {
       "decision_id": "COVERAGE-ALL-GO-LIVE",
-      "application_state": "pending_manual_application",
-      "line_numbers": [],
+      "application_state": "applied",
+      "line_numbers": [
+        14
+      ],
       "field_mismatch_count": 0,
       "mismatches": []
     },
     {
       "decision_id": "COVERAGE-L9-STABILIZATION",
-      "application_state": "pending_manual_application",
-      "line_numbers": [],
+      "application_state": "applied",
+      "line_numbers": [
+        15
+      ],
       "field_mismatch_count": 0,
       "mismatches": []
     },
     {
       "decision_id": "COVERAGE-ALL-BLOCKED-WP",
-      "application_state": "pending_manual_application",
-      "line_numbers": [],
+      "application_state": "applied",
+      "line_numbers": [
+        16
+      ],
       "field_mismatch_count": 0,
       "mismatches": []
     },
     {
       "decision_id": "COVERAGE-ALL-PHASE-EXITS",
-      "application_state": "pending_manual_application",
-      "line_numbers": [],
+      "application_state": "applied",
+      "line_numbers": [
+        17
+      ],
       "field_mismatch_count": 0,
       "mismatches": []
     }

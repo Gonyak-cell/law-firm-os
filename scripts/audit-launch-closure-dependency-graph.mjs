@@ -183,10 +183,10 @@ for (const row of [...gateAcceptanceRows, ...l9AcceptanceRows]) {
       acceptance_id: row.acceptance_id
     });
   }
-  if (row.current_intake_status === "owner_deferred" && launchAudit.launch_decisions.coverage_eligible_valid_deferred_rows === 0) {
+  if (row.current_intake_status === "owner_deferred" && decisionRegisterValidation.summary.coverage_eligible_valid_deferred_rows === 0) {
     addFinding(findings, "P1", "OWNER_DEFERRED_ACCEPTANCE_WITHOUT_COVERAGE_DEFERRAL", "Owner-deferred acceptance row exists while no coverage-eligible owner-approved deferral is present.", {
       acceptance_id: row.acceptance_id,
-      coverage_eligible_valid_deferred_rows: launchAudit.launch_decisions.coverage_eligible_valid_deferred_rows
+      coverage_eligible_valid_deferred_rows: decisionRegisterValidation.summary.coverage_eligible_valid_deferred_rows
     });
   }
 }
@@ -289,9 +289,9 @@ const report = {
     owner_deferred_acceptance_node_count: allAcceptanceRows.filter((row) => row.current_intake_status === "owner_deferred").length,
     missing_intake_acceptance_node_count: allAcceptanceRows.filter((row) => row.current_intake_status === "missing_intake").length,
     blocked_wp_node_count: blockedWpNodes.length,
-    owner_approved_deferrals_present: launchAudit.launch_decisions.owner_approved_deferrals_present,
-    coverage_eligible_valid_deferred_rows: launchAudit.launch_decisions.coverage_eligible_valid_deferred_rows,
-    non_coverage_valid_deferred_rows: launchAudit.launch_decisions.non_coverage_valid_deferred_rows,
+    owner_approved_deferrals_present: decisionRegisterValidation.summary.owner_approved_deferrals_present,
+    coverage_eligible_valid_deferred_rows: decisionRegisterValidation.summary.coverage_eligible_valid_deferred_rows,
+    non_coverage_valid_deferred_rows: decisionRegisterValidation.summary.non_coverage_valid_deferred_rows,
     go_live_all_pass: launchAudit.go_live_readiness.all_pass,
     finding_count: findings.length,
     p0_count: findings.filter((finding) => finding.severity === "P0").length,

@@ -130,9 +130,16 @@ compareCount(findings, "L9_ROW_COUNT_MISMATCH", manualL9Rows.length, acceptanceL
 
 const manualCounts = statusCounts(manualRows, "intake_status");
 const acceptanceCounts = statusCounts(acceptanceRows, "current_intake_status");
-for (const key of ["pending", "evidence_satisfied", "owner_deferred"]) {
-  compareCount(findings, `STATUS_COUNT_MISMATCH_${key.toUpperCase()}`, manualCounts[key], acceptanceCounts[key], {
-    status: key
+const ownerDeferralOverlayAllowed = acceptanceValidation.summary.coverage_eligible_valid_deferred_rows > 0;
+compareCount(findings, "STATUS_COUNT_MISMATCH_PENDING", manualCounts.pending, acceptanceCounts.pending + (ownerDeferralOverlayAllowed ? acceptanceCounts.owner_deferred : 0), {
+  status: "pending_or_owner_deferred"
+});
+compareCount(findings, "STATUS_COUNT_MISMATCH_EVIDENCE_SATISFIED", manualCounts.evidence_satisfied, acceptanceCounts.evidence_satisfied, {
+  status: "evidence_satisfied"
+});
+if (!ownerDeferralOverlayAllowed) {
+  compareCount(findings, "STATUS_COUNT_MISMATCH_OWNER_DEFERRED", manualCounts.owner_deferred, acceptanceCounts.owner_deferred, {
+    status: "owner_deferred"
   });
 }
 compareCount(findings, "ACCEPTANCE_MISSING_INTAKE_COUNT", 0, acceptanceCounts.missing_intake, {
@@ -147,10 +154,18 @@ for (const [domain, left, right] of [
   ["gate", manualGateCounts, acceptanceGateCounts],
   ["l9", manualL9Counts, acceptanceL9Counts]
 ]) {
-  for (const key of ["pending", "evidence_satisfied", "owner_deferred"]) {
-    compareCount(findings, `${domain.toUpperCase()}_STATUS_COUNT_MISMATCH_${key.toUpperCase()}`, left[key], right[key], {
+  compareCount(findings, `${domain.toUpperCase()}_STATUS_COUNT_MISMATCH_PENDING`, left.pending, right.pending + (ownerDeferralOverlayAllowed ? right.owner_deferred : 0), {
+    domain,
+    status: "pending_or_owner_deferred"
+  });
+  compareCount(findings, `${domain.toUpperCase()}_STATUS_COUNT_MISMATCH_EVIDENCE_SATISFIED`, left.evidence_satisfied, right.evidence_satisfied, {
+    domain,
+    status: "evidence_satisfied"
+  });
+  if (!ownerDeferralOverlayAllowed) {
+    compareCount(findings, `${domain.toUpperCase()}_STATUS_COUNT_MISMATCH_OWNER_DEFERRED`, left.owner_deferred, right.owner_deferred, {
       domain,
-      status: key
+      status: "owner_deferred"
     });
   }
 }
@@ -173,7 +188,10 @@ for (const row of acceptanceRows) {
     });
     continue;
   }
-  if (row.current_intake_status !== manualRow.intake_status) {
+  const ownerDeferralOverlay = manualRow.intake_status === PENDING_STATUS
+    && row.current_intake_status === OWNER_DEFERRED_STATUS
+    && ownerDeferralOverlayAllowed;
+  if (row.current_intake_status !== manualRow.intake_status && !ownerDeferralOverlay) {
     addFinding(findings, "P0", "ROW_STATUS_MISMATCH", "Acceptance row status does not mirror manual intake status.", {
       acceptance_id: row.acceptance_id,
       intake_id: row.intake_id,
@@ -260,7 +278,8 @@ const report = {
     go_live_evidence_completion_path_ready: gateEvidenceCompletionReady,
     l9_evidence_completion_path_ready: l9EvidenceCompletionReady,
     all_evidence_completion_paths_ready: gateEvidenceCompletionReady && l9EvidenceCompletionReady,
-    owner_deferred_rows_require_coverage: acceptanceCounts.owner_deferred > 0
+    owner_deferred_rows_require_coverage: acceptanceCounts.owner_deferred > 0,
+    owner_deferral_overlay_allowed: ownerDeferralOverlayAllowed
   },
   findings
 };

@@ -15,11 +15,11 @@ Verdict: PASS
 - l9_manual_intake_row_count: 5
 - l9_acceptance_row_count: 5
 - pending_manual_intake_row_count: 36
-- pending_acceptance_row_count: 36
+- pending_acceptance_row_count: 0
 - evidence_satisfied_manual_intake_row_count: 0
 - evidence_satisfied_acceptance_row_count: 0
 - owner_deferred_manual_intake_row_count: 0
-- owner_deferred_acceptance_row_count: 0
+- owner_deferred_acceptance_row_count: 36
 - missing_intake_acceptance_row_count: 0
 - gate_evidence_satisfied_manual_intake_row_count: 0
 - gate_evidence_satisfied_acceptance_row_count: 0
@@ -34,7 +34,7 @@ Verdict: PASS
 - Go-live evidence path ready: false
 - L9 evidence path ready: false
 - All evidence paths ready: false
-- Owner-deferred rows require coverage: false
+- Owner-deferred rows require coverage: true
 
 ## Findings
 
