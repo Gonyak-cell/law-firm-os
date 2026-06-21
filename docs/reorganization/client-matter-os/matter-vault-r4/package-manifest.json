@@ -61,6 +61,8 @@
     "external_production_smoke_receipt_received": false,
     "production_migration_operator_receipt_received": false,
     "actual_launch_go_live_completed_claim": false,
+    "local_secret_file": ".env.matter-vault-r4.local",
+    "local_secret_validation_command": "npm run matter-vault:r4:local-secrets:validate",
     "validator": "npm run matter-vault:r4:external-receipts:validate"
   },
   "validators": [

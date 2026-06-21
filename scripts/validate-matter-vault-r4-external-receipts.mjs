@@ -53,6 +53,7 @@ if (errors.length === 0) {
   assert(smoke.status === "authorized_pending_external_environment", "external smoke status must be authorized_pending_external_environment");
   assert(smoke.execution_authorization_received === true, "external smoke execution authorization must be received");
   assert(smoke.environment_tier === "production-equivalent", "external smoke environment tier mismatch");
+  assert(smoke.local_secret_file === ".env.matter-vault-r4.local", "external smoke local secret file mismatch");
   assert(smoke.operator_receipt_received === false, "external smoke receipt must remain false");
   assert(Array.isArray(smoke.available_environment) && smoke.available_environment.length === 0, "external smoke available environment must be empty");
   assert(Array.isArray(smoke.smoke_cases) && smoke.smoke_cases.length === 10, "external smoke must enumerate 10 smoke cases");
@@ -63,6 +64,7 @@ if (errors.length === 0) {
   assert(migration.execution_authorization_received === true, "production migration execution authorization must be received");
   assert(migration.environment_tier === "production-equivalent", "production migration environment tier mismatch");
   assert(migration.authorized_scope === "pilot_tenant_dry_run_only", "production migration authorized scope mismatch");
+  assert(migration.local_secret_file === ".env.matter-vault-r4.local", "production migration local secret file mismatch");
   assert(migration.operator_receipt_received === false, "production migration operator receipt must remain false");
   assert(Array.isArray(migration.available_environment) && migration.available_environment.length === 0, "production migration available environment must be empty");
   assert(Array.isArray(migration.failed_rows) && migration.failed_rows.length === 0, "production migration failed rows must be empty while blocked");
@@ -86,6 +88,8 @@ if (errors.length === 0) {
   assert(manifest.external_receipt_lane?.production_migration_scope === "pilot_tenant_dry_run_only", "manifest production migration scope mismatch");
   assert(manifest.external_receipt_lane?.external_production_smoke_status === "authorized_pending_external_environment", "manifest external smoke status mismatch");
   assert(manifest.external_receipt_lane?.production_migration_operator_status === "authorized_pending_operator_environment", "manifest production migration status mismatch");
+  assert(manifest.external_receipt_lane?.local_secret_file === ".env.matter-vault-r4.local", "manifest local secret file mismatch");
+  assert(manifest.external_receipt_lane?.local_secret_validation_command === "npm run matter-vault:r4:local-secrets:validate", "manifest local secret validation command missing");
 
   for (const phrase of [
     "External production smoke and production migration operator receipts are absent",
@@ -122,3 +126,4 @@ console.log("production_migration_operator_receipt_received: false");
 console.log("execution_authorization_received: true");
 console.log("external_production_smoke_status: authorized_pending_external_environment");
 console.log("production_migration_operator_status: authorized_pending_operator_environment");
+console.log("local_secret_file: .env.matter-vault-r4.local");
