@@ -20,7 +20,7 @@ This evidence file records P0 progress only. It does not claim desktop shell imp
 | MDT-P0-W01-T05 | complete | `scripts/validate-mater-branding.mjs` |
 | MDT-P0-W01-T06 | complete | `MDT-P0-W01` terminal closure recorded here |
 | MDT-P0-W02-T01 | complete | `docs/ui-reference/brand/mater/`, `apps/web/src/assets/mater-logo.svg` |
-| MDT-P0-W02-T02 | pending | not started |
+| MDT-P0-W02-T02 | complete | `apps/web/src/components/MaterSplash.jsx`, `apps/web/src/styles.css` |
 | MDT-P0-W02-T03 | pending | not started |
 | MDT-P0-W02-T04 | pending | not started |
 | MDT-P0-W02-T05 | pending | phase terminal not reached |
@@ -281,3 +281,35 @@ Act:
 
 - `MDT-P0-W02-T01` is complete.
 - Next TUW is `MDT-P0-W02-T02`.
+
+## MDT-P0-W02-T02 - Port Logo Animation Into Reusable Splash Component
+
+Plan:
+
+- Convert the existing HTML logo animation behavior into a reusable React component.
+- Render `mater` letters, AMIC byline, mark build animation, and reduced-motion behavior without external runtime dependency.
+- Keep the component disconnected from startup surfaces until `MDT-P0-W02-T03`.
+
+Do:
+
+- Added `apps/web/src/components/MaterSplash.jsx`.
+- Added `.mater-splash` component styles, keyframes, and `prefers-reduced-motion` handling in `apps/web/src/styles.css`.
+
+Check:
+
+```bash
+rg -n "MaterSplash|mater-splash|prefers-reduced-motion" apps/web/src/components apps/web/src/styles.css
+git diff --check -- apps/web/src/components/MaterSplash.jsx apps/web/src/styles.css
+```
+
+Results:
+
+- Source grep found `MaterSplash` in `apps/web/src/components/MaterSplash.jsx`.
+- Source grep found `.mater-splash` class rules in `apps/web/src/styles.css`.
+- Source grep found `@media (prefers-reduced-motion: reduce)`.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P0-W02-T02` is complete.
+- Next TUW is `MDT-P0-W02-T03`.
