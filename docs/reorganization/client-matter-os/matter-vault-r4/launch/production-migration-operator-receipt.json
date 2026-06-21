@@ -8,6 +8,7 @@
   "execution_authorization_received": true,
   "environment_tier": "production-equivalent",
   "authorized_scope": "pilot_tenant_dry_run_only",
+  "local_secret_file": ".env.matter-vault-r4.local",
   "operator_receipt_received": false,
   "required_environment": [
     "MATTER_VAULT_R4_PRODUCTION_BASE_URL",

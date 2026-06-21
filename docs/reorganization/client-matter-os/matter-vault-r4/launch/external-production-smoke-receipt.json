@@ -7,6 +7,7 @@
   "execution_authorization": "docs/reorganization/client-matter-os/matter-vault-r4/launch/external-receipt-execution-authorization.json",
   "execution_authorization_received": true,
   "environment_tier": "production-equivalent",
+  "local_secret_file": ".env.matter-vault-r4.local",
   "operator_receipt_received": false,
   "required_environment": [
     "MATTER_VAULT_R4_PRODUCTION_BASE_URL",

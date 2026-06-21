@@ -178,6 +178,7 @@
     "matter-vault:r4:no-go": "node scripts/audit-matter-vault-no-go-claim.mjs",
     "matter-vault:r4:launch:validate": "node scripts/validate-matter-vault-r4-launch-readiness.mjs",
     "matter-vault:r4:external-receipts:validate": "node scripts/validate-matter-vault-r4-external-receipts.mjs",
+    "matter-vault:r4:local-secrets:validate": "node scripts/validate-matter-vault-r4-local-secrets.mjs",
     "client-matter:g1:plan:validate": "node scripts/validate-client-matter-os-g1-plan.mjs",
     "client-matter:g1a:validate": "node scripts/validate-client-matter-os-g1-a.mjs",
     "client-matter:g1b:validate": "node scripts/validate-client-matter-os-g1-b.mjs",

@@ -150,6 +150,7 @@ if (errors.length === 0) {
 
   assert(externalSmokeReceipt.status === "authorized_pending_external_environment", "external smoke receipt must be authorized pending environment");
   assert(externalSmokeReceipt.execution_authorization_received === true, "external smoke execution authorization must be received");
+  assert(externalSmokeReceipt.local_secret_file === ".env.matter-vault-r4.local", "external smoke local secret file mismatch");
   assert(externalSmokeReceipt.operator_receipt_received === false, "external smoke operator receipt must remain false");
   assert(externalSmokeReceipt.launch_authorization_claim === false, "external smoke launch authorization claim must remain false");
   assert(externalSmokeReceipt.go_live_claim === false, "external smoke go_live_claim must remain false");
@@ -157,6 +158,7 @@ if (errors.length === 0) {
   assert(productionMigrationReceipt.status === "authorized_pending_operator_environment", "production migration receipt must be authorized pending operator environment");
   assert(productionMigrationReceipt.execution_authorization_received === true, "production migration execution authorization must be received");
   assert(productionMigrationReceipt.authorized_scope === "pilot_tenant_dry_run_only", "production migration scope must remain pilot tenant dry-run only");
+  assert(productionMigrationReceipt.local_secret_file === ".env.matter-vault-r4.local", "production migration local secret file mismatch");
   assert(productionMigrationReceipt.operator_receipt_received === false, "production migration operator receipt must remain false");
   assert(productionMigrationReceipt.launch_authorization_claim === false, "production migration launch authorization claim must remain false");
   assert(productionMigrationReceipt.go_live_claim === false, "production migration go_live_claim must remain false");
@@ -175,6 +177,7 @@ if (errors.length === 0) {
 
   assert(packageJson.scripts?.["matter-vault:r4:launch:validate"] === "node scripts/validate-matter-vault-r4-launch-readiness.mjs", "package script matter-vault:r4:launch:validate missing");
   assert(packageJson.scripts?.["matter-vault:r4:external-receipts:validate"] === "node scripts/validate-matter-vault-r4-external-receipts.mjs", "package script matter-vault:r4:external-receipts:validate missing");
+  assert(packageJson.scripts?.["matter-vault:r4:local-secrets:validate"] === "node scripts/validate-matter-vault-r4-local-secrets.mjs", "package script matter-vault:r4:local-secrets:validate missing");
 
   requireText("docs/reorganization/client-matter-os/matter-vault-r4/launch/launch-readiness.md", [
     currentBoundary,
@@ -241,3 +244,4 @@ console.log("production_migration_operator_receipt_received: false");
 console.log("execution_authorization_received: true");
 console.log("external_production_smoke_status: authorized_pending_external_environment");
 console.log("production_migration_operator_status: authorized_pending_operator_environment");
+console.log("local_secret_file: .env.matter-vault-r4.local");
