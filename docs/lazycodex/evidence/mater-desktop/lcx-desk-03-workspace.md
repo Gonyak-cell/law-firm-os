@@ -17,7 +17,7 @@ This evidence file records P3 workspace progress only. It does not claim file br
 | MDT-P3-W01-T02 | complete | `apps/web/src/components/DesktopDeniedState.jsx`, `VaultSurface.jsx`, `MattersSurface.jsx` |
 | MDT-P3-W01-T03 | complete | `apps/web/src/desktop/runtimeContext.js`, `apps/desktop/src/preload/runtime.js` |
 | MDT-P3-W02-T01 | complete | `apps/web/test/desktop-permission.test.mjs` |
-| MDT-P3-W02-T02 | pending | not started |
+| MDT-P3-W02-T02 | complete | `apps/desktop/test/deep-link-permission.test.mjs` |
 | MDT-P3-W02-T03 | pending | not started |
 | MDT-P3-W02-T04 | pending | phase terminal not reached |
 
@@ -155,3 +155,39 @@ Act:
 
 - `MDT-P3-W02-T01` is complete.
 - Next TUW is `MDT-P3-W02-T02`.
+
+## MDT-P3-W02-T02 - Smoke Deep-Link Permission Recheck
+
+Plan:
+
+- Add a desktop deep-link resolver for route intent mapping.
+- Test that `mater://matter` rechecks permission before screen entry.
+- Test denied route when permission fails.
+
+Do:
+
+- Added `apps/desktop/src/main/deep-link.js`.
+- Added `apps/desktop/test/deep-link-permission.test.mjs`.
+
+Check:
+
+```bash
+node apps/desktop/test/deep-link-permission.test.mjs
+git diff --check -- apps/desktop/src/main/deep-link.js apps/desktop/test/deep-link-permission.test.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-03-workspace.md
+```
+
+Results:
+
+- Deep-link permission tests passed.
+- Tests prove `mater://matter` calls `canReadMatter` before returning Matter screen entry.
+- Tests prove denied result is returned when permission fails.
+- `git diff --check` passed.
+
+Permission/audit impact:
+
+- Deep link cannot bypass server-owned authorization.
+
+Act:
+
+- `MDT-P3-W02-T02` is complete.
+- Next TUW is `MDT-P3-W02-T03`.
