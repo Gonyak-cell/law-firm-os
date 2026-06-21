@@ -78,6 +78,25 @@ Date: 2026-06-21
 | Route audit coverage scanner exists | closed |
 | Runtime-ready and actual launch/go-live claims remain false | closed |
 
+## G4 Checklist
+
+| Item | Status |
+| --- | --- |
+| Canonical object glossary exists | closed |
+| Tenant/User/Employee schemas exist | closed |
+| Tenant membership and role schemas exist | closed |
+| Person/Organization and Client/ClientGroup schemas exist | closed |
+| ExternalUser remains separate from Employee/User identity | closed |
+| Matter and MatterMember schemas exist | closed |
+| Party/ContactRole schemas exist | closed |
+| Document/DocumentVersion and Email schemas exist | closed |
+| Task/Deadline/Event, Issue, MatterWiki, and VaultSnapshot schemas exist | closed |
+| Classification envelope covers classification, privilege, legal hold, retention, and permission envelope | closed |
+| Relationship registry validates source and target object refs | closed |
+| Canonical seed fixture validates all object types without runtime write claims | closed |
+| Migration compatibility projection covers master-data, matter, HRX, and DMS records | closed |
+| Runtime-ready and actual launch/go-live claims remain false | closed |
+
 ## Regression Commands
 
 G0 uses the following minimum regression sweep:

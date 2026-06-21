@@ -64,7 +64,7 @@ const gateMap = new Map((ledger.gates ?? []).map((gate) => [gate.id, gate]));
 assert(gateMap.get("G2")?.status === "ready_candidate", "G2 must remain ready_candidate before G3");
 assert(gateMap.get("G3")?.status === "ready_candidate", "G3 must be ready_candidate after RS-3 closeout");
 for (const gate of ledger.gates ?? []) {
-  if (!["G0", "G1", "G2", "G3"].includes(gate.id)) {
+  if (!["G0", "G1", "G2", "G3", "G4"].includes(gate.id)) {
     assert(gate.status === "planned_blocked_by_prior_gate", `${gate.id}: must remain planned_blocked_by_prior_gate`);
   }
 }
@@ -80,9 +80,9 @@ for (const tuw of rs3Tuws) {
 }
 
 const prematureClosed = (ledger.spines ?? [])
-  .filter((spine) => !["RS-PRE", "RS-1", "RS-2", "RS-3"].includes(spine.id))
+  .filter((spine) => !["RS-PRE", "RS-1", "RS-2", "RS-3", "RS-4"].includes(spine.id))
   .flatMap((spine) => (spine.tuws ?? []).filter((tuw) => tuw.status === "closed").map((tuw) => tuw.id));
-assert(prematureClosed.length === 0, `RS-4 through RS-6 TUWs must remain planned: ${prematureClosed.join(", ")}`);
+assert(prematureClosed.length === 0, `RS-5 through RS-6 TUWs must remain planned: ${prematureClosed.join(", ")}`);
 
 const rtgById = new Map((ledger.rtg_summary ?? []).map((rtg) => [rtg.id, rtg]));
 assert(rtgById.get("RTG-001")?.status === "partial", "RTG-001 must remain partial until G6");
