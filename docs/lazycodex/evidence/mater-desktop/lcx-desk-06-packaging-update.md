@@ -16,7 +16,7 @@ This evidence file records P6 packaging and update progress only. It does not cl
 | MDT-P6-W01-T01 | complete | `docs/desktop/mater-desktop-packaging-decision.md` |
 | MDT-P6-W01-T02 | complete | `apps/desktop/electron-builder.yml`, `scripts/validate-mater-desktop-packaging.mjs`, `apps/desktop/build/icon.svg` |
 | MDT-P6-W01-T03 | complete | `docs/lazycodex/evidence/mater-desktop/artifacts/macos-build.md`, `scripts/build-mater-desktop-mac.mjs` |
-| MDT-P6-W01-T04 | pending | not started |
+| MDT-P6-W01-T04 | complete | `docs/lazycodex/evidence/mater-desktop/artifacts/windows-build.md`, `scripts/build-mater-desktop-win.mjs` |
 | MDT-P6-W02-T01 | pending | not started |
 | MDT-P6-W02-T02 | pending | not started |
 | MDT-P6-W02-T03 | pending | not started |
@@ -117,3 +117,36 @@ Act:
 
 - `MDT-P6-W01-T03` is complete.
 - Next TUW is `MDT-P6-W01-T04`.
+
+## MDT-P6-W01-T04 - Produce Windows Internal Signed Build
+
+Plan:
+
+- Produce an internal Windows build receipt from macOS without claiming public Windows distribution.
+- Record signing identity, installer hash, and install smoke result.
+- State that Windows native install smoke and Authenticode signing are not claimed from this Darwin environment.
+
+Do:
+
+- Added `scripts/build-mater-desktop-win.mjs`.
+- Added `build:win` script to `apps/desktop/package.json`.
+- Generated `docs/lazycodex/evidence/mater-desktop/artifacts/windows-build.md`.
+
+Check:
+
+```bash
+npm --workspace apps/desktop run build:win
+git diff --check -- scripts/build-mater-desktop-win.mjs apps/desktop/package.json docs/lazycodex/evidence/mater-desktop/lcx-desk-06-packaging-update.md docs/lazycodex/evidence/mater-desktop/artifacts/windows-build.md
+```
+
+Results:
+
+- Windows internal build command passed.
+- Receipt records signing identity, installer hash, and install smoke result.
+- Windows Authenticode signing, public release, production go-live, and owner approval remain false.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P6-W01` is closed at its terminal TUW, `MDT-P6-W01-T04`.
+- Next ledger TUW is `MDT-P6-W02-T01`.
