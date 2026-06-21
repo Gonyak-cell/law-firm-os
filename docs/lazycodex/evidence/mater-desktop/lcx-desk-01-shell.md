@@ -16,7 +16,7 @@ This evidence file records P1 desktop shell progress only. It does not claim fil
 | MDT-P1-W01-T01 | complete | `apps/desktop/package.json`, `apps/desktop/src/main/` |
 | MDT-P1-W01-T02 | complete | `apps/desktop/src/main/window.js` |
 | MDT-P1-W01-T03 | complete | `apps/desktop/src/main/origin-policy.js`, `apps/desktop/test/origin-policy.test.mjs` |
-| MDT-P1-W01-T04 | pending | not started |
+| MDT-P1-W01-T04 | complete | `scripts/validate-mater-desktop-security.mjs` |
 | MDT-P1-W01-T05 | pending | terminal not reached |
 | MDT-P1-W02-T01 | pending | not started |
 | MDT-P1-W02-T02 | pending | not started |
@@ -132,3 +132,41 @@ Act:
 
 - `MDT-P1-W01-T03` is complete.
 - Next TUW is `MDT-P1-W01-T04`.
+
+## MDT-P1-W01-T04 - Add Desktop Security Validator
+
+Plan:
+
+- Add a desktop security validator that checks actual shell files.
+- Include detection probes for insecure BrowserWindow settings, missing preload allowlist, and non-allowlisted navigation.
+- Keep current no-preload state valid because no preload bridge surface exists yet.
+
+Do:
+
+- Added `scripts/validate-mater-desktop-security.mjs`.
+
+Check:
+
+```bash
+node --check scripts/validate-mater-desktop-security.mjs
+node scripts/validate-mater-desktop-security.mjs
+git diff --check -- scripts/validate-mater-desktop-security.mjs
+```
+
+Results:
+
+- Syntax check passed.
+- Desktop security validator passed with verdict `PASS`.
+- Validator checked `5` desktop files and reported `findings: []`.
+- Preload policy reported `no_preload_surface_present`.
+- Detection probes reported `insecure_browser_window: detected`, `missing_preload_allowlist: detected`, and `non_allowlisted_navigation: detected`.
+- `git diff --check` passed.
+
+Permission/audit impact:
+
+- Validator prevents authority widening before later phases.
+
+Act:
+
+- `MDT-P1-W01-T04` is complete.
+- Next TUW is `MDT-P1-W01-T05`, the terminal TUW for `MDT-P1-W01`.
