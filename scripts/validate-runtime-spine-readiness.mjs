@@ -25,26 +25,34 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
   const g3ReadyCandidate = (ledger.gates ?? []).find((gate) => gate.id === "G3")?.status === "ready_candidate";
   const g4ReadyCandidate = (ledger.gates ?? []).find((gate) => gate.id === "G4")?.status === "ready_candidate";
   const g5ReadyCandidate = (ledger.gates ?? []).find((gate) => gate.id === "G5")?.status === "ready_candidate";
-  const allowedClosedSpines = new Set(["RS-PRE", "RS-1", ...(g2ReadyCandidate ? ["RS-2"] : []), ...(g3ReadyCandidate ? ["RS-3"] : []), ...(g4ReadyCandidate ? ["RS-4"] : []), ...(g5ReadyCandidate ? ["RS-5"] : [])]);
+  const g6ReadyCandidate = (ledger.gates ?? []).find((gate) => gate.id === "G6")?.status === "ready_candidate";
+  const expectedRuntimeReadyCandidate = g6ReadyCandidate === true;
+  const allowedClosedSpines = new Set(["RS-PRE", "RS-1", ...(g2ReadyCandidate ? ["RS-2"] : []), ...(g3ReadyCandidate ? ["RS-3"] : []), ...(g4ReadyCandidate ? ["RS-4"] : []), ...(g5ReadyCandidate ? ["RS-5"] : []), ...(g6ReadyCandidate ? ["RS-6"] : [])]);
   const prematureClosed = closedTuws.filter((tuw) => !allowedClosedSpines.has(tuw.spine));
 
   const assert = (condition, message) => {
     if (!condition) errors.push(message);
   };
 
-  assert(ledger.runtime_ready_candidate_claim === false, "G0 readiness guard must keep runtime_ready_candidate_claim false");
+  assert(ledger.runtime_ready_candidate_claim === expectedRuntimeReadyCandidate, "readiness guard runtime_ready_candidate_claim must match G6 ready state");
   assert(ledger.actual_launch_go_live_claim === false, "G0 readiness guard must keep actual_launch_go_live_claim false");
-  assert(evidence.runtime_ready_candidate === false, "evidence index must keep runtime_ready_candidate false");
+  assert(evidence.runtime_ready_candidate === expectedRuntimeReadyCandidate, "evidence index runtime_ready_candidate must match G6 ready state");
   assert(evidence.actual_launch_go_live_claim === false, "evidence index must keep actual_launch_go_live_claim false");
   assert(prematureClosed.length === 0, `RS-2 through RS-6 TUWs must not close before G1: ${prematureClosed.map((tuw) => tuw.id).join(", ")}`);
 
   const rtgById = new Map((ledger.rtg_summary ?? []).map((rtg) => [rtg.id, rtg]));
   const g1ReadyCandidate = (ledger.gates ?? []).find((gate) => gate.id === "G1")?.status === "ready_candidate";
-  assert(["planned", "partial"].includes(rtgById.get("RTG-001")?.status), "RTG-001 must remain planned or partial until full functional runtime path exists");
-  assert(["planned", "partial"].includes(rtgById.get("RTG-002")?.status), "RTG-002 must remain planned or partial until full permission runtime path exists");
-  assert(["planned", "partial"].includes(rtgById.get("RTG-003")?.status), "RTG-003 must remain planned or partial until durable audit append exists");
-  assert(rtgById.get("RTG-004")?.status === "g0_guarded", "RTG-004 must be guarded at G0");
-  assert(rtgById.get("RTG-005")?.status === "g0_guarded", "RTG-005 must be guarded at G0");
+  if (g6ReadyCandidate) {
+    for (const rtg of ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"]) {
+      assert(rtgById.get(rtg)?.status === "passed", `${rtg} must be passed at G6`);
+    }
+  } else {
+    assert(["planned", "partial"].includes(rtgById.get("RTG-001")?.status), "RTG-001 must remain planned or partial until full functional runtime path exists");
+    assert(["planned", "partial"].includes(rtgById.get("RTG-002")?.status), "RTG-002 must remain planned or partial until full permission runtime path exists");
+    assert(["planned", "partial"].includes(rtgById.get("RTG-003")?.status), "RTG-003 must remain planned or partial until durable audit append exists");
+    assert(rtgById.get("RTG-004")?.status === "g0_guarded", "RTG-004 must be guarded before G6");
+    assert(rtgById.get("RTG-005")?.status === "g0_guarded", "RTG-005 must be guarded before G6");
+  }
 
   for (const gate of ledger.gates ?? []) {
     if (gate.id === "G0") assert(gate.status === "scope_ready_candidate", "G0 must be scope_ready_candidate");
@@ -53,7 +61,7 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
     if (gate.id === "G3") assert(["planned_blocked_by_prior_gate", "in_progress", "ready_candidate"].includes(gate.status), "G3 has invalid readiness progression status");
     if (gate.id === "G4") assert(["planned_blocked_by_prior_gate", "in_progress", "ready_candidate"].includes(gate.status), "G4 has invalid readiness progression status");
     if (gate.id === "G5") assert(["planned_blocked_by_prior_gate", "in_progress", "ready_candidate"].includes(gate.status), "G5 has invalid readiness progression status");
-    if (!["G0", "G1", "G2", "G3", "G4", "G5"].includes(gate.id)) assert(gate.status === "planned_blocked_by_prior_gate", `${gate.id} must remain planned_blocked_by_prior_gate`);
+    if (gate.id === "G6") assert(["planned_blocked_by_prior_gate", "in_progress", "ready_candidate"].includes(gate.status), "G6 has invalid readiness progression status");
   }
 
   if (errors.length > 0) {
@@ -62,13 +70,13 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
 
   if (!silent) {
     console.log("Runtime Spine readiness guard passed.");
-    console.log("runtime_ready_candidate: false");
+    console.log(`runtime_ready_candidate: ${expectedRuntimeReadyCandidate}`);
     console.log("actual_launch_go_live_claim: false");
     console.log(`total_closed_tuws: ${closedTuws.length}`);
     console.log(`g0_timed_deferrals: ${deferredTuws.length}`);
     console.log(`rs1_closed_tuws: ${rs1Closed.length}`);
     console.log(`premature_closed_tuws: ${prematureClosed.length}`);
-    console.log(`next_gate: ${g5ReadyCandidate ? "G6 Runtime Integration Ready" : (g4ReadyCandidate ? "G5 App Runtime Surface Ready" : (g3ReadyCandidate ? "G4 Canonical Model Ready" : (g2ReadyCandidate ? "G3 Audit Ready" : (g1ReadyCandidate ? "G2 Trust Boundary Ready" : "G1 Persistence Ready"))))}`);
+    console.log(`next_gate: ${g6ReadyCandidate ? "External receipts and launch approval remain blocked" : (g5ReadyCandidate ? "G6 Runtime Integration Ready" : (g4ReadyCandidate ? "G5 App Runtime Surface Ready" : (g3ReadyCandidate ? "G4 Canonical Model Ready" : (g2ReadyCandidate ? "G3 Audit Ready" : (g1ReadyCandidate ? "G2 Trust Boundary Ready" : "G1 Persistence Ready")))))}`);
   }
 
   return { ok: true, errors: [], closedCount: closedTuws.length, deferredCount: deferredTuws.length };

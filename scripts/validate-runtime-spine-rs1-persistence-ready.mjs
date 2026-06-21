@@ -50,9 +50,10 @@ for (const [file, ...patterns] of requiredMarkers) {
 assert(packageJson.scripts?.["runtime-spine:rs1:persistence-ready:validate"] === "node scripts/validate-runtime-spine-rs1-persistence-ready.mjs", "package script runtime-spine:rs1:persistence-ready:validate mismatch");
 
 const gateMap = new Map((ledger.gates ?? []).map((gate) => [gate.id, gate]));
+const g6ReadyCandidate = gateMap.get("G6")?.status === "ready_candidate";
 assert(gateMap.get("G1")?.status === "ready_candidate", "G1 must be ready_candidate after RS-1 closeout");
 for (const gate of ledger.gates ?? []) {
-  if (!["G0", "G1", "G2", "G3", "G4", "G5"].includes(gate.id)) {
+  if (!["G0", "G1", "G2", "G3", "G4", "G5", "G6"].includes(gate.id)) {
     assert(gate.status === "planned_blocked_by_prior_gate", `${gate.id}: must remain planned_blocked_by_prior_gate`);
   }
 }
@@ -68,15 +69,19 @@ for (const tuw of rs1Tuws) {
 }
 
 const rtgById = new Map((ledger.rtg_summary ?? []).map((rtg) => [rtg.id, rtg]));
-assert(rtgById.get("RTG-001")?.status === "partial", "RTG-001 must remain partial until G6");
-assert(rtgById.get("RTG-002")?.status === "partial", "RTG-002 must remain partial until G6");
-assert(rtgById.get("RTG-003")?.status === "partial", "RTG-003 must remain partial until G6");
-assert(rtgById.get("RTG-004")?.status === "g0_guarded", "RTG-004 must remain guarded");
-assert(rtgById.get("RTG-005")?.status === "g0_guarded", "RTG-005 must remain guarded");
+if (g6ReadyCandidate) {
+  for (const rtg of ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"]) assert(rtgById.get(rtg)?.status === "passed", `${rtg} must be passed at G6`);
+} else {
+  assert(rtgById.get("RTG-001")?.status === "partial", "RTG-001 must remain partial until G6");
+  assert(rtgById.get("RTG-002")?.status === "partial", "RTG-002 must remain partial until G6");
+  assert(rtgById.get("RTG-003")?.status === "partial", "RTG-003 must remain partial until G6");
+  assert(rtgById.get("RTG-004")?.status === "g0_guarded", "RTG-004 must remain guarded");
+  assert(rtgById.get("RTG-005")?.status === "g0_guarded", "RTG-005 must remain guarded");
+}
 
-assert(ledger.runtime_ready_candidate_claim === false, "G1 must not claim runtime_ready candidate");
+assert(ledger.runtime_ready_candidate_claim === g6ReadyCandidate, "ledger runtime_ready_candidate_claim must match G6 ready state");
 assert(ledger.actual_launch_go_live_claim === false, "G1 must not claim actual launch/go-live");
-assert(evidenceIndex.runtime_ready_candidate === false, "evidence index must not claim runtime_ready candidate");
+assert(evidenceIndex.runtime_ready_candidate === g6ReadyCandidate, "evidence index runtime_ready_candidate must match G6 ready state");
 assert(evidenceIndex.actual_launch_go_live_claim === false, "evidence index must not claim actual launch/go-live");
 assert(evidenceIndex.latest_rs1c_validation?.status === "passed", "RS-1C evidence summary must be passed");
 
@@ -98,4 +103,4 @@ if (errors.length > 0) {
 console.log("Runtime Spine RS-1 persistence-ready validation passed.");
 console.log("g1_status: ready_candidate");
 console.log("rs1_closed_tuws: 14");
-console.log("runtime_ready_candidate_claim: false");
+console.log(`runtime_ready_candidate_claim: ${g6ReadyCandidate}`);

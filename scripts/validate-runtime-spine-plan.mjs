@@ -85,7 +85,6 @@ export async function validateRuntimeSpinePlan({ silent = false } = {}) {
 
   assert(ledger.schema_version === "law-firm-os.runtime-spine-ledger.v0.1", "ledger schema version mismatch");
   assert(ledger.baseline_commit === "41268c4becac7d06948d10c173d30635e108c5e1", "ledger baseline commit mismatch");
-  assert(ledger.runtime_ready_candidate_claim === false, "ledger must not claim runtime_ready candidate at G0");
   assert(ledger.actual_launch_go_live_claim === false, "ledger must not claim actual launch/go-live");
 
   const gateIds = new Set((ledger.gates ?? []).map((gate) => gate.id));
@@ -95,6 +94,9 @@ export async function validateRuntimeSpinePlan({ silent = false } = {}) {
   const g2ReadyCandidate = ledger.gates?.find((gate) => gate.id === "G2")?.status === "ready_candidate";
   const g3ReadyCandidate = ledger.gates?.find((gate) => gate.id === "G3")?.status === "ready_candidate";
   const g4ReadyCandidate = ledger.gates?.find((gate) => gate.id === "G4")?.status === "ready_candidate";
+  const g5ReadyCandidate = ledger.gates?.find((gate) => gate.id === "G5")?.status === "ready_candidate";
+  const g6ReadyCandidate = ledger.gates?.find((gate) => gate.id === "G6")?.status === "ready_candidate";
+  const expectedRuntimeReadyCandidate = g6ReadyCandidate === true;
   for (const gate of ledger.gates ?? []) {
     assert(allowedGateStatuses.includes(gate.status), `${gate.id}: invalid gate status ${gate.status}`);
     if (gate.id === "G2") {
@@ -129,7 +131,14 @@ export async function validateRuntimeSpinePlan({ silent = false } = {}) {
         "G5: invalid progression status for current G4 state",
       );
     }
-    if (!["G0", "G1", "G2", "G3", "G4", "G5"].includes(gate.id)) assert(gate.status === "planned_blocked_by_prior_gate", `${gate.id}: must remain planned_blocked_by_prior_gate until its prior gate is ready`);
+    if (gate.id === "G6") {
+      assert(
+        g5ReadyCandidate
+          ? ["planned_blocked_by_prior_gate", "in_progress", "ready_candidate"].includes(gate.status)
+          : gate.status === "planned_blocked_by_prior_gate",
+        "G6: invalid progression status for current G5 state",
+      );
+    }
   }
 
   const rtgIds = new Set((ledger.rtg_summary ?? []).map((rtg) => rtg.id));
@@ -183,7 +192,8 @@ export async function validateRuntimeSpinePlan({ silent = false } = {}) {
   }
 
   assert(evidence.schema_version === "law-firm-os.runtime-spine-evidence-index.v0.1", "evidence schema mismatch");
-  assert(evidence.runtime_ready_candidate === false, "evidence must not claim runtime_ready candidate at G0");
+  assert(ledger.runtime_ready_candidate_claim === expectedRuntimeReadyCandidate, "ledger runtime_ready_candidate_claim must match G6 ready state");
+  assert(evidence.runtime_ready_candidate === expectedRuntimeReadyCandidate, "evidence runtime_ready_candidate must match G6 ready state");
   assert(evidence.actual_launch_go_live_claim === false, "evidence must not claim actual launch/go-live");
 
   for (const domain of ledger.locked_future_domains ?? []) {
@@ -200,7 +210,7 @@ export async function validateRuntimeSpinePlan({ silent = false } = {}) {
     console.log(`gates: ${expectedGates.length}`);
     console.log(`tuws: ${totalTuws}`);
     console.log("g0_status: scope_ready_candidate");
-    console.log("runtime_ready_candidate_claim: false");
+    console.log(`runtime_ready_candidate_claim: ${expectedRuntimeReadyCandidate}`);
     console.log("actual_launch_go_live_claim: false");
   }
   return { ok: true, errors: [], totalTuws };
