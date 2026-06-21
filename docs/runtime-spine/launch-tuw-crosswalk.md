@@ -35,7 +35,7 @@ This crosswalk reconciles the Runtime Spine RS-PRE/RS-1 through RS-6 evidence wi
 | LT-L2-W01 | RS-1 supports the persistence shape and LCX7-RI-05 receipt is recorded, but launch persistence still depends on LT packet closeout and downstream evidence validation | blocked |
 | LT-L2-W02 | RS-2 supports the trust-boundary shape and LCX7-RI-06 receipt is recorded, but launch AuthN/AuthZ still depends on LT packet closeout and downstream evidence validation | blocked |
 | LT-L2-W03 | RS-3 and RS-5 support write/audit shape and LCX7-RI-07 receipt is recorded, but launch write path still depends on LT packet closeout and downstream evidence validation | blocked |
-| LT-L2-W07 | RS-6 harness now exists, but launch runtime-integration terminal closeout remains blocked by predecessors and external launch evidence | blocked |
+| LT-L2-W07 | RS-6 harness exists and LCX7-RI-08 receipt is recorded, but launch runtime-integration terminal closeout remains blocked pending LT packet validation and final go/no-go decision | blocked |
 
 ## Validator Contract
 
