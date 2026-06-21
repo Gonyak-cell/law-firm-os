@@ -216,7 +216,7 @@ Done evidence:
 
 ## LCX6 - Locked-Domain Unlock Packets
 
-Status: pending
+Status: completed
 
 Objective:
 Prepare unlock packets for the domains that cannot be closed by repo code alone.
@@ -237,3 +237,13 @@ Acceptance:
 - Unlock packets exist and identify required owner/external actions.
 - Launch remains blocked unless real receipts and approvals are present.
 - The overall goal is only marked complete after LCX6 evidence is present.
+
+Done evidence:
+
+- `docs/launch/locked-domain-unlock-packets.md`
+- `docs/lazycodex/evidence/lcx6-locked-domain-unlock-packets.md`
+- Unlock packets prepared for persistence/store family, trust boundary and
+  identity, write path and audit, runtime integration and launch evidence,
+  locked future domains, and owner approval/go-no-go.
+- Launch/go-live remains explicitly blocked pending external receipts and owner
+  approvals.
