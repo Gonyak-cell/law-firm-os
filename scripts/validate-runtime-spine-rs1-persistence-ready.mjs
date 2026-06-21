@@ -52,7 +52,7 @@ assert(packageJson.scripts?.["runtime-spine:rs1:persistence-ready:validate"] ===
 const gateMap = new Map((ledger.gates ?? []).map((gate) => [gate.id, gate]));
 assert(gateMap.get("G1")?.status === "ready_candidate", "G1 must be ready_candidate after RS-1 closeout");
 for (const gate of ledger.gates ?? []) {
-  if (!["G0", "G1", "G2", "G3", "G4"].includes(gate.id)) {
+  if (!["G0", "G1", "G2", "G3", "G4", "G5"].includes(gate.id)) {
     assert(gate.status === "planned_blocked_by_prior_gate", `${gate.id}: must remain planned_blocked_by_prior_gate`);
   }
 }

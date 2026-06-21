@@ -94,6 +94,7 @@ export async function validateRuntimeSpinePlan({ silent = false } = {}) {
   const g1ReadyCandidate = ledger.gates?.find((gate) => gate.id === "G1")?.status === "ready_candidate";
   const g2ReadyCandidate = ledger.gates?.find((gate) => gate.id === "G2")?.status === "ready_candidate";
   const g3ReadyCandidate = ledger.gates?.find((gate) => gate.id === "G3")?.status === "ready_candidate";
+  const g4ReadyCandidate = ledger.gates?.find((gate) => gate.id === "G4")?.status === "ready_candidate";
   for (const gate of ledger.gates ?? []) {
     assert(allowedGateStatuses.includes(gate.status), `${gate.id}: invalid gate status ${gate.status}`);
     if (gate.id === "G2") {
@@ -120,7 +121,15 @@ export async function validateRuntimeSpinePlan({ silent = false } = {}) {
         "G4: invalid progression status for current G3 state",
       );
     }
-    if (!["G0", "G1", "G2", "G3", "G4"].includes(gate.id)) assert(gate.status === "planned_blocked_by_prior_gate", `${gate.id}: must remain planned_blocked_by_prior_gate until its prior gate is ready`);
+    if (gate.id === "G5") {
+      assert(
+        g4ReadyCandidate
+          ? ["planned_blocked_by_prior_gate", "in_progress", "ready_candidate"].includes(gate.status)
+          : gate.status === "planned_blocked_by_prior_gate",
+        "G5: invalid progression status for current G4 state",
+      );
+    }
+    if (!["G0", "G1", "G2", "G3", "G4", "G5"].includes(gate.id)) assert(gate.status === "planned_blocked_by_prior_gate", `${gate.id}: must remain planned_blocked_by_prior_gate until its prior gate is ready`);
   }
 
   const rtgIds = new Set((ledger.rtg_summary ?? []).map((rtg) => rtg.id));

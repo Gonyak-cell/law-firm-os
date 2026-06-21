@@ -97,6 +97,21 @@ Date: 2026-06-21
 | Migration compatibility projection covers master-data, matter, HRX, and DMS records | closed |
 | Runtime-ready and actual launch/go-live claims remain false | closed |
 
+## G5 Checklist
+
+| Item | Status |
+| --- | --- |
+| Runtime surface package exists | closed |
+| Session and current tenant API surface exists | closed |
+| Client, Matter, MatterMember, People, Party, Document, Task, Issue, Wiki, and Vault export route catalog exists | closed |
+| API safe error taxonomy returns denied/review states without count leaks | closed |
+| Route audit coverage includes read, write, permission, and export categories | closed |
+| Permission matrix fails closed for write scopes | closed |
+| UI client layer maps data, empty, denied, review, and export-only states | closed |
+| Portal, M365, HR real data, AI, and Vault sync remain feature-locked | closed |
+| API/UI smoke flow records synthetic audit events | closed |
+| Runtime-ready and actual launch/go-live claims remain false | closed |
+
 ## Regression Commands
 
 G0 uses the following minimum regression sweep:
