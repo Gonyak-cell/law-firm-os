@@ -1,6 +1,6 @@
 # LCX-DESK-03 Workspace Evidence
 
-Status: in_progress
+Status: P3_complete
 Branch: `codex/mater-desktop-69-tuw-implementation`
 Scope: P3 permission-trimmed Matter workspace, route adapter, denied state, and desktop context
 Source ledger: `docs/desktop/mater-desktop-loop-tuw-ledger.json`
@@ -19,7 +19,7 @@ This evidence file records P3 workspace progress only. It does not claim file br
 | MDT-P3-W02-T01 | complete | `apps/web/test/desktop-permission.test.mjs` |
 | MDT-P3-W02-T02 | complete | `apps/desktop/test/deep-link-permission.test.mjs` |
 | MDT-P3-W02-T03 | complete | `apps/web/test/ui-regression.test.mjs` |
-| MDT-P3-W02-T04 | pending | phase terminal not reached |
+| MDT-P3-W02-T04 | complete | P3 terminal closure recorded in this file |
 
 ## MDT-P3-W01-T01 - Map Desktop Route Intents to Web Routes
 
@@ -221,3 +221,41 @@ Act:
 
 - `MDT-P3-W02-T03` is complete.
 - Next TUW is `MDT-P3-W02-T04`, the P3 terminal TUW.
+
+## MDT-P3-W02-T04 - Close Workspace Evidence
+
+Plan:
+
+- Close P3 only after every P3 TUW verification has passed in ledger order.
+- Record happy path, denied path, and no desktop authority evidence.
+- Keep file bridge, production go-live, public release, and owner approval claims false.
+
+Do:
+
+- Updated this LCX-DESK-03 evidence file as the P3 terminal closeout.
+
+Check:
+
+```bash
+node scripts/validate-mater-desktop-loop-tuw-plan.mjs
+npm --workspace apps/web run build && npm --workspace apps/web run test:ui
+node --test apps/web/test/desktop-permission.test.mjs
+node apps/desktop/test/deep-link-permission.test.mjs
+npm --workspace apps/desktop run test:smoke
+node scripts/validate-mater-desktop-security.mjs
+rg -n "MDT-P3|denied path|no desktop authority" docs/lazycodex/evidence/mater-desktop/lcx-desk-03-workspace.md
+git diff --check -- docs/lazycodex/evidence/mater-desktop/lcx-desk-03-workspace.md
+```
+
+Results:
+
+- Happy path: Matter and Vault route entries remain present, and the workspace UI regression keeps Matter, Vault, denied, and desktop mode surfaces routable.
+- denied path: `DesktopDeniedState` is used by Matter and Vault denied states, unauthorized Matter/Vault visibility is covered by `apps/web/test/desktop-permission.test.mjs`, and `mater://matter` rechecks permission before screen entry.
+- no desktop authority: desktop runtime context is presentation-only; `mutate`, `fileBridge`, `authMutation`, `auditMutation`, and `billing` remain false.
+- Non-claims remain false: file bridge readiness, production go-live, public release, and owner approval.
+
+Act:
+
+- `MDT-P3-W02` is closed at its terminal TUW, `MDT-P3-W02-T04`.
+- P3 is complete.
+- Next ledger TUW is `MDT-P4-W01-T01`.
