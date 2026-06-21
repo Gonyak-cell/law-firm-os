@@ -1,7 +1,7 @@
 # Launch External Receipt Ledger
 
 Status: blocked_pending_remaining_owner_external_receipts
-Generated at: 2026-06-21T09:14:34Z
+Generated at: 2026-06-21T09:28:00Z
 
 ## Boundary
 
@@ -17,11 +17,12 @@ Generated at: 2026-06-21T09:14:34Z
 ## Summary
 
 - external_receipt_lane_count: 8
-- real_external_receipt_count: 1
-- approved_external_receipt_count: 1
+- real_external_receipt_count: 2
+- approved_external_receipt_count: 2
 - deferred_external_receipt_count: 0
-- pending_external_receipt_count: 7
+- pending_external_receipt_count: 6
 - lcx7_ri_05_receipt_recorded: true
+- lcx7_ri_06_receipt_recorded: true
 - all_external_receipts_received: false
 - launch_blockers_still_in_force: LT-L2-W01, LT-L2-W02, LT-L2-W03, LT-L2-W07
 
@@ -30,7 +31,7 @@ Generated at: 2026-06-21T09:14:34Z
 | Queue ID | Source packet | Target receipt | Receipt status | Decision | Signature ref | Unlock claim state |
 | --- | --- | --- | --- | --- | --- | --- |
 | LCX7-RI-05 | LCX6-UP-01 | Production persistence | real_external_receipt_received | approved | email:lawos-production-persistence-approval-2026-06-21 | receipt_recorded_pending_lt_packet_validation |
-| LCX7-RI-06 | LCX6-UP-02 | Trust boundary and identity | pending_external_receipt |  |  |  |
+| LCX7-RI-06 | LCX6-UP-02 | Trust boundary and identity | real_external_receipt_received | approved | email:lawos-trust-boundary-identity-approval-2026-06-21 | receipt_recorded_pending_lt_packet_validation |
 | LCX7-RI-07 | LCX6-UP-03 | Write path and audit | pending_external_receipt |  |  |  |
 | LCX7-RI-08 | LCX6-UP-04 | Runtime integration and launch evidence | pending_external_receipt |  |  |  |
 | LCX7-RI-09 | LCX6-UP-05 | M365/Graph | pending_external_receipt |  |  |  |
@@ -52,16 +53,31 @@ Generated at: 2026-06-21T09:14:34Z
 | received_at_original | 2026-06-21T18:14:34+09:00 |
 | recorded_by_human | JWS |
 
+## LCX7-RI-06 Recorded Receipt
+
+| Field | Value |
+| --- | --- |
+| decision_id | LCX7-RI-06-TRUST-BOUNDARY-IDENTITY |
+| owner | Security Owner / Product Owner / Microsoft 365 Owner |
+| decision | approved |
+| basis | Tenant deployment model, production auth provider, SSO/MFA scope, network boundary, server-derived principal/role/permission context, cross-tenant rejection, expired-token denial, and User-to-Employee mapping reconciliation are approved for LCX7-RI-06. This approval is intended to unblock LT-L2-W02 and downstream LT-L2-W03/LT-L2-W07 launch closure validation. |
+| date_or_revisit_gate | 2026-06-21 |
+| approval_signature_ref | email:lawos-trust-boundary-identity-approval-2026-06-21 |
+| received_at | 2026-06-21T09:28:00Z |
+| received_at_original | 2026-06-21T 18:28:00+09:00 |
+| recorded_by_human | JWS |
+
 ## Post-Receipt Verification
 
 - `npm run runtime-spine:rs1:persistence:validate`
 - `npm run runtime-spine:rs1:tenant-data:validate`
+- `npm run runtime-spine:rs2:trust-boundary:validate`
 - `npm run runtime-spine:readiness:validate`
 - Future staging store smoke and restore rehearsal receipts.
+- Future SSO/MFA E2E and User-to-Employee mapping reconciliation receipts.
 
 ## Remaining External Receipts
 
-- LCX7-RI-06 Trust boundary and identity.
 - LCX7-RI-07 Write path and audit.
 - LCX7-RI-08 Runtime integration and launch evidence.
 - LCX7-RI-09 M365/Graph.

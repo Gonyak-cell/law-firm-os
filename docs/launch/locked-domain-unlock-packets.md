@@ -23,7 +23,7 @@ system.
 | `docs/runtime-spine/launch-tuw-crosswalk.md` | LT-L2-W01, LT-L2-W02, LT-L2-W03, and LT-L2-W07 remain blocked launch packets |
 | `docs/runtime-spine/evidence/g6-runtime-ready-evidence.json` | RS-6/RTG-001 through RTG-005 passed for repo runtime-ready candidate only |
 | `docs/launch/launch-owner-approval-receipt-ledger.md` | 4 real coverage deferral receipts recorded after owner-response intake |
-| `docs/launch/launch-external-receipt-ledger.md` | LCX7-RI-05 production persistence receipt recorded; LCX7-RI-06 through LCX7-RI-12 remain pending |
+| `docs/launch/launch-external-receipt-ledger.md` | LCX7-RI-05 production persistence and LCX7-RI-06 trust-boundary receipts recorded; LCX7-RI-07 through LCX7-RI-12 remain pending |
 | `docs/launch/launch-evidence-acceptance-matrix.md` | 36 acceptance rows owner-deferred; external receipt lanes still remain |
 | `docs/launch/launch-no-go-claim-policy-audit.md` | No forbidden true go-live claims |
 
@@ -83,7 +83,7 @@ Non-claims:
 | Runtime Spine relation | RS-2 supports trust-boundary shape; does not close launch AuthN/AuthZ |
 | Decision refs | DEC-RS-002, DEC-RS-003 |
 | Unlock authority | Security Owner, Product Owner, Microsoft 365 Owner |
-| Current state | Blocked pending tenant model, auth provider, SSO/MFA, network boundary, and server-derived identity receipts |
+| Current state | LCX7-RI-06 receipt recorded; LT-L2-W02 still requires packet validation, SSO/MFA E2E, mapping reconciliation, and downstream launch closure evidence |
 
 Required receipts:
 
