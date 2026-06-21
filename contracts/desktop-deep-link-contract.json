@@ -1,0 +1,43 @@
+{
+  "schema": "law-firm-os.desktop.deep-link-contract.v0.1",
+  "product": "mater",
+  "status": "auth_callback_reserved_only",
+  "allowed_routes": [
+    {
+      "id": "auth_callback",
+      "scheme": "mater",
+      "host": "auth",
+      "path": "/callback",
+      "allowed_query": ["code", "state", "issuer"],
+      "purpose": "OIDC PKCE authorization-code callback only",
+      "executes_action": "auth_callback",
+      "may_mutate_product_state": false,
+      "may_download": false,
+      "may_upload": false,
+      "may_ai_generate": false
+    }
+  ],
+  "forbidden_actions": [
+    "mutation",
+    "download",
+    "upload",
+    "ai_generate",
+    "file_bridge",
+    "open_external_url",
+    "execute_command"
+  ],
+  "validation_rules": {
+    "state_required": true,
+    "code_required": true,
+    "issuer_allowlist_required": true,
+    "nonce_required": true,
+    "pkce_verifier_owned_by_main_process": true,
+    "renderer_receives_token_body": false
+  },
+  "non_claims": {
+    "deep_link_handler_implemented": false,
+    "auth_flow_implemented": false,
+    "production_idp_ready": false,
+    "owner_approval_recorded": false
+  }
+}

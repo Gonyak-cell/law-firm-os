@@ -14,7 +14,7 @@ This evidence file records P2 auth/session progress only. It does not claim prod
 | TUW | Status | Evidence |
 | --- | --- | --- |
 | MDT-P2-W01-T01 | complete | `docs/desktop/mater-desktop-auth-session-plan.md` |
-| MDT-P2-W01-T02 | pending | not started |
+| MDT-P2-W01-T02 | complete | `contracts/desktop-deep-link-contract.json` |
 | MDT-P2-W01-T03 | pending | not started |
 | MDT-P2-W01-T04 | pending | terminal not reached |
 | MDT-P2-W02-T01 | pending | not started |
@@ -54,3 +54,38 @@ Act:
 
 - `MDT-P2-W01-T01` is complete.
 - Next TUW is `MDT-P2-W01-T02`.
+
+## MDT-P2-W01-T02 - Reserve Auth Callback Deep Link Route
+
+Plan:
+
+- Reserve only the desktop auth callback route.
+- Ensure the route cannot execute non-auth actions.
+- Update the auth/session plan to point to the contract.
+
+Do:
+
+- Added `contracts/desktop-deep-link-contract.json`.
+- Updated `docs/desktop/mater-desktop-auth-session-plan.md`.
+
+Check:
+
+```bash
+rg -n "auth_callback|mutation|download|upload|ai_generate" contracts/desktop-deep-link-contract.json
+git diff --check -- contracts/desktop-deep-link-contract.json docs/desktop/mater-desktop-auth-session-plan.md docs/lazycodex/evidence/mater-desktop/lcx-desk-02-auth-session.md
+```
+
+Results:
+
+- Deep link contract grep passed for `auth_callback`, `mutation`, `download`, `upload`, and `ai_generate`.
+- Contract records `may_mutate_product_state: false`, `may_download: false`, `may_upload: false`, and `may_ai_generate: false`.
+- `git diff --check` passed.
+
+Permission/audit impact:
+
+- Auth callback cannot become a general action link.
+
+Act:
+
+- `MDT-P2-W01-T02` is complete.
+- Next TUW is `MDT-P2-W01-T03`.

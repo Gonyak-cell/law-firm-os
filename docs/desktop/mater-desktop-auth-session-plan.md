@@ -31,6 +31,20 @@ receives session status only.
 - Auth callback deep links must not execute mutation, download, upload, file
   bridge, or AI generation actions.
 
+## Reserved Auth Callback Deep Link
+
+The only reserved desktop deep link route in P2-W01 is `auth_callback`.
+
+Contract: `contracts/desktop-deep-link-contract.json`
+
+- Scheme: `mater`
+- Host: `auth`
+- Path: `/callback`
+- Allowed query keys: `code`, `state`, `issuer`
+- Forbidden actions: `mutation`, `download`, `upload`, `ai_generate`,
+  `file_bridge`, `open_external_url`, and `execute_command`
+- The callback validates auth state only; it cannot execute non-auth actions.
+
 ## Renderer Storage Policy
 
 Renderer storage may keep non-sensitive UI preferences only. It must not store:
