@@ -1,6 +1,6 @@
 # LCX1 Final Product Completion Gate Repair Evidence
 
-Status: in progress
+Status: passed
 Date: 2026-06-21
 Branch: codex/runtime-spine-launch-tuw-crosswalk
 
@@ -73,6 +73,18 @@ npm run runtime-spine:readiness:validate
 npm run runtime-spine:launch-crosswalk:validate
 npm run validate
 ```
+
+## Validation Results
+
+Completed on 2026-06-21 from branch
+`codex/runtime-spine-launch-tuw-crosswalk`.
+
+| Command | Result | Key evidence |
+| --- | --- | --- |
+| `npm run final-product-completion-gate:validate` | PASS | `commit_evidence_count: 987`; `missing_pack_count: 0`; no findings |
+| `npm run runtime-spine:readiness:validate` | PASS | `runtime_ready_candidate: true`; `actual_launch_go_live_claim: false`; blockers remain `LT-L2-W01,LT-L2-W02,LT-L2-W03,LT-L2-W07` |
+| `npm run runtime-spine:launch-crosswalk:validate` | PASS | `mapped_spines: 7`; `repo_runtime_ready_candidate: true`; `actual_launch_go_live_claim: false` |
+| `npm run validate` | PASS | product contract passed; modules `9/9`; principles `9/9`; invariants `7/7` |
 
 ## Boundary
 
