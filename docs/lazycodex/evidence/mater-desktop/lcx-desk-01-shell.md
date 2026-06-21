@@ -17,7 +17,7 @@ This evidence file records P1 desktop shell progress only. It does not claim fil
 | MDT-P1-W01-T02 | complete | `apps/desktop/src/main/window.js` |
 | MDT-P1-W01-T03 | complete | `apps/desktop/src/main/origin-policy.js`, `apps/desktop/test/origin-policy.test.mjs` |
 | MDT-P1-W01-T04 | complete | `scripts/validate-mater-desktop-security.mjs` |
-| MDT-P1-W01-T05 | pending | terminal not reached |
+| MDT-P1-W01-T05 | complete | `apps/desktop/test/shell-smoke.test.mjs` |
 | MDT-P1-W02-T01 | pending | not started |
 | MDT-P1-W02-T02 | pending | not started |
 | MDT-P1-W02-T03 | pending | not started |
@@ -170,3 +170,38 @@ Act:
 
 - `MDT-P1-W01-T04` is complete.
 - Next TUW is `MDT-P1-W01-T05`, the terminal TUW for `MDT-P1-W01`.
+
+## MDT-P1-W01-T05 - Smoke Desktop Shell Startup
+
+Plan:
+
+- Add a desktop shell startup smoke test.
+- Prove the shell loads only an approved renderer target.
+- Close only `MDT-P1-W01` because this is the work package terminal TUW.
+
+Do:
+
+- Updated `apps/desktop/src/main/main.js` with `startDesktopShell`.
+- Added `apps/desktop/test/shell-smoke.test.mjs`.
+- The smoke test uses a fake `BrowserWindow` so CI can verify startup policy without launching a GUI.
+
+Check:
+
+```bash
+npm --workspace apps/desktop run test:smoke
+node scripts/validate-mater-desktop-security.mjs
+git diff --check -- apps/desktop/src/main/main.js apps/desktop/test/shell-smoke.test.mjs
+```
+
+Results:
+
+- Desktop smoke passed: `5` tests, `5` pass, `0` fail.
+- Smoke proves the shell loads `http://127.0.0.1:5173` by default.
+- Smoke proves unapproved renderer target and remote navigation/window-open are blocked.
+- Desktop security validator passed with `findings: []`.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P1-W01` is closed at its terminal TUW, `MDT-P1-W01-T05`.
+- Next ledger TUW is `MDT-P1-W02-T01`.
