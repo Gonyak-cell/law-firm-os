@@ -14,7 +14,7 @@ This evidence file records P6 packaging and update progress only. It does not cl
 | TUW | Status | Evidence |
 | --- | --- | --- |
 | MDT-P6-W01-T01 | complete | `docs/desktop/mater-desktop-packaging-decision.md` |
-| MDT-P6-W01-T02 | pending | not started |
+| MDT-P6-W01-T02 | complete | `apps/desktop/electron-builder.yml`, `scripts/validate-mater-desktop-packaging.mjs`, `apps/desktop/build/icon.svg` |
 | MDT-P6-W01-T03 | pending | not started |
 | MDT-P6-W01-T04 | pending | not started |
 | MDT-P6-W02-T01 | pending | not started |
@@ -52,3 +52,35 @@ Act:
 
 - `MDT-P6-W01-T01` is complete.
 - Next TUW is `MDT-P6-W01-T02`.
+
+## MDT-P6-W01-T02 - Add Packaging Configuration
+
+Plan:
+
+- Add internal desktop packaging configuration.
+- Include app ID, product name, icon, file allowlist, and test exclusions.
+- Disable public publish channel.
+
+Do:
+
+- Added `apps/desktop/electron-builder.yml`.
+- Added `apps/desktop/build/icon.svg`.
+- Added `scripts/validate-mater-desktop-packaging.mjs`.
+
+Check:
+
+```bash
+node scripts/validate-mater-desktop-packaging.mjs
+git diff --check -- apps/desktop/electron-builder.yml apps/desktop/build/icon.svg scripts/validate-mater-desktop-packaging.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-06-packaging-update.md
+```
+
+Results:
+
+- Packaging validator passed.
+- Config includes internal app ID, product name, icons, files, and no public publish channel.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P6-W01-T02` is complete.
+- Next TUW is `MDT-P6-W01-T03`.
