@@ -1,6 +1,6 @@
 # Launch Receipt Intake Action Packet
 
-Status: blocked_pending_remaining_owner_external_receipts
+Status: external_receipts_received_pending_launch_acceptance_and_final_go_live_decision
 Date: 2026-06-21
 Prepared for: LCX7
 Related PR: https://github.com/Gonyak-cell/law-firm-os/pull/83
@@ -71,8 +71,8 @@ production cutover, and it does not close LT terminal packets.
 | LCX7-RI-08 | real_external_receipt_received | `docs/launch/launch-external-receipt-ledger.md` |
 | LCX7-RI-09 | real_external_receipt_received | `docs/launch/launch-external-receipt-ledger.md` |
 | LCX7-RI-10 | real_external_receipt_received | `docs/launch/launch-external-receipt-ledger.md` |
-| LCX7-RI-11 | pending_external_receipt | `docs/launch/launch-external-receipt-ledger.md` |
-| LCX7-RI-12 | pending_external_receipt | `docs/launch/launch-external-receipt-ledger.md` |
+| LCX7-RI-11 | real_external_receipt_received | `docs/launch/launch-external-receipt-ledger.md` |
+| LCX7-RI-12 | real_external_receipt_received | `docs/launch/launch-external-receipt-ledger.md` |
 
 ## Owner Request Copy Template
 
