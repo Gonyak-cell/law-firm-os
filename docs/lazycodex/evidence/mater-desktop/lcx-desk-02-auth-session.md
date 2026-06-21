@@ -16,7 +16,7 @@ This evidence file records P2 auth/session progress only. It does not claim prod
 | MDT-P2-W01-T01 | complete | `docs/desktop/mater-desktop-auth-session-plan.md` |
 | MDT-P2-W01-T02 | complete | `contracts/desktop-deep-link-contract.json` |
 | MDT-P2-W01-T03 | complete | `docs/desktop/mater-desktop-secure-store-policy.md` |
-| MDT-P2-W01-T04 | pending | terminal not reached |
+| MDT-P2-W01-T04 | complete | `contracts/desktop-session-cleanup-contract.json`, `scripts/validate-desktop-session-cleanup-contract.mjs` |
 | MDT-P2-W02-T01 | pending | not started |
 | MDT-P2-W02-T02 | pending | not started |
 | MDT-P2-W02-T03 | pending | not started |
@@ -121,3 +121,40 @@ Act:
 
 - `MDT-P2-W01-T03` is complete.
 - Next TUW is `MDT-P2-W01-T04`.
+
+## MDT-P2-W01-T04 - Define Logout and Cache Wipe Contract
+
+Plan:
+
+- Define all cache classes that must be wiped on logout and tenant switch.
+- Add a validator for the cleanup contract.
+- Close only `MDT-P2-W01` because this is the work package terminal TUW.
+
+Do:
+
+- Added `contracts/desktop-session-cleanup-contract.json`.
+- Added `scripts/validate-desktop-session-cleanup-contract.mjs`.
+
+Check:
+
+```bash
+node scripts/validate-desktop-session-cleanup-contract.mjs
+git diff --check -- contracts/desktop-session-cleanup-contract.json scripts/validate-desktop-session-cleanup-contract.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-02-auth-session.md
+```
+
+Results:
+
+- Cleanup contract validator passed with verdict `PASS`.
+- Validator confirmed `9` required cache classes.
+- Validator confirmed logout and tenant switch wipe all required cache classes.
+- Validator confirmed renderer token storage remains disallowed.
+- `git diff --check` passed.
+
+Permission/audit impact:
+
+- Tenant data cannot survive logout or tenant switch.
+
+Act:
+
+- `MDT-P2-W01` is closed at its terminal TUW, `MDT-P2-W01-T04`.
+- Next ledger TUW is `MDT-P2-W02-T01`.

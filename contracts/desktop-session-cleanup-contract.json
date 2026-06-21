@@ -1,0 +1,61 @@
+{
+  "schema": "law-firm-os.desktop.session-cleanup-contract.v0.1",
+  "product": "mater",
+  "status": "active",
+  "required_cache_classes": [
+    "secure_store_tokens",
+    "pending_pkce_state",
+    "session_summary_cache",
+    "api_response_cache",
+    "renderer_memory_cache",
+    "service_worker_cache",
+    "browser_storage",
+    "tenant_shell_state",
+    "deep_link_pending_state"
+  ],
+  "cleanup_triggers": {
+    "logout": [
+      "secure_store_tokens",
+      "pending_pkce_state",
+      "session_summary_cache",
+      "api_response_cache",
+      "renderer_memory_cache",
+      "service_worker_cache",
+      "browser_storage",
+      "tenant_shell_state",
+      "deep_link_pending_state"
+    ],
+    "tenant_switch": [
+      "secure_store_tokens",
+      "pending_pkce_state",
+      "session_summary_cache",
+      "api_response_cache",
+      "renderer_memory_cache",
+      "service_worker_cache",
+      "browser_storage",
+      "tenant_shell_state",
+      "deep_link_pending_state"
+    ]
+  },
+  "forbidden_survivors": [
+    "access_token",
+    "refresh_token",
+    "id_token",
+    "pkce_verifier",
+    "auth_code",
+    "tenant_secret",
+    "raw_account_profile"
+  ],
+  "renderer_storage_policy": {
+    "localStorage_token_allowed": false,
+    "sessionStorage_token_allowed": false,
+    "indexedDB_token_allowed": false,
+    "cache_api_token_allowed": false
+  },
+  "non_claims": {
+    "cleanup_implemented": false,
+    "secure_store_adapter_implemented": false,
+    "production_idp_ready": false,
+    "owner_approval_recorded": false
+  }
+}
