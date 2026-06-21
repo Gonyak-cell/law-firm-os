@@ -19,7 +19,7 @@ This evidence file records P5 deep link and notification progress only. It does 
 | MDT-P5-W01-T04 | complete | `apps/desktop/src/main/deepLinks.js`, `apps/desktop/test/deep-link-open-audit.test.mjs`, `docs/desktop/mater-desktop-deep-link-audit-map.md` |
 | MDT-P5-W02-T01 | complete | `docs/desktop/mater-desktop-notification-policy.md` |
 | MDT-P5-W02-T02 | complete | `apps/desktop/src/main/notifications.js`, `apps/desktop/test/notification-route-intent.test.mjs` |
-| MDT-P5-W02-T03 | pending | not started |
+| MDT-P5-W02-T03 | complete | `scripts/validate-mater-desktop-notification-copy.mjs` |
 | MDT-P5-W02-T04 | pending | phase terminal not reached |
 
 ## MDT-P5-W01-T01 - Finalize Deep Link Contract
@@ -218,3 +218,34 @@ Act:
 
 - `MDT-P5-W02-T02` is complete.
 - Next TUW is `MDT-P5-W02-T03`.
+
+## MDT-P5-W02-T03 - Audit Notification Sensitive Text
+
+Plan:
+
+- Add a validator for desktop notification templates.
+- Fail on sensitive placeholders for client names, matter names, document names, snippets, sensitive deadlines, and billing amounts.
+- Prove the validator catches those forbidden template classes with probes.
+
+Do:
+
+- Added `scripts/validate-mater-desktop-notification-copy.mjs`.
+
+Check:
+
+```bash
+node scripts/validate-mater-desktop-notification-copy.mjs
+git diff --check -- scripts/validate-mater-desktop-notification-copy.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-05-deeplink-notification.md
+```
+
+Results:
+
+- Notification copy validator passed.
+- Probes detected client names, matter names, document names, snippets, sensitive deadlines, and billing amounts.
+- Current desktop notification templates have no sensitive-copy findings.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P5-W02-T03` is complete.
+- Next TUW is `MDT-P5-W02-T04`, the P5 terminal TUW.
