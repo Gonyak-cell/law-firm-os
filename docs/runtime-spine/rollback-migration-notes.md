@@ -85,6 +85,19 @@ RS-3 adds Runtime Spine audit helpers on top of the existing audit package:
 
 Rollback is a normal Git revert of the RS-3 PR. It does not create a production audit pipeline, external SIEM export, immutable storage account, or real production audit archive.
 
+## RS-4 Canonical Model Ready Candidate
+
+RS-4 adds a synthetic-only canonical model contract package:
+
+- package: `@law-firm-os/runtime-model`
+- canonical glossary: `docs/runtime-spine/canonical-object-glossary.json`
+- schema registry: Tenant, User, Employee, Membership, Role, Person, Organization, Client, Matter, Document, Email, Task, Issue, MatterWiki, VaultSnapshot, and ClassificationEnvelope
+- relationship registry: source/target object relationship coverage for Client-Matter-People and document/wiki paths
+- seed fixture: all 25 canonical object types with no runtime write claim
+- migration compatibility: master-data, Matter, HRX, and DMS records project into canonical records
+
+Rollback is a normal Git revert of the RS-4 PR. It does not run production data migration, rewrite existing CMP v1/Matter/HRX/DMS stores, create production rows, unlock Portal/M365/AI/Vault sync, or approve runtime-ready/launch status.
+
 ## Future Evidence Required
 
 Runtime migration PRs must record:
