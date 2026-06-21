@@ -96,6 +96,59 @@
       }
     }
   },
+  "latest_rs1b_validation": {
+    "status": "passed",
+    "recorded_after_commands": true,
+    "date": "2026-06-21",
+    "summary": {
+      "scope": "RS-1B Tenant Data Spine",
+      "closed_tuws": [
+        "RS-1-T05",
+        "RS-1-T06",
+        "RS-1-T07",
+        "RS-1-T08",
+        "RS-1-T09",
+        "RS-1-T10"
+      ],
+      "tenant_scoped_repository": "runtime_records with tenant_id mandatory",
+      "stable_id_generator": "tenant-derived deterministic IDs with typed prefixes",
+      "idempotency": "runtime_idempotency_keys replay same request and reject changed request hash",
+      "transaction_boundary": "runPersistenceTransaction rolls back repository and outbox writes atomically",
+      "outbox": "runtime_outbox_events tenant-scoped pending event queue",
+      "lifecycle": "status, archived_at, deleted_at, retention_class; deleted rows hidden by default",
+      "runtime_ready_candidate": false,
+      "actual_launch_go_live_claim": false,
+      "commands": [
+        "npm --workspace @law-firm-os/persistence run test",
+        "npm run runtime-spine:rs1:tenant-data:validate",
+        "npm run runtime-spine:rs1:persistence:validate",
+        "npm run runtime-spine:plan:validate",
+        "npm run runtime-spine:readiness:validate",
+        "npm run runtime-readiness:validate",
+        "npm run client-matter:cmp-v1:validate",
+        "npm run matter-vault:r4:validate",
+        "npm run hrx:runtime:validate",
+        "npm run validate",
+        "npm run api:test",
+        "npm run build",
+        "npm test"
+      ],
+      "results": {
+        "persistence_package_test": "passed; 17/17",
+        "rs1_tenant_data_validator": "passed",
+        "runtime_spine_plan": "passed; gates=7; tuws=124",
+        "runtime_spine_readiness_guard": "passed; total_closed_tuws=17; rs1_closed_tuws=10; premature_closed_tuws=0",
+        "runtime_readiness": "passed; runtime_target_packs=0",
+        "client_matter_cmp_v1": "passed; tuws=316; gates=13; claim_boundary=not_r4_ready",
+        "matter_vault_r4": "passed; tuws=118; gates=9; launch_go_live_claim=false",
+        "hrx_runtime": "passed",
+        "root_validate": "passed",
+        "api_test": "passed; 131/131",
+        "build": "passed",
+        "root_test": "passed; 4011/4011"
+      }
+    }
+  },
   "future_evidence_slots": [
     {
       "gate": "G1",

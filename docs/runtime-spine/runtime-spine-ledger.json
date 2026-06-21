@@ -66,12 +66,12 @@
     },
     {
       "id": "RTG-002",
-      "status": "planned",
+      "status": "partial",
       "meaning": "fail-closed permission runtime path executed"
     },
     {
       "id": "RTG-003",
-      "status": "planned",
+      "status": "partial",
       "meaning": "durable audit append executed"
     },
     {
@@ -297,12 +297,72 @@
             "packages/persistence/test/migration-runner.test.js"
           ]
         },
-        {"id": "RS-1-T05", "title": "Tenant-scoped base repository pattern", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-1-T06", "title": "Stable ID generator", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
-        {"id": "RS-1-T07", "title": "Idempotency key table", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
-        {"id": "RS-1-T08", "title": "Transaction boundary utility", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
-        {"id": "RS-1-T09", "title": "Outbox table", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-1-T10", "title": "Soft delete and lifecycle fields", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {
+          "id": "RS-1-T05",
+          "title": "Tenant-scoped base repository pattern",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/repository.js",
+            "packages/persistence/test/repository.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T06",
+          "title": "Stable ID generator",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/id.js",
+            "packages/persistence/test/id.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T07",
+          "title": "Idempotency key table",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/idempotency.js",
+            "packages/persistence/test/idempotency-outbox.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T08",
+          "title": "Transaction boundary utility",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/transaction.js",
+            "packages/persistence/test/idempotency-outbox.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T09",
+          "title": "Outbox table",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-003", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/outbox.js",
+            "packages/persistence/test/idempotency-outbox.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T10",
+          "title": "Soft delete and lifecycle fields",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/lifecycle.js",
+            "packages/persistence/test/repository.test.js"
+          ]
+        },
         {"id": "RS-1-T11", "title": "Data residency metadata", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
         {"id": "RS-1-T12", "title": "Backup/restore smoke harness", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
         {"id": "RS-1-T13", "title": "Tenant isolation DB test suite", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
