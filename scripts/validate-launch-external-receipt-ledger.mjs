@@ -85,7 +85,8 @@ function renderMarkdown(report) {
   lines.push("## Summary");
   lines.push("");
   for (const [key, value] of Object.entries(report.summary)) {
-    lines.push(`- ${key}: ${Array.isArray(value) ? value.join(", ") : value}`);
+    const renderedValue = Array.isArray(value) ? (value.length > 0 ? value.join(", ") : "(none)") : value;
+    lines.push(`- ${key}: ${renderedValue}`);
   }
   lines.push("");
   lines.push("## Findings");
