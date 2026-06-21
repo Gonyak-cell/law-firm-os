@@ -19,7 +19,7 @@ This evidence file records P7 pilot closeout progress only. It does not claim ow
 | MDT-P7-W01-T04 | complete | `docs/lazycodex/evidence/mater-desktop/pilot-security-audit.md` |
 | MDT-P7-W02-T01 | complete | `docs/desktop/mater-desktop-pilot-risk-adjudication.md` |
 | MDT-P7-W02-T02 | complete | `docs/desktop/mater-desktop-owner-decision-packet.md` |
-| MDT-P7-W02-T03 | pending | not started |
+| MDT-P7-W02-T03 | complete | `docs/lazycodex/evidence/mater-desktop/index.md` |
 | MDT-P7-W02-T04 | pending | not started |
 | MDT-P7-W02-T05 | pending | phase terminal not reached |
 
@@ -211,3 +211,32 @@ Act:
 
 - `MDT-P7-W02-T02` is complete.
 - Next TUW is `MDT-P7-W02-T03`.
+
+## MDT-P7-W02-T03 - Assemble Final Desktop Evidence Index
+
+Plan:
+
+- Link LCX-DESK-00 through LCX-DESK-07 evidence files.
+- Include every phase terminal TUW.
+
+Do:
+
+- Added `docs/lazycodex/evidence/mater-desktop/index.md`.
+
+Check:
+
+```bash
+rg -n "LCX-DESK-00|LCX-DESK-07|MDT-P0-W02-T05|MDT-P7-W02-T05" docs/lazycodex/evidence/mater-desktop/index.md
+git diff --check -- docs/lazycodex/evidence/mater-desktop/index.md docs/lazycodex/evidence/mater-desktop/lcx-desk-07-pilot-closeout.md
+```
+
+Results:
+
+- Evidence index grep passed.
+- Index links LCX-DESK-00 through LCX-DESK-07 and every phase terminal TUW.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P7-W02-T03` is complete.
+- Next TUW is `MDT-P7-W02-T04`.
