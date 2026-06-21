@@ -19,7 +19,7 @@ This evidence file records P6 packaging and update progress only. It does not cl
 | MDT-P6-W01-T04 | complete | `docs/lazycodex/evidence/mater-desktop/artifacts/windows-build.md`, `scripts/build-mater-desktop-win.mjs` |
 | MDT-P6-W02-T01 | complete | `docs/desktop/mater-desktop-update-policy.md` |
 | MDT-P6-W02-T02 | complete | `apps/desktop/src/main/updates.js`, `apps/desktop/test/update-rollback.test.mjs` |
-| MDT-P6-W02-T03 | pending | not started |
+| MDT-P6-W02-T03 | complete | `docs/desktop/mater-desktop-license-audit.md` |
 | MDT-P6-W02-T04 | pending | phase terminal not reached |
 
 ## MDT-P6-W01-T01 - Record Internal App ID Decision
@@ -212,3 +212,35 @@ Act:
 
 - `MDT-P6-W02-T02` is complete.
 - Next TUW is `MDT-P6-W02-T03`.
+
+## MDT-P6-W02-T03 - Run SBOM and License Audit
+
+Plan:
+
+- Record the desktop dependency and license audit state.
+- Include Electron license and redistribution constraints.
+- Keep public release and owner approval false.
+
+Do:
+
+- Added `docs/desktop/mater-desktop-license-audit.md`.
+- Updated `apps/desktop/package.json` description to reflect current guarded desktop scope.
+
+Check:
+
+```bash
+npm ls --workspace apps/desktop --json && rg -n "license|Electron|redistribution" docs/desktop/mater-desktop-license-audit.md
+git diff --check -- docs/desktop/mater-desktop-license-audit.md apps/desktop/package.json docs/lazycodex/evidence/mater-desktop/lcx-desk-06-packaging-update.md
+```
+
+Results:
+
+- Dependency tree command passed.
+- License audit grep passed.
+- Audit records Electron, license state, and redistribution constraints.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P6-W02-T03` is complete.
+- Next TUW is `MDT-P6-W02-T04`, the P6 terminal TUW.

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "main": "src/main/main.js",
-  "description": "mater desktop shell package. P1 skeleton only; no file bridge, auth token storage, or update channel is exposed.",
+  "description": "mater desktop shell package with guarded file bridge, route-only deep links, and internal packaging/update smoke; no public release channel is exposed.",
   "scripts": {
     "start": "electron .",
     "build:mac": "node ../../scripts/build-mater-desktop-mac.mjs",
