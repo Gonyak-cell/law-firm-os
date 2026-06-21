@@ -327,3 +327,35 @@ Act:
 - `MDT-P4-W02` is closed at its terminal TUW, `MDT-P4-W02-T05`.
 - P4 is complete.
 - Next ledger TUW is `MDT-P5-W01-T01`.
+
+## Post-Review Hardening - Renderer Byte Boundary
+
+Scope:
+
+- Follow-up review found that `saveDocumentAs` accepted renderer-supplied `bytes` and passed them to the main-process writer.
+- The contract invariant remains: renderer-visible bridge payloads must not carry file/document bytes.
+
+Fix:
+
+- Added a shared renderer-byte policy that rejects `bytes`, `fileBytes`, `documentBytes`, `content`, `blob`, and `arrayBuffer` fields.
+- Updated upload, save-as, and temp-preview paths to reject renderer-supplied bytes before permission precheck, native dialog, provider fetch, or write.
+- Updated save-as and temp-preview to fetch bytes only through main-process document provider adapters after permission approval.
+- Extended the file bridge static validator with a `renderer_file_bytes` probe.
+
+Check:
+
+```bash
+node --test apps/desktop/test/file-save-as.test.mjs apps/desktop/test/file-upload-bridge.test.mjs apps/desktop/test/file-picker-gesture.test.mjs apps/desktop/test/temp-preview-cleanup.test.mjs
+node scripts/validate-mater-desktop-file-bridge.mjs
+npm --workspace apps/desktop run test:file-bridge
+npm --workspace apps/desktop run test:smoke
+node scripts/validate-mater-desktop-security.mjs
+```
+
+Results:
+
+- Focused file-bridge tests passed, including renderer-byte rejection before precheck/dialog/write.
+- Original reproducer now returns `RENDERER_FILE_BYTES_FORBIDDEN` and performs zero writes.
+- File bridge static validator passed with `renderer_file_bytes` probe detected and no findings.
+- Desktop smoke suite passed.
+- Production go-live, public release, and owner approval claims remain false.

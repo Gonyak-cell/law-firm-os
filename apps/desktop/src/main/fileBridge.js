@@ -1,4 +1,5 @@
 import { basename, extname } from "node:path";
+import { assertNoRendererDocumentBytes } from "../shared/rendererBytePolicy.js";
 
 export const FILE_BRIDGE_CHANNELS = Object.freeze({
   chooseFileForUpload: "fileBridge:choose-file-for-upload",
@@ -92,6 +93,31 @@ async function recordAuditEvent({ auditLogger, actionId, eventName, payload = {}
   });
 }
 
+function rendererBytesForbiddenError(field) {
+  return new FileBridgeError(
+    "RENDERER_FILE_BYTES_FORBIDDEN",
+    `Renderer-supplied document bytes are forbidden on the mater file bridge: ${field}`
+  );
+}
+
+function assertSaveDocumentProvider(documentProvider) {
+  if (!documentProvider || typeof documentProvider.fetchDocumentForSave !== "function") {
+    throw new FileBridgeError("DOCUMENT_PROVIDER_MISSING", "Save-as requires a main-process document provider adapter");
+  }
+}
+
+function documentBytesFromProviderResponse(response) {
+  const documentBytes = response?.bytes ?? response;
+  if (
+    typeof documentBytes !== "string" &&
+    !(documentBytes instanceof ArrayBuffer) &&
+    !ArrayBuffer.isView(documentBytes)
+  ) {
+    throw new FileBridgeError("DOCUMENT_BYTES_MISSING", "Document provider did not return writable document bytes");
+  }
+  return documentBytes;
+}
+
 export function createFileBridgeController({
   dialog,
   permissionClient = {
@@ -103,6 +129,11 @@ export function createFileBridgeController({
   documentWriter = {
     async writeUserSelectedFile() {
       throw new FileBridgeError("DOCUMENT_WRITER_MISSING", "Save-as requires a document writer adapter");
+    }
+  },
+  documentProvider = {
+    async fetchDocumentForSave() {
+      throw new FileBridgeError("DOCUMENT_PROVIDER_MISSING", "Save-as requires a main-process document provider adapter");
     }
   },
   createHandleId = () => `file-handle-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -120,6 +151,7 @@ export function createFileBridgeController({
         throw new Error("File upload bridge requires an Electron open dialog adapter");
       }
       assertUserGestureContext(request);
+      assertNoRendererDocumentBytes(request, rendererBytesForbiddenError);
       let precheck;
       try {
         precheck = await runPermissionPrecheck({
@@ -181,6 +213,8 @@ export function createFileBridgeController({
         throw new Error("Save-as bridge requires an Electron save dialog adapter");
       }
       assertUserGestureContext(request);
+      assertNoRendererDocumentBytes(request, rendererBytesForbiddenError);
+      assertSaveDocumentProvider(documentProvider);
       let precheck;
       try {
         precheck = await runPermissionPrecheck({
@@ -221,10 +255,20 @@ export function createFileBridgeController({
         payload: { decisionId: precheck.decisionId }
       });
 
+      const documentBytes = documentBytesFromProviderResponse(
+        await documentProvider.fetchDocumentForSave({
+          actionId: "save_document_as",
+          documentId: request.documentId,
+          matterId: request.matterId,
+          tenantIdHash: request.tenantIdHash,
+          permissionDecisionId: precheck.decisionId ?? null
+        })
+      );
+
       await documentWriter.writeUserSelectedFile({
         filePath: result.filePath,
         documentId: request.documentId,
-        bytes: request.bytes
+        bytes: documentBytes
       });
 
       await recordAuditEvent({

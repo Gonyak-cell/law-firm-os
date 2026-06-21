@@ -78,3 +78,22 @@ test("choose-file-for-upload denied precheck does not open picker or return meta
   assert.equal(harness.dialog.calls.length, 0);
   assert.equal(harness.auditEvents.some((event) => event.eventName === "file_bridge.upload.permission_precheck.denied"), true);
 });
+
+test("choose-file-for-upload rejects renderer-supplied bytes before precheck or picker", async () => {
+  const harness = uploadHarness();
+
+  await assert.rejects(
+    () =>
+      harness.controller.chooseFileForUpload({
+        userGesture: true,
+        gestureToken: "gesture:click:upload",
+        matterId: "matter_123",
+        bytes: new Uint8Array([1, 2, 3])
+      }),
+    (error) => error instanceof FileBridgeError && error.code === "RENDERER_FILE_BYTES_FORBIDDEN"
+  );
+
+  assert.deepEqual(harness.order, []);
+  assert.equal(harness.permissionChecks.length, 0);
+  assert.equal(harness.dialog.calls.length, 0);
+});

@@ -23,17 +23,18 @@ function lineFindings(path, source) {
     ["recursive_scan", /\b(?:readdir|readdirSync|opendir|opendirSync)\s*\(|\bglob\s*\(|fast-glob|recursive\s*:\s*true/],
     ["arbitrary_path_read", /\b(?:readFile|readFileSync|createReadStream)\s*\(\s*(?:request|payload|params|input)?\.?(?:path|filePath|absolutePath)/],
     ["arbitrary_path_write", /\b(?:writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream)\s*\(\s*(?:request|payload|params|input)?\.?(?:path|filePath|absolutePath)/],
+    ["renderer_file_bytes", /\b(?:request|payload|params|input)\.(?:bytes|fileBytes|documentBytes|content|blob|arrayBuffer)\b/],
     ["path_retention", /\b(?:localStorage|sessionStorage|indexedDB|JSON\.stringify|writeFile|writeFileSync|appendFile|appendFileSync)\b.*(?:\bpath\b|filePath|absolutePath)/i],
     ["path_retention", /selectedHandles\.set\([^\n]*(?:\bpath\b|filePath|absolutePath)/]
   ];
 
   for (const [lineNumber, line] of source.split("\n").entries()) {
-    for (const [code, pattern] of checks.slice(0, 5)) {
+    for (const [code, pattern] of checks.slice(0, 6)) {
       if (pattern.test(line)) findings.push(`${path}:${lineNumber + 1}:${code}`);
     }
   }
 
-  for (const [code, pattern] of checks.slice(5)) {
+  for (const [code, pattern] of checks.slice(6)) {
     if (pattern.test(source)) findings.push(`${path}:source:${code}`);
   }
 
@@ -52,6 +53,9 @@ const probes = {
   recursive_scan: collectFindings([{ path: "probe-recursive-scan.js", source: "readdirSync('/Users/example', { recursive: true })" }]),
   arbitrary_path_read: collectFindings([{ path: "probe-arbitrary-read.js", source: "readFileSync(request.path)" }]),
   arbitrary_path_write: collectFindings([{ path: "probe-arbitrary-write.js", source: "writeFileSync(payload.filePath, data)" }]),
+  renderer_file_bytes: collectFindings([
+    { path: "probe-renderer-file-bytes.js", source: "documentWriter.writeUserSelectedFile({ bytes: request.bytes })" }
+  ]),
   path_retention: collectFindings([
     { path: "probe-path-retention.js", source: "localStorage.setItem('lastPath', filePath); selectedHandles.set(handleId, { filePath })" }
   ])
@@ -77,6 +81,7 @@ console.log(
         recursive_scan: "detected",
         arbitrary_path_read: "detected",
         arbitrary_path_write: "detected",
+        renderer_file_bytes: "detected",
         path_retention: "detected"
       }
     },

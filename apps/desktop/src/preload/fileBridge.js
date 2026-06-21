@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
+import { assertNoRendererDocumentBytes, pickAllowedRequestFields } from "../shared/rendererBytePolicy.js";
 
 export const PRELOAD_CHANNEL_ALLOWLIST = Object.freeze({
   chooseFileForUpload: "fileBridge:choose-file-for-upload",
@@ -6,6 +7,14 @@ export const PRELOAD_CHANNEL_ALLOWLIST = Object.freeze({
 });
 
 export const TRUSTED_GESTURE_TYPES = Object.freeze(["click", "keydown", "drop"]);
+export const CHOOSE_FILE_FOR_UPLOAD_REQUEST_FIELDS = Object.freeze(["matterId", "documentId", "tenantIdHash"]);
+export const SAVE_DOCUMENT_AS_REQUEST_FIELDS = Object.freeze([
+  "matterId",
+  "documentId",
+  "tenantIdHash",
+  "suggestedName",
+  "title"
+]);
 
 export function createGestureContext(event) {
   if (!event || event.isTrusted !== true || !TRUSTED_GESTURE_TYPES.includes(event.type)) {
@@ -24,15 +33,25 @@ function invokeAllowed(command, payload) {
   return ipcRenderer.invoke(channel, payload);
 }
 
+export function sanitizeChooseFileForUploadRequest(request = {}) {
+  assertNoRendererDocumentBytes(request);
+  return pickAllowedRequestFields(request, CHOOSE_FILE_FOR_UPLOAD_REQUEST_FIELDS);
+}
+
+export function sanitizeSaveDocumentAsRequest(request = {}) {
+  assertNoRendererDocumentBytes(request);
+  return pickAllowedRequestFields(request, SAVE_DOCUMENT_AS_REQUEST_FIELDS);
+}
+
 export const fileBridgeApi = Object.freeze({
   chooseFileForUpload: (event, request = {}) =>
     invokeAllowed("chooseFileForUpload", {
-      ...request,
+      ...sanitizeChooseFileForUploadRequest(request),
       ...createGestureContext(event)
     }),
   saveDocumentAs: (event, request = {}) =>
     invokeAllowed("saveDocumentAs", {
-      ...request,
+      ...sanitizeSaveDocumentAsRequest(request),
       ...createGestureContext(event)
     })
 });

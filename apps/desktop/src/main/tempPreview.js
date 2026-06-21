@@ -1,3 +1,5 @@
+import { assertNoRendererDocumentBytes } from "../shared/rendererBytePolicy.js";
+
 export const TEMP_PREVIEW_SCOPE = "mater-temp-preview";
 export const DEFAULT_TEMP_PREVIEW_TTL_MS = 10 * 60 * 1000;
 
@@ -39,6 +41,11 @@ export function createTempPreviewManager({
       return { allowed: false, reason: "permission_client_missing" };
     }
   },
+  documentProvider = {
+    async fetchDocumentForPreview() {
+      throw new TempPreviewError("DOCUMENT_PROVIDER_MISSING", "Temp preview requires a main-process document provider adapter");
+    }
+  },
   auditLogger = { async record() {} }
 } = {}) {
   const activePreviews = new Map();
@@ -67,6 +74,14 @@ export function createTempPreviewManager({
 
   return {
     async openTempPreview(request = {}) {
+      assertNoRendererDocumentBytes(
+        request,
+        (field) =>
+          new TempPreviewError(
+            "RENDERER_FILE_BYTES_FORBIDDEN",
+            `Renderer-supplied document bytes are forbidden on the mater file bridge: ${field}`
+          )
+      );
       const precheck = await permissionClient.precheckFileBridgeAction({
         actionId: "open_temp_preview",
         permission: "file_bridge.preview",
@@ -77,16 +92,34 @@ export function createTempPreviewManager({
       if (precheck?.allowed !== true) {
         throw new TempPreviewError("PERMISSION_DENIED", precheck?.reason ?? "Temp preview permission denied");
       }
+      if (!documentProvider || typeof documentProvider.fetchDocumentForPreview !== "function") {
+        throw new TempPreviewError("DOCUMENT_PROVIDER_MISSING", "Temp preview requires a main-process document provider adapter");
+      }
 
       const tempId = createTempId();
       const expiresAt = now() + ttlMs;
+      const providerResponse = await documentProvider.fetchDocumentForPreview({
+        actionId: "open_temp_preview",
+        documentId: request.documentId,
+        matterId: request.matterId,
+        tenantIdHash: request.tenantIdHash,
+        permissionDecisionId: precheck.decisionId ?? null
+      });
+      const documentBytes = providerResponse?.bytes ?? providerResponse;
+      if (
+        typeof documentBytes !== "string" &&
+        !(documentBytes instanceof ArrayBuffer) &&
+        !ArrayBuffer.isView(documentBytes)
+      ) {
+        throw new TempPreviewError("DOCUMENT_BYTES_MISSING", "Document provider did not return preview bytes");
+      }
       const entry = {
         tempId,
         scope: TEMP_PREVIEW_SCOPE,
         tenantIdHash: request.tenantIdHash,
         documentId: request.documentId,
         name: request.name ?? "mater-preview",
-        bytes: request.bytes,
+        bytes: documentBytes,
         expiresAt
       };
 

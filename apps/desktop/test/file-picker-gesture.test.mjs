@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { FileBridgeError, createFileBridgeController } from "../src/main/fileBridge.js";
+import { assertNoRendererDocumentBytes, pickAllowedRequestFields } from "../src/shared/rendererBytePolicy.js";
 
 function fakeDialog(filePath = "/Users/example/Documents/pleading.pdf") {
   return {
@@ -59,8 +60,25 @@ test("preload file bridge exposes only allowlisted trusted gesture command", asy
   const preloadSource = await readFile(new URL("../src/preload/fileBridge.js", import.meta.url), "utf8");
 
   assert.match(preloadSource, /PRELOAD_CHANNEL_ALLOWLIST/);
+  assert.match(preloadSource, /sanitizeChooseFileForUploadRequest/);
+  assert.match(preloadSource, /sanitizeSaveDocumentAsRequest/);
   assert.match(preloadSource, /isTrusted !== true/);
   assert.match(preloadSource, /TRUSTED_GESTURE_TYPES/);
   assert.doesNotMatch(preloadSource, /ipcRenderer\.send/);
   assert.doesNotMatch(preloadSource, /localStorage|sessionStorage|indexedDB/);
+});
+
+test("renderer byte policy blocks file bytes and keeps only allowlisted bridge fields", () => {
+  assert.throws(
+    () => assertNoRendererDocumentBytes({ documentId: "doc_123", documentBytes: new Uint8Array([1]) }),
+    /Renderer-supplied document bytes are forbidden/
+  );
+
+  assert.deepEqual(
+    pickAllowedRequestFields(
+      { documentId: "doc_123", matterId: "matter_123", ignored: "drop-me", suggestedName: "matter.pdf" },
+      ["documentId", "matterId", "suggestedName"]
+    ),
+    { documentId: "doc_123", matterId: "matter_123", suggestedName: "matter.pdf" }
+  );
 });
