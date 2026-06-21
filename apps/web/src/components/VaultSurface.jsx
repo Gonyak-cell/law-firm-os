@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FolderOpen, RefreshCw, ShieldCheck } from "lucide-react";
 import { fetchVaultDocuments } from "../data/apiClient.js";
 import { DataTable, MetricCard, PageHeader, Panel } from "./primitives.jsx";
+import { DesktopDeniedState } from "./DesktopDeniedState.jsx";
 import { DocumentDetail } from "./DocumentDetail.jsx";
 import { EmailFilingView } from "./EmailFilingView.jsx";
 import { VaultBreadcrumb } from "./VaultBreadcrumb.jsx";
@@ -44,6 +45,7 @@ export function VaultSurface({ labels, liveCtx = "allow" }) {
   }, [liveCtx, refreshToken]);
 
   const documents = result?.kind === "data" ? result.items : [];
+  const denied = result?.uiState === "denied";
   const selected = documents[0] ?? null;
   const metrics = useMemo(
     () => ({
@@ -70,12 +72,7 @@ export function VaultSurface({ labels, liveCtx = "allow" }) {
       </div>
     );
   } else if (result.uiState === "denied") {
-    body = (
-      <div className="live-data-state live-data-denied">
-        <strong>Access denied</strong>
-        The permission gate blocked this Vault request.
-      </div>
-    );
+    body = <DesktopDeniedState resource="document workspace" />;
   } else if (result.uiState === "review_required" || result.outcome === "review_required") {
     body = (
       <div className="live-data-state live-data-review">
@@ -118,11 +115,13 @@ export function VaultSurface({ labels, liveCtx = "allow" }) {
           </button>
         }
       />
-      <div className="clients-metric-grid">
-        <MetricCard label="Documents" value={metrics.documents} delta="metadata rows" tone="blue" />
-        <MetricCard label="Legal hold" value={metrics.held} delta="guarded rows" tone="purple" />
-        <MetricCard label="Safe detail" value={metrics.safe} delta="raw path hidden" tone="green" />
-      </div>
+      {!denied && (
+        <div className="clients-metric-grid">
+          <MetricCard label="Documents" value={metrics.documents} delta="metadata rows" tone="blue" />
+          <MetricCard label="Legal hold" value={metrics.held} delta="guarded rows" tone="purple" />
+          <MetricCard label="Safe detail" value={metrics.safe} delta="raw path hidden" tone="green" />
+        </div>
+      )}
       <div className="vault-runtime-grid">
         <Panel className="span-2 vault-panel" title="Matter Vault" meta="/api/vault/documents">
           {body}

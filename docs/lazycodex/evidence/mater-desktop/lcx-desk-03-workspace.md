@@ -14,7 +14,7 @@ This evidence file records P3 workspace progress only. It does not claim file br
 | TUW | Status | Evidence |
 | --- | --- | --- |
 | MDT-P3-W01-T01 | complete | `docs/desktop/mater-desktop-route-map.md` |
-| MDT-P3-W01-T02 | pending | not started |
+| MDT-P3-W01-T02 | complete | `apps/web/src/components/DesktopDeniedState.jsx`, `VaultSurface.jsx`, `MattersSurface.jsx` |
 | MDT-P3-W01-T03 | pending | terminal not reached |
 | MDT-P3-W02-T01 | pending | not started |
 | MDT-P3-W02-T02 | pending | not started |
@@ -48,3 +48,40 @@ Act:
 
 - `MDT-P3-W01-T01` is complete.
 - Next TUW is `MDT-P3-W01-T02`.
+
+## MDT-P3-W01-T02 - Implement Denied-State Adapter
+
+Plan:
+
+- Add a shared desktop denied state.
+- Use it in Matter and Vault denied paths.
+- Hide metric grids on denied Matter/Vault responses so row counts and metadata are not displayed.
+
+Do:
+
+- Added `apps/web/src/components/DesktopDeniedState.jsx`.
+- Updated `apps/web/src/components/VaultSurface.jsx`.
+- Updated `apps/web/src/components/MattersSurface.jsx`.
+
+Check:
+
+```bash
+npm --workspace apps/web run test:ui
+git diff --check -- apps/web/src/components/DesktopDeniedState.jsx apps/web/src/components/VaultSurface.jsx apps/web/src/components/MattersSurface.jsx docs/lazycodex/evidence/mater-desktop/lcx-desk-03-workspace.md
+```
+
+Results:
+
+- UI tests passed.
+- Matter and Vault denied states use `DesktopDeniedState`.
+- Matter and Vault metric grids are not rendered when `result.uiState === "denied"`.
+- `git diff --check` passed.
+
+Permission/audit impact:
+
+- UI reflects backend denial without leaking hidden metadata.
+
+Act:
+
+- `MDT-P3-W01-T02` is complete.
+- Next TUW is `MDT-P3-W01-T03`.
