@@ -18,7 +18,7 @@ This evidence file records P7 pilot closeout progress only. It does not claim ow
 | MDT-P7-W01-T03 | complete | `docs/lazycodex/evidence/mater-desktop/pilot-native-capabilities.md` |
 | MDT-P7-W01-T04 | complete | `docs/lazycodex/evidence/mater-desktop/pilot-security-audit.md` |
 | MDT-P7-W02-T01 | complete | `docs/desktop/mater-desktop-pilot-risk-adjudication.md` |
-| MDT-P7-W02-T02 | pending | not started |
+| MDT-P7-W02-T02 | complete | `docs/desktop/mater-desktop-owner-decision-packet.md` |
 | MDT-P7-W02-T03 | pending | not started |
 | MDT-P7-W02-T04 | pending | not started |
 | MDT-P7-W02-T05 | pending | phase terminal not reached |
@@ -182,3 +182,32 @@ Act:
 
 - `MDT-P7-W02-T01` is complete.
 - Next TUW is `MDT-P7-W02-T02`.
+
+## MDT-P7-W02-T02 - Prepare Owner Decision Packet
+
+Plan:
+
+- Separate repo-ready, pilot-ready, production-ready, public-release, and owner-approved states.
+- Keep owner approval false without explicit receipt.
+
+Do:
+
+- Added `docs/desktop/mater-desktop-owner-decision-packet.md`.
+
+Check:
+
+```bash
+rg -n "repo-ready|pilot-ready|production-ready|public-release|owner-approved" docs/desktop/mater-desktop-owner-decision-packet.md
+git diff --check -- docs/desktop/mater-desktop-owner-decision-packet.md docs/lazycodex/evidence/mater-desktop/lcx-desk-07-pilot-closeout.md
+```
+
+Results:
+
+- Owner packet grep passed.
+- Packet separates repo-ready, pilot-ready, production-ready, public-release, and owner-approved states.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P7-W02-T02` is complete.
+- Next TUW is `MDT-P7-W02-T03`.
