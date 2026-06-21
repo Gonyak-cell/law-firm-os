@@ -17,6 +17,7 @@
     "docs/runtime-spine/runtime-spine-decisions.json",
     "docs/runtime-spine/runtime-spine-ledger.json",
     "docs/runtime-spine/evidence/g1-persistence-evidence.json",
+    "docs/runtime-spine/evidence/g2-trust-boundary-evidence.json",
     "docs/runtime-spine/qa-checklist.md",
     "docs/runtime-spine/rollback-migration-notes.md"
   ],
@@ -26,6 +27,7 @@
     "npm run runtime-spine:rs1:persistence:validate",
     "npm run runtime-spine:rs1:tenant-data:validate",
     "npm run runtime-spine:rs1:persistence-ready:validate",
+    "npm run runtime-spine:rs2:trust-boundary:validate",
     "npm run runtime-readiness:contract:validate",
     "npm run runtime-readiness:validate",
     "npm run client-matter:cmp-v1:validate",
@@ -207,6 +209,69 @@
       }
     }
   },
+  "latest_rs2_validation": {
+    "status": "passed",
+    "recorded_after_commands": true,
+    "date": "2026-06-21",
+    "summary": {
+      "scope": "RS-2 Trust Boundary Ready Candidate",
+      "closed_tuws": [
+        "RS-2-T01",
+        "RS-2-T02",
+        "RS-2-T03",
+        "RS-2-T04",
+        "RS-2-T05",
+        "RS-2-T06",
+        "RS-2-T07",
+        "RS-2-T08",
+        "RS-2-T09",
+        "RS-2-T10",
+        "RS-2-T11",
+        "RS-2-T12",
+        "RS-2-T13",
+        "RS-2-T14",
+        "RS-2-T15"
+      ],
+      "g2_status": "ready_candidate",
+      "server_derived_principal": true,
+      "caller_supplied_trust_rejected": true,
+      "provider_boundary": "local synthetic provider only; OIDC/SAML descriptor interface only",
+      "break_glass": "locked before owner gate",
+      "auth_audit": "tenant-scoped synthetic outbox hook",
+      "runtime_ready_candidate": false,
+      "actual_launch_go_live_claim": false,
+      "commands": [
+        "npm --workspace @law-firm-os/runtime-auth run test",
+        "npm run runtime-spine:rs2:trust-boundary:validate",
+        "npm run runtime-spine:rs1:persistence-ready:validate",
+        "npm run runtime-spine:plan:validate",
+        "npm run runtime-spine:readiness:validate",
+        "npm run runtime-readiness:validate",
+        "npm run client-matter:cmp-v1:validate",
+        "npm run matter-vault:r4:validate",
+        "npm run hrx:runtime:validate",
+        "npm run validate",
+        "npm run api:test",
+        "npm run build",
+        "npm test"
+      ],
+      "results": {
+        "runtime_auth_package_test": "passed; 11/11",
+        "rs2_trust_boundary_validator": "passed",
+        "rs1_persistence_ready_validator": "passed",
+        "runtime_spine_plan": "passed; gates=7; tuws=124",
+        "runtime_spine_readiness_guard": "passed; total_closed_tuws=36; rs1_closed_tuws=14; premature_closed_tuws=0; next_gate=G3",
+        "runtime_readiness": "passed; runtime_target_packs=0",
+        "client_matter_cmp_v1": "passed; tuws=316; gates=13; claim_boundary=not_r4_ready",
+        "matter_vault_r4": "passed; tuws=118; gates=9; launch_go_live_claim=false",
+        "hrx_runtime": "passed",
+        "root_validate": "passed",
+        "api_test": "passed; 131/131",
+        "build": "passed",
+        "root_test": "passed; 4025/4025"
+      }
+    }
+  },
   "future_evidence_slots": [
     {
       "gate": "G1",
@@ -216,7 +281,8 @@
     {
       "gate": "G2",
       "required_ref": "docs/runtime-spine/evidence/g2-authz-evidence.json",
-      "status": "planned"
+      "status": "ready_candidate",
+      "actual_ref": "docs/runtime-spine/evidence/g2-trust-boundary-evidence.json"
     },
     {
       "gate": "G3",
