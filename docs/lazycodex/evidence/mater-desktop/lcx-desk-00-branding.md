@@ -1,6 +1,6 @@
 # LCX-DESK-00 Branding Evidence
 
-Status: in_progress
+Status: P0_complete
 Branch: `codex/mater-desktop-69-tuw-implementation`
 Scope: P0 branding and guardrails
 Source ledger: `docs/desktop/mater-desktop-loop-tuw-ledger.json`
@@ -23,7 +23,7 @@ This evidence file records P0 progress only. It does not claim desktop shell imp
 | MDT-P0-W02-T02 | complete | `apps/web/src/components/MaterSplash.jsx`, `apps/web/src/styles.css` |
 | MDT-P0-W02-T03 | complete | `apps/web/src/components/Shell.jsx`, `apps/web/src/components/AuthSurface.jsx` |
 | MDT-P0-W02-T04 | complete | `apps/web/test/ui-regression.test.mjs` |
-| MDT-P0-W02-T05 | pending | phase terminal not reached |
+| MDT-P0-W02-T05 | complete | P0 terminal closure recorded here |
 
 ## MDT-P0-W01-T01 - Audit Current Desktop and Branding Truth
 
@@ -382,3 +382,50 @@ Act:
 
 - `MDT-P0-W02-T04` is complete.
 - Next TUW is `MDT-P0-W02-T05`, the P0 terminal TUW.
+
+## MDT-P0-W02-T05 - Close Branding Phase Evidence
+
+Plan:
+
+- Close P0 only at the phase terminal TUW.
+- Re-run branding validator, loop ledger validator, web build, and UI regression.
+- Mark desktop shell, auth/session implementation, and file bridge as not implemented in P0.
+
+Do:
+
+- Reviewed `MDT-P0-W01` and `MDT-P0-W02` evidence in this file.
+- Confirmed P0 produced branding rules, brand constants, mater logo derivatives, reusable splash component, startup integration, UI regression coverage, and guardrail validators.
+- Confirmed `apps/desktop` remains absent before P1.
+
+Check:
+
+```bash
+node scripts/validate-mater-branding.mjs
+node scripts/validate-mater-desktop-loop-tuw-plan.mjs
+npm --workspace apps/web run build && npm --workspace apps/web run test:ui
+test ! -d apps/desktop
+git diff --check
+```
+
+Results:
+
+- Branding validator passed with `planned_product_brand_changes: 0` and `unclassified_user_facing_misuse: 0`.
+- Loop TUW ledger validator passed with `phase_count: 8`, `work_package_count: 16`, and `tuw_count: 69`.
+- Web build passed: `1679 modules transformed`, built in `672ms`.
+- UI regression passed: `17` tests, `17` pass, `0` fail.
+- `apps/desktop` absence check passed.
+- `git diff --check` passed.
+- Blockers: none for P0 branding.
+
+P0 not implemented:
+
+- desktop shell is not implemented in P0.
+- auth/session storage is not implemented in P0.
+- file bridge is not implemented in P0.
+- signed packaging is not implemented in P0.
+- production go-live, public release, and owner approval remain false because no explicit receipt was recorded in this TUW.
+
+Act:
+
+- P0 is closed at its terminal TUW, `MDT-P0-W02-T05`.
+- Next ledger TUW is `MDT-P1-W01-T01`.
