@@ -19,7 +19,7 @@ This evidence file records P4 file bridge progress only. It does not claim produ
 | MDT-P4-W01-T04 | complete | `scripts/validate-mater-desktop-file-bridge.mjs` |
 | MDT-P4-W02-T01 | complete | `apps/desktop/src/main/fileBridge.js`, `apps/desktop/test/file-upload-bridge.test.mjs` |
 | MDT-P4-W02-T02 | complete | `apps/desktop/src/main/fileBridge.js`, `apps/desktop/test/file-save-as.test.mjs` |
-| MDT-P4-W02-T03 | pending | not started |
+| MDT-P4-W02-T03 | complete | `apps/desktop/src/main/tempPreview.js`, `apps/desktop/test/temp-preview-cleanup.test.mjs` |
 | MDT-P4-W02-T04 | pending | not started |
 | MDT-P4-W02-T05 | pending | phase terminal not reached |
 
@@ -224,3 +224,37 @@ Act:
 
 - `MDT-P4-W02-T02` is complete.
 - Next TUW is `MDT-P4-W02-T03`.
+
+## MDT-P4-W02-T03 - Implement Temp Preview and Cache Wipe
+
+Plan:
+
+- Add scoped temp preview manager with backend permission precheck.
+- Make temp previews time-bounded.
+- Remove temp preview files on logout, tenant switch, and app quit.
+
+Do:
+
+- Added `apps/desktop/src/main/tempPreview.js`.
+- Added `apps/desktop/test/temp-preview-cleanup.test.mjs`.
+
+Check:
+
+```bash
+node apps/desktop/test/temp-preview-cleanup.test.mjs
+node scripts/validate-mater-desktop-file-bridge.mjs
+git diff --check -- apps/desktop/src/main/tempPreview.js apps/desktop/test/temp-preview-cleanup.test.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-04-file-bridge.md
+```
+
+Results:
+
+- Temp preview cleanup tests passed.
+- Scoped previews are time-bounded.
+- Logout, tenant switch, and app quit remove temp preview cache.
+- File bridge static validator passed.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P4-W02-T03` is complete.
+- Next TUW is `MDT-P4-W02-T04`.
