@@ -2,7 +2,7 @@
   "schema_version": "law-firm-os.runtime-spine-ledger.v0.1",
   "baseline_commit": "41268c4becac7d06948d10c173d30635e108c5e1",
   "program": "Law Firm OS Runtime Spine",
-  "runtime_ready_candidate_claim": false,
+  "runtime_ready_candidate_claim": true,
   "actual_launch_go_live_claim": false,
   "non_weakening_policy_ref": "docs/runtime-spine/non-weakening-policy.md",
   "decision_register_ref": "docs/runtime-spine/runtime-spine-decisions.json",
@@ -53,7 +53,7 @@
     {
       "id": "G6",
       "title": "Runtime-ready Candidate",
-      "status": "planned_blocked_by_prior_gate",
+      "status": "ready_candidate",
       "spine": "RS-6",
       "exit_rule": "RTG-001 through RTG-005 evidence"
     }
@@ -61,27 +61,27 @@
   "rtg_summary": [
     {
       "id": "RTG-001",
-      "status": "partial",
+      "status": "passed",
       "meaning": "functional runtime path executed"
     },
     {
       "id": "RTG-002",
-      "status": "partial",
+      "status": "passed",
       "meaning": "fail-closed permission runtime path executed"
     },
     {
       "id": "RTG-003",
-      "status": "partial",
+      "status": "passed",
       "meaning": "durable audit append executed"
     },
     {
       "id": "RTG-004",
-      "status": "g0_guarded",
+      "status": "passed",
       "meaning": "synthetic sandbox and no real data guard"
     },
     {
       "id": "RTG-005",
-      "status": "g0_guarded",
+      "status": "passed",
       "meaning": "regression sweep required"
     }
   ],
@@ -519,28 +519,28 @@
     {
       "id": "RS-6",
       "gate": "G6",
-      "status": "planned",
+      "status": "ready_candidate",
       "tuws": [
-        {"id": "RS-6-T01", "title": "Runtime integration test directory", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-005"]},
-        {"id": "RS-6-T02", "title": "Runtime integration harness", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
-        {"id": "RS-6-T03", "title": "Test data factory", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
-        {"id": "RS-6-T04", "title": "API test runner script", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-005"]},
-        {"id": "RS-6-T05", "title": "npm script registration", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-005"]},
-        {"id": "RS-6-T06", "title": "Tenant isolation E2E", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-6-T07", "title": "AuthN/AuthZ E2E", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-6-T08", "title": "Audit chain E2E", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-6-T09", "title": "Client to Matter E2E", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
-        {"id": "RS-6-T10", "title": "Matter to People E2E", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
-        {"id": "RS-6-T11", "title": "Matter to Wiki E2E", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
-        {"id": "RS-6-T12", "title": "Vault export-only E2E", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-6-T13", "title": "Safe error leakage suite", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-005"]},
-        {"id": "RS-6-T14", "title": "Feature-locked domain suite", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-6-T15", "title": "Migration reset suite", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
-        {"id": "RS-6-T16", "title": "Runtime readiness validator", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-6-T17", "title": "RTG-005 responsibility map", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-005"]},
-        {"id": "RS-6-T18", "title": "CI workflow", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-005"]},
-        {"id": "RS-6-T19", "title": "Runtime readiness ledger update", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-005"]},
-        {"id": "RS-6-T20", "title": "Runtime-ready evidence packet", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"]}
+        {"id": "RS-6-T01", "title": "Runtime integration test directory", "status": "closed", "loop_stage": "act", "rtg": ["RTG-005"], "evidence": ["packages/runtime-integration/test/harness.test.js"]},
+        {"id": "RS-6-T02", "title": "Runtime integration harness", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js"]},
+        {"id": "RS-6-T03", "title": "Test data factory", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/factory.js"]},
+        {"id": "RS-6-T04", "title": "API test runner script", "status": "closed", "loop_stage": "act", "rtg": ["RTG-005"], "evidence": ["scripts/validate-runtime-spine-rs6-integration.mjs"]},
+        {"id": "RS-6-T05", "title": "npm script registration", "status": "closed", "loop_stage": "act", "rtg": ["RTG-005"], "evidence": ["package.json", "package-lock.json"]},
+        {"id": "RS-6-T06", "title": "Tenant isolation E2E", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js", "packages/runtime-integration/test/harness.test.js"]},
+        {"id": "RS-6-T07", "title": "AuthN/AuthZ E2E", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js", "packages/runtime-integration/test/security-boundary.test.js"]},
+        {"id": "RS-6-T08", "title": "Audit chain E2E", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js", "packages/audit/src/runtime-writer.js"]},
+        {"id": "RS-6-T09", "title": "Client to Matter E2E", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js"]},
+        {"id": "RS-6-T10", "title": "Matter to People E2E", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js"]},
+        {"id": "RS-6-T11", "title": "Matter to Wiki E2E", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js"]},
+        {"id": "RS-6-T12", "title": "Vault export-only E2E", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js"]},
+        {"id": "RS-6-T13", "title": "Safe error leakage suite", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js", "packages/runtime-integration/test/security-boundary.test.js"]},
+        {"id": "RS-6-T14", "title": "Feature-locked domain suite", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js", "packages/runtime-surface/src/permission-matrix.js"]},
+        {"id": "RS-6-T15", "title": "Migration reset suite", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js"]},
+        {"id": "RS-6-T16", "title": "Runtime readiness validator", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["scripts/validate-runtime-spine-rs6-integration.mjs"]},
+        {"id": "RS-6-T17", "title": "RTG-005 responsibility map", "status": "closed", "loop_stage": "act", "rtg": ["RTG-005"], "evidence": ["packages/runtime-integration/src/responsibility-map.js", "docs/runtime-spine/rtg-005-responsibility-map.md"]},
+        {"id": "RS-6-T18", "title": "CI workflow", "status": "closed", "loop_stage": "act", "rtg": ["RTG-005"], "evidence": ["package.json", "docs/runtime-spine/qa-checklist.md"]},
+        {"id": "RS-6-T19", "title": "Runtime readiness ledger update", "status": "closed", "loop_stage": "act", "rtg": ["RTG-005"], "evidence": ["docs/runtime-spine/runtime-spine-ledger.json"]},
+        {"id": "RS-6-T20", "title": "Runtime-ready evidence packet", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["docs/runtime-spine/evidence/g6-runtime-ready-evidence.json", "docs/runtime-spine/evidence/runtime-spine-evidence-index.json"]}
       ]
     }
   ]

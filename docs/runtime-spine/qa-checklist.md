@@ -112,17 +112,44 @@ Date: 2026-06-21
 | API/UI smoke flow records synthetic audit events | closed |
 | Runtime-ready and actual launch/go-live claims remain false | closed |
 
+## G6 Checklist
+
+| Item | Status |
+| --- | --- |
+| Runtime integration package exists | closed |
+| Tenant isolation E2E passes without cross-tenant data leakage | closed |
+| Server-derived AuthN/AuthZ path fails closed for missing context and caller-supplied trust | closed |
+| Audit chain E2E verifies read/write/export/permission append coverage | closed |
+| Client to Matter, Matter to People, Matter to Wiki, and Vault export-only flows execute | closed |
+| Safe error suite prevents denied count, raw path, token, and secret leakage | closed |
+| Portal, M365, HR real data, AI, and Vault sync remain locked/export-only | closed |
+| Migration reset suite proves synthetic state does not carry across harness reset | closed |
+| RTG-005 responsibility map exists | closed |
+| Repo runtime-ready candidate is true; production-ready and actual launch/go-live remain false | closed |
+
 ## Regression Commands
 
-G0 uses the following minimum regression sweep:
+G6 uses the following repo runtime-ready candidate regression sweep:
 
 ```bash
+npm --workspace @law-firm-os/runtime-integration run test
+npm run runtime-spine:rs6:integration:validate
+npm run runtime-spine:rs5:app-surface:validate
+npm run runtime-spine:rs4:canonical-model:validate
+npm run runtime-spine:rs3:audit:validate
+npm run runtime-spine:rs2:trust-boundary:validate
+npm run runtime-spine:rs1:persistence-ready:validate
 npm run runtime-spine:plan:validate
 npm run runtime-spine:readiness:validate
 npm run runtime-readiness:contract:validate
 npm run runtime-readiness:validate
 npm run client-matter:cmp-v1:validate
 npm run matter-vault:r4:validate
+npm run hrx:runtime:validate
+npm run validate
+npm run api:test
+npm run build
+npm test
 ```
 
-Broader gates add API, web, build, root test, and domain-specific validators as runtime code opens.
+This sweep supports repo runtime-ready candidate evidence only. It does not replace external production smoke, production migration operator receipt, or owner launch approval.

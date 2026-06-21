@@ -111,6 +111,17 @@ RS-5 adds a synthetic-only app runtime surface package:
 
 Rollback is a normal Git revert of the RS-5 PR. It does not deploy production API routes, mutate real tenant data, unlock Portal/M365/AI/Vault sync, or approve runtime-ready/launch status.
 
+## RS-6 Runtime-ready Candidate
+
+RS-6 adds a synthetic-only runtime integration harness package:
+
+- package: `@law-firm-os/runtime-integration`
+- harness: tenant isolation, AuthN/AuthZ fail-closed, audit chain, Client-Matter-People-Wiki, Vault export-only, safe error, feature lock, and reset suites
+- evidence: `docs/runtime-spine/evidence/g6-runtime-ready-evidence.json`
+- responsibility map: `docs/runtime-spine/rtg-005-responsibility-map.md`
+
+Rollback is a normal Git revert of the RS-6 PR. It removes repo-side runtime-ready candidate evidence and returns G6 to planned state. It does not touch production data, deploy production routes, unlock Portal/M365/HR real data/AI/Vault sync, or claim actual launch/go-live.
+
 ## Future Evidence Required
 
 Runtime migration PRs must record:
