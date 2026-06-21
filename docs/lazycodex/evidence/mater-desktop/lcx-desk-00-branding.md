@@ -14,7 +14,7 @@ This evidence file records P0 progress only. It does not claim desktop shell imp
 | TUW | Status | Evidence |
 | --- | --- | --- |
 | MDT-P0-W01-T01 | complete | `docs/desktop/mater-desktop-current-state-audit.md` |
-| MDT-P0-W01-T02 | pending | not started |
+| MDT-P0-W01-T02 | complete | `docs/launch/mater-naming-rules.md` |
 | MDT-P0-W01-T03 | pending | not started |
 | MDT-P0-W01-T04 | pending | not started |
 | MDT-P0-W01-T05 | pending | not started |
@@ -66,3 +66,34 @@ Act:
 - `MDT-P0-W01-T01` is complete.
 - Next TUW is `MDT-P0-W01-T02`.
 
+## MDT-P0-W01-T02 - Record mater Naming Rules
+
+Plan:
+
+- Add a new `mater` naming rule document without overwriting the historical `matter` naming record.
+- Preserve machine, package, validator, ledger, and historical evidence identifiers.
+- Make P0 forbidden scope explicit.
+
+Do:
+
+- Added `docs/launch/mater-naming-rules.md`.
+
+Check:
+
+```bash
+rg -n "Product brand|mater|Machine identifier|law-firm-os" docs/launch/mater-naming-rules.md
+git diff --check -- docs/launch/mater-naming-rules.md
+```
+
+Results:
+
+- `Product brand | mater` is present.
+- `UI brand | mater by AMIC` is present.
+- `Machine identifier | law-firm-os` is present.
+- Preserved identifier list includes `Law Firm OS`, `law-firm-os`, `@law-firm-os/*`, `packages/matter`, and `matter_id`.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P0-W01-T02` is complete.
+- Next TUW is `MDT-P0-W01-T03`.
