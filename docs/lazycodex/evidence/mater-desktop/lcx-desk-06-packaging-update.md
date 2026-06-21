@@ -18,7 +18,7 @@ This evidence file records P6 packaging and update progress only. It does not cl
 | MDT-P6-W01-T03 | complete | `docs/lazycodex/evidence/mater-desktop/artifacts/macos-build.md`, `scripts/build-mater-desktop-mac.mjs` |
 | MDT-P6-W01-T04 | complete | `docs/lazycodex/evidence/mater-desktop/artifacts/windows-build.md`, `scripts/build-mater-desktop-win.mjs` |
 | MDT-P6-W02-T01 | complete | `docs/desktop/mater-desktop-update-policy.md` |
-| MDT-P6-W02-T02 | pending | not started |
+| MDT-P6-W02-T02 | complete | `apps/desktop/src/main/updates.js`, `apps/desktop/test/update-rollback.test.mjs` |
 | MDT-P6-W02-T03 | pending | not started |
 | MDT-P6-W02-T04 | pending | phase terminal not reached |
 
@@ -179,3 +179,36 @@ Act:
 
 - `MDT-P6-W02-T01` is complete.
 - Next TUW is `MDT-P6-W02-T02`.
+
+## MDT-P6-W02-T02 - Smoke Signed Update and Rollback
+
+Plan:
+
+- Add internal signed update metadata verification.
+- Add rollback to the last verified internal version.
+- Keep public update channel disabled.
+
+Do:
+
+- Added `apps/desktop/src/main/updates.js`.
+- Added `apps/desktop/test/update-rollback.test.mjs`.
+- Added `test:update` script to `apps/desktop/package.json`.
+
+Check:
+
+```bash
+npm --workspace apps/desktop run test:update
+git diff --check -- apps/desktop/src/main/updates.js apps/desktop/test/update-rollback.test.mjs apps/desktop/package.json docs/lazycodex/evidence/mater-desktop/lcx-desk-06-packaging-update.md
+```
+
+Results:
+
+- Update rollback tests passed.
+- Signature check and rollback path are covered.
+- Public update channel remains disabled.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P6-W02-T02` is complete.
+- Next TUW is `MDT-P6-W02-T03`.
