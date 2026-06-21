@@ -67,7 +67,7 @@ production cutover, and it does not close LT terminal packets.
 | --- | --- | --- |
 | LCX7-RI-05 | real_external_receipt_received | `docs/launch/launch-external-receipt-ledger.md` |
 | LCX7-RI-06 | real_external_receipt_received | `docs/launch/launch-external-receipt-ledger.md` |
-| LCX7-RI-07 | pending_external_receipt | `docs/launch/launch-external-receipt-ledger.md` |
+| LCX7-RI-07 | real_external_receipt_received | `docs/launch/launch-external-receipt-ledger.md` |
 | LCX7-RI-08 | pending_external_receipt | `docs/launch/launch-external-receipt-ledger.md` |
 | LCX7-RI-09 | pending_external_receipt | `docs/launch/launch-external-receipt-ledger.md` |
 | LCX7-RI-10 | pending_external_receipt | `docs/launch/launch-external-receipt-ledger.md` |

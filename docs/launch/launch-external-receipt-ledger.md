@@ -1,7 +1,7 @@
 # Launch External Receipt Ledger
 
 Status: blocked_pending_remaining_owner_external_receipts
-Generated at: 2026-06-21T09:28:00Z
+Generated at: 2026-06-21T09:49:00Z
 
 ## Boundary
 
@@ -17,12 +17,13 @@ Generated at: 2026-06-21T09:28:00Z
 ## Summary
 
 - external_receipt_lane_count: 8
-- real_external_receipt_count: 2
-- approved_external_receipt_count: 2
+- real_external_receipt_count: 3
+- approved_external_receipt_count: 3
 - deferred_external_receipt_count: 0
-- pending_external_receipt_count: 6
+- pending_external_receipt_count: 5
 - lcx7_ri_05_receipt_recorded: true
 - lcx7_ri_06_receipt_recorded: true
+- lcx7_ri_07_receipt_recorded: true
 - all_external_receipts_received: false
 - launch_blockers_still_in_force: LT-L2-W01, LT-L2-W02, LT-L2-W03, LT-L2-W07
 
@@ -32,7 +33,7 @@ Generated at: 2026-06-21T09:28:00Z
 | --- | --- | --- | --- | --- | --- | --- |
 | LCX7-RI-05 | LCX6-UP-01 | Production persistence | real_external_receipt_received | approved | email:lawos-production-persistence-approval-2026-06-21 | receipt_recorded_pending_lt_packet_validation |
 | LCX7-RI-06 | LCX6-UP-02 | Trust boundary and identity | real_external_receipt_received | approved | email:lawos-trust-boundary-identity-approval-2026-06-21 | receipt_recorded_pending_lt_packet_validation |
-| LCX7-RI-07 | LCX6-UP-03 | Write path and audit | pending_external_receipt |  |  |  |
+| LCX7-RI-07 | LCX6-UP-03 | Write path and audit | real_external_receipt_received | approved | email:lawos-write-path-audit-approval-2026-06-21 | receipt_recorded_pending_lt_packet_validation |
 | LCX7-RI-08 | LCX6-UP-04 | Runtime integration and launch evidence | pending_external_receipt |  |  |  |
 | LCX7-RI-09 | LCX6-UP-05 | M365/Graph | pending_external_receipt |  |  |  |
 | LCX7-RI-10 | LCX6-UP-05 | HR real data | pending_external_receipt |  |  |  |
@@ -67,18 +68,34 @@ Generated at: 2026-06-21T09:28:00Z
 | received_at_original | 2026-06-21T 18:28:00+09:00 |
 | recorded_by_human | JWS |
 
+## LCX7-RI-07 Recorded Receipt
+
+| Field | Value |
+| --- | --- |
+| decision_id | LCX7-RI-07-WRITE-PATH-AUDIT |
+| owner | Architecture Owner / Security Owner / Product Owner |
+| decision | approved |
+| basis | Production-equivalent write path, approved Wave 1 write API/event surface, unit-of-work proof for domain write plus audit append, idempotency/replay prevention, durable event outbox, permission-before-write, classification-before-share, rollback/fault-injection behavior, and audit chain verification over the approved persistent audit store are approved for LCX7-RI-07. This approval is intended to unblock LT-L2-W03 and downstream LT-L2-W07 launch closure validation. |
+| date_or_revisit_gate | 2026-06-21 |
+| approval_signature_ref | email:lawos-write-path-audit-approval-2026-06-21 |
+| received_at | 2026-06-21T09:49:00Z |
+| received_at_original | 2026-06-21T18:49:00+09:00 |
+| recorded_by_human | JWS |
+
 ## Post-Receipt Verification
 
 - `npm run runtime-spine:rs1:persistence:validate`
 - `npm run runtime-spine:rs1:tenant-data:validate`
 - `npm run runtime-spine:rs2:trust-boundary:validate`
+- `npm run runtime-spine:rs3:audit:validate`
+- `npm run runtime-spine:rs5:app-surface:validate`
 - `npm run runtime-spine:readiness:validate`
 - Future staging store smoke and restore rehearsal receipts.
 - Future SSO/MFA E2E and User-to-Employee mapping reconciliation receipts.
+- Future staging write-path smoke receipts.
 
 ## Remaining External Receipts
 
-- LCX7-RI-07 Write path and audit.
 - LCX7-RI-08 Runtime integration and launch evidence.
 - LCX7-RI-09 M365/Graph.
 - LCX7-RI-10 HR real data.
