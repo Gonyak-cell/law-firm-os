@@ -1,0 +1,77 @@
+{
+  "schema": "law-firm-os.desktop.file-bridge-contract.v0.1",
+  "product": "mater",
+  "status": "contract_active",
+  "allowed_actions": [
+    {
+      "id": "choose_file_for_upload",
+      "direction": "upload",
+      "requires_user_gesture": true,
+      "requires_native_picker": true,
+      "requires_backend_permission_precheck": true,
+      "requires_audit_event": true,
+      "may_read_user_selected_file": true,
+      "may_write_user_selected_path": false,
+      "may_scan_directory": false,
+      "may_retain_absolute_path": false
+    },
+    {
+      "id": "save_document_as",
+      "direction": "download",
+      "requires_user_gesture": true,
+      "requires_native_picker": true,
+      "requires_backend_permission_precheck": true,
+      "requires_audit_event": true,
+      "may_read_user_selected_file": false,
+      "may_write_user_selected_path": true,
+      "may_scan_directory": false,
+      "may_retain_absolute_path": false
+    },
+    {
+      "id": "open_temp_preview",
+      "direction": "preview",
+      "requires_user_gesture": true,
+      "requires_native_picker": false,
+      "requires_backend_permission_precheck": true,
+      "requires_audit_event": true,
+      "may_read_user_selected_file": false,
+      "may_write_user_selected_path": false,
+      "may_scan_directory": false,
+      "may_retain_absolute_path": false
+    },
+    {
+      "id": "clear_temp_cache",
+      "direction": "cleanup",
+      "requires_user_gesture": false,
+      "requires_native_picker": false,
+      "requires_backend_permission_precheck": false,
+      "requires_audit_event": true,
+      "may_read_user_selected_file": false,
+      "may_write_user_selected_path": false,
+      "may_scan_directory": false,
+      "may_retain_absolute_path": false
+    }
+  ],
+  "forbidden_actions": [
+    "directory_watch",
+    "recursive_scan",
+    "arbitrary_path_read",
+    "arbitrary_path_write",
+    "silent_upload",
+    "silent_download",
+    "path_retention",
+    "default_path_write"
+  ],
+  "renderer_policy": {
+    "raw_absolute_path_visible_to_renderer": false,
+    "file_bytes_visible_to_renderer": false,
+    "bridge_invokes_allowlist_required": true,
+    "renderer_can_register_file_watchers": false
+  },
+  "non_claims": {
+    "implementation_complete": false,
+    "production_file_bridge_ready": false,
+    "public_release_ready": false,
+    "owner_approval_recorded": false
+  }
+}
