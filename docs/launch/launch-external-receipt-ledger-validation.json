@@ -8,12 +8,11 @@
   "verdict": "PASS",
   "summary": {
     "external_receipt_lane_count": 8,
-    "real_external_receipt_count": 1,
-    "approved_external_receipt_count": 1,
+    "real_external_receipt_count": 2,
+    "approved_external_receipt_count": 2,
     "deferred_external_receipt_count": 0,
-    "pending_external_receipt_count": 7,
+    "pending_external_receipt_count": 6,
     "remaining_queue_ids": [
-      "LCX7-RI-06",
       "LCX7-RI-07",
       "LCX7-RI-08",
       "LCX7-RI-09",
