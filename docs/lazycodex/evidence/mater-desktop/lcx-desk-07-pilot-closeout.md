@@ -1,6 +1,6 @@
 # LCX-DESK-07 Pilot Closeout Evidence
 
-Status: in_progress
+Status: P7_complete
 Branch: `codex/mater-desktop-69-tuw-implementation`
 Scope: P7 pilot QA, risk adjudication, owner packet, final evidence index, and no-public-release guard
 Source ledger: `docs/desktop/mater-desktop-loop-tuw-ledger.json`
@@ -21,7 +21,7 @@ This evidence file records P7 pilot closeout progress only. It does not claim ow
 | MDT-P7-W02-T02 | complete | `docs/desktop/mater-desktop-owner-decision-packet.md` |
 | MDT-P7-W02-T03 | complete | `docs/lazycodex/evidence/mater-desktop/index.md` |
 | MDT-P7-W02-T04 | complete | `scripts/validate-mater-desktop-no-public-release-claim.mjs` |
-| MDT-P7-W02-T05 | pending | phase terminal not reached |
+| MDT-P7-W02-T05 | complete | P7 terminal closure recorded in this file |
 
 ## MDT-P7-W01-T01 - Run Pilot QA Checklist
 
@@ -270,3 +270,43 @@ Act:
 
 - `MDT-P7-W02-T04` is complete.
 - Next TUW is `MDT-P7-W02-T05`, the P7 terminal TUW.
+
+## MDT-P7-W02-T05 - Close Pilot Evidence and Go/No-Go Boundary
+
+Plan:
+
+- Close P7 only after every P7 TUW verification has passed in ledger order.
+- Record final status, owner decision state, residual risks, and explicit non-claims.
+- Keep production go-live, public release, and owner approval false without receipts.
+
+Do:
+
+- Updated this LCX-DESK-07 evidence file as the P7 terminal closeout.
+
+Check:
+
+```bash
+node scripts/validate-mater-desktop-loop-tuw-plan.mjs
+node scripts/validate-mater-branding.mjs
+node scripts/validate-mater-desktop-security.mjs
+node scripts/validate-mater-desktop-file-bridge.mjs
+node scripts/validate-mater-desktop-notification-copy.mjs
+node scripts/validate-mater-desktop-no-public-release-claim.mjs
+npm --workspace apps/web run build && npm --workspace apps/web run test:ui
+npm --workspace apps/desktop run test:smoke
+rg -n "MDT-P7|owner decision|residual risks|non-claims" docs/lazycodex/evidence/mater-desktop/lcx-desk-07-pilot-closeout.md
+git diff --check -- docs/lazycodex/evidence/mater-desktop/lcx-desk-07-pilot-closeout.md
+```
+
+Results:
+
+- Final status: repo-ready branch evidence is complete through all 69 TUWs.
+- owner decision state: owner-approved is false; owner decision is not recorded.
+- residual risks: Windows native install smoke, GUI screenshots, expanded SBOM after dependency install, and public release decision remain owner/manual follow-up items.
+- non-claims: production go-live false, public release false, owner approval false, external pilot approval false.
+
+Act:
+
+- `MDT-P7-W02` is closed at its terminal TUW, `MDT-P7-W02-T05`.
+- P7 is complete.
+- All 69 ledger TUWs are implemented or recorded in ledger order with explicit verification evidence and release non-claims.

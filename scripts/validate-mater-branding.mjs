@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from "node:fs";
 const BRAND_PATH = "apps/web/src/brand/brand.js";
 const NAMING_RULES_PATH = "docs/launch/mater-naming-rules.md";
 const BACKLOG_PATH = "docs/launch/mater-branding-backlog.md";
+const P1_EVIDENCE_PATH = "docs/lazycodex/evidence/mater-desktop/lcx-desk-01-shell.md";
 
 const REQUIRED_CLASSIFICATIONS = [
   "product_brand",
@@ -117,7 +118,9 @@ function scanSourceForUnclassifiedProductCopy(rows) {
 assert(existsSync(BRAND_PATH), `${BRAND_PATH} is missing`);
 assert(existsSync(NAMING_RULES_PATH), `${NAMING_RULES_PATH} is missing`);
 assert(existsSync(BACKLOG_PATH), `${BACKLOG_PATH} is missing`);
-assert(!existsSync("apps/desktop"), "P0 must not create apps/desktop");
+if (!existsSync(P1_EVIDENCE_PATH)) {
+  assert(!existsSync("apps/desktop"), "P0 must not create apps/desktop");
+}
 
 const brandSource = read(BRAND_PATH);
 const namingRules = read(NAMING_RULES_PATH);
