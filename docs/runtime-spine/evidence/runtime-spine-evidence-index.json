@@ -21,6 +21,7 @@
     "docs/runtime-spine/evidence/g3-audit-evidence.json",
     "docs/runtime-spine/canonical-object-glossary.json",
     "docs/runtime-spine/evidence/g4-canonical-model-evidence.json",
+    "docs/runtime-spine/evidence/g5-app-runtime-evidence.json",
     "docs/runtime-spine/qa-checklist.md",
     "docs/runtime-spine/rollback-migration-notes.md"
   ],
@@ -33,6 +34,7 @@
     "npm run runtime-spine:rs2:trust-boundary:validate",
     "npm run runtime-spine:rs3:audit:validate",
     "npm run runtime-spine:rs4:canonical-model:validate",
+    "npm run runtime-spine:rs5:app-surface:validate",
     "npm run runtime-readiness:contract:validate",
     "npm run runtime-readiness:validate",
     "npm run client-matter:cmp-v1:validate",
@@ -410,6 +412,88 @@
       }
     }
   },
+  "latest_rs5_validation": {
+    "status": "passed",
+    "recorded_after_commands": true,
+    "date": "2026-06-21",
+    "summary": {
+      "scope": "RS-5 App Runtime Surface Ready Candidate",
+      "closed_tuws": [
+        "RS-5-T01",
+        "RS-5-T02",
+        "RS-5-T03",
+        "RS-5-T04",
+        "RS-5-T05",
+        "RS-5-T06",
+        "RS-5-T07",
+        "RS-5-T08",
+        "RS-5-T09",
+        "RS-5-T10",
+        "RS-5-T11",
+        "RS-5-T12",
+        "RS-5-T13",
+        "RS-5-T14",
+        "RS-5-T15",
+        "RS-5-T16",
+        "RS-5-T17",
+        "RS-5-T18",
+        "RS-5-T19",
+        "RS-5-T20",
+        "RS-5-T21",
+        "RS-5-T22",
+        "RS-5-T23",
+        "RS-5-T24",
+        "RS-5-T25",
+        "RS-5-T26",
+        "RS-5-T27",
+        "RS-5-T28",
+        "RS-5-T29",
+        "RS-5-T30"
+      ],
+      "g5_status": "ready_candidate",
+      "runtime_surface_package": true,
+      "route_catalog_count": 23,
+      "api_ui_smoke_flow": true,
+      "runtime_ready_candidate": false,
+      "actual_launch_go_live_claim": false,
+      "commands": [
+        "npm --workspace @law-firm-os/runtime-surface run test",
+        "npm run runtime-spine:rs5:app-surface:validate",
+        "npm run runtime-spine:rs4:canonical-model:validate",
+        "npm run runtime-spine:rs3:audit:validate",
+        "npm run runtime-spine:rs2:trust-boundary:validate",
+        "npm run runtime-spine:rs1:persistence-ready:validate",
+        "npm run runtime-spine:plan:validate",
+        "npm run runtime-spine:readiness:validate",
+        "npm run runtime-readiness:validate",
+        "npm run client-matter:cmp-v1:validate",
+        "npm run matter-vault:r4:validate",
+        "npm run hrx:runtime:validate",
+        "npm run validate",
+        "npm run api:test",
+        "npm run build",
+        "npm test"
+      ],
+      "results": {
+        "runtime_surface_package_test": "passed; 8/8",
+        "rs5_app_surface_validator": "passed",
+        "rs4_canonical_model_validator": "passed",
+        "rs3_audit_validator": "passed",
+        "rs2_trust_boundary_validator": "passed",
+        "rs1_persistence_ready_validator": "passed",
+        "runtime_spine_plan": "passed; gates=7; tuws=124",
+        "runtime_spine_readiness_guard": "passed; total_closed_tuws=101; rs1_closed_tuws=14; premature_closed_tuws=0; next_gate=G6",
+        "runtime_readiness": "passed; runtime_target_packs=0",
+        "client_matter_cmp_v1": "passed; tuws=316; gates=13; claim_boundary=not_r4_ready",
+        "matter_vault_r4": "passed; tuws=118; gates=9; launch_go_live_claim=false",
+        "hrx_runtime": "passed",
+        "root_validate": "passed",
+        "api_test": "passed; 131/131",
+        "build": "passed",
+        "root_test": "passed; 4047/4047"
+      }
+    }
+  },
   "future_evidence_slots": [
     {
       "gate": "G1",
@@ -435,7 +519,7 @@
     {
       "gate": "G5",
       "required_ref": "docs/runtime-spine/evidence/g5-app-runtime-evidence.json",
-      "status": "planned"
+      "status": "ready_candidate"
     },
     {
       "gate": "G6",

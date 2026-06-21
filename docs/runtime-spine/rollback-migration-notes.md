@@ -98,6 +98,19 @@ RS-4 adds a synthetic-only canonical model contract package:
 
 Rollback is a normal Git revert of the RS-4 PR. It does not run production data migration, rewrite existing CMP v1/Matter/HRX/DMS stores, create production rows, unlock Portal/M365/AI/Vault sync, or approve runtime-ready/launch status.
 
+## RS-5 App Runtime Surface Ready Candidate
+
+RS-5 adds a synthetic-only app runtime surface package:
+
+- package: `@law-firm-os/runtime-surface`
+- route catalog: session, tenant, client, matter, people, party, document, task, issue, wiki, vault export, permission, and feature locks
+- permission matrix: read/write/export scopes fail closed without an allowed role
+- audit coverage: read, write, permission, and export route classes append synthetic runtime audit events
+- UI client: maps data, empty, denied, review-required, and export-only states
+- smoke flow: creates synthetic client/matter/member/task/wiki state and export-only Vault action
+
+Rollback is a normal Git revert of the RS-5 PR. It does not deploy production API routes, mutate real tenant data, unlock Portal/M365/AI/Vault sync, or approve runtime-ready/launch status.
+
 ## Future Evidence Required
 
 Runtime migration PRs must record:
