@@ -18,7 +18,7 @@ This evidence file records P1 desktop shell progress only. It does not claim fil
 | MDT-P1-W01-T03 | complete | `apps/desktop/src/main/origin-policy.js`, `apps/desktop/test/origin-policy.test.mjs` |
 | MDT-P1-W01-T04 | complete | `scripts/validate-mater-desktop-security.mjs` |
 | MDT-P1-W01-T05 | complete | `apps/desktop/test/shell-smoke.test.mjs` |
-| MDT-P1-W02-T01 | pending | not started |
+| MDT-P1-W02-T01 | complete | `apps/desktop/src/main/splash.js` |
 | MDT-P1-W02-T02 | pending | not started |
 | MDT-P1-W02-T03 | pending | not started |
 | MDT-P1-W02-T04 | pending | not started |
@@ -205,3 +205,35 @@ Act:
 
 - `MDT-P1-W01` is closed at its terminal TUW, `MDT-P1-W01-T05`.
 - Next ledger TUW is `MDT-P1-W02-T01`.
+
+## MDT-P1-W02-T01 - Create Native Splash Window
+
+Plan:
+
+- Add a native Electron splash window source.
+- Display `mater by AMIC` before main renderer readiness.
+- Defer handoff/fallback behavior to the next TUWs.
+
+Do:
+
+- Added `apps/desktop/src/main/splash.js`.
+- Defined `SPLASH_BRAND`, splash HTML, data URL generation, and `createSplashWindow`.
+
+Check:
+
+```bash
+rg -n "splash|mater by AMIC|ready-to-show" apps/desktop/src/main
+node -e "const m = await import('./apps/desktop/src/main/splash.js'); if (!m.splashHtml().includes('mater by AMIC')) process.exit(1); if (!m.splashDataUrl().startsWith('data:text/html')) process.exit(1); console.log(m.SPLASH_BRAND);"
+git diff --check -- apps/desktop/src/main/splash.js
+```
+
+Results:
+
+- Splash source grep passed for `splash`, `mater by AMIC`, and `ready-to-show`.
+- Node import check confirmed `mater by AMIC` and a data URL splash document.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P1-W02-T01` is complete.
+- Next TUW is `MDT-P1-W02-T02`.
