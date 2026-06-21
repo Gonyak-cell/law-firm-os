@@ -17,7 +17,7 @@ This evidence file records P6 packaging and update progress only. It does not cl
 | MDT-P6-W01-T02 | complete | `apps/desktop/electron-builder.yml`, `scripts/validate-mater-desktop-packaging.mjs`, `apps/desktop/build/icon.svg` |
 | MDT-P6-W01-T03 | complete | `docs/lazycodex/evidence/mater-desktop/artifacts/macos-build.md`, `scripts/build-mater-desktop-mac.mjs` |
 | MDT-P6-W01-T04 | complete | `docs/lazycodex/evidence/mater-desktop/artifacts/windows-build.md`, `scripts/build-mater-desktop-win.mjs` |
-| MDT-P6-W02-T01 | pending | not started |
+| MDT-P6-W02-T01 | complete | `docs/desktop/mater-desktop-update-policy.md` |
 | MDT-P6-W02-T02 | pending | not started |
 | MDT-P6-W02-T03 | pending | not started |
 | MDT-P6-W02-T04 | pending | phase terminal not reached |
@@ -150,3 +150,32 @@ Act:
 
 - `MDT-P6-W01` is closed at its terminal TUW, `MDT-P6-W01-T04`.
 - Next ledger TUW is `MDT-P6-W02-T01`.
+
+## MDT-P6-W02-T01 - Define Signed Update Channel Policy
+
+Plan:
+
+- Define internal, pilot, rollback, disabled-public, and key rotation rules.
+- Keep public release and owner approval false.
+
+Do:
+
+- Added `docs/desktop/mater-desktop-update-policy.md`.
+
+Check:
+
+```bash
+rg -n "internal|pilot|rollback|public|key rotation" docs/desktop/mater-desktop-update-policy.md
+git diff --check -- docs/desktop/mater-desktop-update-policy.md docs/lazycodex/evidence/mater-desktop/lcx-desk-06-packaging-update.md
+```
+
+Results:
+
+- Update policy grep passed.
+- Policy defines internal, pilot, rollback, disabled-public, and key rotation rules.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P6-W02-T01` is complete.
+- Next TUW is `MDT-P6-W02-T02`.
