@@ -18,11 +18,11 @@
   "summary": {
     "receipt_ledger_verdict": "PASS",
     "receipt_slot_count": 4,
-    "pending_receipt_slot_count": 3,
-    "real_owner_receipt_count": 1,
-    "copy_allowed_count": 1,
-    "import_candidate_count": 1,
-    "covered_target_count_by_candidates": 31
+    "pending_receipt_slot_count": 2,
+    "real_owner_receipt_count": 2,
+    "copy_allowed_count": 2,
+    "import_candidate_count": 2,
+    "covered_target_count_by_candidates": 36
   },
   "import_candidates": [
     {
@@ -74,6 +74,31 @@
         "ACC-GL-G8-G8-E03",
         "ACC-GL-G9-G9-E01",
         "ACC-GL-G9-G9-E03"
+      ]
+    },
+    {
+      "decision_id": "COVERAGE-L9-STABILIZATION",
+      "coverage_domain": "l9_stabilization_closure",
+      "covered_target_count": 5,
+      "source_receipt_status": "real_owner_evidence_received",
+      "source_copy_allowed": true,
+      "source_approval_signature_ref": "meeting:lawos-ops-readiness-2026-06-21",
+      "register_row": {
+        "decision_id": "COVERAGE-L9-STABILIZATION",
+        "title": "Owner deferral for all L9 stabilization criteria",
+        "owner": "Operations Owner",
+        "decision": "deferred(시한 명기)",
+        "basis": "L9 stabilization cannot be closed until post-launch monitoring, SLO measurement, support channel roundtrip, incident review, and owner signoff evidence exist. Deferral is accepted as a launch blocker, not as go-live approval.",
+        "date_or_revisit_gate": "GATE-L9-HYPERCARE-SLO-AUDIT-EVIDENCE",
+        "approval_signature": "meeting:lawos-ops-readiness-2026-06-21",
+        "status": "deferred(시한 명기)"
+      },
+      "target_ids": [
+        "ACC-L9-C01",
+        "ACC-L9-C02",
+        "ACC-L9-C03",
+        "ACC-L9-C04",
+        "ACC-L9-C05"
       ]
     }
   ]

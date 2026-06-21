@@ -16,17 +16,18 @@ Generated at: 2026-06-18T23:59:27.997Z
 
 - receipt_ledger_verdict: PASS
 - receipt_slot_count: 4
-- pending_receipt_slot_count: 3
-- real_owner_receipt_count: 1
-- copy_allowed_count: 1
-- import_candidate_count: 1
-- covered_target_count_by_candidates: 31
+- pending_receipt_slot_count: 2
+- real_owner_receipt_count: 2
+- copy_allowed_count: 2
+- import_candidate_count: 2
+- covered_target_count_by_candidates: 36
 
 ## Candidate Rows
 
 | Decision ID | Owner | Decision | Date/revisit gate | Signature ref | Status |
 | --- | --- | --- | --- | --- | --- |
 | COVERAGE-ALL-GO-LIVE | Product Owner / Managing Partner | deferred(시한 명기) | 2026-07-15 | email:lawos-launch-approval-thread-2026-06-21 | deferred(시한 명기) |
+| COVERAGE-L9-STABILIZATION | Operations Owner | deferred(시한 명기) | GATE-L9-HYPERCARE-SLO-AUDIT-EVIDENCE | meeting:lawos-ops-readiness-2026-06-21 | deferred(시한 명기) |
 
 ## Copy Rule
 
