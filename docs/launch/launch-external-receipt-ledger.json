@@ -1,0 +1,306 @@
+{
+  "schema_version": "law-firm-os.launch-external-receipt-ledger.v0.1",
+  "generated_at": "2026-06-21T10:14:24Z",
+  "status": "external_receipts_received_final_go_live_approval_recorded_pending_cutover_execution",
+  "source_refs": [
+    "docs/launch/launch-receipt-intake-action-packet.md",
+    "docs/launch/locked-domain-unlock-packets.md",
+    "docs/launch/production-persistence-decision-packet.md",
+    "docs/runtime-spine/launch-tuw-crosswalk.md",
+    "docs/launch/final-go-live-decision.json"
+  ],
+  "boundary": {
+    "external_receipt_ledger_only": true,
+    "go_live_approved_by_this_ledger": false,
+    "production_cutover_approved_by_this_ledger": false,
+    "lt_terminal_closeout_approved_by_this_ledger": false,
+    "launch_decision_register_modified_by_this_ledger": false,
+    "pending_external_receipts_count_as_owner_evidence": false,
+    "actual_launch_go_live_claim": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "external_receipt_lane_count": 8,
+    "real_external_receipt_count": 8,
+    "approved_external_receipt_count": 8,
+    "deferred_external_receipt_count": 0,
+    "pending_external_receipt_count": 0,
+    "lcx7_ri_05_receipt_recorded": true,
+    "lcx7_ri_06_receipt_recorded": true,
+    "lcx7_ri_07_receipt_recorded": true,
+    "lcx7_ri_08_receipt_recorded": true,
+    "lcx7_ri_09_receipt_recorded": true,
+    "lcx7_ri_10_receipt_recorded": true,
+    "lcx7_ri_11_receipt_recorded": true,
+    "lcx7_ri_12_receipt_recorded": true,
+    "all_external_receipts_received": true,
+    "remaining_queue_ids": [],
+    "launch_blockers_still_in_force": [
+      "LT-L2-W01",
+      "LT-L2-W02",
+      "LT-L2-W03",
+      "LT-L2-W07"
+    ]
+  },
+  "required_receipt_fields": [
+    "owner",
+    "decision",
+    "basis",
+    "date_or_revisit_gate",
+    "approval_signature_ref",
+    "received_at",
+    "recorded_by_human"
+  ],
+  "allowed_receipt_status_values": [
+    "pending_external_receipt",
+    "real_external_receipt_received"
+  ],
+  "allowed_decision_values": [
+    "approved",
+    "deferred(시한 명기)"
+  ],
+  "signature_ref_formats": [
+    "docs/<local-evidence-path>",
+    "external:<system-and-record-id>",
+    "signature:<signature-record-id>",
+    "approval:<approval-record-id>",
+    "email:<message-id-or-thread-ref>",
+    "ticket:<ticket-id>",
+    "meeting:<meeting-id-or-minutes-ref>"
+  ],
+  "receipt_lanes": [
+    {
+      "queue_id": "LCX7-RI-05",
+      "source_packet": "LCX6-UP-01",
+      "target_receipt": "Production persistence",
+      "target_domain": "production_persistence",
+      "primary_blockers": [
+        "LT-L2-W01",
+        "LT-L3-W04",
+        "LT-L3-W05"
+      ],
+      "post_receipt_validation": [
+        "npm run runtime-spine:rs1:persistence:validate",
+        "npm run runtime-spine:rs1:tenant-data:validate",
+        "npm run runtime-spine:readiness:validate",
+        "future staging store smoke and restore rehearsal receipts"
+      ],
+      "receipt_status": "real_external_receipt_received",
+      "owner": "Architecture Owner / Operations Owner / Security Owner",
+      "decision": "approved",
+      "basis": "Production hosting model, relational DB, WORM audit store, RPO/RTO, backup/restore rehearsal, migration/rollback, monitoring/SLO, and staging persistence smoke evidence are approved for LCX7-RI-05. This approval is intended to unblock LT-L2-W01 and downstream LT-L2-W02/W03/W07 launch closure validation.",
+      "date_or_revisit_gate": "2026-06-21",
+      "approval_signature_ref": "email:lawos-production-persistence-approval-2026-06-21",
+      "received_at": "2026-06-21T09:14:34Z",
+      "received_at_original": "2026-06-21T18:14:34+09:00",
+      "recorded_by_human": "JWS",
+      "receipt_counts_as_go_live_approval": false,
+      "receipt_counts_as_production_cutover_approval": false,
+      "receipt_counts_as_lt_terminal_closeout": false,
+      "launch_decision_register_copy_allowed": false,
+      "unlock_claim_state": "receipt_recorded_pending_lt_packet_validation"
+    },
+    {
+      "queue_id": "LCX7-RI-06",
+      "source_packet": "LCX6-UP-02",
+      "target_receipt": "Trust boundary and identity",
+      "target_domain": "trust_boundary_identity",
+      "primary_blockers": [
+        "LT-L2-W02",
+        "LT-L3-W03",
+        "LT-L3-W10"
+      ],
+      "post_receipt_validation": [
+        "npm run runtime-spine:rs2:trust-boundary:validate",
+        "npm run runtime-spine:readiness:validate",
+        "future SSO/MFA E2E and mapping reconciliation receipts"
+      ],
+      "receipt_status": "real_external_receipt_received",
+      "owner": "Security Owner / Product Owner / Microsoft 365 Owner",
+      "decision": "approved",
+      "basis": "Tenant deployment model, production auth provider, SSO/MFA scope, network boundary, server-derived principal/role/permission context, cross-tenant rejection, expired-token denial, and User-to-Employee mapping reconciliation are approved for LCX7-RI-06. This approval is intended to unblock LT-L2-W02 and downstream LT-L2-W03/LT-L2-W07 launch closure validation.",
+      "date_or_revisit_gate": "2026-06-21",
+      "approval_signature_ref": "email:lawos-trust-boundary-identity-approval-2026-06-21",
+      "received_at": "2026-06-21T09:28:00Z",
+      "received_at_original": "2026-06-21T 18:28:00+09:00",
+      "recorded_by_human": "JWS",
+      "receipt_counts_as_go_live_approval": false,
+      "receipt_counts_as_production_cutover_approval": false,
+      "receipt_counts_as_lt_terminal_closeout": false,
+      "launch_decision_register_copy_allowed": false,
+      "unlock_claim_state": "receipt_recorded_pending_lt_packet_validation"
+    },
+    {
+      "queue_id": "LCX7-RI-07",
+      "source_packet": "LCX6-UP-03",
+      "target_receipt": "Write path and audit",
+      "target_domain": "write_path_audit",
+      "primary_blockers": [
+        "LT-L2-W03",
+        "LT-L2-W01",
+        "LT-L2-W02"
+      ],
+      "post_receipt_validation": [
+        "npm run runtime-spine:rs3:audit:validate",
+        "npm run runtime-spine:rs5:app-surface:validate",
+        "npm run runtime-spine:readiness:validate",
+        "future staging write-path smoke receipts"
+      ],
+      "receipt_status": "real_external_receipt_received",
+      "owner": "Architecture Owner / Security Owner / Product Owner",
+      "decision": "approved",
+      "basis": "Production-equivalent write path, approved Wave 1 write API/event surface, unit-of-work proof for domain write plus audit append, idempotency/replay prevention, durable event outbox, permission-before-write, classification-before-share, rollback/fault-injection behavior, and audit chain verification over the approved persistent audit store are approved for LCX7-RI-07. This approval is intended to unblock LT-L2-W03 and downstream LT-L2-W07 launch closure validation.",
+      "date_or_revisit_gate": "2026-06-21",
+      "approval_signature_ref": "email:lawos-write-path-audit-approval-2026-06-21",
+      "received_at": "2026-06-21T09:49:00Z",
+      "received_at_original": "2026-06-21T18:49:00+09:00",
+      "recorded_by_human": "JWS",
+      "receipt_counts_as_go_live_approval": false,
+      "receipt_counts_as_production_cutover_approval": false,
+      "receipt_counts_as_lt_terminal_closeout": false,
+      "launch_decision_register_copy_allowed": false,
+      "unlock_claim_state": "receipt_recorded_pending_lt_packet_validation"
+    },
+    {
+      "queue_id": "LCX7-RI-08",
+      "source_packet": "LCX6-UP-04",
+      "target_receipt": "Runtime integration and launch evidence",
+      "target_domain": "runtime_integration_launch_evidence",
+      "primary_blockers": [
+        "LT-L2-W07"
+      ],
+      "post_receipt_validation": [
+        "npm run runtime-spine:rs6:integration:validate",
+        "npm run runtime-spine:launch-crosswalk:validate",
+        "npm run runtime-spine:readiness:validate",
+        "future launch evidence acceptance and owner receipt validators"
+      ],
+      "receipt_status": "real_external_receipt_received",
+      "owner": "Verification Owner / Operations Owner / Security Owner / Product Owner",
+      "decision": "approved",
+      "basis": "Staging or owner-approved equivalent runtime integration run, RTG-001 through RTG-005 current evidence links, production rerun receipt, backup/WORM/rollback/performance/SLO/support/runbook tabletop receipts, and launch evidence acceptance validation inputs are approved for LCX7-RI-08. This approval is intended to unblock LT-L2-W07 launch closure validation while preserving final go-live approval as a separate decision.",
+      "date_or_revisit_gate": "2026-06-21",
+      "approval_signature_ref": "email:lawos-runtime-integration-launch-evidence-approval-2026-06-21",
+      "received_at": "2026-06-21T09:53:00Z",
+      "received_at_original": "2026-06-21T18:53:00+09:00",
+      "recorded_by_human": "JWS",
+      "receipt_counts_as_go_live_approval": false,
+      "receipt_counts_as_production_cutover_approval": false,
+      "receipt_counts_as_lt_terminal_closeout": false,
+      "launch_decision_register_copy_allowed": false,
+      "unlock_claim_state": "receipt_recorded_pending_lt_packet_validation_and_final_go_live_decision"
+    },
+    {
+      "queue_id": "LCX7-RI-09",
+      "source_packet": "LCX6-UP-05",
+      "target_receipt": "M365/Graph",
+      "target_domain": "m365_graph",
+      "primary_blockers": [
+        "G5"
+      ],
+      "post_receipt_validation": [
+        "future G5 launch acceptance and M365 domain tests",
+        "future Graph permission/scope reconciliation",
+        "future admin consent export verification"
+      ],
+      "receipt_status": "real_external_receipt_received",
+      "owner": "Microsoft 365 Owner / Security Owner / Product Owner",
+      "decision": "approved",
+      "basis": "Tenant admin confirmation, approved Graph scope register, Entra app registration, admin consent export, permission/scope reconciliation, and M365/Graph production access boundary are approved for LCX7-RI-09. This approval is intended to support G5/M365 launch acceptance validation while preserving final go-live approval as a separate decision.",
+      "date_or_revisit_gate": "2026-06-21",
+      "approval_signature_ref": "email:lawos-m365-graph-approval-2026-06-21",
+      "received_at": "2026-06-21T10:00:00Z",
+      "received_at_original": "2026-06-21T19:00:00+09:00",
+      "recorded_by_human": "JWS",
+      "receipt_counts_as_go_live_approval": false,
+      "receipt_counts_as_production_cutover_approval": false,
+      "receipt_counts_as_lt_terminal_closeout": false,
+      "launch_decision_register_copy_allowed": false,
+      "unlock_claim_state": "receipt_recorded_pending_g5_m365_launch_acceptance_and_final_go_live_decision"
+    },
+    {
+      "queue_id": "LCX7-RI-10",
+      "source_packet": "LCX6-UP-05",
+      "target_receipt": "HR real data",
+      "target_domain": "hr_real_data",
+      "primary_blockers": [
+        "G7"
+      ],
+      "post_receipt_validation": [
+        "future G7 launch acceptance and HRX route tests",
+        "future identity mapping reconciliation verification",
+        "future HR sensitive store count and privacy/PIPA receipt validation"
+      ],
+      "receipt_status": "real_external_receipt_received",
+      "owner": "HR Owner / Security Owner / Privacy Owner / Product Owner",
+      "decision": "approved",
+      "basis": "HR owner approval, identity mapping reconciliation, HR sensitive store count, privacy/PIPA receipt, and HR real-data production access boundary are approved for LCX7-RI-10. This approval is intended to support G7 launch acceptance and HRX route validation while preserving final go-live approval as a separate decision.",
+      "date_or_revisit_gate": "2026-06-21",
+      "approval_signature_ref": "email:lawos-hr-real-data-approval-2026-06-21",
+      "received_at": "2026-06-21T10:14:24Z",
+      "received_at_original": "2026-06-21T19:14:24+09:00",
+      "recorded_by_human": "JWS",
+      "receipt_counts_as_go_live_approval": false,
+      "receipt_counts_as_production_cutover_approval": false,
+      "receipt_counts_as_lt_terminal_closeout": false,
+      "launch_decision_register_copy_allowed": false,
+      "unlock_claim_state": "receipt_recorded_pending_g7_hrx_launch_acceptance_and_final_go_live_decision"
+    },
+    {
+      "queue_id": "LCX7-RI-11",
+      "source_packet": "LCX6-UP-05",
+      "target_receipt": "Vault import/sync",
+      "target_domain": "vault_import_sync",
+      "primary_blockers": [
+        "G8"
+      ],
+      "post_receipt_validation": [
+        "future G8 launch acceptance and Vault import/sync tests",
+        "future source-of-truth and import/sync reconciliation verification",
+        "future rollback attestation validation"
+      ],
+      "receipt_status": "real_external_receipt_received",
+      "owner": "Architecture Owner / Operations Owner / Vault Owner / Product Owner",
+      "decision": "approved",
+      "basis": "MAT-DEC-03 storage decision, source-of-truth receipt, Vault import/sync reconciliation, rollback attestation, and production access boundary are approved for LCX7-RI-11. This approval is intended to support G8 launch acceptance and Vault import/sync validation while preserving final go-live approval as a separate decision.",
+      "date_or_revisit_gate": "2026-06-21",
+      "approval_signature_ref": "email:lawos-vault-import-sync-approval-2026-06-21",
+      "received_at": "2026-06-21T10:14:24Z",
+      "received_at_original": "2026-06-21T19:14:24+09:00",
+      "recorded_by_human": "JWS",
+      "receipt_counts_as_go_live_approval": false,
+      "receipt_counts_as_production_cutover_approval": false,
+      "receipt_counts_as_lt_terminal_closeout": false,
+      "launch_decision_register_copy_allowed": false,
+      "unlock_claim_state": "receipt_recorded_pending_g8_vault_import_sync_launch_acceptance_and_final_go_live_decision"
+    },
+    {
+      "queue_id": "LCX7-RI-12",
+      "source_packet": "LCX6-UP-05",
+      "target_receipt": "AI policy",
+      "target_domain": "ai_policy",
+      "primary_blockers": [
+        "G7"
+      ],
+      "post_receipt_validation": [
+        "future G7 launch acceptance and AI governance tests",
+        "future source/citation policy verification",
+        "future human-review routing and no-final-decision guard validation"
+      ],
+      "receipt_status": "real_external_receipt_received",
+      "owner": "AI Governance Owner / Security Owner / Legal Owner / Product Owner",
+      "decision": "approved",
+      "basis": "AI policy approval, source/citation policy, human-review routing, no-final-decision guard, and AI governance launch boundary are approved for LCX7-RI-12. This approval is intended to support G7 launch acceptance and AI governance validation while preserving final go-live approval as a separate decision.",
+      "date_or_revisit_gate": "2026-06-21",
+      "approval_signature_ref": "email:lawos-ai-policy-approval-2026-06-21",
+      "received_at": "2026-06-21T10:14:24Z",
+      "received_at_original": "2026-06-21T19:14:24+09:00",
+      "recorded_by_human": "JWS",
+      "receipt_counts_as_go_live_approval": false,
+      "receipt_counts_as_production_cutover_approval": false,
+      "receipt_counts_as_lt_terminal_closeout": false,
+      "launch_decision_register_copy_allowed": false,
+      "unlock_claim_state": "receipt_recorded_pending_g7_ai_governance_launch_acceptance_and_final_go_live_decision"
+    }
+  ]
+}

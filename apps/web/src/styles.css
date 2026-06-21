@@ -613,6 +613,182 @@ kbd {
   width: auto;
 }
 
+.mater-splash {
+  --mater-splash-size: 76px;
+  display: inline-grid;
+  place-items: center;
+  min-width: min(320px, calc(100vw - 48px));
+  min-height: 128px;
+  color: var(--am-text);
+}
+
+.mater-splash.compact {
+  --mater-splash-size: 42px;
+  min-width: 112px;
+  min-height: 58px;
+}
+
+.mater-splash-brand {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--mater-splash-size);
+  line-height: 1;
+}
+
+.mater-splash-mark {
+  position: relative;
+  width: calc(var(--mater-splash-size) * 1.12);
+  height: var(--mater-splash-size);
+  flex: 0 0 auto;
+}
+
+.mater-splash-pill,
+.mater-splash-dot {
+  position: absolute;
+  display: block;
+  will-change: opacity, transform;
+}
+
+.mater-splash-pill {
+  top: calc(var(--mater-splash-size) * 0.04);
+  width: calc(var(--mater-splash-size) * 0.22);
+  height: calc(var(--mater-splash-size) * 0.76);
+  border-radius: var(--am-radius-pill);
+  transform: rotate(31deg) scaleY(0.14);
+  transform-origin: 50% 100%;
+}
+
+.mater-splash-pill.red {
+  left: calc(var(--mater-splash-size) * 0.09);
+  background: #ff2d55;
+  animation: mater-pill-rise 680ms cubic-bezier(0.16, 1.18, 0.32, 1) both;
+}
+
+.mater-splash-pill.yellow {
+  left: calc(var(--mater-splash-size) * 0.48);
+  background: #ffcc00;
+  animation: mater-pill-rise 680ms cubic-bezier(0.16, 1.18, 0.32, 1) 90ms both;
+}
+
+.mater-splash-dot {
+  right: calc(var(--mater-splash-size) * 0.02);
+  bottom: calc(var(--mater-splash-size) * 0.15);
+  width: calc(var(--mater-splash-size) * 0.28);
+  height: calc(var(--mater-splash-size) * 0.28);
+  border-radius: 50%;
+  background: #00ca72;
+  opacity: 0;
+  transform: scale(0.5);
+  animation: mater-dot-pop 520ms cubic-bezier(0.16, 1.18, 0.32, 1) 180ms both;
+}
+
+.mater-splash-word {
+  display: inline-flex;
+  align-items: baseline;
+  color: var(--am-text);
+  font-family: Comfortaa, "Avenir Next", "SF Pro Rounded", Inter, sans-serif;
+  font-size: calc(var(--mater-splash-size) * 0.82);
+  font-weight: 300;
+  letter-spacing: 0;
+}
+
+.mater-splash-word span {
+  display: inline-block;
+  opacity: 0;
+  transform: translateX(-8px) scale(0.96);
+  animation: mater-letter-in 520ms cubic-bezier(0.16, 1.18, 0.32, 1) both;
+}
+
+.mater-splash-word span:nth-child(1) {
+  animation-delay: 420ms;
+}
+
+.mater-splash-word span:nth-child(2) {
+  animation-delay: 470ms;
+}
+
+.mater-splash-word span:nth-child(3) {
+  animation-delay: 520ms;
+}
+
+.mater-splash-word span:nth-child(4) {
+  animation-delay: 570ms;
+}
+
+.mater-splash-word span:nth-child(5) {
+  animation-delay: 620ms;
+}
+
+.mater-splash-byline {
+  position: absolute;
+  right: 2px;
+  top: calc(100% + 8px);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--am-text-muted);
+  font-family: Comfortaa, "Avenir Next", Inter, sans-serif;
+  font-size: 11px;
+  opacity: 0;
+  transform: translateY(6px);
+  animation: mater-byline-in 360ms cubic-bezier(0.2, 0.8, 0.2, 1) 760ms both;
+}
+
+.mater-splash-byline strong {
+  color: #0f3a32;
+  font-weight: 500;
+}
+
+@keyframes mater-pill-rise {
+  from {
+    opacity: 0;
+    transform: rotate(31deg) translateY(18px) scaleY(0.14);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(31deg) translateY(0) scaleY(1);
+  }
+}
+
+@keyframes mater-dot-pop {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes mater-letter-in {
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes mater-byline-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mater-splash-pill,
+  .mater-splash-dot,
+  .mater-splash-word span,
+  .mater-splash-byline {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .mater-splash-pill {
+    transform: rotate(31deg);
+  }
+}
+
 .panel,
 .metric-card,
 .auth-card,
@@ -5321,7 +5497,9 @@ html[data-theme="dark"] .public-preview {
 
 .matter-review-strip,
 .matter-form-footer,
-.matter-boundary-card {
+.matter-boundary-card,
+.matter-vault-actions,
+.matter-vault-actions span {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -5407,6 +5585,25 @@ html[data-theme="dark"] .public-preview {
 
 .matter-boundary-card span {
   color: var(--am-text-muted);
+}
+
+.matter-vault-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.matter-vault-actions {
+  min-height: 34px;
+  justify-content: space-between;
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.matter-vault-actions span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* --- CMP G5 Vault/DMS runtime surface --- */

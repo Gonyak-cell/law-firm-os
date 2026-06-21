@@ -16,15 +16,20 @@ Generated at: 2026-06-18T23:59:27.997Z
 
 - receipt_ledger_verdict: PASS
 - receipt_slot_count: 4
-- pending_receipt_slot_count: 4
-- real_owner_receipt_count: 0
-- copy_allowed_count: 0
-- import_candidate_count: 0
-- covered_target_count_by_candidates: 0
+- pending_receipt_slot_count: 0
+- real_owner_receipt_count: 4
+- copy_allowed_count: 4
+- import_candidate_count: 4
+- covered_target_count_by_candidates: 117
 
 ## Candidate Rows
 
-No import candidates. Owner approval receipt slots are still pending.
+| Decision ID | Owner | Decision | Date/revisit gate | Signature ref | Status |
+| --- | --- | --- | --- | --- | --- |
+| COVERAGE-ALL-GO-LIVE | Product Owner / Managing Partner | deferred(시한 명기) | 2026-07-15 | email:lawos-launch-approval-thread-2026-06-21 | deferred(시한 명기) |
+| COVERAGE-L9-STABILIZATION | Operations Owner | deferred(시한 명기) | GATE-L9-HYPERCARE-SLO-AUDIT-EVIDENCE | meeting:lawos-ops-readiness-2026-06-21 | deferred(시한 명기) |
+| COVERAGE-ALL-BLOCKED-WP | Architecture Owner | deferred(시한 명기) | GATE-HOSTING-DB-WORM-IDENTITY-RECEIPTS | ticket:LAWOS-LAUNCH-DEFERRAL-001 | deferred(시한 명기) |
+| COVERAGE-ALL-PHASE-EXITS | Verification Owner | deferred(시한 명기) | GATE-OWNER-LEDGER-AND-LAUNCH-EVIDENCE-VALIDATION | approval:LAWOS-PHASE-EXIT-DEFERRAL-2026-06-21 | deferred(시한 명기) |
 
 ## Copy Rule
 

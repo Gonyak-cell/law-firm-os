@@ -141,6 +141,7 @@ const expectedCandidateDecisionIds = (receiptLedger.receipt_slots ?? [])
   .map((slot) => slot.decision_id)
   .sort();
 const actualCandidateDecisionIds = importCandidates.map((candidate) => candidate.decision_id).sort();
+const candidateByDecisionId = new Map(importCandidates.map((candidate) => [candidate.decision_id, candidate]));
 
 if (JSON.stringify(actualCandidateDecisionIds) !== JSON.stringify(expectedCandidateDecisionIds)) {
   addFinding(findings, "P1", "CANDIDATE_SET_MISMATCH", "Import candidates do not match real copy-allowed owner receipt slots.", {
@@ -231,10 +232,23 @@ for (const phrase of REQUIRED_MARKDOWN_PHRASES) {
   }
 }
 
-if (decisionSummary.total_rows !== 0 || decisionSummary.valid_deferred_rows !== 0) {
+const allDecisionRegisterRowsMatchCandidates = (decisionSummary.rows ?? []).every((row) => {
+  const candidate = candidateByDecisionId.get(row.decision_id);
+  if (!candidate || !row.valid) return false;
+  for (const field of REQUIRED_REGISTER_FIELDS) {
+    if ((row[field] ?? "") !== (candidate.register_row?.[field] ?? "")) return false;
+  }
+  return true;
+});
+const decisionRegisterRowsAreAppliedCandidates = decisionSummary.total_rows > 0
+  && decisionSummary.total_rows === importCandidates.length
+  && allDecisionRegisterRowsMatchCandidates;
+
+if ((decisionSummary.total_rows !== 0 || decisionSummary.valid_deferred_rows !== 0) && !decisionRegisterRowsAreAppliedCandidates) {
   addFinding(findings, "P0", "DECISION_REGISTER_MODIFIED_BY_IMPORT_CANDIDATES", "Launch decision register contains decision rows while import candidates are preview-only.", {
     total_rows: decisionSummary.total_rows,
-    valid_deferred_rows: decisionSummary.valid_deferred_rows
+    valid_deferred_rows: decisionSummary.valid_deferred_rows,
+    applied_candidate_row_count: decisionRegisterRowsAreAppliedCandidates ? decisionSummary.total_rows : 0
   });
 }
 

@@ -1,14 +1,15 @@
 # Cutover Runbook
 
-Status: blocked_pending_go_no_go_and_owner_approval
+Status: go_no_go_approved_pending_cutover_execution
 Work package: LT-L8-W03
 Prepared at: 2026-06-18T12:21:08Z
 Review policy: review_waived_by_user
 
 ## Boundary
 
-This runbook defines the Wave 1 cutover procedure. It does not execute freeze,
-delta migration, production writes, go/no-go approval, company-wide rollout, or
+This runbook defines the Wave 1 cutover procedure. Final go-live approval is recorded
+in `docs/launch/final-go-live-decision.md`, but this runbook does not
+execute freeze, delta migration, production writes, company-wide rollout, or
 48-hour monitoring. Closed CP evidence remains read-only.
 
 ## Step 1 - Change Freeze
@@ -53,13 +54,15 @@ Abort condition: any health dimension red or stale.
 ## Step 5 - Go/No-Go Meeting
 
 Owner: Managing Partner plus System Admin, or owner-approved equivalent
-Preconditions: G1-G9 package ready, rollback criteria approved, health check
-green.
+Preconditions: final go-live approval is recorded, rollback criteria approved,
+and health check green.
 Required record fields: attendees, decision, G1-G9 table, open findings, owner
 signatures, rejudgment schedule for no-go.
 Verification value: decision is signed; no partial pass carryover is recorded.
 Abort condition: missing required approver, unsigned decision, or unresolved
 P0/P1 finding.
+
+Recorded approval: `docs/launch/final-go-live-decision.md`.
 
 ## Step 6 - Company-Wide Opening
 

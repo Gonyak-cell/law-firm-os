@@ -20,17 +20,50 @@
   },
   "summary": {
     "receipt_slot_count": 4,
-    "pending_receipt_slot_count": 4,
-    "real_owner_receipt_count": 0,
-    "copy_allowed_count": 0,
-    "receipt_update_candidate_count": 0,
-    "reconciled_real_receipt_count": 0,
+    "pending_receipt_slot_count": 0,
+    "real_owner_receipt_count": 4,
+    "copy_allowed_count": 4,
+    "receipt_update_candidate_count": 4,
+    "reconciled_real_receipt_count": 4,
     "unreconciled_real_receipt_count": 0,
     "field_mismatch_count": 0,
     "finding_count": 0,
     "p0_count": 0,
     "p1_count": 0
   },
-  "reconciled_receipt_slots": [],
+  "reconciled_receipt_slots": [
+    {
+      "decision_id": "COVERAGE-ALL-GO-LIVE",
+      "receipt_status": "real_owner_evidence_received",
+      "copy_to_launch_decision_register_allowed": true,
+      "receipt_candidate_match": true,
+      "field_mismatch_count": 0,
+      "mismatches": []
+    },
+    {
+      "decision_id": "COVERAGE-L9-STABILIZATION",
+      "receipt_status": "real_owner_evidence_received",
+      "copy_to_launch_decision_register_allowed": true,
+      "receipt_candidate_match": true,
+      "field_mismatch_count": 0,
+      "mismatches": []
+    },
+    {
+      "decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "receipt_status": "real_owner_evidence_received",
+      "copy_to_launch_decision_register_allowed": true,
+      "receipt_candidate_match": true,
+      "field_mismatch_count": 0,
+      "mismatches": []
+    },
+    {
+      "decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "receipt_status": "real_owner_evidence_received",
+      "copy_to_launch_decision_register_allowed": true,
+      "receipt_candidate_match": true,
+      "field_mismatch_count": 0,
+      "mismatches": []
+    }
+  ],
   "findings": []
 }

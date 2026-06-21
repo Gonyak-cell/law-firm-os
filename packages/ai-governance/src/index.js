@@ -6,6 +6,8 @@ export * from "./runtime-repository.js";
 export * from "./audit.js";
 export * from "./policy-service.js";
 export * from "./retrieval-service.js";
+export * from "./source-policy.js";
+export * from "./retrieval-evidence.js";
 export * from "./prompt-log-service.js";
 export * from "./output-service.js";
 export * from "./citation-ledger-service.js";

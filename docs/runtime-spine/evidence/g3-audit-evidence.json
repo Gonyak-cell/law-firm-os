@@ -1,0 +1,87 @@
+{
+  "schema_version": "law-firm-os.runtime-spine.g3-audit-evidence.v0.1",
+  "gate": "G3",
+  "spine": "RS-3",
+  "status": "ready_candidate",
+  "date": "2026-06-21",
+  "baseline_commit": "41268c4becac7d06948d10c173d30635e108c5e1",
+  "merge_baseline_before_rs3": "682a439210ac88a76e62bada2f7ac376545f75dc",
+  "closed_tuws": [
+    "RS-3-T01",
+    "RS-3-T02",
+    "RS-3-T03",
+    "RS-3-T04",
+    "RS-3-T05",
+    "RS-3-T06",
+    "RS-3-T07",
+    "RS-3-T08",
+    "RS-3-T09",
+    "RS-3-T10",
+    "RS-3-T11",
+    "RS-3-T12",
+    "RS-3-T13",
+    "RS-3-T14",
+    "RS-3-T15"
+  ],
+  "scope": {
+    "synthetic_only": true,
+    "production_audit_pipeline_approved": false,
+    "audit_bypass_allowed": false,
+    "raw_payload_export_allowed": false,
+    "runtime_ready_candidate": false,
+    "actual_launch_go_live_claim": false
+  },
+  "capabilities": {
+    "append_only_writer": true,
+    "hash_chain": true,
+    "event_taxonomy": true,
+    "read_write_permission_export_middleware": true,
+    "audit_reader_export_metadata_only": true,
+    "retention_requires_human_approval": true,
+    "verification_job": true,
+    "immutability_guard": true,
+    "route_audit_coverage_scanner": true
+  },
+  "rtg_status": {
+    "RTG-001": "partial",
+    "RTG-002": "partial",
+    "RTG-003": "partial",
+    "RTG-004": "g0_guarded",
+    "RTG-005": "g0_guarded"
+  },
+  "required_follow_on": [
+    "RS-4 canonical Client-Matter-People model before app write paths",
+    "RS-5 routes must invoke runtime audit middleware before mutation",
+    "RS-6 route coverage E2E before repo-side runtime-ready candidate"
+  ],
+  "validation_commands": [
+    "npm --workspace @law-firm-os/audit run test",
+    "npm run runtime-spine:rs3:audit:validate",
+    "npm run runtime-spine:rs2:trust-boundary:validate",
+    "npm run runtime-spine:plan:validate",
+    "npm run runtime-spine:readiness:validate",
+    "npm run runtime-readiness:validate",
+    "npm run client-matter:cmp-v1:validate",
+    "npm run matter-vault:r4:validate",
+    "npm run hrx:runtime:validate",
+    "npm run validate",
+    "npm run api:test",
+    "npm run build",
+    "npm test"
+  ],
+  "latest_results": {
+    "audit_package_test": "passed; 115/115",
+    "rs3_audit_validator": "passed",
+    "rs2_trust_boundary_validator": "passed",
+    "runtime_spine_plan": "passed; gates=7; tuws=124",
+    "runtime_spine_readiness_guard": "passed; total_closed_tuws=51; rs1_closed_tuws=14; premature_closed_tuws=0; next_gate=G4",
+    "runtime_readiness": "passed; runtime_target_packs=0",
+    "client_matter_cmp_v1": "passed; tuws=316; gates=13; claim_boundary=not_r4_ready",
+    "matter_vault_r4": "passed; tuws=118; gates=9; launch_go_live_claim=false",
+    "hrx_runtime": "passed",
+    "root_validate": "passed",
+    "api_test": "passed; 131/131",
+    "build": "passed",
+    "root_test": "passed; 4033/4033"
+  }
+}

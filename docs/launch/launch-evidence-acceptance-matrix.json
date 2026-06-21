@@ -30,18 +30,18 @@
     "gate_acceptance_row_count": 31,
     "l9_acceptance_row_count": 5,
     "total_acceptance_row_count": 36,
-    "pending_acceptance_row_count": 36,
+    "pending_acceptance_row_count": 0,
     "evidence_satisfied_acceptance_row_count": 0,
-    "owner_deferred_acceptance_row_count": 0,
+    "owner_deferred_acceptance_row_count": 36,
     "missing_intake_acceptance_row_count": 0,
-    "gate_pending_acceptance_row_count": 31,
+    "gate_pending_acceptance_row_count": 0,
     "gate_evidence_satisfied_acceptance_row_count": 0,
-    "gate_owner_deferred_acceptance_row_count": 0,
-    "l9_pending_acceptance_row_count": 5,
+    "gate_owner_deferred_acceptance_row_count": 31,
+    "l9_pending_acceptance_row_count": 0,
     "l9_evidence_satisfied_acceptance_row_count": 0,
-    "l9_owner_deferred_acceptance_row_count": 0,
-    "owner_approved_deferrals_present": false,
-    "coverage_eligible_valid_deferred_rows": 0,
+    "l9_owner_deferred_acceptance_row_count": 5,
+    "owner_approved_deferrals_present": true,
+    "coverage_eligible_valid_deferred_rows": 4,
     "non_coverage_valid_deferred_rows": 0,
     "go_live_all_pass": false
   },
@@ -63,7 +63,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L0-W01",
         "LT-L0-W02",
@@ -111,7 +111,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L0-W01",
         "LT-L0-W02",
@@ -158,7 +158,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L0-W02",
         "LT-L2-W01",
@@ -207,7 +207,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L0-W02",
         "LT-L2-W01",
@@ -256,7 +256,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L0-W02",
         "LT-L2-W01",
@@ -306,7 +306,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L0-W04",
         "LT-L2-W05",
@@ -356,7 +356,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L0-W04",
         "LT-L2-W05",
@@ -406,7 +406,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L0-W04",
         "LT-L2-W05",
@@ -456,7 +456,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L0-W04",
         "LT-L2-W05",
@@ -506,7 +506,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L3-W02",
         "LT-L3-W03",
@@ -557,7 +557,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L3-W02",
         "LT-L3-W03",
@@ -608,7 +608,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L3-W02",
         "LT-L3-W03",
@@ -659,7 +659,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L3-W02",
         "LT-L3-W03",
@@ -709,7 +709,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L3-W07",
         "LT-L3-W08",
@@ -756,7 +756,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L3-W07",
         "LT-L3-W08",
@@ -803,7 +803,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L3-W07",
         "LT-L3-W08",
@@ -851,7 +851,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L3-W06",
         "LT-L6-W01",
@@ -901,7 +901,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L3-W06",
         "LT-L6-W01",
@@ -951,7 +951,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L3-W06",
         "LT-L6-W01",
@@ -1001,7 +1001,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L3-W06",
         "LT-L6-W01",
@@ -1050,7 +1050,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L1-W03",
         "LT-L1-W04",
@@ -1097,7 +1097,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L1-W03",
         "LT-L1-W04",
@@ -1144,7 +1144,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L1-W03",
         "LT-L1-W04",
@@ -1191,7 +1191,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L7-W01",
         "LT-L7-W02",
@@ -1237,7 +1237,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L7-W01",
         "LT-L7-W02",
@@ -1283,7 +1283,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L7-W01",
         "LT-L7-W02",
@@ -1329,7 +1329,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L8-W02",
         "LT-L8-W03"
@@ -1373,7 +1373,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L8-W02",
         "LT-L8-W03"
@@ -1417,7 +1417,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L1-W05",
         "LT-L8-W02",
@@ -1462,7 +1462,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L1-W05",
         "LT-L8-W02",
@@ -1507,7 +1507,7 @@
       ],
       "current_gate_status": "fail",
       "current_evidence_status": "failed",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "related_blocked_work_package_ids": [
         "LT-L1-W05",
         "LT-L8-W02",
@@ -1544,7 +1544,7 @@
       "intake_id": "L9-C01",
       "closure_criterion": "Last 14 days P0/P1 count equals zero",
       "current_status": "blocked_not_measured",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "acceptable_resolution": {
         "evidence_satisfied_required_fields": [
           "evidence_ref",
@@ -1574,7 +1574,7 @@
       "intake_id": "L9-C02",
       "closure_criterion": "Four consecutive weeks SLO met",
       "current_status": "blocked_not_measured",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "acceptable_resolution": {
         "evidence_satisfied_required_fields": [
           "evidence_ref",
@@ -1604,7 +1604,7 @@
       "intake_id": "L9-C03",
       "closure_criterion": "Four weeks audit completeness green",
       "current_status": "blocked_not_measured",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "acceptable_resolution": {
         "evidence_satisfied_required_fields": [
           "evidence_ref",
@@ -1634,7 +1634,7 @@
       "intake_id": "L9-C04",
       "closure_criterion": "Every incident has post-analysis link",
       "current_status": "blocked_not_measured",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "acceptable_resolution": {
         "evidence_satisfied_required_fields": [
           "evidence_ref",
@@ -1664,7 +1664,7 @@
       "intake_id": "L9-C05",
       "closure_criterion": "Owner signoff",
       "current_status": "missing",
-      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "current_intake_status": "owner_deferred",
       "acceptable_resolution": {
         "evidence_satisfied_required_fields": [
           "evidence_ref",

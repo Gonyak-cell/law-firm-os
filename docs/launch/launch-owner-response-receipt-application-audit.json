@@ -20,17 +20,42 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "receipt_update_candidate_count": 0,
-    "applied_candidate_count": 0,
+    "receipt_update_candidate_count": 4,
+    "applied_candidate_count": 4,
     "pending_application_count": 0,
     "mismatched_application_count": 0,
     "missing_receipt_slot_count": 0,
-    "receipt_ledger_current_real_receipt_count": 0,
-    "receipt_ledger_current_copy_allowed_count": 0,
+    "receipt_ledger_current_real_receipt_count": 4,
+    "receipt_ledger_current_copy_allowed_count": 4,
     "finding_count": 0,
     "p0_count": 0,
     "p1_count": 0
   },
-  "application_rows": [],
+  "application_rows": [
+    {
+      "decision_id": "COVERAGE-ALL-GO-LIVE",
+      "application_state": "applied",
+      "field_mismatch_count": 0,
+      "mismatches": []
+    },
+    {
+      "decision_id": "COVERAGE-L9-STABILIZATION",
+      "application_state": "applied",
+      "field_mismatch_count": 0,
+      "mismatches": []
+    },
+    {
+      "decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "application_state": "applied",
+      "field_mismatch_count": 0,
+      "mismatches": []
+    },
+    {
+      "decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "application_state": "applied",
+      "field_mismatch_count": 0,
+      "mismatches": []
+    }
+  ],
   "findings": []
 }

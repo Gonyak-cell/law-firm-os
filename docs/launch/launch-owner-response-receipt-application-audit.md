@@ -6,20 +6,25 @@ Verdict: PASS
 
 ## Summary
 
-- receipt_update_candidate_count: 0
-- applied_candidate_count: 0
+- receipt_update_candidate_count: 4
+- applied_candidate_count: 4
 - pending_application_count: 0
 - mismatched_application_count: 0
 - missing_receipt_slot_count: 0
-- receipt_ledger_current_real_receipt_count: 0
-- receipt_ledger_current_copy_allowed_count: 0
+- receipt_ledger_current_real_receipt_count: 4
+- receipt_ledger_current_copy_allowed_count: 4
 - finding_count: 0
 - p0_count: 0
 - p1_count: 0
 
 ## Candidate Application Rows
 
-No receipt-update candidates to apply.
+| Decision ID | Application state | Field mismatches |
+| --- | --- | ---: |
+| COVERAGE-ALL-GO-LIVE | applied | 0 |
+| COVERAGE-L9-STABILIZATION | applied | 0 |
+| COVERAGE-ALL-BLOCKED-WP | applied | 0 |
+| COVERAGE-ALL-PHASE-EXITS | applied | 0 |
 
 ## Findings
 

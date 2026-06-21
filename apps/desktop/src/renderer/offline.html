@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>mater offline fallback</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f7fa;
+      color: #202428;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+    }
+
+    main {
+      width: min(420px, calc(100vw - 48px));
+      display: grid;
+      gap: 10px;
+      padding: 24px;
+      border: 1px solid #d8dee8;
+      border-radius: 6px;
+      background: #ffffff;
+    }
+
+    h1,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 650;
+    }
+
+    p {
+      color: #64707d;
+      line-height: 1.5;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 1ms !important;
+        transition-duration: 1ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main aria-label="mater offline fallback">
+    <h1>mater</h1>
+    <p>Offline fallback is active. No client, matter, file, token, or account data is shown.</p>
+  </main>
+</body>
+</html>

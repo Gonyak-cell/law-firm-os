@@ -6,7 +6,6 @@ import {
   ChevronDown,
   CircleHelp,
   Globe2,
-  Loader2,
   Menu,
   Moon,
   Plus,
@@ -17,7 +16,9 @@ import {
   Users,
   X
 } from "lucide-react";
+import { PRODUCT_BRAND } from "../brand/brand";
 import { navItems } from "../data/nav.js";
+import { MaterSplash } from "./MaterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
 
 export function LoadingSurface({ labels, locale, theme, setLocale, setTheme }) {
@@ -29,8 +30,7 @@ export function LoadingSurface({ labels, locale, theme, setLocale, setTheme }) {
 
   return (
     <main className="loading-stage">
-      <MatterLogo compact />
-      <Loader2 className="loading-spinner" size={28} />
+      <MaterSplash />
       <strong>{labels.loading}</strong>
       <p>{locale === "ko" ? "최근 작업공간과 권한을 확인하고 있습니다." : "Checking your workspace and permissions."}</p>
       <div className="loading-actions">
@@ -161,7 +161,7 @@ export function GlobalSearch({ labels, query, setQuery, setView }) {
     { icon: Search, title: `Search "${query}"`, view: "content" },
     { icon: BarChart3, title: "MAT-248 Event Segmentation", view: "analytics" },
     { icon: Users, title: "Project Atlas LDD", view: "profiles" },
-    { icon: Sparkles, title: "Ask matter for related insights", view: "ask" }
+    { icon: Sparkles, title: `Ask ${PRODUCT_BRAND} for related insights`, view: "ask" }
   ];
 
   return (

@@ -7,15 +7,15 @@ Verdict: PASS
 ## Summary
 
 - register_exists: true
-- total_rows: 0
-- decided_rows: 0
-- deferred_rows: 0
-- valid_decided_rows: 0
-- valid_deferred_rows: 0
-- coverage_eligible_valid_deferred_rows: 0
+- total_rows: 5
+- decided_rows: 1
+- deferred_rows: 4
+- valid_decided_rows: 1
+- valid_deferred_rows: 4
+- coverage_eligible_valid_deferred_rows: 4
 - non_coverage_valid_deferred_rows: 0
 - invalid_decision_rows: 0
-- owner_approved_deferrals_present: false
+- owner_approved_deferrals_present: true
 - deferral_coverage_key_rules_documented: true
 - missing_deferral_coverage_key_rule_count: 0
 - finding_count: 0

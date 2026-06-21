@@ -1,0 +1,549 @@
+{
+  "schema_version": "law-firm-os.runtime-spine-ledger.v0.1",
+  "baseline_commit": "41268c4becac7d06948d10c173d30635e108c5e1",
+  "program": "Law Firm OS Runtime Spine",
+  "runtime_ready_candidate_claim": true,
+  "actual_launch_go_live_claim": false,
+  "final_go_live_approval_recorded": true,
+  "final_go_live_decision_ref": "docs/launch/final-go-live-decision.json",
+  "non_weakening_policy_ref": "docs/runtime-spine/non-weakening-policy.md",
+  "decision_register_ref": "docs/runtime-spine/runtime-spine-decisions.json",
+  "evidence_index_ref": "docs/runtime-spine/evidence/runtime-spine-evidence-index.json",
+  "gates": [
+    {
+      "id": "G0",
+      "title": "Runtime Scope Ready",
+      "status": "scope_ready_candidate",
+      "spine": "RS-PRE",
+      "exit_rule": "RS-PRE-T01 through RS-PRE-T10 closed or timed-deferred"
+    },
+    {
+      "id": "G1",
+      "title": "Persistence Ready",
+      "status": "ready_candidate",
+      "spine": "RS-1",
+      "exit_rule": "tenant-scoped durable persistence evidence"
+    },
+    {
+      "id": "G2",
+      "title": "Trust Boundary Ready",
+      "status": "ready_candidate",
+      "spine": "RS-2",
+      "exit_rule": "server-derived AuthN/AuthZ evidence"
+    },
+    {
+      "id": "G3",
+      "title": "Audit Ready",
+      "status": "ready_candidate",
+      "spine": "RS-3",
+      "exit_rule": "non-bypassable durable audit evidence"
+    },
+    {
+      "id": "G4",
+      "title": "Canonical Model Ready",
+      "status": "ready_candidate",
+      "spine": "RS-4",
+      "exit_rule": "Client-Matter-People canonical model evidence"
+    },
+    {
+      "id": "G5",
+      "title": "App Runtime Ready",
+      "status": "ready_candidate",
+      "spine": "RS-5",
+      "exit_rule": "API/UI write path smoke evidence"
+    },
+    {
+      "id": "G6",
+      "title": "Runtime-ready Candidate",
+      "status": "ready_candidate",
+      "spine": "RS-6",
+      "exit_rule": "RTG-001 through RTG-005 evidence"
+    }
+  ],
+  "rtg_summary": [
+    {
+      "id": "RTG-001",
+      "status": "passed",
+      "meaning": "functional runtime path executed"
+    },
+    {
+      "id": "RTG-002",
+      "status": "passed",
+      "meaning": "fail-closed permission runtime path executed"
+    },
+    {
+      "id": "RTG-003",
+      "status": "passed",
+      "meaning": "durable audit append executed"
+    },
+    {
+      "id": "RTG-004",
+      "status": "passed",
+      "meaning": "synthetic sandbox and no real data guard"
+    },
+    {
+      "id": "RTG-005",
+      "status": "passed",
+      "meaning": "regression sweep required"
+    }
+  ],
+  "locked_future_domains": [
+    {
+      "domain": "Portal",
+      "status": "locked_until_external_acl_gate"
+    },
+    {
+      "domain": "Outlook/M365",
+      "status": "locked_until_graph_admin_consent_gate"
+    },
+    {
+      "domain": "HR real data",
+      "status": "locked_until_hr_owner_and_identity_gate"
+    },
+    {
+      "domain": "AI",
+      "status": "synthetic_only_until_external_ai_policy_gate"
+    },
+    {
+      "domain": "Vault import/sync",
+      "status": "locked_until_export_only_and_source_boundary_gate"
+    }
+  ],
+  "spines": [
+    {
+      "id": "RS-PRE",
+      "gate": "G0",
+      "status": "scope_ready_candidate",
+      "tuws": [
+        {
+          "id": "RS-PRE-T01",
+          "title": "Runtime Spine Charter",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-spine-charter.md"
+          ]
+        },
+        {
+          "id": "RS-PRE-T02",
+          "title": "Descriptor-only evidence non-weakening policy",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/non-weakening-policy.md"
+          ]
+        },
+        {
+          "id": "RS-PRE-T03",
+          "title": "Runtime boundary map",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-boundary-map.md"
+          ]
+        },
+        {
+          "id": "RS-PRE-T04",
+          "title": "DEC-RS-001 DB/hosting decision record",
+          "status": "timed_deferral",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-spine-decisions.json"
+          ]
+        },
+        {
+          "id": "RS-PRE-T05",
+          "title": "DEC-RS-002 tenant deployment model",
+          "status": "timed_deferral",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-spine-decisions.json"
+          ]
+        },
+        {
+          "id": "RS-PRE-T06",
+          "title": "DEC-RS-003 auth provider decision",
+          "status": "timed_deferral",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-spine-decisions.json"
+          ]
+        },
+        {
+          "id": "RS-PRE-T07",
+          "title": "DEC-RS-006 canonical identity separation",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-spine-decisions.json"
+          ]
+        },
+        {
+          "id": "RS-PRE-T08",
+          "title": "DEC-RS-007 classification decision",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-spine-decisions.json"
+          ]
+        },
+        {
+          "id": "RS-PRE-T09",
+          "title": "Runtime readiness ledger schema",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-spine-ledger.json"
+          ]
+        },
+        {
+          "id": "RS-PRE-T10",
+          "title": "Baseline runtime measurement",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/baseline-runtime-measurement.md"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RS-1",
+      "gate": "G1",
+      "status": "ready_candidate",
+      "tuws": [
+        {
+          "id": "RS-1-T01",
+          "title": "Persistence package",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/package.json",
+            "packages/persistence/src/index.js",
+            "packages/persistence/test/config.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T02",
+          "title": "DB connection abstraction",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/config.js",
+            "packages/persistence/src/connection.js",
+            "packages/persistence/test/connection.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T03",
+          "title": "Tenant base schema",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/schema.js",
+            "packages/persistence/test/connection.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T04",
+          "title": "Runtime migration framework",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/migration-runner.js",
+            "packages/persistence/src/migrations/index.js",
+            "packages/persistence/test/migration-runner.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T05",
+          "title": "Tenant-scoped base repository pattern",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/repository.js",
+            "packages/persistence/test/repository.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T06",
+          "title": "Stable ID generator",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/id.js",
+            "packages/persistence/test/id.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T07",
+          "title": "Idempotency key table",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/idempotency.js",
+            "packages/persistence/test/idempotency-outbox.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T08",
+          "title": "Transaction boundary utility",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/transaction.js",
+            "packages/persistence/test/idempotency-outbox.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T09",
+          "title": "Outbox table",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-003", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/outbox.js",
+            "packages/persistence/test/idempotency-outbox.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T10",
+          "title": "Soft delete and lifecycle fields",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/lifecycle.js",
+            "packages/persistence/test/repository.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T11",
+          "title": "Data residency metadata",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/residency.js",
+            "packages/persistence/test/residency-backup.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T12",
+          "title": "Backup/restore smoke harness",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/backup.js",
+            "packages/persistence/test/residency-backup.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T13",
+          "title": "Tenant isolation DB test suite",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/test/tenant-isolation.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T14",
+          "title": "Persistence evidence packet",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "docs/runtime-spine/evidence/g1-persistence-evidence.json",
+            "scripts/validate-runtime-spine-rs1-persistence-ready.mjs"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RS-2",
+      "gate": "G2",
+      "status": "ready_candidate",
+      "tuws": [
+        {"id": "RS-2-T01", "title": "Auth runtime package", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/package.json", "packages/runtime-auth/src/index.js"]},
+        {"id": "RS-2-T02", "title": "User credential/session schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/session.js", "packages/runtime-auth/test/session-provider.test.js"]},
+        {"id": "RS-2-T03", "title": "OIDC/SAML adapter interface", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/provider.js", "packages/runtime-auth/test/session-provider.test.js"]},
+        {"id": "RS-2-T04", "title": "Local dev auth provider", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/local-provider.js", "packages/runtime-auth/test/session-provider.test.js"]},
+        {"id": "RS-2-T05", "title": "Server-derived principal builder", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/principal.js", "packages/runtime-auth/test/principal.test.js"]},
+        {"id": "RS-2-T06", "title": "Tenant membership resolver", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/membership.js", "packages/runtime-auth/test/principal.test.js"]},
+        {"id": "RS-2-T07", "title": "Role/group resolver", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/membership.js", "packages/runtime-auth/test/principal.test.js"]},
+        {"id": "RS-2-T08", "title": "MFA/session assurance model", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/assurance.js", "packages/runtime-auth/test/authz-context.test.js"]},
+        {"id": "RS-2-T09", "title": "AuthZ context builder", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/authz-context.js", "packages/runtime-auth/test/authz-context.test.js"]},
+        {"id": "RS-2-T10", "title": "Existing authz evaluator integration", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/authz-context.js", "packages/authz/src/evaluate.js", "packages/runtime-auth/test/authz-context.test.js"]},
+        {"id": "RS-2-T11", "title": "Cross-tenant deny regression", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/test/principal.test.js", "packages/runtime-auth/test/authz-context.test.js"]},
+        {"id": "RS-2-T12", "title": "Privilege/HR-sensitive policy hooks", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/policy-hooks.js", "packages/runtime-auth/test/authz-context.test.js"]},
+        {"id": "RS-2-T13", "title": "Break-glass placeholder locked", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/break-glass.js", "packages/runtime-auth/test/audit-break-glass.test.js"]},
+        {"id": "RS-2-T14", "title": "Auth audit event emission hook", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/audit.js", "packages/runtime-auth/test/audit-break-glass.test.js"]},
+        {"id": "RS-2-T15", "title": "Auth runtime evidence packet", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["docs/runtime-spine/evidence/g2-trust-boundary-evidence.json", "scripts/validate-runtime-spine-rs2-trust-boundary.mjs"]}
+      ]
+    },
+    {
+      "id": "RS-3",
+      "gate": "G3",
+      "status": "ready_candidate",
+      "tuws": [
+        {"id": "RS-3-T01", "title": "Audit runtime package", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-writer.js", "packages/audit/src/index.js"]},
+        {"id": "RS-3-T02", "title": "Durable audit table schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-taxonomy.js", "packages/audit/src/events.js"]},
+        {"id": "RS-3-T03", "title": "Audit hash-chain persistence", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-writer.js", "packages/audit/test/runtime-audit-writer.test.js"]},
+        {"id": "RS-3-T04", "title": "Audit event taxonomy mapping", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-taxonomy.js", "packages/audit/test/runtime-route-coverage.test.js"]},
+        {"id": "RS-3-T05", "title": "Audit writer service", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-writer.js", "packages/audit/test/runtime-audit-writer.test.js"]},
+        {"id": "RS-3-T06", "title": "Audit middleware for reads", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-middleware.js", "packages/audit/test/runtime-audit-middleware.test.js"]},
+        {"id": "RS-3-T07", "title": "Audit middleware for writes", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-middleware.js", "packages/audit/test/runtime-audit-middleware.test.js"]},
+        {"id": "RS-3-T08", "title": "Permission evaluation audit", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-middleware.js", "packages/audit/test/runtime-audit-middleware.test.js"]},
+        {"id": "RS-3-T09", "title": "Export/share audit", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-middleware.js", "packages/audit/test/runtime-audit-middleware.test.js"]},
+        {"id": "RS-3-T10", "title": "Audit read API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-reader.js", "packages/audit/test/runtime-audit-read-retention.test.js"]},
+        {"id": "RS-3-T11", "title": "Audit retention policy", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/retention.js", "packages/audit/test/runtime-audit-read-retention.test.js"]},
+        {"id": "RS-3-T12", "title": "Audit verification job", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/verify-job.js", "packages/audit/test/runtime-audit-read-retention.test.js"]},
+        {"id": "RS-3-T13", "title": "Audit immutability guard", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-immutability.js", "packages/audit/test/runtime-audit-writer.test.js"]},
+        {"id": "RS-3-T14", "title": "Route audit coverage scanner", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-005"], "evidence": ["packages/audit/src/runtime-route-coverage.js", "packages/audit/test/runtime-route-coverage.test.js"]},
+        {"id": "RS-3-T15", "title": "Audit runtime evidence packet", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["docs/runtime-spine/evidence/g3-audit-evidence.json", "scripts/validate-runtime-spine-rs3-audit.mjs"]}
+      ]
+    },
+    {
+      "id": "RS-4",
+      "gate": "G4",
+      "status": "ready_candidate",
+      "tuws": [
+        {"id": "RS-4-T01", "title": "Canonical object glossary", "status": "closed", "loop_stage": "act", "rtg": ["RTG-004", "RTG-005"], "evidence": ["docs/runtime-spine/canonical-object-glossary.json", "packages/runtime-model/src/schema-registry.js"]},
+        {"id": "RS-4-T02", "title": "Tenant/User/Employee schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/schema-registry.js", "packages/runtime-model/test/schema-registry.test.js"]},
+        {"id": "RS-4-T03", "title": "Tenant membership/role schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/schema-registry.js", "packages/runtime-model/test/canonical-records.test.js"]},
+        {"id": "RS-4-T04", "title": "Person/Organization schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/schema-registry.js", "packages/runtime-model/src/migration-compatibility.js"]},
+        {"id": "RS-4-T05", "title": "Client/ClientGroup schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/schema-registry.js", "packages/runtime-model/src/relationships.js"]},
+        {"id": "RS-4-T06", "title": "ExternalUser schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/schema-registry.js", "packages/runtime-model/test/canonical-records.test.js"]},
+        {"id": "RS-4-T07", "title": "Matter schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/schema-registry.js", "packages/runtime-model/src/migration-compatibility.js"]},
+        {"id": "RS-4-T08", "title": "MatterMember schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/schema-registry.js", "packages/runtime-model/src/migration-compatibility.js"]},
+        {"id": "RS-4-T09", "title": "Party/Contact role schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/schema-registry.js", "packages/runtime-model/src/relationships.js"]},
+        {"id": "RS-4-T10", "title": "Document/DocumentVersion schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/schema-registry.js", "packages/runtime-model/src/migration-compatibility.js"]},
+        {"id": "RS-4-T11", "title": "EmailThread/EmailMessage schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/schema-registry.js", "packages/runtime-model/src/fixtures.js"]},
+        {"id": "RS-4-T12", "title": "Task/Deadline/Event schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/schema-registry.js", "packages/runtime-model/src/migration-compatibility.js"]},
+        {"id": "RS-4-T13", "title": "Issue schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/schema-registry.js", "packages/runtime-model/src/fixtures.js"]},
+        {"id": "RS-4-T14", "title": "MatterWiki schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/schema-registry.js", "packages/runtime-model/src/migration-compatibility.js"]},
+        {"id": "RS-4-T15", "title": "VaultSnapshot schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/schema-registry.js", "packages/runtime-model/src/migration-compatibility.js"]},
+        {"id": "RS-4-T16", "title": "Classification envelope schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/validators.js", "packages/runtime-model/test/canonical-records.test.js"]},
+        {"id": "RS-4-T17", "title": "Object relationship registry", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/relationships.js", "packages/runtime-model/test/relationship-registry.test.js"]},
+        {"id": "RS-4-T18", "title": "Canonical model seed fixtures", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/fixtures.js", "packages/runtime-model/test/seed-fixture-migration.test.js"]},
+        {"id": "RS-4-T19", "title": "Migration compatibility test", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-model/src/migration-compatibility.js", "packages/runtime-model/test/seed-fixture-migration.test.js"]},
+        {"id": "RS-4-T20", "title": "Canonical model evidence packet", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"], "evidence": ["docs/runtime-spine/evidence/g4-canonical-model-evidence.json", "scripts/validate-runtime-spine-rs4-canonical-model.mjs"]}
+      ]
+    },
+    {
+      "id": "RS-5",
+      "gate": "G5",
+      "status": "ready_candidate",
+      "tuws": [
+        {"id": "RS-5-T01", "title": "API runtime package/boundary", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-surface/src/service.js", "packages/runtime-surface/test/api-surface.test.js"]},
+        {"id": "RS-5-T02", "title": "Session API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-005"], "evidence": ["packages/runtime-surface/src/route-catalog.js", "packages/runtime-surface/test/api-surface.test.js"]},
+        {"id": "RS-5-T03", "title": "Current tenant API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-005"], "evidence": ["packages/runtime-surface/src/route-catalog.js", "packages/runtime-surface/test/api-surface.test.js"]},
+        {"id": "RS-5-T04", "title": "Client create/list/detail API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-surface/src/service.js", "packages/runtime-surface/test/api-surface.test.js"]},
+        {"id": "RS-5-T05", "title": "Matter create/list/detail API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-surface/src/service.js", "packages/runtime-surface/test/api-surface.test.js"]},
+        {"id": "RS-5-T06", "title": "Matter member assign API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-surface/src/service.js", "packages/runtime-surface/test/api-surface.test.js"]},
+        {"id": "RS-5-T07", "title": "People employee list/detail API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-surface/src/service.js", "packages/runtime-surface/test/api-surface.test.js"]},
+        {"id": "RS-5-T08", "title": "Party/contact API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-surface/src/service.js", "packages/runtime-surface/test/api-surface.test.js"]},
+        {"id": "RS-5-T09", "title": "Document metadata API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-surface/src/service.js", "packages/runtime-surface/test/api-surface.test.js"]},
+        {"id": "RS-5-T10", "title": "Matter document link API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-surface/src/service.js", "packages/runtime-surface/test/api-surface.test.js"]},
+        {"id": "RS-5-T11", "title": "Task/deadline API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-surface/src/service.js", "packages/runtime-surface/test/api-surface.test.js"]},
+        {"id": "RS-5-T12", "title": "Issue API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-surface/src/service.js", "packages/runtime-surface/test/api-surface.test.js"]},
+        {"id": "RS-5-T13", "title": "MatterWiki shell/read API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-surface/src/service.js", "packages/runtime-surface/test/api-surface.test.js"]},
+        {"id": "RS-5-T14", "title": "MatterWiki update API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-surface/src/service.js", "packages/runtime-surface/test/api-surface.test.js"]},
+        {"id": "RS-5-T15", "title": "Vault export-only API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-surface/src/service.js", "packages/runtime-surface/test/api-surface.test.js"]},
+        {"id": "RS-5-T16", "title": "API safe error taxonomy", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-005"], "evidence": ["packages/runtime-surface/src/safe-error.js", "packages/runtime-surface/test/permission-audit.test.js"]},
+        {"id": "RS-5-T17", "title": "API route audit coverage", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-005"], "evidence": ["packages/runtime-surface/src/route-catalog.js", "packages/runtime-surface/test/permission-audit.test.js"]},
+        {"id": "RS-5-T18", "title": "API permission matrix", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-005"], "evidence": ["packages/runtime-surface/src/permission-matrix.js", "packages/runtime-surface/test/permission-audit.test.js"]},
+        {"id": "RS-5-T19", "title": "UI API client layer", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-005"], "evidence": ["packages/runtime-surface/src/ui-client.js", "packages/runtime-surface/test/ui-client.test.js"]},
+        {"id": "RS-5-T20", "title": "UI session/tenant wiring", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-005"], "evidence": ["packages/runtime-surface/src/ui-client.js", "packages/runtime-surface/test/ui-client.test.js"]},
+        {"id": "RS-5-T21", "title": "UI Client list/create/detail", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-005"], "evidence": ["packages/runtime-surface/src/ui-client.js", "packages/runtime-surface/test/ui-client.test.js"]},
+        {"id": "RS-5-T22", "title": "UI Matter list/create/detail", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-005"], "evidence": ["packages/runtime-surface/src/ui-client.js", "packages/runtime-surface/test/ui-client.test.js"]},
+        {"id": "RS-5-T23", "title": "UI Matter members/people panel", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-005"], "evidence": ["packages/runtime-surface/src/ui-client.js", "packages/runtime-surface/test/ui-client.test.js"]},
+        {"id": "RS-5-T24", "title": "UI tasks/deadlines panel", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-005"], "evidence": ["packages/runtime-surface/src/ui-client.js", "packages/runtime-surface/test/ui-client.test.js"]},
+        {"id": "RS-5-T25", "title": "UI wiki panel", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-005"], "evidence": ["packages/runtime-surface/src/ui-client.js", "packages/runtime-surface/test/ui-client.test.js"]},
+        {"id": "RS-5-T26", "title": "UI vault export-only action", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-005"], "evidence": ["packages/runtime-surface/src/ui-client.js", "packages/runtime-surface/test/ui-client.test.js"]},
+        {"id": "RS-5-T27", "title": "UI denied/review/approval state system", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-005"], "evidence": ["packages/runtime-surface/src/ui-client.js", "packages/runtime-surface/test/permission-audit.test.js"]},
+        {"id": "RS-5-T28", "title": "Feature flag for portal/email/hr/ai", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-surface/src/permission-matrix.js", "packages/runtime-surface/test/ui-client.test.js"]},
+        {"id": "RS-5-T29", "title": "API/UI smoke flow", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-surface/src/smoke-flow.js", "packages/runtime-surface/test/smoke-flow.test.js"]},
+        {"id": "RS-5-T30", "title": "UI/API evidence packet", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["docs/runtime-spine/evidence/g5-app-runtime-evidence.json", "scripts/validate-runtime-spine-rs5-app-surface.mjs"]}
+      ]
+    },
+    {
+      "id": "RS-6",
+      "gate": "G6",
+      "status": "ready_candidate",
+      "tuws": [
+        {"id": "RS-6-T01", "title": "Runtime integration test directory", "status": "closed", "loop_stage": "act", "rtg": ["RTG-005"], "evidence": ["packages/runtime-integration/test/harness.test.js"]},
+        {"id": "RS-6-T02", "title": "Runtime integration harness", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js"]},
+        {"id": "RS-6-T03", "title": "Test data factory", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/factory.js"]},
+        {"id": "RS-6-T04", "title": "API test runner script", "status": "closed", "loop_stage": "act", "rtg": ["RTG-005"], "evidence": ["scripts/validate-runtime-spine-rs6-integration.mjs"]},
+        {"id": "RS-6-T05", "title": "npm script registration", "status": "closed", "loop_stage": "act", "rtg": ["RTG-005"], "evidence": ["package.json", "package-lock.json"]},
+        {"id": "RS-6-T06", "title": "Tenant isolation E2E", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js", "packages/runtime-integration/test/harness.test.js"]},
+        {"id": "RS-6-T07", "title": "AuthN/AuthZ E2E", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js", "packages/runtime-integration/test/security-boundary.test.js"]},
+        {"id": "RS-6-T08", "title": "Audit chain E2E", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js", "packages/audit/src/runtime-writer.js"]},
+        {"id": "RS-6-T09", "title": "Client to Matter E2E", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js"]},
+        {"id": "RS-6-T10", "title": "Matter to People E2E", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js"]},
+        {"id": "RS-6-T11", "title": "Matter to Wiki E2E", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js"]},
+        {"id": "RS-6-T12", "title": "Vault export-only E2E", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js"]},
+        {"id": "RS-6-T13", "title": "Safe error leakage suite", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js", "packages/runtime-integration/test/security-boundary.test.js"]},
+        {"id": "RS-6-T14", "title": "Feature-locked domain suite", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js", "packages/runtime-surface/src/permission-matrix.js"]},
+        {"id": "RS-6-T15", "title": "Migration reset suite", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-integration/src/harness.js"]},
+        {"id": "RS-6-T16", "title": "Runtime readiness validator", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["scripts/validate-runtime-spine-rs6-integration.mjs"]},
+        {"id": "RS-6-T17", "title": "RTG-005 responsibility map", "status": "closed", "loop_stage": "act", "rtg": ["RTG-005"], "evidence": ["packages/runtime-integration/src/responsibility-map.js", "docs/runtime-spine/rtg-005-responsibility-map.md"]},
+        {"id": "RS-6-T18", "title": "CI workflow", "status": "closed", "loop_stage": "act", "rtg": ["RTG-005"], "evidence": ["package.json", "docs/runtime-spine/qa-checklist.md"]},
+        {"id": "RS-6-T19", "title": "Runtime readiness ledger update", "status": "closed", "loop_stage": "act", "rtg": ["RTG-005"], "evidence": ["docs/runtime-spine/runtime-spine-ledger.json"]},
+        {"id": "RS-6-T20", "title": "Runtime-ready evidence packet", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["docs/runtime-spine/evidence/g6-runtime-ready-evidence.json", "docs/runtime-spine/evidence/runtime-spine-evidence-index.json"]}
+      ]
+    }
+  ]
+}

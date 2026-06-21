@@ -1,0 +1,92 @@
+{
+  "schema_version": "law-firm-os.runtime-spine.g1-persistence-evidence.v0.1",
+  "gate": "G1",
+  "spine": "RS-1",
+  "status": "ready_candidate",
+  "date": "2026-06-21",
+  "baseline_commit": "41268c4becac7d06948d10c173d30635e108c5e1",
+  "merge_baseline_before_rs1c": "e9cc16794d71f619b87ff1805b9b582cbc7f73e4",
+  "closed_tuws": [
+    "RS-1-T01",
+    "RS-1-T02",
+    "RS-1-T03",
+    "RS-1-T04",
+    "RS-1-T05",
+    "RS-1-T06",
+    "RS-1-T07",
+    "RS-1-T08",
+    "RS-1-T09",
+    "RS-1-T10",
+    "RS-1-T11",
+    "RS-1-T12",
+    "RS-1-T13",
+    "RS-1-T14"
+  ],
+  "scope": {
+    "synthetic_only": true,
+    "production_db_approved": false,
+    "production_credentials_allowed": false,
+    "real_tenant_data_allowed": false,
+    "runtime_ready_candidate": false,
+    "actual_launch_go_live_claim": false
+  },
+  "capabilities": {
+    "tenant_base_schema": "runtime_tenants",
+    "runtime_data_table": "runtime_records",
+    "idempotency_table": "runtime_idempotency_keys",
+    "outbox_table": "runtime_outbox_events",
+    "migration_history_table": "runtime_migration_history",
+    "data_residency_metadata": [
+      "residency_region",
+      "data_residency_policy",
+      "data_classification"
+    ],
+    "backup_restore": "synthetic scoped backup/restore harness",
+    "tenant_isolation_negative_tests": true
+  },
+  "rtg_status": {
+    "RTG-001": "partial",
+    "RTG-002": "partial",
+    "RTG-003": "partial",
+    "RTG-004": "g0_guarded",
+    "RTG-005": "g0_guarded"
+  },
+  "required_follow_on": [
+    "RS-2 server-derived AuthN/AuthZ before real tenant access",
+    "RS-3 non-bypassable durable audit before mutation routes",
+    "RS-4 canonical Client-Matter-People model before app write paths",
+    "RS-6 runtime_ready gate before repo-side runtime-ready candidate"
+  ],
+  "validation_commands": [
+    "npm --workspace @law-firm-os/persistence run test",
+    "npm run runtime-spine:rs1:persistence-ready:validate",
+    "npm run runtime-spine:rs1:tenant-data:validate",
+    "npm run runtime-spine:rs1:persistence:validate",
+    "npm run runtime-spine:plan:validate",
+    "npm run runtime-spine:readiness:validate",
+    "npm run runtime-readiness:validate",
+    "npm run client-matter:cmp-v1:validate",
+    "npm run matter-vault:r4:validate",
+    "npm run hrx:runtime:validate",
+    "npm run validate",
+    "npm run api:test",
+    "npm run build",
+    "npm test"
+  ],
+  "latest_results": {
+    "persistence_package_test": "passed; 20/20",
+    "rs1_persistence_ready_validator": "passed",
+    "rs1_tenant_data_validator": "passed",
+    "rs1_persistence_validator": "passed",
+    "runtime_spine_plan": "passed; gates=7; tuws=124",
+    "runtime_spine_readiness_guard": "passed; total_closed_tuws=21; rs1_closed_tuws=14; premature_closed_tuws=0; next_gate=G2",
+    "runtime_readiness": "passed; runtime_target_packs=0",
+    "client_matter_cmp_v1": "passed; tuws=316; gates=13; claim_boundary=not_r4_ready",
+    "matter_vault_r4": "passed; tuws=118; gates=9; launch_go_live_claim=false",
+    "hrx_runtime": "passed",
+    "root_validate": "passed",
+    "api_test": "passed; 131/131",
+    "build": "passed",
+    "root_test": "passed; 4014/4014"
+  }
+}

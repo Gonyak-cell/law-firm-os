@@ -258,16 +258,18 @@ for (const phrase of REQUIRED_MARKDOWN_PHRASES) {
   }
 }
 
-if (decisionSummary.total_rows !== 0 || decisionSummary.valid_deferred_rows !== 0) {
+const realReceiptCount = slots.filter((slot) => slot.receipt_status === "real_owner_evidence_received").length;
+const pendingReceiptCount = slots.filter((slot) => slot.receipt_status === "pending_owner_evidence").length;
+const copyAllowedCount = slots.filter((slot) => slot.copy_to_launch_decision_register_allowed === true).length;
+
+if (pendingReceiptCount > 0 && (decisionSummary.total_rows !== 0 || decisionSummary.valid_deferred_rows !== 0)) {
   addFinding(findings, "P0", "DECISION_REGISTER_ROWS_PRESENT_WHILE_RECEIPTS_PENDING", "Launch decision register contains decision rows while receipt ledger slots are pending.", {
+    pending_receipt_slot_count: pendingReceiptCount,
     total_rows: decisionSummary.total_rows,
     valid_deferred_rows: decisionSummary.valid_deferred_rows
   });
 }
 
-const realReceiptCount = slots.filter((slot) => slot.receipt_status === "real_owner_evidence_received").length;
-const pendingReceiptCount = slots.filter((slot) => slot.receipt_status === "pending_owner_evidence").length;
-const copyAllowedCount = slots.filter((slot) => slot.copy_to_launch_decision_register_allowed === true).length;
 const verdict = findings.some((finding) => finding.severity === "P0" || finding.severity === "P1") ? "FAIL" : "PASS";
 const report = {
   schema_version: "law-firm-os.launch-owner-approval-receipt-ledger.validation.v0.1",

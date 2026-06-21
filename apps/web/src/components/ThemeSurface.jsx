@@ -1,4 +1,5 @@
 import React from "react";
+import { PRODUCT_BRAND } from "../brand/brand";
 import { PageHeader } from "./primitives.jsx";
 import { HomeSurface } from "./HomeSurface.jsx";
 
@@ -61,7 +62,7 @@ export function DarkTemplatesSurface() {
         <aside className="dark-templates-nav">
           <button className="active" type="button">All Templates</button>
           <button type="button">Recently Viewed</button>
-          <small>Created By matter</small>
+          <small>{`Created By ${PRODUCT_BRAND}`}</small>
           <button type="button">Use Case</button>
           <button type="button">Expert</button>
           <button type="button">Industry</button>

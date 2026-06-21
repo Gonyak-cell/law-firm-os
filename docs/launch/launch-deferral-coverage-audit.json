@@ -19,18 +19,18 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "valid_deferred_decision_count": 0,
-    "coverage_eligible_valid_deferred_decision_count": 0,
+    "valid_deferred_decision_count": 4,
+    "coverage_eligible_valid_deferred_decision_count": 4,
     "non_coverage_valid_deferred_decision_count": 0,
-    "all_required_deferrals_covered": false,
-    "go_live_deferral_coverage_complete": false,
-    "l9_deferral_coverage_complete": false,
-    "blocked_wp_deferral_coverage_complete": false,
-    "phase_exit_deferral_coverage_complete": false,
-    "go_live_missing_deferral_count": 31,
-    "l9_missing_deferral_count": 5,
-    "blocked_wp_missing_deferral_count": 70,
-    "phase_exit_missing_deferral_count": 11,
+    "all_required_deferrals_covered": true,
+    "go_live_deferral_coverage_complete": true,
+    "l9_deferral_coverage_complete": true,
+    "blocked_wp_deferral_coverage_complete": true,
+    "phase_exit_deferral_coverage_complete": true,
+    "go_live_missing_deferral_count": 0,
+    "l9_missing_deferral_count": 0,
+    "blocked_wp_missing_deferral_count": 0,
+    "phase_exit_missing_deferral_count": 0,
     "finding_count": 0,
     "p0_count": 0,
     "p1_count": 0
@@ -39,30 +39,30 @@
     {
       "domain": "go_live_gate_evidence",
       "total": 31,
-      "covered": 0,
-      "missing": 31,
-      "complete": false
+      "covered": 31,
+      "missing": 0,
+      "complete": true
     },
     {
       "domain": "l9_stabilization_closure",
       "total": 5,
-      "covered": 0,
-      "missing": 5,
-      "complete": false
+      "covered": 5,
+      "missing": 0,
+      "complete": true
     },
     {
       "domain": "blocked_work_package",
       "total": 70,
-      "covered": 0,
-      "missing": 70,
-      "complete": false
+      "covered": 70,
+      "missing": 0,
+      "complete": true
     },
     {
       "domain": "phase_exit",
       "total": 11,
-      "covered": 0,
-      "missing": 11,
-      "complete": false
+      "covered": 11,
+      "missing": 0,
+      "complete": true
     }
   ],
   "coverage_rows": {
@@ -77,8 +77,8 @@
           "COVERAGE-GATE-G1",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G1-G1-E03",
@@ -90,8 +90,8 @@
           "COVERAGE-GATE-G1",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G2-G2-E01",
@@ -103,8 +103,8 @@
           "COVERAGE-GATE-G2",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G2-G2-E02",
@@ -116,8 +116,8 @@
           "COVERAGE-GATE-G2",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G2-G2-E03",
@@ -129,8 +129,8 @@
           "COVERAGE-GATE-G2",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G3-G3-E01",
@@ -142,8 +142,8 @@
           "COVERAGE-GATE-G3",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G3-G3-E02",
@@ -155,8 +155,8 @@
           "COVERAGE-GATE-G3",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G3-G3-E03",
@@ -168,8 +168,8 @@
           "COVERAGE-GATE-G3",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G3-G3-E04",
@@ -181,8 +181,8 @@
           "COVERAGE-GATE-G3",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G4-G4-E01",
@@ -194,8 +194,8 @@
           "COVERAGE-GATE-G4",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G4-G4-E02",
@@ -207,8 +207,8 @@
           "COVERAGE-GATE-G4",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G4-G4-E03",
@@ -220,8 +220,8 @@
           "COVERAGE-GATE-G4",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G4-G4-E04",
@@ -233,8 +233,8 @@
           "COVERAGE-GATE-G4",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G5-G5-E01",
@@ -246,8 +246,8 @@
           "COVERAGE-GATE-G5",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G5-G5-E02",
@@ -259,8 +259,8 @@
           "COVERAGE-GATE-G5",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G5-G5-E03",
@@ -272,8 +272,8 @@
           "COVERAGE-GATE-G5",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G6-G6-E01",
@@ -285,8 +285,8 @@
           "COVERAGE-GATE-G6",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G6-G6-E02",
@@ -298,8 +298,8 @@
           "COVERAGE-GATE-G6",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G6-G6-E03",
@@ -311,8 +311,8 @@
           "COVERAGE-GATE-G6",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G6-G6-E04",
@@ -324,8 +324,8 @@
           "COVERAGE-GATE-G6",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G7-G7-E01",
@@ -337,8 +337,8 @@
           "COVERAGE-GATE-G7",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G7-G7-E02",
@@ -350,8 +350,8 @@
           "COVERAGE-GATE-G7",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G7-G7-E03",
@@ -363,8 +363,8 @@
           "COVERAGE-GATE-G7",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G8-G8-E01",
@@ -376,8 +376,8 @@
           "COVERAGE-GATE-G8",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G8-G8-E02",
@@ -389,8 +389,8 @@
           "COVERAGE-GATE-G8",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G8-G8-E03",
@@ -402,8 +402,8 @@
           "COVERAGE-GATE-G8",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G9-G9-E01",
@@ -415,8 +415,8 @@
           "COVERAGE-GATE-G9",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G9-G9-E03",
@@ -428,8 +428,8 @@
           "COVERAGE-GATE-G9",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G10-G10-E01",
@@ -441,8 +441,8 @@
           "COVERAGE-GATE-G10",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G10-G10-E02",
@@ -454,8 +454,8 @@
           "COVERAGE-GATE-G10",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       },
       {
         "coverage_id": "ACC-GL-G10-G10-E03",
@@ -467,8 +467,8 @@
           "COVERAGE-GATE-G10",
           "COVERAGE-ALL-GO-LIVE"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-GO-LIVE"
       }
     ],
     "l9_stabilization_closure": [
@@ -481,8 +481,8 @@
           "ACC-L9-C01",
           "COVERAGE-L9-STABILIZATION"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-L9-STABILIZATION"
       },
       {
         "coverage_id": "ACC-L9-C02",
@@ -493,8 +493,8 @@
           "ACC-L9-C02",
           "COVERAGE-L9-STABILIZATION"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-L9-STABILIZATION"
       },
       {
         "coverage_id": "ACC-L9-C03",
@@ -505,8 +505,8 @@
           "ACC-L9-C03",
           "COVERAGE-L9-STABILIZATION"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-L9-STABILIZATION"
       },
       {
         "coverage_id": "ACC-L9-C04",
@@ -517,8 +517,8 @@
           "ACC-L9-C04",
           "COVERAGE-L9-STABILIZATION"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-L9-STABILIZATION"
       },
       {
         "coverage_id": "ACC-L9-C05",
@@ -529,8 +529,8 @@
           "ACC-L9-C05",
           "COVERAGE-L9-STABILIZATION"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-L9-STABILIZATION"
       }
     ],
     "blocked_work_package": [
@@ -545,8 +545,8 @@
           "COVERAGE-PHASE-PRE",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-PRE-W02",
@@ -559,8 +559,8 @@
           "COVERAGE-PHASE-PRE",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-PRE-W03",
@@ -573,8 +573,8 @@
           "COVERAGE-PHASE-PRE",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-PRE-W04",
@@ -587,8 +587,8 @@
           "COVERAGE-PHASE-PRE",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-PRE-W05",
@@ -601,8 +601,8 @@
           "COVERAGE-PHASE-PRE",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-PRE-W06",
@@ -615,8 +615,8 @@
           "COVERAGE-PHASE-PRE",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L0-W01",
@@ -629,8 +629,8 @@
           "COVERAGE-PHASE-L0",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L0-W02",
@@ -643,8 +643,8 @@
           "COVERAGE-PHASE-L0",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L0-W03",
@@ -657,8 +657,8 @@
           "COVERAGE-PHASE-L0",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L0-W04",
@@ -671,8 +671,8 @@
           "COVERAGE-PHASE-L0",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L0-W05",
@@ -685,8 +685,8 @@
           "COVERAGE-PHASE-L0",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L1-W01",
@@ -699,8 +699,8 @@
           "COVERAGE-PHASE-L1",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L1-W02",
@@ -713,8 +713,8 @@
           "COVERAGE-PHASE-L1",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L1-W03",
@@ -727,8 +727,8 @@
           "COVERAGE-PHASE-L1",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L1-W04",
@@ -741,8 +741,8 @@
           "COVERAGE-PHASE-L1",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L1-W05",
@@ -755,8 +755,8 @@
           "COVERAGE-PHASE-L1",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L1-W06",
@@ -769,8 +769,8 @@
           "COVERAGE-PHASE-L1",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L1-W07",
@@ -783,8 +783,8 @@
           "COVERAGE-PHASE-L1",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L1-W08",
@@ -797,8 +797,8 @@
           "COVERAGE-PHASE-L1",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L1-W09",
@@ -811,8 +811,8 @@
           "COVERAGE-PHASE-L1",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L1-W10",
@@ -825,8 +825,8 @@
           "COVERAGE-PHASE-L1",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L2-W01",
@@ -839,8 +839,8 @@
           "COVERAGE-PHASE-L2",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L2-W02",
@@ -853,8 +853,8 @@
           "COVERAGE-PHASE-L2",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L2-W03",
@@ -867,8 +867,8 @@
           "COVERAGE-PHASE-L2",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L2-W04",
@@ -881,8 +881,8 @@
           "COVERAGE-PHASE-L2",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L2-W05",
@@ -895,8 +895,8 @@
           "COVERAGE-PHASE-L2",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L2-W06",
@@ -909,8 +909,8 @@
           "COVERAGE-PHASE-L2",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L2-W07",
@@ -923,8 +923,8 @@
           "COVERAGE-PHASE-L2",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L3-W01",
@@ -937,8 +937,8 @@
           "COVERAGE-PHASE-L3",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L3-W02",
@@ -951,8 +951,8 @@
           "COVERAGE-PHASE-L3",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L3-W03",
@@ -965,8 +965,8 @@
           "COVERAGE-PHASE-L3",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L3-W04",
@@ -979,8 +979,8 @@
           "COVERAGE-PHASE-L3",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L3-W05",
@@ -993,8 +993,8 @@
           "COVERAGE-PHASE-L3",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L3-W06",
@@ -1007,8 +1007,8 @@
           "COVERAGE-PHASE-L3",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L3-W07",
@@ -1021,8 +1021,8 @@
           "COVERAGE-PHASE-L3",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L3-W08",
@@ -1035,8 +1035,8 @@
           "COVERAGE-PHASE-L3",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L3-W09",
@@ -1049,8 +1049,8 @@
           "COVERAGE-PHASE-L3",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L3-W10",
@@ -1063,8 +1063,8 @@
           "COVERAGE-PHASE-L3",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L4-W01",
@@ -1077,8 +1077,8 @@
           "COVERAGE-PHASE-L4",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L4-W02",
@@ -1091,8 +1091,8 @@
           "COVERAGE-PHASE-L4",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L4-W03",
@@ -1105,8 +1105,8 @@
           "COVERAGE-PHASE-L4",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L4-W04",
@@ -1119,8 +1119,8 @@
           "COVERAGE-PHASE-L4",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L4-W05",
@@ -1133,8 +1133,8 @@
           "COVERAGE-PHASE-L4",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L4-W06",
@@ -1147,8 +1147,8 @@
           "COVERAGE-PHASE-L4",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L5-W01",
@@ -1161,8 +1161,8 @@
           "COVERAGE-PHASE-L5",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L5-W02",
@@ -1175,8 +1175,8 @@
           "COVERAGE-PHASE-L5",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L5-W03",
@@ -1189,8 +1189,8 @@
           "COVERAGE-PHASE-L5",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L5-W04",
@@ -1203,8 +1203,8 @@
           "COVERAGE-PHASE-L5",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L5-W05",
@@ -1217,8 +1217,8 @@
           "COVERAGE-PHASE-L5",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L5-W06",
@@ -1231,8 +1231,8 @@
           "COVERAGE-PHASE-L5",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L5-W07",
@@ -1245,8 +1245,8 @@
           "COVERAGE-PHASE-L5",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L6-W01",
@@ -1259,8 +1259,8 @@
           "COVERAGE-PHASE-L6",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L6-W02",
@@ -1273,8 +1273,8 @@
           "COVERAGE-PHASE-L6",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L6-W03",
@@ -1287,8 +1287,8 @@
           "COVERAGE-PHASE-L6",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L6-W04",
@@ -1301,8 +1301,8 @@
           "COVERAGE-PHASE-L6",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L6-W05",
@@ -1315,8 +1315,8 @@
           "COVERAGE-PHASE-L6",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L6-W06",
@@ -1329,8 +1329,8 @@
           "COVERAGE-PHASE-L6",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L7-W01",
@@ -1343,8 +1343,8 @@
           "COVERAGE-PHASE-L7",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L7-W02",
@@ -1357,8 +1357,8 @@
           "COVERAGE-PHASE-L7",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L7-W03",
@@ -1371,8 +1371,8 @@
           "COVERAGE-PHASE-L7",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L7-W04",
@@ -1385,8 +1385,8 @@
           "COVERAGE-PHASE-L7",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L7-W05",
@@ -1399,8 +1399,8 @@
           "COVERAGE-PHASE-L7",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L7-W06",
@@ -1413,8 +1413,8 @@
           "COVERAGE-PHASE-L7",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L8-W02",
@@ -1427,8 +1427,8 @@
           "COVERAGE-PHASE-L8",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L8-W03",
@@ -1441,8 +1441,8 @@
           "COVERAGE-PHASE-L8",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L9-W01",
@@ -1455,8 +1455,8 @@
           "COVERAGE-PHASE-L9",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L9-W02",
@@ -1469,8 +1469,8 @@
           "COVERAGE-PHASE-L9",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L9-W03",
@@ -1483,8 +1483,8 @@
           "COVERAGE-PHASE-L9",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L9-W04",
@@ -1497,8 +1497,8 @@
           "COVERAGE-PHASE-L9",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       },
       {
         "coverage_id": "WP-LT-L9-W05",
@@ -1511,8 +1511,8 @@
           "COVERAGE-PHASE-L9",
           "COVERAGE-ALL-BLOCKED-WP"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-BLOCKED-WP"
       }
     ],
     "phase_exit": [
@@ -1527,8 +1527,8 @@
           "PHASE-PRE-EXIT",
           "COVERAGE-ALL-PHASE-EXITS"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-PHASE-EXITS"
       },
       {
         "coverage_id": "PHASE-L0",
@@ -1541,8 +1541,8 @@
           "PHASE-L0-EXIT",
           "COVERAGE-ALL-PHASE-EXITS"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-PHASE-EXITS"
       },
       {
         "coverage_id": "PHASE-L1",
@@ -1555,8 +1555,8 @@
           "PHASE-L1-EXIT",
           "COVERAGE-ALL-PHASE-EXITS"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-PHASE-EXITS"
       },
       {
         "coverage_id": "PHASE-L2",
@@ -1569,8 +1569,8 @@
           "PHASE-L2-EXIT",
           "COVERAGE-ALL-PHASE-EXITS"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-PHASE-EXITS"
       },
       {
         "coverage_id": "PHASE-L3",
@@ -1583,8 +1583,8 @@
           "PHASE-L3-EXIT",
           "COVERAGE-ALL-PHASE-EXITS"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-PHASE-EXITS"
       },
       {
         "coverage_id": "PHASE-L4",
@@ -1597,8 +1597,8 @@
           "PHASE-L4-EXIT",
           "COVERAGE-ALL-PHASE-EXITS"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-PHASE-EXITS"
       },
       {
         "coverage_id": "PHASE-L5",
@@ -1611,8 +1611,8 @@
           "PHASE-L5-EXIT",
           "COVERAGE-ALL-PHASE-EXITS"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-PHASE-EXITS"
       },
       {
         "coverage_id": "PHASE-L6",
@@ -1625,8 +1625,8 @@
           "PHASE-L6-EXIT",
           "COVERAGE-ALL-PHASE-EXITS"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-PHASE-EXITS"
       },
       {
         "coverage_id": "PHASE-L7",
@@ -1639,8 +1639,8 @@
           "PHASE-L7-EXIT",
           "COVERAGE-ALL-PHASE-EXITS"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-PHASE-EXITS"
       },
       {
         "coverage_id": "PHASE-L8",
@@ -1653,8 +1653,8 @@
           "PHASE-L8-EXIT",
           "COVERAGE-ALL-PHASE-EXITS"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-PHASE-EXITS"
       },
       {
         "coverage_id": "PHASE-L9",
@@ -1667,8 +1667,8 @@
           "PHASE-L9-EXIT",
           "COVERAGE-ALL-PHASE-EXITS"
         ],
-        "coverage_status": "missing_owner_deferral",
-        "covering_decision_id": null
+        "coverage_status": "covered_by_owner_deferral",
+        "covering_decision_id": "COVERAGE-ALL-PHASE-EXITS"
       }
     ]
   },

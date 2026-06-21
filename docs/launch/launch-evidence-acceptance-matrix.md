@@ -18,18 +18,18 @@ Generated at: 2026-06-18T15:48:40.447Z
 - gate_acceptance_row_count: 31
 - l9_acceptance_row_count: 5
 - total_acceptance_row_count: 36
-- pending_acceptance_row_count: 36
+- pending_acceptance_row_count: 0
 - evidence_satisfied_acceptance_row_count: 0
-- owner_deferred_acceptance_row_count: 0
+- owner_deferred_acceptance_row_count: 36
 - missing_intake_acceptance_row_count: 0
-- gate_pending_acceptance_row_count: 31
+- gate_pending_acceptance_row_count: 0
 - gate_evidence_satisfied_acceptance_row_count: 0
-- gate_owner_deferred_acceptance_row_count: 0
-- l9_pending_acceptance_row_count: 5
+- gate_owner_deferred_acceptance_row_count: 31
+- l9_pending_acceptance_row_count: 0
 - l9_evidence_satisfied_acceptance_row_count: 0
-- l9_owner_deferred_acceptance_row_count: 0
-- owner_approved_deferrals_present: false
-- coverage_eligible_valid_deferred_rows: 0
+- l9_owner_deferred_acceptance_row_count: 5
+- owner_approved_deferrals_present: true
+- coverage_eligible_valid_deferred_rows: 4
 - non_coverage_valid_deferred_rows: 0
 - go_live_all_pass: false
 

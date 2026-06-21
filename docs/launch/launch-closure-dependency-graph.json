@@ -26,13 +26,13 @@
     "failed_gate_node_count": 10,
     "gate_acceptance_node_count": 31,
     "l9_closure_node_count": 5,
-    "pending_acceptance_node_count": 36,
+    "pending_acceptance_node_count": 0,
     "evidence_satisfied_acceptance_node_count": 0,
-    "owner_deferred_acceptance_node_count": 0,
+    "owner_deferred_acceptance_node_count": 36,
     "missing_intake_acceptance_node_count": 0,
     "blocked_wp_node_count": 70,
-    "owner_approved_deferrals_present": false,
-    "coverage_eligible_valid_deferred_rows": 0,
+    "owner_approved_deferrals_present": true,
+    "coverage_eligible_valid_deferred_rows": 4,
     "non_coverage_valid_deferred_rows": 0,
     "go_live_all_pass": false,
     "finding_count": 0,
@@ -2002,35 +2002,35 @@
       "intake_id": "L9-C01",
       "closure_criterion": "Last 14 days P0/P1 count equals zero",
       "current_status": "blocked_not_measured",
-      "current_intake_status": "pending_evidence_or_owner_deferral"
+      "current_intake_status": "owner_deferred"
     },
     {
       "acceptance_id": "ACC-L9-C02",
       "intake_id": "L9-C02",
       "closure_criterion": "Four consecutive weeks SLO met",
       "current_status": "blocked_not_measured",
-      "current_intake_status": "pending_evidence_or_owner_deferral"
+      "current_intake_status": "owner_deferred"
     },
     {
       "acceptance_id": "ACC-L9-C03",
       "intake_id": "L9-C03",
       "closure_criterion": "Four weeks audit completeness green",
       "current_status": "blocked_not_measured",
-      "current_intake_status": "pending_evidence_or_owner_deferral"
+      "current_intake_status": "owner_deferred"
     },
     {
       "acceptance_id": "ACC-L9-C04",
       "intake_id": "L9-C04",
       "closure_criterion": "Every incident has post-analysis link",
       "current_status": "blocked_not_measured",
-      "current_intake_status": "pending_evidence_or_owner_deferral"
+      "current_intake_status": "owner_deferred"
     },
     {
       "acceptance_id": "ACC-L9-C05",
       "intake_id": "L9-C05",
       "closure_criterion": "Owner signoff",
       "current_status": "missing",
-      "current_intake_status": "pending_evidence_or_owner_deferral"
+      "current_intake_status": "owner_deferred"
     }
   ],
   "findings": []

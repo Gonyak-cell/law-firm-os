@@ -42,6 +42,43 @@ test("sample UI regression harness preserves current routable surfaces", async (
   }
 });
 
+test("mater startup branding uses shared splash and brand constants", async () => {
+  const brandSource = await readWebFile("src/brand/brand.js");
+  const splashSource = await readWebFile("src/components/MaterSplash.jsx");
+  const shellSource = await readWebFile("src/components/Shell.jsx");
+  const authSource = await readWebFile("src/components/AuthSurface.jsx");
+  const i18nSource = await readWebFile("src/i18n.js");
+
+  assert.match(brandSource, /PRODUCT_BRAND\s*=\s*"mater"/);
+  assert.match(brandSource, /UI_BRAND\s*=\s*"mater by AMIC"/);
+  assert.match(splashSource, /PRODUCT_BRAND\.split\(""\)/);
+  assert.match(splashSource, /aria-label=\{UI_BRAND\}/);
+  assert.match(shellSource, /<MaterSplash \/>/);
+  assert.match(authSource, /<MaterSplash compact className="auth-splash" \/>/);
+  assert.match(i18nSource, /PRODUCT_BRAND/);
+  assert.doesNotMatch(i18nSource, /Ask matter|Search or ask matter|Loading your matter workspace/);
+  assert.doesNotMatch(i18nSource, /matter에게 질문|matter 작업공간|matter는/);
+});
+
+test("desktop workspace keeps Matter, Vault, denied, and desktop mode routable", async () => {
+  const appSource = await readWebFile("src/App.jsx");
+  const navSource = await readWebFile("src/data/nav.js");
+  const mattersSource = await readWebFile("src/components/MattersSurface.jsx");
+  const vaultSource = await readWebFile("src/components/VaultSurface.jsx");
+  const deniedSource = await readWebFile("src/components/DesktopDeniedState.jsx");
+  const runtimeContextSource = await readWebFile("src/desktop/runtimeContext.js");
+
+  assert.match(navSource, /id: "matters"/);
+  assert.match(navSource, /id: "vault"/);
+  assert.match(appSource, /view === "matters"/);
+  assert.match(appSource, /view === "vault"/);
+  assert.match(mattersSource, /DesktopDeniedState/);
+  assert.match(vaultSource, /DesktopDeniedState/);
+  assert.match(deniedSource, /No row counts, snippets, citations, or document metadata are shown/);
+  assert.match(runtimeContextSource, /desktopMode/);
+  assert.match(runtimeContextSource, /routeSource/);
+});
+
 test("Finance runtime surface is routed and live Finance backed", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const navSource = await readWebFile("src/data/nav.js");
@@ -176,6 +213,10 @@ test("Vault runtime surface is routed and live Vault/DMS backed", async () => {
   const navSource = await readWebFile("src/data/nav.js");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const vaultSource = await readWebFile("src/components/VaultSurface.jsx");
+  const tableSource = await readWebFile("src/components/VaultDocumentTable.jsx");
+  const vaultDetailSource = await readWebFile("src/components/VaultDocumentDetail.jsx");
+  const badgesSource = await readWebFile("src/components/VaultSecurityBadges.jsx");
+  const breadcrumbSource = await readWebFile("src/components/VaultBreadcrumb.jsx");
   const detailSource = await readWebFile("src/components/DocumentDetail.jsx");
   const emailSource = await readWebFile("src/components/EmailFilingView.jsx");
   const apiClientSource = await readWebFile("src/data/apiClient.js");
@@ -186,6 +227,14 @@ test("Vault runtime surface is routed and live Vault/DMS backed", async () => {
   assert.match(shellSource, /vault: \["Matter vault"/);
   assert.match(vaultSource, /data-cmp-g5-vault-surface="true"/);
   assert.match(vaultSource, /fetchVaultDocuments/);
+  assert.match(vaultSource, /VaultDocumentTable/);
+  assert.match(vaultSource, /VaultDocumentDetail/);
+  assert.match(vaultSource, /VaultSecurityBadges/);
+  assert.match(vaultSource, /VaultBreadcrumb/);
+  assert.match(tableSource, /DataTable/);
+  assert.match(vaultDetailSource, /Version History/);
+  assert.match(badgesSource, /data-mv-vault-security-badges="true"/);
+  assert.match(breadcrumbSource, /aria-label="Matter Vault breadcrumb"/);
   assert.match(detailSource, /data-cmp-g5-document-detail="true"/);
   assert.match(detailSource, /storage_pointer_ref_included/);
   assert.match(detailSource, /document_bytes_included/);
@@ -200,6 +249,7 @@ test("Matters runtime surface is routed and live Matter Core backed", async () =
   const navSource = await readWebFile("src/data/nav.js");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const mattersSource = await readWebFile("src/components/MattersSurface.jsx");
+  const matterVaultSource = await readWebFile("src/components/MatterVaultPanel.jsx");
   const openingSource = await readWebFile("src/components/MatterOpeningWizard.jsx");
   const rosterSource = await readWebFile("src/components/MatterTeamRoster.jsx");
   const apiClientSource = await readWebFile("src/data/apiClient.js");
@@ -210,11 +260,18 @@ test("Matters runtime surface is routed and live Matter Core backed", async () =
   assert.match(shellSource, /matters: \["Matter home"/);
   assert.match(mattersSource, /data-cmp-g4-live-matters="true"/);
   assert.match(mattersSource, /fetchMatterRecords/);
+  assert.match(mattersSource, /MatterVaultPanel/);
+  assert.match(matterVaultSource, /data-mv-matter-vault-panel="true"/);
+  assert.match(matterVaultSource, /fetchMatterVaultSummary/);
+  assert.match(matterVaultSource, /fetchMatterTimeline/);
+  assert.match(matterVaultSource, /raw storage paths, and denied counts stay hidden/);
   assert.match(openingSource, /data-cmp-g4-opening-wizard="true"/);
   assert.match(openingSource, /createMatterOpening/);
   assert.match(rosterSource, /data-cmp-g4-team-roster="true"/);
   assert.match(rosterSource, /addMatterTeamMember/);
   assert.match(apiClientSource, /\/api\/matters/);
+  assert.match(apiClientSource, /\/vault-summary/);
+  assert.match(apiClientSource, /\/timeline/);
   assert.match(apiClientSource, /production_ready_claim/);
   assert.doesNotMatch(mattersSource, /mockData|from "\.\.\/data\/mockData/);
 });

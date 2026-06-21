@@ -45,3 +45,5 @@ export * from "./ethical-wall-store.js";
 export * from "./legal-hold-store.js";
 export * from "./break-glass-service.js";
 export * from "./privacy-minimization.js";
+export * from "./matter-permission-envelope.js";
+export * from "./vault-object-acl.js";

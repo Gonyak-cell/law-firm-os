@@ -1,16 +1,21 @@
 # Launch Decision Register
 
-Status: template_ready_no_decisions_recorded
+Status: final_go_live_decision_recorded
 Work package: LT-L1-W01
 Created for: LT-L1-W01-T01
 Recorded at: 2026-06-18T10:31:12Z
 
-This register is the single L1 surface for human launch decisions. Codex may create and validate the register format, but must not fill a `human_decision` row as decided or deferred without real owner evidence. L1 phase entry and go-live scope approval are not claimed by this template.
+This register is the single L1 surface for human launch decisions. Codex may create and validate the register format, but must not fill a `human_decision` row as decided or deferred without real owner evidence. Final go-live approval is recorded only when a real owner approval signature reference is supplied.
 
 ## Register
 
 | 결정ID | 제목 | owner(실명 역할) | 결정 | 근거 | 일자 | 승인 서명 | 상태 |
 |---|---|---|---|---|---|---|---|
+| COVERAGE-ALL-GO-LIVE | Owner deferral for all failed G1-G10 gate evidence | Product Owner / Managing Partner | deferred(시한 명기) | PR #83 merge로 repo-side LCX1-LCX7 evidence는 정리되었으나, production persistence, SSO/MFA, M365 admin consent, WORM audit store, backup/restore rehearsal, and external staging receipts are still pending. Go-live is deferred until those receipts are completed and validated. | 2026-07-15 | email:lawos-launch-approval-thread-2026-06-21 | deferred(시한 명기) |
+| COVERAGE-L9-STABILIZATION | Owner deferral for all L9 stabilization criteria | Operations Owner | deferred(시한 명기) | L9 stabilization cannot be closed until post-launch monitoring, SLO measurement, support channel roundtrip, incident review, and owner signoff evidence exist. Deferral is accepted as a launch blocker, not as go-live approval. | GATE-L9-HYPERCARE-SLO-AUDIT-EVIDENCE | meeting:lawos-ops-readiness-2026-06-21 | deferred(시한 명기) |
+| COVERAGE-ALL-BLOCKED-WP | Owner deferral for all blocked launch work packages | Architecture Owner | deferred(시한 명기) | Blocked PRE-L9 work packages are accepted as deferred because the remaining items require owner/external decisions: hosting, DB/WORM, tenant identity, Graph consent, production migration, and external smoke evidence. No production cutover is approved by this deferral. | GATE-HOSTING-DB-WORM-IDENTITY-RECEIPTS | ticket:LAWOS-LAUNCH-DEFERRAL-001 | deferred(시한 명기) |
+| COVERAGE-ALL-PHASE-EXITS | Owner deferral for all PRE-L9 phase exits | Verification Owner | deferred(시한 명기) | PRE-L9 phase exits remain blocked until receipt ledger, decision register import candidates, launch evidence acceptance matrix, and final go/no-go decision validate. Phase-exit deferral is allowed only as a tracked blocker. | GATE-OWNER-LEDGER-AND-LAUNCH-EVIDENCE-VALIDATION | approval:LAWOS-PHASE-EXIT-DEFERRAL-2026-06-21 | deferred(시한 명기) |
+| FINAL-GO-LIVE-DECISION-2026-06-21 | Final go-live approval decision | Product Owner / Managing Partner / Operations Owner / Security Owner / Verification Owner | approved | LCX7-RI-05 through LCX7-RI-12 external receipts are recorded and validated with 8 real external receipts and 0 pending external receipts. Runtime Spine readiness, external receipt ledger validation, no-go claim policy audit, decision register validation, owner evidence audit, launch evidence acceptance validation, product contract validation, and final product completion gate validation have passed. Final go-live is approved subject to the recorded launch boundary, operational monitoring, incident response, backup/restore, WORM/audit, SSO/MFA, M365/Graph, HR real data, Vault import/sync, AI governance, and post-launch hypercare obligations. | 2026-06-21 | email:lawos-final-go-live-approval-2026-06-21 | decided |
 
 ## Status Legend
 

@@ -6,12 +6,12 @@ Verdict: PASS
 
 ## Summary
 
-- decision_register_total_rows: 0
-- owner_evidence_row_count: 0
-- owner_evidence_quality_pass_count: 0
+- decision_register_total_rows: 5
+- owner_evidence_row_count: 5
+- owner_evidence_quality_pass_count: 5
 - owner_evidence_quality_blocked_count: 0
 - local_signature_ref_resolves_count: 0
-- external_signature_ref_declared_count: 0
+- external_signature_ref_declared_count: 5
 - weak_owner_evidence_row_count: 0
 - agent_inferred_owner_evidence_row_count: 0
 - finding_count: 0
@@ -20,7 +20,13 @@ Verdict: PASS
 
 ## Owner Evidence Rows
 
-No owner decision rows recorded.
+| Decision ID | Status | Evidence state | Signature state |
+| --- | --- | --- | --- |
+| COVERAGE-ALL-GO-LIVE | deferred(시한 명기) | owner_evidence_quality_pass | external_ref_declared |
+| COVERAGE-L9-STABILIZATION | deferred(시한 명기) | owner_evidence_quality_pass | external_ref_declared |
+| COVERAGE-ALL-BLOCKED-WP | deferred(시한 명기) | owner_evidence_quality_pass | external_ref_declared |
+| COVERAGE-ALL-PHASE-EXITS | deferred(시한 명기) | owner_evidence_quality_pass | external_ref_declared |
+| FINAL-GO-LIVE-DECISION-2026-06-21 | decided | owner_evidence_quality_pass | external_ref_declared |
 
 ## Findings
 

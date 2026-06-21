@@ -3,8 +3,13 @@ import { useEffect, useMemo, useState } from "react";
 import { FolderOpen, RefreshCw, ShieldCheck } from "lucide-react";
 import { fetchVaultDocuments } from "../data/apiClient.js";
 import { DataTable, MetricCard, PageHeader, Panel } from "./primitives.jsx";
+import { DesktopDeniedState } from "./DesktopDeniedState.jsx";
 import { DocumentDetail } from "./DocumentDetail.jsx";
 import { EmailFilingView } from "./EmailFilingView.jsx";
+import { VaultBreadcrumb } from "./VaultBreadcrumb.jsx";
+import { VaultDocumentDetail } from "./VaultDocumentDetail.jsx";
+import { VaultDocumentTable } from "./VaultDocumentTable.jsx";
+import { VaultSecurityBadges } from "./VaultSecurityBadges.jsx";
 
 const VAULT_PERMISSION_REF = "ui_cmp_g5_vault_live";
 const VAULT_AUDIT_HINT_REF = "ui_cmp_g5_vault_probe";
@@ -40,6 +45,7 @@ export function VaultSurface({ labels, liveCtx = "allow" }) {
   }, [liveCtx, refreshToken]);
 
   const documents = result?.kind === "data" ? result.items : [];
+  const denied = result?.uiState === "denied";
   const selected = documents[0] ?? null;
   const metrics = useMemo(
     () => ({
@@ -66,12 +72,7 @@ export function VaultSurface({ labels, liveCtx = "allow" }) {
       </div>
     );
   } else if (result.uiState === "denied") {
-    body = (
-      <div className="live-data-state live-data-denied">
-        <strong>Access denied</strong>
-        The permission gate blocked this Vault request.
-      </div>
-    );
+    body = <DesktopDeniedState resource="document workspace" />;
   } else if (result.uiState === "review_required" || result.outcome === "review_required") {
     body = (
       <div className="live-data-state live-data-review">
@@ -93,10 +94,10 @@ export function VaultSurface({ labels, liveCtx = "allow" }) {
           <ShieldCheck size={15} />
           <span>Legal hold and privilege metadata are visible; raw storage remains hidden.</span>
         </div>
-        <DataTable
-          columns={["Document", "Title", "Status", "Version", "Privilege", "Hold"]}
-          rows={vaultRows(documents)}
-        />
+        <VaultBreadcrumb matterId={selected?.matter_id} workspaceId={selected?.workspace_id} />
+        <VaultSecurityBadges document={selected} />
+        <VaultDocumentTable documents={documents} />
+        <DataTable columns={["Document", "Title", "Status", "Version", "Privilege", "Hold"]} rows={vaultRows(documents)} />
       </div>
     );
   }
@@ -114,16 +115,19 @@ export function VaultSurface({ labels, liveCtx = "allow" }) {
           </button>
         }
       />
-      <div className="clients-metric-grid">
-        <MetricCard label="Documents" value={metrics.documents} delta="metadata rows" tone="blue" />
-        <MetricCard label="Legal hold" value={metrics.held} delta="guarded rows" tone="purple" />
-        <MetricCard label="Safe detail" value={metrics.safe} delta="raw path hidden" tone="green" />
-      </div>
+      {!denied && (
+        <div className="clients-metric-grid">
+          <MetricCard label="Documents" value={metrics.documents} delta="metadata rows" tone="blue" />
+          <MetricCard label="Legal hold" value={metrics.held} delta="guarded rows" tone="purple" />
+          <MetricCard label="Safe detail" value={metrics.safe} delta="raw path hidden" tone="green" />
+        </div>
+      )}
       <div className="vault-runtime-grid">
         <Panel className="span-2 vault-panel" title="Matter Vault" meta="/api/vault/documents">
           {body}
         </Panel>
         <DocumentDetail document={selected} />
+        <VaultDocumentDetail document={selected} />
         <EmailFilingView />
         <Panel className="vault-panel" title="Runtime Boundary" meta="R4 write-ready">
           <div className="matter-boundary-card">

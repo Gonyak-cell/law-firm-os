@@ -1,0 +1,74 @@
+{
+  "package_id": "matter-vault-integration-developer-package-v1.0",
+  "source_path": "/Users/jws/Documents/Codex/vault-matter/Matter_Vault_Integration_Developer_Package_v1.0",
+  "source_backlog_sha256": "a7a84f7d00a1ab08b63f2f866ed7cc900a2329ab530b8ea537a28be7ce2a53e0",
+  "generated_at": "2026-06-20T00:00:00.000+09:00",
+  "total_tuws": 118,
+  "gate_counts": {
+    "MV-G0": 10,
+    "MV-G1": 12,
+    "MV-G2": 14,
+    "MV-G3": 16,
+    "MV-G4": 14,
+    "MV-G5": 12,
+    "MV-G6": 16,
+    "MV-G7": 10,
+    "MV-G8": 14
+  },
+  "pr_wave_counts": {
+    "PR-01": 10,
+    "PR-02": 12,
+    "PR-03/04": 14,
+    "PR-05": 16,
+    "PR-06": 14,
+    "PR-07/09/10": 16,
+    "PR-08": 12,
+    "PR-11": 10,
+    "PR-12": 14
+  },
+  "priority_counts": {
+    "P0": 63,
+    "P1": 53,
+    "P2": 2
+  },
+  "repo_lane": "Matter-Vault R4 integration",
+  "branch": "codex/matter-vault-r4-integration",
+  "current_completion_claim": "repo_implementation_evidence_closeout_complete",
+  "implementation_completion_claim": true,
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "launch_go_live_boundary": "Launch/go-live approval remains outside repo implementation evidence.",
+  "loop_engineering_closeout": true,
+  "target_file_mappings": 118,
+  "closed_tuws": 118,
+  "not_closed_tuws": 0,
+  "launch_readiness_lane": {
+    "current_boundary": "repo_implementation_evidence_closeout_complete__owner_authority_received__external_execution_authorized__external_receipts_absent",
+    "target_state": "owner_authorized_launch_with_external_smoke_and_migration_receipts",
+    "owner_release_authority_received": true,
+    "external_production_smoke_receipt_received": false,
+    "migration_operator_receipt_received": false,
+    "rollback_rehearsal_receipt_present": true,
+    "launch_authorization_claim": false,
+    "validator": "npm run matter-vault:r4:launch:validate"
+  },
+  "external_receipt_lane": {
+    "execution_authorization_received": true,
+    "environment_tier": "production-equivalent",
+    "production_migration_scope": "pilot_tenant_dry_run_only",
+    "external_production_smoke_status": "authorized_pending_external_environment",
+    "production_migration_operator_status": "authorized_pending_operator_environment",
+    "external_production_smoke_receipt_received": false,
+    "production_migration_operator_receipt_received": false,
+    "actual_launch_go_live_completed_claim": false,
+    "local_secret_file": ".env.matter-vault-r4.local",
+    "local_secret_validation_command": "npm run matter-vault:r4:local-secrets:validate",
+    "validator": "npm run matter-vault:r4:external-receipts:validate"
+  },
+  "validators": [
+    "npm run matter-vault:r4:readiness",
+    "npm run matter-vault:r4:no-go",
+    "npm run matter-vault:r4:launch:validate",
+    "npm run matter-vault:r4:external-receipts:validate"
+  ]
+}

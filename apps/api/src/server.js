@@ -171,6 +171,7 @@ export function createDefaultMasterDataRuntime({
 export function createDefaultMatterRuntime({
   repository,
   storePath = process.env.LAWOS_MATTER_STORE_PATH,
+  dmsRuntime = null,
 } = {}) {
   const matterRepository =
     repository ??
@@ -178,7 +179,7 @@ export function createDefaultMatterRuntime({
       filePath: storePath || createEphemeralMatterStorePath(),
       seedRecords: MATTER_RUNTIME_SEED.records,
     });
-  return createMatterRuntimeContext({ repository: matterRepository });
+  return createMatterRuntimeContext({ repository: matterRepository, dmsRuntime });
 }
 
 export function createDefaultDmsRuntime({
@@ -608,12 +609,12 @@ export function startApiServer({
   const masterRuntime =
     masterDataRuntime ??
     createDefaultMasterDataRuntime({ repository: masterDataRepository, storePath: masterDataStorePath });
-  const matterRuntimeContext =
-    matterRuntime ??
-    createDefaultMatterRuntime({ repository: matterRepository, storePath: matterStorePath });
   const dmsRuntimeContext =
     dmsRuntime ??
     createDefaultDmsRuntime({ repository: dmsRepository, storePath: dmsStorePath });
+  const matterRuntimeContext =
+    matterRuntime ??
+    createDefaultMatterRuntime({ repository: matterRepository, storePath: matterStorePath, dmsRuntime: dmsRuntimeContext });
   const crmIntakeRuntimeContext =
     crmIntakeRuntime ??
     createDefaultCrmIntakeRuntime({ crmRepository, intakeRepository, crmStorePath, intakeStorePath });

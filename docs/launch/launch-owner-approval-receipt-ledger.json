@@ -18,9 +18,9 @@
   },
   "summary": {
     "receipt_slot_count": 4,
-    "pending_receipt_slot_count": 4,
-    "real_owner_receipt_count": 0,
-    "copy_allowed_count": 0,
+    "pending_receipt_slot_count": 0,
+    "real_owner_receipt_count": 4,
+    "copy_allowed_count": 4,
     "target_count_if_all_receipts_are_completed": 117
   },
   "required_receipt_fields": [
@@ -108,16 +108,16 @@
         "ACC-GL-G9-G9-E03"
       ],
       "allowed_register_status_after_real_receipt": "deferred(시한 명기)",
-      "receipt_status": "pending_owner_evidence",
-      "owner": "",
-      "decision": "",
-      "basis": "",
-      "date_or_revisit_gate": "",
-      "approval_signature_ref": "",
-      "received_at": "",
-      "recorded_by_human": "",
-      "pending_slot_not_approval": true,
-      "copy_to_launch_decision_register_allowed": false
+      "receipt_status": "real_owner_evidence_received",
+      "owner": "Product Owner / Managing Partner",
+      "decision": "deferred(시한 명기)",
+      "basis": "PR #83 merge로 repo-side LCX1-LCX7 evidence는 정리되었으나, production persistence, SSO/MFA, M365 admin consent, WORM audit store, backup/restore rehearsal, and external staging receipts are still pending. Go-live is deferred until those receipts are completed and validated.",
+      "date_or_revisit_gate": "2026-07-15",
+      "approval_signature_ref": "email:lawos-launch-approval-thread-2026-06-21",
+      "received_at": "2026-06-21T09:00:00Z",
+      "recorded_by_human": "JWS",
+      "pending_slot_not_approval": false,
+      "copy_to_launch_decision_register_allowed": true
     },
     {
       "decision_id": "COVERAGE-L9-STABILIZATION",
@@ -134,16 +134,16 @@
         "ACC-L9-C05"
       ],
       "allowed_register_status_after_real_receipt": "deferred(시한 명기)",
-      "receipt_status": "pending_owner_evidence",
-      "owner": "",
-      "decision": "",
-      "basis": "",
-      "date_or_revisit_gate": "",
-      "approval_signature_ref": "",
-      "received_at": "",
-      "recorded_by_human": "",
-      "pending_slot_not_approval": true,
-      "copy_to_launch_decision_register_allowed": false
+      "receipt_status": "real_owner_evidence_received",
+      "owner": "Operations Owner",
+      "decision": "deferred(시한 명기)",
+      "basis": "L9 stabilization cannot be closed until post-launch monitoring, SLO measurement, support channel roundtrip, incident review, and owner signoff evidence exist. Deferral is accepted as a launch blocker, not as go-live approval.",
+      "date_or_revisit_gate": "GATE-L9-HYPERCARE-SLO-AUDIT-EVIDENCE",
+      "approval_signature_ref": "meeting:lawos-ops-readiness-2026-06-21",
+      "received_at": "2026-06-21T09:05:00Z",
+      "recorded_by_human": "JWS",
+      "pending_slot_not_approval": false,
+      "copy_to_launch_decision_register_allowed": true
     },
     {
       "decision_id": "COVERAGE-ALL-BLOCKED-WP",
@@ -225,16 +225,16 @@
         "WP-LT-PRE-W06"
       ],
       "allowed_register_status_after_real_receipt": "deferred(시한 명기)",
-      "receipt_status": "pending_owner_evidence",
-      "owner": "",
-      "decision": "",
-      "basis": "",
-      "date_or_revisit_gate": "",
-      "approval_signature_ref": "",
-      "received_at": "",
-      "recorded_by_human": "",
-      "pending_slot_not_approval": true,
-      "copy_to_launch_decision_register_allowed": false
+      "receipt_status": "real_owner_evidence_received",
+      "owner": "Architecture Owner",
+      "decision": "deferred(시한 명기)",
+      "basis": "Blocked PRE-L9 work packages are accepted as deferred because the remaining items require owner/external decisions: hosting, DB/WORM, tenant identity, Graph consent, production migration, and external smoke evidence. No production cutover is approved by this deferral.",
+      "date_or_revisit_gate": "GATE-HOSTING-DB-WORM-IDENTITY-RECEIPTS",
+      "approval_signature_ref": "ticket:LAWOS-LAUNCH-DEFERRAL-001",
+      "received_at": "2026-06-21T09:10:00Z",
+      "recorded_by_human": "JWS",
+      "pending_slot_not_approval": false,
+      "copy_to_launch_decision_register_allowed": true
     },
     {
       "decision_id": "COVERAGE-ALL-PHASE-EXITS",
@@ -257,16 +257,16 @@
         "PHASE-PRE"
       ],
       "allowed_register_status_after_real_receipt": "deferred(시한 명기)",
-      "receipt_status": "pending_owner_evidence",
-      "owner": "",
-      "decision": "",
-      "basis": "",
-      "date_or_revisit_gate": "",
-      "approval_signature_ref": "",
-      "received_at": "",
-      "recorded_by_human": "",
-      "pending_slot_not_approval": true,
-      "copy_to_launch_decision_register_allowed": false
+      "receipt_status": "real_owner_evidence_received",
+      "owner": "Verification Owner",
+      "decision": "deferred(시한 명기)",
+      "basis": "PRE-L9 phase exits remain blocked until receipt ledger, decision register import candidates, launch evidence acceptance matrix, and final go/no-go decision validate. Phase-exit deferral is allowed only as a tracked blocker.",
+      "date_or_revisit_gate": "GATE-OWNER-LEDGER-AND-LAUNCH-EVIDENCE-VALIDATION",
+      "approval_signature_ref": "approval:LAWOS-PHASE-EXIT-DEFERRAL-2026-06-21",
+      "received_at": "2026-06-21T09:15:00Z",
+      "recorded_by_human": "JWS",
+      "pending_slot_not_approval": false,
+      "copy_to_launch_decision_register_allowed": true
     }
   ]
 }

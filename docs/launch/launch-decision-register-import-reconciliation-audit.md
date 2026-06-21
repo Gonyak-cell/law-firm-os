@@ -6,10 +6,10 @@ Verdict: PASS
 
 ## Summary
 
-- decision_register_total_rows: 0
-- valid_deferred_rows: 0
-- import_candidate_count: 0
-- reconciled_row_count: 0
+- decision_register_total_rows: 4
+- valid_deferred_rows: 4
+- import_candidate_count: 4
+- reconciled_row_count: 4
 - unreconciled_row_count: 0
 - field_mismatch_count: 0
 - finding_count: 0
@@ -18,7 +18,12 @@ Verdict: PASS
 
 ## Reconciled Rows
 
-No launch decision register rows recorded.
+| Decision ID | Status | Import candidate match | Field mismatches |
+| --- | --- | --- | ---: |
+| COVERAGE-ALL-GO-LIVE | deferred(시한 명기) | true | 0 |
+| COVERAGE-L9-STABILIZATION | deferred(시한 명기) | true | 0 |
+| COVERAGE-ALL-BLOCKED-WP | deferred(시한 명기) | true | 0 |
+| COVERAGE-ALL-PHASE-EXITS | deferred(시한 명기) | true | 0 |
 
 ## Findings
 

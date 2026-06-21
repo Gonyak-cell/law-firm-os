@@ -1,0 +1,9 @@
+{
+  "schema_version": "law-firm-os.matter-vault-r4-rollback-rehearsal-receipt.v0.1",
+  "date": "2026-06-20",
+  "rehearsal_type": "documented_dry_run",
+  "command": "node scripts/drill-matter-vault-backup-restore.mjs",
+  "result": "documented_local_dry_run_pass",
+  "production_restore_evidence_claimed": false,
+  "owner_release_authority_received": false
+}

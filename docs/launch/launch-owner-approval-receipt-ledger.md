@@ -16,9 +16,9 @@ Generated at: 2026-06-18T23:55:54.074Z
 ## Summary
 
 - receipt_slot_count: 4
-- pending_receipt_slot_count: 4
-- real_owner_receipt_count: 0
-- copy_allowed_count: 0
+- pending_receipt_slot_count: 0
+- real_owner_receipt_count: 4
+- copy_allowed_count: 4
 - target_count_if_all_receipts_are_completed: 117
 
 ## Required Receipt Fields
@@ -29,10 +29,10 @@ Generated at: 2026-06-18T23:55:54.074Z
 
 | Decision ID | Domain | Targets | Receipt status | Target detail state |
 | --- | --- | ---: | --- | --- |
-| COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 31 | pending_owner_evidence | all_targets_matched_and_aggregate_accepted |
-| COVERAGE-L9-STABILIZATION | l9_stabilization_closure | 5 | pending_owner_evidence | all_targets_matched_and_aggregate_accepted |
-| COVERAGE-ALL-BLOCKED-WP | blocked_work_package | 70 | pending_owner_evidence | all_targets_matched_and_aggregate_accepted |
-| COVERAGE-ALL-PHASE-EXITS | phase_exit | 11 | pending_owner_evidence | all_targets_matched_and_aggregate_accepted |
+| COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 31 | real_owner_evidence_received | all_targets_matched_and_aggregate_accepted |
+| COVERAGE-L9-STABILIZATION | l9_stabilization_closure | 5 | real_owner_evidence_received | all_targets_matched_and_aggregate_accepted |
+| COVERAGE-ALL-BLOCKED-WP | blocked_work_package | 70 | real_owner_evidence_received | all_targets_matched_and_aggregate_accepted |
+| COVERAGE-ALL-PHASE-EXITS | phase_exit | 11 | real_owner_evidence_received | all_targets_matched_and_aggregate_accepted |
 
 ## Signature Reference Formats
 

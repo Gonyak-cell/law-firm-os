@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.amplitude.live-data-verification.v1",
-  "generated_at": "2026-06-10T13:16:32.245Z",
+  "generated_at": "2026-06-21T08:10:01.491Z",
   "base_url": "http://127.0.0.1:5173",
   "api_base": "http://127.0.0.1:4180 (via vite dev proxy, relative /master-data)",
   "passed": true,
