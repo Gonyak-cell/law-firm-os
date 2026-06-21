@@ -20,7 +20,7 @@ This evidence file records P4 file bridge progress only. It does not claim produ
 | MDT-P4-W02-T01 | complete | `apps/desktop/src/main/fileBridge.js`, `apps/desktop/test/file-upload-bridge.test.mjs` |
 | MDT-P4-W02-T02 | complete | `apps/desktop/src/main/fileBridge.js`, `apps/desktop/test/file-save-as.test.mjs` |
 | MDT-P4-W02-T03 | complete | `apps/desktop/src/main/tempPreview.js`, `apps/desktop/test/temp-preview-cleanup.test.mjs` |
-| MDT-P4-W02-T04 | pending | not started |
+| MDT-P4-W02-T04 | complete | `apps/desktop/package.json`, `apps/desktop/test/file-bridge.test.mjs` |
 | MDT-P4-W02-T05 | pending | phase terminal not reached |
 
 ## MDT-P4-W01-T01 - Finalize Desktop File Bridge Contract
@@ -258,3 +258,34 @@ Act:
 
 - `MDT-P4-W02-T03` is complete.
 - Next TUW is `MDT-P4-W02-T04`.
+
+## MDT-P4-W02-T04 - Run Complete File Bridge Test Suite
+
+Plan:
+
+- Add a single package script for the complete file bridge suite.
+- Include happy path, denied path, no silent scan, and cache wipe coverage.
+- Keep contract and static validators in the suite.
+
+Do:
+
+- Updated `apps/desktop/package.json`.
+- Added `apps/desktop/test/file-bridge.test.mjs`.
+
+Check:
+
+```bash
+npm --workspace apps/desktop run test:file-bridge
+git diff --check -- apps/desktop/package.json apps/desktop/test/file-bridge.test.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-04-file-bridge.md
+```
+
+Results:
+
+- Complete file bridge suite passed.
+- Suite covers upload happy/denied paths, save-as happy/denied/cancelled paths, temp preview cache wipe, contract validation, and no silent scan static validation.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P4-W02-T04` is complete.
+- Next TUW is `MDT-P4-W02-T05`, the P4 terminal TUW.
