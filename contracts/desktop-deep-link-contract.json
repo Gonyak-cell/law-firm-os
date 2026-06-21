@@ -1,8 +1,53 @@
 {
-  "schema": "law-firm-os.desktop.deep-link-contract.v0.1",
+  "schema": "law-firm-os.desktop.deep-link-contract.v0.2",
   "product": "mater",
-  "status": "auth_callback_reserved_only",
+  "status": "route_intents_active",
   "allowed_routes": [
+    {
+      "id": "matter",
+      "scheme": "mater",
+      "host": "matter",
+      "path": "/:matterId",
+      "allowed_query": ["tenant"],
+      "purpose": "Open a permission-checked matter workspace route intent",
+      "executes_action": "route_intent_only",
+      "may_mutate_product_state": false,
+      "may_download": false,
+      "may_upload": false,
+      "may_ai_generate": false,
+      "requires_backend_permission_recheck": true,
+      "requires_open_audit": true
+    },
+    {
+      "id": "document",
+      "scheme": "mater",
+      "host": "document",
+      "path": "/:documentId",
+      "allowed_query": ["matter", "tenant"],
+      "purpose": "Open a permission-checked document route intent",
+      "executes_action": "route_intent_only",
+      "may_mutate_product_state": false,
+      "may_download": false,
+      "may_upload": false,
+      "may_ai_generate": false,
+      "requires_backend_permission_recheck": true,
+      "requires_open_audit": true
+    },
+    {
+      "id": "task",
+      "scheme": "mater",
+      "host": "task",
+      "path": "/:taskId",
+      "allowed_query": ["matter", "tenant"],
+      "purpose": "Open a permission-checked task route intent",
+      "executes_action": "route_intent_only",
+      "may_mutate_product_state": false,
+      "may_download": false,
+      "may_upload": false,
+      "may_ai_generate": false,
+      "requires_backend_permission_recheck": true,
+      "requires_open_audit": true
+    },
     {
       "id": "auth_callback",
       "scheme": "mater",
@@ -14,7 +59,9 @@
       "may_mutate_product_state": false,
       "may_download": false,
       "may_upload": false,
-      "may_ai_generate": false
+      "may_ai_generate": false,
+      "requires_backend_permission_recheck": false,
+      "requires_open_audit": true
     }
   ],
   "forbidden_actions": [
@@ -22,22 +69,25 @@
     "download",
     "upload",
     "ai_generate",
+    "billing_write",
+    "delivery_execution",
     "file_bridge",
     "open_external_url",
     "execute_command"
   ],
   "validation_rules": {
-    "state_required": true,
-    "code_required": true,
-    "issuer_allowlist_required": true,
-    "nonce_required": true,
-    "pkce_verifier_owned_by_main_process": true,
-    "renderer_receives_token_body": false
+    "scheme_required": "mater",
+    "route_id_allowlist_required": true,
+    "identifier_shape_required": true,
+    "unknown_query_parameters_rejected": true,
+    "backend_permission_recheck_for_workspace_routes": true,
+    "renderer_receives_route_intent_only": true
   },
   "non_claims": {
-    "deep_link_handler_implemented": false,
-    "auth_flow_implemented": false,
-    "production_idp_ready": false,
+    "deep_link_parser_implemented": false,
+    "notification_integration_implemented": false,
+    "production_deep_link_ready": false,
+    "public_release_ready": false,
     "owner_approval_recorded": false
   }
 }
