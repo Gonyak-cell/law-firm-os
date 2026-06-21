@@ -18,7 +18,7 @@
     {
       "id": "G1",
       "title": "Persistence Ready",
-      "status": "in_progress",
+      "status": "ready_candidate",
       "spine": "RS-1",
       "exit_rule": "tenant-scoped durable persistence evidence"
     },
@@ -248,7 +248,7 @@
     {
       "id": "RS-1",
       "gate": "G1",
-      "status": "in_progress",
+      "status": "ready_candidate",
       "tuws": [
         {
           "id": "RS-1-T01",
@@ -363,10 +363,49 @@
             "packages/persistence/test/repository.test.js"
           ]
         },
-        {"id": "RS-1-T11", "title": "Data residency metadata", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
-        {"id": "RS-1-T12", "title": "Backup/restore smoke harness", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
-        {"id": "RS-1-T13", "title": "Tenant isolation DB test suite", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-1-T14", "title": "Persistence evidence packet", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]}
+        {
+          "id": "RS-1-T11",
+          "title": "Data residency metadata",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/residency.js",
+            "packages/persistence/test/residency-backup.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T12",
+          "title": "Backup/restore smoke harness",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/backup.js",
+            "packages/persistence/test/residency-backup.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T13",
+          "title": "Tenant isolation DB test suite",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/test/tenant-isolation.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T14",
+          "title": "Persistence evidence packet",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "docs/runtime-spine/evidence/g1-persistence-evidence.json",
+            "scripts/validate-runtime-spine-rs1-persistence-ready.mjs"
+          ]
+        }
       ]
     },
     {

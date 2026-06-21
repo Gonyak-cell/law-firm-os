@@ -51,7 +51,7 @@ assert(packageJson.scripts?.["runtime-spine:rs1:persistence:validate"] === "node
 assert(/packages\/persistence\/test\/\*\.test\.js/.test(packageJson.scripts?.test ?? ""), "root npm test must include packages/persistence tests");
 
 const rs1 = ledger.spines?.find((spine) => spine.id === "RS-1");
-assert(rs1?.status === "in_progress", "RS-1 must be in_progress after RS-1A");
+assert(["in_progress", "ready_candidate"].includes(rs1?.status), "RS-1 must be in_progress or ready_candidate after RS-1A");
 const closed = new Set((rs1?.tuws ?? []).filter((tuw) => tuw.status === "closed").map((tuw) => tuw.id));
 for (const id of ["RS-1-T01", "RS-1-T02", "RS-1-T03", "RS-1-T04"]) {
   assert(closed.has(id), `${id}: must be closed for RS-1A`);
@@ -62,7 +62,7 @@ for (const tuw of rs1?.tuws ?? []) {
     assert(tuw.loop_stage === "act", `${tuw.id}: closed TUW loop_stage must be act`);
   }
 }
-assert(ledger.gates?.find((gate) => gate.id === "G1")?.status === "in_progress", "G1 must be in_progress after RS-1A");
+assert(["in_progress", "ready_candidate"].includes(ledger.gates?.find((gate) => gate.id === "G1")?.status), "G1 must be in_progress or ready_candidate after RS-1A");
 assert(ledger.runtime_ready_candidate_claim === false, "RS-1A must not claim runtime_ready candidate");
 assert(ledger.actual_launch_go_live_claim === false, "RS-1A must not claim actual launch/go-live");
 assert(evidence.latest_rs1a_validation?.status === "passed", "RS-1A evidence summary must be recorded as passed");

@@ -34,6 +34,7 @@
     "runtime-spine:readiness:validate": "node scripts/validate-runtime-spine-readiness.mjs",
     "runtime-spine:rs1:persistence:validate": "node scripts/validate-runtime-spine-rs1-persistence.mjs",
     "runtime-spine:rs1:tenant-data:validate": "node scripts/validate-runtime-spine-rs1-tenant-data.mjs",
+    "runtime-spine:rs1:persistence-ready:validate": "node scripts/validate-runtime-spine-rs1-persistence-ready.mjs",
     "implementation-layer:generate": "node scripts/generate-implementation-layer-ledger.mjs",
     "implementation-layer:validate": "node scripts/validate-implementation-layer-ledger.mjs",
     "closeout-pack:review:baseline": "node scripts/generate-closeout-pack-claude-review-baseline.mjs",

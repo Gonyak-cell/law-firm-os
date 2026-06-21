@@ -34,6 +34,7 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
   assert(prematureClosed.length === 0, `RS-2 through RS-6 TUWs must not close before G1: ${prematureClosed.map((tuw) => tuw.id).join(", ")}`);
 
   const rtgById = new Map((ledger.rtg_summary ?? []).map((rtg) => [rtg.id, rtg]));
+  const g1ReadyCandidate = (ledger.gates ?? []).find((gate) => gate.id === "G1")?.status === "ready_candidate";
   assert(["planned", "partial"].includes(rtgById.get("RTG-001")?.status), "RTG-001 must remain planned or partial until full functional runtime path exists");
   assert(["planned", "partial"].includes(rtgById.get("RTG-002")?.status), "RTG-002 must remain planned or partial until full permission runtime path exists");
   assert(["planned", "partial"].includes(rtgById.get("RTG-003")?.status), "RTG-003 must remain planned or partial until durable audit append exists");
@@ -58,7 +59,7 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
     console.log(`g0_timed_deferrals: ${deferredTuws.length}`);
     console.log(`rs1_closed_tuws: ${rs1Closed.length}`);
     console.log(`premature_closed_tuws: ${prematureClosed.length}`);
-    console.log("next_gate: G1 Persistence Ready");
+    console.log(`next_gate: ${g1ReadyCandidate ? "G2 Trust Boundary Ready" : "G1 Persistence Ready"}`);
   }
 
   return { ok: true, errors: [], closedCount: closedTuws.length, deferredCount: deferredTuws.length };

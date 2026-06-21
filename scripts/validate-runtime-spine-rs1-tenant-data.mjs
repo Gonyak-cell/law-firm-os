@@ -50,7 +50,7 @@ for (const [file, ...patterns] of requiredMarkers) {
 assert(packageJson.scripts?.["runtime-spine:rs1:tenant-data:validate"] === "node scripts/validate-runtime-spine-rs1-tenant-data.mjs", "package script runtime-spine:rs1:tenant-data:validate mismatch");
 
 const rs1 = ledger.spines?.find((spine) => spine.id === "RS-1");
-assert(rs1?.status === "in_progress", "RS-1 must remain in_progress until RS-1-T14 closes");
+assert(["in_progress", "ready_candidate"].includes(rs1?.status), "RS-1 must be in_progress or ready_candidate after RS-1B");
 const closed = new Set((rs1?.tuws ?? []).filter((tuw) => tuw.status === "closed").map((tuw) => tuw.id));
 for (const id of ["RS-1-T05", "RS-1-T06", "RS-1-T07", "RS-1-T08", "RS-1-T09", "RS-1-T10"]) {
   assert(closed.has(id), `${id}: must be closed for RS-1B`);
