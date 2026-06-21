@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.launch-external-receipt-ledger.v0.1",
-  "generated_at": "2026-06-21T09:53:00Z",
+  "generated_at": "2026-06-21T10:00:00Z",
   "status": "blocked_pending_remaining_owner_external_receipts",
   "source_refs": [
     "docs/launch/launch-receipt-intake-action-packet.md",
@@ -20,17 +20,17 @@
   },
   "summary": {
     "external_receipt_lane_count": 8,
-    "real_external_receipt_count": 4,
-    "approved_external_receipt_count": 4,
+    "real_external_receipt_count": 5,
+    "approved_external_receipt_count": 5,
     "deferred_external_receipt_count": 0,
-    "pending_external_receipt_count": 4,
+    "pending_external_receipt_count": 3,
     "lcx7_ri_05_receipt_recorded": true,
     "lcx7_ri_06_receipt_recorded": true,
     "lcx7_ri_07_receipt_recorded": true,
     "lcx7_ri_08_receipt_recorded": true,
+    "lcx7_ri_09_receipt_recorded": true,
     "all_external_receipts_received": false,
     "remaining_queue_ids": [
-      "LCX7-RI-09",
       "LCX7-RI-10",
       "LCX7-RI-11",
       "LCX7-RI-12"
@@ -198,8 +198,25 @@
       "primary_blockers": [
         "G5"
       ],
-      "receipt_status": "pending_external_receipt",
-      "pending_reason": "Awaiting tenant admin confirmation, Graph scope register, Entra app registration, and admin consent export."
+      "post_receipt_validation": [
+        "future G5 launch acceptance and M365 domain tests",
+        "future Graph permission/scope reconciliation",
+        "future admin consent export verification"
+      ],
+      "receipt_status": "real_external_receipt_received",
+      "owner": "Microsoft 365 Owner / Security Owner / Product Owner",
+      "decision": "approved",
+      "basis": "Tenant admin confirmation, approved Graph scope register, Entra app registration, admin consent export, permission/scope reconciliation, and M365/Graph production access boundary are approved for LCX7-RI-09. This approval is intended to support G5/M365 launch acceptance validation while preserving final go-live approval as a separate decision.",
+      "date_or_revisit_gate": "2026-06-21",
+      "approval_signature_ref": "email:lawos-m365-graph-approval-2026-06-21",
+      "received_at": "2026-06-21T10:00:00Z",
+      "received_at_original": "2026-06-21T19:00:00+09:00",
+      "recorded_by_human": "JWS",
+      "receipt_counts_as_go_live_approval": false,
+      "receipt_counts_as_production_cutover_approval": false,
+      "receipt_counts_as_lt_terminal_closeout": false,
+      "launch_decision_register_copy_allowed": false,
+      "unlock_claim_state": "receipt_recorded_pending_g5_m365_launch_acceptance_and_final_go_live_decision"
     },
     {
       "queue_id": "LCX7-RI-10",

@@ -1,7 +1,7 @@
 # Launch External Receipt Ledger
 
 Status: blocked_pending_remaining_owner_external_receipts
-Generated at: 2026-06-21T09:53:00Z
+Generated at: 2026-06-21T10:00:00Z
 
 ## Boundary
 
@@ -17,14 +17,15 @@ Generated at: 2026-06-21T09:53:00Z
 ## Summary
 
 - external_receipt_lane_count: 8
-- real_external_receipt_count: 4
-- approved_external_receipt_count: 4
+- real_external_receipt_count: 5
+- approved_external_receipt_count: 5
 - deferred_external_receipt_count: 0
-- pending_external_receipt_count: 4
+- pending_external_receipt_count: 3
 - lcx7_ri_05_receipt_recorded: true
 - lcx7_ri_06_receipt_recorded: true
 - lcx7_ri_07_receipt_recorded: true
 - lcx7_ri_08_receipt_recorded: true
+- lcx7_ri_09_receipt_recorded: true
 - all_external_receipts_received: false
 - launch_blockers_still_in_force: LT-L2-W01, LT-L2-W02, LT-L2-W03, LT-L2-W07
 
@@ -36,7 +37,7 @@ Generated at: 2026-06-21T09:53:00Z
 | LCX7-RI-06 | LCX6-UP-02 | Trust boundary and identity | real_external_receipt_received | approved | email:lawos-trust-boundary-identity-approval-2026-06-21 | receipt_recorded_pending_lt_packet_validation |
 | LCX7-RI-07 | LCX6-UP-03 | Write path and audit | real_external_receipt_received | approved | email:lawos-write-path-audit-approval-2026-06-21 | receipt_recorded_pending_lt_packet_validation |
 | LCX7-RI-08 | LCX6-UP-04 | Runtime integration and launch evidence | real_external_receipt_received | approved | email:lawos-runtime-integration-launch-evidence-approval-2026-06-21 | receipt_recorded_pending_lt_packet_validation_and_final_go_live_decision |
-| LCX7-RI-09 | LCX6-UP-05 | M365/Graph | pending_external_receipt |  |  |  |
+| LCX7-RI-09 | LCX6-UP-05 | M365/Graph | real_external_receipt_received | approved | email:lawos-m365-graph-approval-2026-06-21 | receipt_recorded_pending_g5_m365_launch_acceptance_and_final_go_live_decision |
 | LCX7-RI-10 | LCX6-UP-05 | HR real data | pending_external_receipt |  |  |  |
 | LCX7-RI-11 | LCX6-UP-05 | Vault import/sync | pending_external_receipt |  |  |  |
 | LCX7-RI-12 | LCX6-UP-05 | AI policy | pending_external_receipt |  |  |  |
@@ -97,6 +98,20 @@ Generated at: 2026-06-21T09:53:00Z
 | received_at_original | 2026-06-21T18:53:00+09:00 |
 | recorded_by_human | JWS |
 
+## LCX7-RI-09 Recorded Receipt
+
+| Field | Value |
+| --- | --- |
+| decision_id | LCX7-RI-09-M365-GRAPH |
+| owner | Microsoft 365 Owner / Security Owner / Product Owner |
+| decision | approved |
+| basis | Tenant admin confirmation, approved Graph scope register, Entra app registration, admin consent export, permission/scope reconciliation, and M365/Graph production access boundary are approved for LCX7-RI-09. This approval is intended to support G5/M365 launch acceptance validation while preserving final go-live approval as a separate decision. |
+| date_or_revisit_gate | 2026-06-21 |
+| approval_signature_ref | email:lawos-m365-graph-approval-2026-06-21 |
+| received_at | 2026-06-21T10:00:00Z |
+| received_at_original | 2026-06-21T19:00:00+09:00 |
+| recorded_by_human | JWS |
+
 ## Post-Receipt Verification
 
 - `npm run runtime-spine:rs1:persistence:validate`
@@ -111,10 +126,11 @@ Generated at: 2026-06-21T09:53:00Z
 - Future SSO/MFA E2E and User-to-Employee mapping reconciliation receipts.
 - Future staging write-path smoke receipts.
 - Future launch evidence acceptance and owner receipt validators.
+- Future G5 launch acceptance and M365 domain tests.
+- Future Graph permission/scope reconciliation and admin consent export verification.
 
 ## Remaining External Receipts
 
-- LCX7-RI-09 M365/Graph.
 - LCX7-RI-10 HR real data.
 - LCX7-RI-11 Vault import/sync.
 - LCX7-RI-12 AI policy.
