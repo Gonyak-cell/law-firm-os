@@ -23,8 +23,8 @@ function lineFindings(path, source) {
     ["recursive_scan", /\b(?:readdir|readdirSync|opendir|opendirSync)\s*\(|\bglob\s*\(|fast-glob|recursive\s*:\s*true/],
     ["arbitrary_path_read", /\b(?:readFile|readFileSync|createReadStream)\s*\(\s*(?:request|payload|params|input)?\.?(?:path|filePath|absolutePath)/],
     ["arbitrary_path_write", /\b(?:writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream)\s*\(\s*(?:request|payload|params|input)?\.?(?:path|filePath|absolutePath)/],
-    ["path_retention", /\b(?:localStorage|sessionStorage|indexedDB|JSON\.stringify|writeFile|writeFileSync|appendFile|appendFileSync)\b.*(?:path|filePath|absolutePath)/i],
-    ["path_retention", /selectedHandles\.set\([\s\S]*?\{[\s\S]*?(?:path|filePath|absolutePath)[\s\S]*?\}/]
+    ["path_retention", /\b(?:localStorage|sessionStorage|indexedDB|JSON\.stringify|writeFile|writeFileSync|appendFile|appendFileSync)\b.*(?:\bpath\b|filePath|absolutePath)/i],
+    ["path_retention", /selectedHandles\.set\([^\n]*(?:\bpath\b|filePath|absolutePath)/]
   ];
 
   for (const [lineNumber, line] of source.split("\n").entries()) {

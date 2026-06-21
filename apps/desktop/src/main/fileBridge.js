@@ -158,7 +158,13 @@ export function createFileBridgeController({
       });
       return {
         state: "selected",
-        file: metadata
+        file: metadata,
+        backendUpload: {
+          actionId: "choose_file_for_upload",
+          handleId,
+          permissionDecisionId: precheck.decisionId ?? null,
+          pathVisibleToRenderer: false
+        }
       };
     },
     getSelectedHandleForTest(handleId) {
