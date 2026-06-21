@@ -1,6 +1,6 @@
 # Launch Receipt Intake Action Packet
 
-Status: blocked_pending_owner_external_receipts
+Status: blocked_pending_remaining_owner_external_receipts
 Date: 2026-06-21
 Prepared for: LCX7
 Related PR: https://github.com/Gonyak-cell/law-firm-os/pull/83
@@ -38,6 +38,12 @@ Merge or review of PR #83 is repo evidence only. It is not launch approval.
 | No-go boundary | Keep `actual_launch_go_live_claim: false` until final launch approval exists. |
 | Evidence retention | Store only pointers or safe redacted receipts; do not commit secrets, credentials, or personal contact/payment details. |
 
+## External Receipt Ledger
+
+`docs/launch/launch-external-receipt-ledger.md` records owner/external receipt
+pointers for LCX7-RI-05 through LCX7-RI-12. It does not approve go-live or
+production cutover, and it does not close LT terminal packets.
+
 ## Intake Queue
 
 | Queue ID | Source packet | Target receipt | Required first action | Validation after receipt |
@@ -54,6 +60,19 @@ Merge or review of PR #83 is repo evidence only. It is not launch approval.
 | LCX7-RI-10 | LCX6-UP-05 | HR real data | Request HR owner approval, identity mapping reconciliation, HR sensitive store count, and privacy/PIPA receipt | G7 launch acceptance and HRX route tests |
 | LCX7-RI-11 | LCX6-UP-05 | Vault import/sync | Request MAT-DEC-03 storage decision, source-of-truth receipt, import/sync reconciliation, and rollback attestation | G8 launch acceptance and Vault import/sync tests |
 | LCX7-RI-12 | LCX6-UP-05 | AI policy | Request AI policy approval, source/citation policy, human-review routing, and no-final-decision guard receipt | G7 launch acceptance and AI governance tests |
+
+## Receipt Status Snapshot
+
+| Queue ID | Current receipt state | Ledger |
+| --- | --- | --- |
+| LCX7-RI-05 | real_external_receipt_received | `docs/launch/launch-external-receipt-ledger.md` |
+| LCX7-RI-06 | pending_external_receipt | `docs/launch/launch-external-receipt-ledger.md` |
+| LCX7-RI-07 | pending_external_receipt | `docs/launch/launch-external-receipt-ledger.md` |
+| LCX7-RI-08 | pending_external_receipt | `docs/launch/launch-external-receipt-ledger.md` |
+| LCX7-RI-09 | pending_external_receipt | `docs/launch/launch-external-receipt-ledger.md` |
+| LCX7-RI-10 | pending_external_receipt | `docs/launch/launch-external-receipt-ledger.md` |
+| LCX7-RI-11 | pending_external_receipt | `docs/launch/launch-external-receipt-ledger.md` |
+| LCX7-RI-12 | pending_external_receipt | `docs/launch/launch-external-receipt-ledger.md` |
 
 ## Owner Request Copy Template
 
