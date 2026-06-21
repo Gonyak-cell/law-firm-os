@@ -183,7 +183,7 @@ Done evidence:
 
 ## LCX5 - UI/API Manual QA Evidence
 
-Status: pending
+Status: completed
 
 Objective:
 Prove the relevant UI/API surfaces work in an observable local run and capture
@@ -203,6 +203,16 @@ Acceptance:
 - Manual QA evidence exists.
 - Happy path and denied path are both covered where applicable.
 - Any untestable external surface is moved to LCX6 instead of claimed complete.
+
+Done evidence:
+
+- `docs/lazycodex/evidence/lcx5-ui-api-manual-qa.md`
+- Local API server on `http://127.0.0.1:4180`.
+- Local web server on `http://127.0.0.1:5173/`.
+- Client, Matter, and People manual API smoke: PASS.
+- `npm --workspace @law-firm-os/web run test:ui`: PASS, 16/16.
+- `node scripts/verify-matter-live-data.mjs`: PASS.
+- `npm --workspace @law-firm-os/api run test -- apps/api/test/master-data-api.test.js apps/api/test/cmp-r4-g4-matter.test.js apps/api/test/hrx-runtime-api.test.js apps/api/test/hrx/route-authz.test.js`: PASS, 131/131.
 
 ## LCX6 - Locked-Domain Unlock Packets
 
