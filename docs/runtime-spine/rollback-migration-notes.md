@@ -58,6 +58,20 @@ RS-1C closes the remaining G1 persistence evidence:
 
 Rollback remains synthetic-only. A local synthetic backup can be discarded, and the local synthetic store can be reset by deleting the test store file. This does not approve production DB vendor, hosting, RPO/RTO, credentials, real tenant data access, runtime-ready, or launch/go-live.
 
+## RS-2 Trust Boundary Ready Candidate
+
+RS-2 adds provider-neutral runtime auth and AuthZ context helpers:
+
+- session schema rejects credential material
+- OIDC/SAML adapters remain descriptor-only
+- local dev provider is synthetic-only
+- server-derived principal rejects caller-supplied tenant, role, user, and actor context
+- authz context calls the existing evaluator only after server-derived principal construction
+- break-glass remains locked before owner gate
+- auth audit hook writes synthetic tenant-scoped outbox events
+
+Rollback is a normal Git revert of the RS-2 PR. No production auth provider, SSO configuration, tenant membership source, credential store, or real tenant data is created by this gate.
+
 ## Future Evidence Required
 
 Runtime migration PRs must record:

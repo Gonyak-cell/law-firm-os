@@ -44,6 +44,24 @@ Date: 2026-06-21
 | G1 persistence evidence packet exists | closed |
 | Runtime-ready and actual launch/go-live claims remain false | closed |
 
+## G2 Checklist
+
+| Item | Status |
+| --- | --- |
+| Runtime auth package exists | closed |
+| Session schema rejects credential material | closed |
+| OIDC/SAML provider interface remains descriptor-only | closed |
+| Local dev provider is synthetic-only | closed |
+| Principal is server-derived | closed |
+| Caller-supplied tenant/role/user context fails closed | closed |
+| Tenant membership and role/group resolver exist | closed |
+| MFA/session assurance model exists | closed |
+| Existing authz evaluator integration exists | closed |
+| Privilege and HR-sensitive policy hooks exist | closed |
+| Break-glass remains locked before owner gate | closed |
+| Auth audit hook writes tenant-scoped synthetic outbox events | closed |
+| Runtime-ready and actual launch/go-live claims remain false | closed |
+
 ## Regression Commands
 
 G0 uses the following minimum regression sweep:

@@ -25,7 +25,7 @@
     {
       "id": "G2",
       "title": "Trust Boundary Ready",
-      "status": "planned_blocked_by_prior_gate",
+      "status": "ready_candidate",
       "spine": "RS-2",
       "exit_rule": "server-derived AuthN/AuthZ evidence"
     },
@@ -411,23 +411,23 @@
     {
       "id": "RS-2",
       "gate": "G2",
-      "status": "planned",
+      "status": "ready_candidate",
       "tuws": [
-        {"id": "RS-2-T01", "title": "Auth runtime package", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-2-T02", "title": "User credential/session schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-2-T03", "title": "OIDC/SAML adapter interface", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-2-T04", "title": "Local dev auth provider", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-2-T05", "title": "Server-derived principal builder", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-2-T06", "title": "Tenant membership resolver", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-2-T07", "title": "Role/group resolver", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-2-T08", "title": "MFA/session assurance model", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-2-T09", "title": "AuthZ context builder", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-2-T10", "title": "Existing authz evaluator integration", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-2-T11", "title": "Cross-tenant deny regression", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-2-T12", "title": "Privilege/HR-sensitive policy hooks", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
-        {"id": "RS-2-T13", "title": "Break-glass placeholder locked", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-2-T14", "title": "Auth audit event emission hook", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-2-T15", "title": "Auth runtime evidence packet", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"]}
+        {"id": "RS-2-T01", "title": "Auth runtime package", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/package.json", "packages/runtime-auth/src/index.js"]},
+        {"id": "RS-2-T02", "title": "User credential/session schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/session.js", "packages/runtime-auth/test/session-provider.test.js"]},
+        {"id": "RS-2-T03", "title": "OIDC/SAML adapter interface", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/provider.js", "packages/runtime-auth/test/session-provider.test.js"]},
+        {"id": "RS-2-T04", "title": "Local dev auth provider", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/local-provider.js", "packages/runtime-auth/test/session-provider.test.js"]},
+        {"id": "RS-2-T05", "title": "Server-derived principal builder", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/principal.js", "packages/runtime-auth/test/principal.test.js"]},
+        {"id": "RS-2-T06", "title": "Tenant membership resolver", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/membership.js", "packages/runtime-auth/test/principal.test.js"]},
+        {"id": "RS-2-T07", "title": "Role/group resolver", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/membership.js", "packages/runtime-auth/test/principal.test.js"]},
+        {"id": "RS-2-T08", "title": "MFA/session assurance model", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/assurance.js", "packages/runtime-auth/test/authz-context.test.js"]},
+        {"id": "RS-2-T09", "title": "AuthZ context builder", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/authz-context.js", "packages/runtime-auth/test/authz-context.test.js"]},
+        {"id": "RS-2-T10", "title": "Existing authz evaluator integration", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/authz-context.js", "packages/authz/src/evaluate.js", "packages/runtime-auth/test/authz-context.test.js"]},
+        {"id": "RS-2-T11", "title": "Cross-tenant deny regression", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/test/principal.test.js", "packages/runtime-auth/test/authz-context.test.js"]},
+        {"id": "RS-2-T12", "title": "Privilege/HR-sensitive policy hooks", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/policy-hooks.js", "packages/runtime-auth/test/authz-context.test.js"]},
+        {"id": "RS-2-T13", "title": "Break-glass placeholder locked", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/break-glass.js", "packages/runtime-auth/test/audit-break-glass.test.js"]},
+        {"id": "RS-2-T14", "title": "Auth audit event emission hook", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/runtime-auth/src/audit.js", "packages/runtime-auth/test/audit-break-glass.test.js"]},
+        {"id": "RS-2-T15", "title": "Auth runtime evidence packet", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["docs/runtime-spine/evidence/g2-trust-boundary-evidence.json", "scripts/validate-runtime-spine-rs2-trust-boundary.mjs"]}
       ]
     },
     {
