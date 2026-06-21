@@ -16,7 +16,7 @@ This evidence file records P3 workspace progress only. It does not claim file br
 | MDT-P3-W01-T01 | complete | `docs/desktop/mater-desktop-route-map.md` |
 | MDT-P3-W01-T02 | complete | `apps/web/src/components/DesktopDeniedState.jsx`, `VaultSurface.jsx`, `MattersSurface.jsx` |
 | MDT-P3-W01-T03 | complete | `apps/web/src/desktop/runtimeContext.js`, `apps/desktop/src/preload/runtime.js` |
-| MDT-P3-W02-T01 | pending | not started |
+| MDT-P3-W02-T01 | complete | `apps/web/test/desktop-permission.test.mjs` |
 | MDT-P3-W02-T02 | pending | not started |
 | MDT-P3-W02-T03 | pending | not started |
 | MDT-P3-W02-T04 | pending | phase terminal not reached |
@@ -122,3 +122,36 @@ Act:
 
 - `MDT-P3-W01` is closed at its terminal TUW, `MDT-P3-W01-T03`.
 - Next ledger TUW is `MDT-P3-W02-T01`.
+
+## MDT-P3-W02-T01 - Add Unauthorized Matter Visibility Tests
+
+Plan:
+
+- Add a focused desktop permission test for denied Matter/Vault visibility.
+- Prove non-member matter row, count, snippet, citation, and document metadata are absent from denied state.
+
+Do:
+
+- Added `apps/web/test/desktop-permission.test.mjs`.
+
+Check:
+
+```bash
+node --test apps/web/test/desktop-permission.test.mjs
+git diff --check -- apps/web/test/desktop-permission.test.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-03-workspace.md
+```
+
+Results:
+
+- Desktop permission test passed.
+- Test checks `DesktopDeniedState` copy and Matter/Vault denied rendering gates.
+- `git diff --check` passed.
+
+Permission/audit impact:
+
+- Permission trimming is visible in UI tests.
+
+Act:
+
+- `MDT-P3-W02-T01` is complete.
+- Next TUW is `MDT-P3-W02-T02`.
