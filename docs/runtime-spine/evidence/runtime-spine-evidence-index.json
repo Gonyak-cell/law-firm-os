@@ -3,11 +3,25 @@
   "baseline_commit": "41268c4becac7d06948d10c173d30635e108c5e1",
   "runtime_ready_candidate": true,
   "actual_launch_go_live_claim": false,
+  "lt_terminal_closeout_claim": false,
+  "launch_go_live_terminal_claim": false,
   "g0_scope_ready_candidate": true,
   "evidence_policy": {
     "real_owner_names_required_for_launch": true,
     "repo_only_evidence_cannot_complete_launch": true,
     "synthetic_only_until_gates_pass": true
+  },
+  "launch_tuw_boundary": {
+    "crosswalk_ref": "docs/runtime-spine/launch-tuw-crosswalk.json",
+    "crosswalk_doc_ref": "docs/runtime-spine/launch-tuw-crosswalk.md",
+    "repo_runtime_ready_candidate_is_launch_terminal_closeout": false,
+    "blocked_goal_closeout_packets": [
+      "LT-L2-W01",
+      "LT-L2-W02",
+      "LT-L2-W03",
+      "LT-L2-W07"
+    ],
+    "actual_launch_go_live_claim": false
   },
   "documents": [
     "docs/runtime-spine/runtime-spine-charter.md",
@@ -23,6 +37,8 @@
     "docs/runtime-spine/evidence/g4-canonical-model-evidence.json",
     "docs/runtime-spine/evidence/g5-app-runtime-evidence.json",
     "docs/runtime-spine/evidence/g6-runtime-ready-evidence.json",
+    "docs/runtime-spine/launch-tuw-crosswalk.json",
+    "docs/runtime-spine/launch-tuw-crosswalk.md",
     "docs/runtime-spine/rtg-005-responsibility-map.md",
     "docs/runtime-spine/qa-checklist.md",
     "docs/runtime-spine/rollback-migration-notes.md"
@@ -38,6 +54,7 @@
     "npm run runtime-spine:rs4:canonical-model:validate",
     "npm run runtime-spine:rs5:app-surface:validate",
     "npm run runtime-spine:rs6:integration:validate",
+    "npm run runtime-spine:launch-crosswalk:validate",
     "npm run runtime-readiness:contract:validate",
     "npm run runtime-readiness:validate",
     "npm run client-matter:cmp-v1:validate",
@@ -386,6 +403,7 @@
         "npm run runtime-spine:rs3:audit:validate",
         "npm run runtime-spine:rs2:trust-boundary:validate",
         "npm run runtime-spine:rs1:persistence-ready:validate",
+        "npm run runtime-spine:launch-crosswalk:validate",
         "npm run runtime-spine:plan:validate",
         "npm run runtime-spine:readiness:validate",
         "npm run runtime-readiness:validate",
@@ -565,6 +583,7 @@
         "rs3_audit_validator": "passed",
         "rs2_trust_boundary_validator": "passed",
         "rs1_persistence_ready_validator": "passed",
+        "runtime_spine_launch_crosswalk": "passed; mapped_spines=7; launch_blockers=LT-L2-W01,LT-L2-W02,LT-L2-W03,LT-L2-W07",
         "runtime_spine_plan": "passed; gates=7; tuws=124; runtime_ready_candidate_claim=true",
         "runtime_spine_readiness_guard": "passed; total_closed_tuws=121; rs1_closed_tuws=14; premature_closed_tuws=0; next_gate=external receipts and launch approval blocked",
         "runtime_readiness_contract": "passed; implementation_layer_start_pack_id=CP00-328",
@@ -576,6 +595,41 @@
         "api_test": "passed; 131/131",
         "build": "passed",
         "root_test": "passed; 4053/4053"
+      }
+    }
+  },
+  "latest_launch_tuw_crosswalk_validation": {
+    "status": "passed",
+    "recorded_after_commands": true,
+    "date": "2026-06-21",
+    "summary": {
+      "mapped_spines": [
+        "RS-PRE",
+        "RS-1",
+        "RS-2",
+        "RS-3",
+        "RS-4",
+        "RS-5",
+        "RS-6"
+      ],
+      "launch_blockers": [
+        "LT-L2-W01",
+        "LT-L2-W02",
+        "LT-L2-W03",
+        "LT-L2-W07"
+      ],
+      "repo_runtime_ready_candidate": true,
+      "lt_terminal_closeout_claim": false,
+      "actual_launch_go_live_claim": false,
+      "commands": [
+        "npm run runtime-spine:launch-crosswalk:validate",
+        "npm run runtime-spine:readiness:validate",
+        "npm run runtime-spine:rs6:integration:validate"
+      ],
+      "results": {
+        "runtime_spine_launch_crosswalk": "passed",
+        "runtime_spine_readiness_guard": "passed; launch_blockers=LT-L2-W01,LT-L2-W02,LT-L2-W03,LT-L2-W07",
+        "rs6_integration_validator": "passed"
       }
     }
   },

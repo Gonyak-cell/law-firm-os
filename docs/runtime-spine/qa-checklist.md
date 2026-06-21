@@ -139,6 +139,7 @@ npm run runtime-spine:rs4:canonical-model:validate
 npm run runtime-spine:rs3:audit:validate
 npm run runtime-spine:rs2:trust-boundary:validate
 npm run runtime-spine:rs1:persistence-ready:validate
+npm run runtime-spine:launch-crosswalk:validate
 npm run runtime-spine:plan:validate
 npm run runtime-spine:readiness:validate
 npm run runtime-readiness:contract:validate

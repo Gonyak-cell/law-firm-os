@@ -1,0 +1,155 @@
+{
+  "schema_version": "law-firm-os.runtime-spine.launch-tuw-crosswalk.v0.1",
+  "date": "2026-06-21",
+  "runtime_spine_baseline_commit": "41268c4becac7d06948d10c173d30635e108c5e1",
+  "reconciliation_baseline_commit": "28ae5a298c87df8d337a7af0c1fd10c3d3364029",
+  "scope": {
+    "crosswalk_type": "boundary_reconciliation",
+    "repo_runtime_ready_candidate": true,
+    "lt_terminal_closeout_claim": false,
+    "launch_go_live_terminal_claim": false,
+    "production_ready_claim": false,
+    "crosswalk_replaces_rs_implementation": false,
+    "crosswalk_closes_launch_tuws": false,
+    "launch_packets_remain_authoritative_for_launch_closeout": true
+  },
+  "source_refs": [
+    "docs/runtime-spine/runtime-spine-ledger.json",
+    "docs/runtime-spine/evidence/g6-runtime-ready-evidence.json",
+    "docs/runtime-spine/evidence/runtime-spine-evidence-index.json",
+    "docs/goal-closeout/lt-l2-w01/packet.json",
+    "docs/goal-closeout/lt-l2-w02/packet.json",
+    "docs/goal-closeout/lt-l2-w03/packet.json",
+    "docs/goal-closeout/lt-l2-w07/packet.json",
+    "docs/launch/launch-goal-completion-audit.json",
+    "docs/launch/launch-blocker-surface-audit.json"
+  ],
+  "mappings": [
+    {
+      "runtime_spine": "RS-PRE",
+      "gate": "G0",
+      "runtime_scope": "decision boundary, non-weakening policy, locked future-domain inventory, and baseline measurement",
+      "launch_tuw_targets": [
+        "LT-PRE",
+        "LT-L0",
+        "LT-L1"
+      ],
+      "relationship": "supports_launch_decision_context",
+      "implementation_gate": "repo_evidence_only",
+      "lt_terminal_effect": "none"
+    },
+    {
+      "runtime_spine": "RS-1",
+      "gate": "G1",
+      "runtime_scope": "tenant-scoped durable persistence contract, synthetic adapter, idempotency, outbox, and backup/restore evidence",
+      "launch_tuw_targets": [
+        "LT-L2-W01",
+        "LT-L5"
+      ],
+      "relationship": "partially_satisfies_runtime_persistence_shape",
+      "implementation_gate": "repo_runtime_ready_candidate",
+      "lt_terminal_effect": "does_not_close_lt_l2_w01"
+    },
+    {
+      "runtime_spine": "RS-2",
+      "gate": "G2",
+      "runtime_scope": "server-derived AuthN/AuthZ, provider boundary, auth audit hooks, and fail-closed trust context",
+      "launch_tuw_targets": [
+        "LT-L2-W02",
+        "LT-L5"
+      ],
+      "relationship": "partially_satisfies_runtime_trust_boundary_shape",
+      "implementation_gate": "repo_runtime_ready_candidate",
+      "lt_terminal_effect": "does_not_close_lt_l2_w02"
+    },
+    {
+      "runtime_spine": "RS-3",
+      "gate": "G3",
+      "runtime_scope": "non-bypassable durable audit append, chain verification, read/write/export/permission coverage, and rollback visibility",
+      "launch_tuw_targets": [
+        "LT-L2-W01",
+        "LT-L2-W03",
+        "LT-L5",
+        "LT-L8"
+      ],
+      "relationship": "partially_satisfies_audit_and_write_path_shape",
+      "implementation_gate": "repo_runtime_ready_candidate",
+      "lt_terminal_effect": "does_not_close_lt_l2_w03_or_l5"
+    },
+    {
+      "runtime_spine": "RS-4",
+      "gate": "G4",
+      "runtime_scope": "Client-Matter-People canonical model, schema registry, relation graph, mapper, lifecycle, and export contracts",
+      "launch_tuw_targets": [
+        "LT-L2-W03",
+        "LT-L4",
+        "LT-L6"
+      ],
+      "relationship": "supports_launch_model_and_ui_parity_inputs",
+      "implementation_gate": "repo_runtime_ready_candidate",
+      "lt_terminal_effect": "none"
+    },
+    {
+      "runtime_spine": "RS-5",
+      "gate": "G5",
+      "runtime_scope": "repo-native UI/API/write path surface over runtime persistence/auth/audit/model packages",
+      "launch_tuw_targets": [
+        "LT-L2-W03",
+        "LT-L4",
+        "LT-L6"
+      ],
+      "relationship": "supports_runtime_app_surface_without_external_wiring_claim",
+      "implementation_gate": "repo_runtime_ready_candidate",
+      "lt_terminal_effect": "does_not_close_launch_ui_or_write_path_terminal"
+    },
+    {
+      "runtime_spine": "RS-6",
+      "gate": "G6",
+      "runtime_scope": "runtime integration harness, RTG-001 through RTG-005 regression, locked-domain guard, and repo runtime-ready candidate evidence",
+      "launch_tuw_targets": [
+        "LT-L2-W07",
+        "LT-L5",
+        "LT-L8"
+      ],
+      "relationship": "creates_repo_runtime_integration_harness_for_launch_reference",
+      "implementation_gate": "repo_runtime_ready_candidate",
+      "lt_terminal_effect": "does_not_close_lt_l2_w07_or_launch_go_live"
+    }
+  ],
+  "launch_blocker_packets": [
+    {
+      "work_package_id": "LT-L2-W01",
+      "packet_ref": "docs/goal-closeout/lt-l2-w01/packet.json",
+      "expected_status_prefix": "blocked_",
+      "terminal_closeout_required": true,
+      "reason": "Launch persistence foundation remains tied to L1 hosting decisions and launch packet closeout, not only RS-1 repo evidence."
+    },
+    {
+      "work_package_id": "LT-L2-W02",
+      "packet_ref": "docs/goal-closeout/lt-l2-w02/packet.json",
+      "expected_status_prefix": "blocked_",
+      "terminal_closeout_required": true,
+      "reason": "Launch trust boundary remains tied to L0/L1 owner decisions, persistence, and launch packet closeout."
+    },
+    {
+      "work_package_id": "LT-L2-W03",
+      "packet_ref": "docs/goal-closeout/lt-l2-w03/packet.json",
+      "expected_status_prefix": "blocked_",
+      "terminal_closeout_required": true,
+      "reason": "Launch write path remains tied to LT-L2-W01/W02 and launch write-runtime closeout."
+    },
+    {
+      "work_package_id": "LT-L2-W07",
+      "packet_ref": "docs/goal-closeout/lt-l2-w07/packet.json",
+      "expected_status_prefix": "blocked_",
+      "terminal_closeout_required": true,
+      "reason": "RS-6 harness now exists, but LT-L2-W07 terminal closeout still depends on Launch TUW predecessors and external launch evidence."
+    }
+  ],
+  "boundary_assertions": [
+    "G6 repo runtime-ready candidate is not LT-L2/L5/L8 launch terminal closeout.",
+    "RS-6 runtime integration harness can be used as supporting evidence for Launch TUW review but cannot replace launch packet validators.",
+    "Actual launch/go-live remains false until external production smoke, migration operator receipt, and owner launch approval are all recorded.",
+    "Portal, M365, HR real data, AI, and Vault import/sync remain locked or sandbox/export-only until their separate gates pass."
+  ]
+}
