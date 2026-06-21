@@ -1,6 +1,6 @@
 # Launch External Receipt Ledger
 
-Status: blocked_pending_remaining_owner_external_receipts
+Status: external_receipts_received_pending_launch_acceptance_and_final_go_live_decision
 Generated at: 2026-06-21T10:14:24Z
 
 ## Boundary
@@ -17,10 +17,10 @@ Generated at: 2026-06-21T10:14:24Z
 ## Summary
 
 - external_receipt_lane_count: 8
-- real_external_receipt_count: 7
-- approved_external_receipt_count: 7
+- real_external_receipt_count: 8
+- approved_external_receipt_count: 8
 - deferred_external_receipt_count: 0
-- pending_external_receipt_count: 1
+- pending_external_receipt_count: 0
 - lcx7_ri_05_receipt_recorded: true
 - lcx7_ri_06_receipt_recorded: true
 - lcx7_ri_07_receipt_recorded: true
@@ -28,7 +28,8 @@ Generated at: 2026-06-21T10:14:24Z
 - lcx7_ri_09_receipt_recorded: true
 - lcx7_ri_10_receipt_recorded: true
 - lcx7_ri_11_receipt_recorded: true
-- all_external_receipts_received: false
+- lcx7_ri_12_receipt_recorded: true
+- all_external_receipts_received: true
 - launch_blockers_still_in_force: LT-L2-W01, LT-L2-W02, LT-L2-W03, LT-L2-W07
 
 ## Receipt Lanes
@@ -42,7 +43,7 @@ Generated at: 2026-06-21T10:14:24Z
 | LCX7-RI-09 | LCX6-UP-05 | M365/Graph | real_external_receipt_received | approved | email:lawos-m365-graph-approval-2026-06-21 | receipt_recorded_pending_g5_m365_launch_acceptance_and_final_go_live_decision |
 | LCX7-RI-10 | LCX6-UP-05 | HR real data | real_external_receipt_received | approved | email:lawos-hr-real-data-approval-2026-06-21 | receipt_recorded_pending_g7_hrx_launch_acceptance_and_final_go_live_decision |
 | LCX7-RI-11 | LCX6-UP-05 | Vault import/sync | real_external_receipt_received | approved | email:lawos-vault-import-sync-approval-2026-06-21 | receipt_recorded_pending_g8_vault_import_sync_launch_acceptance_and_final_go_live_decision |
-| LCX7-RI-12 | LCX6-UP-05 | AI policy | pending_external_receipt |  |  |  |
+| LCX7-RI-12 | LCX6-UP-05 | AI policy | real_external_receipt_received | approved | email:lawos-ai-policy-approval-2026-06-21 | receipt_recorded_pending_g7_ai_governance_launch_acceptance_and_final_go_live_decision |
 
 ## LCX7-RI-05 Recorded Receipt
 
@@ -142,6 +143,20 @@ Generated at: 2026-06-21T10:14:24Z
 | received_at_original | 2026-06-21T19:14:24+09:00 |
 | recorded_by_human | JWS |
 
+## LCX7-RI-12 Recorded Receipt
+
+| Field | Value |
+| --- | --- |
+| decision_id | LCX7-RI-12-AI-POLICY |
+| owner | AI Governance Owner / Security Owner / Legal Owner / Product Owner |
+| decision | approved |
+| basis | AI policy approval, source/citation policy, human-review routing, no-final-decision guard, and AI governance launch boundary are approved for LCX7-RI-12. This approval is intended to support G7 launch acceptance and AI governance validation while preserving final go-live approval as a separate decision. |
+| date_or_revisit_gate | 2026-06-21 |
+| approval_signature_ref | email:lawos-ai-policy-approval-2026-06-21 |
+| received_at | 2026-06-21T10:14:24Z |
+| received_at_original | 2026-06-21T19:14:24+09:00 |
+| recorded_by_human | JWS |
+
 ## Post-Receipt Verification
 
 - `npm run runtime-spine:rs1:persistence:validate`
@@ -164,7 +179,12 @@ Generated at: 2026-06-21T10:14:24Z
 - Future G8 launch acceptance and Vault import/sync tests.
 - Future source-of-truth and import/sync reconciliation verification.
 - Future rollback attestation validation.
+- Future G7 launch acceptance and AI governance tests.
+- Future source/citation policy verification.
+- Future human-review routing and no-final-decision guard validation.
 
 ## Remaining External Receipts
 
-- LCX7-RI-12 AI policy.
+None. LCX7-RI-05 through LCX7-RI-12 external receipts are recorded; final
+launch acceptance, production cutover, LT terminal closeout, and go-live remain
+separate decisions.
