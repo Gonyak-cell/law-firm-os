@@ -18,11 +18,63 @@
   "summary": {
     "receipt_ledger_verdict": "PASS",
     "receipt_slot_count": 4,
-    "pending_receipt_slot_count": 4,
-    "real_owner_receipt_count": 0,
-    "copy_allowed_count": 0,
-    "import_candidate_count": 0,
-    "covered_target_count_by_candidates": 0
+    "pending_receipt_slot_count": 3,
+    "real_owner_receipt_count": 1,
+    "copy_allowed_count": 1,
+    "import_candidate_count": 1,
+    "covered_target_count_by_candidates": 31
   },
-  "import_candidates": []
+  "import_candidates": [
+    {
+      "decision_id": "COVERAGE-ALL-GO-LIVE",
+      "coverage_domain": "go_live_gate_evidence",
+      "covered_target_count": 31,
+      "source_receipt_status": "real_owner_evidence_received",
+      "source_copy_allowed": true,
+      "source_approval_signature_ref": "email:lawos-launch-approval-thread-2026-06-21",
+      "register_row": {
+        "decision_id": "COVERAGE-ALL-GO-LIVE",
+        "title": "Owner deferral for all failed G1-G10 gate evidence",
+        "owner": "Product Owner / Managing Partner",
+        "decision": "deferred(시한 명기)",
+        "basis": "PR #83 merge로 repo-side LCX1-LCX7 evidence는 정리되었으나, production persistence, SSO/MFA, M365 admin consent, WORM audit store, backup/restore rehearsal, and external staging receipts are still pending. Go-live is deferred until those receipts are completed and validated.",
+        "date_or_revisit_gate": "2026-07-15",
+        "approval_signature": "email:lawos-launch-approval-thread-2026-06-21",
+        "status": "deferred(시한 명기)"
+      },
+      "target_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03",
+        "ACC-GL-G10-G10-E01",
+        "ACC-GL-G10-G10-E02",
+        "ACC-GL-G10-G10-E03",
+        "ACC-GL-G2-G2-E01",
+        "ACC-GL-G2-G2-E02",
+        "ACC-GL-G2-G2-E03",
+        "ACC-GL-G3-G3-E01",
+        "ACC-GL-G3-G3-E02",
+        "ACC-GL-G3-G3-E03",
+        "ACC-GL-G3-G3-E04",
+        "ACC-GL-G4-G4-E01",
+        "ACC-GL-G4-G4-E02",
+        "ACC-GL-G4-G4-E03",
+        "ACC-GL-G4-G4-E04",
+        "ACC-GL-G5-G5-E01",
+        "ACC-GL-G5-G5-E02",
+        "ACC-GL-G5-G5-E03",
+        "ACC-GL-G6-G6-E01",
+        "ACC-GL-G6-G6-E02",
+        "ACC-GL-G6-G6-E03",
+        "ACC-GL-G6-G6-E04",
+        "ACC-GL-G7-G7-E01",
+        "ACC-GL-G7-G7-E02",
+        "ACC-GL-G7-G7-E03",
+        "ACC-GL-G8-G8-E01",
+        "ACC-GL-G8-G8-E02",
+        "ACC-GL-G8-G8-E03",
+        "ACC-GL-G9-G9-E01",
+        "ACC-GL-G9-G9-E03"
+      ]
+    }
+  ]
 }

@@ -1,6 +1,6 @@
 # Launch Receipt Intake Action Packet
 
-Status: prepared_pending_owner_external_receipts
+Status: blocked_pending_owner_external_receipts
 Date: 2026-06-21
 Prepared for: LCX7
 Related PR: https://github.com/Gonyak-cell/law-firm-os/pull/83
@@ -97,4 +97,3 @@ and only then may it be copied into the launch decision register if eligible.
 | CI/checks | Empty check rollup is recorded as `no GitHub status checks reported`, not as CI pass. |
 | Merge | Merge may preserve repo evidence but must not flip launch/go-live flags. |
 | After merge | Owner/external receipts become the next gating work, using this intake packet. |
-

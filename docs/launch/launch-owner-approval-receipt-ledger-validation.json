@@ -11,9 +11,9 @@
   "verdict": "PASS",
   "summary": {
     "receipt_slot_count": 4,
-    "pending_receipt_slot_count": 4,
-    "real_owner_receipt_count": 0,
-    "copy_allowed_count": 0,
+    "pending_receipt_slot_count": 3,
+    "real_owner_receipt_count": 1,
+    "copy_allowed_count": 1,
     "decision_register_total_rows": 0,
     "decision_register_valid_deferred_rows": 0,
     "target_count_if_all_receipts_are_completed": 117,
