@@ -44,6 +44,8 @@ const expectedDecisions = [
   "DEC-RS-008",
   "DEC-RS-009"
 ];
+const allowedTuwStatuses = ["planned", "in_progress", "closed", "timed_deferral", "blocked"];
+const allowedGateStatuses = ["scope_ready_candidate", "planned_blocked_by_prior_gate", "in_progress", "ready_candidate", "blocked"];
 
 async function exists(path) {
   try {
@@ -90,7 +92,8 @@ export async function validateRuntimeSpinePlan({ silent = false } = {}) {
   for (const gate of expectedGates) assert(gateIds.has(gate), `${gate}: missing gate`);
   assert(ledger.gates?.find((gate) => gate.id === "G0")?.status === "scope_ready_candidate", "G0 must be scope_ready_candidate");
   for (const gate of ledger.gates ?? []) {
-    if (gate.id !== "G0") assert(gate.status === "planned_blocked_by_prior_gate", `${gate.id}: must remain planned_blocked_by_prior_gate at G0`);
+    assert(allowedGateStatuses.includes(gate.status), `${gate.id}: invalid gate status ${gate.status}`);
+    if (!["G0", "G1"].includes(gate.id)) assert(gate.status === "planned_blocked_by_prior_gate", `${gate.id}: must remain planned_blocked_by_prior_gate until its prior gate is ready`);
   }
 
   const rtgIds = new Set((ledger.rtg_summary ?? []).map((rtg) => rtg.id));
@@ -112,10 +115,11 @@ export async function validateRuntimeSpinePlan({ silent = false } = {}) {
     for (const tuw of tuws) {
       assert(typeof tuw.title === "string" && tuw.title.length > 0, `${tuw.id}: missing title`);
       assert(typeof tuw.status === "string" && tuw.status.length > 0, `${tuw.id}: missing status`);
+      assert(allowedTuwStatuses.includes(tuw.status), `${tuw.id}: invalid status ${tuw.status}`);
       assert(typeof tuw.loop_stage === "string" && tuw.loop_stage.length > 0, `${tuw.id}: missing loop_stage`);
       assert(Array.isArray(tuw.rtg) && tuw.rtg.length > 0, `${tuw.id}: missing RTG mapping`);
       for (const rtg of tuw.rtg ?? []) assert(expectedRtgs.includes(rtg), `${tuw.id}: invalid RTG ${rtg}`);
-      if (spineId !== "RS-PRE") assert(tuw.status === "planned", `${tuw.id}: future TUW must remain planned at G0`);
+      if (tuw.status === "closed") assert(Array.isArray(tuw.evidence) && tuw.evidence.length > 0, `${tuw.id}: closed TUW must record evidence`);
     }
   }
   assert(totalTuws === 124, `total TUW count must be 124, got ${totalTuws}`);

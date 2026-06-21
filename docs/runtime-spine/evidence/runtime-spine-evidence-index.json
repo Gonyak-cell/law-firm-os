@@ -45,6 +45,57 @@
       "root_test": "passed; 3994/3994"
     }
   },
+  "latest_rs1a_validation": {
+    "status": "passed",
+    "recorded_after_commands": true,
+    "date": "2026-06-21",
+    "summary": {
+      "scope": "RS-1A Persistence Foundation",
+      "closed_tuws": [
+        "RS-1-T01",
+        "RS-1-T02",
+        "RS-1-T03",
+        "RS-1-T04"
+      ],
+      "persistence_package": "packages/persistence added",
+      "synthetic_adapter": "lawos-synthetic:// only",
+      "production_configuration": "blocked",
+      "inline_credentials": "blocked",
+      "tenant_base_schema": "runtime_tenants",
+      "migration_history": "runtime_migration_history",
+      "migration_runner": "up/down dry-run and idempotent apply",
+      "runtime_ready_candidate": false,
+      "actual_launch_go_live_claim": false,
+      "commands": [
+        "npm --workspace @law-firm-os/persistence run test",
+        "npm run runtime-spine:rs1:persistence:validate",
+        "npm run runtime-spine:plan:validate",
+        "npm run runtime-spine:readiness:validate",
+        "npm run runtime-readiness:validate",
+        "npm run client-matter:cmp-v1:validate",
+        "npm run matter-vault:r4:validate",
+        "npm run hrx:runtime:validate",
+        "npm run validate",
+        "npm run api:test",
+        "npm run build",
+        "npm test"
+      ],
+      "results": {
+        "persistence_package_test": "passed; 10/10",
+        "rs1_persistence_validator": "passed",
+        "runtime_spine_plan": "passed; gates=7; tuws=124",
+        "runtime_spine_readiness_guard": "passed; total_closed_tuws=11; rs1_closed_tuws=4; premature_closed_tuws=0",
+        "runtime_readiness": "passed; runtime_target_packs=0",
+        "client_matter_cmp_v1": "passed; tuws=316; gates=13; claim_boundary=not_r4_ready",
+        "matter_vault_r4": "passed; tuws=118; gates=9; launch_go_live_claim=false",
+        "hrx_runtime": "passed",
+        "root_validate": "passed",
+        "api_test": "passed; 131/131",
+        "build": "passed",
+        "root_test": "passed; 4004/4004"
+      }
+    }
+  },
   "future_evidence_slots": [
     {
       "gate": "G1",

@@ -18,7 +18,7 @@
     {
       "id": "G1",
       "title": "Persistence Ready",
-      "status": "planned_blocked_by_prior_gate",
+      "status": "in_progress",
       "spine": "RS-1",
       "exit_rule": "tenant-scoped durable persistence evidence"
     },
@@ -61,7 +61,7 @@
   "rtg_summary": [
     {
       "id": "RTG-001",
-      "status": "planned",
+      "status": "partial",
       "meaning": "functional runtime path executed"
     },
     {
@@ -248,12 +248,55 @@
     {
       "id": "RS-1",
       "gate": "G1",
-      "status": "planned",
+      "status": "in_progress",
       "tuws": [
-        {"id": "RS-1-T01", "title": "Persistence package", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
-        {"id": "RS-1-T02", "title": "DB connection abstraction", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
-        {"id": "RS-1-T03", "title": "Tenant base schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
-        {"id": "RS-1-T04", "title": "Runtime migration framework", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {
+          "id": "RS-1-T01",
+          "title": "Persistence package",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/package.json",
+            "packages/persistence/src/index.js",
+            "packages/persistence/test/config.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T02",
+          "title": "DB connection abstraction",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/config.js",
+            "packages/persistence/src/connection.js",
+            "packages/persistence/test/connection.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T03",
+          "title": "Tenant base schema",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/schema.js",
+            "packages/persistence/test/connection.test.js"
+          ]
+        },
+        {
+          "id": "RS-1-T04",
+          "title": "Runtime migration framework",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": ["RTG-001", "RTG-004", "RTG-005"],
+          "evidence": [
+            "packages/persistence/src/migration-runner.js",
+            "packages/persistence/src/migrations/index.js",
+            "packages/persistence/test/migration-runner.test.js"
+          ]
+        },
         {"id": "RS-1-T05", "title": "Tenant-scoped base repository pattern", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
         {"id": "RS-1-T06", "title": "Stable ID generator", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
         {"id": "RS-1-T07", "title": "Idempotency key table", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},

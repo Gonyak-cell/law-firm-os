@@ -20,6 +20,20 @@ Rollback for G0 is a normal Git revert of the Runtime Spine G0 PR. No runtime da
 | Idempotent writes required | RS-1, RS-5 |
 | Audit coverage required before mutation routes | RS-3, RS-5 |
 
+## RS-1A Persistence Foundation
+
+RS-1A adds a synthetic-only persistence adapter and migration runner:
+
+- adapter: `lawos-synthetic://`
+- tenant table: `runtime_tenants`
+- migration table: `runtime_migration_history`
+- migration ID: `001_runtime_spine_tenant_base`
+- production DB configuration: blocked
+- inline credentials: blocked
+- rollback command path: `rollbackRuntimeSpineMigrations(connection)`
+
+Rollback affects only synthetic migration history or the local synthetic store file. It does not touch production data, customer data, HR real data, or external systems.
+
 ## Future Evidence Required
 
 Runtime migration PRs must record:
