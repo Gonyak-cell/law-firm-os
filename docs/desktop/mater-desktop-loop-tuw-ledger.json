@@ -129,4 +129,3 @@
     { "id": "MDT-P7-W02-T05", "phase": "P7", "wp": "MDT-P7-W02", "title": "Close pilot evidence and go/no-go boundary", "risk_class": "B", "depends_on": ["MDT-P7-W02-T04"], "deliverables": ["docs/lazycodex/evidence/mater-desktop/lcx-desk-07-pilot-closeout.md"], "acceptance": ["Evidence records final status, owner decision state, residual risks, and explicit non-claims."], "verification": { "method": "rg -n \"MDT-P7|owner decision|residual risks|non-claims\" docs/lazycodex/evidence/mater-desktop/lcx-desk-07-pilot-closeout.md", "evidence": "Pilot closeout grep output." }, "terminal": true }
   ]
 }
-
