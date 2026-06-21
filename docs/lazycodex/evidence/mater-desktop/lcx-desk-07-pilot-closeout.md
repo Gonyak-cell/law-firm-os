@@ -15,7 +15,7 @@ This evidence file records P7 pilot closeout progress only. It does not claim ow
 | --- | --- | --- |
 | MDT-P7-W01-T01 | complete | `docs/desktop/mater-desktop-pilot-qa-checklist.md` |
 | MDT-P7-W01-T02 | complete | `docs/lazycodex/evidence/mater-desktop/pilot-install-session.md` |
-| MDT-P7-W01-T03 | pending | not started |
+| MDT-P7-W01-T03 | complete | `docs/lazycodex/evidence/mater-desktop/pilot-native-capabilities.md` |
 | MDT-P7-W01-T04 | pending | not started |
 | MDT-P7-W02-T01 | pending | not started |
 | MDT-P7-W02-T02 | pending | not started |
@@ -85,3 +85,39 @@ Act:
 
 - `MDT-P7-W01-T02` is complete as a recorded pilot evidence artifact with screenshot blocker called out.
 - Next TUW is `MDT-P7-W01-T03`.
+
+## MDT-P7-W01-T03 - Observe File Bridge, Deep Link, and Notification QA
+
+Plan:
+
+- Record allow and deny receipts for file bridge, deep link, notifications, and update rollback.
+- Keep GUI pilot receipt and owner approval boundaries explicit.
+
+Do:
+
+- Added `docs/lazycodex/evidence/mater-desktop/pilot-native-capabilities.md`.
+
+Check:
+
+```bash
+manual QA: run QA-06 through QA-09 and attach receipts
+npm --workspace apps/desktop run test:file-bridge
+node apps/desktop/test/deep-link-parser.test.mjs
+node apps/desktop/test/deep-link-deny.test.mjs
+node apps/desktop/test/deep-link-open-audit.test.mjs
+node apps/desktop/test/notification-route-intent.test.mjs
+npm --workspace apps/desktop run test:update
+git diff --check -- docs/lazycodex/evidence/mater-desktop/pilot-native-capabilities.md docs/lazycodex/evidence/mater-desktop/lcx-desk-07-pilot-closeout.md
+```
+
+Results:
+
+- QA-06 through QA-09 command receipts were recorded.
+- Allow and deny paths for file bridge, deep link, notifications, and update rollback passed.
+- External GUI pilot screenshots remain not recorded and not claimed.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P7-W01-T03` is complete as a command-receipt evidence artifact with GUI pilot boundary called out.
+- Next TUW is `MDT-P7-W01-T04`.
