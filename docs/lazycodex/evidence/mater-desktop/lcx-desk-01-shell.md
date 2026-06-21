@@ -19,7 +19,7 @@ This evidence file records P1 desktop shell progress only. It does not claim fil
 | MDT-P1-W01-T04 | complete | `scripts/validate-mater-desktop-security.mjs` |
 | MDT-P1-W01-T05 | complete | `apps/desktop/test/shell-smoke.test.mjs` |
 | MDT-P1-W02-T01 | complete | `apps/desktop/src/main/splash.js` |
-| MDT-P1-W02-T02 | pending | not started |
+| MDT-P1-W02-T02 | complete | `apps/desktop/src/main/splash.js`, `apps/desktop/src/main/window.js`, `apps/desktop/test/splash-handoff.test.mjs` |
 | MDT-P1-W02-T03 | pending | not started |
 | MDT-P1-W02-T04 | pending | not started |
 
@@ -237,3 +237,38 @@ Act:
 
 - `MDT-P1-W02-T01` is complete.
 - Next TUW is `MDT-P1-W02-T02`.
+
+## MDT-P1-W02-T02 - Implement Splash to Main-Window Handoff
+
+Plan:
+
+- Keep the splash open until the main renderer emits `ready-to-show`.
+- Close the splash on main readiness.
+- Show a bounded fallback on startup timeout or renderer load failure.
+
+Do:
+
+- Updated `apps/desktop/src/main/splash.js` with `wireSplashToMainWindow`, timeout handling, and fallback document generation.
+- Updated `apps/desktop/src/main/window.js` to centralize the main ready event.
+- Added `apps/desktop/test/splash-handoff.test.mjs`.
+
+Check:
+
+```bash
+node apps/desktop/test/splash-handoff.test.mjs
+npm --workspace apps/desktop run test:smoke
+git diff --check -- apps/desktop/src/main/splash.js apps/desktop/src/main/window.js apps/desktop/test/splash-handoff.test.mjs
+```
+
+Results:
+
+- Splash handoff tests passed: `3` tests, `3` pass, `0` fail.
+- Desktop smoke passed: `8` tests, `8` pass, `0` fail.
+- Tests prove splash closes only after main renderer ready.
+- Tests prove bounded fallback appears on timeout and renderer load failure.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P1-W02-T02` is complete.
+- Next TUW is `MDT-P1-W02-T03`.

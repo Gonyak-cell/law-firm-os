@@ -1,4 +1,5 @@
 export const SPLASH_BRAND = "mater by AMIC";
+export const SPLASH_HANDOFF_TIMEOUT_MS = 8000;
 
 export const SPLASH_WINDOW_OPTIONS = Object.freeze({
   width: 420,
@@ -46,6 +47,24 @@ export function splashDataUrl() {
   return `data:text/html;charset=utf-8,${encodeURIComponent(splashHtml())}`;
 }
 
+export function fallbackHtml(reason = "startup-timeout") {
+  return `<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8" /><title>${SPLASH_BRAND} fallback</title></head>
+<body>
+<main aria-label="${SPLASH_BRAND} startup fallback">
+<strong>${SPLASH_BRAND}</strong>
+<p>Startup fallback is active.</p>
+<small>${reason}</small>
+</main>
+</body>
+</html>`;
+}
+
+export function fallbackDataUrl(reason) {
+  return `data:text/html;charset=utf-8,${encodeURIComponent(fallbackHtml(reason))}`;
+}
+
 export async function createSplashWindow({ BrowserWindowConstructor } = {}) {
   const Constructor = BrowserWindowConstructor ?? (await import("electron")).BrowserWindow;
   const splash = new Constructor(SPLASH_WINDOW_OPTIONS);
@@ -54,4 +73,44 @@ export async function createSplashWindow({ BrowserWindowConstructor } = {}) {
   });
   await splash.loadURL(splashDataUrl());
   return splash;
+}
+
+export function wireSplashToMainWindow({
+  splashWindow,
+  mainWindow,
+  timeoutMs = SPLASH_HANDOFF_TIMEOUT_MS,
+  setTimeoutFn = setTimeout,
+  clearTimeoutFn = clearTimeout
+}) {
+  let handedOff = false;
+  let fallbackActive = false;
+
+  const timer = setTimeoutFn(() => showFallback("main-window-timeout"), timeoutMs);
+
+  function closeSplash() {
+    if (handedOff || fallbackActive) return;
+    handedOff = true;
+    clearTimeoutFn(timer);
+    if (!splashWindow.isDestroyed?.()) splashWindow.close();
+  }
+
+  async function showFallback(reason) {
+    if (handedOff || fallbackActive) return;
+    fallbackActive = true;
+    clearTimeoutFn(timer);
+    await splashWindow.loadURL(fallbackDataUrl(reason));
+    splashWindow.show?.();
+  }
+
+  mainWindow.once("ready-to-show", closeSplash);
+  mainWindow.webContents?.once?.("did-fail-load", (_event, code) => showFallback(`did-fail-load:${code}`));
+
+  return {
+    closeSplash,
+    showFallback,
+    timeoutMs,
+    get state() {
+      return { handedOff, fallbackActive };
+    }
+  };
 }

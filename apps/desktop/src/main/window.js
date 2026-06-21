@@ -7,6 +7,8 @@ export const MAIN_WINDOW_WEB_PREFERENCES = Object.freeze({
   devTools: false
 });
 
+export const MAIN_WINDOW_READY_EVENT = "ready-to-show";
+
 export const MAIN_WINDOW_OPTIONS = Object.freeze({
   title: "mater",
   width: 1280,
@@ -32,7 +34,7 @@ export function mainWindowOptions(overrides = {}) {
 export async function createMainWindow({ BrowserWindowConstructor, options = {} } = {}) {
   const Constructor = BrowserWindowConstructor ?? (await import("electron")).BrowserWindow;
   const window = new Constructor(mainWindowOptions(options));
-  window.once("ready-to-show", () => {
+  window.once(MAIN_WINDOW_READY_EVENT, () => {
     window.show();
   });
   return window;
