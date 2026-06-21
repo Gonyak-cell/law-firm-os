@@ -62,6 +62,22 @@ Date: 2026-06-21
 | Auth audit hook writes tenant-scoped synthetic outbox events | closed |
 | Runtime-ready and actual launch/go-live claims remain false | closed |
 
+## G3 Checklist
+
+| Item | Status |
+| --- | --- |
+| Runtime audit writer exists | closed |
+| Audit event taxonomy exists | closed |
+| Hash-chain append and verification are tested | closed |
+| Read/write/permission/export middleware exists | closed |
+| Middleware requires permission context before append | closed |
+| Tenant-scoped audit reader/export exists | closed |
+| Raw payload export remains blocked | closed |
+| Retention requires human approval and verified chain | closed |
+| Audit immutability guard exists | closed |
+| Route audit coverage scanner exists | closed |
+| Runtime-ready and actual launch/go-live claims remain false | closed |
+
 ## Regression Commands
 
 G0 uses the following minimum regression sweep:

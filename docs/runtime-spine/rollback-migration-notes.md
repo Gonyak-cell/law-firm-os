@@ -72,6 +72,19 @@ RS-2 adds provider-neutral runtime auth and AuthZ context helpers:
 
 Rollback is a normal Git revert of the RS-2 PR. No production auth provider, SSO configuration, tenant membership source, credential store, or real tenant data is created by this gate.
 
+## RS-3 Audit Ready Candidate
+
+RS-3 adds Runtime Spine audit helpers on top of the existing audit package:
+
+- append-only runtime audit writer
+- hash-chain event persistence through the existing ledger/event contract
+- read/write/permission/export audit middleware
+- tenant-scoped metadata-only audit reader/export
+- retention and verification checks
+- immutability guard and route audit coverage scanner
+
+Rollback is a normal Git revert of the RS-3 PR. It does not create a production audit pipeline, external SIEM export, immutable storage account, or real production audit archive.
+
 ## Future Evidence Required
 
 Runtime migration PRs must record:
