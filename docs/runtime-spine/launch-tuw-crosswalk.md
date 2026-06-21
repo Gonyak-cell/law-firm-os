@@ -14,7 +14,9 @@ This crosswalk reconciles the Runtime Spine RS-PRE/RS-1 through RS-6 evidence wi
 | LT terminal closeout | false |
 | Production-ready claim | false |
 | Actual launch/go-live claim | false |
-| External receipts required for launch | true |
+| External receipts recorded | true |
+| Final go-live approval recorded | true |
+| Cutover execution completed | false |
 
 ## Mapping
 
@@ -35,7 +37,7 @@ This crosswalk reconciles the Runtime Spine RS-PRE/RS-1 through RS-6 evidence wi
 | LT-L2-W01 | RS-1 supports the persistence shape and LCX7-RI-05 receipt is recorded, but launch persistence still depends on LT packet closeout and downstream evidence validation | blocked |
 | LT-L2-W02 | RS-2 supports the trust-boundary shape and LCX7-RI-06 receipt is recorded, but launch AuthN/AuthZ still depends on LT packet closeout and downstream evidence validation | blocked |
 | LT-L2-W03 | RS-3 and RS-5 support write/audit shape and LCX7-RI-07 receipt is recorded, but launch write path still depends on LT packet closeout and downstream evidence validation | blocked |
-| LT-L2-W07 | RS-6 harness exists and LCX7-RI-08 receipt is recorded, but launch runtime-integration terminal closeout remains blocked pending LT packet validation and final go/no-go decision | blocked |
+| LT-L2-W07 | RS-6 harness exists, LCX7-RI-08 receipt is recorded, and final go-live approval is recorded, but launch runtime-integration terminal closeout remains blocked pending LT packet validation and cutover/hypercare evidence | blocked |
 
 ## Validator Contract
 
@@ -43,7 +45,7 @@ This crosswalk reconciles the Runtime Spine RS-PRE/RS-1 through RS-6 evidence wi
 
 - the JSON crosswalk maps RS-PRE and RS-1 through RS-6;
 - the evidence index includes the crosswalk documents and validator;
-- G6 evidence states repo runtime-ready candidate while LT terminal closeout and launch/go-live remain false;
+- G6 evidence states repo runtime-ready candidate while LT terminal closeout and actual launch/live completion remain false;
 - LT-L2-W01/W02/W03/W07 packets remain blocked launch blockers;
 - LT-L2-W07 no longer claims the RS-6 harness is absent.
 

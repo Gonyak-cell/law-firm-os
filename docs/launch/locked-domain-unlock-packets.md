@@ -1,6 +1,6 @@
 # Locked-Domain Unlock Packets
 
-Status: external_receipts_received_pending_launch_acceptance_and_final_go_live_decision
+Status: external_receipts_received_final_go_live_approval_recorded_pending_cutover_execution
 Date: 2026-06-21
 Prepared for: LCX6
 
@@ -23,7 +23,7 @@ system.
 | `docs/runtime-spine/launch-tuw-crosswalk.md` | LT-L2-W01, LT-L2-W02, LT-L2-W03, and LT-L2-W07 remain blocked launch packets |
 | `docs/runtime-spine/evidence/g6-runtime-ready-evidence.json` | RS-6/RTG-001 through RTG-005 passed for repo runtime-ready candidate only |
 | `docs/launch/launch-owner-approval-receipt-ledger.md` | 4 real coverage deferral receipts recorded after owner-response intake |
-| `docs/launch/launch-external-receipt-ledger.md` | LCX7-RI-05 through LCX7-RI-12 receipts recorded; final launch acceptance and go/no-go remain pending |
+| `docs/launch/launch-external-receipt-ledger.md` | LCX7-RI-05 through LCX7-RI-12 receipts recorded; final go-live approval recorded; cutover and hypercare evidence remain pending |
 | `docs/launch/launch-evidence-acceptance-matrix.md` | 36 acceptance rows owner-deferred; external receipt lanes still remain |
 | `docs/launch/launch-no-go-claim-policy-audit.md` | No forbidden true go-live claims |
 

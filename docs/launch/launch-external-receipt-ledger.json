@@ -1,12 +1,13 @@
 {
   "schema_version": "law-firm-os.launch-external-receipt-ledger.v0.1",
   "generated_at": "2026-06-21T10:14:24Z",
-  "status": "external_receipts_received_pending_launch_acceptance_and_final_go_live_decision",
+  "status": "external_receipts_received_final_go_live_approval_recorded_pending_cutover_execution",
   "source_refs": [
     "docs/launch/launch-receipt-intake-action-packet.md",
     "docs/launch/locked-domain-unlock-packets.md",
     "docs/launch/production-persistence-decision-packet.md",
-    "docs/runtime-spine/launch-tuw-crosswalk.md"
+    "docs/runtime-spine/launch-tuw-crosswalk.md",
+    "docs/launch/final-go-live-decision.json"
   ],
   "boundary": {
     "external_receipt_ledger_only": true,

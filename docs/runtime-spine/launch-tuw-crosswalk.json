@@ -6,8 +6,10 @@
   "scope": {
     "crosswalk_type": "boundary_reconciliation",
     "repo_runtime_ready_candidate": true,
+    "final_go_live_approval_recorded": true,
     "lt_terminal_closeout_claim": false,
     "launch_go_live_terminal_claim": false,
+    "cutover_execution_completed": false,
     "production_ready_claim": false,
     "crosswalk_replaces_rs_implementation": false,
     "crosswalk_closes_launch_tuws": false,
@@ -22,7 +24,8 @@
     "docs/goal-closeout/lt-l2-w03/packet.json",
     "docs/goal-closeout/lt-l2-w07/packet.json",
     "docs/launch/launch-goal-completion-audit.json",
-    "docs/launch/launch-blocker-surface-audit.json"
+    "docs/launch/launch-blocker-surface-audit.json",
+    "docs/launch/final-go-live-decision.json"
   ],
   "mappings": [
     {

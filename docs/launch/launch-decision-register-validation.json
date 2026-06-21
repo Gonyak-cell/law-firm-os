@@ -7,10 +7,10 @@
   "verdict": "PASS",
   "summary": {
     "register_exists": true,
-    "total_rows": 4,
-    "decided_rows": 0,
+    "total_rows": 5,
+    "decided_rows": 1,
     "deferred_rows": 4,
-    "valid_decided_rows": 0,
+    "valid_decided_rows": 1,
     "valid_deferred_rows": 4,
     "coverage_eligible_valid_deferred_rows": 4,
     "non_coverage_valid_deferred_rows": 0,
@@ -31,10 +31,10 @@
   "launch_decisions": {
     "path": "docs/launch/launch-decision-register.md",
     "exists": true,
-    "total_rows": 4,
-    "decided_rows": 0,
+    "total_rows": 5,
+    "decided_rows": 1,
     "deferred_rows": 4,
-    "valid_decided_rows": 0,
+    "valid_decided_rows": 1,
     "valid_deferred_rows": 4,
     "invalid_decision_rows": 0,
     "rows": [
@@ -101,9 +101,27 @@
         "missing_fields": [],
         "errors": [],
         "valid": true
+      },
+      {
+        "line_number": 18,
+        "decision_id": "FINAL-GO-LIVE-DECISION-2026-06-21",
+        "title": "Final go-live approval decision",
+        "owner": "Product Owner / Managing Partner / Operations Owner / Security Owner / Verification Owner",
+        "decision": "approved",
+        "basis": "LCX7-RI-05 through LCX7-RI-12 external receipts are recorded and validated with 8 real external receipts and 0 pending external receipts. Runtime Spine readiness, external receipt ledger validation, no-go claim policy audit, decision register validation, owner evidence audit, launch evidence acceptance validation, product contract validation, and final product completion gate validation have passed. Final go-live is approved subject to the recorded launch boundary, operational monitoring, incident response, backup/restore, WORM/audit, SSO/MFA, M365/Graph, HR real data, Vault import/sync, AI governance, and post-launch hypercare obligations.",
+        "date_or_revisit_gate": "2026-06-21",
+        "approval_signature": "email:lawos-final-go-live-approval-2026-06-21",
+        "status": "decided",
+        "status_kind": "decided",
+        "deferral_coverage_domain": null,
+        "missing_fields": [],
+        "errors": [],
+        "valid": true
       }
     ],
-    "valid_decided_decision_ids": [],
+    "valid_decided_decision_ids": [
+      "FINAL-GO-LIVE-DECISION-2026-06-21"
+    ],
     "valid_deferred_decision_ids": [
       "COVERAGE-ALL-GO-LIVE",
       "COVERAGE-L9-STABILIZATION",

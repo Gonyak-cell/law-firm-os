@@ -6,6 +6,8 @@ import { validateRuntimeSpinePlan } from "./validate-runtime-spine-plan.mjs";
 const LEDGER_PATH = "docs/runtime-spine/runtime-spine-ledger.json";
 const EVIDENCE_PATH = "docs/runtime-spine/evidence/runtime-spine-evidence-index.json";
 const LAUNCH_CROSSWALK_PATH = "docs/runtime-spine/launch-tuw-crosswalk.json";
+const EXTERNAL_RECEIPT_LEDGER_PATH = "docs/launch/launch-external-receipt-ledger.json";
+const FINAL_GO_LIVE_DECISION_PATH = "docs/launch/final-go-live-decision.json";
 const LT_LAUNCH_BLOCKER_PACKET_PATHS = [
   "docs/goal-closeout/lt-l2-w01/packet.json",
   "docs/goal-closeout/lt-l2-w02/packet.json",
@@ -25,6 +27,8 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
   const ledger = await readJson(LEDGER_PATH);
   const evidence = await readJson(EVIDENCE_PATH);
   const launchCrosswalk = await readJson(LAUNCH_CROSSWALK_PATH);
+  const externalReceiptLedger = await readJson(EXTERNAL_RECEIPT_LEDGER_PATH);
+  const finalGoLiveDecision = await readJson(FINAL_GO_LIVE_DECISION_PATH);
   const launchBlockerPackets = await Promise.all(LT_LAUNCH_BLOCKER_PACKET_PATHS.map((packetPath) => readJson(packetPath)));
   const launchBlockerIds = launchBlockerPackets.map((packet) => packet.work_package_id);
   const allTuws = (ledger.spines ?? []).flatMap((spine) => (spine.tuws ?? []).map((tuw) => ({ ...tuw, spine: spine.id })));
@@ -46,8 +50,12 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
 
   assert(ledger.runtime_ready_candidate_claim === expectedRuntimeReadyCandidate, "readiness guard runtime_ready_candidate_claim must match G6 ready state");
   assert(ledger.actual_launch_go_live_claim === false, "G0 readiness guard must keep actual_launch_go_live_claim false");
+  assert(ledger.final_go_live_approval_recorded === true, "runtime spine ledger must record final go-live approval receipt");
+  assert(ledger.final_go_live_decision_ref === FINAL_GO_LIVE_DECISION_PATH, "runtime spine ledger must reference final go-live decision receipt");
   assert(evidence.runtime_ready_candidate === expectedRuntimeReadyCandidate, "evidence index runtime_ready_candidate must match G6 ready state");
   assert(evidence.actual_launch_go_live_claim === false, "evidence index must keep actual_launch_go_live_claim false");
+  assert(evidence.final_go_live_approval_recorded === true, "evidence index must record final go-live approval receipt");
+  assert(evidence.final_go_live_decision_ref === FINAL_GO_LIVE_DECISION_PATH, "evidence index must reference final go-live decision receipt");
   assert(evidence.lt_terminal_closeout_claim === false, "evidence index must keep LT terminal closeout claim false");
   assert(evidence.launch_go_live_terminal_claim === false, "evidence index must keep launch/go-live terminal claim false");
   assert(prematureClosed.length === 0, `RS-2 through RS-6 TUWs must not close before G1: ${prematureClosed.map((tuw) => tuw.id).join(", ")}`);
@@ -59,10 +67,21 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
       assert(rtgById.get(rtg)?.status === "passed", `${rtg} must be passed at G6`);
     }
     assert(launchCrosswalk.scope?.repo_runtime_ready_candidate === true, "launch crosswalk must preserve repo runtime-ready candidate at G6");
+    assert(launchCrosswalk.scope?.final_go_live_approval_recorded === true, "launch crosswalk must record final go-live approval receipt");
     assert(launchCrosswalk.scope?.lt_terminal_closeout_claim === false, "launch crosswalk must not claim LT terminal closeout at G6");
     assert(launchCrosswalk.scope?.launch_go_live_terminal_claim === false, "launch crosswalk must not claim launch/go-live terminal closeout at G6");
+    assert(launchCrosswalk.scope?.cutover_execution_completed === false, "launch crosswalk must not claim cutover execution at G6");
     assert(launchCrosswalk.scope?.crosswalk_closes_launch_tuws === false, "launch crosswalk must not close Launch TUWs at G6");
     assert(evidence.launch_tuw_boundary?.repo_runtime_ready_candidate_is_launch_terminal_closeout === false, "runtime-ready candidate must remain separate from launch terminal closeout");
+    assert(evidence.launch_tuw_boundary?.final_go_live_approval_recorded === true, "launch TUW boundary must record final go-live approval receipt");
+    assert(externalReceiptLedger.summary?.all_external_receipts_received === true, "external receipt ledger must record all external receipts");
+    assert(externalReceiptLedger.summary?.real_external_receipt_count === 8, "external receipt ledger must record 8 real external receipts");
+    assert(externalReceiptLedger.summary?.pending_external_receipt_count === 0, "external receipt ledger must record 0 pending external receipts");
+    assert(finalGoLiveDecision.decision?.decision_id === "FINAL-GO-LIVE-DECISION-2026-06-21", "final go-live decision id mismatch");
+    assert(finalGoLiveDecision.decision?.decision === "approved", "final go-live decision must be approved");
+    assert(finalGoLiveDecision.boundary?.final_go_live_approval_recorded === true, "final go-live approval boundary must be recorded");
+    assert(finalGoLiveDecision.boundary?.actual_launch_go_live_claim === false, "final go-live decision must not claim actual launch/live completion");
+    assert(finalGoLiveDecision.boundary?.production_cutover_executed_by_this_decision === false, "final go-live decision must not execute production cutover");
     for (const expectedBlocker of ["LT-L2-W01", "LT-L2-W02", "LT-L2-W03", "LT-L2-W07"]) {
       assert(launchBlockerIds.includes(expectedBlocker), `${expectedBlocker}: launch blocker packet must be reported`);
     }
@@ -103,7 +122,8 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
     console.log(`rs1_closed_tuws: ${rs1Closed.length}`);
     console.log(`premature_closed_tuws: ${prematureClosed.length}`);
     if (g6ReadyCandidate) console.log(`launch_blockers: ${launchBlockerIds.join(",")}`);
-    console.log(`next_gate: ${g6ReadyCandidate ? "External receipts and launch approval remain blocked" : (g5ReadyCandidate ? "G6 Runtime Integration Ready" : (g4ReadyCandidate ? "G5 App Runtime Surface Ready" : (g3ReadyCandidate ? "G4 Canonical Model Ready" : (g2ReadyCandidate ? "G3 Audit Ready" : (g1ReadyCandidate ? "G2 Trust Boundary Ready" : "G1 Persistence Ready")))))}`);
+    console.log(`final_go_live_approval_recorded: ${finalGoLiveDecision.boundary?.final_go_live_approval_recorded === true}`);
+    console.log(`next_gate: ${g6ReadyCandidate ? "Final go-live approval recorded; cutover execution and post-launch hypercare evidence remain" : (g5ReadyCandidate ? "G6 Runtime Integration Ready" : (g4ReadyCandidate ? "G5 App Runtime Surface Ready" : (g3ReadyCandidate ? "G4 Canonical Model Ready" : (g2ReadyCandidate ? "G3 Audit Ready" : (g1ReadyCandidate ? "G2 Trust Boundary Ready" : "G1 Persistence Ready")))))}`);
   }
 
   return { ok: true, errors: [], closedCount: closedTuws.length, deferredCount: deferredTuws.length };

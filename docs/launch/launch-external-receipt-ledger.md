@@ -1,6 +1,6 @@
 # Launch External Receipt Ledger
 
-Status: external_receipts_received_pending_launch_acceptance_and_final_go_live_decision
+Status: external_receipts_received_final_go_live_approval_recorded_pending_cutover_execution
 Generated at: 2026-06-21T10:14:24Z
 
 ## Boundary
@@ -185,6 +185,7 @@ Generated at: 2026-06-21T10:14:24Z
 
 ## Remaining External Receipts
 
-None. LCX7-RI-05 through LCX7-RI-12 external receipts are recorded; final
-launch acceptance, production cutover, LT terminal closeout, and go-live remain
-separate decisions.
+None. LCX7-RI-05 through LCX7-RI-12 external receipts are recorded and final
+go-live approval is recorded in `docs/launch/final-go-live-decision.md`;
+production cutover, LT terminal closeout, actual live completion, and
+post-launch hypercare remain separate launch surfaces.

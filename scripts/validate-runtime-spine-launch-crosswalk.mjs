@@ -61,8 +61,10 @@ assert(
 assert(crosswalk.schema_version === "law-firm-os.runtime-spine.launch-tuw-crosswalk.v0.1", "crosswalk schema mismatch");
 assert(crosswalk.scope?.crosswalk_type === "boundary_reconciliation", "crosswalk must be boundary reconciliation only");
 assert(crosswalk.scope?.repo_runtime_ready_candidate === true, "crosswalk must preserve repo runtime-ready candidate");
+assert(crosswalk.scope?.final_go_live_approval_recorded === true, "crosswalk must record final go-live approval receipt");
 assert(crosswalk.scope?.lt_terminal_closeout_claim === false, "crosswalk must not claim LT terminal closeout");
 assert(crosswalk.scope?.launch_go_live_terminal_claim === false, "crosswalk must not claim launch/go-live terminal closeout");
+assert(crosswalk.scope?.cutover_execution_completed === false, "crosswalk must not claim cutover execution");
 assert(crosswalk.scope?.production_ready_claim === false, "crosswalk must not claim production-ready");
 assert(crosswalk.scope?.crosswalk_replaces_rs_implementation === false, "crosswalk must not replace RS implementation");
 assert(crosswalk.scope?.crosswalk_closes_launch_tuws === false, "crosswalk must not close Launch TUWs");
@@ -91,8 +93,10 @@ assert(includesAll(mappingById.get("RS-6")?.launch_tuw_targets ?? [], ["LT-L2-W0
 
 assert(ledger.runtime_ready_candidate_claim === true, "ledger must keep repo runtime_ready_candidate_claim true");
 assert(ledger.actual_launch_go_live_claim === false, "ledger must keep actual_launch_go_live_claim false");
+assert(ledger.final_go_live_approval_recorded === true, "ledger must record final go-live approval receipt");
 assert(evidenceIndex.runtime_ready_candidate === true, "evidence index must keep runtime_ready_candidate true");
 assert(evidenceIndex.actual_launch_go_live_claim === false, "evidence index must keep actual_launch_go_live_claim false");
+assert(evidenceIndex.final_go_live_approval_recorded === true, "evidence index must record final go-live approval receipt");
 assert(evidenceIndex.lt_terminal_closeout_claim === false, "evidence index must keep LT terminal closeout false");
 assert(evidenceIndex.launch_go_live_terminal_claim === false, "evidence index must keep launch terminal false");
 assert(evidenceIndex.launch_tuw_boundary?.repo_runtime_ready_candidate_is_launch_terminal_closeout === false, "evidence index must separate runtime ready from launch terminal");
@@ -142,5 +146,6 @@ console.log("Runtime Spine launch TUW crosswalk validation passed.");
 console.log(`mapped_spines: ${mappings.length}`);
 console.log(`launch_blockers: ${expectedLaunchBlockers.join(",")}`);
 console.log("repo_runtime_ready_candidate: true");
+console.log("final_go_live_approval_recorded: true");
 console.log("lt_terminal_closeout_claim: false");
 console.log("actual_launch_go_live_claim: false");

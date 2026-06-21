@@ -4,6 +4,8 @@
   "program": "Law Firm OS Runtime Spine",
   "runtime_ready_candidate_claim": true,
   "actual_launch_go_live_claim": false,
+  "final_go_live_approval_recorded": true,
+  "final_go_live_decision_ref": "docs/launch/final-go-live-decision.json",
   "non_weakening_policy_ref": "docs/runtime-spine/non-weakening-policy.md",
   "decision_register_ref": "docs/runtime-spine/runtime-spine-decisions.json",
   "evidence_index_ref": "docs/runtime-spine/evidence/runtime-spine-evidence-index.json",
