@@ -37,8 +37,8 @@ test("parser accepts matter document task and auth callback route intents", () =
 
 test("parser validates scheme route type identifier shape and unknown parameters", () => {
   assert.throws(() => parseMaterDeepLink("https://matter/MAT-248"), (error) => error instanceof DeepLinkError && error.code === "UNSUPPORTED_SCHEME");
-  assert.throws(() => parseMaterDeepLink("mater://billing/write"), (error) => error instanceof DeepLinkError && error.code === "UNSUPPORTED_ROUTE");
+  assert.throws(() => parseMaterDeepLink("mater://calendar/view"), (error) => error instanceof DeepLinkError && error.code === "UNSUPPORTED_ROUTE");
   assert.throws(() => parseMaterDeepLink("mater://matter/%2Fsecret"), (error) => error instanceof DeepLinkError && error.code === "INVALID_IDENTIFIER");
-  assert.throws(() => parseMaterDeepLink("mater://document/doc_123?download=true"), (error) => error instanceof DeepLinkError && error.code === "UNKNOWN_QUERY_PARAMETER");
+  assert.throws(() => parseMaterDeepLink("mater://document/doc_123?extra=true"), (error) => error instanceof DeepLinkError && error.code === "UNKNOWN_QUERY_PARAMETER");
   assert.throws(() => parseMaterDeepLink("mater://auth/callback?code=abc&state=def&issuer=idp&next=https://example.com"), (error) => error instanceof DeepLinkError && error.code === "UNKNOWN_QUERY_PARAMETER");
 });

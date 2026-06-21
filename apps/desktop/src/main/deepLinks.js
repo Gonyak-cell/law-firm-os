@@ -34,6 +34,40 @@ export const DEEP_LINK_ROUTE_SPECS = Object.freeze({
 });
 
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]{1,127}$/;
+const FORBIDDEN_ACTION_HOSTS = new Set([
+  "mutate",
+  "mutation",
+  "download",
+  "upload",
+  "ai",
+  "ai-generate",
+  "billing",
+  "billing-write",
+  "delivery",
+  "delivery-execution"
+]);
+const FORBIDDEN_ACTION_QUERY_KEYS = new Set([
+  "action",
+  "mutation",
+  "mutate",
+  "download",
+  "upload",
+  "ai_generate",
+  "billing_write",
+  "delivery_execution"
+]);
+
+function assertNoActionExecution(url) {
+  const routeToken = `${url.hostname}${url.pathname}`.toLowerCase().replace(/[_/]+/g, "-");
+  if (FORBIDDEN_ACTION_HOSTS.has(url.hostname) || FORBIDDEN_ACTION_HOSTS.has(routeToken)) {
+    throw new DeepLinkError("FORBIDDEN_ACTION_LINK", `Deep link action execution is forbidden: ${routeToken}`);
+  }
+  for (const key of url.searchParams.keys()) {
+    if (FORBIDDEN_ACTION_QUERY_KEYS.has(key)) {
+      throw new DeepLinkError("FORBIDDEN_ACTION_LINK", `Deep link action query is forbidden: ${key}`);
+    }
+  }
+}
 
 function assertKnownQuery(url, allowedQuery) {
   for (const key of url.searchParams.keys()) {
@@ -67,6 +101,7 @@ export function parseMaterDeepLink(candidate) {
   if (url.protocol !== "mater:") {
     throw new DeepLinkError("UNSUPPORTED_SCHEME", "Deep link scheme must be mater");
   }
+  assertNoActionExecution(url);
 
   if (url.hostname === DEEP_LINK_ROUTE_SPECS.auth_callback.host) {
     const spec = DEEP_LINK_ROUTE_SPECS.auth_callback;

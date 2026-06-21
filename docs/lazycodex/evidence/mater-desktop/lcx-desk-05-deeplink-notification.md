@@ -15,7 +15,7 @@ This evidence file records P5 deep link and notification progress only. It does 
 | --- | --- | --- |
 | MDT-P5-W01-T01 | complete | `contracts/desktop-deep-link-contract.json`, `scripts/validate-desktop-deep-link-contract.mjs` |
 | MDT-P5-W01-T02 | complete | `apps/desktop/src/main/deepLinks.js`, `apps/desktop/test/deep-link-parser.test.mjs` |
-| MDT-P5-W01-T03 | pending | not started |
+| MDT-P5-W01-T03 | complete | `apps/desktop/src/main/deepLinks.js`, `apps/desktop/test/deep-link-deny.test.mjs` |
 | MDT-P5-W01-T04 | pending | not started |
 | MDT-P5-W02-T01 | pending | not started |
 | MDT-P5-W02-T02 | pending | not started |
@@ -85,3 +85,37 @@ Act:
 
 - `MDT-P5-W01-T02` is complete.
 - Next TUW is `MDT-P5-W01-T03`.
+
+## MDT-P5-W01-T03 - Deny Action Execution from Links
+
+Plan:
+
+- Add a deep link denylist for action execution hosts and query parameters.
+- Reject mutation, download, upload, AI generation, billing write, and delivery execution links.
+- Keep valid route intents route-only.
+
+Do:
+
+- Updated `apps/desktop/src/main/deepLinks.js`.
+- Added `apps/desktop/test/deep-link-deny.test.mjs`.
+- Updated parser unknown-query test to avoid overlap with the explicit action denylist.
+
+Check:
+
+```bash
+node apps/desktop/test/deep-link-deny.test.mjs
+node apps/desktop/test/deep-link-parser.test.mjs
+git diff --check -- apps/desktop/src/main/deepLinks.js apps/desktop/test/deep-link-deny.test.mjs apps/desktop/test/deep-link-parser.test.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-05-deeplink-notification.md
+```
+
+Results:
+
+- Deep link deny tests passed.
+- Parser tests still passed.
+- Mutation, download, upload, AI generation, billing write, and delivery execution links are rejected.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P5-W01-T03` is complete.
+- Next TUW is `MDT-P5-W01-T04`.
