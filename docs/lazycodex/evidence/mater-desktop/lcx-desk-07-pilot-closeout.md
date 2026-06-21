@@ -20,7 +20,7 @@ This evidence file records P7 pilot closeout progress only. It does not claim ow
 | MDT-P7-W02-T01 | complete | `docs/desktop/mater-desktop-pilot-risk-adjudication.md` |
 | MDT-P7-W02-T02 | complete | `docs/desktop/mater-desktop-owner-decision-packet.md` |
 | MDT-P7-W02-T03 | complete | `docs/lazycodex/evidence/mater-desktop/index.md` |
-| MDT-P7-W02-T04 | pending | not started |
+| MDT-P7-W02-T04 | complete | `scripts/validate-mater-desktop-no-public-release-claim.mjs` |
 | MDT-P7-W02-T05 | pending | phase terminal not reached |
 
 ## MDT-P7-W01-T01 - Run Pilot QA Checklist
@@ -240,3 +240,33 @@ Act:
 
 - `MDT-P7-W02-T03` is complete.
 - Next TUW is `MDT-P7-W02-T04`.
+
+## MDT-P7-W02-T04 - Add No-Public-Release Guard
+
+Plan:
+
+- Add a validator that fails on public release, production go-live, or owner approval claims without receipts.
+- Include probes to prove the validator detects forbidden positive claims.
+
+Do:
+
+- Added `scripts/validate-mater-desktop-no-public-release-claim.mjs`.
+
+Check:
+
+```bash
+node scripts/validate-mater-desktop-no-public-release-claim.mjs
+git diff --check -- scripts/validate-mater-desktop-no-public-release-claim.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-07-pilot-closeout.md
+```
+
+Results:
+
+- No-public-release validator passed.
+- Probes detected public release, production go-live, and owner approval positive claims.
+- Current desktop evidence has no forbidden positive claim.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P7-W02-T04` is complete.
+- Next TUW is `MDT-P7-W02-T05`, the P7 terminal TUW.
