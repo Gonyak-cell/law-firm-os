@@ -18,7 +18,7 @@ This evidence file records P5 deep link and notification progress only. It does 
 | MDT-P5-W01-T03 | complete | `apps/desktop/src/main/deepLinks.js`, `apps/desktop/test/deep-link-deny.test.mjs` |
 | MDT-P5-W01-T04 | complete | `apps/desktop/src/main/deepLinks.js`, `apps/desktop/test/deep-link-open-audit.test.mjs`, `docs/desktop/mater-desktop-deep-link-audit-map.md` |
 | MDT-P5-W02-T01 | complete | `docs/desktop/mater-desktop-notification-policy.md` |
-| MDT-P5-W02-T02 | pending | not started |
+| MDT-P5-W02-T02 | complete | `apps/desktop/src/main/notifications.js`, `apps/desktop/test/notification-route-intent.test.mjs` |
 | MDT-P5-W02-T03 | pending | not started |
 | MDT-P5-W02-T04 | pending | phase terminal not reached |
 
@@ -185,3 +185,36 @@ Act:
 
 - `MDT-P5-W02-T01` is complete.
 - Next TUW is `MDT-P5-W02-T02`.
+
+## MDT-P5-W02-T02 - Implement Notification Click Route Intent
+
+Plan:
+
+- Add generic desktop notification templates.
+- Convert notification clicks into route-only intents through the deep-link parser.
+- Reject notification routes that attempt action execution.
+
+Do:
+
+- Added `apps/desktop/src/main/notifications.js`.
+- Added `apps/desktop/test/notification-route-intent.test.mjs`.
+
+Check:
+
+```bash
+node apps/desktop/test/notification-route-intent.test.mjs
+node apps/desktop/test/deep-link-deny.test.mjs
+git diff --check -- apps/desktop/src/main/notifications.js apps/desktop/test/notification-route-intent.test.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-05-deeplink-notification.md
+```
+
+Results:
+
+- Notification route intent tests passed.
+- Deep link deny tests still passed.
+- Notification click passes only the route URL through the deep-link parser.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P5-W02-T02` is complete.
+- Next TUW is `MDT-P5-W02-T03`.
