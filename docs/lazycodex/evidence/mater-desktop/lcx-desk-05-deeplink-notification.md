@@ -17,7 +17,7 @@ This evidence file records P5 deep link and notification progress only. It does 
 | MDT-P5-W01-T02 | complete | `apps/desktop/src/main/deepLinks.js`, `apps/desktop/test/deep-link-parser.test.mjs` |
 | MDT-P5-W01-T03 | complete | `apps/desktop/src/main/deepLinks.js`, `apps/desktop/test/deep-link-deny.test.mjs` |
 | MDT-P5-W01-T04 | complete | `apps/desktop/src/main/deepLinks.js`, `apps/desktop/test/deep-link-open-audit.test.mjs`, `docs/desktop/mater-desktop-deep-link-audit-map.md` |
-| MDT-P5-W02-T01 | pending | not started |
+| MDT-P5-W02-T01 | complete | `docs/desktop/mater-desktop-notification-policy.md` |
 | MDT-P5-W02-T02 | pending | not started |
 | MDT-P5-W02-T03 | pending | not started |
 | MDT-P5-W02-T04 | pending | phase terminal not reached |
@@ -155,3 +155,33 @@ Act:
 
 - `MDT-P5-W01` is closed at its terminal TUW, `MDT-P5-W01-T04`.
 - Next ledger TUW is `MDT-P5-W02-T01`.
+
+## MDT-P5-W02-T01 - Define Generic Notification Policy
+
+Plan:
+
+- Define lock screen notification copy boundaries.
+- Forbid client names, matter names, document names, snippets, sensitive deadline labels, and billing amounts.
+- Keep notifications route-only.
+
+Do:
+
+- Added `docs/desktop/mater-desktop-notification-policy.md`.
+
+Check:
+
+```bash
+rg -n "forbid|client names|matter names|document names|lock screen" docs/desktop/mater-desktop-notification-policy.md
+git diff --check -- docs/desktop/mater-desktop-notification-policy.md docs/lazycodex/evidence/mater-desktop/lcx-desk-05-deeplink-notification.md
+```
+
+Results:
+
+- Notification policy grep passed.
+- Policy forbids sensitive lock screen notification copy.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P5-W02-T01` is complete.
+- Next TUW is `MDT-P5-W02-T02`.
