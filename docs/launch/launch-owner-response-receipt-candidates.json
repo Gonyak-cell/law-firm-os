@@ -19,13 +19,13 @@
   "summary": {
     "response_intake_verdict": "PASS",
     "response_entry_count": 4,
-    "pending_response_count": 1,
-    "real_owner_response_count": 3,
-    "copy_allowed_response_count": 3,
-    "receipt_update_candidate_count": 3,
-    "target_count_by_candidates": 106,
-    "receipt_ledger_current_real_receipt_count": 2,
-    "receipt_ledger_current_copy_allowed_count": 2
+    "pending_response_count": 0,
+    "real_owner_response_count": 4,
+    "copy_allowed_response_count": 4,
+    "receipt_update_candidate_count": 4,
+    "target_count_by_candidates": 117,
+    "receipt_ledger_current_real_receipt_count": 4,
+    "receipt_ledger_current_copy_allowed_count": 4
   },
   "receipt_update_candidates": [
     {
@@ -334,6 +334,60 @@
         "WP-LT-PRE-W04",
         "WP-LT-PRE-W05",
         "WP-LT-PRE-W06"
+      ]
+    },
+    {
+      "decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "title": "Owner deferral for all PRE-L9 phase exits",
+      "coverage_domain": "phase_exit",
+      "covered_target_count": 11,
+      "source_response_status": "real_owner_response_received",
+      "source_copy_allowed": true,
+      "source_approval_signature_ref": "approval:LAWOS-PHASE-EXIT-DEFERRAL-2026-06-21",
+      "receipt_slot_update": {
+        "decision_id": "COVERAGE-ALL-PHASE-EXITS",
+        "title": "Owner deferral for all PRE-L9 phase exits",
+        "coverage_domain": "phase_exit",
+        "covered_target_count": 11,
+        "required_owner_basis": "Owner accepts deferring all currently blocked PRE-L9 phase exits.",
+        "target_detail_state": "all_targets_matched_and_aggregate_accepted",
+        "target_ids": [
+          "PHASE-L0",
+          "PHASE-L1",
+          "PHASE-L2",
+          "PHASE-L3",
+          "PHASE-L4",
+          "PHASE-L5",
+          "PHASE-L6",
+          "PHASE-L7",
+          "PHASE-L8",
+          "PHASE-L9",
+          "PHASE-PRE"
+        ],
+        "allowed_register_status_after_real_receipt": "deferred(시한 명기)",
+        "receipt_status": "real_owner_evidence_received",
+        "owner": "Verification Owner",
+        "decision": "deferred(시한 명기)",
+        "basis": "PRE-L9 phase exits remain blocked until receipt ledger, decision register import candidates, launch evidence acceptance matrix, and final go/no-go decision validate. Phase-exit deferral is allowed only as a tracked blocker.",
+        "date_or_revisit_gate": "GATE-OWNER-LEDGER-AND-LAUNCH-EVIDENCE-VALIDATION",
+        "approval_signature_ref": "approval:LAWOS-PHASE-EXIT-DEFERRAL-2026-06-21",
+        "received_at": "2026-06-21T09:15:00Z",
+        "recorded_by_human": "JWS",
+        "pending_slot_not_approval": false,
+        "copy_to_launch_decision_register_allowed": true
+      },
+      "target_ids": [
+        "PHASE-L0",
+        "PHASE-L1",
+        "PHASE-L2",
+        "PHASE-L3",
+        "PHASE-L4",
+        "PHASE-L5",
+        "PHASE-L6",
+        "PHASE-L7",
+        "PHASE-L8",
+        "PHASE-L9",
+        "PHASE-PRE"
       ]
     }
   ]

@@ -18,11 +18,11 @@
   "summary": {
     "receipt_ledger_verdict": "PASS",
     "receipt_slot_count": 4,
-    "pending_receipt_slot_count": 1,
-    "real_owner_receipt_count": 3,
-    "copy_allowed_count": 3,
-    "import_candidate_count": 3,
-    "covered_target_count_by_candidates": 106
+    "pending_receipt_slot_count": 0,
+    "real_owner_receipt_count": 4,
+    "copy_allowed_count": 4,
+    "import_candidate_count": 4,
+    "covered_target_count_by_candidates": 117
   },
   "import_candidates": [
     {
@@ -189,6 +189,37 @@
         "WP-LT-PRE-W04",
         "WP-LT-PRE-W05",
         "WP-LT-PRE-W06"
+      ]
+    },
+    {
+      "decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "coverage_domain": "phase_exit",
+      "covered_target_count": 11,
+      "source_receipt_status": "real_owner_evidence_received",
+      "source_copy_allowed": true,
+      "source_approval_signature_ref": "approval:LAWOS-PHASE-EXIT-DEFERRAL-2026-06-21",
+      "register_row": {
+        "decision_id": "COVERAGE-ALL-PHASE-EXITS",
+        "title": "Owner deferral for all PRE-L9 phase exits",
+        "owner": "Verification Owner",
+        "decision": "deferred(시한 명기)",
+        "basis": "PRE-L9 phase exits remain blocked until receipt ledger, decision register import candidates, launch evidence acceptance matrix, and final go/no-go decision validate. Phase-exit deferral is allowed only as a tracked blocker.",
+        "date_or_revisit_gate": "GATE-OWNER-LEDGER-AND-LAUNCH-EVIDENCE-VALIDATION",
+        "approval_signature": "approval:LAWOS-PHASE-EXIT-DEFERRAL-2026-06-21",
+        "status": "deferred(시한 명기)"
+      },
+      "target_ids": [
+        "PHASE-L0",
+        "PHASE-L1",
+        "PHASE-L2",
+        "PHASE-L3",
+        "PHASE-L4",
+        "PHASE-L5",
+        "PHASE-L6",
+        "PHASE-L7",
+        "PHASE-L8",
+        "PHASE-L9",
+        "PHASE-PRE"
       ]
     }
   ]

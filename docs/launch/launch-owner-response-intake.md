@@ -19,11 +19,11 @@ Generated at: 2026-06-19T00:10:53.072Z
 - request_packet_verdict: PASS
 - request_card_count: 4
 - response_entry_count: 4
-- pending_response_count: 1
-- real_owner_response_count: 3
-- copy_allowed_count: 3
+- pending_response_count: 0
+- real_owner_response_count: 4
+- copy_allowed_count: 4
 - target_count_if_all_responses_received: 117
-- target_count_by_real_responses: 106
+- target_count_by_real_responses: 117
 
 ## Required Owner Response Fields
 
@@ -36,7 +36,7 @@ Generated at: 2026-06-19T00:10:53.072Z
 | COVERAGE-ALL-GO-LIVE | go_live_gate_evidence | 31 | real_owner_response_received | true |
 | COVERAGE-L9-STABILIZATION | l9_stabilization_closure | 5 | real_owner_response_received | true |
 | COVERAGE-ALL-BLOCKED-WP | blocked_work_package | 70 | real_owner_response_received | true |
-| COVERAGE-ALL-PHASE-EXITS | phase_exit | 11 | pending_owner_response | false |
+| COVERAGE-ALL-PHASE-EXITS | phase_exit | 11 | real_owner_response_received | true |
 
 ## Signature Reference Formats
 
