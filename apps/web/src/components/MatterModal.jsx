@@ -16,6 +16,7 @@ import {
   Users,
   X
 } from "lucide-react";
+import { PRODUCT_BRAND } from "../brand/brand";
 import { Field } from "./primitives.jsx";
 import {
   DashboardSubscribeModalState,
@@ -264,7 +265,7 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
       body: (
         <>
           <p>
-            Powered by Ask matter. <a href="#learn">Learn more.</a>
+            Powered by Ask {PRODUCT_BRAND}. <a href="#learn">Learn more.</a>
           </p>
           <div className="inline-form">
             <input value="How many users are viewing the site per country?" readOnly />

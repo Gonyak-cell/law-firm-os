@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BriefcaseBusiness, RefreshCw, ShieldCheck } from "lucide-react";
 import { fetchMatterRecords } from "../data/apiClient.js";
 import { DataTable, MetricCard, PageHeader, Panel } from "./primitives.jsx";
+import { DesktopDeniedState } from "./DesktopDeniedState.jsx";
 import { MatterOpeningWizard } from "./MatterOpeningWizard.jsx";
 import { MatterTeamRoster } from "./MatterTeamRoster.jsx";
 import { MatterVaultPanel } from "./MatterVaultPanel.jsx";
@@ -50,6 +51,7 @@ export function MattersSurface({ labels, liveCtx = "allow" }) {
     for (const item of createdItems) byId.set(item.matter_id, item);
     return [...byId.values()];
   }, [createdItems, result]);
+  const denied = result?.uiState === "denied";
 
   const metrics = useMemo(
     () => ({
@@ -77,12 +79,7 @@ export function MattersSurface({ labels, liveCtx = "allow" }) {
       </div>
     );
   } else if (result.uiState === "denied") {
-    body = (
-      <div className="live-data-state live-data-denied">
-        <strong>Access denied</strong>
-        The permission gate blocked this Matter request. No matter rows are shown.
-      </div>
-    );
+    body = <DesktopDeniedState resource="matter workspace" />;
   } else if (result.uiState === "review_required" || result.outcome === "review_required") {
     body = (
       <div className="live-data-state live-data-review">
@@ -125,11 +122,13 @@ export function MattersSurface({ labels, liveCtx = "allow" }) {
           </button>
         }
       />
-      <div className="clients-metric-grid">
-        <MetricCard label="Matters" value={metrics.total} delta="runtime rows" tone="blue" />
-        <MetricCard label="Opening" value={metrics.opening} delta="clearance-backed" tone="green" />
-        <MetricCard label="Gated" value={metrics.gated} delta="no go-live claim" tone="purple" />
-      </div>
+      {!denied && (
+        <div className="clients-metric-grid">
+          <MetricCard label="Matters" value={metrics.total} delta="runtime rows" tone="blue" />
+          <MetricCard label="Opening" value={metrics.opening} delta="clearance-backed" tone="green" />
+          <MetricCard label="Gated" value={metrics.gated} delta="no go-live claim" tone="purple" />
+        </div>
+      )}
       <div className="matter-runtime-grid">
         <Panel className="span-2 matter-runtime-panel" title="Matter Home" meta="/api/matters">
           {body}

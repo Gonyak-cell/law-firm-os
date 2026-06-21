@@ -11,7 +11,9 @@ import {
   ShieldCheck,
   UserPlus
 } from "lucide-react";
+import { PRODUCT_BRAND } from "../brand/brand";
 import { copy } from "../i18n.js";
+import { MaterSplash } from "./MaterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
 import { Field } from "./primitives.jsx";
 import { HomeSurface } from "./HomeSurface.jsx";
@@ -46,7 +48,7 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep }) {
           </label>
           <label className="check-row">
             <input type="checkbox" />
-            Receive emails about news from matter
+            {`Receive emails about news from ${PRODUCT_BRAND}`}
           </label>
           <button className="primary-button full">Continue</button>
           <p>Have an account? <a>Login</a></p>
@@ -110,7 +112,7 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep }) {
           ))}
         </div>
         <div className="auth-card">
-          <MatterLogo compact />
+          <MaterSplash compact className="auth-splash" />
           <div className="auth-title">
             <Icon size={20} />
             <h2>{current[1]}</h2>
@@ -135,8 +137,12 @@ export function OnboardingCard({ labels, locale }) {
       <div className="progress-line">
         <span style={{ width: "66%" }} />
       </div>
-      <h3>{locale === "ko" ? "matter 설정 시작" : "Set up matter"}</h3>
-      <p>{locale === "ko" ? "운영 데이터를 연결해 matter 작업공간을 완성하세요." : "Connect your operating data to finish setting up matter."}</p>
+      <h3>{locale === "ko" ? `${PRODUCT_BRAND} 설정 시작` : `Set up ${PRODUCT_BRAND}`}</h3>
+      <p>
+        {locale === "ko"
+          ? `운영 데이터를 연결해 ${PRODUCT_BRAND} 작업공간을 완성하세요.`
+          : `Connect your operating data to finish setting up ${PRODUCT_BRAND}.`}
+      </p>
       <div className="source-grid">
         {sources.map((source, index) => (
           <button key={source} className={index < 3 ? "source-card selected" : "source-card"}>
@@ -163,7 +169,7 @@ export function AuthForm({ labels, locale, step }) {
       <Field label="Email" value="seoyun@amic.law" />
       {["signup", "org"].includes(step) && <Field label={locale === "ko" ? "이름" : "Name"} value="Seoyun Kim" />}
       {["signup", "password", "login", "reset"].includes(step) && (
-        <Field label={step === "reset" ? "New password" : "Password"} value={step === "reset" ? "matter-ready-2026" : "••••••••"} />
+        <Field label={step === "reset" ? "New password" : "Password"} value={step === "reset" ? `${PRODUCT_BRAND}-ready-2026` : "••••••••"} />
       )}
       {step === "org" && <Field label={locale === "ko" ? "조직명" : "Organization"} value="AMIC Law" />}
       {step === "signup" && (
@@ -198,7 +204,7 @@ export function VerificationCard({ labels, sent }) {
       <p>
         {sent
           ? "We sent a reset link to seoyun@amic.law."
-          : "Click the verification link sent to seoyun@amic.law to finish setting up your matter workspace."}
+          : `Click the verification link sent to seoyun@amic.law to finish setting up your ${PRODUCT_BRAND} workspace.`}
       </p>
       <button className="secondary-button">{sent ? "Back to login" : "Resend email"}</button>
       <button className="text-button">{labels.cancel}</button>

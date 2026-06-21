@@ -1,0 +1,93 @@
+{
+  "schema": "law-firm-os.desktop.deep-link-contract.v0.2",
+  "product": "mater",
+  "status": "route_intents_active",
+  "allowed_routes": [
+    {
+      "id": "matter",
+      "scheme": "mater",
+      "host": "matter",
+      "path": "/:matterId",
+      "allowed_query": ["tenant"],
+      "purpose": "Open a permission-checked matter workspace route intent",
+      "executes_action": "route_intent_only",
+      "may_mutate_product_state": false,
+      "may_download": false,
+      "may_upload": false,
+      "may_ai_generate": false,
+      "requires_backend_permission_recheck": true,
+      "requires_open_audit": true
+    },
+    {
+      "id": "document",
+      "scheme": "mater",
+      "host": "document",
+      "path": "/:documentId",
+      "allowed_query": ["matter", "tenant"],
+      "purpose": "Open a permission-checked document route intent",
+      "executes_action": "route_intent_only",
+      "may_mutate_product_state": false,
+      "may_download": false,
+      "may_upload": false,
+      "may_ai_generate": false,
+      "requires_backend_permission_recheck": true,
+      "requires_open_audit": true
+    },
+    {
+      "id": "task",
+      "scheme": "mater",
+      "host": "task",
+      "path": "/:taskId",
+      "allowed_query": ["matter", "tenant"],
+      "purpose": "Open a permission-checked task route intent",
+      "executes_action": "route_intent_only",
+      "may_mutate_product_state": false,
+      "may_download": false,
+      "may_upload": false,
+      "may_ai_generate": false,
+      "requires_backend_permission_recheck": true,
+      "requires_open_audit": true
+    },
+    {
+      "id": "auth_callback",
+      "scheme": "mater",
+      "host": "auth",
+      "path": "/callback",
+      "allowed_query": ["code", "state", "issuer"],
+      "purpose": "OIDC PKCE authorization-code callback only",
+      "executes_action": "auth_callback",
+      "may_mutate_product_state": false,
+      "may_download": false,
+      "may_upload": false,
+      "may_ai_generate": false,
+      "requires_backend_permission_recheck": false,
+      "requires_open_audit": true
+    }
+  ],
+  "forbidden_actions": [
+    "mutation",
+    "download",
+    "upload",
+    "ai_generate",
+    "billing_write",
+    "delivery_execution",
+    "file_bridge",
+    "open_external_url",
+    "execute_command"
+  ],
+  "validation_rules": {
+    "scheme_required": "mater",
+    "route_id_allowlist_required": true,
+    "identifier_shape_required": true,
+    "unknown_query_parameters_rejected": true,
+    "backend_permission_recheck_for_workspace_routes": true,
+    "renderer_receives_route_intent_only": true
+  },
+  "non_claims": {
+    "deep_link_parser_implemented": false,
+    "notification_integration_implemented": false,
+    "production_deep_link_ready": false,
+    "public_release_ready": false,
+    "owner_approval_recorded": false
+  }
+}

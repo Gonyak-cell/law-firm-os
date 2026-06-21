@@ -1,6 +1,7 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { PlayCircle, RefreshCw, ShieldCheck, Sparkles } from "lucide-react";
+import { PRODUCT_BRAND } from "../brand/brand";
 import { prompts } from "../data/mockData.js";
 import { fetchAiReviewQueue } from "../data/apiClient.js";
 import { CompactTable, MiniLineChart, Panel } from "./primitives.jsx";
@@ -65,7 +66,7 @@ export function AskSurface({ labels, variant, liveCtx = "allow" }) {
       <div className="ask-header">
         <Sparkles size={22} />
         <h1>{labels.askTitle}</h1>
-        <p>Guidance, answers, cohorts, and replay context for your matter workspace.</p>
+        <p>{`Guidance, answers, cohorts, and replay context for your ${PRODUCT_BRAND} workspace.`}</p>
       </div>
       <AiRuntimePanel liveCtx={liveCtx} />
       <div className="prompt-grid">
