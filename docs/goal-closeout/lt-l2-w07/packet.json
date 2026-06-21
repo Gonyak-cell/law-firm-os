@@ -2,7 +2,7 @@
   "work_package_id": "LT-L2-W07",
   "title": "Runtime integration test system aligned to RTG-005",
   "created_at": "2026-06-18T13:12:58Z",
-  "status": "blocked_pending_runtime_integration_harness_and_predecessors",
+  "status": "blocked_pending_l2_w01_w02_w03_terminal_closeout",
   "phase": "L2",
   "gate_binding": [
     "G2",
@@ -20,15 +20,33 @@
     "docs/goal-closeout/lt-l2-w07/construction-inspection.json"
   ],
   "current_status": {
-    "runtime_integration_directory_exists": false,
-    "runtime_integration_file_count": 0,
-    "runner_script_exists": false,
+    "runtime_integration_directory_exists": true,
+    "runtime_integration_file_count": 9,
+    "rs6_runtime_integration_harness_exists": true,
+    "runner_script_exists": true,
     "launch_integration_script_exists": false,
-    "rtg005_responsibility_map_exists": false,
-    "prohibition_nongoal_test_map_exists": false,
+    "rtg005_responsibility_map_exists": true,
+    "prohibition_nongoal_test_map_exists": true,
     "runtime_ready_pack_count": 0,
+    "repo_runtime_ready_candidate": true,
+    "l2_w01_w02_w03_predecessors_closed": false,
     "g2_satisfied": false,
-    "l2_exit_satisfied": false
+    "l2_exit_satisfied": false,
+    "lt_terminal_closeout_claim": false,
+    "launch_go_live_terminal_claim": false
+  },
+  "runtime_spine_reconciliation": {
+    "date": "2026-06-21",
+    "runtime_spine_evidence_ref": "docs/runtime-spine/evidence/g6-runtime-ready-evidence.json",
+    "crosswalk_ref": "docs/runtime-spine/launch-tuw-crosswalk.json",
+    "rs6_harness_present": true,
+    "terminal_closeout_blocked_by": [
+      "LT-L2-W01",
+      "LT-L2-W02",
+      "LT-L2-W03",
+      "external_launch_receipts"
+    ],
+    "repo_runtime_ready_candidate_is_launch_closeout": false
   },
   "review_policy": {
     "full_claude_review": "waived_by_user",

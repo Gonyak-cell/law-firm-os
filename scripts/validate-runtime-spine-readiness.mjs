@@ -5,6 +5,13 @@ import { validateRuntimeSpinePlan } from "./validate-runtime-spine-plan.mjs";
 
 const LEDGER_PATH = "docs/runtime-spine/runtime-spine-ledger.json";
 const EVIDENCE_PATH = "docs/runtime-spine/evidence/runtime-spine-evidence-index.json";
+const LAUNCH_CROSSWALK_PATH = "docs/runtime-spine/launch-tuw-crosswalk.json";
+const LT_LAUNCH_BLOCKER_PACKET_PATHS = [
+  "docs/goal-closeout/lt-l2-w01/packet.json",
+  "docs/goal-closeout/lt-l2-w02/packet.json",
+  "docs/goal-closeout/lt-l2-w03/packet.json",
+  "docs/goal-closeout/lt-l2-w07/packet.json"
+];
 
 async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
@@ -17,6 +24,9 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
 
   const ledger = await readJson(LEDGER_PATH);
   const evidence = await readJson(EVIDENCE_PATH);
+  const launchCrosswalk = await readJson(LAUNCH_CROSSWALK_PATH);
+  const launchBlockerPackets = await Promise.all(LT_LAUNCH_BLOCKER_PACKET_PATHS.map((packetPath) => readJson(packetPath)));
+  const launchBlockerIds = launchBlockerPackets.map((packet) => packet.work_package_id);
   const allTuws = (ledger.spines ?? []).flatMap((spine) => (spine.tuws ?? []).map((tuw) => ({ ...tuw, spine: spine.id })));
   const closedTuws = allTuws.filter((tuw) => tuw.status === "closed");
   const deferredTuws = allTuws.filter((tuw) => tuw.status === "timed_deferral");
@@ -38,6 +48,8 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
   assert(ledger.actual_launch_go_live_claim === false, "G0 readiness guard must keep actual_launch_go_live_claim false");
   assert(evidence.runtime_ready_candidate === expectedRuntimeReadyCandidate, "evidence index runtime_ready_candidate must match G6 ready state");
   assert(evidence.actual_launch_go_live_claim === false, "evidence index must keep actual_launch_go_live_claim false");
+  assert(evidence.lt_terminal_closeout_claim === false, "evidence index must keep LT terminal closeout claim false");
+  assert(evidence.launch_go_live_terminal_claim === false, "evidence index must keep launch/go-live terminal claim false");
   assert(prematureClosed.length === 0, `RS-2 through RS-6 TUWs must not close before G1: ${prematureClosed.map((tuw) => tuw.id).join(", ")}`);
 
   const rtgById = new Map((ledger.rtg_summary ?? []).map((rtg) => [rtg.id, rtg]));
@@ -46,6 +58,20 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
     for (const rtg of ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"]) {
       assert(rtgById.get(rtg)?.status === "passed", `${rtg} must be passed at G6`);
     }
+    assert(launchCrosswalk.scope?.repo_runtime_ready_candidate === true, "launch crosswalk must preserve repo runtime-ready candidate at G6");
+    assert(launchCrosswalk.scope?.lt_terminal_closeout_claim === false, "launch crosswalk must not claim LT terminal closeout at G6");
+    assert(launchCrosswalk.scope?.launch_go_live_terminal_claim === false, "launch crosswalk must not claim launch/go-live terminal closeout at G6");
+    assert(launchCrosswalk.scope?.crosswalk_closes_launch_tuws === false, "launch crosswalk must not close Launch TUWs at G6");
+    assert(evidence.launch_tuw_boundary?.repo_runtime_ready_candidate_is_launch_terminal_closeout === false, "runtime-ready candidate must remain separate from launch terminal closeout");
+    for (const expectedBlocker of ["LT-L2-W01", "LT-L2-W02", "LT-L2-W03", "LT-L2-W07"]) {
+      assert(launchBlockerIds.includes(expectedBlocker), `${expectedBlocker}: launch blocker packet must be reported`);
+    }
+    for (const packet of launchBlockerPackets) {
+      assert(packet.status?.startsWith("blocked_"), `${packet.work_package_id}: launch packet must remain blocked while repo runtime-ready candidate is true`);
+    }
+    const w07 = launchBlockerPackets.find((packet) => packet.work_package_id === "LT-L2-W07");
+    assert(w07?.current_status?.rs6_runtime_integration_harness_exists === true, "LT-L2-W07 must recognize RS-6 harness now exists");
+    assert(w07?.current_status?.l2_w01_w02_w03_predecessors_closed === false, "LT-L2-W07 must remain blocked by launch predecessors");
   } else {
     assert(["planned", "partial"].includes(rtgById.get("RTG-001")?.status), "RTG-001 must remain planned or partial until full functional runtime path exists");
     assert(["planned", "partial"].includes(rtgById.get("RTG-002")?.status), "RTG-002 must remain planned or partial until full permission runtime path exists");
@@ -76,6 +102,7 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
     console.log(`g0_timed_deferrals: ${deferredTuws.length}`);
     console.log(`rs1_closed_tuws: ${rs1Closed.length}`);
     console.log(`premature_closed_tuws: ${prematureClosed.length}`);
+    if (g6ReadyCandidate) console.log(`launch_blockers: ${launchBlockerIds.join(",")}`);
     console.log(`next_gate: ${g6ReadyCandidate ? "External receipts and launch approval remain blocked" : (g5ReadyCandidate ? "G6 Runtime Integration Ready" : (g4ReadyCandidate ? "G5 App Runtime Surface Ready" : (g3ReadyCandidate ? "G4 Canonical Model Ready" : (g2ReadyCandidate ? "G3 Audit Ready" : (g1ReadyCandidate ? "G2 Trust Boundary Ready" : "G1 Persistence Ready")))))}`);
   }
 
