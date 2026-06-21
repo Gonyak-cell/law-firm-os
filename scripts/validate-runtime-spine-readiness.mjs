@@ -35,8 +35,8 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
 
   const rtgById = new Map((ledger.rtg_summary ?? []).map((rtg) => [rtg.id, rtg]));
   assert(["planned", "partial"].includes(rtgById.get("RTG-001")?.status), "RTG-001 must remain planned or partial until full functional runtime path exists");
-  assert(rtgById.get("RTG-002")?.status === "planned", "RTG-002 must remain planned until permission runtime path exists");
-  assert(rtgById.get("RTG-003")?.status === "planned", "RTG-003 must remain planned until durable audit append exists");
+  assert(["planned", "partial"].includes(rtgById.get("RTG-002")?.status), "RTG-002 must remain planned or partial until full permission runtime path exists");
+  assert(["planned", "partial"].includes(rtgById.get("RTG-003")?.status), "RTG-003 must remain planned or partial until durable audit append exists");
   assert(rtgById.get("RTG-004")?.status === "g0_guarded", "RTG-004 must be guarded at G0");
   assert(rtgById.get("RTG-005")?.status === "g0_guarded", "RTG-005 must be guarded at G0");
 

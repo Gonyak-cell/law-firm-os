@@ -1,7 +1,13 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { createPersistenceConfig } from "./config.js";
-import { PERSISTENCE_TABLES, createTenantRecord } from "./schema.js";
+import {
+  PERSISTENCE_TABLES,
+  createIdempotencyRecord,
+  createOutboxEvent,
+  createRuntimeRecord,
+  createTenantRecord
+} from "./schema.js";
 
 export const PERSISTENCE_STORE_VERSION = "law-firm-os.persistence-store.v0.1";
 
@@ -49,6 +55,9 @@ function normalizeRow(table, row) {
       rolled_back_at: row.rolled_back_at
     });
   }
+  if (table === "runtime_records") return createRuntimeRecord(row);
+  if (table === "runtime_idempotency_keys") return createIdempotencyRecord(row);
+  if (table === "runtime_outbox_events") return createOutboxEvent(row);
   return Object.freeze({ ...row });
 }
 

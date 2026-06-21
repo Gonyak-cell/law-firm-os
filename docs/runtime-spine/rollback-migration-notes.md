@@ -34,6 +34,19 @@ RS-1A adds a synthetic-only persistence adapter and migration runner:
 
 Rollback affects only synthetic migration history or the local synthetic store file. It does not touch production data, customer data, HR real data, or external systems.
 
+## RS-1B Tenant Data Spine
+
+RS-1B extends the synthetic persistence adapter with tenant data spine primitives:
+
+- tenant-scoped repository: `runtime_records`
+- stable ID service: `createStableRuntimeId`
+- idempotency table: `runtime_idempotency_keys`
+- outbox table: `runtime_outbox_events`
+- transaction wrapper: `runPersistenceTransaction`
+- lifecycle fields: `status`, `archived_at`, `deleted_at`, `retention_class`
+
+Rollback remains synthetic-only. For local test stores, remove the synthetic store file or use `rollbackRuntimeSpineMigrations(connection)` to clear synthetic migration history. There is still no production DB, no production credential, and no real tenant/customer/HR data mutation.
+
 ## Future Evidence Required
 
 Runtime migration PRs must record:
