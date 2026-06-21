@@ -1,6 +1,6 @@
 # LCX-DESK-06 Packaging and Update Evidence
 
-Status: in_progress
+Status: P6_complete
 Branch: `codex/mater-desktop-69-tuw-implementation`
 Scope: P6 internal packaging, signed update policy, rollback, SBOM, and release non-claims
 Source ledger: `docs/desktop/mater-desktop-loop-tuw-ledger.json`
@@ -20,7 +20,7 @@ This evidence file records P6 packaging and update progress only. It does not cl
 | MDT-P6-W02-T01 | complete | `docs/desktop/mater-desktop-update-policy.md` |
 | MDT-P6-W02-T02 | complete | `apps/desktop/src/main/updates.js`, `apps/desktop/test/update-rollback.test.mjs` |
 | MDT-P6-W02-T03 | complete | `docs/desktop/mater-desktop-license-audit.md` |
-| MDT-P6-W02-T04 | pending | phase terminal not reached |
+| MDT-P6-W02-T04 | complete | P6 terminal closure recorded in this file |
 
 ## MDT-P6-W01-T01 - Record Internal App ID Decision
 
@@ -244,3 +244,43 @@ Act:
 
 - `MDT-P6-W02-T03` is complete.
 - Next TUW is `MDT-P6-W02-T04`, the P6 terminal TUW.
+
+## MDT-P6-W02-T04 - Close Packaging and Update Evidence
+
+Plan:
+
+- Close P6 only after every packaging/update TUW verification has passed in ledger order.
+- Record signed internal build status, rollback coverage, license audit, and explicit public release denial.
+- Keep production go-live, public release, public publish channel, and owner approval false.
+
+Do:
+
+- Updated this LCX-DESK-06 evidence file as the P6 terminal closeout.
+
+Check:
+
+```bash
+node scripts/validate-mater-desktop-loop-tuw-plan.mjs
+node scripts/validate-mater-desktop-packaging.mjs
+npm --workspace apps/desktop run build:mac
+npm --workspace apps/desktop run build:win
+npm --workspace apps/desktop run test:update
+npm ls --workspace apps/desktop --json && rg -n "license|Electron|redistribution" docs/desktop/mater-desktop-license-audit.md
+npm --workspace apps/desktop run test:smoke
+node scripts/validate-mater-desktop-security.mjs
+rg -n "MDT-P6|signed|rollback|public release" docs/lazycodex/evidence/mater-desktop/lcx-desk-06-packaging-update.md
+git diff --check -- docs/lazycodex/evidence/mater-desktop/lcx-desk-06-packaging-update.md docs/lazycodex/evidence/mater-desktop/artifacts/macos-build.md docs/lazycodex/evidence/mater-desktop/artifacts/windows-build.md
+```
+
+Results:
+
+- signed: macOS receipt records ad-hoc internal codesign; Windows receipt records internal detached signature and explicitly does not claim Authenticode.
+- rollback: update smoke proves signature check, public channel denial, and rollback path.
+- License audit records Electron, license classes, and redistribution constraints.
+- public release remains false; production go-live and owner approval remain false.
+
+Act:
+
+- `MDT-P6-W02` is closed at its terminal TUW, `MDT-P6-W02-T04`.
+- P6 is complete.
+- Next ledger TUW is `MDT-P7-W01-T01`.
