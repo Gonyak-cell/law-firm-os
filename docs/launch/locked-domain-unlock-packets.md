@@ -1,6 +1,6 @@
 # Locked-Domain Unlock Packets
 
-Status: blocked_pending_owner_external_receipts
+Status: blocked_pending_remaining_owner_external_receipts
 Date: 2026-06-21
 Prepared for: LCX6
 
@@ -22,9 +22,10 @@ system.
 | `docs/runtime-spine/runtime-spine-ledger.json` | `runtime_ready_candidate_claim: true`; `actual_launch_go_live_claim: false` |
 | `docs/runtime-spine/launch-tuw-crosswalk.md` | LT-L2-W01, LT-L2-W02, LT-L2-W03, and LT-L2-W07 remain blocked launch packets |
 | `docs/runtime-spine/evidence/g6-runtime-ready-evidence.json` | RS-6/RTG-001 through RTG-005 passed for repo runtime-ready candidate only |
-| `docs/launch/launch-owner-approval-receipt-ledger.md` | 4 pending receipt slots; 0 real owner receipts |
-| `docs/launch/launch-evidence-acceptance-matrix.md` | 36 pending acceptance rows; `go_live_all_pass: false` |
-| `docs/launch/launch-no-go-claim-policy-audit.md` | No-go policy is active; no forbidden true go-live claims |
+| `docs/launch/launch-owner-approval-receipt-ledger.md` | 4 real coverage deferral receipts recorded after owner-response intake |
+| `docs/launch/launch-external-receipt-ledger.md` | LCX7-RI-05 production persistence receipt recorded; LCX7-RI-06 through LCX7-RI-12 remain pending |
+| `docs/launch/launch-evidence-acceptance-matrix.md` | 36 acceptance rows owner-deferred; external receipt lanes still remain |
+| `docs/launch/launch-no-go-claim-policy-audit.md` | No forbidden true go-live claims |
 
 ## Unlock Sequence
 
@@ -48,7 +49,7 @@ system.
 | Runtime Spine relation | RS-1 supports persistence shape; does not close launch persistence |
 | Decision refs | DEC-RS-001, LT-L1-W06, MAT-DEC-03 |
 | Unlock authority | Architecture Owner, Product Owner, Security Owner, Operations Owner |
-| Current state | Blocked pending hosting, DB, WORM, RPO/RTO, backup, migration, and restore decisions |
+| Current state | LCX7-RI-05 receipt recorded; LT-L2-W01 still requires packet validation and downstream launch closure evidence |
 
 Required receipts:
 

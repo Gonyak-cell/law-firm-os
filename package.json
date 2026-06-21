@@ -41,6 +41,7 @@
     "runtime-spine:rs5:app-surface:validate": "node scripts/validate-runtime-spine-rs5-app-surface.mjs",
     "runtime-spine:rs6:integration:validate": "node scripts/validate-runtime-spine-rs6-integration.mjs",
     "runtime-spine:launch-crosswalk:validate": "node scripts/validate-runtime-spine-launch-crosswalk.mjs",
+    "launch:external-receipts:validate": "node scripts/validate-launch-external-receipt-ledger.mjs",
     "implementation-layer:generate": "node scripts/generate-implementation-layer-ledger.mjs",
     "implementation-layer:validate": "node scripts/validate-implementation-layer-ledger.mjs",
     "closeout-pack:review:baseline": "node scripts/generate-closeout-pack-claude-review-baseline.mjs",

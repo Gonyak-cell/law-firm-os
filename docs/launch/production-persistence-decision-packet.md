@@ -1,6 +1,6 @@
 # Production Persistence Decision Packet
 
-Status: blocked_pending_owner_hosting_decision
+Status: blocked_receipt_recorded_pending_persistence_closeout
 Date: 2026-06-21
 Prepared for: LCX3
 
@@ -11,9 +11,10 @@ does not select a production DB, WORM store, hosting provider, region, backup
 policy, monitoring stack, or document-original storage boundary. It does not
 authorize real tenant data, production cutover, or go-live.
 
-Repo-side Runtime Spine evidence may support a runtime-ready candidate. Actual
-production persistence remains blocked until owner decisions and external
-receipts are recorded.
+Repo-side Runtime Spine evidence may support a runtime-ready candidate. The
+LCX7-RI-05 owner/external receipt is now recorded, but actual production
+persistence closeout remains blocked until the LT packet validation and
+downstream launch evidence surfaces pass.
 
 ## Decision Inputs
 
@@ -27,6 +28,17 @@ receipts are recorded.
 | `docs/launch/l3/worm-store-persistence-blocker-survey.md` | LT-L3-W04 remains blocked pending WORM/store provisioning and staging evidence | WORM/data-layer blocker remains authoritative |
 | `docs/launch/l3/rpo-rto-decision.md` | RPO/RTO values are proposal-only pending owner approval | Backup/DR criteria are not approved |
 | `docs/runtime-spine/launch-tuw-crosswalk.md` | RS-1 supports persistence shape but does not close LT-L2-W01 | Crosswalk boundary |
+| `docs/launch/launch-external-receipt-ledger.md` | LCX7-RI-05 production persistence receipt is recorded; go-live and LT terminal closeout remain false | External receipt pointer |
+
+## LCX7-RI-05 Receipt State
+
+| Field | Value |
+| --- | --- |
+| Receipt state | real_external_receipt_received |
+| Decision | approved |
+| Signature ref | email:lawos-production-persistence-approval-2026-06-21 |
+| Received at | 2026-06-21T09:14:34Z |
+| Boundary | Receipt recorded only; not production cutover, not go-live, and not LT terminal closeout |
 
 ## Current Repo Validation
 
@@ -69,10 +81,10 @@ the current mature ledger.
 | --- | --- |
 | Repo Runtime Spine persistence shape | Validated |
 | RS-1 validators current on mature G6 ledger | Repaired and validated |
-| Production DB approval | Blocked pending owner decision |
+| Production DB approval | LCX7-RI-05 receipt recorded; implementation evidence remains subject to LT-L2-W01 closeout |
 | Real tenant data use | Blocked |
 | LT-L2-W01 closeout | Blocked |
-| WORM/store launch evidence | Blocked |
+| WORM/store launch evidence | Receipt recorded; staging/evidence validation remains required |
 | Production/go-live | Blocked |
 
 ## Handoff to LCX4-LCX6

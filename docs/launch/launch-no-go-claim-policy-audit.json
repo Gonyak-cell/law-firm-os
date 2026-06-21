@@ -15,11 +15,11 @@
     "closed_cp_evidence_is_read_only": true
   },
   "summary": {
-    "scanned_file_count": 199,
+    "scanned_file_count": 203,
     "no_go_active": false,
-    "markdown_status_count": 80,
-    "json_status_count": 2,
-    "generated_pass_json_count": 35,
+    "markdown_status_count": 81,
+    "json_status_count": 3,
+    "generated_pass_json_count": 36,
     "forbidden_true_claim_count": 0,
     "finding_count": 0,
     "p0_count": 0,
@@ -756,6 +756,36 @@
       "status_policy": "not_applicable"
     },
     {
+      "path": "docs/launch/launch-external-receipt-ledger-validation.json",
+      "type": "json",
+      "status": null,
+      "verdict": "PASS",
+      "status_policy": "not_applicable",
+      "generated_pass_json": true,
+      "forbidden_true_claims": []
+    },
+    {
+      "path": "docs/launch/launch-external-receipt-ledger-validation.md",
+      "type": "markdown",
+      "status": null,
+      "status_policy": "not_applicable"
+    },
+    {
+      "path": "docs/launch/launch-external-receipt-ledger.json",
+      "type": "json",
+      "status": "blocked_pending_remaining_owner_external_receipts",
+      "verdict": null,
+      "status_policy": "not_applicable",
+      "generated_pass_json": false,
+      "forbidden_true_claims": []
+    },
+    {
+      "path": "docs/launch/launch-external-receipt-ledger.md",
+      "type": "markdown",
+      "status": "blocked_pending_remaining_owner_external_receipts",
+      "status_policy": "not_applicable"
+    },
+    {
       "path": "docs/launch/launch-goal-completion-audit.json",
       "type": "json",
       "status": null,
@@ -1103,7 +1133,7 @@
     {
       "path": "docs/launch/launch-receipt-intake-action-packet.md",
       "type": "markdown",
-      "status": "blocked_pending_owner_external_receipts",
+      "status": "blocked_pending_remaining_owner_external_receipts",
       "status_policy": "not_applicable"
     },
     {
@@ -1172,7 +1202,7 @@
     {
       "path": "docs/launch/locked-domain-unlock-packets.md",
       "type": "markdown",
-      "status": "blocked_pending_owner_external_receipts",
+      "status": "blocked_pending_remaining_owner_external_receipts",
       "status_policy": "not_applicable"
     },
     {
@@ -1250,7 +1280,7 @@
     {
       "path": "docs/launch/production-persistence-decision-packet.md",
       "type": "markdown",
-      "status": "blocked_pending_owner_hosting_decision",
+      "status": "blocked_receipt_recorded_pending_persistence_closeout",
       "status_policy": "not_applicable"
     },
     {

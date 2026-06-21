@@ -30,6 +30,12 @@ Updated after validation:
 
 - this LCX7 evidence document
 
+Updated after LCX7-RI-05 receipt intake:
+
+- `docs/launch/launch-external-receipt-ledger.md`
+- `docs/launch/launch-external-receipt-ledger.json`
+- `scripts/validate-launch-external-receipt-ledger.mjs`
+
 ## Receipt Intake Coverage
 
 | Lane | Covered by |
@@ -44,6 +50,13 @@ Updated after validation:
 | Vault import/sync | LCX7-RI-11 |
 | AI policy | LCX7-RI-12 |
 
+## External Receipt State
+
+| Queue ID | Current state | Boundary |
+| --- | --- | --- |
+| LCX7-RI-05 | real_external_receipt_received | Production persistence receipt recorded; not go-live, not production cutover, not LT terminal closeout |
+| LCX7-RI-06 through LCX7-RI-12 | pending_external_receipt | Remaining owner/external receipt lanes still block launch closure |
+
 ## Validation
 
 | Command | Result | Key evidence |
@@ -51,6 +64,7 @@ Updated after validation:
 | `npm run final-product-completion-gate:validate` | PASS | `commit_evidence_count: 987`; `missing_pack_count: 0`; `verdict: PASS` |
 | `npm run runtime-spine:readiness:validate` | PASS | `runtime_ready_candidate: true`; `actual_launch_go_live_claim: false`; launch blockers `LT-L2-W01,LT-L2-W02,LT-L2-W03,LT-L2-W07` |
 | `npm run runtime-spine:launch-crosswalk:validate` | PASS | `mapped_spines: 7`; `lt_terminal_closeout_claim: false`; `actual_launch_go_live_claim: false` |
+| `npm run launch:external-receipts:validate` | PASS | `real_external_receipt_count: 1`; `pending_external_receipt_count: 7`; launch/go-live boundary false |
 | `npm run validate` | PASS | modules 9/9; principles 9/9; invariants 7/7 |
 | `git diff --check` | PASS | no whitespace errors |
 

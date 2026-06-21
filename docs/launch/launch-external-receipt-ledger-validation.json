@@ -1,0 +1,36 @@
+{
+  "schema_version": "law-firm-os.launch-external-receipt-ledger.validation.v0.1",
+  "generated_at": "2026-06-21T09:19:24.979Z",
+  "source_refs": [
+    "docs/launch/launch-external-receipt-ledger.json",
+    "docs/launch/launch-external-receipt-ledger.md"
+  ],
+  "verdict": "PASS",
+  "summary": {
+    "external_receipt_lane_count": 8,
+    "real_external_receipt_count": 1,
+    "approved_external_receipt_count": 1,
+    "deferred_external_receipt_count": 0,
+    "pending_external_receipt_count": 7,
+    "remaining_queue_ids": [
+      "LCX7-RI-06",
+      "LCX7-RI-07",
+      "LCX7-RI-08",
+      "LCX7-RI-09",
+      "LCX7-RI-10",
+      "LCX7-RI-11",
+      "LCX7-RI-12"
+    ],
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "boundary": {
+    "validates_external_receipt_ledger_only": true,
+    "go_live_approved_by_validation": false,
+    "production_cutover_approved_by_validation": false,
+    "lt_terminal_closeout_approved_by_validation": false,
+    "pending_external_receipts_count_as_owner_evidence": false
+  },
+  "findings": []
+}

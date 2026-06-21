@@ -6,11 +6,11 @@ Verdict: PASS
 
 ## Summary
 
-- scanned_file_count: 199
+- scanned_file_count: 203
 - no_go_active: false
-- markdown_status_count: 80
-- json_status_count: 2
-- generated_pass_json_count: 35
+- markdown_status_count: 81
+- json_status_count: 3
+- generated_pass_json_count: 36
 - forbidden_true_claim_count: 0
 - finding_count: 0
 - p0_count: 0
