@@ -1,0 +1,80 @@
+{
+  "schema_version": "law-firm-os.runtime-spine-evidence-index.v0.1",
+  "baseline_commit": "41268c4becac7d06948d10c173d30635e108c5e1",
+  "runtime_ready_candidate": false,
+  "actual_launch_go_live_claim": false,
+  "g0_scope_ready_candidate": true,
+  "evidence_policy": {
+    "real_owner_names_required_for_launch": true,
+    "repo_only_evidence_cannot_complete_launch": true,
+    "synthetic_only_until_gates_pass": true
+  },
+  "documents": [
+    "docs/runtime-spine/runtime-spine-charter.md",
+    "docs/runtime-spine/non-weakening-policy.md",
+    "docs/runtime-spine/runtime-boundary-map.md",
+    "docs/runtime-spine/baseline-runtime-measurement.md",
+    "docs/runtime-spine/runtime-spine-decisions.json",
+    "docs/runtime-spine/runtime-spine-ledger.json",
+    "docs/runtime-spine/qa-checklist.md",
+    "docs/runtime-spine/rollback-migration-notes.md"
+  ],
+  "validators": [
+    "npm run runtime-spine:plan:validate",
+    "npm run runtime-spine:readiness:validate",
+    "npm run runtime-readiness:contract:validate",
+    "npm run runtime-readiness:validate",
+    "npm run client-matter:cmp-v1:validate",
+    "npm run matter-vault:r4:validate"
+  ],
+  "latest_g0_validation": {
+    "status": "passed",
+    "recorded_after_commands": true,
+    "date": "2026-06-21",
+    "summary": {
+      "runtime_spine_plan": "passed; gates=7; tuws=124; runtime_ready_candidate_claim=false; actual_launch_go_live_claim=false",
+      "runtime_spine_readiness_guard": "passed; g0_closed_tuws=7; g0_timed_deferrals=3; future_closed_tuws=0",
+      "runtime_readiness_contract": "passed",
+      "runtime_readiness": "passed; runtime_target_packs=0",
+      "client_matter_cmp_v1": "passed; tuws=316; gates=13; claim_boundary=not_r4_ready",
+      "matter_vault_r4": "passed; tuws=118; gates=9; launch_go_live_claim=false",
+      "hrx_runtime": "passed",
+      "hrx_no_premature_claim": "passed; go_live_claim_allowed=false",
+      "api_test": "passed; 131/131",
+      "build": "passed",
+      "root_test": "passed; 3994/3994"
+    }
+  },
+  "future_evidence_slots": [
+    {
+      "gate": "G1",
+      "required_ref": "docs/runtime-spine/evidence/g1-persistence-evidence.json",
+      "status": "planned"
+    },
+    {
+      "gate": "G2",
+      "required_ref": "docs/runtime-spine/evidence/g2-authz-evidence.json",
+      "status": "planned"
+    },
+    {
+      "gate": "G3",
+      "required_ref": "docs/runtime-spine/evidence/g3-audit-evidence.json",
+      "status": "planned"
+    },
+    {
+      "gate": "G4",
+      "required_ref": "docs/runtime-spine/evidence/g4-canonical-model-evidence.json",
+      "status": "planned"
+    },
+    {
+      "gate": "G5",
+      "required_ref": "docs/runtime-spine/evidence/g5-app-runtime-evidence.json",
+      "status": "planned"
+    },
+    {
+      "gate": "G6",
+      "required_ref": "docs/runtime-spine/evidence/g6-runtime-ready-evidence.json",
+      "status": "planned"
+    }
+  ]
+}

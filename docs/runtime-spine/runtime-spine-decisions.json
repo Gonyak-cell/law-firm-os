@@ -1,0 +1,108 @@
+{
+  "schema_version": "law-firm-os.runtime-spine-decisions.v0.1",
+  "baseline_commit": "41268c4becac7d06948d10c173d30635e108c5e1",
+  "owner_identity_policy": "role_names_only_until_owner_supplied_evidence",
+  "repo_implementation_allowed": true,
+  "actual_launch_go_live_claim": false,
+  "decisions": [
+    {
+      "id": "DEC-RS-001",
+      "title": "DB product, hosting, region, backup, RPO/RTO",
+      "owner_role": "Architecture Owner",
+      "state": "timed_deferral",
+      "g0_resolution": "Repo work may implement synthetic-only persistence adapters and migration contracts. Production DB vendor, hosting, region, backup, RPO, and RTO remain owner decisions.",
+      "runtime_implementation_allowed": false,
+      "synthetic_repo_work_allowed": true,
+      "blocks_real_tenant_data": true,
+      "linked_tuw": "RS-PRE-T04"
+    },
+    {
+      "id": "DEC-RS-002",
+      "title": "Tenant deployment model",
+      "owner_role": "Product Owner",
+      "state": "timed_deferral",
+      "g0_resolution": "Initial Runtime Spine implementation targets synthetic/internal tenant only. Shared SaaS, dedicated tenant, and private cloud edition rules remain owner decisions.",
+      "runtime_implementation_allowed": false,
+      "synthetic_repo_work_allowed": true,
+      "blocks_real_tenant_data": true,
+      "linked_tuw": "RS-PRE-T05"
+    },
+    {
+      "id": "DEC-RS-003",
+      "title": "Auth provider and assurance scope",
+      "owner_role": "Security Owner",
+      "state": "timed_deferral",
+      "g0_resolution": "Repo work may add provider-neutral AuthN interfaces and local synthetic auth. Production OIDC, SAML, SCIM, MFA, and passkey choices remain owner decisions.",
+      "runtime_implementation_allowed": false,
+      "synthetic_repo_work_allowed": true,
+      "blocks_real_tenant_data": true,
+      "linked_tuw": "RS-PRE-T06"
+    },
+    {
+      "id": "DEC-RS-004",
+      "title": "SharePoint and OneDrive topology",
+      "owner_role": "Microsoft 365 Owner",
+      "state": "timed_deferral",
+      "g0_resolution": "Vault and M365 work remains export-only, locked, or sandbox-only until topology is approved.",
+      "runtime_implementation_allowed": false,
+      "synthetic_repo_work_allowed": true,
+      "blocks_real_tenant_data": true,
+      "linked_tuw": "RS-5-T15"
+    },
+    {
+      "id": "DEC-RS-005",
+      "title": "Microsoft Graph scope and admin consent",
+      "owner_role": "Microsoft 365 Owner",
+      "state": "timed_deferral",
+      "g0_resolution": "Outlook filing and Graph-backed sync remain locked before admin consent evidence.",
+      "runtime_implementation_allowed": false,
+      "synthetic_repo_work_allowed": true,
+      "blocks_real_tenant_data": true,
+      "linked_tuw": "RS-5-T28"
+    },
+    {
+      "id": "DEC-RS-006",
+      "title": "Canonical identity separation",
+      "owner_role": "Architecture Owner",
+      "state": "accepted_for_repo",
+      "g0_resolution": "User, Employee, ExternalUser, Contact, Candidate, and FormerEmployee must be distinct canonical objects with explicit links.",
+      "runtime_implementation_allowed": true,
+      "synthetic_repo_work_allowed": true,
+      "blocks_real_tenant_data": false,
+      "linked_tuw": "RS-PRE-T07"
+    },
+    {
+      "id": "DEC-RS-007",
+      "title": "Classification taxonomy",
+      "owner_role": "Security Owner",
+      "state": "accepted_for_repo",
+      "g0_resolution": "Runtime Spine uses public, internal, confidential, restricted, privileged, HR-sensitive, and client-confidential classification envelopes.",
+      "runtime_implementation_allowed": true,
+      "synthetic_repo_work_allowed": true,
+      "blocks_real_tenant_data": false,
+      "linked_tuw": "RS-PRE-T08"
+    },
+    {
+      "id": "DEC-RS-008",
+      "title": "Vault initial scope",
+      "owner_role": "Product Owner",
+      "state": "accepted_for_repo",
+      "g0_resolution": "Vault remains export-only for Runtime Spine until import/sync gates and source-of-truth evidence are approved.",
+      "runtime_implementation_allowed": true,
+      "synthetic_repo_work_allowed": true,
+      "blocks_real_tenant_data": false,
+      "linked_tuw": "RS-5-T15"
+    },
+    {
+      "id": "DEC-RS-009",
+      "title": "runtime_ready boundary and go-live cutoff",
+      "owner_role": "Verification Owner",
+      "state": "accepted_for_repo",
+      "g0_resolution": "Runtime-ready candidate requires G6 and RTG-001 through RTG-005. Actual launch/go-live remains a separate owner/external receipt decision.",
+      "runtime_implementation_allowed": true,
+      "synthetic_repo_work_allowed": true,
+      "blocks_real_tenant_data": false,
+      "linked_tuw": "RS-6-T16"
+    }
+  ]
+}

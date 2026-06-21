@@ -1,0 +1,405 @@
+{
+  "schema_version": "law-firm-os.runtime-spine-ledger.v0.1",
+  "baseline_commit": "41268c4becac7d06948d10c173d30635e108c5e1",
+  "program": "Law Firm OS Runtime Spine",
+  "runtime_ready_candidate_claim": false,
+  "actual_launch_go_live_claim": false,
+  "non_weakening_policy_ref": "docs/runtime-spine/non-weakening-policy.md",
+  "decision_register_ref": "docs/runtime-spine/runtime-spine-decisions.json",
+  "evidence_index_ref": "docs/runtime-spine/evidence/runtime-spine-evidence-index.json",
+  "gates": [
+    {
+      "id": "G0",
+      "title": "Runtime Scope Ready",
+      "status": "scope_ready_candidate",
+      "spine": "RS-PRE",
+      "exit_rule": "RS-PRE-T01 through RS-PRE-T10 closed or timed-deferred"
+    },
+    {
+      "id": "G1",
+      "title": "Persistence Ready",
+      "status": "planned_blocked_by_prior_gate",
+      "spine": "RS-1",
+      "exit_rule": "tenant-scoped durable persistence evidence"
+    },
+    {
+      "id": "G2",
+      "title": "Trust Boundary Ready",
+      "status": "planned_blocked_by_prior_gate",
+      "spine": "RS-2",
+      "exit_rule": "server-derived AuthN/AuthZ evidence"
+    },
+    {
+      "id": "G3",
+      "title": "Audit Ready",
+      "status": "planned_blocked_by_prior_gate",
+      "spine": "RS-3",
+      "exit_rule": "non-bypassable durable audit evidence"
+    },
+    {
+      "id": "G4",
+      "title": "Canonical Model Ready",
+      "status": "planned_blocked_by_prior_gate",
+      "spine": "RS-4",
+      "exit_rule": "Client-Matter-People canonical model evidence"
+    },
+    {
+      "id": "G5",
+      "title": "App Runtime Ready",
+      "status": "planned_blocked_by_prior_gate",
+      "spine": "RS-5",
+      "exit_rule": "API/UI write path smoke evidence"
+    },
+    {
+      "id": "G6",
+      "title": "Runtime-ready Candidate",
+      "status": "planned_blocked_by_prior_gate",
+      "spine": "RS-6",
+      "exit_rule": "RTG-001 through RTG-005 evidence"
+    }
+  ],
+  "rtg_summary": [
+    {
+      "id": "RTG-001",
+      "status": "planned",
+      "meaning": "functional runtime path executed"
+    },
+    {
+      "id": "RTG-002",
+      "status": "planned",
+      "meaning": "fail-closed permission runtime path executed"
+    },
+    {
+      "id": "RTG-003",
+      "status": "planned",
+      "meaning": "durable audit append executed"
+    },
+    {
+      "id": "RTG-004",
+      "status": "g0_guarded",
+      "meaning": "synthetic sandbox and no real data guard"
+    },
+    {
+      "id": "RTG-005",
+      "status": "g0_guarded",
+      "meaning": "regression sweep required"
+    }
+  ],
+  "locked_future_domains": [
+    {
+      "domain": "Portal",
+      "status": "locked_until_external_acl_gate"
+    },
+    {
+      "domain": "Outlook/M365",
+      "status": "locked_until_graph_admin_consent_gate"
+    },
+    {
+      "domain": "HR real data",
+      "status": "locked_until_hr_owner_and_identity_gate"
+    },
+    {
+      "domain": "AI",
+      "status": "synthetic_only_until_external_ai_policy_gate"
+    },
+    {
+      "domain": "Vault import/sync",
+      "status": "locked_until_export_only_and_source_boundary_gate"
+    }
+  ],
+  "spines": [
+    {
+      "id": "RS-PRE",
+      "gate": "G0",
+      "status": "scope_ready_candidate",
+      "tuws": [
+        {
+          "id": "RS-PRE-T01",
+          "title": "Runtime Spine Charter",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-spine-charter.md"
+          ]
+        },
+        {
+          "id": "RS-PRE-T02",
+          "title": "Descriptor-only evidence non-weakening policy",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/non-weakening-policy.md"
+          ]
+        },
+        {
+          "id": "RS-PRE-T03",
+          "title": "Runtime boundary map",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-boundary-map.md"
+          ]
+        },
+        {
+          "id": "RS-PRE-T04",
+          "title": "DEC-RS-001 DB/hosting decision record",
+          "status": "timed_deferral",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-spine-decisions.json"
+          ]
+        },
+        {
+          "id": "RS-PRE-T05",
+          "title": "DEC-RS-002 tenant deployment model",
+          "status": "timed_deferral",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-spine-decisions.json"
+          ]
+        },
+        {
+          "id": "RS-PRE-T06",
+          "title": "DEC-RS-003 auth provider decision",
+          "status": "timed_deferral",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-spine-decisions.json"
+          ]
+        },
+        {
+          "id": "RS-PRE-T07",
+          "title": "DEC-RS-006 canonical identity separation",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-spine-decisions.json"
+          ]
+        },
+        {
+          "id": "RS-PRE-T08",
+          "title": "DEC-RS-007 classification decision",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-spine-decisions.json"
+          ]
+        },
+        {
+          "id": "RS-PRE-T09",
+          "title": "Runtime readiness ledger schema",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/runtime-spine-ledger.json"
+          ]
+        },
+        {
+          "id": "RS-PRE-T10",
+          "title": "Baseline runtime measurement",
+          "status": "closed",
+          "loop_stage": "act",
+          "rtg": [
+            "RTG-004",
+            "RTG-005"
+          ],
+          "evidence": [
+            "docs/runtime-spine/baseline-runtime-measurement.md"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RS-1",
+      "gate": "G1",
+      "status": "planned",
+      "tuws": [
+        {"id": "RS-1-T01", "title": "Persistence package", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-1-T02", "title": "DB connection abstraction", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-1-T03", "title": "Tenant base schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-1-T04", "title": "Runtime migration framework", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-1-T05", "title": "Tenant-scoped base repository pattern", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-1-T06", "title": "Stable ID generator", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-1-T07", "title": "Idempotency key table", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-1-T08", "title": "Transaction boundary utility", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-1-T09", "title": "Outbox table", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-1-T10", "title": "Soft delete and lifecycle fields", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-1-T11", "title": "Data residency metadata", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-1-T12", "title": "Backup/restore smoke harness", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-1-T13", "title": "Tenant isolation DB test suite", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-1-T14", "title": "Persistence evidence packet", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]}
+      ]
+    },
+    {
+      "id": "RS-2",
+      "gate": "G2",
+      "status": "planned",
+      "tuws": [
+        {"id": "RS-2-T01", "title": "Auth runtime package", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-2-T02", "title": "User credential/session schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-2-T03", "title": "OIDC/SAML adapter interface", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-2-T04", "title": "Local dev auth provider", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-2-T05", "title": "Server-derived principal builder", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-2-T06", "title": "Tenant membership resolver", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-2-T07", "title": "Role/group resolver", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-2-T08", "title": "MFA/session assurance model", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-2-T09", "title": "AuthZ context builder", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-2-T10", "title": "Existing authz evaluator integration", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-2-T11", "title": "Cross-tenant deny regression", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-2-T12", "title": "Privilege/HR-sensitive policy hooks", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-2-T13", "title": "Break-glass placeholder locked", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-2-T14", "title": "Auth audit event emission hook", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-2-T15", "title": "Auth runtime evidence packet", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"]}
+      ]
+    },
+    {
+      "id": "RS-3",
+      "gate": "G3",
+      "status": "planned",
+      "tuws": [
+        {"id": "RS-3-T01", "title": "Audit runtime package", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-3-T02", "title": "Durable audit table schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-3-T03", "title": "Audit hash-chain persistence", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-3-T04", "title": "Audit event taxonomy mapping", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-3-T05", "title": "Audit writer service", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-3-T06", "title": "Audit middleware for reads", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-3-T07", "title": "Audit middleware for writes", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-3-T08", "title": "Permission evaluation audit", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-3-T09", "title": "Export/share audit", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-3-T10", "title": "Audit read API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-3-T11", "title": "Audit retention policy", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-3-T12", "title": "Audit verification job", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-3-T13", "title": "Audit immutability guard", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-3-T14", "title": "Route audit coverage scanner", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-005"]},
+        {"id": "RS-3-T15", "title": "Audit runtime evidence packet", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]}
+      ]
+    },
+    {
+      "id": "RS-4",
+      "gate": "G4",
+      "status": "planned",
+      "tuws": [
+        {"id": "RS-4-T01", "title": "Canonical object glossary", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-004", "RTG-005"]},
+        {"id": "RS-4-T02", "title": "Tenant/User/Employee schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T03", "title": "Tenant membership/role schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T04", "title": "Person/Organization schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T05", "title": "Client/ClientGroup schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T06", "title": "ExternalUser schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T07", "title": "Matter schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T08", "title": "MatterMember schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T09", "title": "Party/Contact role schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T10", "title": "Document/DocumentVersion schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T11", "title": "EmailThread/EmailMessage schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T12", "title": "Task/Deadline/Event schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T13", "title": "Issue schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T14", "title": "MatterWiki schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T15", "title": "VaultSnapshot schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T16", "title": "Classification envelope schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T17", "title": "Object relationship registry", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T18", "title": "Canonical model seed fixtures", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T19", "title": "Migration compatibility test", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-4-T20", "title": "Canonical model evidence packet", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]}
+      ]
+    },
+    {
+      "id": "RS-5",
+      "gate": "G5",
+      "status": "planned",
+      "tuws": [
+        {"id": "RS-5-T01", "title": "API runtime package/boundary", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-5-T02", "title": "Session API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-005"]},
+        {"id": "RS-5-T03", "title": "Current tenant API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-005"]},
+        {"id": "RS-5-T04", "title": "Client create/list/detail API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-5-T05", "title": "Matter create/list/detail API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-5-T06", "title": "Matter member assign API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-5-T07", "title": "People employee list/detail API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-5-T08", "title": "Party/contact API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-5-T09", "title": "Document metadata API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-5-T10", "title": "Matter document link API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-5-T11", "title": "Task/deadline API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-5-T12", "title": "Issue API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-5-T13", "title": "MatterWiki shell/read API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-5-T14", "title": "MatterWiki update API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-5-T15", "title": "Vault export-only API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-5-T16", "title": "API safe error taxonomy", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-005"]},
+        {"id": "RS-5-T17", "title": "API route audit coverage", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-005"]},
+        {"id": "RS-5-T18", "title": "API permission matrix", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-005"]},
+        {"id": "RS-5-T19", "title": "UI API client layer", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-005"]},
+        {"id": "RS-5-T20", "title": "UI session/tenant wiring", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-005"]},
+        {"id": "RS-5-T21", "title": "UI Client list/create/detail", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-005"]},
+        {"id": "RS-5-T22", "title": "UI Matter list/create/detail", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-005"]},
+        {"id": "RS-5-T23", "title": "UI Matter members/people panel", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-005"]},
+        {"id": "RS-5-T24", "title": "UI tasks/deadlines panel", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-005"]},
+        {"id": "RS-5-T25", "title": "UI wiki panel", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-005"]},
+        {"id": "RS-5-T26", "title": "UI vault export-only action", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-005"]},
+        {"id": "RS-5-T27", "title": "UI denied/review/approval state system", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-005"]},
+        {"id": "RS-5-T28", "title": "Feature flag for portal/email/hr/ai", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-5-T29", "title": "API/UI smoke flow", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-5-T30", "title": "UI/API evidence packet", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"]}
+      ]
+    },
+    {
+      "id": "RS-6",
+      "gate": "G6",
+      "status": "planned",
+      "tuws": [
+        {"id": "RS-6-T01", "title": "Runtime integration test directory", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-005"]},
+        {"id": "RS-6-T02", "title": "Runtime integration harness", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-6-T03", "title": "Test data factory", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-6-T04", "title": "API test runner script", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-005"]},
+        {"id": "RS-6-T05", "title": "npm script registration", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-005"]},
+        {"id": "RS-6-T06", "title": "Tenant isolation E2E", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-6-T07", "title": "AuthN/AuthZ E2E", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-6-T08", "title": "Audit chain E2E", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-6-T09", "title": "Client to Matter E2E", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-6-T10", "title": "Matter to People E2E", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-6-T11", "title": "Matter to Wiki E2E", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-005"]},
+        {"id": "RS-6-T12", "title": "Vault export-only E2E", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-6-T13", "title": "Safe error leakage suite", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-005"]},
+        {"id": "RS-6-T14", "title": "Feature-locked domain suite", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-004", "RTG-005"]},
+        {"id": "RS-6-T15", "title": "Migration reset suite", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-004", "RTG-005"]},
+        {"id": "RS-6-T16", "title": "Runtime readiness validator", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
+        {"id": "RS-6-T17", "title": "RTG-005 responsibility map", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-005"]},
+        {"id": "RS-6-T18", "title": "CI workflow", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-005"]},
+        {"id": "RS-6-T19", "title": "Runtime readiness ledger update", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-005"]},
+        {"id": "RS-6-T20", "title": "Runtime-ready evidence packet", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-002", "RTG-003", "RTG-004", "RTG-005"]}
+      ]
+    }
+  ]
+}
