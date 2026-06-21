@@ -15,7 +15,7 @@ This evidence file records P6 packaging and update progress only. It does not cl
 | --- | --- | --- |
 | MDT-P6-W01-T01 | complete | `docs/desktop/mater-desktop-packaging-decision.md` |
 | MDT-P6-W01-T02 | complete | `apps/desktop/electron-builder.yml`, `scripts/validate-mater-desktop-packaging.mjs`, `apps/desktop/build/icon.svg` |
-| MDT-P6-W01-T03 | pending | not started |
+| MDT-P6-W01-T03 | complete | `docs/lazycodex/evidence/mater-desktop/artifacts/macos-build.md`, `scripts/build-mater-desktop-mac.mjs` |
 | MDT-P6-W01-T04 | pending | not started |
 | MDT-P6-W02-T01 | pending | not started |
 | MDT-P6-W02-T02 | pending | not started |
@@ -84,3 +84,36 @@ Act:
 
 - `MDT-P6-W01-T02` is complete.
 - Next TUW is `MDT-P6-W01-T03`.
+
+## MDT-P6-W01-T03 - Produce macOS Internal Signed Build
+
+Plan:
+
+- Produce an internal macOS app bundle smoke artifact.
+- Sign it with local ad-hoc codesign identity.
+- Record signing identity, notarization state, install smoke result, and release non-claims.
+
+Do:
+
+- Added `scripts/build-mater-desktop-mac.mjs`.
+- Added `build:mac` script to `apps/desktop/package.json`.
+- Generated `docs/lazycodex/evidence/mater-desktop/artifacts/macos-build.md`.
+
+Check:
+
+```bash
+npm --workspace apps/desktop run build:mac
+git diff --check -- scripts/build-mater-desktop-mac.mjs apps/desktop/package.json docs/lazycodex/evidence/mater-desktop/lcx-desk-06-packaging-update.md docs/lazycodex/evidence/mater-desktop/artifacts/macos-build.md
+```
+
+Results:
+
+- macOS internal build command passed.
+- Receipt records signing identity, notarization state, and install smoke result.
+- Public release, production go-live, and owner approval remain false.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P6-W01-T03` is complete.
+- Next TUW is `MDT-P6-W01-T04`.
