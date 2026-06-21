@@ -18,7 +18,7 @@ This evidence file records P2 auth/session progress only. It does not claim prod
 | MDT-P2-W01-T03 | complete | `docs/desktop/mater-desktop-secure-store-policy.md` |
 | MDT-P2-W01-T04 | complete | `contracts/desktop-session-cleanup-contract.json`, `scripts/validate-desktop-session-cleanup-contract.mjs` |
 | MDT-P2-W02-T01 | complete | `apps/desktop/src/main/auth.js`, `apps/desktop/test/auth-coordinator.test.mjs` |
-| MDT-P2-W02-T02 | pending | not started |
+| MDT-P2-W02-T02 | complete | `apps/desktop/src/preload/session.js` |
 | MDT-P2-W02-T03 | pending | not started |
 | MDT-P2-W02-T04 | pending | phase terminal not reached |
 
@@ -195,3 +195,38 @@ Act:
 
 - `MDT-P2-W02-T01` is complete.
 - Next TUW is `MDT-P2-W02-T02`.
+
+## MDT-P2-W02-T02 - Expose Minimal Preload Session API
+
+Plan:
+
+- Add a preload session API with session state and commands only.
+- Use a fixed channel allowlist.
+- Do not export generic `ipcRenderer` or token bodies.
+
+Do:
+
+- Added `apps/desktop/src/preload/session.js`.
+
+Check:
+
+```bash
+rg -n "contextBridge|ipcRenderer|token|localStorage" apps/desktop/src/preload apps/desktop/test
+git diff --check -- apps/desktop/src/preload/session.js docs/lazycodex/evidence/mater-desktop/lcx-desk-02-auth-session.md
+```
+
+Results:
+
+- Preload grep found `contextBridge` and `ipcRenderer` usage only inside the allowlisted session preload file.
+- Existing auth tests keep token body assertions in tests, not in renderer API exports.
+- No `localStorage` token persistence is introduced by the preload API.
+- `git diff --check` passed.
+
+Permission/audit impact:
+
+- Renderer cannot access generic IPC or token bodies.
+
+Act:
+
+- `MDT-P2-W02-T02` is complete.
+- Next TUW is `MDT-P2-W02-T03`.
