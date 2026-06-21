@@ -147,7 +147,7 @@ Done evidence:
 
 ## LCX4 - Client/Matter/People Runtime Flow Drive
 
-Status: pending
+Status: completed
 
 Objective:
 Exercise the three main product flows through actual code surfaces and identify
@@ -169,6 +169,17 @@ Acceptance:
 - Core flows are driven through code, not only read from docs.
 - Remaining gaps are assigned to LCX5 manual QA or LCX6 locked-domain packets.
 - No descriptor-only result is mislabeled as write-runtime.
+
+Done evidence:
+
+- `docs/lazycodex/evidence/lcx4-client-matter-people-runtime-flow.md`
+- Direct Node smoke for Client, Matter, and People package/runtime paths.
+- `npm --workspace @law-firm-os/master-data test`: PASS, 95/95.
+- `npm --workspace @law-firm-os/matter test`: PASS, 104/104.
+- HRX focused runtime tests: PASS, 16/16.
+- `npm run client-matter:cmp-v1:g2:validate`: PASS.
+- `npm run client-matter:cmp-v1:g4:validate`: PASS.
+- `npm run client-matter:cmp-v1:g7:validate`: PASS.
 
 ## LCX5 - UI/API Manual QA Evidence
 
