@@ -16,7 +16,7 @@ This evidence file records P4 file bridge progress only. It does not claim produ
 | MDT-P4-W01-T01 | complete | `contracts/desktop-file-bridge-contract.json`, `scripts/validate-desktop-file-bridge-contract.mjs` |
 | MDT-P4-W01-T02 | complete | `apps/desktop/src/main/fileBridge.js`, `apps/desktop/src/preload/fileBridge.js`, `apps/desktop/test/file-picker-gesture.test.mjs` |
 | MDT-P4-W01-T03 | complete | `docs/desktop/mater-desktop-file-bridge-audit-map.md`, `apps/desktop/src/main/fileBridge.js` |
-| MDT-P4-W01-T04 | pending | not started |
+| MDT-P4-W01-T04 | complete | `scripts/validate-mater-desktop-file-bridge.mjs` |
 | MDT-P4-W02-T01 | pending | not started |
 | MDT-P4-W02-T02 | pending | not started |
 | MDT-P4-W02-T03 | pending | not started |
@@ -121,3 +121,37 @@ Act:
 
 - `MDT-P4-W01-T03` is complete.
 - Next TUW is `MDT-P4-W01-T04`.
+
+## MDT-P4-W01-T04 - Add No Silent Scan Static Guard
+
+Plan:
+
+- Add a static validator for forbidden desktop file bridge filesystem authority.
+- Prove the validator catches directory watch, recursive scan, arbitrary path read, arbitrary path write, and path retention patterns.
+- Remove selected absolute path retention from the current file bridge state.
+
+Do:
+
+- Added `scripts/validate-mater-desktop-file-bridge.mjs`.
+- Updated `apps/desktop/src/main/fileBridge.js` to store renderer-safe metadata, not raw absolute file paths.
+- Updated `apps/desktop/test/file-picker-gesture.test.mjs` for the no-retained-path expectation.
+
+Check:
+
+```bash
+node scripts/validate-mater-desktop-file-bridge.mjs
+node apps/desktop/test/file-picker-gesture.test.mjs
+git diff --check -- scripts/validate-mater-desktop-file-bridge.mjs apps/desktop/src/main/fileBridge.js apps/desktop/test/file-picker-gesture.test.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-04-file-bridge.md
+```
+
+Results:
+
+- File bridge static validator passed.
+- Probes detected directory watch, recursive scan, arbitrary path read, arbitrary path write, and path retention.
+- Gesture tests still passed.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P4-W01` is closed at its terminal TUW, `MDT-P4-W01-T04`.
+- Next ledger TUW is `MDT-P4-W02-T01`.

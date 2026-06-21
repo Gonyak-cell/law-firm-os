@@ -51,7 +51,8 @@ test("file picker opens only after a scoped gesture token", async () => {
   assert.equal(result.file.handleId, "handle-001");
   assert.equal(result.file.name, "pleading.pdf");
   assert.equal(result.file.pathVisibleToRenderer, false);
-  assert.equal(controller.getSelectedHandleForTest("handle-001").filePath, "/Users/example/Documents/pleading.pdf");
+  assert.equal(controller.getSelectedHandleForTest("handle-001").filePath, undefined);
+  assert.equal(controller.getSelectedHandleForTest("handle-001").name, "pleading.pdf");
 });
 
 test("preload file bridge exposes only allowlisted trusted gesture command", async () => {

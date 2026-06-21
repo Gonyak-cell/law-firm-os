@@ -148,7 +148,8 @@ export function createFileBridgeController({
 
       const filePath = result.filePaths[0];
       const handleId = createHandleId();
-      selectedHandles.set(handleId, { filePath, selectedAt: Date.now() });
+      const metadata = selectedFileMetadata(filePath, handleId);
+      selectedHandles.set(handleId, { ...metadata, selectedAt: Date.now() });
       await recordAuditEvent({
         auditLogger,
         actionId: "choose_file_for_upload",
@@ -157,7 +158,7 @@ export function createFileBridgeController({
       });
       return {
         state: "selected",
-        file: selectedFileMetadata(filePath, handleId)
+        file: metadata
       };
     },
     getSelectedHandleForTest(handleId) {
