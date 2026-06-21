@@ -32,7 +32,7 @@
     {
       "id": "G3",
       "title": "Audit Ready",
-      "status": "planned_blocked_by_prior_gate",
+      "status": "ready_candidate",
       "spine": "RS-3",
       "exit_rule": "non-bypassable durable audit evidence"
     },
@@ -433,23 +433,23 @@
     {
       "id": "RS-3",
       "gate": "G3",
-      "status": "planned",
+      "status": "ready_candidate",
       "tuws": [
-        {"id": "RS-3-T01", "title": "Audit runtime package", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-3-T02", "title": "Durable audit table schema", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-001", "RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-3-T03", "title": "Audit hash-chain persistence", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-3-T04", "title": "Audit event taxonomy mapping", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-3-T05", "title": "Audit writer service", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-3-T06", "title": "Audit middleware for reads", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-3-T07", "title": "Audit middleware for writes", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-3-T08", "title": "Permission evaluation audit", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-3-T09", "title": "Export/share audit", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-3-T10", "title": "Audit read API", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-3-T11", "title": "Audit retention policy", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-3-T12", "title": "Audit verification job", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-3-T13", "title": "Audit immutability guard", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]},
-        {"id": "RS-3-T14", "title": "Route audit coverage scanner", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-005"]},
-        {"id": "RS-3-T15", "title": "Audit runtime evidence packet", "status": "planned", "loop_stage": "plan", "rtg": ["RTG-003", "RTG-004", "RTG-005"]}
+        {"id": "RS-3-T01", "title": "Audit runtime package", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-writer.js", "packages/audit/src/index.js"]},
+        {"id": "RS-3-T02", "title": "Durable audit table schema", "status": "closed", "loop_stage": "act", "rtg": ["RTG-001", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-taxonomy.js", "packages/audit/src/events.js"]},
+        {"id": "RS-3-T03", "title": "Audit hash-chain persistence", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-writer.js", "packages/audit/test/runtime-audit-writer.test.js"]},
+        {"id": "RS-3-T04", "title": "Audit event taxonomy mapping", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-taxonomy.js", "packages/audit/test/runtime-route-coverage.test.js"]},
+        {"id": "RS-3-T05", "title": "Audit writer service", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-writer.js", "packages/audit/test/runtime-audit-writer.test.js"]},
+        {"id": "RS-3-T06", "title": "Audit middleware for reads", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-middleware.js", "packages/audit/test/runtime-audit-middleware.test.js"]},
+        {"id": "RS-3-T07", "title": "Audit middleware for writes", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-middleware.js", "packages/audit/test/runtime-audit-middleware.test.js"]},
+        {"id": "RS-3-T08", "title": "Permission evaluation audit", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-middleware.js", "packages/audit/test/runtime-audit-middleware.test.js"]},
+        {"id": "RS-3-T09", "title": "Export/share audit", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-middleware.js", "packages/audit/test/runtime-audit-middleware.test.js"]},
+        {"id": "RS-3-T10", "title": "Audit read API", "status": "closed", "loop_stage": "act", "rtg": ["RTG-002", "RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-reader.js", "packages/audit/test/runtime-audit-read-retention.test.js"]},
+        {"id": "RS-3-T11", "title": "Audit retention policy", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/retention.js", "packages/audit/test/runtime-audit-read-retention.test.js"]},
+        {"id": "RS-3-T12", "title": "Audit verification job", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/verify-job.js", "packages/audit/test/runtime-audit-read-retention.test.js"]},
+        {"id": "RS-3-T13", "title": "Audit immutability guard", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["packages/audit/src/runtime-immutability.js", "packages/audit/test/runtime-audit-writer.test.js"]},
+        {"id": "RS-3-T14", "title": "Route audit coverage scanner", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-005"], "evidence": ["packages/audit/src/runtime-route-coverage.js", "packages/audit/test/runtime-route-coverage.test.js"]},
+        {"id": "RS-3-T15", "title": "Audit runtime evidence packet", "status": "closed", "loop_stage": "act", "rtg": ["RTG-003", "RTG-004", "RTG-005"], "evidence": ["docs/runtime-spine/evidence/g3-audit-evidence.json", "scripts/validate-runtime-spine-rs3-audit.mjs"]}
       ]
     },
     {

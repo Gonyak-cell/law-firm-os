@@ -22,7 +22,8 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
   const deferredTuws = allTuws.filter((tuw) => tuw.status === "timed_deferral");
   const rs1Closed = closedTuws.filter((tuw) => tuw.spine === "RS-1");
   const g2ReadyCandidate = (ledger.gates ?? []).find((gate) => gate.id === "G2")?.status === "ready_candidate";
-  const allowedClosedSpines = new Set(["RS-PRE", "RS-1", ...(g2ReadyCandidate ? ["RS-2"] : [])]);
+  const g3ReadyCandidate = (ledger.gates ?? []).find((gate) => gate.id === "G3")?.status === "ready_candidate";
+  const allowedClosedSpines = new Set(["RS-PRE", "RS-1", ...(g2ReadyCandidate ? ["RS-2"] : []), ...(g3ReadyCandidate ? ["RS-3"] : [])]);
   const prematureClosed = closedTuws.filter((tuw) => !allowedClosedSpines.has(tuw.spine));
 
   const assert = (condition, message) => {
@@ -47,7 +48,8 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
     if (gate.id === "G0") assert(gate.status === "scope_ready_candidate", "G0 must be scope_ready_candidate");
     if (gate.id === "G1") assert(["planned_blocked_by_prior_gate", "in_progress", "ready_candidate"].includes(gate.status), "G1 has invalid readiness progression status");
     if (gate.id === "G2") assert(["planned_blocked_by_prior_gate", "in_progress", "ready_candidate"].includes(gate.status), "G2 has invalid readiness progression status");
-    if (!["G0", "G1", "G2"].includes(gate.id)) assert(gate.status === "planned_blocked_by_prior_gate", `${gate.id} must remain planned_blocked_by_prior_gate`);
+    if (gate.id === "G3") assert(["planned_blocked_by_prior_gate", "in_progress", "ready_candidate"].includes(gate.status), "G3 has invalid readiness progression status");
+    if (!["G0", "G1", "G2", "G3"].includes(gate.id)) assert(gate.status === "planned_blocked_by_prior_gate", `${gate.id} must remain planned_blocked_by_prior_gate`);
   }
 
   if (errors.length > 0) {
@@ -62,7 +64,7 @@ export async function validateRuntimeSpineReadiness({ silent = false } = {}) {
     console.log(`g0_timed_deferrals: ${deferredTuws.length}`);
     console.log(`rs1_closed_tuws: ${rs1Closed.length}`);
     console.log(`premature_closed_tuws: ${prematureClosed.length}`);
-    console.log(`next_gate: ${g2ReadyCandidate ? "G3 Audit Ready" : (g1ReadyCandidate ? "G2 Trust Boundary Ready" : "G1 Persistence Ready")}`);
+    console.log(`next_gate: ${g3ReadyCandidate ? "G4 Canonical Model Ready" : (g2ReadyCandidate ? "G3 Audit Ready" : (g1ReadyCandidate ? "G2 Trust Boundary Ready" : "G1 Persistence Ready"))}`);
   }
 
   return { ok: true, errors: [], closedCount: closedTuws.length, deferredCount: deferredTuws.length };

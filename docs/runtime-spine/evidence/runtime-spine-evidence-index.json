@@ -18,6 +18,7 @@
     "docs/runtime-spine/runtime-spine-ledger.json",
     "docs/runtime-spine/evidence/g1-persistence-evidence.json",
     "docs/runtime-spine/evidence/g2-trust-boundary-evidence.json",
+    "docs/runtime-spine/evidence/g3-audit-evidence.json",
     "docs/runtime-spine/qa-checklist.md",
     "docs/runtime-spine/rollback-migration-notes.md"
   ],
@@ -28,6 +29,7 @@
     "npm run runtime-spine:rs1:tenant-data:validate",
     "npm run runtime-spine:rs1:persistence-ready:validate",
     "npm run runtime-spine:rs2:trust-boundary:validate",
+    "npm run runtime-spine:rs3:audit:validate",
     "npm run runtime-readiness:contract:validate",
     "npm run runtime-readiness:validate",
     "npm run client-matter:cmp-v1:validate",
@@ -272,6 +274,68 @@
       }
     }
   },
+  "latest_rs3_validation": {
+    "status": "passed",
+    "recorded_after_commands": true,
+    "date": "2026-06-21",
+    "summary": {
+      "scope": "RS-3 Audit Ready Candidate",
+      "closed_tuws": [
+        "RS-3-T01",
+        "RS-3-T02",
+        "RS-3-T03",
+        "RS-3-T04",
+        "RS-3-T05",
+        "RS-3-T06",
+        "RS-3-T07",
+        "RS-3-T08",
+        "RS-3-T09",
+        "RS-3-T10",
+        "RS-3-T11",
+        "RS-3-T12",
+        "RS-3-T13",
+        "RS-3-T14",
+        "RS-3-T15"
+      ],
+      "g3_status": "ready_candidate",
+      "append_only_writer": true,
+      "non_bypassable_middleware": true,
+      "hash_chain": true,
+      "route_coverage_scanner": true,
+      "runtime_ready_candidate": false,
+      "actual_launch_go_live_claim": false,
+      "commands": [
+        "npm --workspace @law-firm-os/audit run test",
+        "npm run runtime-spine:rs3:audit:validate",
+        "npm run runtime-spine:rs2:trust-boundary:validate",
+        "npm run runtime-spine:plan:validate",
+        "npm run runtime-spine:readiness:validate",
+        "npm run runtime-readiness:validate",
+        "npm run client-matter:cmp-v1:validate",
+        "npm run matter-vault:r4:validate",
+        "npm run hrx:runtime:validate",
+        "npm run validate",
+        "npm run api:test",
+        "npm run build",
+        "npm test"
+      ],
+      "results": {
+        "audit_package_test": "passed; 115/115",
+        "rs3_audit_validator": "passed",
+        "rs2_trust_boundary_validator": "passed",
+        "runtime_spine_plan": "passed; gates=7; tuws=124",
+        "runtime_spine_readiness_guard": "passed; total_closed_tuws=51; rs1_closed_tuws=14; premature_closed_tuws=0; next_gate=G4",
+        "runtime_readiness": "passed; runtime_target_packs=0",
+        "client_matter_cmp_v1": "passed; tuws=316; gates=13; claim_boundary=not_r4_ready",
+        "matter_vault_r4": "passed; tuws=118; gates=9; launch_go_live_claim=false",
+        "hrx_runtime": "passed",
+        "root_validate": "passed",
+        "api_test": "passed; 131/131",
+        "build": "passed",
+        "root_test": "passed; 4033/4033"
+      }
+    }
+  },
   "future_evidence_slots": [
     {
       "gate": "G1",
@@ -287,7 +351,7 @@
     {
       "gate": "G3",
       "required_ref": "docs/runtime-spine/evidence/g3-audit-evidence.json",
-      "status": "planned"
+      "status": "ready_candidate"
     },
     {
       "gate": "G4",
