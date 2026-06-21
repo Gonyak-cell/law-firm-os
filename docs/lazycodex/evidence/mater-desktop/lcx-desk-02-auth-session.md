@@ -17,7 +17,7 @@ This evidence file records P2 auth/session progress only. It does not claim prod
 | MDT-P2-W01-T02 | complete | `contracts/desktop-deep-link-contract.json` |
 | MDT-P2-W01-T03 | complete | `docs/desktop/mater-desktop-secure-store-policy.md` |
 | MDT-P2-W01-T04 | complete | `contracts/desktop-session-cleanup-contract.json`, `scripts/validate-desktop-session-cleanup-contract.mjs` |
-| MDT-P2-W02-T01 | pending | not started |
+| MDT-P2-W02-T01 | complete | `apps/desktop/src/main/auth.js`, `apps/desktop/test/auth-coordinator.test.mjs` |
 | MDT-P2-W02-T02 | pending | not started |
 | MDT-P2-W02-T03 | pending | not started |
 | MDT-P2-W02-T04 | pending | phase terminal not reached |
@@ -158,3 +158,40 @@ Act:
 
 - `MDT-P2-W01` is closed at its terminal TUW, `MDT-P2-W01-T04`.
 - Next ledger TUW is `MDT-P2-W02-T01`.
+
+## MDT-P2-W02-T01 - Implement Main-Process Auth Coordinator
+
+Plan:
+
+- Implement a main-process PKCE coordinator.
+- Keep token material in secure store only.
+- Return session status only to renderer-facing callers.
+
+Do:
+
+- Added `apps/desktop/src/main/auth.js`.
+- Added `apps/desktop/test/auth-coordinator.test.mjs`.
+
+Check:
+
+```bash
+node apps/desktop/test/auth-coordinator.test.mjs
+git diff --check -- apps/desktop/src/main/auth.js apps/desktop/test/auth-coordinator.test.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-02-auth-session.md
+```
+
+Results:
+
+- Auth coordinator tests passed.
+- Tests prove PKCE login starts without exposing verifier or token bodies.
+- Tests prove token material is stored in secure store and returned session status omits token bodies.
+- Tests prove state mismatch is rejected and logout clears secure-store state.
+- `git diff --check` passed.
+
+Permission/audit impact:
+
+- Renderer receives session status only.
+
+Act:
+
+- `MDT-P2-W02-T01` is complete.
+- Next TUW is `MDT-P2-W02-T02`.
