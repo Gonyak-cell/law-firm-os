@@ -1,7 +1,8 @@
 import { basename, extname } from "node:path";
 
 export const FILE_BRIDGE_CHANNELS = Object.freeze({
-  chooseFileForUpload: "fileBridge:choose-file-for-upload"
+  chooseFileForUpload: "fileBridge:choose-file-for-upload",
+  saveDocumentAs: "fileBridge:save-document-as"
 });
 
 export const FILE_BRIDGE_AUDIT_MAP = Object.freeze({
@@ -99,10 +100,15 @@ export function createFileBridgeController({
     }
   },
   auditLogger = { async record() {} },
+  documentWriter = {
+    async writeUserSelectedFile() {
+      throw new FileBridgeError("DOCUMENT_WRITER_MISSING", "Save-as requires a document writer adapter");
+    }
+  },
   createHandleId = () => `file-handle-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   pickerOptions = { properties: ["openFile"] }
 } = {}) {
-  if (!dialog || typeof dialog.showOpenDialog !== "function") {
+  if (!dialog) {
     throw new Error("File bridge requires an Electron dialog adapter");
   }
 
@@ -110,6 +116,9 @@ export function createFileBridgeController({
 
   return {
     async chooseFileForUpload(request = {}) {
+      if (typeof dialog.showOpenDialog !== "function") {
+        throw new Error("File upload bridge requires an Electron open dialog adapter");
+      }
       assertUserGestureContext(request);
       let precheck;
       try {
@@ -167,6 +176,75 @@ export function createFileBridgeController({
         }
       };
     },
+    async saveDocumentAs(request = {}) {
+      if (typeof dialog.showSaveDialog !== "function") {
+        throw new Error("Save-as bridge requires an Electron save dialog adapter");
+      }
+      assertUserGestureContext(request);
+      let precheck;
+      try {
+        precheck = await runPermissionPrecheck({
+          permissionClient,
+          actionId: "save_document_as",
+          request
+        });
+      } catch (error) {
+        await recordAuditEvent({
+          auditLogger,
+          actionId: "save_document_as",
+          eventName: FILE_BRIDGE_AUDIT_MAP.save_document_as.auditEvents.precheckDenied,
+          payload: { reason: error.code ?? "unknown" }
+        });
+        throw error;
+      }
+
+      await recordAuditEvent({
+        auditLogger,
+        actionId: "save_document_as",
+        eventName: FILE_BRIDGE_AUDIT_MAP.save_document_as.auditEvents.precheckAllowed,
+        payload: { decisionId: precheck.decisionId }
+      });
+
+      const result = await dialog.showSaveDialog({
+        title: request.title ?? "Save mater document",
+        defaultPath: request.suggestedName ?? "mater-document"
+      });
+
+      if (result.canceled || !result.filePath) {
+        return { state: "cancelled" };
+      }
+
+      await recordAuditEvent({
+        auditLogger,
+        actionId: "save_document_as",
+        eventName: FILE_BRIDGE_AUDIT_MAP.save_document_as.auditEvents.saveDialogOpened,
+        payload: { decisionId: precheck.decisionId }
+      });
+
+      await documentWriter.writeUserSelectedFile({
+        filePath: result.filePath,
+        documentId: request.documentId,
+        bytes: request.bytes
+      });
+
+      await recordAuditEvent({
+        auditLogger,
+        actionId: "save_document_as",
+        eventName: FILE_BRIDGE_AUDIT_MAP.save_document_as.auditEvents.saveCompleted,
+        payload: { decisionId: precheck.decisionId }
+      });
+
+      return {
+        state: "saved",
+        file: selectedFileMetadata(result.filePath, request.documentId ?? "saved-document"),
+        backendDownload: {
+          actionId: "save_document_as",
+          documentId: request.documentId,
+          permissionDecisionId: precheck.decisionId ?? null,
+          pathVisibleToRenderer: false
+        }
+      };
+    },
     getSelectedHandleForTest(handleId) {
       return selectedHandles.get(handleId);
     }
@@ -175,4 +253,5 @@ export function createFileBridgeController({
 
 export function registerFileBridgeIpcHandlers({ ipcMain, controller }) {
   ipcMain.handle(FILE_BRIDGE_CHANNELS.chooseFileForUpload, (_event, request) => controller.chooseFileForUpload(request));
+  ipcMain.handle(FILE_BRIDGE_CHANNELS.saveDocumentAs, (_event, request) => controller.saveDocumentAs(request));
 }

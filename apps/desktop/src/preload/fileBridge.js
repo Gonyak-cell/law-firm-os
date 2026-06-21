@@ -1,7 +1,8 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 export const PRELOAD_CHANNEL_ALLOWLIST = Object.freeze({
-  chooseFileForUpload: "fileBridge:choose-file-for-upload"
+  chooseFileForUpload: "fileBridge:choose-file-for-upload",
+  saveDocumentAs: "fileBridge:save-document-as"
 });
 
 export const TRUSTED_GESTURE_TYPES = Object.freeze(["click", "keydown", "drop"]);
@@ -26,6 +27,11 @@ function invokeAllowed(command, payload) {
 export const fileBridgeApi = Object.freeze({
   chooseFileForUpload: (event, request = {}) =>
     invokeAllowed("chooseFileForUpload", {
+      ...request,
+      ...createGestureContext(event)
+    }),
+  saveDocumentAs: (event, request = {}) =>
+    invokeAllowed("saveDocumentAs", {
       ...request,
       ...createGestureContext(event)
     })

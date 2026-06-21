@@ -18,7 +18,7 @@ This evidence file records P4 file bridge progress only. It does not claim produ
 | MDT-P4-W01-T03 | complete | `docs/desktop/mater-desktop-file-bridge-audit-map.md`, `apps/desktop/src/main/fileBridge.js` |
 | MDT-P4-W01-T04 | complete | `scripts/validate-mater-desktop-file-bridge.mjs` |
 | MDT-P4-W02-T01 | complete | `apps/desktop/src/main/fileBridge.js`, `apps/desktop/test/file-upload-bridge.test.mjs` |
-| MDT-P4-W02-T02 | pending | not started |
+| MDT-P4-W02-T02 | complete | `apps/desktop/src/main/fileBridge.js`, `apps/desktop/test/file-save-as.test.mjs` |
 | MDT-P4-W02-T03 | pending | not started |
 | MDT-P4-W02-T04 | pending | not started |
 | MDT-P4-W02-T05 | pending | phase terminal not reached |
@@ -189,3 +189,38 @@ Act:
 
 - `MDT-P4-W02-T01` is complete.
 - Next TUW is `MDT-P4-W02-T02`.
+
+## MDT-P4-W02-T02 - Implement Save-Document-As Handler
+
+Plan:
+
+- Add save-as handling behind user gesture and backend permission precheck.
+- Use native save dialog before any writer adapter call.
+- Prove denied and cancelled paths do not write to a default path silently.
+
+Do:
+
+- Updated `apps/desktop/src/main/fileBridge.js`.
+- Updated `apps/desktop/src/preload/fileBridge.js`.
+- Added `apps/desktop/test/file-save-as.test.mjs`.
+
+Check:
+
+```bash
+node apps/desktop/test/file-save-as.test.mjs
+node scripts/validate-mater-desktop-file-bridge.mjs
+git diff --check -- apps/desktop/src/main/fileBridge.js apps/desktop/src/preload/fileBridge.js apps/desktop/test/file-save-as.test.mjs docs/lazycodex/evidence/mater-desktop/lcx-desk-04-file-bridge.md
+```
+
+Results:
+
+- Save-as bridge tests passed.
+- Denied precheck does not open the save dialog.
+- Cancelled save dialog does not call the writer adapter.
+- File bridge static validator passed.
+- `git diff --check` passed.
+
+Act:
+
+- `MDT-P4-W02-T02` is complete.
+- Next TUW is `MDT-P4-W02-T03`.
