@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
 import test from "node:test";
 import { MainProcessAuthCoordinator, memorySecureStore } from "../src/main/auth.js";
+import { desktopPreloadPath } from "../src/main/main.js";
 
 function fakeCache() {
   return {
@@ -62,7 +62,7 @@ test("logout clears secure store and registered cache stores", async () => {
 });
 
 test("preload session API source does not expose token storage APIs", async () => {
-  const preloadSource = await readFile(resolve("src/preload/session.js"), "utf8");
+  const preloadSource = await readFile(desktopPreloadPath(), "utf8");
 
   assert.doesNotMatch(preloadSource, /localStorage|sessionStorage|indexedDB/);
   assert.doesNotMatch(preloadSource, /access_token|refresh_token|id_token/);

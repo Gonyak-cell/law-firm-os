@@ -32,7 +32,7 @@ export function packagedRendererUrl() {
 }
 
 export function desktopPreloadPath() {
-  return join(moduleDir, "../preload/session.js");
+  return join(moduleDir, "../preload/session.cjs");
 }
 
 export function rendererTargetFromEnv(env = process.env) {
@@ -80,8 +80,23 @@ export async function startElectronApp() {
   return startDesktopShell({ BrowserWindowConstructor: BrowserWindow, ipcMain, coordinator });
 }
 
-export function isMainEntryPoint({ argv = process.argv, versions = process.versions } = {}) {
-  return Boolean(versions.electron && argv[1] && fileURLToPath(import.meta.url) === argv[1]);
+export function isMainEntryPoint({
+  argv = process.argv,
+  versions = process.versions,
+  defaultApp = process.defaultApp,
+  resourcesPath = process.resourcesPath,
+  modulePath = fileURLToPath(import.meta.url)
+} = {}) {
+  if (!versions.electron) return false;
+  if (defaultApp === false) return true;
+  if (resourcesPath && modulePath.startsWith(join(resourcesPath, "app"))) return true;
+  return argv.slice(1).some((argument) => {
+    try {
+      return decodeURIComponent(argument) === modulePath;
+    } catch {
+      return argument === modulePath;
+    }
+  });
 }
 
 if (isMainEntryPoint()) {

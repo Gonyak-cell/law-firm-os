@@ -9,7 +9,7 @@
     "implementation_validator": "npm run matter-vault:r4:validate",
     "readiness_validator": "npm run matter-vault:r4:readiness"
   },
-  "current_boundary": "repo_implementation_evidence_closeout_complete__owner_authority_received__external_execution_authorized__external_receipts_absent",
+  "current_boundary": "repo_implementation_evidence_closeout_complete__owner_authority_received__external_receipts_received__desktop_qa_complete__pending_final_go_live_decision",
   "target_state": "owner_authorized_launch_with_external_smoke_and_migration_receipts",
   "claim_policy": {
     "owner_signoff_required": true,
@@ -86,13 +86,21 @@
       "name": "Owner release authority",
       "command": "manual owner release receipt",
       "required_state": "signed_before_any_launch_claim"
+    },
+    {
+      "id": "MV-LG-12",
+      "name": "Desktop screen QA",
+      "command": "npm run matter-desktop:screen-qa",
+      "required_state": "pass_aws_temporary_runtime_screen_qa"
     }
   ],
   "known_limitations": [
     "This contract is an evidence checklist, not release authority.",
-    "External production smoke evidence is not present in this repo lane.",
+    "Production-equivalent desktop runtime smoke evidence is present in this repo lane.",
     "Owner release authority is present for release/cutover progression only.",
-    "Production migration operator evidence is not present in this repo lane.",
+    "Production migration operator evidence is present for pilot tenant dry-run only.",
+    "Desktop screen QA is passed against the AWS temporary runtime.",
+    "R4 full business smoke remains required before real production cutover.",
     "Matter remains case execution owner; Vault/DMS remains document owner."
   ]
 }

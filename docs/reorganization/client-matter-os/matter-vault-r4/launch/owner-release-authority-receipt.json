@@ -12,14 +12,15 @@
   },
   "scope": "release_cutover_progression",
   "owner_release_authority_received": true,
-  "external_production_smoke_receipt_received": false,
-  "production_migration_operator_receipt_received": false,
+  "external_production_smoke_receipt_received": true,
+  "production_migration_operator_receipt_received": true,
+  "desktop_screen_qa_receipt_received": true,
   "launch_authorization_claim": false,
   "go_live_claim": false,
   "production_ready_claim": false,
   "approval_text": [
     "승인합니다.",
     "2026-06-20 기준 Matter-Vault R4의 repo implementation/evidence closeout 및 launch-readiness gate를 확인했습니다. PR #67, #68, #69 및 merge commit 75f82b3b87f45e95ffbb3d50f2f39982fc3ea239 기준으로 Matter-Vault R4 release/cutover 진행을 owner authority로 승인합니다.",
-    "단, 이 승인은 owner release authority에 대한 승인입니다. External production smoke receipt와 production migration operator receipt가 첨부되기 전까지 actual launch/go-live completed 또는 production-ready completed로 주장하지 않습니다."
+    "단, 이 승인은 owner release authority에 대한 승인입니다. External production-equivalent desktop runtime smoke, pilot tenant dry-run migration operator receipt, desktop screen QA가 첨부되었더라도, 별도 final go-live decision과 post-cutover watch evidence 전까지 actual launch/go-live completed 또는 production-ready completed로 주장하지 않습니다."
   ]
 }

@@ -1,9 +1,9 @@
 # Matter-Vault R4 Production Smoke Plan
 
-Status: external-receipt-required
-Date: 2026-06-20
+Status: production-equivalent-desktop-runtime-received
+Date: 2026-06-22
 
-This plan defines smoke evidence expected from the operator. It is not an external production receipt.
+This plan defines smoke evidence expected from the operator. Production-equivalent desktop runtime smoke is received, but this plan is not final go-live authority. R4 full business smoke remains required before real production cutover.
 
 ## Smoke Cases
 
@@ -23,3 +23,7 @@ This plan defines smoke evidence expected from the operator. It is not an extern
 ## Receipt Rule
 
 The operator must attach environment, commit SHA, timestamp, actor, tenant, command/API evidence, and pass/fail result. Pending smoke cases do not authorize launch.
+
+## Current Receipt
+
+Production-equivalent desktop runtime smoke is received in `launch/external-production-smoke-receipt.json` for the AWS-generated `execute-api` endpoint. The receipt proves operator-token protection, password reset, password login, `jwsuh@amic.kr` system-super-admin access, and general-account admin denial. It does not prove the full R4 business smoke cases above against a real production application runtime.
