@@ -1,0 +1,94 @@
+{
+  "schema_version": "matter.lcx-web.live-data-verification.v1",
+  "generated_at": "2026-06-22T04:47:22.819Z",
+  "base_url": "http://127.0.0.1:5174",
+  "api_base": "http://127.0.0.1:4180 via vite dev proxy",
+  "source_of_truth": "apps/web",
+  "passed": true,
+  "console_errors_recorded_not_gated": [
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/ui/audit",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/enterprise/audit",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/ui/audit",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/enterprise/audit",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/ui/audit",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/enterprise/audit",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+  ],
+  "results": [
+    {
+      "name": "home-command-center-cards",
+      "url": "/?locale=en&view=home&desktop=1&data=live&ctx=allow",
+      "passed": true,
+      "detail": {
+        "capability_cards": 12,
+        "release_boundary_visible": true,
+        "status_labels": [
+          "live",
+          "live",
+          "live",
+          "live",
+          "live",
+          "live",
+          "live",
+          "live",
+          "live",
+          "unavailable",
+          "live",
+          "live"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "clients-live-or-unavailable",
+      "url": "/?locale=en&view=clients&data=live&ctx=allow",
+      "passed": true,
+      "detail": {
+        "denied": 0,
+        "review": 0,
+        "unavailable": 0,
+        "table_rows": 1
+      },
+      "error": null
+    },
+    {
+      "name": "clients-denied-visible",
+      "url": "/?locale=en&view=clients&data=live&ctx=denied",
+      "passed": true,
+      "detail": {
+        "state_text": "Access denied The permission gate blocked this ClientGroup request. No client rows are shown."
+      },
+      "error": null
+    },
+    {
+      "name": "clients-review-visible",
+      "url": "/?locale=en&view=clients&data=live&ctx=review",
+      "passed": true,
+      "detail": {
+        "state_text": "Review required This ClientGroup request requires review before the client rows can be displayed."
+      },
+      "error": null
+    },
+    {
+      "name": "vault-denied-visible",
+      "url": "/?locale=en&view=vault&data=live&ctx=denied",
+      "passed": true,
+      "detail": {
+        "state_text": "Access denied Permission recheck denied this document workspace. No row counts, snippets, citations, or document metadata are shown."
+      },
+      "error": null
+    },
+    {
+      "name": "ops-release-boundary-visible",
+      "url": "/?locale=en&view=ops&data=live&ctx=allow",
+      "passed": true,
+      "detail": {
+        "go_no_go_visible": true,
+        "blocked_boundary_visible": true
+      },
+      "error": null
+    }
+  ]
+}

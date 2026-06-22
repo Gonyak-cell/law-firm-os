@@ -261,7 +261,7 @@ export function DataTableBuilderSurface({ showPicker }) {
                 <button className="active">Events</button>
                 <button>Metrics</button>
               </div>
-              <h3>Amplitude</h3>
+              <h3>matter events</h3>
               {eventOptions.map((event) => (
                 <button key={event} className="event-option">
                   <Activity size={14} />

@@ -1,0 +1,390 @@
+{
+  "schema_version": "matter.lcx-web.runtime-verification.v1",
+  "generated_at": "2026-06-22T04:47:30.069Z",
+  "base_url": "http://127.0.0.1:5174",
+  "source_of_truth": "apps/web",
+  "passed": true,
+  "console_errors_recorded_not_gated": [
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/ui/audit",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/enterprise/audit",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/ui/audit",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/enterprise/audit",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/ui/audit",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/enterprise/audit",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/ui/audit",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/enterprise/audit",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/ui/audit",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/enterprise/audit",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/ui/audit",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/enterprise/audit"
+  ],
+  "mobile_metrics": {
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "horizontalOverflow": false,
+    "capabilityCards": 12
+  },
+  "results": [
+    {
+      "name": "desktop-home-command-center",
+      "url": "/?locale=en&view=home&desktop=1&data=live&ctx=allow",
+      "expectText": "matter command center",
+      "passed": true,
+      "textFound": 1,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 12,
+        "visibleLiveStates": [
+          "live",
+          "live",
+          "live",
+          "live",
+          "live",
+          "live",
+          "live",
+          "live",
+          "live",
+          "unavailable",
+          "live",
+          "live"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "clients-live",
+      "url": "/?locale=en&view=clients&data=live&ctx=allow",
+      "expectText": "Clients",
+      "passed": true,
+      "textFound": 3,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": []
+      },
+      "error": null
+    },
+    {
+      "name": "matters-live",
+      "url": "/?locale=en&view=matters&data=live&ctx=allow",
+      "expectText": "Matter Home",
+      "passed": true,
+      "textFound": 2,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": [
+          "No linked workspaceThis Matter has no active MatterVaultLink yet."
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "vault-live",
+      "url": "/?locale=en&view=vault&data=live&ctx=allow",
+      "expectText": "Matter Vault",
+      "passed": true,
+      "textFound": 2,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": []
+      },
+      "error": null
+    },
+    {
+      "name": "portal-live",
+      "url": "/?locale=en&view=portal&data=live&ctx=allow",
+      "expectText": "External Access Boundary",
+      "passed": true,
+      "textFound": 1,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": []
+      },
+      "error": null
+    },
+    {
+      "name": "readiness-live",
+      "url": "/?locale=en&view=readiness&data=live&ctx=allow",
+      "expectText": "UI Runtime Boundary",
+      "passed": true,
+      "textFound": 1,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": []
+      },
+      "error": null
+    },
+    {
+      "name": "ops-live",
+      "url": "/?locale=en&view=ops&data=live&ctx=allow",
+      "expectText": "Enterprise Boundary",
+      "passed": true,
+      "textFound": 1,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": []
+      },
+      "error": null
+    },
+    {
+      "name": "intake-live",
+      "url": "/?locale=en&view=intake&data=live&ctx=allow",
+      "expectText": "Opportunity Pipeline",
+      "passed": true,
+      "textFound": 2,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": []
+      },
+      "error": null
+    },
+    {
+      "name": "finance-live",
+      "url": "/?locale=en&view=finance&data=live&ctx=allow",
+      "expectText": "Time Entries",
+      "passed": true,
+      "textFound": 2,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": []
+      },
+      "error": null
+    },
+    {
+      "name": "profiles-live",
+      "url": "/?locale=en&view=profiles&variant=userList&data=live&ctx=allow",
+      "expectText": "Matching Profiles",
+      "passed": true,
+      "textFound": 1,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": []
+      },
+      "error": null
+    },
+    {
+      "name": "people-live",
+      "url": "/?locale=en&view=people&data=live&ctx=allow",
+      "expectText": "People Runtime",
+      "passed": true,
+      "textFound": 2,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": [
+          "People API unavailableStart the Law Firm OS API or check the HRX route contract. This surface has no static fallback.",
+          "Employee API failed. No mock employee list is rendered.",
+          "Select an employee to load the scoped profile.",
+          "Select an employee to load HR document metadata.",
+          "Select an employee to load leave balance.",
+          "Approval API failed. No local queue fallback is rendered.",
+          "Candidate portal API failed. No candidate mock fallback is rendered.",
+          "Recruiting API failed. Pipeline updates are not staged locally.",
+          "Lifecycle API failed. No local lifecycle fallback is rendered.",
+          "Policy API failed. No policy fallback is rendered.",
+          "Audit API failed. No local audit fallback is rendered.",
+          "Analytics API failed. No static metric fallback is rendered.",
+          "AI route is ready; no static response is rendered."
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "analytics-live",
+      "url": "/?locale=en&view=analytics&data=live&ctx=allow",
+      "expectText": "CMP-G8 Analytics Runtime",
+      "passed": true,
+      "textFound": 1,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": []
+      },
+      "error": null
+    },
+    {
+      "name": "ask-live",
+      "url": "/?locale=en&view=ask&data=live&ctx=allow",
+      "expectText": "CMP-G9 AI Review Queue",
+      "passed": true,
+      "textFound": 1,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": []
+      },
+      "error": null
+    },
+    {
+      "name": "admin",
+      "url": "/?locale=en&view=admin",
+      "expectText": "Organization Settings",
+      "passed": true,
+      "textFound": 1,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": []
+      },
+      "error": null
+    },
+    {
+      "name": "clients-denied",
+      "url": "/?locale=en&view=clients&data=live&ctx=denied",
+      "expectText": "Access denied",
+      "passed": true,
+      "textFound": 1,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": [
+          "Access deniedThe permission gate blocked this ClientGroup request. No client rows are shown."
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "clients-review",
+      "url": "/?locale=en&view=clients&data=live&ctx=review",
+      "expectText": "Review required",
+      "passed": true,
+      "textFound": 1,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": [
+          "Review requiredThis ClientGroup request requires review before the client rows can be displayed."
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "matters-denied",
+      "url": "/?locale=en&view=matters&data=live&ctx=denied",
+      "expectText": "Access denied",
+      "passed": true,
+      "textFound": 1,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": [
+          "Access deniedPermission recheck denied this matter workspace. No row counts, snippets, citations, or document metadata are shown.",
+          "Loading Matter VaultReading linked workspace metadata."
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "vault-denied",
+      "url": "/?locale=en&view=vault&data=live&ctx=denied",
+      "expectText": "Access denied",
+      "passed": true,
+      "textFound": 1,
+      "selectorFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "visibleCapabilityCards": 0,
+        "visibleLiveStates": [
+          "Access deniedPermission recheck denied this document workspace. No row counts, snippets, citations, or document metadata are shown."
+        ]
+      },
+      "error": null
+    }
+  ]
+}

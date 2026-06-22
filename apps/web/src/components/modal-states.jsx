@@ -44,7 +44,7 @@ export function MetricDefinitionModal({ step }) {
           <div className="metric-event-control">
             {showPreview ? (
               <div className="metric-selected-event">
-                <span className="amplitude-event-dot">A</span>
+                <span className="event-source-dot">M</span>
                 New User
                 <button type="button">+ where</button>
               </div>
@@ -60,12 +60,12 @@ export function MetricDefinitionModal({ step }) {
                 </label>
                 <header>
                   <ChevronDown size={16} />
-                  <strong>Amplitude</strong>
+                  <strong>matter events</strong>
                   <span>8 events</span>
                 </header>
                 {["Any Active Event", "Any Event", "New User", "Element Changed", "Element Clicked", "End Session", "Page Viewed", "Start Session"].map((event) => (
                   <button key={event} type="button">
-                    <span className="amplitude-event-dot">A</span>
+                    <span className="event-source-dot">M</span>
                     {event}
                   </button>
                 ))}
@@ -441,8 +441,8 @@ export function NewNavigationTourModal({ onClose }) {
       </div>
       <div className="new-navigation-tour">
         <button className="icon-button tour-close" onClick={onClose} type="button"><X size={17} /></button>
-        <h2>Experience the new Amplitude</h2>
-        <p>Simpler analytics with automated insights, best practices on-demand and improved navigation.</p>
+        <h2>Experience the new matter workspace</h2>
+        <p>Simpler legal operations with automated insights, review gates, and improved navigation.</p>
         <div className="tour-video-frame">
           <div className="tour-screen">
             <span className="tour-play"><PlayCircle size={66} /></span>
