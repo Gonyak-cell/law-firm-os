@@ -45,14 +45,17 @@ test("sample UI regression harness preserves current routable surfaces", async (
 test("matter startup branding uses shared splash and brand constants", async () => {
   const brandSource = await readWebFile("src/brand/brand.js");
   const splashSource = await readWebFile("src/components/MatterSplash.jsx");
+  const logoSource = await readWebFile("src/components/MatterLogo.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const authSource = await readWebFile("src/components/AuthSurface.jsx");
   const i18nSource = await readWebFile("src/i18n.js");
 
   assert.match(brandSource, /PRODUCT_BRAND\s*=\s*"matter"/);
-  assert.match(brandSource, /UI_BRAND\s*=\s*"matter by AMIC"/);
-  assert.match(splashSource, /PRODUCT_BRAND\.split\(""\)/);
+  assert.match(brandSource, /UI_BRAND\s*=\s*"matter"/);
+  assert.match(splashSource, /matter-logo\.svg/);
+  assert.match(splashSource, /matter-splash-image/);
   assert.match(splashSource, /aria-label=\{UI_BRAND\}/);
+  assert.doesNotMatch(logoSource, /amic-law|matter-byline|BRAND_BYLINE|BRAND_ORGANIZATION/);
   assert.match(shellSource, /<MatterSplash \/>/);
   assert.match(authSource, /<MatterSplash compact className="auth-splash" \/>/);
   assert.match(i18nSource, /PRODUCT_BRAND/);
@@ -77,6 +80,19 @@ test("desktop workspace keeps Matter, Vault, denied, and desktop mode routable",
   assert.match(deniedSource, /No row counts, snippets, citations, or document metadata are shown/);
   assert.match(runtimeContextSource, /desktopMode/);
   assert.match(runtimeContextSource, /routeSource/);
+});
+
+test("desktop post-login route keeps logo image flow before command center", async () => {
+  const appSource = await readWebFile("src/App.jsx");
+  const shellSource = await readWebFile("src/components/Shell.jsx");
+  const homeSource = await readWebFile("src/components/HomeSurface.jsx");
+  const desktopSource = await readFile(resolve(webRoot, "../desktop/src/renderer/offline.html"), "utf8");
+
+  assert.match(desktopSource, /web\/index\.html\?desktop=1&view=home&data=live&ctx=allow&splash=1/);
+  assert.match(appSource, /initialHandoffSplash/);
+  assert.match(appSource, /post-login-splash/);
+  assert.match(shellSource, /data-matter-logo-flow/);
+  assert.match(homeSource, /key=\{`\$\{endpoint\}-\$\{index\}`\}/);
 });
 
 test("Finance runtime surface is routed and live Finance backed", async () => {

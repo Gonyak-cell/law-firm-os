@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-06-22T06:44:02.636Z",
+  "splashState": {
+    "logoFlow": "post-login",
+    "imageAlt": "matter",
+    "imageWidth": 360,
+    "overlayBackground": "rgb(247, 249, 252)",
+    "overlayZIndex": "3000",
+    "actionsVisible": false,
+    "splashText": "Opening your matter workspaceChecking your workspace and permissions.EnglishTheme",
+    "logoTextHasByAmic": false
+  },
+  "finalState": {
+    "title": "matter command center",
+    "cards": 12,
+    "overlayPresent": false,
+    "overflow": false
+  }
+}

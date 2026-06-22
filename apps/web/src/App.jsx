@@ -110,9 +110,11 @@ export function App() {
   const initialLiveCtx = ["allow", "denied", "review"].includes(initialParams.get("ctx"))
     ? initialParams.get("ctx")
     : "allow";
+  const initialHandoffSplash = initialParams.get("splash") === "1";
   const [locale, setLocale] = useState(initialLocale);
   const [theme, setTheme] = useState(initialTheme);
   const [view, setView] = useState(initialView);
+  const [handoffSplashVisible, setHandoffSplashVisible] = useState(initialHandoffSplash);
   const [modal, setModal] = useState(initialModal);
   const [authStep, setAuthStep] = useState(initialAuthStep);
   const [query, setQuery] = useState(initialQuery);
@@ -125,6 +127,12 @@ export function App() {
     document.documentElement.dataset.theme = theme;
     document.documentElement.lang = locale === "ko" ? "ko" : "en";
   }, [locale, theme]);
+
+  useEffect(() => {
+    if (!handoffSplashVisible) return undefined;
+    const timer = window.setTimeout(() => setHandoffSplashVisible(false), 2600);
+    return () => window.clearTimeout(timer);
+  }, [handoffSplashVisible]);
 
   const activeMatter = matters.find((matter) => matter.id === activeMatterId) ?? matters[0];
   const activeEvent = events[activeEventIndex];
@@ -204,6 +212,17 @@ export function App() {
           {view === "dark" && <ThemeSurface labels={labels} theme={theme} setTheme={setTheme} variant={initialVariant} />}
         </main>
       </div>
+      {handoffSplashVisible && (
+        <LoadingSurface
+          labels={labels}
+          locale={locale}
+          theme={theme}
+          setLocale={setLocale}
+          setTheme={setTheme}
+          className="post-login-splash"
+          message={locale === "ko" ? "matter 작업공간을 여는 중" : "Opening your matter workspace"}
+        />
+      )}
       {query && <GlobalSearch labels={labels} query={query} setQuery={setQuery} setView={setView} />}
       {modal && <MatterModal type={modal} labels={labels} onClose={() => setModal(null)} setTheme={setTheme} />}
     </div>

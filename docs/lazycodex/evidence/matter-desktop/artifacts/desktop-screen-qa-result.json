@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-06-22T06:18:33.083Z",
+  "generated_at": "2026-06-22T06:50:36.444Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
   "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
@@ -37,14 +37,22 @@
       "password_reset_confirm": "passed",
       "password_login": "passed",
       "product_handoff": {
-        "url": "file:///Users/jws/Documents/Codex/law-firm-os-release-main-c52/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow",
+        "url": "file:///Users/jws/Documents/Codex/law-firm-os-release-main-c52/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
         "title": "matter command center",
         "capability_cards": 12,
         "production_go_live_false_visible": true,
         "public_release_false_visible": true,
         "owner_approval_false_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 4553
+        "body_character_count": 4553,
+        "logo_flow": {
+          "observed": true,
+          "image_alt": "matter",
+          "image_width": 346,
+          "overlay_background": "rgb(247, 249, 252)",
+          "overlay_z_index": "3000",
+          "by_amic_visible_in_logo": false
+        }
       },
       "dashboard_smoke": {
         "passed": true,
@@ -72,14 +80,22 @@
       "password_reset_confirm": "passed",
       "password_login": "passed",
       "product_handoff": {
-        "url": "file:///Users/jws/Documents/Codex/law-firm-os-release-main-c52/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow",
+        "url": "file:///Users/jws/Documents/Codex/law-firm-os-release-main-c52/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
         "title": "matter command center",
         "capability_cards": 12,
         "production_go_live_false_visible": true,
         "public_release_false_visible": true,
         "owner_approval_false_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 4553
+        "body_character_count": 4553,
+        "logo_flow": {
+          "observed": true,
+          "image_alt": "matter",
+          "image_width": 346,
+          "overlay_background": "rgb(247, 249, 252)",
+          "overlay_z_index": "3000",
+          "by_amic_visible_in_logo": false
+        }
       },
       "dashboard_smoke": {
         "passed": true,

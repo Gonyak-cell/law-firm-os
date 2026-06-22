@@ -617,7 +617,7 @@ kbd {
   --matter-splash-size: 76px;
   display: inline-grid;
   place-items: center;
-  min-width: min(320px, calc(100vw - 48px));
+  min-width: min(318px, calc(100vw - 48px));
   min-height: 128px;
   color: var(--am-text);
 }
@@ -626,6 +626,37 @@ kbd {
   --matter-splash-size: 42px;
   min-width: 112px;
   min-height: 58px;
+}
+
+.matter-splash-image {
+  width: min(318px, calc(100vw - 48px));
+  height: auto;
+  display: block;
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+  animation: matter-logo-image-flow 900ms cubic-bezier(0.16, 1.18, 0.32, 1) 90ms both;
+}
+
+.matter-splash.compact .matter-splash-image {
+  width: 118px;
+}
+
+.loading-stage.post-login-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  background: #f7f9fc;
+  pointer-events: all;
+  animation: post-login-splash-out 420ms ease 2200ms both;
+}
+
+.loading-stage.post-login-splash .matter-splash-image {
+  width: min(360px, calc(100vw - 48px));
+}
+
+.loading-stage.post-login-splash p,
+.loading-stage.post-login-splash .loading-actions {
+  display: none;
 }
 
 .matter-splash-brand {
@@ -774,11 +805,37 @@ kbd {
   }
 }
 
+@keyframes matter-logo-image-flow {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+
+  62% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes post-login-splash-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .matter-splash-pill,
   .matter-splash-dot,
   .matter-splash-word span,
-  .matter-splash-byline {
+  .matter-splash-byline,
+  .matter-splash-image,
+  .loading-stage.post-login-splash {
     animation: none;
     opacity: 1;
     transform: none;
@@ -786,6 +843,10 @@ kbd {
 
   .matter-splash-pill {
     transform: rotate(31deg);
+  }
+
+  .loading-stage.post-login-splash {
+    visibility: visible;
   }
 }
 

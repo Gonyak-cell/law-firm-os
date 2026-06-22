@@ -10,7 +10,7 @@ test("packaged renderer presents AWS runtime auth gate and apps web product hand
   assert.match(source, /data-reset-confirm/);
   assert.match(source, /data-matter-login/);
   assert.match(source, /productUiTarget/);
-  assert.match(source, /web\/index\.html\?desktop=1&view=home&data=live&ctx=allow/);
+  assert.match(source, /web\/index\.html\?desktop=1&view=home&data=live&ctx=allow&splash=1/);
   assert.match(source, /handoffToProductUi/);
   assert.match(source, /window\.matterSession/);
   assert.match(source, /jwsuh@amic\.kr/);

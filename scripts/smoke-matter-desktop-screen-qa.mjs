@@ -90,7 +90,25 @@ async function resetAndLogin(page, email) {
 
 async function waitForProductUi(page) {
   await page.waitForURL(/\/web\/index\.html\?desktop=1&view=home&data=live&ctx=allow/, { timeout: 30_000 });
+  await page.waitForSelector("[data-matter-logo-flow='post-login']", { timeout: 30_000 });
+  const logoFlow = await page.evaluate(() => {
+    const overlay = document.querySelector("[data-matter-logo-flow='post-login']");
+    const image = document.querySelector(".matter-splash-image");
+    const overlayStyle = overlay ? getComputedStyle(overlay) : null;
+    return {
+      observed: Boolean(overlay),
+      image_alt: image?.getAttribute("alt") ?? "",
+      image_width: Math.round(image?.getBoundingClientRect().width ?? 0),
+      overlay_background: overlayStyle?.backgroundColor ?? "",
+      overlay_z_index: overlayStyle?.zIndex ?? "",
+      by_amic_visible_in_logo: image?.getAttribute("alt")?.includes("AMIC") ?? false
+    };
+  });
+  assert.equal(logoFlow.observed, true, "post-login matter logo flow must be visible");
+  assert.equal(logoFlow.image_alt, "matter", "post-login logo image must be matter only");
+  assert.equal(logoFlow.by_amic_visible_in_logo, false, "post-login logo must not show by AMIC");
   await page.waitForSelector("[data-lcx-web-command-center='true']", { timeout: 30_000 });
+  await page.waitForFunction(() => !document.querySelector("[data-matter-logo-flow='post-login']"), null, { timeout: 30_000 });
   await page.waitForFunction(() => document.querySelectorAll("[data-capability-id]").length === 12, null, { timeout: 30_000 });
   const snapshot = await page.evaluate(() => {
     const text = document.body.textContent ?? "";
@@ -111,7 +129,7 @@ async function waitForProductUi(page) {
   assert.equal(snapshot.public_release_false_visible, true, "public release false boundary must be visible");
   assert.equal(snapshot.owner_approval_false_visible, true, "owner approval false boundary must be visible");
   assert.equal(snapshot.horizontal_overflow, false, "product UI must not horizontally overflow");
-  return snapshot;
+  return { ...snapshot, logo_flow: logoFlow };
 }
 
 async function launchMatterApp(qaTarget) {

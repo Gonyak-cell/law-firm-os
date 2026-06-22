@@ -21,7 +21,7 @@ import { navItems } from "../data/nav.js";
 import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
 
-export function LoadingSurface({ labels, locale, theme, setLocale, setTheme }) {
+export function LoadingSurface({ labels, locale, theme, setLocale, setTheme, className = "", message = labels.loading }) {
   useEffect(() => {
     document.documentElement.dataset.locale = locale;
     document.documentElement.dataset.theme = theme;
@@ -29,9 +29,9 @@ export function LoadingSurface({ labels, locale, theme, setLocale, setTheme }) {
   }, [locale, theme]);
 
   return (
-    <main className="loading-stage">
+    <main className={["loading-stage", className].filter(Boolean).join(" ")} data-matter-logo-flow={className.includes("post-login-splash") ? "post-login" : "startup"}>
       <MatterSplash />
-      <strong>{labels.loading}</strong>
+      <strong>{message}</strong>
       <p>{locale === "ko" ? "최근 작업공간과 권한을 확인하고 있습니다." : "Checking your workspace and permissions."}</p>
       <div className="loading-actions">
         <button className="secondary-button" onClick={() => setLocale(locale === "ko" ? "en" : "ko")}>{labels.language}</button>

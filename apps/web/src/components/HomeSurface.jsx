@@ -103,8 +103,8 @@ function CapabilityCard({ capability, onOpen }) {
         <span>{endpointCount} total</span>
       </div>
       <div className="endpoint-strip" aria-label={`${capability.label} endpoint coverage`}>
-        {[...capability.readEndpoints, ...capability.actionEndpoints, ...capability.auditEndpoints].slice(0, 8).map((endpoint) => (
-          <code key={endpoint}>{endpoint}</code>
+        {[...capability.readEndpoints, ...capability.actionEndpoints, ...capability.auditEndpoints].slice(0, 8).map((endpoint, index) => (
+          <code key={`${endpoint}-${index}`}>{endpoint}</code>
         ))}
       </div>
       <footer>

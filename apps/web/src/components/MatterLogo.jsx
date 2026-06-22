@@ -1,6 +1,5 @@
 import React from "react";
-import amicLawLogo from "../assets/amic-law.svg";
-import { BRAND_BYLINE, BRAND_ORGANIZATION, PRODUCT_BRAND, UI_BRAND } from "../brand/brand";
+import { PRODUCT_BRAND, UI_BRAND } from "../brand/brand";
 
 export function MatterLogo({ compact = false }) {
   return (
@@ -11,12 +10,6 @@ export function MatterLogo({ compact = false }) {
         <span className="mark-dot" />
       </span>
       <span className="matter-word">{PRODUCT_BRAND}</span>
-      {!compact && (
-        <span className="matter-byline">
-          <span>{BRAND_BYLINE}</span>
-          <img src={amicLawLogo} alt={BRAND_ORGANIZATION} />
-        </span>
-      )}
     </div>
   );
 }
