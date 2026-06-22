@@ -110,7 +110,7 @@ export function ExperimentSetupSite() {
       <div className="script-card">
         <strong>Recommended</strong>
         <p>Paste this snippet into the head of every page of your website</p>
-        <pre>{`<script type="text/javascript"\nsrc="https://cdn.amplitude.com/script/3480cd5\ndd031a3f46c8d8d89023dd060.experiment.js">\n</script>`}</pre>
+        <pre>{`<script type="text/javascript"\nsrc="/matter-experiments/runtime.js">\n</script>`}</pre>
       </div>
       <h3>Other ways to connect</h3>
       <div className="connector-grid"><button>WordPress</button><button>Shopify</button><button>Tag Managers*</button></div>
@@ -171,7 +171,7 @@ export function ExperimentVisualEditorSurface({ mode }) {
   return (
     <section className="experiment-visual-state">
       <header>
-        <strong><span className="amplitude-event-dot">A</span> Sign Up</strong>
+        <strong><span className="event-source-dot">M</span> Sign Up</strong>
         <nav><span>Variants</span><b>A</b> Original <b className="green">B</b> treatment</nav>
         <button className="primary-button">Continue</button>
       </header>
@@ -200,7 +200,7 @@ export function ExperimentVisualEditorSurface({ mode }) {
         )}
         {mode === "expAdding" && (
           <div className="visual-loading-modal">
-            <span className="amplitude-event-dot">A</span>
+            <span className="event-source-dot">M</span>
             <h2>Adding variants to your experiment...</h2>
             <p>Finish setting up the rest of your experiment: goals, targeting, and your statistical preferences.</p>
           </div>
@@ -246,7 +246,7 @@ export function ExperimentDetailSurface({ mode }) {
 }
 
 export function ExperimentSettingsPanels() {
-  return <><Panel title="Targeting" meta="Assignment"><div className="rollout-line"><span>Audience<br /><b>All users</b></span><span>Rollout<br /><b>0%</b><i /></span></div></Panel><div className="experiment-two-panels"><Panel title="Goals (1)" meta="Success"><p>Sign up interest</p></Panel><Panel title="Variants (2)" meta="Element changes"><p><span className="pill-blue">A</span> control</p><p><span className="pill-green">B</span> treatment</p></Panel></div><Panel title="Analysis Settings" meta="Exposure Event"><p>Amplitude Impression</p></Panel></>;
+  return <><Panel title="Targeting" meta="Assignment"><div className="rollout-line"><span>Audience<br /><b>All users</b></span><span>Rollout<br /><b>0%</b><i /></span></div></Panel><div className="experiment-two-panels"><Panel title="Goals (1)" meta="Success"><p>Sign up interest</p></Panel><Panel title="Variants (2)" meta="Element changes"><p><span className="pill-blue">A</span> control</p><p><span className="pill-green">B</span> treatment</p></Panel></div><Panel title="Analysis Settings" meta="Exposure Event"><p>matter impression</p></Panel></>;
 }
 
 export function ExperimentActivityPanels() {

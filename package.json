@@ -253,6 +253,7 @@
     "ui:parity:audit": "node scripts/audit-matter-amplitude-pixel-parity.mjs",
     "ui:flows:verify": "node scripts/verify-matter-ui-flows.mjs",
     "ui:live:verify": "node scripts/verify-matter-live-data.mjs",
+    "lcx-web:validate": "node scripts/validate-lcx-web-canonical-ui.mjs",
     "progress:serve": "node scripts/serve-progress-control-room.mjs",
     "api:start": "npm --workspace apps/api run start",
     "api:test": "npm --workspace apps/api run test",

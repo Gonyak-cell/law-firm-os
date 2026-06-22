@@ -975,6 +975,19 @@
       return `${status} ${decision}\nfeature: ${response.feature_id ?? "n/a"}\nactor: ${response.actor_email ?? selectedEmail()}`;
     }
 
+    function productUiTarget() {
+      return new URL("./web/index.html?desktop=1&view=home&data=live&ctx=allow", window.location.href).toString();
+    }
+
+    function handoffToProductUi(session) {
+      if (!(session?.state === "signed_in" || session?.email)) return;
+      document.body.dataset.productHandoff = "apps-web";
+      nodes.loginResult.textContent = `Signed in as ${session.email}. Opening matter workspace.`;
+      window.setTimeout(() => {
+        window.location.assign(productUiTarget());
+      }, 350);
+    }
+
     async function refresh() {
       if (!api) {
         renderRuntime({ configured: false, reason: "preload_api_unavailable" });
@@ -1031,6 +1044,7 @@
       nodes.loginResult.textContent = response.ok
         ? `Signed in as ${response.session.email}.`
         : `Login failed: ${response.reason}`;
+      if (response.ok) handoffToProductUi(response.session);
     }
 
     async function logout() {

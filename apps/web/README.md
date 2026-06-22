@@ -9,15 +9,16 @@ Initial views should start with:
 - Permission and audit visibility.
 - Time, billing, and AR views after Matter and DMS are stable.
 
-## Live data mode (P5 user-profiles-list)
+## Canonical live data mode
 
-The user-profiles-list surface (`?view=profiles&variant=userList`) renders the
-Amplitude-parity mock data by default. Live data from `apps/api` is **opt-in**
-via query params:
+Canonical post-login surfaces render live API states from `apps/api` when
+requested through query params. Existing historical mock screens may remain for
+local development, but canonical verification does not use them as product
+truth.
 
 | Param | Values | Default | Effect |
 | --- | --- | --- | --- |
-| `data` | `live` | mock | `data=live` fetches real records from `GET /master-data/records`; anything else keeps the byte-identical mock render path. |
+| `data` | `live` | mock | `data=live` fetches real records from `apps/api`; anything else stays in local-development mode. |
 | `ctx` | `allow` \| `denied` \| `review` | `allow` | Picks the synthetic permission context sent in the `x-lawos-permission-context` header (live mode only). |
 
 Example: `http://127.0.0.1:5173/?locale=en&view=profiles&variant=userList&data=live&ctx=denied`
@@ -44,4 +45,4 @@ From the repo root:
 3. Run: `node scripts/verify-matter-live-data.mjs`
 
 Evidence is written to
-`docs/ui-reference/amplitude-feb-2025/visual-parity/live-data-verification.{json,md}`.
+`docs/lazycodex/evidence/matter-web/artifacts/live-data-verification.{json,md}`.

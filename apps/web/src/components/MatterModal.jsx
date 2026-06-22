@@ -110,7 +110,7 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
       body: <ThemePreferencesModal onClose={onClose} />
     },
     newNavigationTour: {
-      title: "Experience the new Amplitude",
+      title: "Experience the new matter workspace",
       header: false,
       footer: false,
       body: <NewNavigationTourModal onClose={onClose} />

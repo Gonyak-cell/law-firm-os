@@ -166,10 +166,8 @@ export function App() {
           {view === "home" && (
             <HomeSurface
               labels={labels}
-              variant={initialVariant}
               setView={setView}
-              onSave={() => setModal("save")}
-              showFunnel={locale === "ko" && !query.trim()}
+              liveCtx={initialLiveCtx}
             />
           )}
           {view === "content" && <ContentSurface labels={labels} />}

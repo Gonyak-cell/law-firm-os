@@ -28,6 +28,7 @@ if (!existsSync(join(repoRoot, "node_modules/electron/dist/Electron.app"))) {
   throw new Error("Electron runtime is missing. Run `npm install --workspace apps/desktop` first.");
 }
 
+await execFileAsync("node", [join(repoRoot, "scripts/prepare-matter-desktop-web-renderer.mjs")], { cwd: repoRoot });
 await rm(distRoot, { recursive: true, force: true });
 await mkdir(dirname(receiptPath), { recursive: true });
 
