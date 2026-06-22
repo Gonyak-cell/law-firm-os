@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-06-22T07:36:56.713Z",
+  "generated_at": "2026-06-22T07:45:24.203Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
   "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
@@ -51,7 +51,7 @@
         "owner_approval_false_visible": true,
         "no_dummy_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 2056,
+        "body_character_count": 2046,
         "logo_flow": {
           "observed": true,
           "image_alt": "matter",
@@ -60,11 +60,28 @@
           "overlay_z_index": "3000",
           "by_amic_visible_in_logo": false
         },
+        "top_header_nav": {
+          "labels": [
+            "Client",
+            "Matter",
+            "People",
+            "Vault"
+          ],
+          "axis_ids": [
+            "clients",
+            "matters",
+            "people",
+            "vault"
+          ],
+          "in_topbar": true,
+          "active_axis": ""
+        },
         "sidebar": {
           "collapsed": {
             "state": "collapsed",
             "rail_display": "grid",
             "sidebar_display": "none",
+            "product_axis_count_in_rail": 0,
             "rail_word_visible": false
           },
           "expanded": {
@@ -72,6 +89,7 @@
             "rail_display": "none",
             "sidebar_display": "block",
             "matter_word": "matter",
+            "sidebar_product_axis_labels": [],
             "matter_word_visible": true,
             "horizontal_overflow": false
           }
@@ -117,7 +135,7 @@
         "owner_approval_false_visible": true,
         "no_dummy_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 2056,
+        "body_character_count": 2046,
         "logo_flow": {
           "observed": true,
           "image_alt": "matter",
@@ -126,11 +144,28 @@
           "overlay_z_index": "3000",
           "by_amic_visible_in_logo": false
         },
+        "top_header_nav": {
+          "labels": [
+            "Client",
+            "Matter",
+            "People",
+            "Vault"
+          ],
+          "axis_ids": [
+            "clients",
+            "matters",
+            "people",
+            "vault"
+          ],
+          "in_topbar": true,
+          "active_axis": ""
+        },
         "sidebar": {
           "collapsed": {
             "state": "collapsed",
             "rail_display": "grid",
             "sidebar_display": "none",
+            "product_axis_count_in_rail": 0,
             "rail_word_visible": false
           },
           "expanded": {
@@ -138,6 +173,7 @@
             "rail_display": "none",
             "sidebar_display": "block",
             "matter_word": "matter",
+            "sidebar_product_axis_labels": [],
             "matter_word_visible": true,
             "horizontal_overflow": false
           }
@@ -173,7 +209,7 @@
     "token_or_password_visible_in_final_dom": false,
     "reset_token_input_cleared_before_screenshot": true,
     "generated_password_visible_in_final_dom": false,
-    "final_dom_character_count": 2056
+    "final_dom_character_count": 2046
   },
   "release_claims": {
     "production_go_live": false,

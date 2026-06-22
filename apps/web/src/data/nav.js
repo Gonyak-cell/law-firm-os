@@ -6,8 +6,8 @@ import {
 } from "lucide-react";
 
 export const navItems = [
-  { id: "clients", icon: Building2 },
-  { id: "matters", icon: BriefcaseBusiness },
-  { id: "people", icon: UserRoundCheck },
-  { id: "vault", icon: FolderOpen }
+  { id: "clients", label: "Client", icon: Building2 },
+  { id: "matters", label: "Matter", icon: BriefcaseBusiness },
+  { id: "people", label: "People", icon: UserRoundCheck },
+  { id: "vault", label: "Vault", icon: FolderOpen }
 ];

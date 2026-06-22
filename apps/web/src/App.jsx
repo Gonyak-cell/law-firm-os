@@ -60,13 +60,15 @@ export function App() {
         setTheme={setTheme}
         query={query}
         setQuery={setQuery}
+        view={view}
+        setView={setView}
         sidebarExpanded={sidebarExpanded}
         onToggleSidebar={() => setSidebarExpanded((current) => !current)}
         onCreate={() => setView("matters")}
         onInvite={() => setView("people")}
       />
       <div className={sidebarExpanded ? "app-frame sidebar-expanded" : "app-frame sidebar-collapsed"} data-sidebar-state={sidebarExpanded ? "expanded" : "collapsed"}>
-        <Rail labels={labels} view={view} setView={setView} />
+        <Rail />
         <Sidebar labels={labels} view={view} setView={setView} expanded={sidebarExpanded} />
         <main className="page-canvas">
           {view === "auth" && (

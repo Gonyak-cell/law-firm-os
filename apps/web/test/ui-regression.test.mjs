@@ -42,10 +42,8 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
     assert.doesNotMatch(navSource, new RegExp(`id: "${view}"`));
     assert.doesNotMatch(appSource, new RegExp(`view === "${view}"`));
   }
-  assert.match(shellSource, /Client/);
-  assert.match(shellSource, /Matter/);
-  assert.match(shellSource, /People/);
-  assert.match(shellSource, /Vault/);
+  assert.match(shellSource, /data-product-axis-nav="top-header"/);
+  assert.match(shellSource, /navItems\.map/);
   assert.doesNotMatch(appSource, /MatterModal|initialVariant|initialDataMode|setModal|mockData/);
 });
 
@@ -92,9 +90,13 @@ test("desktop post-login route keeps logo image flow before four-axis command ce
   assert.match(appSource, /sidebarExpanded/);
   assert.match(appSource, /data-sidebar-state/);
   assert.match(shellSource, /aria-expanded=\{sidebarExpanded\}/);
+  assert.match(shellSource, /data-product-axis-nav="top-header"/);
+  assert.match(shellSource, /data-product-axis=\{id\}/);
+  assert.match(shellSource, /aria-current=\{view === id \? "page" : undefined\}/);
   assert.match(shellSource, /data-matter-logo-flow/);
   assert.match(shellSource, /data-sidebar-expanded/);
   assert.match(shellSource, /<MatterLogo \/>/);
+  assert.doesNotMatch(shellSource, /<nav className="rail-nav"/);
   assert.match(homeSource, /title="Client Matter People Vault"/);
   assert.match(homeSource, /key=\{`\$\{endpoint\}-\$\{index\}`\}/);
   assert.match(stylesSource, /\.app-frame\.sidebar-expanded/);

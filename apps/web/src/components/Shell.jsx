@@ -36,7 +36,27 @@ export function LoadingSurface({ labels, locale, theme, setLocale, setTheme, cla
   );
 }
 
-export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQuery, sidebarExpanded, onToggleSidebar, onCreate, onInvite }) {
+function ProductAxisNav({ view, setView }) {
+  return (
+    <nav className="top-axis-nav" aria-label="Product axes" data-product-axis-nav="top-header">
+      {navItems.map(({ id, label, icon: Icon }) => (
+        <button
+          key={id}
+          type="button"
+          className={view === id ? "top-axis-item active" : "top-axis-item"}
+          aria-current={view === id ? "page" : undefined}
+          data-product-axis={id}
+          onClick={() => setView(id)}
+        >
+          <Icon size={15} />
+          <span>{label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQuery, view, setView, sidebarExpanded, onToggleSidebar, onCreate, onInvite }) {
   return (
     <header className="topbar">
       <button
@@ -47,27 +67,16 @@ export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQ
       >
         <Menu size={18} />
       </button>
-      <button className="primary-button" onClick={onCreate}>
-        <Plus size={15} />
-        {labels.create}
-      </button>
-      <button className="top-link">
-        {labels.recent}
-        <ChevronDown size={14} />
-      </button>
-      <button className="top-link">
-        {labels.favorites}
-        <ChevronDown size={14} />
-      </button>
-      <button className="top-link">
-        {labels.spaces}
-        <ChevronDown size={14} />
-      </button>
+      <ProductAxisNav view={view} setView={setView} />
       <label className="global-search">
         <Search size={16} />
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={labels.search} />
         <kbd>/</kbd>
       </label>
+      <button className="primary-button" onClick={onCreate}>
+        <Plus size={15} />
+        {labels.create}
+      </button>
       <div className="top-actions">
         <button className="ghost-button success" onClick={onInvite}>
           <UserPlus size={15} />
@@ -92,19 +101,12 @@ export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQ
   );
 }
 
-export function Rail({ labels, view, setView }) {
+export function Rail() {
   return (
     <aside className="rail">
       <div className="rail-logo">
         <MatterLogo compact />
       </div>
-      <nav className="rail-nav" aria-label="Primary">
-        {navItems.map(({ id, icon: Icon }) => (
-          <button key={id} className={view === id ? "rail-item active" : "rail-item"} title={labels[id]} onClick={() => setView(id)}>
-            <Icon size={18} />
-          </button>
-        ))}
-      </nav>
     </aside>
   );
 }
@@ -115,12 +117,7 @@ export function Sidebar({ labels, view, setView, expanded = false }) {
       { label: "Login", view: "auth" },
       { label: "Password reset", view: "auth" }
     ],
-    home: [
-      { label: "Client", view: "clients" },
-      { label: "Matter", view: "matters" },
-      { label: "People", view: "people" },
-      { label: "Vault", view: "vault" }
-    ],
+    home: [],
     clients: [
       { label: "Client groups", view: "clients" },
       { label: "Parties", view: "clients" },
@@ -149,12 +146,7 @@ export function Sidebar({ labels, view, setView, expanded = false }) {
       { label: "Legal hold", view: "vault" },
       { label: "Audit", view: "vault" }
     ]
-  }[view] ?? [
-    { label: "Client", view: "clients" },
-    { label: "Matter", view: "matters" },
-    { label: "People", view: "people" },
-    { label: "Vault", view: "vault" }
-  ];
+  }[view] ?? [];
 
   return (
     <aside className="sidebar" data-sidebar-expanded={expanded ? "true" : "false"} aria-hidden={!expanded}>
@@ -168,14 +160,16 @@ export function Sidebar({ labels, view, setView, expanded = false }) {
         </div>
         <ChevronDown size={15} />
       </div>
-      <nav className="sidebar-nav">
-        {subnav.map((item, index) => (
-          <button key={item.label} className={index === 0 ? "sidebar-item active" : "sidebar-item"} onClick={() => setView(item.view)}>
-            <span className="sidebar-dot" />
-            {item.label}
-          </button>
-        ))}
-      </nav>
+      {subnav.length > 0 && (
+        <nav className="sidebar-nav">
+          {subnav.map((item, index) => (
+            <button key={item.label} className={index === 0 ? "sidebar-item active" : "sidebar-item"} onClick={() => setView(item.view)}>
+              <span className="sidebar-dot" />
+              {item.label}
+            </button>
+          ))}
+        </nav>
+      )}
     </aside>
   );
 }
