@@ -25,6 +25,27 @@ function vaultRows(items) {
   ]);
 }
 
+function guardedVaultResult(liveCtx) {
+  if (liveCtx === "denied") {
+    return {
+      kind: "data",
+      items: [],
+      uiState: "denied",
+      countLeakPrevented: true
+    };
+  }
+  if (liveCtx === "review") {
+    return {
+      kind: "data",
+      items: [],
+      uiState: "review_required",
+      outcome: "review_required",
+      countLeakPrevented: true
+    };
+  }
+  return null;
+}
+
 export function VaultSurface({ labels, liveCtx = "allow" }) {
   const [result, setResult] = useState(null);
   const [refreshToken, setRefreshToken] = useState(0);
@@ -32,6 +53,13 @@ export function VaultSurface({ labels, liveCtx = "allow" }) {
   useEffect(() => {
     let cancelled = false;
     setResult(null);
+    const guarded = guardedVaultResult(liveCtx);
+    if (guarded) {
+      setResult(guarded);
+      return () => {
+        cancelled = true;
+      };
+    }
     fetchVaultDocuments({
       ctx: liveCtx,
       permissionRef: VAULT_PERMISSION_REF,

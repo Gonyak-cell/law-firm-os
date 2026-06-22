@@ -24,6 +24,29 @@ function matterRows(items) {
   ]);
 }
 
+function guardedMatterResult(liveCtx) {
+  if (liveCtx === "denied") {
+    return {
+      kind: "data",
+      items: [],
+      uiState: "denied",
+      countLeakPrevented: true,
+      productionReadyClaim: false
+    };
+  }
+  if (liveCtx === "review") {
+    return {
+      kind: "data",
+      items: [],
+      uiState: "review_required",
+      outcome: "review_required",
+      countLeakPrevented: true,
+      productionReadyClaim: false
+    };
+  }
+  return null;
+}
+
 export function MattersSurface({ labels, liveCtx = "allow" }) {
   const [result, setResult] = useState(null);
   const [refreshToken, setRefreshToken] = useState(0);
@@ -32,6 +55,13 @@ export function MattersSurface({ labels, liveCtx = "allow" }) {
   useEffect(() => {
     let cancelled = false;
     setResult(null);
+    const guarded = guardedMatterResult(liveCtx);
+    if (guarded) {
+      setResult(guarded);
+      return () => {
+        cancelled = true;
+      };
+    }
     fetchMatterRecords({
       ctx: liveCtx,
       permissionRef: MATTER_PERMISSION_REF,

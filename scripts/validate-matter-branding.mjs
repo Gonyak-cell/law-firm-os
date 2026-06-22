@@ -128,7 +128,7 @@ const backlog = read(BACKLOG_PATH);
 const rows = parseBacklogRows(backlog);
 
 assert.match(brandSource, /PRODUCT_BRAND\s*=\s*"matter"/, "PRODUCT_BRAND must be matter");
-assert.match(brandSource, /UI_BRAND\s*=\s*"matter by AMIC"/, "UI_BRAND must be matter by AMIC");
+assert.match(brandSource, /UI_BRAND\s*=\s*"matter"/, "UI_BRAND must be matter");
 assert.match(namingRules, /Product brand \| matter/, "matter product brand rule is missing");
 assert.match(namingRules, /Machine identifier \| `law-firm-os`/, "law-firm-os preservation rule is missing");
 
@@ -152,7 +152,7 @@ console.log(
     {
       verdict: "PASS",
       product_brand: "matter",
-      ui_brand: "matter by AMIC",
+      ui_brand: "matter",
       backlog: BACKLOG_PATH,
       planned_product_brand_changes: productRowsForSource(rows).length,
       preserve_classifications: rows.filter((row) => row.id.startsWith("MP-")).length,

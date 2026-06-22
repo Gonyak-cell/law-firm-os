@@ -15,6 +15,29 @@ function clientMembers(item) {
   return Array.isArray(item.member_entity_ids) ? item.member_entity_ids.length : "0";
 }
 
+function guardedClientResult(liveCtx) {
+  if (liveCtx === "denied") {
+    return {
+      kind: "data",
+      items: [],
+      pageInfo: { omitted_item_count: 0 },
+      uiState: "denied",
+      countLeakPrevented: true
+    };
+  }
+  if (liveCtx === "review") {
+    return {
+      kind: "data",
+      items: [],
+      pageInfo: { omitted_item_count: 0 },
+      uiState: "review_required",
+      outcome: "review_required",
+      countLeakPrevented: true
+    };
+  }
+  return null;
+}
+
 export function ClientsSurface({ labels, liveCtx = "allow" }) {
   const [result, setResult] = useState(null);
   const [refreshToken, setRefreshToken] = useState(0);
@@ -22,6 +45,13 @@ export function ClientsSurface({ labels, liveCtx = "allow" }) {
   useEffect(() => {
     let cancelled = false;
     setResult(null);
+    const guarded = guardedClientResult(liveCtx);
+    if (guarded) {
+      setResult(guarded);
+      return () => {
+        cancelled = true;
+      };
+    }
     fetchMasterDataRecords({
       ctx: liveCtx,
       modelType: "ClientGroup",

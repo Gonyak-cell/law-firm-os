@@ -238,7 +238,7 @@ p {
 }
 
 .rail .matter-logo.compact {
-  width: 32px;
+  width: 36px;
   justify-content: center;
 }
 
@@ -556,62 +556,20 @@ kbd {
 }
 
 .matter-mark {
-  position: relative;
-  width: 32px;
-  height: 26px;
+  display: block;
+  width: 36px;
+  height: 21px;
   flex: 0 0 auto;
+  overflow: visible;
 }
 
 .matter-logo:not(.compact) .matter-mark {
-  width: 42px;
-  height: 34px;
+  width: 58px;
+  height: 35px;
 }
 
-.mark-pill,
-.mark-dot {
-  position: absolute;
-  display: block;
-}
-
-.mark-pill {
-  top: 1px;
-  width: 10px;
-  height: 25px;
-  border-radius: var(--am-radius-pill);
-  transform: rotate(31deg);
-}
-
-.matter-logo:not(.compact) .mark-pill {
-  width: 14px;
-  height: 33px;
-}
-
-.mark-pill.red {
-  left: 3px;
-  background: #ff2d55;
-}
-
-.mark-pill.yellow {
-  left: 16px;
-  background: #ffcc00;
-}
-
-.matter-logo:not(.compact) .mark-pill.yellow {
-  left: 23px;
-}
-
-.mark-dot {
-  right: 0;
-  bottom: 3px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #00ca72;
-}
-
-.matter-logo:not(.compact) .mark-dot {
-  width: 14px;
-  height: 14px;
+.matter-symbol-piece {
+  shape-rendering: geometricPrecision;
 }
 
 .matter-word {
@@ -726,13 +684,13 @@ kbd {
 
 .matter-splash-pill.red {
   left: calc(var(--matter-splash-size) * 0.09);
-  background: #ff2d55;
+  background: #ff3158;
   animation: matter-pill-rise 680ms cubic-bezier(0.16, 1.18, 0.32, 1) both;
 }
 
 .matter-splash-pill.yellow {
   left: calc(var(--matter-splash-size) * 0.48);
-  background: #ffcc00;
+  background: #ffd43d;
   animation: matter-pill-rise 680ms cubic-bezier(0.16, 1.18, 0.32, 1) 90ms both;
 }
 
@@ -742,7 +700,7 @@ kbd {
   width: calc(var(--matter-splash-size) * 0.28);
   height: calc(var(--matter-splash-size) * 0.28);
   border-radius: 50%;
-  background: #00ca72;
+  background: #5cc878;
   opacity: 0;
   transform: scale(0.5);
   animation: matter-dot-pop 520ms cubic-bezier(0.16, 1.18, 0.32, 1) 180ms both;

@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-06-22T07:21:45.517Z",
+  "generated_at": "2026-06-22T07:36:56.713Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
   "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",

@@ -1,9 +1,6 @@
-<svg width="318" height="104" viewBox="0 0 318 104" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="matter-logo-title">
-  <title id="matter-logo-title">matter</title>
-  <g transform="translate(12 8)">
-    <rect x="12" y="4" width="24" height="66" rx="12" transform="rotate(31 12 4)" fill="#FF2D55"/>
-    <rect x="50" y="4" width="24" height="66" rx="12" transform="rotate(31 50 4)" fill="#FFCC00"/>
-    <circle cx="86" cy="62" r="14" fill="#00CA72"/>
-  </g>
-  <text x="122" y="66" fill="#06102D" font-family="Avenir Next, Comfortaa, Inter, Arial, sans-serif" font-size="58" font-weight="300">matter</text>
+<svg width="222" height="132" viewBox="0 0 222 132" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="matter-logo-title">
+  <title id="matter-logo-title">matter symbol</title>
+  <rect x="41" y="7" width="48" height="118" rx="24" transform="rotate(31 65 66)" fill="#FF3158"/>
+  <rect x="104" y="7" width="48" height="118" rx="24" transform="rotate(31 128 66)" fill="#FFD43D"/>
+  <circle cx="194" cy="94" r="25" fill="#5CC878"/>
 </svg>

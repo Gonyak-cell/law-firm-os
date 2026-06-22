@@ -1,27 +1,53 @@
 {
   "schema_version": "matter.lcx-web.runtime-verification.v1",
-  "generated_at": "2026-06-22T07:17:42.671Z",
+  "generated_at": "2026-06-22T07:35:37.009Z",
   "base_url": "http://127.0.0.1:5173",
   "source_of_truth": "apps/web",
   "passed": true,
   "console_errors_recorded_not_gated": [
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
-    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
-    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
   ],
   "mobile_metrics": {
     "scrollWidth": 390,
@@ -44,10 +70,10 @@
         "horizontalOverflow": false,
         "visibleCapabilityCards": 4,
         "visibleLiveStates": [
-          "live",
-          "live",
           "unavailable",
-          "live"
+          "unavailable",
+          "unavailable",
+          "unavailable"
         ]
       },
       "error": null
@@ -66,7 +92,7 @@
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
         "visibleLiveStates": [
-          "No client groupsThe live query returned no ClientGroup records for this tenant."
+          "Client data unavailableThe API request failed or returned an unexpected response. Start the API and reload."
         ]
       },
       "error": null
@@ -85,7 +111,7 @@
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
         "visibleLiveStates": [
-          "No mattersThe live query returned no Matter records for this tenant.",
+          "Matter API unavailableStart the Law Firm OS API and reload this live surface.",
           "Loading Matter VaultReading linked workspace metadata."
         ]
       },
@@ -136,7 +162,7 @@
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
         "visibleLiveStates": [
-          "No documentsThe live query returned no Vault documents."
+          "Vault API unavailableStart the Law Firm OS API and reload this live surface."
         ]
       },
       "error": null

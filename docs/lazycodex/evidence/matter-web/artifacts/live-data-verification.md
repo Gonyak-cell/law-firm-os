@@ -1,6 +1,6 @@
 # LCX-WEB Live Data Verification
 
-Generated at: 2026-06-22T07:17:58.319Z
+Generated at: 2026-06-22T07:35:34.764Z
 
 Overall result: PASS
 
@@ -10,8 +10,8 @@ Preconditions: api and web dev server are already running. Live mode uses `?data
 
 | Check | URL | Result | Detail |
 | --- | --- | --- | --- |
-| home-command-center-cards | `/?locale=en&view=home&desktop=1&data=live&ctx=allow` | PASS | {"capability_cards":4,"release_boundary_visible":true,"status_labels":["live","live","unavailable","live"]} |
-| clients-live-or-unavailable | `/?locale=en&view=clients&data=live&ctx=allow` | PASS | {"denied":0,"review":0,"unavailable":0,"empty":1,"table_rows":0} |
+| home-command-center-cards | `/?locale=en&view=home&desktop=1&data=live&ctx=allow` | PASS | {"capability_cards":4,"release_boundary_visible":true,"status_labels":["unavailable","unavailable","unavailable","unavailable"]} |
+| clients-live-or-unavailable | `/?locale=en&view=clients&data=live&ctx=allow` | PASS | {"denied":0,"review":0,"unavailable":1,"empty":0,"table_rows":0} |
 | clients-denied-visible | `/?locale=en&view=clients&data=live&ctx=denied` | PASS | {"state_text":"Access denied The permission gate blocked this ClientGroup request. No client rows are shown."} |
 | clients-review-visible | `/?locale=en&view=clients&data=live&ctx=review` | PASS | {"state_text":"Review required This ClientGroup request requires review before the client rows can be displayed."} |
 | vault-denied-visible | `/?locale=en&view=vault&data=live&ctx=denied` | PASS | {"state_text":"Access denied Permission recheck denied this document workspace. No row counts, snippets, citations, or document metadata are shown."} |
@@ -21,7 +21,32 @@ Preconditions: api and web dev server are already running. Live mode uses `?data
 
 Recorded for operator review. Denied/review flows may produce expected non-2xx network messages.
 
-- Failed to load resource: the server responded with a status of 400 (Bad Request)
-- Failed to load resource: the server responded with a status of 403 (Forbidden)
-- Failed to load resource: the server responded with a status of 403 (Forbidden)
-- Failed to load resource: the server responded with a status of 400 (Bad Request)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+- Failed to load resource: the server responded with a status of 500 (Internal Server Error)

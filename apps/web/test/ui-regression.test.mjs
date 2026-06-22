@@ -51,6 +51,7 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
 
 test("matter startup branding uses shared splash and brand constants", async () => {
   const brandSource = await readWebFile("src/brand/brand.js");
+  const logoAssetSource = await readWebFile("src/assets/matter-logo.svg");
   const splashSource = await readWebFile("src/components/MatterSplash.jsx");
   const logoSource = await readWebFile("src/components/MatterLogo.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
@@ -62,6 +63,13 @@ test("matter startup branding uses shared splash and brand constants", async () 
   assert.match(splashSource, /matter-logo\.svg/);
   assert.match(splashSource, /matter-splash-image/);
   assert.match(splashSource, /aria-label=\{UI_BRAND\}/);
+  assert.match(logoAssetSource, /viewBox="0 0 222 132"/);
+  assert.match(logoAssetSource, /#FF3158/);
+  assert.match(logoAssetSource, /#FFD43D/);
+  assert.match(logoAssetSource, /#5CC878/);
+  assert.doesNotMatch(logoAssetSource, /<text|by AMIC/);
+  assert.match(logoSource, /viewBox="0 0 222 132"/);
+  assert.doesNotMatch(logoSource, /mark-pill|mark-dot/);
   assert.doesNotMatch(logoSource, /amic-law|matter-byline|BRAND_BYLINE|BRAND_ORGANIZATION/);
   assert.match(shellSource, /<MatterSplash \/>/);
   assert.match(authSource, /<MatterSplash compact className="auth-splash" \/>/);
