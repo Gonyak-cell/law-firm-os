@@ -18,7 +18,7 @@ export const SAVE_DOCUMENT_AS_REQUEST_FIELDS = Object.freeze([
 
 export function createGestureContext(event) {
   if (!event || event.isTrusted !== true || !TRUSTED_GESTURE_TYPES.includes(event.type)) {
-    throw new Error("mater file picker requires a trusted user gesture");
+    throw new Error("matter file picker requires a trusted user gesture");
   }
   return {
     userGesture: true,

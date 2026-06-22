@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { PRODUCT_BRAND } from "../brand/brand";
 import { copy } from "../i18n.js";
-import { MaterSplash } from "./MaterSplash.jsx";
+import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
 import { Field } from "./primitives.jsx";
 import { HomeSurface } from "./HomeSurface.jsx";
@@ -112,7 +112,7 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep }) {
           ))}
         </div>
         <div className="auth-card">
-          <MaterSplash compact className="auth-splash" />
+          <MatterSplash compact className="auth-splash" />
           <div className="auth-title">
             <Icon size={20} />
             <h2>{current[1]}</h2>

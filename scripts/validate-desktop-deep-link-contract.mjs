@@ -19,7 +19,7 @@ const forbiddenActions = [
 ];
 
 assert.equal(contract.schema, "law-firm-os.desktop.deep-link-contract.v0.2");
-assert.equal(contract.product, "mater");
+assert.equal(contract.product, "matter");
 assert.equal(contract.status, "route_intents_active");
 assert(Array.isArray(contract.allowed_routes), "allowed_routes must be an array");
 
@@ -27,7 +27,7 @@ const actualRouteIds = contract.allowed_routes.map((route) => route.id).sort();
 assert.deepEqual(actualRouteIds, [...allowedRouteIds].sort(), "deep link contract must allow matter, document, task, and auth_callback only");
 
 for (const route of contract.allowed_routes) {
-  assert.equal(route.scheme, "mater", `${route.id} route must use mater scheme`);
+  assert.equal(route.scheme, "matter", `${route.id} route must use matter scheme`);
   assert.equal(route.may_mutate_product_state, false, `${route.id} must not mutate product state`);
   assert.equal(route.may_download, false, `${route.id} must not download`);
   assert.equal(route.may_upload, false, `${route.id} must not upload`);
@@ -44,7 +44,7 @@ for (const forbiddenAction of forbiddenActions) {
   assert(!actualRouteIds.includes(forbiddenAction), `${forbiddenAction} must not be an allowed route`);
 }
 
-assert.equal(contract.validation_rules.scheme_required, "mater");
+assert.equal(contract.validation_rules.scheme_required, "matter");
 assert.equal(contract.validation_rules.route_id_allowlist_required, true);
 assert.equal(contract.validation_rules.identifier_shape_required, true);
 assert.equal(contract.validation_rules.unknown_query_parameters_rejected, true);

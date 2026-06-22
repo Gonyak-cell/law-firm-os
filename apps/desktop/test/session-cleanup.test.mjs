@@ -18,8 +18,8 @@ test("session status omits token bodies while secure store retains main-process 
   const coordinator = new MainProcessAuthCoordinator({ secureStore });
   const request = coordinator.startLogin({
     issuerUrl: "https://idp.example.com",
-    clientId: "mater-desktop",
-    redirectUri: "mater://auth/callback"
+    clientId: "matter-desktop",
+    redirectUri: "matter://auth/callback"
   });
 
   const status = await coordinator.completeCallback({
@@ -45,8 +45,8 @@ test("logout clears secure store and registered cache stores", async () => {
   const coordinator = new MainProcessAuthCoordinator({ secureStore, cacheStores: [apiCache, rendererCache] });
   const request = coordinator.startLogin({
     issuerUrl: "https://idp.example.com",
-    clientId: "mater-desktop",
-    redirectUri: "mater://auth/callback"
+    clientId: "matter-desktop",
+    redirectUri: "matter://auth/callback"
   });
 
   await coordinator.completeCallback({

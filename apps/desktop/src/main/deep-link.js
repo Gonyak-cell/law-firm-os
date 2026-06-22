@@ -1,6 +1,6 @@
 export function parseDesktopDeepLink(candidate) {
   const url = new URL(candidate);
-  if (url.protocol !== "mater:") throw new Error("Unsupported desktop deep link scheme");
+  if (url.protocol !== "matter:") throw new Error("Unsupported desktop deep link scheme");
   return {
     intent: url.hostname,
     id: url.pathname.replace(/^\//, ""),

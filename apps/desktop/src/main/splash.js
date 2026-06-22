@@ -1,4 +1,4 @@
-export const SPLASH_BRAND = "mater by AMIC";
+export const SPLASH_BRAND = "matter by AMIC";
 export const SPLASH_HANDOFF_TIMEOUT_MS = 8000;
 
 export const SPLASH_WINDOW_OPTIONS = Object.freeze({
@@ -37,7 +37,7 @@ body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;c
 <body>
 <main class="splash" aria-label="${SPLASH_BRAND}">
 <span class="mark" aria-hidden="true"><span class="pill red"></span><span class="pill yellow"></span><span class="dot"></span></span>
-<strong class="word">mater</strong>
+<strong class="word">matter</strong>
 <span class="byline">by AMIC</span>
 </main>
 </body>

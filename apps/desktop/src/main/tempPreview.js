@@ -1,6 +1,6 @@
 import { assertNoRendererDocumentBytes } from "../shared/rendererBytePolicy.js";
 
-export const TEMP_PREVIEW_SCOPE = "mater-temp-preview";
+export const TEMP_PREVIEW_SCOPE = "matter-temp-preview";
 export const DEFAULT_TEMP_PREVIEW_TTL_MS = 10 * 60 * 1000;
 
 export class TempPreviewError extends Error {
@@ -79,7 +79,7 @@ export function createTempPreviewManager({
         (field) =>
           new TempPreviewError(
             "RENDERER_FILE_BYTES_FORBIDDEN",
-            `Renderer-supplied document bytes are forbidden on the mater file bridge: ${field}`
+            `Renderer-supplied document bytes are forbidden on the matter file bridge: ${field}`
           )
       );
       const precheck = await permissionClient.precheckFileBridgeAction({
@@ -118,7 +118,7 @@ export function createTempPreviewManager({
         scope: TEMP_PREVIEW_SCOPE,
         tenantIdHash: request.tenantIdHash,
         documentId: request.documentId,
-        name: request.name ?? "mater-preview",
+        name: request.name ?? "matter-preview",
         bytes: documentBytes,
         expiresAt
       };

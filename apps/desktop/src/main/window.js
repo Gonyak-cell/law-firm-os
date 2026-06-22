@@ -10,7 +10,7 @@ export const MAIN_WINDOW_WEB_PREFERENCES = Object.freeze({
 export const MAIN_WINDOW_READY_EVENT = "ready-to-show";
 
 export const MAIN_WINDOW_OPTIONS = Object.freeze({
-  title: "mater",
+  title: "matter",
   width: 1280,
   height: 820,
   minWidth: 1024,

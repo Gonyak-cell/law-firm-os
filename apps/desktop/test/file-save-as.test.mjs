@@ -12,7 +12,7 @@ function saveAsHarness({ allowed = true, canceled = false, providerBytes = new U
     async showSaveDialog(options) {
       order.push("dialog");
       this.calls.push(options);
-      return canceled ? { canceled: true } : { canceled: false, filePath: "/Users/example/Downloads/mater-export.pdf" };
+      return canceled ? { canceled: true } : { canceled: false, filePath: "/Users/example/Downloads/matter-export.pdf" };
     }
   };
   const permissionClient = {
@@ -73,11 +73,11 @@ test("save-document-as fetches bytes in main process before writing user-selecte
     tenantIdHash: "tenant_hash_001",
     permissionDecisionId: "decision-save_document_as"
   });
-  assert.equal(harness.writes[0].filePath, "/Users/example/Downloads/mater-export.pdf");
+  assert.equal(harness.writes[0].filePath, "/Users/example/Downloads/matter-export.pdf");
   assert.equal(harness.writes[0].documentId, "doc_123");
   assert.equal(harness.writes[0].bytes, harness.providerBytes);
   assert.equal(result.state, "saved");
-  assert.equal(result.file.name, "mater-export.pdf");
+  assert.equal(result.file.name, "matter-export.pdf");
   assert.equal(result.file.pathVisibleToRenderer, false);
   assert.equal(result.backendDownload.actionId, "save_document_as");
   assert.equal(result.backendDownload.permissionDecisionId, "decision-save_document_as");

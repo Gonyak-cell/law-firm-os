@@ -6,8 +6,8 @@ test("auth coordinator starts PKCE login without exposing verifier or tokens", (
   const coordinator = new MainProcessAuthCoordinator();
   const request = coordinator.startLogin({
     issuerUrl: "https://idp.example.com",
-    clientId: "mater-desktop",
-    redirectUri: "mater://auth/callback",
+    clientId: "matter-desktop",
+    redirectUri: "matter://auth/callback",
     tenantIdHash: "tenant_hash_001"
   });
 
@@ -23,8 +23,8 @@ test("auth coordinator stores token material in secure store and returns session
   const coordinator = new MainProcessAuthCoordinator({ secureStore, now: () => 1000 });
   const request = coordinator.startLogin({
     issuerUrl: "https://idp.example.com",
-    clientId: "mater-desktop",
-    redirectUri: "mater://auth/callback",
+    clientId: "matter-desktop",
+    redirectUri: "matter://auth/callback",
     tenantIdHash: "tenant_hash_001"
   });
 
@@ -54,8 +54,8 @@ test("auth coordinator rejects state mismatch and clears session on logout", asy
   const coordinator = new MainProcessAuthCoordinator({ secureStore });
   coordinator.startLogin({
     issuerUrl: "https://idp.example.com",
-    clientId: "mater-desktop",
-    redirectUri: "mater://auth/callback"
+    clientId: "matter-desktop",
+    redirectUri: "matter://auth/callback"
   });
 
   await assert.rejects(
@@ -70,4 +70,31 @@ test("auth coordinator rejects state mismatch and clears session on logout", asy
 
   assert.deepEqual(await coordinator.logout(), { state: "signed_out" });
   assert.deepEqual(secureStore.snapshot(), {});
+});
+
+test("auth coordinator signs into AWS runtime account without exposing operator material", async () => {
+  const coordinator = new MainProcessAuthCoordinator({
+    runtimeClient: {
+      login: async ({ email, password }) => ({
+        ok: true,
+        session: {
+          state: "signed_in",
+          email,
+          highest_privilege: "system_super_admin",
+          role_ids: ["system_super_admin"],
+          operatorToken: "must-not-render"
+        },
+        password_seen_by_runtime: Boolean(password),
+        features: [{ feature_id: "matter_vault_admin", allowed: true, decision: "allow" }]
+      })
+    }
+  });
+
+  const response = await coordinator.login({ email: "jwsuh@amic.kr", password: "new-password" });
+
+  assert.equal(response.session.email, "jwsuh@amic.kr");
+  assert.equal(response.session.highest_privilege, "system_super_admin");
+  assert.equal(JSON.stringify(response).includes("must-not-render"), false);
+  assert.equal(JSON.stringify(response).includes("operatorToken"), false);
+  assert.equal(JSON.stringify(response).includes("new-password"), false);
 });
