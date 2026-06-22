@@ -25,6 +25,59 @@ const zipPath = join(distRoot, `matter-internal-${packageJson.version}-macos.zip
 const dmgPath = join(distRoot, `matter-internal-${packageJson.version}-macos.dmg`);
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
 const arch = process.env.MATTER_DESKTOP_MAC_ARCH ?? (process.arch === "arm64" ? "arm64" : "x64");
+const signingMode = process.env.MATTER_DESKTOP_SIGN ?? "internal";
+const notarizationRequested = process.env.MATTER_DESKTOP_NOTARIZE === "1";
+
+function firstLine(value) {
+  return String(value ?? "").split("\n").find(Boolean) ?? "";
+}
+
+async function findDeveloperIdIdentity() {
+  const { stdout } = await execFileAsync("/usr/bin/security", ["find-identity", "-v", "-p", "codesigning"]);
+  const line = stdout.split("\n").find((entry) => entry.includes("Developer ID Application:"));
+  const match = line?.match(/"([^"]+)"/);
+  return match?.[1] ?? "";
+}
+
+async function signingOptions() {
+  if (!["developer-id", "1", "true"].includes(signingMode)) return null;
+  const identity = process.env.MATTER_DESKTOP_SIGN_IDENTITY || await findDeveloperIdIdentity();
+  if (!identity) {
+    throw new Error("Developer ID Application signing identity not found. Set MATTER_DESKTOP_SIGN_IDENTITY or install a Developer ID Application certificate.");
+  }
+  return {
+    identity,
+    hardenedRuntime: true,
+    gatekeeperAssess: false,
+    continueOnError: false,
+    strictVerify: true
+  };
+}
+
+function notarizationOptions() {
+  if (!notarizationRequested) return null;
+  if (process.env.MATTER_NOTARY_KEYCHAIN_PROFILE) {
+    return {
+      keychainProfile: process.env.MATTER_NOTARY_KEYCHAIN_PROFILE,
+      ...(process.env.MATTER_NOTARY_KEYCHAIN ? { keychain: process.env.MATTER_NOTARY_KEYCHAIN } : {})
+    };
+  }
+  if (process.env.APPLE_ID && process.env.APPLE_APP_SPECIFIC_PASSWORD && process.env.APPLE_TEAM_ID) {
+    return {
+      appleId: process.env.APPLE_ID,
+      appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD,
+      teamId: process.env.APPLE_TEAM_ID
+    };
+  }
+  if (process.env.APPLE_API_KEY && process.env.APPLE_API_KEY_ID) {
+    return {
+      appleApiKey: process.env.APPLE_API_KEY,
+      appleApiKeyId: process.env.APPLE_API_KEY_ID,
+      ...(process.env.APPLE_API_ISSUER ? { appleApiIssuer: process.env.APPLE_API_ISSUER } : {})
+    };
+  }
+  return null;
+}
 
 if (!existsSync(join(repoRoot, "node_modules/electron/dist/Electron.app"))) {
   throw new Error("Electron runtime is missing. Run `npm install --workspace apps/desktop` first.");
@@ -36,6 +89,14 @@ if (!existsSync(iconPath)) {
 await execFileAsync(process.execPath, [join(scriptDir, "prepare-matter-desktop-web-renderer.mjs")], {
   cwd: repoRoot
 });
+
+const osxSign = await signingOptions();
+const osxNotarize = notarizationOptions();
+if (notarizationRequested && !osxNotarize) {
+  throw new Error("Notarization requested but no notarization credential source was found. Set MATTER_NOTARY_KEYCHAIN_PROFILE, Apple ID app-specific password env, or App Store Connect API key env.");
+}
+const notarizationState = osxNotarize ? "submitted_and_accepted_by_packager" : "not_submitted_internal_only";
+
 await rm(distRoot, { recursive: true, force: true });
 await mkdir(dirname(receiptPath), { recursive: true });
 
@@ -60,7 +121,8 @@ const [generatedAppRoot] = await packager({
     /(^|\/)\.env($|\.|\/)/,
     /\.test\.mjs$/
   ],
-  osxSign: false
+  osxSign: osxSign ?? false,
+  ...(osxNotarize ? { osxNotarize } : {})
 });
 
 await rm(appBundle, { recursive: true, force: true });
@@ -72,7 +134,21 @@ try {
   await execFileAsync("/usr/bin/codesign", ["--verify", "--deep", "--verbose=2", appBundle]);
   codesignVerify = "pass";
 } catch (error) {
-  codesignVerify = `not_distribution_ready: ${String(error.stderr ?? error.message).split("\n").find(Boolean) ?? "codesign verify failed"}`;
+  codesignVerify = `not_distribution_ready: ${firstLine(error.stderr ?? error.message) || "codesign verify failed"}`;
+}
+let strictCodesignVerify = "not_distribution_ready";
+try {
+  await execFileAsync("/usr/bin/codesign", ["--verify", "--deep", "--strict", "--verbose=2", appBundle]);
+  strictCodesignVerify = "pass";
+} catch (error) {
+  strictCodesignVerify = `not_distribution_ready: ${firstLine(error.stderr ?? error.message) || "strict codesign verify failed"}`;
+}
+let gatekeeperAssess = "not_distribution_ready";
+try {
+  await execFileAsync("/usr/sbin/spctl", ["--assess", "--type", "execute", "--verbose=4", appBundle]);
+  gatekeeperAssess = "pass";
+} catch (error) {
+  gatekeeperAssess = `not_distribution_ready: ${firstLine(error.stderr ?? error.message) || "spctl assess failed"}`;
 }
 const smoke = await execFileAsync(executablePath, ["-e", "process.stdout.write(process.versions.electron)"], {
   env: {
@@ -104,10 +180,16 @@ Version: \`${packageJson.version}\`
 
 ## Signing
 
-- signing identity: not applied in this internal packaging step
+- Developer ID signing: ${osxSign ? "applied" : "not_applied_internal_package"}
+- requested signing mode: ${signingMode}
+- resolved signing identity: ${osxSign?.identity ?? "not_applied_internal_package"}
 - codesign verify: ${codesignVerify}
-- strict distribution verify: not claimed
-- notarization state: not_submitted_internal_only
+- strict codesign verify: ${strictCodesignVerify}
+- gatekeeper assess: ${gatekeeperAssess}
+- public distribution approval: not claimed
+- notarization requested: ${notarizationRequested}
+- notarization credential source: ${osxNotarize ? "present" : "missing"}
+- notarization state: ${notarizationState}
 
 ## Install Smoke
 
@@ -139,9 +221,14 @@ console.log(
       zip: `apps/desktop/dist/mac/matter-internal-${packageJson.version}-macos.zip`,
       dmg: `apps/desktop/dist/mac/matter-internal-${packageJson.version}-macos.dmg`,
       receipt: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
-      signing_identity: "not_applied_internal_package",
+      signing_mode: signingMode,
+      signing_identity: osxSign?.identity ?? "not_applied_internal_package",
       codesign_verify: codesignVerify,
-      notarization_state: "not_submitted_internal_only",
+      strict_codesign_verify: strictCodesignVerify,
+      gatekeeper_assess: gatekeeperAssess,
+      notarization_requested: notarizationRequested,
+      notarization_credential_source: osxNotarize ? "present" : "missing",
+      notarization_state: notarizationState,
       install_smoke_result: "pass",
       packaged_app_icon: existsSync(packagedIconPath),
       electron_runtime_packaged: true,

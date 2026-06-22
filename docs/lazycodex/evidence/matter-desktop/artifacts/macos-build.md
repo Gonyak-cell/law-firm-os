@@ -19,9 +19,15 @@ Version: `0.1.0`
 
 ## Signing
 
-- signing identity: not applied in this internal packaging step
-- codesign verify: not_distribution_ready: /Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
-- strict distribution verify: not claimed
+- Developer ID signing: applied
+- requested signing mode: developer-id
+- resolved signing identity: Developer ID Application: Jiwon Suh (LHDXU66NX3)
+- codesign verify: pass
+- strict codesign verify: pass
+- gatekeeper assess: not_distribution_ready: /Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app: rejected
+- public distribution approval: not claimed
+- notarization requested: false
+- notarization credential source: missing
 - notarization state: not_submitted_internal_only
 
 ## Install Smoke

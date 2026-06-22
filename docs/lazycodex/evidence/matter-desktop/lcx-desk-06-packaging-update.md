@@ -274,7 +274,7 @@ git diff --check -- docs/lazycodex/evidence/matter-desktop/lcx-desk-06-packaging
 
 Results:
 
-- signed: macOS receipt records ad-hoc internal codesign; Windows receipt records internal detached signature and explicitly does not claim Authenticode.
+- signed: macOS receipt records internal signing evidence; Windows receipt records internal detached signature and explicitly does not claim Authenticode.
 - rollback: update smoke proves signature check, public channel denial, and rollback path.
 - License audit records Electron, license classes, and redistribution constraints.
 - public release remains false; production go-live and owner approval remain false.
@@ -284,3 +284,42 @@ Act:
 - `MDT-P6-W02` is closed at its terminal TUW, `MDT-P6-W02-T04`.
 - P6 is complete.
 - Next ledger TUW is `MDT-P7-W01-T01`.
+
+## Post-Review Release Boundary Hardening - Developer ID, Notarization, Public Release, Owner Approval
+
+Plan:
+
+- Promote the macOS internal build path from unsigned/internal-only packaging to Developer ID signing when a local Developer ID Application identity is available.
+- Record codesign, strict codesign, Gatekeeper, notarization, public release, and owner approval state without claiming external approval.
+- Keep notarization, public distribution, production go-live, and owner approval false unless an explicit external receipt exists.
+
+Do:
+
+- Updated `scripts/build-matter-desktop-mac.mjs` to support `MATTER_DESKTOP_SIGN=developer-id` and optional `MATTER_DESKTOP_NOTARIZE=1`.
+- Updated the temporary release script and manifest to carry the macOS signing/notarization boundary from the macOS build receipt.
+- Added `scripts/validate-matter-desktop-release-boundary.mjs`.
+- Updated `docs/desktop/matter-desktop-owner-decision-packet.md`.
+
+Check:
+
+```bash
+MATTER_DESKTOP_SIGN=developer-id npm --workspace apps/desktop run build:mac
+node scripts/release-matter-desktop-temporary.mjs
+node scripts/validate-matter-desktop-temporary-release-bundle.mjs
+node scripts/validate-matter-desktop-release-boundary.mjs
+node scripts/validate-matter-desktop-no-public-release-claim.mjs
+```
+
+Results:
+
+- Developer ID signing applied with `Developer ID Application: Jiwon Suh (LHDXU66NX3)`.
+- `codesign --verify` passed.
+- strict codesign verify passed.
+- Gatekeeper assessment remains `not_distribution_ready` because notarization was not submitted.
+- Notarization credential source is missing, so notarization remains `not_submitted_internal_only`.
+- Public release, production go-live, App Store distribution, external pilot distribution, and owner approval remain false.
+
+Act:
+
+- The release boundary is signed-internal-ready.
+- Public release and owner approval remain blocked on explicit notarization and owner receipts.

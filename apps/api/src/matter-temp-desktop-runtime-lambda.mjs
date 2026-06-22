@@ -56,6 +56,8 @@ const FEATURE_CATALOG = Object.freeze([
 const PASSWORD_RESET_TTL_MS = 1000 * 60 * 30;
 const PASSWORD_HASH_ITERATIONS = 120_000;
 const PASSWORD_MIN_LENGTH = 8;
+const MAX_PERSISTED_RESET_TOKENS = 20;
+const MAX_PERSISTED_OUTBOX_MESSAGES = 20;
 
 const memoryAuthState = (globalThis.__matterDesktopAuthState ??= {
   passwordCredentials: new Map(),
@@ -128,7 +130,29 @@ function emptyAuthState() {
   };
 }
 
+function pruneAuthState(state) {
+  const now = Date.now();
+  const activeResetEntries = [...state.resetTokens.entries()]
+    .filter(([, reset]) => !reset.used_at && Date.parse(reset.expires_at) > now)
+    .sort(([, left], [, right]) => Date.parse(right.expires_at) - Date.parse(left.expires_at))
+    .slice(0, MAX_PERSISTED_RESET_TOKENS);
+  const activeResetHashes = new Set(activeResetEntries.map(([tokenHash]) => tokenHash));
+
+  state.resetTokens.clear();
+  for (const [tokenHash, reset] of activeResetEntries) state.resetTokens.set(tokenHash, reset);
+
+  state.outbox = state.outbox
+    .filter((message) => {
+      const resetToken = String(message.reset_token ?? "");
+      return Date.parse(message.expires_at) > now && activeResetHashes.has(hashOpaqueToken(resetToken));
+    })
+    .slice(-MAX_PERSISTED_OUTBOX_MESSAGES);
+
+  return state;
+}
+
 function authStateToSecretString(state) {
+  pruneAuthState(state);
   return JSON.stringify({
     schema_version: "law-firm-os.matter-desktop-auth-state.v0.1",
     updated_at: new Date().toISOString(),
@@ -389,6 +413,7 @@ function requestPasswordReset(body = {}, state) {
       expires_at: expiresAt,
       created_at: new Date().toISOString()
     });
+    pruneAuthState(state);
   }
   return response(200, {
     ok: true,

@@ -13,6 +13,7 @@ const legacyReleaseRoot = path.join(ROOT, "apps/desktop/dist/release", `mater-de
 const manifestPath = path.join(releaseRoot, "release-manifest.json");
 const checksumPath = path.join(releaseRoot, "checksums.sha256");
 const receiptPath = path.join(ROOT, "docs/desktop/matter-desktop-temporary-release-receipt.md");
+const macosBuildReceiptPath = path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
 const localSecretPath = path.join(ROOT, ".env.matter-vault-r4.local");
 
 const artifacts = [
@@ -21,7 +22,7 @@ const artifacts = [
     path: "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter",
     display_path: "apps/desktop/dist/mac/matter.app",
     platform: "darwin",
-    kind: "ad_hoc_signed_electron_app_bundle",
+    kind: "macos_electron_app_bundle",
   },
   {
     id: "macos_zip_archive",
@@ -83,6 +84,12 @@ function parseEnvText(source = "") {
   return values;
 }
 
+function receiptValue(source, label) {
+  const prefix = `- ${label}:`;
+  const line = source.split(/\r?\n/).find((entry) => entry.startsWith(prefix));
+  return line?.slice(prefix.length).trim() ?? "missing";
+}
+
 async function artifactRecord(artifact) {
   const absolutePath = path.join(ROOT, artifact.path);
   if (!existsSync(absolutePath)) throw new Error(`missing release artifact: ${artifact.path}`);
@@ -97,6 +104,19 @@ async function artifactRecord(artifact) {
 
 const artifactRecords = [];
 for (const artifact of artifacts) artifactRecords.push(await artifactRecord(artifact));
+const macosBuildReceipt = await readFile(macosBuildReceiptPath, "utf8");
+const macosSigning = {
+  developer_id_signing: receiptValue(macosBuildReceipt, "Developer ID signing"),
+  requested_signing_mode: receiptValue(macosBuildReceipt, "requested signing mode"),
+  resolved_signing_identity: receiptValue(macosBuildReceipt, "resolved signing identity"),
+  codesign_verify: receiptValue(macosBuildReceipt, "codesign verify"),
+  strict_codesign_verify: receiptValue(macosBuildReceipt, "strict codesign verify"),
+  gatekeeper_assess: receiptValue(macosBuildReceipt, "gatekeeper assess"),
+  public_distribution_approval: receiptValue(macosBuildReceipt, "public distribution approval"),
+  notarization_requested: receiptValue(macosBuildReceipt, "notarization requested"),
+  notarization_credential_source: receiptValue(macosBuildReceipt, "notarization credential source"),
+  notarization_state: receiptValue(macosBuildReceipt, "notarization state"),
+};
 const localSecretValues = existsSync(localSecretPath) ? parseEnvText(await readFile(localSecretPath, "utf8")) : {};
 const runtimeBaseUrl =
   process.env.MATTER_VAULT_R4_PRODUCTION_BASE_URL ??
@@ -120,6 +140,7 @@ const manifest = {
   app_store_distribution_claim: false,
   microsoft_store_distribution_claim: false,
   external_pilot_distribution_claim: false,
+  macos_signing: macosSigning,
   artifacts: artifactRecords,
 };
 
@@ -180,6 +201,7 @@ The desktop app can be packaged and smoke-tested without a custom domain. Backen
 | Runtime base URL | \`${runtimeBaseUrl}\` |
 | Operator-token protected runtime routes | true |
 | Password credential store | AWS Secrets Manager \`/matter/staging/desktop-auth-state\` |
+| Reset state retention | bounded reset token/outbox state; 20 latest active entries each |
 | Secret values printed | false |
 
 ## Domain Availability Preflight
@@ -206,6 +228,21 @@ No domain was registered.
 | Windows manifest SHA-256 | \`${artifactRecords.find((artifact) => artifact.id === "windows_internal_manifest").sha256}\` |
 | Windows detached signature | \`apps/desktop/dist/win/matter-internal-${version}-win-installer-manifest.json.sig\` |
 
+## macOS Signing and Notarization
+
+| Field | Value |
+| --- | --- |
+| Developer ID signing | ${macosSigning.developer_id_signing} |
+| Requested signing mode | \`${macosSigning.requested_signing_mode}\` |
+| Resolved signing identity | \`${macosSigning.resolved_signing_identity}\` |
+| codesign verify | ${macosSigning.codesign_verify} |
+| strict codesign verify | ${macosSigning.strict_codesign_verify} |
+| gatekeeper assess | ${macosSigning.gatekeeper_assess} |
+| public distribution approval | ${macosSigning.public_distribution_approval} |
+| notarization requested | ${macosSigning.notarization_requested} |
+| notarization credential source | ${macosSigning.notarization_credential_source} |
+| notarization state | ${macosSigning.notarization_state} |
+
 ## Verification Results
 
 | Command | Result |
@@ -213,10 +250,11 @@ No domain was registered.
 | \`npm --workspace apps/desktop run test:smoke\` | PASS |
 | \`npm --workspace apps/desktop run test:file-bridge\` | PASS, bridge validators included |
 | \`npm run matter-desktop:aws-runtime:smoke\` | PASS, password reset confirmed for \`jwsuh@amic.kr\`, system-super-admin password login allowed, and general account admin smoke denied |
-| \`npm --workspace apps/desktop run build:mac\` | PASS, \`apps/desktop/dist/mac/matter.app\` |
+| \`MATTER_DESKTOP_SIGN=developer-id npm --workspace apps/desktop run build:mac\` | PASS, \`apps/desktop/dist/mac/matter.app\` |
 | \`npm --workspace apps/desktop run build:win\` | PASS, internal Windows manifest hash \`${artifactRecords.find((artifact) => artifact.id === "windows_internal_manifest").sha256}\` |
 | \`node scripts/validate-matter-desktop-security.mjs\` | PASS |
 | \`node scripts/validate-matter-desktop-no-public-release-claim.mjs\` | PASS |
+| \`node scripts/validate-matter-desktop-release-boundary.mjs\` | PASS |
 | \`npm run matter-desktop:temporary-release:validate\` | PASS |
 | \`npm run matter-vault:r4:aws-env-plan:validate\` | PASS |
 | \`npm run matter-vault:r4:local-secrets:validate\` | PASS, secret_values_printed=false |
@@ -229,7 +267,7 @@ No domain was registered.
 | Route 53 hosted zones | empty |
 | Custom API domain | not required for desktop temporary release |
 | Windows native install smoke | not run on Darwin |
-| macOS public notarization | not submitted |
+| macOS public notarization | not submitted; notarization credential source ${macosSigning.notarization_credential_source} |
 
 ## Non-Claims
 

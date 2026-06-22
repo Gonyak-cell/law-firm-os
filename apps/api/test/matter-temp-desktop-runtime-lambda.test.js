@@ -179,6 +179,40 @@ test("temporary desktop runtime accepts unknown reset requests without account d
   assert.equal(latestEmail.statusCode, 404);
 });
 
+test("temporary desktop runtime bounds synthetic reset state for Secrets Manager", async () => {
+  for (let index = 0; index < 40; index += 1) {
+    const request = await handler(
+      event({
+        method: "POST",
+        path: "/api/desktop/password-reset/request",
+        headers: authHeaders(),
+        body: { email: "jwsuh@amic.kr" }
+      })
+    );
+    assert.equal(request.statusCode, 200);
+  }
+
+  const state = globalThis.__matterDesktopAuthState;
+  const persistedShape = JSON.stringify({
+    reset_tokens: Object.fromEntries(state.resetTokens),
+    outbox: state.outbox
+  });
+  assert(state.resetTokens.size <= 20, "reset token state must be bounded");
+  assert(state.outbox.length <= 20, "synthetic reset outbox must be bounded");
+  assert(Buffer.byteLength(persistedShape) < 65_536, "synthetic auth state must fit Secrets Manager SecretString");
+
+  const latestEmail = await handler(
+    event({
+      method: "POST",
+      path: "/api/desktop/password-reset/latest-email",
+      headers: authHeaders(),
+      body: { email: "jwsuh@amic.kr" }
+    })
+  );
+  assert.equal(latestEmail.statusCode, 200);
+  assert.match(json(latestEmail).email_message.reset_url, /^matter:\/\/password-reset\/confirm\?token=/);
+});
+
 test("temporary desktop runtime denies highest privilege feature for non-jwsuh accounts", async () => {
   const denied = await handler(
     event({

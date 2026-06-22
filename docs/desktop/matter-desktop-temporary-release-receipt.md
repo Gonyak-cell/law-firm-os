@@ -46,6 +46,7 @@ The desktop app can be packaged and smoke-tested without a custom domain. Backen
 | Runtime base URL | `https://73o8hpqpgl.execute-api.ap-northeast-2.amazonaws.com/staging` |
 | Operator-token protected runtime routes | true |
 | Password credential store | AWS Secrets Manager `/matter/staging/desktop-auth-state` |
+| Reset state retention | bounded reset token/outbox state; 20 latest active entries each |
 | Secret values printed | false |
 
 ## Domain Availability Preflight
@@ -65,12 +66,27 @@ No domain was registered.
 | Artifact | Result |
 | --- | --- |
 | macOS app bundle | `apps/desktop/dist/mac/matter.app` |
-| macOS executable SHA-256 | `c0bf182389ea930585e3b0bf5c4f16529461e02bf3be751cb364d0e25f2257e0` |
+| macOS executable SHA-256 | `350fd9ac3e22e1316c7fa45e0a1e8123d8faef340e971b26916b7468325157ae` |
 | macOS ZIP archive | `apps/desktop/dist/mac/matter-internal-0.1.0-macos.zip` |
 | macOS DMG image | `apps/desktop/dist/mac/matter-internal-0.1.0-macos.dmg` |
 | Windows internal manifest | `apps/desktop/dist/win/matter-internal-0.1.0-win-installer-manifest.json` |
-| Windows manifest SHA-256 | `904da885e4bf6467c4bf4c6f4badf1f2f6b0dca3cfcebf2c9c35424a901c3aaf` |
+| Windows manifest SHA-256 | `dc2b6196e15a0d0abde170467a27731686adc6436d6902de1739e14bf95aec02` |
 | Windows detached signature | `apps/desktop/dist/win/matter-internal-0.1.0-win-installer-manifest.json.sig` |
+
+## macOS Signing and Notarization
+
+| Field | Value |
+| --- | --- |
+| Developer ID signing | applied |
+| Requested signing mode | `developer-id` |
+| Resolved signing identity | `Developer ID Application: Jiwon Suh (LHDXU66NX3)` |
+| codesign verify | pass |
+| strict codesign verify | pass |
+| gatekeeper assess | not_distribution_ready: /Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app: rejected |
+| public distribution approval | not claimed |
+| notarization requested | false |
+| notarization credential source | missing |
+| notarization state | not_submitted_internal_only |
 
 ## Verification Results
 
@@ -79,10 +95,11 @@ No domain was registered.
 | `npm --workspace apps/desktop run test:smoke` | PASS |
 | `npm --workspace apps/desktop run test:file-bridge` | PASS, bridge validators included |
 | `npm run matter-desktop:aws-runtime:smoke` | PASS, password reset confirmed for `jwsuh@amic.kr`, system-super-admin password login allowed, and general account admin smoke denied |
-| `npm --workspace apps/desktop run build:mac` | PASS, `apps/desktop/dist/mac/matter.app` |
-| `npm --workspace apps/desktop run build:win` | PASS, internal Windows manifest hash `904da885e4bf6467c4bf4c6f4badf1f2f6b0dca3cfcebf2c9c35424a901c3aaf` |
+| `MATTER_DESKTOP_SIGN=developer-id npm --workspace apps/desktop run build:mac` | PASS, `apps/desktop/dist/mac/matter.app` |
+| `npm --workspace apps/desktop run build:win` | PASS, internal Windows manifest hash `dc2b6196e15a0d0abde170467a27731686adc6436d6902de1739e14bf95aec02` |
 | `node scripts/validate-matter-desktop-security.mjs` | PASS |
 | `node scripts/validate-matter-desktop-no-public-release-claim.mjs` | PASS |
+| `node scripts/validate-matter-desktop-release-boundary.mjs` | PASS |
 | `npm run matter-desktop:temporary-release:validate` | PASS |
 | `npm run matter-vault:r4:aws-env-plan:validate` | PASS |
 | `npm run matter-vault:r4:local-secrets:validate` | PASS, secret_values_printed=false |
@@ -95,7 +112,7 @@ No domain was registered.
 | Route 53 hosted zones | empty |
 | Custom API domain | not required for desktop temporary release |
 | Windows native install smoke | not run on Darwin |
-| macOS public notarization | not submitted |
+| macOS public notarization | not submitted; notarization credential source missing |
 
 ## Non-Claims
 
