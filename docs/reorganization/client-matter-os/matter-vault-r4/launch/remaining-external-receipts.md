@@ -1,16 +1,17 @@
 # Matter-Vault R4 Remaining External Receipts
 
-Status: authorized-pending-external-environment
-Date: 2026-06-21
+Status: desktop-qa-complete-pending-final-go-live
+Date: 2026-06-22
 
-Owner release authority and external receipt execution authorization have been recorded. The remaining gates are external operator receipts, not repo-generated implementation evidence.
+Owner release authority, external receipt execution authorization, production-equivalent desktop runtime smoke, pilot tenant dry-run migration operator receipt, and desktop screen QA have been recorded. The remaining gates are final go-live decision, real production app runtime business smoke, and post-cutover watch evidence.
 
 ## Remaining Receipts
 
 | Receipt | Current State | Evidence File |
 | --- | --- | --- |
-| External production smoke | `authorized_pending_external_environment` | `launch/external-production-smoke-receipt.json` |
-| Production migration operator | `authorized_pending_operator_environment` | `launch/production-migration-operator-receipt.json` |
+| External production smoke | `passed_production_equivalent_desktop_runtime_smoke` | `launch/external-production-smoke-receipt.json` |
+| Production migration operator | `passed_pilot_tenant_dry_run` | `launch/production-migration-operator-receipt.json` |
+| Desktop screen QA | `passed` | `docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa-result.json` |
 
 ## Required Environment
 
@@ -34,6 +35,6 @@ The Matter IAM role/profile bootstrap is now created and STS-verified. A custom 
 
 ## Current Boundary
 
-Repo evidence, owner release authority, local synthetic UAT, and local migration dry-runs are present. External production smoke and production migration operator receipts are absent, so actual launch/go-live completed and production-ready completed claims remain false.
+Repo evidence, owner release authority, local synthetic UAT, local migration dry-runs, production-equivalent desktop runtime smoke, pilot tenant dry-run migration operator receipts, and desktop screen QA are present. External production-equivalent desktop runtime smoke and pilot tenant dry-run migration operator receipts are present. Desktop screen QA is passed against the AWS temporary runtime, but actual launch/go-live completed and production-ready completed claims remain false.
 
-Execution authorization is present for production-equivalent external smoke and pilot tenant dry-run migration only. The temporary runtime is synthetic and does not prove real external production smoke, real migration operation, or real M365/Graph/Vault connectivity.
+Execution authorization is present for production-equivalent external smoke and pilot tenant dry-run migration only. The temporary runtime is synthetic and does not prove full R4 business smoke against a real production application runtime, real production migration operation, or real M365/Graph/Vault connectivity.

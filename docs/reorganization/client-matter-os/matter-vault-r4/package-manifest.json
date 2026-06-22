@@ -43,11 +43,12 @@
   "closed_tuws": 118,
   "not_closed_tuws": 0,
   "launch_readiness_lane": {
-    "current_boundary": "repo_implementation_evidence_closeout_complete__owner_authority_received__external_execution_authorized__external_receipts_absent",
+    "current_boundary": "repo_implementation_evidence_closeout_complete__owner_authority_received__external_receipts_received__desktop_qa_complete__pending_final_go_live_decision",
     "target_state": "owner_authorized_launch_with_external_smoke_and_migration_receipts",
     "owner_release_authority_received": true,
-    "external_production_smoke_receipt_received": false,
-    "migration_operator_receipt_received": false,
+    "external_production_smoke_receipt_received": true,
+    "migration_operator_receipt_received": true,
+    "desktop_screen_qa_receipt_received": true,
     "rollback_rehearsal_receipt_present": true,
     "launch_authorization_claim": false,
     "validator": "npm run matter-vault:r4:launch:validate"
@@ -56,10 +57,10 @@
     "execution_authorization_received": true,
     "environment_tier": "production-equivalent",
     "production_migration_scope": "pilot_tenant_dry_run_only",
-    "external_production_smoke_status": "authorized_pending_external_environment",
-    "production_migration_operator_status": "authorized_pending_operator_environment",
-    "external_production_smoke_receipt_received": false,
-    "production_migration_operator_receipt_received": false,
+    "external_production_smoke_status": "passed_production_equivalent_desktop_runtime_smoke",
+    "production_migration_operator_status": "passed_pilot_tenant_dry_run",
+    "external_production_smoke_receipt_received": true,
+    "production_migration_operator_receipt_received": true,
     "actual_launch_go_live_completed_claim": false,
     "local_secret_file": ".env.matter-vault-r4.local",
     "local_secret_validation_command": "npm run matter-vault:r4:local-secrets:validate",
@@ -69,6 +70,7 @@
     "npm run matter-vault:r4:readiness",
     "npm run matter-vault:r4:no-go",
     "npm run matter-vault:r4:launch:validate",
-    "npm run matter-vault:r4:external-receipts:validate"
+    "npm run matter-vault:r4:external-receipts:validate",
+    "npm run matter-desktop:screen-qa"
   ]
 }

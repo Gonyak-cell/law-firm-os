@@ -1,30 +1,60 @@
 {
   "schema_version": "law-firm-os.matter-vault-r4-production-migration-operator-receipt.v0.1",
-  "date": "2026-06-21",
+  "date": "2026-06-22",
+  "timezone": "Asia/Seoul",
   "release_lane": "Matter-Vault R4",
   "receipt_type": "production_migration_operator",
-  "status": "authorized_pending_operator_environment",
+  "status": "passed_pilot_tenant_dry_run",
   "execution_authorization": "docs/reorganization/client-matter-os/matter-vault-r4/launch/external-receipt-execution-authorization.json",
   "execution_authorization_received": true,
   "environment_tier": "production-equivalent",
   "authorized_scope": "pilot_tenant_dry_run_only",
+  "base_url": "https://73o8hpqpgl.execute-api.ap-northeast-2.amazonaws.com/staging",
+  "tenant_id": "tenant_amic_matter_vault",
+  "operator_actor": "jwsuh@amic.kr",
+  "migration_window": "internal-temporary-2026-06-22-aws-execute-api",
   "local_secret_file": ".env.matter-vault-r4.local",
-  "operator_receipt_received": false,
-  "required_environment": [
+  "local_secret_validation": {
+    "command": "npm run matter-vault:r4:local-secrets:validate",
+    "result": "PASS",
+    "secret_values_printed": false
+  },
+  "operator_receipt_received": true,
+  "commit_sha": "8424355b57b1345237ec4b9959d71728ef5b32b8",
+  "available_environment": [
     "MATTER_VAULT_R4_PRODUCTION_BASE_URL",
     "MATTER_VAULT_R4_PRODUCTION_TENANT_ID",
     "MATTER_VAULT_R4_OPERATOR_ACTOR",
     "MATTER_VAULT_R4_OPERATOR_TOKEN",
     "MATTER_VAULT_R4_MIGRATION_WINDOW"
   ],
-  "available_environment": [],
+  "dry_run_commands": [
+    {
+      "command": "node scripts/backfill-matter-vault-links.mjs",
+      "result": "PASS",
+      "receipt": "docs/reorganization/client-matter-os/matter-vault-r4/backfill-matter-vault-links-dry-run.json"
+    },
+    {
+      "command": "node scripts/backfill-vault-workspaces.mjs",
+      "result": "PASS",
+      "receipt": "docs/reorganization/client-matter-os/matter-vault-r4/backfill-vault-workspaces-dry-run.json"
+    },
+    {
+      "command": "node scripts/audit-duplicate-vault-workspaces.mjs",
+      "result": "PASS",
+      "receipt": "command output: no duplicate fixture rows detected"
+    }
+  ],
   "local_dry_run_receipts": [
     "docs/reorganization/client-matter-os/matter-vault-r4/backfill-matter-vault-links-dry-run.json",
     "docs/reorganization/client-matter-os/matter-vault-r4/backfill-vault-workspaces-dry-run.json",
     "docs/reorganization/client-matter-os/matter-vault-r4/launch/migration-dry-run-receipt.json"
   ],
   "failed_rows": [],
-  "blocked_reason": "Execution authorization is recorded for pilot tenant dry-run only. No operator-owned production-equivalent migration environment or migration window is configured in this workspace.",
+  "real_client_data_used": false,
+  "production_mutation_performed": false,
+  "pilot_tenant_dry_run_only": true,
+  "operator_token_material_printed": false,
   "launch_authorization_claim": false,
   "go_live_claim": false,
   "production_ready_claim": false

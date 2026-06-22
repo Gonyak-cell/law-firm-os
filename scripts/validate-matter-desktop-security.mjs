@@ -65,7 +65,7 @@ assert(existsSync(ORIGIN_POLICY_PATH), `${ORIGIN_POLICY_PATH} is missing`);
 const desktopFiles = listFiles(DESKTOP_ROOT);
 const windowSource = read(WINDOW_PATH);
 const originPolicySource = read(ORIGIN_POLICY_PATH);
-const preloadFiles = desktopFiles.filter((path) => /preload/i.test(path) && path.endsWith(".js"));
+const preloadFiles = desktopFiles.filter((path) => /preload/i.test(path) && /\.(cjs|js)$/.test(path));
 
 const findings = [
   ...windowSecurityFindings(windowSource),

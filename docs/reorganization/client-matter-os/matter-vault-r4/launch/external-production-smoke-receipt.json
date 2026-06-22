@@ -1,22 +1,76 @@
 {
   "schema_version": "law-firm-os.matter-vault-r4-external-production-smoke-receipt.v0.1",
-  "date": "2026-06-21",
+  "date": "2026-06-22",
+  "timezone": "Asia/Seoul",
   "release_lane": "Matter-Vault R4",
   "receipt_type": "external_production_smoke",
-  "status": "authorized_pending_external_environment",
+  "status": "passed_production_equivalent_desktop_runtime_smoke",
   "execution_authorization": "docs/reorganization/client-matter-os/matter-vault-r4/launch/external-receipt-execution-authorization.json",
   "execution_authorization_received": true,
   "environment_tier": "production-equivalent",
+  "runtime_mode": "aws-temporary-execute-api",
+  "base_url": "https://73o8hpqpgl.execute-api.ap-northeast-2.amazonaws.com/staging",
+  "tenant_id": "tenant_amic_matter_vault",
+  "operator_actor": "jwsuh@amic.kr",
   "local_secret_file": ".env.matter-vault-r4.local",
-  "operator_receipt_received": false,
-  "required_environment": [
+  "local_secret_validation": {
+    "command": "npm run matter-vault:r4:local-secrets:validate",
+    "result": "PASS",
+    "secret_values_printed": false
+  },
+  "operator_receipt_received": true,
+  "commit_sha": "8424355b57b1345237ec4b9959d71728ef5b32b8",
+  "command": "npm run matter-desktop:aws-runtime:smoke",
+  "command_result": "PASS",
+  "available_environment": [
     "MATTER_VAULT_R4_PRODUCTION_BASE_URL",
     "MATTER_VAULT_R4_PRODUCTION_TENANT_ID",
     "MATTER_VAULT_R4_OPERATOR_ACTOR",
     "MATTER_VAULT_R4_OPERATOR_TOKEN"
   ],
-  "available_environment": [],
-  "smoke_cases": [
+  "desktop_runtime_smoke_cases": [
+    {
+      "case_id": "health",
+      "result": "PASS",
+      "evidence": "AWS temporary runtime health returned ok=true and password_login_required=true"
+    },
+    {
+      "case_id": "missing_operator_token",
+      "result": "PASS",
+      "evidence": "operator-protected routes deny missing bearer token with HTTP 401"
+    },
+    {
+      "case_id": "invalid_operator_token",
+      "result": "PASS",
+      "evidence": "operator-protected routes deny invalid bearer token with HTTP 403"
+    },
+    {
+      "case_id": "account_ledger",
+      "result": "PASS",
+      "evidence": "registered account ledger returned 9 accounts without token material"
+    },
+    {
+      "case_id": "jwsuh_password_reset",
+      "result": "PASS",
+      "evidence": "jwsuh@amic.kr reset request and one-time reset confirmation passed"
+    },
+    {
+      "case_id": "jwsuh_password_login",
+      "result": "PASS",
+      "evidence": "jwsuh@amic.kr password login returned system_super_admin session"
+    },
+    {
+      "case_id": "general_account_password_login",
+      "result": "PASS",
+      "evidence": "ytkim@amic.kr password reset and password login passed"
+    },
+    {
+      "case_id": "general_account_admin_denial",
+      "result": "PASS",
+      "evidence": "ytkim@amic.kr matter_vault_admin smoke denied with HTTP 403"
+    }
+  ],
+  "r4_business_smoke_cases": [
     "matter_opening_orchestration",
     "vault_summary",
     "document_upload_facade",
@@ -28,8 +82,14 @@
     "timeline_projection",
     "audit_linkage"
   ],
+  "r4_business_smoke_status": "not_run_for_temporary_desktop_runtime",
+  "r4_business_smoke_required_before_real_production_cutover": true,
   "failed_cases": [],
-  "blocked_reason": "Execution authorization is recorded, but no external production or production-equivalent environment variables are configured in this workspace.",
+  "operator_token_material_printed": false,
+  "password_material_printed": false,
+  "reset_token_material_printed": false,
+  "real_client_data_used": false,
+  "custom_domain_required": false,
   "launch_authorization_claim": false,
   "go_live_claim": false,
   "production_ready_claim": false

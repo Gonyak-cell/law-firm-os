@@ -84,14 +84,41 @@ test("desktop main entrypoint detection tolerates filesystem paths with spaces",
   assert.equal(
     isMainEntryPoint({
       argv: ["/usr/bin/electron", new URL("../src/main/main.js", import.meta.url).pathname],
-      versions: { electron: "42.4.1" }
+      versions: { electron: "42.4.1" },
+      defaultApp: true
     }),
-    false
+    true
   );
   assert.equal(
     isMainEntryPoint({
       argv: ["/usr/bin/electron", decodeURIComponent(new URL("../src/main/main.js", import.meta.url).pathname)],
-      versions: { electron: "42.4.1" }
+      versions: { electron: "42.4.1" },
+      defaultApp: true
+    }),
+    true
+  );
+  assert.equal(
+    isMainEntryPoint({
+      argv: ["/usr/bin/electron", "--inspect=0", "--remote-debugging-port=0", decodeURIComponent(new URL("../src/main/main.js", import.meta.url).pathname)],
+      versions: { electron: "42.4.1" },
+      defaultApp: true
+    }),
+    true
+  );
+  assert.equal(
+    isMainEntryPoint({
+      argv: ["/Applications/matter.app/Contents/MacOS/matter"],
+      versions: { electron: "42.4.1" },
+      defaultApp: false
+    }),
+    true
+  );
+  assert.equal(
+    isMainEntryPoint({
+      argv: ["/Applications/matter.app/Contents/MacOS/matter", "--inspect=0"],
+      versions: { electron: "42.4.1" },
+      resourcesPath: "/Applications/matter.app/Contents/Resources",
+      modulePath: "/Applications/matter.app/Contents/Resources/app/src/main/main.js"
     }),
     true
   );

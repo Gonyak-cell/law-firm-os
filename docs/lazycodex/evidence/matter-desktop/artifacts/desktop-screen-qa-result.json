@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
+  "generated_at": "2026-06-22T03:46:24.478Z",
+  "status": "passed",
+  "command": "npm run matter-desktop:screen-qa",
+  "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
+  "launch_target": "packaged_mac_app",
+  "app_name": "matter",
+  "runtime": {
+    "label": "AWS temporary runtime connected",
+    "account_count_label": "9 registered",
+    "base_url_material_printed": false,
+    "operator_token_material_printed": false,
+    "password_material_printed": false,
+    "reset_token_material_printed": false
+  },
+  "packaged_bundle_inspection": {
+    "mac_bundle_present": true,
+    "cf_bundle_name": "matter",
+    "cf_bundle_display_name": "matter",
+    "cf_bundle_identifier": "com.amic.matter.desktop.internal"
+  },
+  "accounts": {
+    "count": 9,
+    "jwsuh_at_amic_kr": {
+      "email": "jwsuh@amic.kr",
+      "highest_privilege": "true",
+      "roles": [
+        "system_super_admin",
+        "tenant_owner",
+        "managing_partner",
+        "security_admin",
+        "matter_vault_admin",
+        "matter_vault_user"
+      ],
+      "reset_email_request": "passed",
+      "password_reset_confirm": "passed",
+      "password_login": "passed",
+      "dashboard_smoke": {
+        "passed": true,
+        "visible_result": "HTTP 200 allow feature: matter_vault_dashboard actor: jwsuh@amic.kr"
+      },
+      "admin_smoke": {
+        "passed": true,
+        "visible_result": "HTTP 200 allow feature: matter_vault_admin actor: jwsuh@amic.kr"
+      }
+    },
+    "ytkim_at_amic_kr": {
+      "email": "ytkim@amic.kr",
+      "highest_privilege": "false",
+      "roles": [
+        "tenant_owner",
+        "managing_partner",
+        "matter_vault_admin",
+        "matter_vault_user"
+      ],
+      "reset_email_request": "passed",
+      "password_reset_confirm": "passed",
+      "password_login": "passed",
+      "dashboard_smoke": {
+        "passed": true,
+        "visible_result": "HTTP 200 allow feature: matter_vault_dashboard actor: ytkim@amic.kr"
+      },
+      "admin_smoke": {
+        "passed": true,
+        "visible_result": "HTTP 403 deny feature: matter_vault_admin actor: ytkim@amic.kr"
+      }
+    }
+  },
+  "ui_artifacts": {
+    "screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa.png"
+  },
+  "forbidden_material_checks": {
+    "token_or_password_visible_in_final_dom": false,
+    "reset_token_input_cleared_before_screenshot": true,
+    "generated_password_visible_in_final_dom": false,
+    "final_dom_character_count": 10286
+  },
+  "release_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_final_approval": false
+  }
+}

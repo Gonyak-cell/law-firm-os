@@ -6,5 +6,5 @@
   "vault_workspace_backfill": "passed_local_dry_run",
   "duplicate_workspace_audit": "passed_local_audit",
   "failed_rows": [],
-  "production_migration_operator_receipt_received": false
+  "production_migration_operator_receipt_received": true
 }
