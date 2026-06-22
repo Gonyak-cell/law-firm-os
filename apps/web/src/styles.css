@@ -214,9 +214,13 @@ p {
 
 .app-frame {
   display: grid;
-  grid-template-columns: var(--am-rail-width) var(--am-sidebar-width) minmax(0, 1fr);
+  grid-template-columns: var(--am-rail-width) minmax(0, 1fr);
   height: calc(100vh - var(--am-topbar-height));
   min-height: 0;
+}
+
+.app-frame.sidebar-expanded {
+  grid-template-columns: var(--am-rail-width) var(--am-sidebar-width) minmax(0, 1fr);
 }
 
 .rail {
@@ -271,12 +275,37 @@ p {
   justify-self: center;
 }
 
+.nav-toggle.active {
+  background: var(--am-blue-soft);
+  color: var(--am-blue);
+}
+
 .sidebar {
+  display: none;
   min-height: 0;
   overflow: auto;
   padding: 12px;
   background: var(--am-canvas-muted);
   border-right: 1px solid var(--am-border);
+}
+
+.app-frame.sidebar-expanded .sidebar {
+  display: block;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 8px 8px 12px;
+}
+
+.sidebar-brand .matter-logo {
+  width: 100%;
+}
+
+.sidebar-brand .matter-logo .matter-word {
+  color: var(--am-text);
 }
 
 .workspace-card {

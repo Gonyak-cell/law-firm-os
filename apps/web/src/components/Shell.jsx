@@ -41,10 +41,15 @@ export function LoadingSurface({ labels, locale, theme, setLocale, setTheme, cla
   );
 }
 
-export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQuery, onCreate, onInvite }) {
+export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQuery, sidebarExpanded, onToggleSidebar, onCreate, onInvite }) {
   return (
     <header className="topbar">
-      <button className="icon-button" aria-label="Open navigation">
+      <button
+        className={sidebarExpanded ? "icon-button nav-toggle active" : "icon-button nav-toggle"}
+        aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+        aria-expanded={sidebarExpanded}
+        onClick={onToggleSidebar}
+      >
         <Menu size={18} />
       </button>
       <button className="primary-button" onClick={onCreate}>
@@ -112,7 +117,7 @@ export function Rail({ labels, view, setView }) {
   );
 }
 
-export function Sidebar({ labels, view, setView }) {
+export function Sidebar({ labels, view, setView, expanded = false }) {
   const subnav = {
     auth: ["Marketing", "Signup", "Login", "Password", "Organization", "Email sent"],
     home: ["Overview", "Templates", "Guides", "Resources", "Realtime"],
@@ -136,7 +141,10 @@ export function Sidebar({ labels, view, setView }) {
   }[view];
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar" data-sidebar-expanded={expanded ? "true" : "false"} aria-hidden={!expanded}>
+      <div className="sidebar-brand">
+        <MatterLogo />
+      </div>
       <div className="workspace-card">
         <div>
           <span className="eyebrow">{labels.workspace}</span>

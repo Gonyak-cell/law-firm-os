@@ -86,13 +86,22 @@ test("desktop post-login route keeps logo image flow before command center", asy
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const homeSource = await readWebFile("src/components/HomeSurface.jsx");
+  const stylesSource = await readWebFile("src/styles.css");
   const desktopSource = await readFile(resolve(webRoot, "../desktop/src/renderer/offline.html"), "utf8");
 
   assert.match(desktopSource, /web\/index\.html\?desktop=1&view=home&data=live&ctx=allow&splash=1/);
   assert.match(appSource, /initialHandoffSplash/);
   assert.match(appSource, /post-login-splash/);
+  assert.match(appSource, /initialSidebarExpanded/);
+  assert.match(appSource, /sidebarExpanded/);
+  assert.match(appSource, /data-sidebar-state/);
+  assert.match(shellSource, /aria-expanded=\{sidebarExpanded\}/);
   assert.match(shellSource, /data-matter-logo-flow/);
+  assert.match(shellSource, /data-sidebar-expanded/);
+  assert.match(shellSource, /<MatterLogo \/>/);
   assert.match(homeSource, /key=\{`\$\{endpoint\}-\$\{index\}`\}/);
+  assert.match(stylesSource, /\.app-frame\.sidebar-expanded/);
+  assert.match(stylesSource, /\.sidebar-brand/);
 });
 
 test("Finance runtime surface is routed and live Finance backed", async () => {

@@ -1,19 +1,38 @@
 {
-  "generated_at": "2026-06-22T06:44:02.636Z",
+  "generated_at": "2026-06-22T06:56:23.523Z",
   "splashState": {
     "logoFlow": "post-login",
     "imageAlt": "matter",
-    "imageWidth": 360,
+    "imageWidth": 346,
     "overlayBackground": "rgb(247, 249, 252)",
     "overlayZIndex": "3000",
     "actionsVisible": false,
-    "splashText": "Opening your matter workspaceChecking your workspace and permissions.EnglishTheme",
+    "visibleText": "Opening your matter workspace",
     "logoTextHasByAmic": false
   },
   "finalState": {
+    "state": "collapsed",
+    "sidebarDisplay": "none",
+    "railWordVisible": false,
     "title": "matter command center",
     "cards": 12,
-    "overlayPresent": false,
     "overflow": false
+  },
+  "sidebarState": {
+    "collapsed": {
+      "state": "collapsed",
+      "sidebarDisplay": "none",
+      "railWordVisible": false,
+      "title": "matter command center",
+      "cards": 12,
+      "overflow": false
+    },
+    "expanded": {
+      "state": "expanded",
+      "sidebarDisplay": "block",
+      "matterWord": "matter",
+      "matterWordVisible": true,
+      "overflow": false
+    }
   }
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-06-22T06:50:36.444Z",
+  "generated_at": "2026-06-22T06:57:14.451Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
   "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
@@ -44,7 +44,7 @@
         "public_release_false_visible": true,
         "owner_approval_false_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 4553,
+        "body_character_count": 4559,
         "logo_flow": {
           "observed": true,
           "image_alt": "matter",
@@ -52,6 +52,20 @@
           "overlay_background": "rgb(247, 249, 252)",
           "overlay_z_index": "3000",
           "by_amic_visible_in_logo": false
+        },
+        "sidebar": {
+          "collapsed": {
+            "state": "collapsed",
+            "sidebar_display": "none",
+            "rail_word_visible": false
+          },
+          "expanded": {
+            "state": "expanded",
+            "sidebar_display": "block",
+            "matter_word": "matter",
+            "matter_word_visible": true,
+            "horizontal_overflow": false
+          }
         }
       },
       "dashboard_smoke": {
@@ -87,7 +101,7 @@
         "public_release_false_visible": true,
         "owner_approval_false_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 4553,
+        "body_character_count": 4559,
         "logo_flow": {
           "observed": true,
           "image_alt": "matter",
@@ -95,6 +109,20 @@
           "overlay_background": "rgb(247, 249, 252)",
           "overlay_z_index": "3000",
           "by_amic_visible_in_logo": false
+        },
+        "sidebar": {
+          "collapsed": {
+            "state": "collapsed",
+            "sidebar_display": "none",
+            "rail_word_visible": false
+          },
+          "expanded": {
+            "state": "expanded",
+            "sidebar_display": "block",
+            "matter_word": "matter",
+            "matter_word_visible": true,
+            "horizontal_overflow": false
+          }
         }
       },
       "dashboard_smoke": {
@@ -127,7 +155,7 @@
     "token_or_password_visible_in_final_dom": false,
     "reset_token_input_cleared_before_screenshot": true,
     "generated_password_visible_in_final_dom": false,
-    "final_dom_character_count": 4553
+    "final_dom_character_count": 4559
   },
   "release_claims": {
     "production_go_live": false,

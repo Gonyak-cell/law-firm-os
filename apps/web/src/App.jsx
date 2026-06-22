@@ -111,10 +111,12 @@ export function App() {
     ? initialParams.get("ctx")
     : "allow";
   const initialHandoffSplash = initialParams.get("splash") === "1";
+  const initialSidebarExpanded = initialParams.get("sidebar") === "expanded";
   const [locale, setLocale] = useState(initialLocale);
   const [theme, setTheme] = useState(initialTheme);
   const [view, setView] = useState(initialView);
   const [handoffSplashVisible, setHandoffSplashVisible] = useState(initialHandoffSplash);
+  const [sidebarExpanded, setSidebarExpanded] = useState(initialSidebarExpanded);
   const [modal, setModal] = useState(initialModal);
   const [authStep, setAuthStep] = useState(initialAuthStep);
   const [query, setQuery] = useState(initialQuery);
@@ -161,12 +163,14 @@ export function App() {
         setTheme={setTheme}
         query={query}
         setQuery={setQuery}
+        sidebarExpanded={sidebarExpanded}
+        onToggleSidebar={() => setSidebarExpanded((current) => !current)}
         onCreate={() => setModal("create")}
         onInvite={() => setModal("invite")}
       />
-      <div className="app-frame">
+      <div className={sidebarExpanded ? "app-frame sidebar-expanded" : "app-frame sidebar-collapsed"} data-sidebar-state={sidebarExpanded ? "expanded" : "collapsed"}>
         <Rail labels={labels} view={view} setView={setView} />
-        <Sidebar labels={labels} view={view} setView={setView} />
+        <Sidebar labels={labels} view={view} setView={setView} expanded={sidebarExpanded} />
         <main className="page-canvas">
           {view === "auth" && (
             <AuthSurface labels={labels} locale={locale} authStep={authStep} setAuthStep={setAuthStep} />
