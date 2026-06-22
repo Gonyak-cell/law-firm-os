@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-06-22T04:06:23.043Z",
+  "generated_at": "2026-06-22T04:12:22.001Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
   "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
@@ -75,13 +75,14 @@
     "initial_login_brand_visible": true,
     "initial_login_panel_visible": true,
     "matter_wordmark_visible": true,
-    "amic_byline_visible": true
+    "amic_byline_visible": false,
+    "amic_byline_removed": true
   },
   "forbidden_material_checks": {
     "token_or_password_visible_in_final_dom": false,
     "reset_token_input_cleared_before_screenshot": true,
     "generated_password_visible_in_final_dom": false,
-    "final_dom_character_count": 11709
+    "final_dom_character_count": 11639
   },
   "release_claims": {
     "production_go_live": false,

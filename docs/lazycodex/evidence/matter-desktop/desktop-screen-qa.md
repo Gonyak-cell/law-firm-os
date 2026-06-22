@@ -19,7 +19,7 @@ Date: 2026-06-22
 
 - Packaged macOS `matter.app` window opened successfully.
 - App name verified as `matter`.
-- Initial login screen verified the matter wordmark, AMIC byline, and reset-email password flow panel.
+- Initial login screen verified the matter wordmark without the AMIC byline and the reset-email password flow panel.
 - AWS temporary runtime connected in the packaged Electron desktop screen.
 - `jwsuh@amic.kr` completed reset email request, password reset confirmation, password login, dashboard smoke, and admin smoke.
 - `jwsuh@amic.kr` session roles include `system_super_admin`.
