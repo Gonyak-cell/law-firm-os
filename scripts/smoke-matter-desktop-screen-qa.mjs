@@ -109,25 +109,30 @@ async function waitForProductUi(page) {
   assert.equal(logoFlow.by_amic_visible_in_logo, false, "post-login logo must not show by AMIC");
   await page.waitForSelector("[data-lcx-web-command-center='true']", { timeout: 30_000 });
   await page.waitForFunction(() => !document.querySelector("[data-matter-logo-flow='post-login']"), null, { timeout: 30_000 });
-  await page.waitForFunction(() => document.querySelectorAll("[data-capability-id]").length === 12, null, { timeout: 30_000 });
+  await page.waitForFunction(() => document.querySelectorAll("[data-capability-id]").length === 4, null, { timeout: 30_000 });
   const snapshot = await page.evaluate(() => {
     const text = document.body.textContent ?? "";
+    const capabilityLabels = Array.from(document.querySelectorAll("[data-capability-id] h2")).map((node) => node.textContent?.trim() ?? "");
     return {
       url: window.location.href,
       title: document.querySelector("h1")?.textContent?.trim() ?? "",
       capability_cards: document.querySelectorAll("[data-capability-id]").length,
+      capability_labels: capabilityLabels,
       production_go_live_false_visible: text.includes("production go-live: false"),
       public_release_false_visible: text.includes("public release: false"),
       owner_approval_false_visible: text.includes("owner approval: false"),
+      no_dummy_visible: !/mock|dummy|sample|synthetic|Project Atlas|Alex Smith|Riverstone/i.test(text),
       horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
       body_character_count: text.length
     };
   });
-  assert.equal(snapshot.title, "matter command center", "post-login product UI must be apps/web command center");
-  assert.equal(snapshot.capability_cards, 12, "command center must show all backend capability cards");
+  assert.equal(snapshot.title, "Client Matter People Vault", "post-login product UI must be the four-axis command center");
+  assert.equal(snapshot.capability_cards, 4, "command center must show four product-axis cards");
+  assert.deepEqual(snapshot.capability_labels.sort(), ["Client", "Matter", "People", "Vault"].sort(), "command center must show Client, Matter, People, and Vault");
   assert.equal(snapshot.production_go_live_false_visible, true, "production go-live false boundary must be visible");
   assert.equal(snapshot.public_release_false_visible, true, "public release false boundary must be visible");
   assert.equal(snapshot.owner_approval_false_visible, true, "owner approval false boundary must be visible");
+  assert.equal(snapshot.no_dummy_visible, true, "post-login product UI must not render dummy/sample/synthetic text");
   assert.equal(snapshot.horizontal_overflow, false, "product UI must not horizontally overflow");
   const collapsedSidebar = await page.evaluate(() => {
     const frame = document.querySelector(".app-frame");

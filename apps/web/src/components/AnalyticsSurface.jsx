@@ -189,7 +189,7 @@ export function AnalyticsSurface({ labels, variant, onSave, liveCtx = "allow" })
       {variant === "shareToast" && (
         <div className="share-success-toast" role="status">
           <CheckCircle2 size={16} />
-          <span><strong>Success.</strong> Shared "Page views" with Alex Smith.</span>
+          <span><strong>Success.</strong> Shared "Page views" with Selected user.</span>
           <button className="icon-button" type="button" aria-label="Dismiss share success">
             <X size={14} />
           </button>

@@ -1,16 +1,11 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw, Search, ShieldCheck } from "lucide-react";
-import { matters } from "../data/mockData.js";
+import { RefreshCw, ShieldCheck } from "lucide-react";
 import { fetchMasterDataRecords } from "../data/apiClient.js";
 import { DataTable, MetricCard, PageHeader, Panel } from "./primitives.jsx";
 
 const CLIENTS_PERMISSION_REF = "ui_cmp_g2_party_clients_live";
 const CLIENTS_AUDIT_HINT_REF = "ui_cmp_g2_clients_live_probe";
-
-function countDistinct(values) {
-  return new Set(values.filter(Boolean)).size;
-}
 
 function clientDisplayName(item) {
   return item.display_name ?? item.client_name ?? item.name ?? item.client_group_id ?? "Unnamed client";
@@ -20,61 +15,7 @@ function clientMembers(item) {
   return Array.isArray(item.member_entity_ids) ? item.member_entity_ids.length : "0";
 }
 
-function ClientsMockSurface({ labels }) {
-  const clients = useMemo(() => {
-    const byClient = new Map();
-    for (const matter of matters) {
-      const current = byClient.get(matter.client) ?? {
-        client: matter.client,
-        matters: 0,
-        owners: new Set(),
-        risk: matter.risk,
-        value: matter.value
-      };
-      current.matters += 1;
-      current.owners.add(matter.owner);
-      if (matter.risk === "High") current.risk = "High";
-      byClient.set(matter.client, current);
-    }
-    return [...byClient.values()];
-  }, []);
-
-  return (
-    <section className="surface stack clients-surface">
-      <PageHeader
-        title={labels.clientsTitle}
-        subtitle="Client groups, party owners, and matter activity in one workspace view."
-        actions={
-          <button className="secondary-button">
-            <Search size={15} />
-            Search
-          </button>
-        }
-      />
-      <div className="clients-metric-grid">
-        <MetricCard label="Client groups" value={clients.length} delta="workspace rollup" tone="blue" />
-        <MetricCard label="Active matters" value={matters.length} delta="across listed clients" tone="green" />
-        <MetricCard label="Owners" value={countDistinct(matters.map((matter) => matter.owner))} delta="responsible users" tone="purple" />
-      </div>
-      <Panel title="Client Directory" meta="Workspace rollup">
-        <DataTable
-          columns={["Client", "Matters", "Owners", "Risk", "Trust/WIP"]}
-          rows={clients.map((client) => [
-            client.client,
-            String(client.matters),
-            String(client.owners.size),
-            client.risk,
-            client.value
-          ])}
-        />
-      </Panel>
-    </section>
-  );
-}
-
-// Live mode has no mock fallback. The surface renders only permission-gated
-// /master-data/records?model_type=ClientGroup responses from apps/api.
-function ClientsLiveSurface({ labels, liveCtx }) {
+export function ClientsSurface({ labels, liveCtx = "allow" }) {
   const [result, setResult] = useState(null);
   const [refreshToken, setRefreshToken] = useState(0);
 
@@ -115,10 +56,9 @@ function ClientsLiveSurface({ labels, liveCtx }) {
     );
   } else if (result.kind === "error") {
     body = (
-      <div className="live-data-state live-data-error">
+      <div className="live-data-state live-data-unavailable live-data-error">
         <strong>Client data unavailable</strong>
-        The API request failed or returned an unexpected response. Live mode has no mock fallback — start the API
-        and reload.
+        The API request failed or returned an unexpected response. Start the API and reload.
       </div>
     );
   } else if (result.uiState === "denied") {
@@ -169,7 +109,7 @@ function ClientsLiveSurface({ labels, liveCtx }) {
     <section className="surface stack clients-surface" data-cmp-g2-live-clients="true">
       <PageHeader
         title={labels.clientsTitle}
-        subtitle="Live ClientGroup records from the Law Firm OS Master Data API."
+        subtitle="Live ClientGroup records from the matter Master Data API."
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />
@@ -199,11 +139,4 @@ function ClientsLiveSurface({ labels, liveCtx }) {
       </div>
     </section>
   );
-}
-
-export function ClientsSurface({ labels, dataMode = "mock", liveCtx = "allow" }) {
-  if (dataMode === "live") {
-    return <ClientsLiveSurface labels={labels} liveCtx={liveCtx} />;
-  }
-  return <ClientsMockSurface labels={labels} />;
 }

@@ -1,10 +1,9 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { PlayCircle, RefreshCw, ShieldCheck, Sparkles } from "lucide-react";
+import { RefreshCw, ShieldCheck, Sparkles } from "lucide-react";
 import { PRODUCT_BRAND } from "../brand/brand";
-import { prompts } from "../data/mockData.js";
 import { fetchAiReviewQueue } from "../data/apiClient.js";
-import { CompactTable, MiniLineChart, Panel } from "./primitives.jsx";
+import { CompactTable, Panel } from "./primitives.jsx";
 
 const AI_PERMISSION_REF = "ui_cmp_g9_ai_live";
 const AI_AUDIT_HINT_REF = "ui_cmp_g9_ai_probe";
@@ -69,25 +68,10 @@ export function AskSurface({ labels, variant, liveCtx = "allow" }) {
         <p>{`Guidance, answers, cohorts, and replay context for your ${PRODUCT_BRAND} workspace.`}</p>
       </div>
       <AiRuntimePanel liveCtx={liveCtx} />
-      <div className="prompt-grid">
-        {prompts.map((prompt) => (
-          <button key={prompt} className="prompt-card">
-            <Sparkles size={16} />
-            {prompt}
-          </button>
-        ))}
-      </div>
       <Panel title="Answer" meta="Generated chart response">
-        <div className="answer-layout">
-          <MiniLineChart variant="large" />
-          <div>
-            <h3>High-risk matters increased after DMS redline activity.</h3>
-            <p>The largest change came from Project Atlas and Riverstone. Both have partner-review events and permission evaluations in the last 24 hours.</p>
-            <div className="feedback-row">
-              <button className="secondary-button">Helpful</button>
-              <button className="secondary-button">Needs work</button>
-            </div>
-          </div>
+        <div className="live-data-state live-data-empty">
+          <strong>No generated answer</strong>
+          Server-reviewed AI output is shown only after the AI review queue returns an approved response.
         </div>
       </Panel>
       <label className="ask-input">
@@ -99,20 +83,12 @@ export function AskSurface({ labels, variant, liveCtx = "allow" }) {
       </label>
       <div className="cohort-replay-grid">
         <Panel title="Cohorts" meta="Saved user groups">
-          <CompactTable
-            columns={["Cohort", "Users", "Sync"]}
-            rows={[
-              ["High-risk matters", "248", "Active"],
-              ["Partner review queue", "92", "Paused"],
-              ["Enterprise clients", "1.1k", "Active"]
-            ]}
-          />
+          <CompactTable columns={["Cohort", "Users", "Sync"]} rows={[]} />
         </Panel>
         <Panel title="Session Replay" meta="Recent workspace sessions">
-          <div className="replay-card">
-            <PlayCircle size={38} />
-            <strong>Project Atlas workspace session</strong>
-            <span>12:48 min · DMS redline activity</span>
+          <div className="live-data-state live-data-empty">
+            <strong>No local replay rows</strong>
+            Session replay requires a live, permission-checked event stream.
           </div>
         </Panel>
       </div>
@@ -129,21 +105,13 @@ export function AskRetentionSurface({ labels }) {
         <p>Ask a question, inspect the generated chart, and continue with follow-up prompts.</p>
       </div>
       <Panel title="Answer" meta="Generated retention chart">
-        <div className="answer-layout">
-          <MiniLineChart variant="large" />
-          <div>
-            <h3>Partner-review matters retain more follow-up activity after day 7.</h3>
-            <p>Matters with a documented review owner keep higher document and billing activity through the second week.</p>
-            <div className="suggested-followups">
-              {["Break down by owner", "Show high-risk matters", "Compare billing approvals"].map((item) => (
-                <button key={item} className="secondary-button">{item}</button>
-              ))}
-            </div>
-          </div>
+        <div className="live-data-state live-data-empty">
+          <strong>No generated retention chart</strong>
+          Retention answers require a live analytics response.
         </div>
       </Panel>
       <label className="ask-input">
-        <input defaultValue="Which matters retain activity after partner review?" />
+        <input placeholder={labels.search} />
         <button className="primary-button">
           <Sparkles size={15} />
           Ask

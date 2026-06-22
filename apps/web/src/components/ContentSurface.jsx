@@ -1,6 +1,5 @@
 import React from "react";
 import { BookOpen, ChevronDown, Filter, Plus } from "lucide-react";
-import { contentRows } from "../data/mockData.js";
 import { CompactTable, DataTable, PageHeader, Panel } from "./primitives.jsx";
 
 export function ContentSurface({ labels }) {
@@ -24,10 +23,10 @@ export function ContentSurface({ labels }) {
       />
       <div className="content-layout">
         <Panel className="span-2" title={labels.allContent} meta="Table-first operational surface">
-          <DataTable
-            columns={["Name", "Type", "Editor", "Modified", "Views", "Status"]}
-            rows={contentRows.map((row) => [row.name, row.type, row.editor, row.modified, row.views, row.status])}
-          />
+          <div className="live-data-state live-data-empty">
+            <strong>No local content rows</strong>
+            Connect a live content API before this noncanonical surface can display rows.
+          </div>
         </Panel>
         <Panel title={labels.resources} meta="Side resource drawer">
           <div className="resource-list">
@@ -43,11 +42,7 @@ export function ContentSurface({ labels }) {
         <Panel title={labels.flags} meta="Feature flag table states">
           <CompactTable
             columns={["Flag", "State", "Target"]}
-            rows={[
-              ["audit.raw.panel", "Live", "100%"],
-              ["billing.approval.guard", "Running", "41%"],
-              ["matter.ask.answer", "Draft", "0%"]
-            ]}
+            rows={[]}
           />
         </Panel>
       </div>

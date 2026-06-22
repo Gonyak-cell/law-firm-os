@@ -1,6 +1,5 @@
 import React from "react";
 import { CheckCircle2, CircleHelp, Flag, FlaskConical, PlayCircle, Settings, X } from "lucide-react";
-import { experiments } from "../data/mockData.js";
 import { MatterLogo } from "./MatterLogo.jsx";
 import { CompactTable, DataTable, Field, GaugeChart, PageHeader, Panel, QueryBlock } from "./primitives.jsx";
 
@@ -43,7 +42,7 @@ export function ExperimentsSurface({ labels, variant, onConfirm, onNewExperiment
         <Panel title="Experiment table" meta="Overview state">
           <DataTable
             columns={["Key", "Name", "State", "Traffic", "Owner"]}
-            rows={experiments.map((item) => [item.key, item.name, item.state, item.traffic, item.owner])}
+            rows={[]}
           />
         </Panel>
         <Panel title="Variant preview" meta="No-code editor">
@@ -284,8 +283,8 @@ export function ExperimentBuilderSurface({ labels, onConfirm }) {
         <div className="experiment-builder-grid">
           <Panel title="Targeting" meta="Audience and URL rules">
             <div className="targeting-stack">
-              <QueryBlock title="Page" value="/matters/:matterId/dashboard" meta="matches Project Atlas workspace" />
-              <QueryBlock title="Audience" value="Corporate team" meta="41% of eligible users" />
+              <QueryBlock title="Page" value="/matters/:matterId/dashboard" meta="server-owned matter workspace" />
+              <QueryBlock title="Audience" value="Matter team" meta="server-owned eligible users" />
               <QueryBlock title="Exposure" value="Once per matter" meta="with approval guardrail" />
             </div>
           </Panel>
@@ -358,7 +357,7 @@ export function ExperimentOverviewCardsSurface({ labels, onNewExperiment }) {
         <Panel title="Recent activity" meta="Experiment resources">
           <CompactTable
             columns={["Item", "State", "Owner"]}
-            rows={experiments.map((item) => [item.name, item.state, item.owner])}
+            rows={[]}
           />
         </Panel>
       </div>

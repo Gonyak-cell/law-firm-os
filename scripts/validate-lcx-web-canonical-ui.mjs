@@ -46,20 +46,7 @@ const appSource = read("apps/web/src/App.jsx");
 assert.match(appSource, /<HomeSurface[\s\S]*liveCtx=\{initialLiveCtx\}/);
 
 const capabilityMap = read("apps/web/src/data/capabilityMap.js");
-const requiredCapabilityIds = [
-  "api-health",
-  "clients-master-data",
-  "matter-core",
-  "vault-dms",
-  "crm-intake",
-  "finance",
-  "analytics",
-  "ai-governance",
-  "portal-data-room",
-  "people-hrx",
-  "ui-readiness",
-  "enterprise-ops"
-];
+const requiredCapabilityIds = ["client", "matter", "people", "vault"];
 for (const id of requiredCapabilityIds) assert.match(capabilityMap, new RegExp(`id: "${id}"`));
 for (const endpoint of [
   "GET /api/matters/:matter_id/command-center",
@@ -69,8 +56,7 @@ for (const endpoint of [
   "POST /api/ai/outputs",
   "POST /api/portal/secure-links",
   "POST /api/hrx/ai/assistant",
-  "POST /api/ui/adjudications",
-  "POST /api/enterprise/go-no-go"
+  "POST /api/data-room/projections"
 ]) {
   assert.match(capabilityMap, new RegExp(endpoint.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 }
@@ -82,11 +68,24 @@ const homeSource = read("apps/web/src/components/HomeSurface.jsx");
 assert.match(homeSource, /data-lcx-web-command-center="true"/);
 assert.match(homeSource, /backendCapabilities/);
 assert.match(homeSource, /fetchHrxPeopleOverview/);
+assert.match(homeSource, /combinePillarResults/);
 assert.match(homeSource, /unavailable/);
 assert.match(homeSource, /denied/);
 assert.match(homeSource, /review/);
 assert.match(homeSource, /guarded/);
 assert.doesNotMatch(homeSource, /mockData|from "\.\.\/data\/mockData/);
+
+const navSource = read("apps/web/src/data/nav.js");
+const shellSource = read("apps/web/src/components/Shell.jsx");
+for (const id of requiredCapabilityIds) assert.match(navSource, new RegExp(`id: "${id === "client" ? "clients" : id === "matter" ? "matters" : id}"`));
+for (const removedRoute of ["portal", "readiness", "ops", "intake", "finance", "profiles", "analytics", "dashboards", "ask", "experiments", "admin", "dark"]) {
+  assert.doesNotMatch(navSource, new RegExp(`id: "${removedRoute}"`));
+  assert.doesNotMatch(appSource, new RegExp(`view === "${removedRoute}"`));
+}
+assert.match(shellSource, /Client/);
+assert.match(shellSource, /Matter/);
+assert.match(shellSource, /People/);
+assert.match(shellSource, /Vault/);
 
 const offline = read("apps/desktop/src/renderer/offline.html");
 assert.match(offline, /productUiTarget/);

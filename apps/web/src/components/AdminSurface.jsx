@@ -1,6 +1,5 @@
 import React from "react";
 import { Bell, CreditCard, Save, UserPlus } from "lucide-react";
-import { adminRows } from "../data/mockData.js";
 import { DataTable, Field, GaugeChart, MetricCard, PageHeader, Panel } from "./primitives.jsx";
 
 export function AdminSurface({ labels, variant, onInvite, onProfilePicture }) {
@@ -28,14 +27,14 @@ export function AdminSurface({ labels, variant, onInvite, onProfilePicture }) {
       />
       <div className="admin-layout">
         <Panel title="Team Members" meta="Workspace members">
-          <DataTable columns={["Name", "Role", "Team", "Status"]} rows={adminRows.map((row) => [row.name, row.role, row.team, row.status])} />
+          <DataTable columns={["Name", "Role", "Team", "Status"]} rows={[]} />
         </Panel>
         <Panel title={labels.billingTitle} meta="Usage and checkout preview">
           <div className="billing-card">
             <GaugeChart value={58} />
             <div>
-              <strong>1.29k Queries Run</strong>
-              <p>Monitor query volume, plan usage, and billing review status.</p>
+              <strong>No local usage rows</strong>
+              <p>Usage and billing values require a live admin API.</p>
               <button className="primary-button full">Purchase add-on</button>
             </div>
           </div>
@@ -82,9 +81,9 @@ export function ProfileSettingsSurface({ labels, onProfilePicture }) {
               <small>Change Photo</small>
             </button>
             <div className="form-stack">
-              <Field label="Full name" value="Alex Smith" />
-              <Field label="Email" value="alex@amic.law" />
-              <Field label="Title" value="Matter Operations Lead" />
+              <Field label="Full name" value="" />
+              <Field label="Email" value="" />
+              <Field label="Title" value="" />
             </div>
           </div>
         </Panel>

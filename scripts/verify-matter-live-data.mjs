@@ -28,7 +28,7 @@ const liveChecks = [
       const releaseBoundary = await page.getByText("production go-live: false", { exact: false }).count();
       const statusLabels = await page.$$eval(".capability-status", (nodes) => nodes.map((node) => node.textContent.replace(/\s+/g, " ").trim()));
       return {
-        passed: capabilityCards === 12 && releaseBoundary > 0 && statusLabels.length === 12,
+        passed: capabilityCards === 4 && releaseBoundary > 0 && statusLabels.length === 4,
         detail: { capability_cards: capabilityCards, release_boundary_visible: releaseBoundary > 0, status_labels: statusLabels }
       };
     }
@@ -41,8 +41,9 @@ const liveChecks = [
       const denied = await page.locator(".live-data-denied").count();
       const review = await page.locator(".live-data-review").count();
       const unavailable = await page.locator(".live-data-unavailable").count();
+      const empty = await page.locator(".live-data-empty").count();
       const tableRows = await page.locator(".data-table tbody tr").count();
-      return { passed: denied + review + unavailable + tableRows > 0, detail: { denied, review, unavailable, table_rows: tableRows } };
+      return { passed: denied + review + unavailable + empty + tableRows > 0, detail: { denied, review, unavailable, empty, table_rows: tableRows } };
     }
   },
   {
@@ -73,13 +74,12 @@ const liveChecks = [
     }
   },
   {
-    name: "ops-release-boundary-visible",
-    url: "/?locale=en&view=ops&data=live&ctx=allow",
+    name: "home-release-boundary-visible",
+    url: "/?locale=en&view=home&data=live&ctx=allow",
     run: async (page) => {
-      await page.waitForSelector(".surface", { timeout: 15000 });
-      const goNoGo = await page.getByText("Go/No-Go", { exact: false }).count();
-      const blocked = await page.getByText("blocked by design", { exact: false }).count();
-      return { passed: goNoGo > 0 && blocked > 0, detail: { go_no_go_visible: goNoGo > 0, blocked_boundary_visible: blocked > 0 } };
+      await page.waitForSelector("[data-lcx-web-command-center='true']", { timeout: 15000 });
+      const boundary = await page.getByText("production go-live: false", { exact: false }).count();
+      return { passed: boundary > 0, detail: { production_go_live_false_visible: boundary > 0 } };
     }
   }
 ];
@@ -129,7 +129,7 @@ Generated at: ${verification.generated_at}
 
 Overall result: ${passed ? "PASS" : "FAIL"}
 
-Preconditions: api and web dev server are already running. Live mode uses \`?data=live\`; unavailable, denied, review, and guarded states remain visible instead of falling back to hidden mocks.
+Preconditions: api and web dev server are already running. Live mode uses \`?data=live\`; unavailable, denied, review, and guarded states remain visible instead of falling back to hidden local data.
 
 ## Checks
 

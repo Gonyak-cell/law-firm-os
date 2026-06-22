@@ -1,7 +1,6 @@
 import React from "react";
 import { useEffect } from "react";
 import {
-  BarChart3,
   Bell,
   ChevronDown,
   CircleHelp,
@@ -10,13 +9,9 @@ import {
   Moon,
   Plus,
   Search,
-  Settings,
-  Sparkles,
   UserPlus,
-  Users,
   X
 } from "lucide-react";
-import { PRODUCT_BRAND } from "../brand/brand";
 import { navItems } from "../data/nav.js";
 import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
@@ -110,35 +105,56 @@ export function Rail({ labels, view, setView }) {
           </button>
         ))}
       </nav>
-      <button className="rail-item bottom" title="Settings" onClick={() => setView("admin")}>
-        <Settings size={18} />
-      </button>
     </aside>
   );
 }
 
 export function Sidebar({ labels, view, setView, expanded = false }) {
   const subnav = {
-    auth: ["Marketing", "Signup", "Login", "Password", "Organization", "Email sent"],
-    home: ["Overview", "Templates", "Guides", "Resources", "Realtime"],
-    content: ["All content", "Spaces", "Resources", "Feature flags", "Catalog"],
-    clients: ["Client groups", "Parties", "Relationships", "Review queue", "Audit"],
-    matters: ["Matter home", "Opening", "Team", "Deadlines", "Audit"],
-    vault: ["Matter vault", "Document detail", "Email filing", "Search", "Audit"],
-    portal: ["Client dashboard", "External ACL", "RFI queue", "Data room", "Secure links"],
-    readiness: ["Navigation IA", "API-backed surfaces", "Permission states", "Review states", "Evidence"],
-    ops: ["SSO/MFA", "Observability", "DR", "Release candidate", "Go/no-go"],
-    intake: ["Opportunity pipeline", "Intake queue", "Conflict checks", "Clearance tokens", "Audit"],
-    finance: ["Time entries", "WIP", "PreBill", "Invoices", "AR aging"],
-    profiles: ["Matter Profiles", "Group Profiles", "Cohorts", "Session replays", "Raw events"],
-    people: ["Overview", "Employees", "Profile", "Documents", "Leave"],
-    analytics: ["Segmentation", "Funnels", "Data table", "Retention", "Journeys"],
-    dashboards: ["Dashboards", "Notebooks", "Reports", "Templates", "Pinned"],
-    ask: ["Prompt gallery", "Answers", "Guidance", "Feedback", "History"],
-    experiments: ["Overview", "Experiments", "Flags", "Variants", "Rollout"],
-    admin: ["Organization", "Team members", "Billing", "Notifications", "Profile"],
-    dark: ["Theme modal", "Dark dashboard", "Dark content", "Dark Ask", "Preference"]
-  }[view];
+    auth: [
+      { label: "Login", view: "auth" },
+      { label: "Password reset", view: "auth" }
+    ],
+    home: [
+      { label: "Client", view: "clients" },
+      { label: "Matter", view: "matters" },
+      { label: "People", view: "people" },
+      { label: "Vault", view: "vault" }
+    ],
+    clients: [
+      { label: "Client groups", view: "clients" },
+      { label: "Parties", view: "clients" },
+      { label: "Relationships", view: "clients" },
+      { label: "Review", view: "clients" },
+      { label: "Audit", view: "clients" }
+    ],
+    matters: [
+      { label: "Matter home", view: "matters" },
+      { label: "Opening", view: "matters" },
+      { label: "Team", view: "matters" },
+      { label: "Finance", view: "matters" },
+      { label: "AI review", view: "matters" }
+    ],
+    people: [
+      { label: "Overview", view: "people" },
+      { label: "Employees", view: "people" },
+      { label: "Documents", view: "people" },
+      { label: "Leave", view: "people" },
+      { label: "Lifecycle", view: "people" }
+    ],
+    vault: [
+      { label: "Documents", view: "vault" },
+      { label: "Folders", view: "vault" },
+      { label: "Versions", view: "vault" },
+      { label: "Legal hold", view: "vault" },
+      { label: "Audit", view: "vault" }
+    ]
+  }[view] ?? [
+    { label: "Client", view: "clients" },
+    { label: "Matter", view: "matters" },
+    { label: "People", view: "people" },
+    { label: "Vault", view: "vault" }
+  ];
 
   return (
     <aside className="sidebar" data-sidebar-expanded={expanded ? "true" : "false"} aria-hidden={!expanded}>
@@ -153,10 +169,10 @@ export function Sidebar({ labels, view, setView, expanded = false }) {
         <ChevronDown size={15} />
       </div>
       <nav className="sidebar-nav">
-        {subnav.map((label, index) => (
-          <button key={label} className={index === 0 ? "sidebar-item active" : "sidebar-item"} onClick={() => setView(view)}>
+        {subnav.map((item, index) => (
+          <button key={item.label} className={index === 0 ? "sidebar-item active" : "sidebar-item"} onClick={() => setView(item.view)}>
             <span className="sidebar-dot" />
-            {label}
+            {item.label}
           </button>
         ))}
       </nav>
@@ -165,12 +181,11 @@ export function Sidebar({ labels, view, setView, expanded = false }) {
 }
 
 export function GlobalSearch({ labels, query, setQuery, setView }) {
-  const results = [
-    { icon: Search, title: `Search "${query}"`, view: "content" },
-    { icon: BarChart3, title: "MAT-248 Event Segmentation", view: "analytics" },
-    { icon: Users, title: "Project Atlas LDD", view: "profiles" },
-    { icon: Sparkles, title: `Ask ${PRODUCT_BRAND} for related insights`, view: "ask" }
-  ];
+  const results = navItems.map(({ id, icon }) => ({
+    icon,
+    title: query.trim() ? `${labels[id]} axis for "${query.trim()}"` : `${labels[id]} axis`,
+    view: id
+  }));
 
   return (
     <div className="search-popover">

@@ -4,13 +4,16 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const DESKTOP_SRC = "apps/desktop/src";
+const EXCLUDED_DIRS = new Set(["apps/desktop/src/renderer/web"]);
 
 function listFiles(dir) {
   if (!existsSync(dir)) return [];
   const files = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const path = join(dir, entry.name);
-    if (entry.isDirectory()) files.push(...listFiles(path));
+    if (entry.isDirectory()) {
+      if (!EXCLUDED_DIRS.has(path)) files.push(...listFiles(path));
+    }
     else if (path.endsWith(".js") || path.endsWith(".mjs")) files.push(path);
   }
   return files.sort();
