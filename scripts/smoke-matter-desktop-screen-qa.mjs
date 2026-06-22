@@ -90,28 +90,114 @@ async function resetAndLogin(page, email) {
 
 async function waitForProductUi(page) {
   await page.waitForURL(/\/web\/index\.html\?desktop=1&view=home&data=live&ctx=allow/, { timeout: 30_000 });
+  await page.waitForSelector("[data-matter-logo-flow='post-login']", { timeout: 30_000 });
+  const logoFlow = await page.evaluate(() => {
+    const overlay = document.querySelector("[data-matter-logo-flow='post-login']");
+    const image = document.querySelector(".matter-splash-image");
+    const overlayStyle = overlay ? getComputedStyle(overlay) : null;
+    return {
+      observed: Boolean(overlay),
+      image_alt: image?.getAttribute("alt") ?? "",
+      image_width: Math.round(image?.getBoundingClientRect().width ?? 0),
+      overlay_background: overlayStyle?.backgroundColor ?? "",
+      overlay_z_index: overlayStyle?.zIndex ?? "",
+      by_amic_visible_in_logo: image?.getAttribute("alt")?.includes("AMIC") ?? false
+    };
+  });
+  assert.equal(logoFlow.observed, true, "post-login matter logo flow must be visible");
+  assert.equal(logoFlow.image_alt, "matter", "post-login logo image must be matter only");
+  assert.equal(logoFlow.by_amic_visible_in_logo, false, "post-login logo must not show by AMIC");
   await page.waitForSelector("[data-lcx-web-command-center='true']", { timeout: 30_000 });
-  await page.waitForFunction(() => document.querySelectorAll("[data-capability-id]").length === 12, null, { timeout: 30_000 });
+  await page.waitForFunction(() => !document.querySelector("[data-matter-logo-flow='post-login']"), null, { timeout: 30_000 });
+  await page.waitForFunction(() => document.querySelectorAll("[data-capability-id]").length === 4, null, { timeout: 30_000 });
   const snapshot = await page.evaluate(() => {
     const text = document.body.textContent ?? "";
+    const capabilityLabels = Array.from(document.querySelectorAll("[data-capability-id] h2")).map((node) => node.textContent?.trim() ?? "");
     return {
       url: window.location.href,
       title: document.querySelector("h1")?.textContent?.trim() ?? "",
       capability_cards: document.querySelectorAll("[data-capability-id]").length,
+      capability_labels: capabilityLabels,
       production_go_live_false_visible: text.includes("production go-live: false"),
       public_release_false_visible: text.includes("public release: false"),
       owner_approval_false_visible: text.includes("owner approval: false"),
+      no_dummy_visible: !/mock|dummy|sample|synthetic|Project Atlas|Alex Smith|Riverstone/i.test(text),
       horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
       body_character_count: text.length
     };
   });
-  assert.equal(snapshot.title, "matter command center", "post-login product UI must be apps/web command center");
-  assert.equal(snapshot.capability_cards, 12, "command center must show all backend capability cards");
+  assert.equal(snapshot.title, "Client Matter People Vault", "post-login product UI must be the four-axis command center");
+  assert.equal(snapshot.capability_cards, 4, "command center must show four product-axis cards");
+  assert.deepEqual(snapshot.capability_labels.sort(), ["Client", "Matter", "People", "Vault"].sort(), "command center must show Client, Matter, People, and Vault");
   assert.equal(snapshot.production_go_live_false_visible, true, "production go-live false boundary must be visible");
   assert.equal(snapshot.public_release_false_visible, true, "public release false boundary must be visible");
   assert.equal(snapshot.owner_approval_false_visible, true, "owner approval false boundary must be visible");
+  assert.equal(snapshot.no_dummy_visible, true, "post-login product UI must not render dummy/sample/synthetic text");
   assert.equal(snapshot.horizontal_overflow, false, "product UI must not horizontally overflow");
-  return snapshot;
+  const topHeaderNav = await page.evaluate(() => {
+    const nav = document.querySelector("[data-product-axis-nav='top-header']");
+    const navRect = nav?.getBoundingClientRect();
+    const topbarRect = document.querySelector(".topbar")?.getBoundingClientRect();
+    return {
+      labels: Array.from(document.querySelectorAll("[data-product-axis]")).map((node) => node.textContent.replace(/\s+/g, " ").trim()),
+      axis_ids: Array.from(document.querySelectorAll("[data-product-axis]")).map((node) => node.getAttribute("data-product-axis")),
+      in_topbar: Boolean(navRect && topbarRect && navRect.top >= topbarRect.top && navRect.bottom <= topbarRect.bottom + 1),
+      active_axis: document.querySelector("[data-product-axis][aria-current='page']")?.getAttribute("data-product-axis") ?? ""
+    };
+  });
+  assert.deepEqual(topHeaderNav.labels, ["Client", "Matter", "People", "Vault"], "top header must render the four product-axis menu labels");
+  assert.deepEqual(topHeaderNav.axis_ids, ["clients", "matters", "people", "vault"], "top header product-axis menu must stay fixed to Client/Matter/People/Vault");
+  assert.equal(topHeaderNav.in_topbar, true, "product-axis menu must live inside the top header");
+  const collapsedSidebar = await page.evaluate(() => {
+    const frame = document.querySelector(".app-frame");
+    const rail = document.querySelector(".rail");
+    const sidebar = document.querySelector(".sidebar");
+    const railStyle = rail ? getComputedStyle(rail) : null;
+    const sidebarStyle = sidebar ? getComputedStyle(sidebar) : null;
+    const railWord = document.querySelector(".rail-logo .matter-word");
+    return {
+      state: frame?.getAttribute("data-sidebar-state") ?? "",
+      rail_display: railStyle?.display ?? "",
+      sidebar_display: sidebarStyle?.display ?? "",
+      product_axis_count_in_rail: document.querySelectorAll(".rail [data-product-axis], .rail .rail-item").length,
+      rail_word_visible: railWord ? getComputedStyle(railWord).display !== "none" : false
+    };
+  });
+  assert.equal(collapsedSidebar.state, "collapsed", "post-login product UI must default to collapsed sidebar state");
+  assert.notEqual(collapsedSidebar.rail_display, "none", "collapsed sidebar state must show the side rail");
+  assert.equal(collapsedSidebar.sidebar_display, "none", "collapsed sidebar must hide the expanded sidebar panel");
+  assert.equal(collapsedSidebar.product_axis_count_in_rail, 0, "collapsed side rail must not duplicate the top product-axis menu");
+  assert.equal(collapsedSidebar.rail_word_visible, false, "collapsed sidebar rail must keep matter text hidden");
+  await page.click(".nav-toggle");
+  await page.waitForFunction(() => document.querySelector(".app-frame")?.getAttribute("data-sidebar-state") === "expanded", null, { timeout: 30_000 });
+  const expandedSidebar = await page.evaluate(() => {
+    const rail = document.querySelector(".rail");
+    const sidebar = document.querySelector(".sidebar");
+    const sidebarBrand = document.querySelector(".sidebar-brand");
+    const matterWord = sidebarBrand?.querySelector(".matter-word");
+    const matterWordRect = matterWord?.getBoundingClientRect();
+    const railStyle = rail ? getComputedStyle(rail) : null;
+    const sidebarStyle = sidebar ? getComputedStyle(sidebar) : null;
+    return {
+      state: document.querySelector(".app-frame")?.getAttribute("data-sidebar-state") ?? "",
+      rail_display: railStyle?.display ?? "",
+      sidebar_display: sidebarStyle?.display ?? "",
+      matter_word: matterWord?.textContent?.trim() ?? "",
+      sidebar_product_axis_labels: Array.from(document.querySelectorAll(".sidebar-nav .sidebar-item")).map((node) =>
+        node.textContent.replace(/\s+/g, " ").trim()
+      ),
+      matter_word_visible: Boolean(matterWordRect && matterWordRect.width > 40 && matterWordRect.height > 12),
+      horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth
+    };
+  });
+  assert.equal(expandedSidebar.state, "expanded", "expanded sidebar state must be recorded");
+  assert.equal(expandedSidebar.rail_display, "none", "expanded sidebar must replace the side rail");
+  assert.notEqual(expandedSidebar.sidebar_display, "none", "expanded sidebar must render the sidebar panel");
+  assert.equal(expandedSidebar.matter_word, "matter", "expanded sidebar must show the matter wordmark");
+  assert.deepEqual(expandedSidebar.sidebar_product_axis_labels, [], "expanded home sidebar must not duplicate Client/Matter/People/Vault");
+  assert.equal(expandedSidebar.matter_word_visible, true, "expanded sidebar matter wordmark must be visible");
+  assert.equal(expandedSidebar.horizontal_overflow, false, "expanded sidebar must not horizontally overflow");
+  return { ...snapshot, logo_flow: logoFlow, top_header_nav: topHeaderNav, sidebar: { collapsed: collapsedSidebar, expanded: expandedSidebar } };
 }
 
 async function launchMatterApp(qaTarget) {

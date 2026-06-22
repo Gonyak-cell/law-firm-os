@@ -27,18 +27,18 @@ export function splashHtml() {
 <style>
 body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;color:#06102d;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .splash{display:grid;justify-items:center;gap:12px}
-.mark{position:relative;width:88px;height:72px}
-.pill{position:absolute;top:4px;width:20px;height:58px;border-radius:999px;transform:rotate(31deg)}
-.red{left:10px;background:#ff2d55}.yellow{left:45px;background:#ffcc00}.dot{position:absolute;right:0;bottom:8px;width:22px;height:22px;border-radius:50%;background:#00ca72}
-.word{font-size:42px;font-weight:300}.byline{font-size:13px;color:#0f3a32}
+.mark{display:block;width:148px;height:88px;overflow:visible}
+.symbol-piece{opacity:0;animation:symbolIn 620ms cubic-bezier(.16,1.18,.32,1) both}
+.yellow{animation-delay:80ms}.green{animation-delay:160ms}
+.word{font-size:42px;font-weight:300}
+@keyframes symbolIn{to{opacity:1}}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:1ms!important;transition-duration:1ms!important;scroll-behavior:auto!important}.splash{gap:8px}}
 </style>
 </head>
 <body>
 <main class="splash" aria-label="${SPLASH_BRAND}">
-<span class="mark" aria-hidden="true"><span class="pill red"></span><span class="pill yellow"></span><span class="dot"></span></span>
+<svg class="mark" viewBox="0 0 222 132" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><rect class="symbol-piece red" x="41" y="7" width="48" height="118" rx="24" transform="rotate(31 65 66)" fill="#FF3158"></rect><rect class="symbol-piece yellow" x="104" y="7" width="48" height="118" rx="24" transform="rotate(31 128 66)" fill="#FFD43D"></rect><circle class="symbol-piece green" cx="194" cy="94" r="25" fill="#5CC878"></circle></svg>
 <strong class="word">matter</strong>
-<span class="byline">by AMIC</span>
 </main>
 </body>
 </html>`;

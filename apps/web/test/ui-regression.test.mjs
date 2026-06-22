@@ -11,23 +11,19 @@ async function readWebFile(relativePath) {
   return readFile(resolve(webRoot, relativePath), "utf8");
 }
 
-test("sample UI regression harness preserves current routable surfaces", async () => {
+test("post-login product UI routes only Client, Matter, People, and Vault", async () => {
   const navSource = await readWebFile("src/data/nav.js");
   const appSource = await readWebFile("src/App.jsx");
-  const expectedViews = [
-    "auth",
-    "home",
+  const shellSource = await readWebFile("src/components/Shell.jsx");
+  const canonicalViews = ["clients", "matters", "people", "vault"];
+  const removedViews = [
     "content",
-    "clients",
-    "matters",
-    "vault",
     "portal",
     "readiness",
     "ops",
     "intake",
     "finance",
     "profiles",
-    "people",
     "analytics",
     "dashboards",
     "ask",
@@ -36,290 +32,199 @@ test("sample UI regression harness preserves current routable surfaces", async (
     "dark"
   ];
 
-  for (const view of expectedViews) {
+  for (const view of canonicalViews) {
     assert.match(navSource, new RegExp(`id: "${view}"`));
     assert.match(appSource, new RegExp(`view === "${view}"`));
   }
+  assert.match(appSource, /view === "home"/);
+  assert.match(appSource, /view === "auth"/);
+  for (const view of removedViews) {
+    assert.doesNotMatch(navSource, new RegExp(`id: "${view}"`));
+    assert.doesNotMatch(appSource, new RegExp(`view === "${view}"`));
+  }
+  assert.match(shellSource, /data-product-axis-nav="top-header"/);
+  assert.match(shellSource, /navItems\.map/);
+  assert.doesNotMatch(appSource, /MatterModal|initialVariant|initialDataMode|setModal|mockData/);
 });
 
 test("matter startup branding uses shared splash and brand constants", async () => {
   const brandSource = await readWebFile("src/brand/brand.js");
+  const logoAssetSource = await readWebFile("src/assets/matter-logo.svg");
   const splashSource = await readWebFile("src/components/MatterSplash.jsx");
+  const logoSource = await readWebFile("src/components/MatterLogo.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const authSource = await readWebFile("src/components/AuthSurface.jsx");
   const i18nSource = await readWebFile("src/i18n.js");
 
   assert.match(brandSource, /PRODUCT_BRAND\s*=\s*"matter"/);
-  assert.match(brandSource, /UI_BRAND\s*=\s*"matter by AMIC"/);
-  assert.match(splashSource, /PRODUCT_BRAND\.split\(""\)/);
+  assert.match(brandSource, /UI_BRAND\s*=\s*"matter"/);
+  assert.match(splashSource, /matter-logo\.svg/);
+  assert.match(splashSource, /matter-splash-image/);
   assert.match(splashSource, /aria-label=\{UI_BRAND\}/);
+  assert.match(logoAssetSource, /viewBox="0 0 222 132"/);
+  assert.match(logoAssetSource, /#FF3158/);
+  assert.match(logoAssetSource, /#FFD43D/);
+  assert.match(logoAssetSource, /#5CC878/);
+  assert.doesNotMatch(logoAssetSource, /<text|by AMIC/);
+  assert.match(logoSource, /viewBox="0 0 222 132"/);
+  assert.doesNotMatch(logoSource, /mark-pill|mark-dot/);
+  assert.doesNotMatch(logoSource, /amic-law|matter-byline|BRAND_BYLINE|BRAND_ORGANIZATION/);
   assert.match(shellSource, /<MatterSplash \/>/);
   assert.match(authSource, /<MatterSplash compact className="auth-splash" \/>/);
   assert.match(i18nSource, /PRODUCT_BRAND/);
-  assert.doesNotMatch(i18nSource, /Ask matter|Search or ask matter|Loading your matter workspace/);
-  assert.doesNotMatch(i18nSource, /matter에게 질문|matter 작업공간|matter는/);
+  assert.match(i18nSource, /Client Matter People Vault/);
+  assert.doesNotMatch(i18nSource, /Project Atlas/);
 });
 
-test("desktop workspace keeps Matter, Vault, denied, and desktop mode routable", async () => {
+test("desktop post-login route keeps logo image flow before four-axis command center", async () => {
   const appSource = await readWebFile("src/App.jsx");
-  const navSource = await readWebFile("src/data/nav.js");
+  const shellSource = await readWebFile("src/components/Shell.jsx");
+  const homeSource = await readWebFile("src/components/HomeSurface.jsx");
+  const stylesSource = await readWebFile("src/styles.css");
+  const desktopSource = await readFile(resolve(webRoot, "../desktop/src/renderer/offline.html"), "utf8");
+
+  assert.match(desktopSource, /web\/index\.html\?desktop=1&view=home&data=live&ctx=allow&splash=1/);
+  assert.match(appSource, /initialHandoffSplash/);
+  assert.match(appSource, /post-login-splash/);
+  assert.match(appSource, /initialSidebarExpanded/);
+  assert.match(appSource, /sidebarExpanded/);
+  assert.match(appSource, /data-sidebar-state/);
+  assert.match(shellSource, /aria-expanded=\{sidebarExpanded\}/);
+  assert.match(shellSource, /data-product-axis-nav="top-header"/);
+  assert.match(shellSource, /data-product-axis=\{id\}/);
+  assert.match(shellSource, /aria-current=\{view === id \? "page" : undefined\}/);
+  assert.match(shellSource, /data-matter-logo-flow/);
+  assert.match(shellSource, /data-sidebar-expanded/);
+  assert.match(shellSource, /<MatterLogo \/>/);
+  assert.doesNotMatch(shellSource, /<nav className="rail-nav"/);
+  assert.match(homeSource, /title="Client Matter People Vault"/);
+  assert.match(homeSource, /key=\{`\$\{endpoint\}-\$\{index\}`\}/);
+  assert.match(stylesSource, /\.app-frame\.sidebar-expanded/);
+  assert.match(stylesSource, /\.app-frame\.sidebar-expanded \.rail/);
+  assert.match(stylesSource, /\.sidebar-brand/);
+});
+
+test("command center groups all backend coverage into four product axes", async () => {
+  const capabilityMap = await readWebFile("src/data/capabilityMap.js");
+  const homeSource = await readWebFile("src/components/HomeSurface.jsx");
+
+  for (const id of ["client", "matter", "people", "vault"]) {
+    assert.match(capabilityMap, new RegExp(`id: "${id}"`));
+    assert.match(homeSource, new RegExp(`id: "${id}"`));
+  }
+  for (const removedId of [
+    "api-health",
+    "clients-master-data",
+    "matter-core",
+    "vault-dms",
+    "crm-intake",
+    "finance",
+    "analytics",
+    "ai-governance",
+    "portal-data-room",
+    "people-hrx",
+    "ui-readiness",
+    "enterprise-ops"
+  ]) {
+    assert.doesNotMatch(capabilityMap, new RegExp(`id: "${removedId}"`));
+  }
+  for (const endpoint of [
+    "GET /api/matters/:matter_id/command-center",
+    "POST /api/vault/documents/upload",
+    "POST /api/crm/opportunities/:id/handoff",
+    "POST /api/finance/wip",
+    "POST /api/ai/outputs",
+    "POST /api/portal/secure-links",
+    "POST /api/hrx/ai/assistant",
+    "POST /api/data-room/projections"
+  ]) {
+    assert.match(capabilityMap, new RegExp(endpoint.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+  assert.match(homeSource, /combinePillarResults/);
+  assert.match(homeSource, /data-lcx-web-capability-count=\{capabilities.length\}/);
+  assert.match(capabilityMap, /productionGoLive: false/);
+  assert.match(capabilityMap, /publicRelease: false/);
+  assert.match(capabilityMap, /ownerApproval: false/);
+});
+
+test("Client Matter People Vault surfaces stay API-backed and fail closed", async () => {
+  const clientsSource = await readWebFile("src/components/ClientsSurface.jsx");
   const mattersSource = await readWebFile("src/components/MattersSurface.jsx");
-  const vaultSource = await readWebFile("src/components/VaultSurface.jsx");
-  const deniedSource = await readWebFile("src/components/DesktopDeniedState.jsx");
-  const runtimeContextSource = await readWebFile("src/desktop/runtimeContext.js");
-
-  assert.match(navSource, /id: "matters"/);
-  assert.match(navSource, /id: "vault"/);
-  assert.match(appSource, /view === "matters"/);
-  assert.match(appSource, /view === "vault"/);
-  assert.match(mattersSource, /DesktopDeniedState/);
-  assert.match(vaultSource, /DesktopDeniedState/);
-  assert.match(deniedSource, /No row counts, snippets, citations, or document metadata are shown/);
-  assert.match(runtimeContextSource, /desktopMode/);
-  assert.match(runtimeContextSource, /routeSource/);
-});
-
-test("Finance runtime surface is routed and live Finance backed", async () => {
-  const appSource = await readWebFile("src/App.jsx");
-  const navSource = await readWebFile("src/data/nav.js");
-  const shellSource = await readWebFile("src/components/Shell.jsx");
-  const financeSource = await readWebFile("src/components/FinanceSurface.jsx");
-  const apiClientSource = await readWebFile("src/data/apiClient.js");
-
-  assert.match(navSource, /id: "finance"/);
-  assert.match(appSource, /FinanceSurface/);
-  assert.match(appSource, /view === "finance"/);
-  assert.match(shellSource, /finance: \["Time entries"/);
-  assert.match(financeSource, /data-cmp-g7-finance-surface="true"/);
-  assert.match(financeSource, /fetchFinanceTimeEntries/);
-  assert.match(financeSource, /fetchFinanceInvoices/);
-  assert.match(financeSource, /fetchFinanceArAging/);
-  assert.match(apiClientSource, /\/api\/finance\/time-entries/);
-  assert.match(apiClientSource, /\/api\/finance\/invoices/);
-  assert.match(apiClientSource, /\/api\/finance\/ar-aging/);
-  assert.match(apiClientSource, /production_ready_claim/);
-  assert.doesNotMatch(financeSource, /mockData|from "\.\.\/data\/mockData/);
-});
-
-test("Analytics runtime panel is API-backed and source-safe", async () => {
-  const appSource = await readWebFile("src/App.jsx");
-  const analyticsSource = await readWebFile("src/components/AnalyticsSurface.jsx");
-  const apiClientSource = await readWebFile("src/data/apiClient.js");
-
-  assert.match(appSource, /liveCtx=\{initialLiveCtx\}/);
-  assert.match(analyticsSource, /data-cmp-g8-analytics-runtime/);
-  assert.match(analyticsSource, /fetchAnalyticsDashboards/);
-  assert.match(analyticsSource, /raw matter detail remain omitted/);
-  assert.match(apiClientSource, /\/api\/analytics\/dashboards/);
-  assert.match(apiClientSource, /production_ready_claim/);
-  assert.doesNotMatch(analyticsSource, /mockData|from "\.\.\/data\/mockData/);
-});
-
-test("Ask AI runtime panel is API-backed and human-review safe", async () => {
-  const appSource = await readWebFile("src/App.jsx");
-  const askSource = await readWebFile("src/components/AskSurface.jsx");
-  const apiClientSource = await readWebFile("src/data/apiClient.js");
-
-  assert.match(appSource, /<AskSurface labels=\{labels\} variant=\{initialVariant\} liveCtx=\{initialLiveCtx\}/);
-  assert.match(askSource, /data-cmp-g9-ai-runtime/);
-  assert.match(askSource, /fetchAiReviewQueue/);
-  assert.match(askSource, /Permission-before-AI is enforced/);
-  assert.match(apiClientSource, /\/api\/ai\/review-queue/);
-  assert.match(apiClientSource, /production_ready_claim/);
-  assert.doesNotMatch(apiClientSource, /fetchAiReviewQueue[\s\S]*mockData/);
-});
-
-test("Portal/Data Room runtime surface is routed and API-backed", async () => {
-  const appSource = await readWebFile("src/App.jsx");
-  const navSource = await readWebFile("src/data/nav.js");
-  const shellSource = await readWebFile("src/components/Shell.jsx");
-  const portalSource = await readWebFile("src/components/PortalSurface.jsx");
-  const apiClientSource = await readWebFile("src/data/apiClient.js");
-
-  assert.match(navSource, /id: "portal"/);
-  assert.match(appSource, /PortalSurface/);
-  assert.match(appSource, /view === "portal"/);
-  assert.match(shellSource, /portal: \["Client dashboard"/);
-  assert.match(portalSource, /data-cmp-g10-portal-runtime/);
-  assert.match(portalSource, /fetchPortalDashboard/);
-  assert.match(portalSource, /fetchDataRoomProjections/);
-  assert.match(portalSource, /Token and document bytes omitted/);
-  assert.match(apiClientSource, /\/api\/portal\/dashboard/);
-  assert.match(apiClientSource, /\/api\/data-room\/projections/);
-  assert.doesNotMatch(portalSource, /mockData|from "\.\.\/data\/mockData/);
-});
-
-test("G11 UI readiness surface is routed and API-backed", async () => {
-  const appSource = await readWebFile("src/App.jsx");
-  const navSource = await readWebFile("src/data/nav.js");
-  const shellSource = await readWebFile("src/components/Shell.jsx");
-  const readinessSource = await readWebFile("src/components/ReadinessSurface.jsx");
-  const apiClientSource = await readWebFile("src/data/apiClient.js");
-
-  assert.match(navSource, /id: "readiness"/);
-  assert.match(appSource, /ReadinessSurface/);
-  assert.match(appSource, /view === "readiness"/);
-  assert.match(shellSource, /readiness: \["Navigation IA"/);
-  assert.match(readinessSource, /data-cmp-g11-ui-readiness/);
-  assert.match(readinessSource, /fetchUiReadinessChecks/);
-  assert.match(readinessSource, /PermissionDeniedState/);
-  assert.match(apiClientSource, /\/api\/ui\/readiness/);
-  assert.match(apiClientSource, /production_ready_claim/);
-  assert.doesNotMatch(readinessSource, /mockData|from "\.\.\/data\/mockData/);
-});
-
-test("G12 enterprise ops surface is routed and launch-claim safe", async () => {
-  const appSource = await readWebFile("src/App.jsx");
-  const navSource = await readWebFile("src/data/nav.js");
-  const shellSource = await readWebFile("src/components/Shell.jsx");
-  const opsSource = await readWebFile("src/components/OpsSurface.jsx");
-  const apiClientSource = await readWebFile("src/data/apiClient.js");
-
-  assert.match(navSource, /id: "ops"/);
-  assert.match(appSource, /OpsSurface/);
-  assert.match(appSource, /view === "ops"/);
-  assert.match(shellSource, /ops: \["SSO\/MFA"/);
-  assert.match(opsSource, /data-cmp-g12-enterprise-readiness/);
-  assert.match(opsSource, /fetchEnterpriseReadinessItems/);
-  assert.match(opsSource, /No go-live approval recorded/);
-  assert.match(apiClientSource, /\/api\/enterprise\/readiness/);
-  assert.match(apiClientSource, /go_live_approved/);
-  assert.doesNotMatch(opsSource, /mockData|from "\.\.\/data\/mockData/);
-});
-
-test("Intake runtime surface is routed and live CRM/Intake backed", async () => {
-  const appSource = await readWebFile("src/App.jsx");
-  const navSource = await readWebFile("src/data/nav.js");
-  const shellSource = await readWebFile("src/components/Shell.jsx");
-  const intakeSource = await readWebFile("src/components/IntakeSurface.jsx");
-  const apiClientSource = await readWebFile("src/data/apiClient.js");
-
-  assert.match(navSource, /id: "intake"/);
-  assert.match(appSource, /IntakeSurface/);
-  assert.match(appSource, /view === "intake"/);
-  assert.match(shellSource, /intake: \["Opportunity pipeline"/);
-  assert.match(intakeSource, /data-cmp-g6-intake-surface="true"/);
-  assert.match(intakeSource, /fetchCrmOpportunities/);
-  assert.match(intakeSource, /fetchIntakeRequests/);
-  assert.match(intakeSource, /direct Matter conversion/);
-  assert.match(apiClientSource, /\/api\/crm\/opportunities/);
-  assert.match(apiClientSource, /\/api\/intake\/requests/);
-  assert.match(apiClientSource, /production_ready_claim/);
-  assert.doesNotMatch(intakeSource, /mockData|from "\.\.\/data\/mockData/);
-});
-
-test("Vault runtime surface is routed and live Vault/DMS backed", async () => {
-  const appSource = await readWebFile("src/App.jsx");
-  const navSource = await readWebFile("src/data/nav.js");
-  const shellSource = await readWebFile("src/components/Shell.jsx");
-  const vaultSource = await readWebFile("src/components/VaultSurface.jsx");
-  const tableSource = await readWebFile("src/components/VaultDocumentTable.jsx");
-  const vaultDetailSource = await readWebFile("src/components/VaultDocumentDetail.jsx");
-  const badgesSource = await readWebFile("src/components/VaultSecurityBadges.jsx");
-  const breadcrumbSource = await readWebFile("src/components/VaultBreadcrumb.jsx");
-  const detailSource = await readWebFile("src/components/DocumentDetail.jsx");
-  const emailSource = await readWebFile("src/components/EmailFilingView.jsx");
-  const apiClientSource = await readWebFile("src/data/apiClient.js");
-
-  assert.match(navSource, /id: "vault"/);
-  assert.match(appSource, /VaultSurface/);
-  assert.match(appSource, /view === "vault"/);
-  assert.match(shellSource, /vault: \["Matter vault"/);
-  assert.match(vaultSource, /data-cmp-g5-vault-surface="true"/);
-  assert.match(vaultSource, /fetchVaultDocuments/);
-  assert.match(vaultSource, /VaultDocumentTable/);
-  assert.match(vaultSource, /VaultDocumentDetail/);
-  assert.match(vaultSource, /VaultSecurityBadges/);
-  assert.match(vaultSource, /VaultBreadcrumb/);
-  assert.match(tableSource, /DataTable/);
-  assert.match(vaultDetailSource, /Version History/);
-  assert.match(badgesSource, /data-mv-vault-security-badges="true"/);
-  assert.match(breadcrumbSource, /aria-label="Matter Vault breadcrumb"/);
-  assert.match(detailSource, /data-cmp-g5-document-detail="true"/);
-  assert.match(detailSource, /storage_pointer_ref_included/);
-  assert.match(detailSource, /document_bytes_included/);
-  assert.match(emailSource, /data-cmp-g5-email-filing="true"/);
-  assert.match(emailSource, /credential material absent/);
-  assert.match(apiClientSource, /\/api\/vault\/documents/);
-  assert.doesNotMatch(vaultSource, /mockData|from "\.\.\/data\/mockData/);
-});
-
-test("Matters runtime surface is routed and live Matter Core backed", async () => {
-  const appSource = await readWebFile("src/App.jsx");
-  const navSource = await readWebFile("src/data/nav.js");
-  const shellSource = await readWebFile("src/components/Shell.jsx");
-  const mattersSource = await readWebFile("src/components/MattersSurface.jsx");
-  const matterVaultSource = await readWebFile("src/components/MatterVaultPanel.jsx");
   const openingSource = await readWebFile("src/components/MatterOpeningWizard.jsx");
   const rosterSource = await readWebFile("src/components/MatterTeamRoster.jsx");
-  const apiClientSource = await readWebFile("src/data/apiClient.js");
-
-  assert.match(navSource, /id: "matters"/);
-  assert.match(appSource, /MattersSurface/);
-  assert.match(appSource, /view === "matters"/);
-  assert.match(shellSource, /matters: \["Matter home"/);
-  assert.match(mattersSource, /data-cmp-g4-live-matters="true"/);
-  assert.match(mattersSource, /fetchMatterRecords/);
-  assert.match(mattersSource, /MatterVaultPanel/);
-  assert.match(matterVaultSource, /data-mv-matter-vault-panel="true"/);
-  assert.match(matterVaultSource, /fetchMatterVaultSummary/);
-  assert.match(matterVaultSource, /fetchMatterTimeline/);
-  assert.match(matterVaultSource, /raw storage paths, and denied counts stay hidden/);
-  assert.match(openingSource, /data-cmp-g4-opening-wizard="true"/);
-  assert.match(openingSource, /createMatterOpening/);
-  assert.match(rosterSource, /data-cmp-g4-team-roster="true"/);
-  assert.match(rosterSource, /addMatterTeamMember/);
-  assert.match(apiClientSource, /\/api\/matters/);
-  assert.match(apiClientSource, /\/vault-summary/);
-  assert.match(apiClientSource, /\/timeline/);
-  assert.match(apiClientSource, /production_ready_claim/);
-  assert.doesNotMatch(mattersSource, /mockData|from "\.\.\/data\/mockData/);
-});
-
-test("Clients runtime surface is routed and live Master Data backed", async () => {
-  const appSource = await readWebFile("src/App.jsx");
-  const navSource = await readWebFile("src/data/nav.js");
-  const shellSource = await readWebFile("src/components/Shell.jsx");
-  const clientsSource = await readWebFile("src/components/ClientsSurface.jsx");
-  const apiClientSource = await readWebFile("src/data/apiClient.js");
-
-  assert.match(navSource, /id: "clients"/);
-  assert.match(appSource, /ClientsSurface/);
-  assert.match(appSource, /view === "clients"/);
-  assert.match(shellSource, /clients: \["Client groups"/);
-  assert.match(clientsSource, /data-cmp-g2-live-clients="true"/);
-  assert.match(clientsSource, /fetchMasterDataRecords/);
-  assert.match(clientsSource, /modelType: "ClientGroup"/);
-  assert.match(clientsSource, /live-data-loading/);
-  assert.match(clientsSource, /live-data-empty/);
-  assert.match(clientsSource, /live-data-denied/);
-  assert.match(clientsSource, /live-data-review/);
-  assert.match(clientsSource, /Live mode has no mock fallback/);
-  assert.match(apiClientSource, /params\.set\("model_type", modelType\)/);
-});
-
-test("sample UI regression harness keeps live mode explicit and fail-closed", async () => {
-  const appSource = await readWebFile("src/App.jsx");
-  const apiClientSource = await readWebFile("src/data/apiClient.js");
-  const profilesSource = await readWebFile("src/components/ProfilesSurface.jsx");
-
-  assert.match(appSource, /initialDataMode = initialParams\.get\("data"\) === "live" \? "live" : "mock"/);
-  assert.match(apiClientSource, /GATED_RESPONSE_KEYS\.every/);
-  assert.match(apiClientSource, /return \{ kind: "error" \}/);
-  assert.match(profilesSource, /Live mode has no mock fallback/);
-});
-
-test("People runtime surface is routed and remains API-backed", async () => {
-  const appSource = await readWebFile("src/App.jsx");
-  const navSource = await readWebFile("src/data/nav.js");
+  const vaultSource = await readWebFile("src/components/VaultSurface.jsx");
   const peopleSource = await readWebFile("src/people/PeopleHome.tsx");
   const peopleApiSource = await readWebFile("src/people/hrxApiClient.ts");
 
-  assert.match(navSource, /id: "people"/);
-  assert.match(appSource, /view === "people"/);
+  assert.match(clientsSource, /data-cmp-g2-live-clients="true"/);
+  assert.match(clientsSource, /fetchMasterDataRecords/);
+  assert.match(clientsSource, /live-data-unavailable/);
+  assert.match(clientsSource, /live-data-denied/);
+  assert.match(clientsSource, /live-data-review/);
+  assert.doesNotMatch(clientsSource, /mockData|ClientsMockSurface/);
+  assert.match(mattersSource, /data-cmp-g4-live-matters="true"/);
+  assert.match(mattersSource, /fetchMatterRecords/);
+  assert.match(openingSource, /createMatterOpening/);
+  assert.match(openingSource, /enter runtime values/);
+  assert.match(rosterSource, /addMatterTeamMember/);
+  assert.doesNotMatch(openingSource, /tenant_rp|matter_ui_|M-UI|party_rp|user_rp/);
+  assert.doesNotMatch(rosterSource, /tenant_rp|member_ui|emp-002|user_rp/);
+  assert.match(vaultSource, /data-cmp-g5-vault-surface="true"/);
+  assert.match(vaultSource, /fetchVaultDocuments/);
   assert.match(peopleSource, /data-hrx-api-backed="true"/);
   assert.match(peopleApiSource, /\/api\/hrx\/employees/);
   assert.doesNotMatch(peopleApiSource, /mock/i);
+});
+
+test("secondary runtime capabilities are represented by four-axis coverage, not separate product routes", async () => {
+  const appSource = await readWebFile("src/App.jsx");
+  const capabilityMap = await readWebFile("src/data/capabilityMap.js");
+
+  for (const surface of [
+    "FinanceSurface",
+    "AnalyticsSurface",
+    "AskSurface",
+    "PortalSurface",
+    "ReadinessSurface",
+    "OpsSurface",
+    "IntakeSurface",
+    "ProfilesSurface"
+  ]) {
+    assert.doesNotMatch(appSource, new RegExp(surface));
+  }
+  for (const endpoint of [
+    "/api/finance/time-entries",
+    "/api/analytics/dashboards",
+    "/api/ai/review-queue",
+    "/api/crm/opportunities",
+    "/api/intake/requests",
+    "/api/portal/dashboard",
+    "/api/data-room/projections"
+  ]) {
+    assert.match(capabilityMap, new RegExp(endpoint.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+});
+
+test("canonical product source contains no local dummy dataset markers", async () => {
+  const files = [
+    "src/App.jsx",
+    "src/data/nav.js",
+    "src/data/apiClient.js",
+    "src/data/capabilityMap.js",
+    "src/components/Shell.jsx",
+    "src/components/HomeSurface.jsx",
+    "src/components/ClientsSurface.jsx",
+    "src/components/MattersSurface.jsx",
+    "src/components/MatterOpeningWizard.jsx",
+    "src/components/MatterTeamRoster.jsx",
+    "src/components/VaultSurface.jsx",
+    "src/people/PeopleHome.tsx"
+  ];
+  const forbidden = /mockData|tenant_[a-z0-9_]*synthetic|synthetic tenant|Project Atlas|Alex Smith|Riverstone|matter_ui_|member_ui|M-UI|user_rp|party_rp|emp-002/;
+  for (const file of files) {
+    const source = await readWebFile(file);
+    assert.doesNotMatch(source, forbidden, `${file} must not carry local dummy dataset markers`);
+  }
 });
 
 test("HRX audit UI preserves server-owned step-up and no local fallback", async () => {

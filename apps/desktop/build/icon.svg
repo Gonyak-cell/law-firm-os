@@ -1,10 +1,8 @@
-<svg width="420" height="104" viewBox="0 0 420 104" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="matter-logo-title">
-  <title id="matter-logo-title">matter by AMIC</title>
-  <g transform="translate(12 8)">
-    <rect x="12" y="4" width="24" height="66" rx="12" transform="rotate(31 12 4)" fill="#FF2D55"/>
-    <rect x="50" y="4" width="24" height="66" rx="12" transform="rotate(31 50 4)" fill="#FFCC00"/>
-    <circle cx="86" cy="62" r="14" fill="#00CA72"/>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="matter-icon-title">
+  <title id="matter-icon-title">matter</title>
+  <g transform="translate(65 142) scale(1.72)">
+    <rect x="41" y="7" width="48" height="118" rx="24" transform="rotate(31 65 66)" fill="#FF3158"/>
+    <rect x="104" y="7" width="48" height="118" rx="24" transform="rotate(31 128 66)" fill="#FFD43D"/>
+    <circle cx="194" cy="94" r="25" fill="#5CC878"/>
   </g>
-  <text x="122" y="66" fill="#06102D" font-family="Avenir Next, Comfortaa, Inter, Arial, sans-serif" font-size="58" font-weight="300">matter</text>
-  <text x="307" y="91" fill="#0F3A32" font-family="Avenir Next, Inter, Arial, sans-serif" font-size="16" font-weight="500">by AMIC</text>
 </svg>

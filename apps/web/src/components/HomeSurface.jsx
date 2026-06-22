@@ -7,7 +7,6 @@ import {
   fetchAnalyticsDashboards,
   fetchCrmOpportunities,
   fetchDataRoomProjections,
-  fetchEnterpriseReadinessItems,
   fetchFinanceArAging,
   fetchFinanceInvoices,
   fetchFinanceTimeEntries,
@@ -16,7 +15,6 @@ import {
   fetchMatterRecords,
   fetchPortalDashboard,
   fetchPortalRfi,
-  fetchUiReadinessChecks,
   fetchVaultDocuments
 } from "../data/apiClient.js";
 import { fetchHrxPeopleOverview } from "../people/hrxApiClient.ts";
@@ -39,17 +37,6 @@ function normalizeStatus(result) {
   if (result.uiState === "review_required" || result.outcome === "review_required") return "review";
   if (result.kind === "data") return "live";
   return "guarded";
-}
-
-async function fetchHealth() {
-  try {
-    const response = await fetch("/api/health", { credentials: "same-origin" });
-    const body = await response.json();
-    if (!response.ok || !body || typeof body !== "object") return { kind: "error" };
-    return { kind: "data", uiState: "allowed", outcome: body.status ?? "ok", items: [body] };
-  } catch {
-    return { kind: "error" };
-  }
 }
 
 function countItems(result) {
@@ -78,6 +65,33 @@ function buildProbeMap(results) {
   }));
 }
 
+function itemsFromResult(result) {
+  if (!result || result.kind !== "data") return [];
+  if (Array.isArray(result.items)) return result.items;
+  if (Array.isArray(result.employees)) return result.employees;
+  if (Array.isArray(result.approvals)) return result.approvals;
+  return [result];
+}
+
+function combinePillarResults(results) {
+  const liveResults = results.filter((result) => result?.kind === "data");
+  if (liveResults.length > 0) {
+    return {
+      kind: "data",
+      uiState: "allowed",
+      outcome: "allowed",
+      items: liveResults.flatMap(itemsFromResult)
+    };
+  }
+  return (
+    results.find((result) => result?.uiState === "denied") ??
+    results.find((result) => result?.uiState === "review_required" || result?.outcome === "review_required") ??
+    results.find((result) => result?.kind === "step_up_required") ??
+    results.find((result) => result?.kind === "error") ??
+    { kind: "error" }
+  );
+}
+
 function CapabilityCard({ capability, onOpen }) {
   const meta = statusMeta[capability.status] ?? statusMeta.guarded;
   const StatusIcon = meta.icon;
@@ -103,8 +117,8 @@ function CapabilityCard({ capability, onOpen }) {
         <span>{endpointCount} total</span>
       </div>
       <div className="endpoint-strip" aria-label={`${capability.label} endpoint coverage`}>
-        {[...capability.readEndpoints, ...capability.actionEndpoints, ...capability.auditEndpoints].slice(0, 8).map((endpoint) => (
-          <code key={endpoint}>{endpoint}</code>
+        {[...capability.readEndpoints, ...capability.actionEndpoints, ...capability.auditEndpoints].slice(0, 8).map((endpoint, index) => (
+          <code key={`${endpoint}-${index}`}>{endpoint}</code>
         ))}
       </div>
       <footer>
@@ -127,27 +141,26 @@ export function HomeSurface({ labels, setView, liveCtx = "allow" }) {
     setResults([]);
     const args = { ctx: liveCtx };
     Promise.all([
-      fetchHealth().then((result) => ({ id: "api-health", result })),
-      fetchMasterDataRecords({ ...args, modelType: "ClientGroup", limit: 10 }).then((result) => ({ id: "clients-master-data", result })),
-      fetchMatterRecords(args).then((result) => ({ id: "matter-core", result })),
-      fetchVaultDocuments(args).then((result) => ({ id: "vault-dms", result })),
-      Promise.all([fetchCrmOpportunities(args), fetchIntakeRequests(args)]).then(([opportunities, requests]) => ({
-        id: "crm-intake",
-        result: opportunities.kind === "error" ? opportunities : { ...opportunities, items: [...(opportunities.items ?? []), ...(requests.items ?? [])] }
-      })),
-      Promise.all([fetchFinanceTimeEntries(args), fetchFinanceInvoices(args), fetchFinanceArAging(args)]).then(([time, invoices, aging]) => ({
-        id: "finance",
-        result: time.kind === "error" ? time : { ...time, items: [...(time.items ?? []), ...(invoices.items ?? []), ...(aging.items ?? [])] }
-      })),
-      fetchAnalyticsDashboards(args).then((result) => ({ id: "analytics", result })),
-      fetchAiReviewQueue(args).then((result) => ({ id: "ai-governance", result })),
-      Promise.all([fetchPortalDashboard(args), fetchPortalRfi(args), fetchDataRoomProjections(args)]).then(([dashboard, rfi, dataRoom]) => ({
-        id: "portal-data-room",
-        result: dashboard.kind === "error" ? dashboard : { ...dashboard, items: [...(dashboard.items ?? []), ...(rfi.items ?? []), ...(dataRoom.items ?? [])] }
-      })),
-      fetchHrxPeopleOverview().then((result) => ({ id: "people-hrx", result })),
-      fetchUiReadinessChecks(args).then((result) => ({ id: "ui-readiness", result })),
-      fetchEnterpriseReadinessItems(args).then((result) => ({ id: "enterprise-ops", result }))
+      Promise.all([
+        fetchMasterDataRecords({ ...args, modelType: "ClientGroup", limit: 10 }),
+        fetchCrmOpportunities(args),
+        fetchIntakeRequests(args),
+        fetchPortalDashboard(args),
+        fetchPortalRfi(args)
+      ]).then((results) => ({ id: "client", result: combinePillarResults(results) })),
+      Promise.all([
+        fetchMatterRecords(args),
+        fetchFinanceTimeEntries(args),
+        fetchFinanceInvoices(args),
+        fetchFinanceArAging(args),
+        fetchAnalyticsDashboards(args),
+        fetchAiReviewQueue(args)
+      ]).then((results) => ({ id: "matter", result: combinePillarResults(results) })),
+      fetchHrxPeopleOverview().then((result) => ({ id: "people", result })),
+      Promise.all([fetchVaultDocuments(args), fetchDataRoomProjections(args)]).then((results) => ({
+        id: "vault",
+        result: combinePillarResults(results)
+      }))
     ]).then((nextResults) => {
       if (!cancelled) setResults(nextResults);
     });
@@ -165,8 +178,8 @@ export function HomeSurface({ labels, setView, liveCtx = "allow" }) {
     <section className="surface stack lcx-web-command-center" data-lcx-web-command-center="true">
       <PageHeader
         eyebrow="LCX-WEB"
-        title="matter command center"
-        subtitle="Canonical apps/web product UI for every backend capability. Each feature is shown as live, unavailable, denied, review, or guarded without mock fallback."
+        title="Client Matter People Vault"
+        subtitle="Canonical apps/web product UI. Missing APIs and permissions stay visible as live, unavailable, denied, review, or guarded states."
         actions={
           <button className="secondary-button" type="button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />
@@ -175,7 +188,7 @@ export function HomeSurface({ labels, setView, liveCtx = "allow" }) {
         }
       />
       <div className="metric-grid">
-        <MetricCard label="Backend domains" value={capabilitySummary.domains} delta={`${liveCount} live now`} tone="blue" />
+        <MetricCard label="Product axes" value={capabilitySummary.domains} delta={`${liveCount} live now`} tone="blue" />
         <MetricCard label="Read endpoints" value={capabilitySummary.readEndpoints} delta="visible" tone="green" />
         <MetricCard label="Action endpoints" value={capabilitySummary.actionEndpoints} delta="guarded" tone="purple" />
         <MetricCard label="Release claims" value="false" delta="owner/public/go-live" tone="red" />

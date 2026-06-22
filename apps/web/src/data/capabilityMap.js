@@ -1,142 +1,27 @@
 export const backendCapabilities = Object.freeze([
   {
-    id: "api-health",
-    label: "Runtime health",
-    route: "home",
-    owner: "platform",
-    readEndpoints: ["GET /api/health"],
-    actionEndpoints: [],
-    auditEndpoints: [],
-    boundary: "service descriptor only; no permission context required"
-  },
-  {
-    id: "clients-master-data",
-    label: "Clients and master data",
+    id: "client",
+    label: "Client",
     route: "clients",
-    owner: "master-data",
+    owner: "client",
     readEndpoints: [
       "GET /master-data/records",
       "GET /master-data/relationships",
-      "GET /master-data/client-groups/:id"
+      "GET /master-data/client-groups/:id",
+      "GET /api/crm/leads",
+      "GET /api/crm/opportunities",
+      "GET /api/intake/requests",
+      "GET /api/portal/projections",
+      "GET /api/portal/rfi",
+      "GET /api/portal/dashboard"
     ],
-    actionEndpoints: [],
-    auditEndpoints: [],
-    boundary: "live mode must be explicit and fail closed without mock fallback"
-  },
-  {
-    id: "matter-core",
-    label: "Matter core",
-    route: "matters",
-    owner: "matter",
-    readEndpoints: [
-      "GET /api/matters",
-      "GET /api/matters/:matter_id",
-      "GET /api/matters/:matter_id/command-center",
-      "GET /api/matters/:matter_id/vault-summary",
-      "GET /api/matters/:matter_id/timeline"
-    ],
-    actionEndpoints: [
-      "POST /api/matters",
-      "POST /api/matters/openings",
-      "POST /api/matters/:matter_id/documents",
-      "POST /api/matters/:matter_id/team-members"
-    ],
-    auditEndpoints: ["GET /api/matters/audit"],
-    boundary: "production_ready_claim remains false until external receipts exist"
-  },
-  {
-    id: "vault-dms",
-    label: "Vault and DMS",
-    route: "vault",
-    owner: "vault",
-    readEndpoints: [
-      "GET /api/vault/documents",
-      "GET /api/vault/search",
-      "GET /api/vault/file-objects/:file_object_id/download"
-    ],
-    actionEndpoints: [
-      "POST /api/vault/workspaces",
-      "POST /api/vault/folders",
-      "POST /api/vault/documents",
-      "POST /api/vault/documents/upload",
-      "POST /api/vault/documents/:document_id/versions",
-      "POST /api/vault/documents/:document_id/checkout-locks",
-      "POST /api/vault/documents/:document_id/privilege-label",
-      "POST /api/vault/documents/:document_id/legal-hold",
-      "POST /api/vault/search"
-    ],
-    auditEndpoints: ["GET /api/vault/audit"],
-    boundary: "document bytes stay out of renderer-owned state"
-  },
-  {
-    id: "crm-intake",
-    label: "CRM and intake",
-    route: "intake",
-    owner: "crm-intake",
-    readEndpoints: ["GET /api/crm/leads", "GET /api/crm/opportunities", "GET /api/intake/requests"],
     actionEndpoints: [
       "POST /api/crm/leads",
       "POST /api/crm/opportunities",
       "POST /api/crm/opportunities/:id/handoff",
       "POST /api/intake/requests",
       "POST /api/intake/conflict-checks",
-      "POST /api/intake/clearance-tokens"
-    ],
-    auditEndpoints: ["GET /api/intake/audit"],
-    boundary: "conflict and clearance state must be server-owned"
-  },
-  {
-    id: "finance",
-    label: "Finance, billing, trust, WIP",
-    route: "finance",
-    owner: "finance",
-    readEndpoints: ["GET /api/finance/time-entries", "GET /api/finance/invoices", "GET /api/finance/ar-aging"],
-    actionEndpoints: ["POST /api/finance/time-entries", "POST /api/finance/wip", "POST /api/finance/payments"],
-    auditEndpoints: ["GET /api/finance/audit"],
-    boundary: "bank credentials and production payment authority are never displayed"
-  },
-  {
-    id: "analytics",
-    label: "Analytics and profitability",
-    route: "analytics",
-    owner: "analytics",
-    readEndpoints: ["GET /api/analytics/dashboards", "GET /api/analytics/matter-profitability"],
-    actionEndpoints: [
-      "POST /api/analytics/refresh",
-      "POST /api/analytics/matter-profitability",
-      "POST /api/analytics/exports"
-    ],
-    auditEndpoints: ["GET /api/analytics/audit"],
-    boundary: "raw matter detail stays omitted from read models"
-  },
-  {
-    id: "ai-governance",
-    label: "AI review and governance",
-    route: "ask",
-    owner: "ai",
-    readEndpoints: ["GET /api/ai/review-queue"],
-    actionEndpoints: [
-      "POST /api/ai/policies",
-      "POST /api/ai/retrieval",
-      "POST /api/ai/outputs",
-      "POST /api/ai/exports"
-    ],
-    auditEndpoints: ["GET /api/ai/audit"],
-    boundary: "AI output never bypasses permission-before-AI or human review"
-  },
-  {
-    id: "portal-data-room",
-    label: "Portal and data room",
-    route: "portal",
-    owner: "portal",
-    readEndpoints: [
-      "GET /api/portal/projections",
-      "GET /api/portal/rfi",
-      "GET /api/portal/dashboard",
-      "GET /api/data-room/rooms",
-      "GET /api/data-room/projections"
-    ],
-    actionEndpoints: [
+      "POST /api/intake/clearance-tokens",
       "POST /api/portal/external-users",
       "POST /api/portal/external-acls",
       "POST /api/portal/rfi",
@@ -144,18 +29,53 @@ export const backendCapabilities = Object.freeze([
       "POST /api/portal/approvals",
       "POST /api/portal/secure-links",
       "POST /api/portal/dashboard",
-      "POST /api/portal/projections",
-      "POST /api/data-room/rooms",
-      "POST /api/data-room/projections"
+      "POST /api/portal/projections"
     ],
-    auditEndpoints: ["GET /api/portal/audit"],
-    boundary: "external ACL and secure-link material are never client-side secrets"
+    auditEndpoints: ["GET /api/intake/audit", "GET /api/portal/audit"],
+    boundary: "Client records, intake, and portal access fail closed without local fallback data"
   },
   {
-    id: "people-hrx",
-    label: "People and HRX",
+    id: "matter",
+    label: "Matter",
+    route: "matters",
+    owner: "matter",
+    readEndpoints: [
+      "GET /api/matters",
+      "GET /api/matters/:matter_id",
+      "GET /api/matters/:matter_id/command-center",
+      "GET /api/matters/:matter_id/vault-summary",
+      "GET /api/matters/:matter_id/timeline",
+      "GET /api/finance/time-entries",
+      "GET /api/finance/invoices",
+      "GET /api/finance/ar-aging",
+      "GET /api/analytics/dashboards",
+      "GET /api/analytics/matter-profitability",
+      "GET /api/ai/review-queue"
+    ],
+    actionEndpoints: [
+      "POST /api/matters",
+      "POST /api/matters/openings",
+      "POST /api/matters/:matter_id/documents",
+      "POST /api/matters/:matter_id/team-members",
+      "POST /api/finance/time-entries",
+      "POST /api/finance/wip",
+      "POST /api/finance/payments",
+      "POST /api/analytics/refresh",
+      "POST /api/analytics/matter-profitability",
+      "POST /api/analytics/exports",
+      "POST /api/ai/policies",
+      "POST /api/ai/retrieval",
+      "POST /api/ai/outputs",
+      "POST /api/ai/exports"
+    ],
+    auditEndpoints: ["GET /api/matters/audit", "GET /api/finance/audit", "GET /api/analytics/audit", "GET /api/ai/audit"],
+    boundary: "production_ready_claim remains false until external receipts exist"
+  },
+  {
+    id: "people",
+    label: "People",
     route: "people",
-    owner: "hrx",
+    owner: "people",
     readEndpoints: [
       "GET /api/hrx/employees",
       "GET /api/hrx/employees/:id",
@@ -187,32 +107,32 @@ export const backendCapabilities = Object.freeze([
     boundary: "sensitive HR fields remain masked unless server scope allows them"
   },
   {
-    id: "ui-readiness",
-    label: "UI readiness",
-    route: "readiness",
-    owner: "ui-readiness",
-    readEndpoints: ["GET /api/ui/readiness", "GET /api/ui/audit"],
-    actionEndpoints: [
-      "POST /api/ui/checks",
-      "POST /api/ui/critical-path-runs",
-      "POST /api/ui/adjudications"
+    id: "vault",
+    label: "Vault",
+    route: "vault",
+    owner: "vault",
+    readEndpoints: [
+      "GET /api/vault/documents",
+      "GET /api/vault/search",
+      "GET /api/vault/file-objects/:file_object_id/download",
+      "GET /api/data-room/rooms",
+      "GET /api/data-room/projections"
     ],
-    auditEndpoints: ["GET /api/ui/audit"],
-    boundary: "UI evidence is not owner approval"
-  },
-  {
-    id: "enterprise-ops",
-    label: "Enterprise readiness",
-    route: "ops",
-    owner: "enterprise",
-    readEndpoints: ["GET /api/enterprise/readiness", "GET /api/enterprise/audit"],
     actionEndpoints: [
-      "POST /api/enterprise/items",
-      "POST /api/enterprise/release-candidates",
-      "POST /api/enterprise/go-no-go"
+      "POST /api/vault/workspaces",
+      "POST /api/vault/folders",
+      "POST /api/vault/documents",
+      "POST /api/vault/documents/upload",
+      "POST /api/vault/documents/:document_id/versions",
+      "POST /api/vault/documents/:document_id/checkout-locks",
+      "POST /api/vault/documents/:document_id/privilege-label",
+      "POST /api/vault/documents/:document_id/legal-hold",
+      "POST /api/vault/search",
+      "POST /api/data-room/rooms",
+      "POST /api/data-room/projections"
     ],
-    auditEndpoints: ["GET /api/enterprise/audit"],
-    boundary: "go_live_approved and public release remain false without receipts"
+    auditEndpoints: ["GET /api/vault/audit"],
+    boundary: "document bytes stay out of renderer-owned state"
   }
 ]);
 

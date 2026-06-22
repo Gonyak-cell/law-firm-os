@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-06-22T06:18:33.083Z",
+  "generated_at": "2026-06-22T07:45:24.203Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
   "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
@@ -37,14 +37,63 @@
       "password_reset_confirm": "passed",
       "password_login": "passed",
       "product_handoff": {
-        "url": "file:///Users/jws/Documents/Codex/law-firm-os-release-main-c52/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow",
-        "title": "matter command center",
-        "capability_cards": 12,
+        "url": "file:///Users/jws/Documents/Codex/law-firm-os-release-main-c52/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
+        "title": "Client Matter People Vault",
+        "capability_cards": 4,
+        "capability_labels": [
+          "Client",
+          "Matter",
+          "People",
+          "Vault"
+        ],
         "production_go_live_false_visible": true,
         "public_release_false_visible": true,
         "owner_approval_false_visible": true,
+        "no_dummy_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 4553
+        "body_character_count": 2046,
+        "logo_flow": {
+          "observed": true,
+          "image_alt": "matter",
+          "image_width": 346,
+          "overlay_background": "rgb(247, 249, 252)",
+          "overlay_z_index": "3000",
+          "by_amic_visible_in_logo": false
+        },
+        "top_header_nav": {
+          "labels": [
+            "Client",
+            "Matter",
+            "People",
+            "Vault"
+          ],
+          "axis_ids": [
+            "clients",
+            "matters",
+            "people",
+            "vault"
+          ],
+          "in_topbar": true,
+          "active_axis": ""
+        },
+        "sidebar": {
+          "collapsed": {
+            "state": "collapsed",
+            "rail_display": "grid",
+            "sidebar_display": "none",
+            "product_axis_count_in_rail": 0,
+            "rail_word_visible": false
+          },
+          "expanded": {
+            "state": "expanded",
+            "rail_display": "none",
+            "sidebar_display": "block",
+            "matter_word": "matter",
+            "sidebar_product_axis_labels": [],
+            "matter_word_visible": true,
+            "horizontal_overflow": false
+          }
+        }
       },
       "dashboard_smoke": {
         "passed": true,
@@ -72,14 +121,63 @@
       "password_reset_confirm": "passed",
       "password_login": "passed",
       "product_handoff": {
-        "url": "file:///Users/jws/Documents/Codex/law-firm-os-release-main-c52/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow",
-        "title": "matter command center",
-        "capability_cards": 12,
+        "url": "file:///Users/jws/Documents/Codex/law-firm-os-release-main-c52/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
+        "title": "Client Matter People Vault",
+        "capability_cards": 4,
+        "capability_labels": [
+          "Client",
+          "Matter",
+          "People",
+          "Vault"
+        ],
         "production_go_live_false_visible": true,
         "public_release_false_visible": true,
         "owner_approval_false_visible": true,
+        "no_dummy_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 4553
+        "body_character_count": 2046,
+        "logo_flow": {
+          "observed": true,
+          "image_alt": "matter",
+          "image_width": 346,
+          "overlay_background": "rgb(247, 249, 252)",
+          "overlay_z_index": "3000",
+          "by_amic_visible_in_logo": false
+        },
+        "top_header_nav": {
+          "labels": [
+            "Client",
+            "Matter",
+            "People",
+            "Vault"
+          ],
+          "axis_ids": [
+            "clients",
+            "matters",
+            "people",
+            "vault"
+          ],
+          "in_topbar": true,
+          "active_axis": ""
+        },
+        "sidebar": {
+          "collapsed": {
+            "state": "collapsed",
+            "rail_display": "grid",
+            "sidebar_display": "none",
+            "product_axis_count_in_rail": 0,
+            "rail_word_visible": false
+          },
+          "expanded": {
+            "state": "expanded",
+            "rail_display": "none",
+            "sidebar_display": "block",
+            "matter_word": "matter",
+            "sidebar_product_axis_labels": [],
+            "matter_word_visible": true,
+            "horizontal_overflow": false
+          }
+        }
       },
       "dashboard_smoke": {
         "passed": true,
@@ -111,7 +209,7 @@
     "token_or_password_visible_in_final_dom": false,
     "reset_token_input_cleared_before_screenshot": true,
     "generated_password_visible_in_final_dom": false,
-    "final_dom_character_count": 4553
+    "final_dom_character_count": 2046
   },
   "release_claims": {
     "production_go_live": false,

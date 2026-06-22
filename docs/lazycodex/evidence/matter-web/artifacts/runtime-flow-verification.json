@@ -1,73 +1,79 @@
 {
   "schema_version": "matter.lcx-web.runtime-verification.v1",
-  "generated_at": "2026-06-22T04:47:30.069Z",
-  "base_url": "http://127.0.0.1:5174",
+  "generated_at": "2026-06-22T07:35:37.009Z",
+  "base_url": "http://127.0.0.1:5173",
   "source_of_truth": "apps/web",
   "passed": true,
   "console_errors_recorded_not_gated": [
-    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/ui/audit",
-    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/enterprise/audit",
-    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/ui/audit",
-    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/enterprise/audit",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/ui/audit",
-    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/enterprise/audit",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
-    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
-    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
-    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/ui/audit",
-    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/enterprise/audit",
-    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/ui/audit",
-    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/enterprise/audit",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/ui/audit",
-    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. GET /api/enterprise/audit"
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
   ],
   "mobile_metrics": {
     "scrollWidth": 390,
     "clientWidth": 390,
     "horizontalOverflow": false,
-    "capabilityCards": 12
+    "capabilityCards": 4
   },
   "results": [
     {
       "name": "desktop-home-command-center",
       "url": "/?locale=en&view=home&desktop=1&data=live&ctx=allow",
-      "expectText": "matter command center",
+      "expectText": "Client Matter People Vault",
       "passed": true,
-      "textFound": 1,
+      "textFound": 2,
       "selectorFound": 1,
       "metrics": {
         "title": "matter",
         "locale": "en",
         "theme": "light",
         "horizontalOverflow": false,
-        "visibleCapabilityCards": 12,
+        "visibleCapabilityCards": 4,
         "visibleLiveStates": [
-          "live",
-          "live",
-          "live",
-          "live",
-          "live",
-          "live",
-          "live",
-          "live",
-          "live",
           "unavailable",
-          "live",
-          "live"
+          "unavailable",
+          "unavailable",
+          "unavailable"
         ]
       },
       "error": null
@@ -85,7 +91,9 @@
         "theme": "light",
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
-        "visibleLiveStates": []
+        "visibleLiveStates": [
+          "Client data unavailableThe API request failed or returned an unexpected response. Start the API and reload."
+        ]
       },
       "error": null
     },
@@ -103,127 +111,9 @@
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
         "visibleLiveStates": [
-          "No linked workspaceThis Matter has no active MatterVaultLink yet."
+          "Matter API unavailableStart the Law Firm OS API and reload this live surface.",
+          "Loading Matter VaultReading linked workspace metadata."
         ]
-      },
-      "error": null
-    },
-    {
-      "name": "vault-live",
-      "url": "/?locale=en&view=vault&data=live&ctx=allow",
-      "expectText": "Matter Vault",
-      "passed": true,
-      "textFound": 2,
-      "selectorFound": 1,
-      "metrics": {
-        "title": "matter",
-        "locale": "en",
-        "theme": "light",
-        "horizontalOverflow": false,
-        "visibleCapabilityCards": 0,
-        "visibleLiveStates": []
-      },
-      "error": null
-    },
-    {
-      "name": "portal-live",
-      "url": "/?locale=en&view=portal&data=live&ctx=allow",
-      "expectText": "External Access Boundary",
-      "passed": true,
-      "textFound": 1,
-      "selectorFound": 1,
-      "metrics": {
-        "title": "matter",
-        "locale": "en",
-        "theme": "light",
-        "horizontalOverflow": false,
-        "visibleCapabilityCards": 0,
-        "visibleLiveStates": []
-      },
-      "error": null
-    },
-    {
-      "name": "readiness-live",
-      "url": "/?locale=en&view=readiness&data=live&ctx=allow",
-      "expectText": "UI Runtime Boundary",
-      "passed": true,
-      "textFound": 1,
-      "selectorFound": 1,
-      "metrics": {
-        "title": "matter",
-        "locale": "en",
-        "theme": "light",
-        "horizontalOverflow": false,
-        "visibleCapabilityCards": 0,
-        "visibleLiveStates": []
-      },
-      "error": null
-    },
-    {
-      "name": "ops-live",
-      "url": "/?locale=en&view=ops&data=live&ctx=allow",
-      "expectText": "Enterprise Boundary",
-      "passed": true,
-      "textFound": 1,
-      "selectorFound": 1,
-      "metrics": {
-        "title": "matter",
-        "locale": "en",
-        "theme": "light",
-        "horizontalOverflow": false,
-        "visibleCapabilityCards": 0,
-        "visibleLiveStates": []
-      },
-      "error": null
-    },
-    {
-      "name": "intake-live",
-      "url": "/?locale=en&view=intake&data=live&ctx=allow",
-      "expectText": "Opportunity Pipeline",
-      "passed": true,
-      "textFound": 2,
-      "selectorFound": 1,
-      "metrics": {
-        "title": "matter",
-        "locale": "en",
-        "theme": "light",
-        "horizontalOverflow": false,
-        "visibleCapabilityCards": 0,
-        "visibleLiveStates": []
-      },
-      "error": null
-    },
-    {
-      "name": "finance-live",
-      "url": "/?locale=en&view=finance&data=live&ctx=allow",
-      "expectText": "Time Entries",
-      "passed": true,
-      "textFound": 2,
-      "selectorFound": 1,
-      "metrics": {
-        "title": "matter",
-        "locale": "en",
-        "theme": "light",
-        "horizontalOverflow": false,
-        "visibleCapabilityCards": 0,
-        "visibleLiveStates": []
-      },
-      "error": null
-    },
-    {
-      "name": "profiles-live",
-      "url": "/?locale=en&view=profiles&variant=userList&data=live&ctx=allow",
-      "expectText": "Matching Profiles",
-      "passed": true,
-      "textFound": 1,
-      "selectorFound": 1,
-      "metrics": {
-        "title": "matter",
-        "locale": "en",
-        "theme": "light",
-        "horizontalOverflow": false,
-        "visibleCapabilityCards": 0,
-        "visibleLiveStates": []
       },
       "error": null
     },
@@ -259,9 +149,9 @@
       "error": null
     },
     {
-      "name": "analytics-live",
-      "url": "/?locale=en&view=analytics&data=live&ctx=allow",
-      "expectText": "CMP-G8 Analytics Runtime",
+      "name": "vault-live",
+      "url": "/?locale=en&view=vault&data=live&ctx=allow",
+      "expectText": "Matter Vault",
       "passed": true,
       "textFound": 1,
       "selectorFound": 1,
@@ -271,41 +161,9 @@
         "theme": "light",
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
-        "visibleLiveStates": []
-      },
-      "error": null
-    },
-    {
-      "name": "ask-live",
-      "url": "/?locale=en&view=ask&data=live&ctx=allow",
-      "expectText": "CMP-G9 AI Review Queue",
-      "passed": true,
-      "textFound": 1,
-      "selectorFound": 1,
-      "metrics": {
-        "title": "matter",
-        "locale": "en",
-        "theme": "light",
-        "horizontalOverflow": false,
-        "visibleCapabilityCards": 0,
-        "visibleLiveStates": []
-      },
-      "error": null
-    },
-    {
-      "name": "admin",
-      "url": "/?locale=en&view=admin",
-      "expectText": "Organization Settings",
-      "passed": true,
-      "textFound": 1,
-      "selectorFound": 1,
-      "metrics": {
-        "title": "matter",
-        "locale": "en",
-        "theme": "light",
-        "horizontalOverflow": false,
-        "visibleCapabilityCards": 0,
-        "visibleLiveStates": []
+        "visibleLiveStates": [
+          "Vault API unavailableStart the Law Firm OS API and reload this live surface."
+        ]
       },
       "error": null
     },

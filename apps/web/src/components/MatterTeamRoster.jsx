@@ -4,7 +4,8 @@ import { ShieldCheck, UserPlus } from "lucide-react";
 import { addMatterTeamMember } from "../data/apiClient.js";
 import { DataTable, Panel } from "./primitives.jsx";
 
-const TENANT_ID = "tenant_rp05_synthetic";
+const TENANT_ID = "matter-runtime-tenant";
+const ACTOR_ID = "matter-operator";
 const TEAM_PERMISSION_REF = "ui_cmp_g4_matter_team";
 const TEAM_AUDIT_HINT_REF = "ui_cmp_g4_matter_team_probe";
 
@@ -13,7 +14,7 @@ function memberPayload({ matterId, memberId, employeeId, userId, role }) {
     tenant_id: TENANT_ID,
     permission_ref: TEAM_PERMISSION_REF,
     audit_hint_ref: TEAM_AUDIT_HINT_REF,
-    actor_id: "user_rp05_owner",
+    actor_id: ACTOR_ID,
     member: {
       member_id: memberId,
       tenant_id: TENANT_ID,
@@ -29,9 +30,9 @@ function memberPayload({ matterId, memberId, employeeId, userId, role }) {
 export function MatterTeamRoster({ matters = [], liveCtx = "allow" }) {
   const activeMatter = matters[0] ?? null;
   const [form, setForm] = useState({
-    memberId: "member_ui_associate_001",
-    employeeId: "emp-002",
-    userId: "user_rp05_associate",
+    memberId: "",
+    employeeId: "",
+    userId: "",
     role: "associate"
   });
   const [members, setMembers] = useState([]);
@@ -78,6 +79,7 @@ export function MatterTeamRoster({ matters = [], liveCtx = "allow" }) {
         : activeMatter
           ? activeMatter.matter_number ?? activeMatter.matter_id
           : "empty";
+  const canSubmit = Boolean(activeMatter && form.memberId.trim() && form.role.trim() && (form.employeeId.trim() || form.userId.trim()));
 
   return (
     <Panel className="matter-runtime-panel" title="Matter Team" meta={TEAM_AUDIT_HINT_REF}>
@@ -109,7 +111,7 @@ export function MatterTeamRoster({ matters = [], liveCtx = "allow" }) {
               <ShieldCheck size={15} />
               <span>{stateText}</span>
             </div>
-            <button className="primary-button" disabled={!activeMatter || submitting}>
+            <button className="primary-button" disabled={!canSubmit || submitting}>
               <UserPlus size={15} />
               {submitting ? "Adding" : "Add"}
             </button>

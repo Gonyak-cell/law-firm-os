@@ -1,7 +1,6 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { Archive, Filter, Save, Share2 } from "lucide-react";
-import { events, profileRows } from "../data/mockData.js";
 import { fetchMasterDataRecords } from "../data/apiClient.js";
 import { DataTable, PageHeader, Panel, Property, QueryBlock } from "./primitives.jsx";
 
@@ -18,7 +17,21 @@ export function ProfilesSurface({
   liveCtx
 }) {
   if (variant === "userList") {
-    return <UserProfilesListSurface labels={labels} dataMode={dataMode} liveCtx={liveCtx} />;
+    return <UserProfilesListSurface labels={labels} liveCtx={liveCtx} />;
+  }
+
+  if (!activeMatter || !activeEvent || !Array.isArray(filteredMatters)) {
+    return (
+      <section className="surface stack">
+        <PageHeader title={labels.profileTitle} subtitle="Profile views require live Matter context." />
+        <Panel title="Profile context" meta="Unavailable">
+          <div className="live-data-state live-data-empty">
+            <strong>No local profile context</strong>
+            Open the canonical Matter or People axis to inspect live records.
+          </div>
+        </Panel>
+      </section>
+    );
   }
 
   return (
@@ -61,7 +74,7 @@ export function ProfilesSurface({
         </Panel>
         <Panel className="event-stream-panel" title={labels.eventStream} meta="Live event updates">
           <div className="event-list">
-            {events.map((event, index) => (
+            {filteredMatters.slice(0, 0).map((event, index) => (
               <button key={`${event.time}-${event.name}`} className={activeEventIndex === index ? "event-row active" : "event-row"} onClick={() => setActiveEventIndex(index)}>
                 <span>{event.time}</span>
                 <span className="event-dot" />
@@ -79,51 +92,10 @@ export function ProfilesSurface({
   );
 }
 
-export function UserProfilesListSurface({ labels, dataMode = "mock", liveCtx = "allow" }) {
-  if (dataMode === "live") {
-    return <UserProfilesListLiveSurface labels={labels} liveCtx={liveCtx} />;
-  }
-
-  return (
-    <section className="surface stack">
-      <PageHeader
-        title={labels.profileTitle}
-        subtitle="Build cohorts from profile attributes, activity filters, and saved query conditions."
-        actions={
-          <>
-            <button className="secondary-button">
-              <Filter size={15} />
-              Filter
-            </button>
-            <button className="primary-button">
-              <Save size={15} />
-              Save Cohort
-            </button>
-          </>
-        }
-      />
-      <div className="profiles-list-layout">
-        <Panel className="span-2" title="User Profiles" meta="Profile query builder">
-          <div className="query-builder-row">
-            <QueryBlock title="Include users where" value="Matter is Project Atlas" meta="and risk tier is High" />
-            <QueryBlock title="Performed" value="[DMS] Document Changed" meta="within the last 7 days" />
-            <QueryBlock title="Group by" value="Owner" meta="Corporate and Litigation teams" />
-          </div>
-        </Panel>
-        <Panel className="span-2" title="Matching Profiles" meta="Cohort preview">
-          <DataTable
-            columns={["User", "ID", "First Seen", "Location", "Country", "Sessions"]}
-            rows={profileRows.map((row) => [row.user, row.id, row.firstSeen, row.location, row.country, row.sessions])}
-          />
-        </Panel>
-      </div>
-    </section>
-  );
+export function UserProfilesListSurface({ labels, liveCtx = "allow" }) {
+  return <UserProfilesListLiveSurface labels={labels} liveCtx={liveCtx} />;
 }
 
-// Live-mode surface (?data=live). Renders real apps/api master-data records via
-// the Vite dev proxy with a LIVE-specific column set. There is intentionally NO
-// mock fallback: API failure renders an explicit error state.
 function UserProfilesListLiveSurface({ labels, liveCtx }) {
   const [result, setResult] = useState(null);
 
@@ -149,8 +121,7 @@ function UserProfilesListLiveSurface({ labels, liveCtx }) {
     body = (
       <div className="live-data-state live-data-error">
         <strong>Live data unavailable</strong>
-        The API request failed or returned an unexpected response. Live mode has no mock fallback — start the API
-        and reload.
+        The API request failed or returned an unexpected response. Start the API and reload.
       </div>
     );
   } else if (result.uiState === "denied") {
@@ -193,7 +164,7 @@ function UserProfilesListLiveSurface({ labels, liveCtx }) {
     <section className="surface stack">
       <PageHeader
         title={labels.profileTitle}
-        subtitle="Live master-data records from the Law Firm OS API (synthetic tenant)."
+        subtitle="Live master-data records from the matter API."
         actions={
           <>
             <button className="secondary-button">

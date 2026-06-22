@@ -180,7 +180,7 @@ export function ShareModalState({ state, onClose }) {
             <tbody>
               {[
                 ["Sam Lee (You)", "samlee@content-mobbin.com", "37 seconds ago"],
-                ["Alex Smith", "alexsmith@content-mobbin.com", "2 minutes ago"]
+                ["Selected user", "user.invalid", "2 minutes ago"]
               ].map((row) => (
                 <tr key={row[0]}>
                   <td>
@@ -205,7 +205,7 @@ export function ShareModalState({ state, onClose }) {
             <span>Add people</span>
             <div className={`share-recipient-line ${isInvite ? "filled" : ""}`}>
               <div className="share-recipient-input">
-                {isInvite && <span className="recipient-chip">Alex Smith <X size={12} /></span>}
+                {isInvite && <span className="recipient-chip">Selected user <X size={12} /></span>}
                 <input placeholder="Enter names or emails" readOnly />
               </div>
               {isInvite && (

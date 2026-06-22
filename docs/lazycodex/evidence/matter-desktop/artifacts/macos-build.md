@@ -18,7 +18,7 @@ Version: `0.1.0`
 ## Signing
 
 - signing identity: not applied in this internal packaging step
-- codesign verify: not_distribution_ready: /Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
+- codesign verify: not_distribution_ready: /Users/jws/Documents/Codex/law-firm-os-release-main-c52/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
 - strict distribution verify: not claimed
 - notarization state: not_submitted_internal_only
 
