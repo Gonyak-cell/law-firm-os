@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { packager } from "@electron/packager";
+import { sign } from "@electron/osx-sign";
+import { notarize } from "@electron/notarize";
 import { dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
@@ -27,6 +30,13 @@ const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artif
 const arch = process.env.MATTER_DESKTOP_MAC_ARCH ?? (process.arch === "arm64" ? "arm64" : "x64");
 const signingMode = process.env.MATTER_DESKTOP_SIGN ?? "internal";
 const notarizationRequested = process.env.MATTER_DESKTOP_NOTARIZE === "1";
+process.env.PATH = ["/usr/bin", "/bin", "/usr/sbin", "/sbin", process.env.PATH].filter(Boolean).join(":");
+const ignoredPackagePathPatterns = [
+  /(^|\/)dist($|\/)/,
+  /(^|\/)test($|\/)/,
+  /(^|\/)\.env($|\.|\/)/,
+  /\.test\.mjs$/
+];
 
 function firstLine(value) {
   return String(value ?? "").split("\n").find(Boolean) ?? "";
@@ -79,6 +89,24 @@ function notarizationOptions() {
   return null;
 }
 
+function shouldIgnorePackagedPath(filePath) {
+  const normalizedPath = String(filePath).replaceAll("\\", "/");
+  return ignoredPackagePathPatterns.some((pattern) => pattern.test(normalizedPath));
+}
+
+async function developerIdSignatureState(targetPath) {
+  try {
+    const { stderr } = await execFileAsync("/usr/bin/codesign", ["--display", "--verbose=4", targetPath]);
+    const output = stderr;
+    const authority = output.split("\n").find((line) => line.startsWith("Authority=Developer ID Application:")) ?? "";
+    const team = output.split("\n").find((line) => line.startsWith("TeamIdentifier=")) ?? "";
+    if (authority && team === "TeamIdentifier=LHDXU66NX3") return "pass";
+    return `not_distribution_ready: ${authority || "Developer ID authority missing"}; ${team || "TeamIdentifier missing"}`;
+  } catch (error) {
+    return `not_distribution_ready: ${firstLine(error.stderr ?? error.message) || "codesign display failed"}`;
+  }
+}
+
 if (!existsSync(join(repoRoot, "node_modules/electron/dist/Electron.app"))) {
   throw new Error("Electron runtime is missing. Run `npm install --workspace apps/desktop` first.");
 }
@@ -95,39 +123,52 @@ const osxNotarize = notarizationOptions();
 if (notarizationRequested && !osxNotarize) {
   throw new Error("Notarization requested but no notarization credential source was found. Set MATTER_NOTARY_KEYCHAIN_PROFILE, Apple ID app-specific password env, or App Store Connect API key env.");
 }
-const notarizationState = osxNotarize ? "submitted_and_accepted_by_packager" : "not_submitted_internal_only";
+const notarizationState = osxNotarize ? "submitted_and_accepted_by_notarytool" : "not_submitted_internal_only";
 
 await rm(distRoot, { recursive: true, force: true });
+await mkdir(distRoot, { recursive: true });
 await mkdir(dirname(receiptPath), { recursive: true });
+const packageOutRoot = await mkdtemp(join(tmpdir(), "matter-desktop-packager-"));
 
-const [generatedAppRoot] = await packager({
-  dir: desktopRoot,
-  out: distRoot,
-  overwrite: true,
-  platform: "darwin",
-  arch,
-  name: "matter",
-  executableName: "matter",
-  appBundleId: "com.amic.matter.desktop.internal",
-  appCategoryType: "public.app-category.business",
-  appVersion: packageJson.version,
-  buildVersion: packageJson.version,
-  icon: iconPath,
-  asar: false,
-  prune: true,
-  ignore: [
-    /^\/dist($|\/)/,
-    /^\/test($|\/)/,
-    /(^|\/)\.env($|\.|\/)/,
-    /\.test\.mjs$/
-  ],
-  osxSign: osxSign ?? false,
-  ...(osxNotarize ? { osxNotarize } : {})
-});
+try {
+  const [generatedAppRoot] = await packager({
+    dir: desktopRoot,
+    out: packageOutRoot,
+    overwrite: true,
+    platform: "darwin",
+    arch,
+    name: "matter",
+    executableName: "matter",
+    appBundleId: "com.amic.matter.desktop.internal",
+    appCategoryType: "public.app-category.business",
+    appVersion: packageJson.version,
+    buildVersion: packageJson.version,
+    icon: iconPath,
+    asar: false,
+    prune: true,
+    ignore: shouldIgnorePackagedPath,
+    osxSign: false
+  });
+  const generatedAppBundle = join(generatedAppRoot, "matter.app");
 
-await rm(appBundle, { recursive: true, force: true });
-await execFileAsync("/bin/mv", [join(generatedAppRoot, "matter.app"), appBundle]);
-await rm(generatedAppRoot, { recursive: true, force: true });
+  if (osxSign) {
+    await sign({
+      app: generatedAppBundle,
+      ...osxSign
+    });
+  }
+  if (osxNotarize) {
+    await notarize({
+      appPath: generatedAppBundle,
+      ...osxNotarize
+    });
+  }
+
+  await rm(appBundle, { recursive: true, force: true });
+  await execFileAsync("/bin/mv", [generatedAppBundle, appBundle]);
+} finally {
+  await rm(packageOutRoot, { recursive: true, force: true });
+}
 
 let codesignVerify = "not_distribution_ready";
 try {
@@ -149,6 +190,10 @@ try {
   gatekeeperAssess = "pass";
 } catch (error) {
   gatekeeperAssess = `not_distribution_ready: ${firstLine(error.stderr ?? error.message) || "spctl assess failed"}`;
+}
+const developerIdSignature = await developerIdSignatureState(appBundle);
+if (osxSign && developerIdSignature !== "pass") {
+  throw new Error(`Developer ID signature verification failed: ${developerIdSignature}`);
 }
 const smoke = await execFileAsync(executablePath, ["-e", "process.stdout.write(process.versions.electron)"], {
   env: {
@@ -183,6 +228,7 @@ Version: \`${packageJson.version}\`
 - Developer ID signing: ${osxSign ? "applied" : "not_applied_internal_package"}
 - requested signing mode: ${signingMode}
 - resolved signing identity: ${osxSign?.identity ?? "not_applied_internal_package"}
+- Developer ID signature: ${developerIdSignature}
 - codesign verify: ${codesignVerify}
 - strict codesign verify: ${strictCodesignVerify}
 - gatekeeper assess: ${gatekeeperAssess}
@@ -223,6 +269,7 @@ console.log(
       receipt: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
       signing_mode: signingMode,
       signing_identity: osxSign?.identity ?? "not_applied_internal_package",
+      developer_id_signature: developerIdSignature,
       codesign_verify: codesignVerify,
       strict_codesign_verify: strictCodesignVerify,
       gatekeeper_assess: gatekeeperAssess,

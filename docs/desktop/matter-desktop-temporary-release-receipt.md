@@ -66,7 +66,7 @@ No domain was registered.
 | Artifact | Result |
 | --- | --- |
 | macOS app bundle | `apps/desktop/dist/mac/matter.app` |
-| macOS executable SHA-256 | `350fd9ac3e22e1316c7fa45e0a1e8123d8faef340e971b26916b7468325157ae` |
+| macOS executable SHA-256 | `ecb793e8aac38e3c6e69d033c42ef15ce701da9dd6f6c6d16c9a9119ba55f1db` |
 | macOS ZIP archive | `apps/desktop/dist/mac/matter-internal-0.1.0-macos.zip` |
 | macOS DMG image | `apps/desktop/dist/mac/matter-internal-0.1.0-macos.dmg` |
 | Windows internal manifest | `apps/desktop/dist/win/matter-internal-0.1.0-win-installer-manifest.json` |
@@ -82,11 +82,11 @@ No domain was registered.
 | Resolved signing identity | `Developer ID Application: Jiwon Suh (LHDXU66NX3)` |
 | codesign verify | pass |
 | strict codesign verify | pass |
-| gatekeeper assess | not_distribution_ready: /Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app: rejected |
+| gatekeeper assess | pass |
 | public distribution approval | not claimed |
-| notarization requested | false |
-| notarization credential source | missing |
-| notarization state | not_submitted_internal_only |
+| notarization requested | true |
+| notarization credential source | present |
+| notarization state | submitted_and_accepted_by_notarytool |
 
 ## Verification Results
 
@@ -95,7 +95,7 @@ No domain was registered.
 | `npm --workspace apps/desktop run test:smoke` | PASS |
 | `npm --workspace apps/desktop run test:file-bridge` | PASS, bridge validators included |
 | `npm run matter-desktop:aws-runtime:smoke` | PASS, password reset confirmed for `jwsuh@amic.kr`, system-super-admin password login allowed, and general account admin smoke denied |
-| `MATTER_DESKTOP_SIGN=developer-id npm --workspace apps/desktop run build:mac` | PASS, `apps/desktop/dist/mac/matter.app` |
+| `MATTER_NOTARY_KEYCHAIN_PROFILE=matter-notary MATTER_DESKTOP_SIGN=developer-id MATTER_DESKTOP_NOTARIZE=1 npm --workspace apps/desktop run build:mac` | PASS, `apps/desktop/dist/mac/matter.app` |
 | `npm --workspace apps/desktop run build:win` | PASS, internal Windows manifest hash `dc2b6196e15a0d0abde170467a27731686adc6436d6902de1739e14bf95aec02` |
 | `node scripts/validate-matter-desktop-security.mjs` | PASS |
 | `node scripts/validate-matter-desktop-no-public-release-claim.mjs` | PASS |
@@ -112,7 +112,7 @@ No domain was registered.
 | Route 53 hosted zones | empty |
 | Custom API domain | not required for desktop temporary release |
 | Windows native install smoke | not run on Darwin |
-| macOS public notarization | not submitted; notarization credential source missing |
+| macOS Developer ID notarization | submitted and accepted; stapled app validates locally |
 
 ## Non-Claims
 

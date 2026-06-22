@@ -22,13 +22,14 @@ Version: `0.1.0`
 - Developer ID signing: applied
 - requested signing mode: developer-id
 - resolved signing identity: Developer ID Application: Jiwon Suh (LHDXU66NX3)
+- Developer ID signature: pass
 - codesign verify: pass
 - strict codesign verify: pass
-- gatekeeper assess: not_distribution_ready: /Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app: rejected
+- gatekeeper assess: pass
 - public distribution approval: not claimed
-- notarization requested: false
-- notarization credential source: missing
-- notarization state: not_submitted_internal_only
+- notarization requested: true
+- notarization credential source: present
+- notarization state: submitted_and_accepted_by_notarytool
 
 ## Install Smoke
 

@@ -122,6 +122,10 @@ const runtimeBaseUrl =
   process.env.MATTER_VAULT_R4_PRODUCTION_BASE_URL ??
   localSecretValues.MATTER_VAULT_R4_PRODUCTION_BASE_URL ??
   "not configured";
+const macosNotarizationState =
+  macosSigning.notarization_state === "submitted_and_accepted_by_notarytool"
+    ? "submitted and accepted; stapled app validates locally"
+    : `not submitted; notarization credential source ${macosSigning.notarization_credential_source}`;
 
 const manifest = {
   schema_version: "law-firm-os.matter-desktop-temporary-release.v0.1",
@@ -250,7 +254,7 @@ No domain was registered.
 | \`npm --workspace apps/desktop run test:smoke\` | PASS |
 | \`npm --workspace apps/desktop run test:file-bridge\` | PASS, bridge validators included |
 | \`npm run matter-desktop:aws-runtime:smoke\` | PASS, password reset confirmed for \`jwsuh@amic.kr\`, system-super-admin password login allowed, and general account admin smoke denied |
-| \`MATTER_DESKTOP_SIGN=developer-id npm --workspace apps/desktop run build:mac\` | PASS, \`apps/desktop/dist/mac/matter.app\` |
+| \`MATTER_NOTARY_KEYCHAIN_PROFILE=matter-notary MATTER_DESKTOP_SIGN=developer-id MATTER_DESKTOP_NOTARIZE=1 npm --workspace apps/desktop run build:mac\` | PASS, \`apps/desktop/dist/mac/matter.app\` |
 | \`npm --workspace apps/desktop run build:win\` | PASS, internal Windows manifest hash \`${artifactRecords.find((artifact) => artifact.id === "windows_internal_manifest").sha256}\` |
 | \`node scripts/validate-matter-desktop-security.mjs\` | PASS |
 | \`node scripts/validate-matter-desktop-no-public-release-claim.mjs\` | PASS |
@@ -267,7 +271,7 @@ No domain was registered.
 | Route 53 hosted zones | empty |
 | Custom API domain | not required for desktop temporary release |
 | Windows native install smoke | not run on Darwin |
-| macOS public notarization | not submitted; notarization credential source ${macosSigning.notarization_credential_source} |
+| macOS Developer ID notarization | ${macosNotarizationState} |
 
 ## Non-Claims
 

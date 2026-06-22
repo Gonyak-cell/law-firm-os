@@ -53,11 +53,11 @@ assert.equal(signing.requestedSigningMode, "developer-id", "macOS build must be 
 assert.match(signing.resolvedSigningIdentity, /^Developer ID Application:/, "resolved signing identity must be a Developer ID Application identity");
 assert.equal(signing.codesignVerify, "pass", "codesign verify must pass");
 assert.equal(signing.strictCodesignVerify, "pass", "strict codesign verify must pass");
-assert.match(signing.gatekeeperAssess, /^not_distribution_ready:/, "Gatekeeper assessment must remain non-ready until notarization/public release receipt exists");
+assert.equal(signing.gatekeeperAssess, "pass", "Gatekeeper assessment must pass after notarization and stapling");
 assert.equal(signing.publicDistributionApproval, "not claimed", "public distribution approval must not be claimed");
-assert.equal(signing.notarizationRequested, "false", "notarization must not be claimed without configured notary credentials");
-assert.equal(signing.notarizationCredentialSource, "missing", "notarization credential source must be recorded as missing");
-assert.equal(signing.notarizationState, "not_submitted_internal_only", "notarization state must remain not submitted");
+assert.equal(signing.notarizationRequested, "true", "notarization must be requested for notarized release boundary closeout");
+assert.equal(signing.notarizationCredentialSource, "present", "notarization credential source must be recorded as present");
+assert.equal(signing.notarizationState, "submitted_and_accepted_by_notarytool", "notarization state must record accepted notarytool submission");
 
 assert.deepEqual(manifest.macos_signing, {
   developer_id_signing: signing.developerIdSigning,
@@ -74,8 +74,9 @@ assert.deepEqual(manifest.macos_signing, {
 
 const requiredReleaseReceiptPhrases = [
   "Developer ID signing | applied",
-  "notarization requested | false",
-  "notarization state | not_submitted_internal_only",
+  "notarization requested | true",
+  "notarization credential source | present",
+  "notarization state | submitted_and_accepted_by_notarytool",
   "Public release: false",
   "Production go-live: false",
   "Owner approval: false",

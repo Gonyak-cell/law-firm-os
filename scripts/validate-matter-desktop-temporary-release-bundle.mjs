@@ -45,16 +45,15 @@ assert.deepEqual(
     resolved_signing_identity: manifest.macos_signing?.resolved_signing_identity,
     codesign_verify: "pass",
     strict_codesign_verify: "pass",
-    gatekeeper_assess: manifest.macos_signing?.gatekeeper_assess,
+    gatekeeper_assess: "pass",
     public_distribution_approval: "not claimed",
-    notarization_requested: "false",
-    notarization_credential_source: "missing",
-    notarization_state: "not_submitted_internal_only",
+    notarization_requested: "true",
+    notarization_credential_source: "present",
+    notarization_state: "submitted_and_accepted_by_notarytool",
   },
-  "manifest must record current Developer ID signed, non-notarized release boundary",
+  "manifest must record current Developer ID signed and notarized release boundary",
 );
 assert.match(manifest.macos_signing.resolved_signing_identity, /^Developer ID Application:/);
-assert.match(manifest.macos_signing.gatekeeper_assess, /^not_distribution_ready:/);
 assert.equal(manifest.artifacts.length, 7);
 
 for (const artifact of manifest.artifacts) {
@@ -73,7 +72,9 @@ const requiredReceiptPhrases = [
   "macOS ZIP archive",
   "macOS DMG image",
   "Developer ID signing | applied",
-  "notarization state | not_submitted_internal_only",
+  "notarization requested | true",
+  "notarization credential source | present",
+  "notarization state | submitted_and_accepted_by_notarytool",
   "Windows internal manifest",
   "Public release: false",
   "Production go-live: false",

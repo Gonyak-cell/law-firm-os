@@ -315,11 +315,47 @@ Results:
 - Developer ID signing applied with `Developer ID Application: Jiwon Suh (LHDXU66NX3)`.
 - `codesign --verify` passed.
 - strict codesign verify passed.
-- Gatekeeper assessment remains `not_distribution_ready` because notarization was not submitted.
-- Notarization credential source is missing, so notarization remains `not_submitted_internal_only`.
+- Initial Gatekeeper assessment remained `not_distribution_ready` while notarization was not submitted.
 - Public release, production go-live, App Store distribution, external pilot distribution, and owner approval remain false.
 
 Act:
 
 - The release boundary is signed-internal-ready.
-- Public release and owner approval remain blocked on explicit notarization and owner receipts.
+- Public release and owner approval remain blocked on separate owner/public distribution receipts.
+
+## Notarization Closeout
+
+Plan:
+
+- Use stored notary keychain profile `matter-notary`.
+- Build a Developer ID signed and notarized macOS artifact.
+- Record accepted notarization and Gatekeeper pass while keeping public release and owner approval false.
+
+Do:
+
+- Hardened `scripts/build-matter-desktop-mac.mjs` to package from a temporary output directory outside `apps/desktop`.
+- Hardened packager ignore rules so previous `dist` artifacts are not nested inside the app bundle.
+- Added macOS toolchain PATH normalization so `@electron/notarize` can invoke `xcrun stapler`.
+
+Check:
+
+```bash
+MATTER_NOTARY_KEYCHAIN_PROFILE=matter-notary MATTER_DESKTOP_SIGN=developer-id MATTER_DESKTOP_NOTARIZE=1 npm --workspace apps/desktop run build:mac
+xcrun stapler validate apps/desktop/dist/mac/matter.app
+spctl --assess --type execute --verbose=4 apps/desktop/dist/mac/matter.app
+```
+
+Results:
+
+- Developer ID signing applied with `Developer ID Application: Jiwon Suh (LHDXU66NX3)`.
+- `codesign --verify` passed.
+- strict codesign verify passed.
+- `@electron/notarize` submitted and accepted the app using `matter-notary`.
+- stapler validation passed.
+- Gatekeeper assessment passed.
+- Public release, production go-live, App Store distribution, external pilot distribution, and owner approval remain false.
+
+Act:
+
+- The macOS internal artifact is signed and notarized.
+- Public release and owner approval remain blocked on separate explicit owner/public distribution receipts.
