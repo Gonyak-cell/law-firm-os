@@ -1,43 +1,13 @@
 import {
-  BarChart3,
   BriefcaseBusiness,
   Building2,
-  ClipboardCheck,
-  CheckCircle2,
-  Calculator,
-  FlaskConical,
   FolderOpen,
-  Home,
-  LayoutDashboard,
-  LayoutGrid,
-  LogIn,
-  Moon,
-  Settings,
-  Share2,
-  Sparkles,
-  TrafficCone,
-  UserRoundCheck,
-  Users
+  UserRoundCheck
 } from "lucide-react";
 
 export const navItems = [
-  { id: "auth", icon: LogIn },
-  { id: "home", icon: Home },
-  { id: "content", icon: LayoutGrid },
-  { id: "clients", icon: Building2 },
-  { id: "matters", icon: BriefcaseBusiness },
-  { id: "vault", icon: FolderOpen },
-  { id: "portal", icon: Share2 },
-  { id: "readiness", icon: CheckCircle2 },
-  { id: "ops", icon: TrafficCone },
-  { id: "intake", icon: ClipboardCheck },
-  { id: "finance", icon: Calculator },
-  { id: "profiles", icon: Users },
-  { id: "people", icon: UserRoundCheck },
-  { id: "analytics", icon: BarChart3 },
-  { id: "dashboards", icon: LayoutDashboard },
-  { id: "ask", icon: Sparkles },
-  { id: "experiments", icon: FlaskConical },
-  { id: "admin", icon: Settings },
-  { id: "dark", icon: Moon }
+  { id: "clients", label: "Client", icon: Building2 },
+  { id: "matters", label: "Matter", icon: BriefcaseBusiness },
+  { id: "people", label: "People", icon: UserRoundCheck },
+  { id: "vault", label: "Vault", icon: FolderOpen }
 ];

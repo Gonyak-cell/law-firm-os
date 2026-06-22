@@ -41,7 +41,7 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
             Saved charts inherit matter permissions and audit logging.
           </div>
           <Field label="Name" value="MAT-248 Event Segmentation" />
-          <Field label="Location" value="Project Atlas / Dashboards" />
+          <Field label="Location" value="Selected matter workspace" />
         </>
       )
     },
@@ -175,7 +175,7 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
           <Field label="Role" value="Matter analyst" />
           <label className="check-row">
             <input type="checkbox" defaultChecked />
-            Restrict access to Project Atlas.
+            Restrict access to Selected matter.
           </label>
         </>
       )
@@ -217,13 +217,13 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
       primaryTone: "danger",
       body: (
         <>
-          <p>Are you sure you want to remove Alex Smith?</p>
+          <p>Are you sure you want to remove Selected user?</p>
           <label className="check-row">
             <input type="checkbox" defaultChecked />
             Transfer content edit access to other members
           </label>
           <p className="muted-copy">Transfer all content edit access from a removed member to another member. This includes charts, dashboards, notebooks, cohorts, and segments.</p>
-          <Field label="Transfer content from Alex Smith to:" value="" />
+          <Field label="Transfer content from Selected user to:" value="" />
         </>
       )
     },
@@ -322,7 +322,7 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
         <>
           <Field label="Name" value="Matter dashboard onboarding" />
           <Field label="Targeted Page" value="/matters/:matterId/dashboard" />
-          <Field label="Project" value="Project Atlas" />
+          <Field label="Project" value="Selected matter" />
           <div className="notice">
             <FlaskConical size={15} />
             Advanced settings can be configured after the experiment is created.
@@ -355,7 +355,7 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
             Dashboards can be shared with teams or kept private.
           </div>
           <Field label="Name" value="Matter activity dashboard" />
-          <Field label="Location" value="Project Atlas / Dashboards" />
+          <Field label="Location" value="Selected matter workspace" />
         </>
       )
     },

@@ -1,7 +1,6 @@
 import React from "react";
 import { useEffect } from "react";
 import {
-  BarChart3,
   Bell,
   ChevronDown,
   CircleHelp,
@@ -10,18 +9,14 @@ import {
   Moon,
   Plus,
   Search,
-  Settings,
-  Sparkles,
   UserPlus,
-  Users,
   X
 } from "lucide-react";
-import { PRODUCT_BRAND } from "../brand/brand";
 import { navItems } from "../data/nav.js";
 import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
 
-export function LoadingSurface({ labels, locale, theme, setLocale, setTheme }) {
+export function LoadingSurface({ labels, locale, theme, setLocale, setTheme, className = "", message = labels.loading }) {
   useEffect(() => {
     document.documentElement.dataset.locale = locale;
     document.documentElement.dataset.theme = theme;
@@ -29,9 +24,9 @@ export function LoadingSurface({ labels, locale, theme, setLocale, setTheme }) {
   }, [locale, theme]);
 
   return (
-    <main className="loading-stage">
+    <main className={["loading-stage", className].filter(Boolean).join(" ")} data-matter-logo-flow={className.includes("post-login-splash") ? "post-login" : "startup"}>
       <MatterSplash />
-      <strong>{labels.loading}</strong>
+      <strong>{message}</strong>
       <p>{locale === "ko" ? "최근 작업공간과 권한을 확인하고 있습니다." : "Checking your workspace and permissions."}</p>
       <div className="loading-actions">
         <button className="secondary-button" onClick={() => setLocale(locale === "ko" ? "en" : "ko")}>{labels.language}</button>
@@ -41,33 +36,47 @@ export function LoadingSurface({ labels, locale, theme, setLocale, setTheme }) {
   );
 }
 
-export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQuery, onCreate, onInvite }) {
+function ProductAxisNav({ view, setView }) {
+  return (
+    <nav className="top-axis-nav" aria-label="Product axes" data-product-axis-nav="top-header">
+      {navItems.map(({ id, label, icon: Icon }) => (
+        <button
+          key={id}
+          type="button"
+          className={view === id ? "top-axis-item active" : "top-axis-item"}
+          aria-current={view === id ? "page" : undefined}
+          data-product-axis={id}
+          onClick={() => setView(id)}
+        >
+          <Icon size={15} />
+          <span>{label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQuery, view, setView, sidebarExpanded, onToggleSidebar, onCreate, onInvite }) {
   return (
     <header className="topbar">
-      <button className="icon-button" aria-label="Open navigation">
+      <button
+        className={sidebarExpanded ? "icon-button nav-toggle active" : "icon-button nav-toggle"}
+        aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+        aria-expanded={sidebarExpanded}
+        onClick={onToggleSidebar}
+      >
         <Menu size={18} />
       </button>
-      <button className="primary-button" onClick={onCreate}>
-        <Plus size={15} />
-        {labels.create}
-      </button>
-      <button className="top-link">
-        {labels.recent}
-        <ChevronDown size={14} />
-      </button>
-      <button className="top-link">
-        {labels.favorites}
-        <ChevronDown size={14} />
-      </button>
-      <button className="top-link">
-        {labels.spaces}
-        <ChevronDown size={14} />
-      </button>
+      <ProductAxisNav view={view} setView={setView} />
       <label className="global-search">
         <Search size={16} />
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={labels.search} />
         <kbd>/</kbd>
       </label>
+      <button className="primary-button" onClick={onCreate}>
+        <Plus size={15} />
+        {labels.create}
+      </button>
       <div className="top-actions">
         <button className="ghost-button success" onClick={onInvite}>
           <UserPlus size={15} />
@@ -92,51 +101,58 @@ export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQ
   );
 }
 
-export function Rail({ labels, view, setView }) {
+export function Rail() {
   return (
     <aside className="rail">
       <div className="rail-logo">
         <MatterLogo compact />
       </div>
-      <nav className="rail-nav" aria-label="Primary">
-        {navItems.map(({ id, icon: Icon }) => (
-          <button key={id} className={view === id ? "rail-item active" : "rail-item"} title={labels[id]} onClick={() => setView(id)}>
-            <Icon size={18} />
-          </button>
-        ))}
-      </nav>
-      <button className="rail-item bottom" title="Settings" onClick={() => setView("admin")}>
-        <Settings size={18} />
-      </button>
     </aside>
   );
 }
 
-export function Sidebar({ labels, view, setView }) {
+export function Sidebar({ labels, view, setView, expanded = false }) {
   const subnav = {
-    auth: ["Marketing", "Signup", "Login", "Password", "Organization", "Email sent"],
-    home: ["Overview", "Templates", "Guides", "Resources", "Realtime"],
-    content: ["All content", "Spaces", "Resources", "Feature flags", "Catalog"],
-    clients: ["Client groups", "Parties", "Relationships", "Review queue", "Audit"],
-    matters: ["Matter home", "Opening", "Team", "Deadlines", "Audit"],
-    vault: ["Matter vault", "Document detail", "Email filing", "Search", "Audit"],
-    portal: ["Client dashboard", "External ACL", "RFI queue", "Data room", "Secure links"],
-    readiness: ["Navigation IA", "API-backed surfaces", "Permission states", "Review states", "Evidence"],
-    ops: ["SSO/MFA", "Observability", "DR", "Release candidate", "Go/no-go"],
-    intake: ["Opportunity pipeline", "Intake queue", "Conflict checks", "Clearance tokens", "Audit"],
-    finance: ["Time entries", "WIP", "PreBill", "Invoices", "AR aging"],
-    profiles: ["Matter Profiles", "Group Profiles", "Cohorts", "Session replays", "Raw events"],
-    people: ["Overview", "Employees", "Profile", "Documents", "Leave"],
-    analytics: ["Segmentation", "Funnels", "Data table", "Retention", "Journeys"],
-    dashboards: ["Dashboards", "Notebooks", "Reports", "Templates", "Pinned"],
-    ask: ["Prompt gallery", "Answers", "Guidance", "Feedback", "History"],
-    experiments: ["Overview", "Experiments", "Flags", "Variants", "Rollout"],
-    admin: ["Organization", "Team members", "Billing", "Notifications", "Profile"],
-    dark: ["Theme modal", "Dark dashboard", "Dark content", "Dark Ask", "Preference"]
-  }[view];
+    auth: [
+      { label: "Login", view: "auth" },
+      { label: "Password reset", view: "auth" }
+    ],
+    home: [],
+    clients: [
+      { label: "Client groups", view: "clients" },
+      { label: "Parties", view: "clients" },
+      { label: "Relationships", view: "clients" },
+      { label: "Review", view: "clients" },
+      { label: "Audit", view: "clients" }
+    ],
+    matters: [
+      { label: "Matter home", view: "matters" },
+      { label: "Opening", view: "matters" },
+      { label: "Team", view: "matters" },
+      { label: "Finance", view: "matters" },
+      { label: "AI review", view: "matters" }
+    ],
+    people: [
+      { label: "Overview", view: "people" },
+      { label: "Employees", view: "people" },
+      { label: "Documents", view: "people" },
+      { label: "Leave", view: "people" },
+      { label: "Lifecycle", view: "people" }
+    ],
+    vault: [
+      { label: "Documents", view: "vault" },
+      { label: "Folders", view: "vault" },
+      { label: "Versions", view: "vault" },
+      { label: "Legal hold", view: "vault" },
+      { label: "Audit", view: "vault" }
+    ]
+  }[view] ?? [];
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar" data-sidebar-expanded={expanded ? "true" : "false"} aria-hidden={!expanded}>
+      <div className="sidebar-brand">
+        <MatterLogo />
+      </div>
       <div className="workspace-card">
         <div>
           <span className="eyebrow">{labels.workspace}</span>
@@ -144,25 +160,26 @@ export function Sidebar({ labels, view, setView }) {
         </div>
         <ChevronDown size={15} />
       </div>
-      <nav className="sidebar-nav">
-        {subnav.map((label, index) => (
-          <button key={label} className={index === 0 ? "sidebar-item active" : "sidebar-item"} onClick={() => setView(view)}>
-            <span className="sidebar-dot" />
-            {label}
-          </button>
-        ))}
-      </nav>
+      {subnav.length > 0 && (
+        <nav className="sidebar-nav">
+          {subnav.map((item, index) => (
+            <button key={item.label} className={index === 0 ? "sidebar-item active" : "sidebar-item"} onClick={() => setView(item.view)}>
+              <span className="sidebar-dot" />
+              {item.label}
+            </button>
+          ))}
+        </nav>
+      )}
     </aside>
   );
 }
 
 export function GlobalSearch({ labels, query, setQuery, setView }) {
-  const results = [
-    { icon: Search, title: `Search "${query}"`, view: "content" },
-    { icon: BarChart3, title: "MAT-248 Event Segmentation", view: "analytics" },
-    { icon: Users, title: "Project Atlas LDD", view: "profiles" },
-    { icon: Sparkles, title: `Ask ${PRODUCT_BRAND} for related insights`, view: "ask" }
-  ];
+  const results = navItems.map(({ id, icon }) => ({
+    icon,
+    title: query.trim() ? `${labels[id]} axis for "${query.trim()}"` : `${labels[id]} axis`,
+    view: id
+  }));
 
   return (
     <div className="search-popover">

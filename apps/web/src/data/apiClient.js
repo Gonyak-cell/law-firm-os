@@ -1,22 +1,14 @@
-// Live data client for opt-in master-data surfaces (?data=live).
-//
-// Requests go to the RELATIVE path /master-data/records so the Vite dev-server
-// proxy (apps/web/vite.config.js) forwards them to the apps/api server on
-// 127.0.0.1:4180. The API has no CORS/OPTIONS handling, so the browser must
-// never call it cross-origin because the permission-context header would trigger
-// a preflight. Fixture tenant only; no real client data is requested.
-
 const PERMISSION_CONTEXT_HEADER = "x-lawos-permission-context";
-const TENANT_ID = "tenant_rp04_synthetic";
-const MATTER_TENANT_ID = "tenant_rp05_synthetic";
-const VAULT_TENANT_ID = "tenant_rp07_synthetic";
-const CRM_INTAKE_TENANT_ID = "tenant_cmp_g6_synthetic";
-const FINANCE_TENANT_ID = "tenant_cmp_g7_synthetic";
-const ANALYTICS_TENANT_ID = "tenant_cmp_g8_synthetic";
-const AI_TENANT_ID = "tenant_cmp_g9_synthetic";
-const PORTAL_TENANT_ID = "tenant_cmp_g10_synthetic";
-const UI_READINESS_TENANT_ID = "tenant_cmp_g11_synthetic";
-const ENTERPRISE_TENANT_ID = "tenant_cmp_g12_synthetic";
+const TENANT_ID = "matter-client-tenant";
+const MATTER_TENANT_ID = "matter-runtime-tenant";
+const VAULT_TENANT_ID = "matter-vault-tenant";
+const CRM_INTAKE_TENANT_ID = "matter-client-tenant";
+const FINANCE_TENANT_ID = "matter-runtime-tenant";
+const ANALYTICS_TENANT_ID = "matter-runtime-tenant";
+const AI_TENANT_ID = "matter-runtime-tenant";
+const PORTAL_TENANT_ID = "matter-client-tenant";
+const UI_READINESS_TENANT_ID = "matter-runtime-tenant";
+const ENTERPRISE_TENANT_ID = "matter-runtime-tenant";
 const DEFAULT_PERMISSION_REF = "ui_cmp_r4_master_data_live";
 const DEFAULT_AUDIT_HINT_REF = "ui_cmp_r4_master_data_probe";
 const DEFAULT_MATTER_PERMISSION_REF = "ui_cmp_g4_matter_live";
@@ -39,61 +31,61 @@ const DEFAULT_ENTERPRISE_PERMISSION_REF = "ui_cmp_g12_enterprise_live";
 const DEFAULT_ENTERPRISE_AUDIT_HINT_REF = "ui_cmp_g12_enterprise_probe";
 
 const PRINCIPAL = {
-  user_id: "user_rp04_owner",
+  user_id: "matter_client_operator",
   tenant_id: TENANT_ID,
   role_ids: ["master_data_reader"]
 };
 
 const MATTER_PRINCIPAL = {
-  user_id: "user_rp05_owner",
+  user_id: "matter_matter_operator",
   tenant_id: MATTER_TENANT_ID,
   role_ids: ["matter_runtime_user"]
 };
 
 const VAULT_PRINCIPAL = {
-  user_id: "user_rp07_dms",
+  user_id: "matter_vault_operator",
   tenant_id: VAULT_TENANT_ID,
   role_ids: ["dms_reader"]
 };
 
 const CRM_INTAKE_PRINCIPAL = {
-  user_id: "user_cmp_g6_owner",
+  user_id: "matter_client_intake_operator",
   tenant_id: CRM_INTAKE_TENANT_ID,
   role_ids: ["crm_intake_user", "conflict_reviewer"]
 };
 
 const FINANCE_PRINCIPAL = {
-  user_id: "user_cmp_g7_finance",
+  user_id: "matter_finance_operator",
   tenant_id: FINANCE_TENANT_ID,
   role_ids: ["finance_user"]
 };
 
 const ANALYTICS_PRINCIPAL = {
-  user_id: "user_cmp_g8_analytics",
+  user_id: "matter_analytics_operator",
   tenant_id: ANALYTICS_TENANT_ID,
   role_ids: ["analytics_user"]
 };
 
 const AI_PRINCIPAL = {
-  user_id: "user_cmp_g9_ai",
+  user_id: "matter_ai_review_operator",
   tenant_id: AI_TENANT_ID,
   role_ids: ["ai_reviewer"]
 };
 
 const PORTAL_PRINCIPAL = {
-  user_id: "user_cmp_g10_portal",
+  user_id: "matter_client_portal_operator",
   tenant_id: PORTAL_TENANT_ID,
   role_ids: ["portal_operator", "data_room_operator"]
 };
 
 const UI_READINESS_PRINCIPAL = {
-  user_id: "user_cmp_g11_readiness",
+  user_id: "matter_readiness_operator",
   tenant_id: UI_READINESS_TENANT_ID,
   role_ids: ["ui_readiness_reviewer"]
 };
 
 const ENTERPRISE_PRINCIPAL = {
-  user_id: "user_cmp_g12_enterprise",
+  user_id: "matter_enterprise_operator",
   tenant_id: ENTERPRISE_TENANT_ID,
   role_ids: ["enterprise_operator"]
 };
