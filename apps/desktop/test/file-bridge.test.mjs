@@ -26,5 +26,5 @@ test("file bridge suite script includes happy denied no silent scan and cache wi
   assert.match(command, /file-upload-bridge\.test\.mjs/);
   assert.match(command, /file-save-as\.test\.mjs/);
   assert.match(command, /temp-preview-cleanup\.test\.mjs/);
-  assert.match(command, /validate-mater-desktop-file-bridge\.mjs/);
+  assert.match(command, /validate-matter-desktop-file-bridge\.mjs/);
 });

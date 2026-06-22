@@ -18,7 +18,7 @@ const requiredCacheClasses = [
 ];
 
 assert.equal(contract.schema, "law-firm-os.desktop.session-cleanup-contract.v0.1");
-assert.equal(contract.product, "mater");
+assert.equal(contract.product, "matter");
 assert(Array.isArray(contract.required_cache_classes), "required_cache_classes must be an array");
 
 for (const cacheClass of requiredCacheClasses) {

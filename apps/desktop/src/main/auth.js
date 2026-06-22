@@ -156,8 +156,9 @@ export class MainProcessAuthCoordinator {
 
   async login(input = {}) {
     const email = typeof input === "string" ? input : input.email;
+    const password = typeof input === "string" ? undefined : input.password;
     const response = sanitizeRendererPayload(
-      (await this.#runtimeClient?.login?.({ email })) ?? {
+      (await this.#runtimeClient?.login?.({ email, password })) ?? {
         ok: false,
         reason: "runtime_client_not_configured",
         token_material_returned: false
@@ -176,6 +177,42 @@ export class MainProcessAuthCoordinator {
       session: this.sessionStatus(),
       token_material_returned: false
     };
+  }
+
+  async requestPasswordReset(input = {}) {
+    const response = await this.#runtimeClient?.requestPasswordReset?.({ email: input.email });
+    return sanitizeRendererPayload(
+      response ?? {
+        ok: false,
+        reason: "runtime_client_not_configured",
+        token_material_returned: false
+      }
+    );
+  }
+
+  async latestResetEmail(input = {}) {
+    const response = await this.#runtimeClient?.latestResetEmail?.({ email: input.email });
+    return sanitizeRendererPayload(
+      response ?? {
+        ok: false,
+        reason: "runtime_client_not_configured",
+        token_material_returned: false
+      }
+    );
+  }
+
+  async confirmPasswordReset(input = {}) {
+    const response = await this.#runtimeClient?.confirmPasswordReset?.({
+      token: input.token ?? input.reset_token,
+      password: input.password ?? input.new_password
+    });
+    return sanitizeRendererPayload(
+      response ?? {
+        ok: false,
+        reason: "runtime_client_not_configured",
+        token_material_returned: false
+      }
+    );
   }
 
   async features(input = {}) {

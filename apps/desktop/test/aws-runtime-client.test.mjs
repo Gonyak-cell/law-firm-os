@@ -28,7 +28,7 @@ test("runtime config loads AWS execute-api URL and operator credential from loca
 
   const config = loadMatterVaultRuntimeConfig({
     env: {},
-    envPath: "/tmp/mater.env",
+    envPath: "/tmp/matter.env",
     existsSyncImpl: () => true,
     readFileSyncImpl: () => envText
   });
@@ -64,6 +64,36 @@ test("runtime client keeps bearer credential in main-process fetch and returns s
   assert.equal(response.ok, true);
   assert.equal(response.http_status, 200);
   assert.equal(JSON.stringify(response).includes("runtime-secret"), false);
+});
+
+test("runtime client supports password reset and password login without exposing operator credential", async () => {
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",
+    operatorToken: "runtime-secret",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      if (url.toString().endsWith("/api/desktop/password-reset/latest-email")) {
+        return jsonResponse(200, {
+          ok: true,
+          email_message: { to: "jwsuh@amic.kr", reset_token: "reset-token", reset_url: "matter://password-reset/confirm?token=reset-token" }
+        });
+      }
+      return jsonResponse(200, { ok: true, token_material_returned: false });
+    }
+  });
+
+  await client.requestPasswordReset({ email: "jwsuh@amic.kr" });
+  const latest = await client.latestResetEmail({ email: "jwsuh@amic.kr" });
+  await client.confirmPasswordReset({ token: latest.email_message.reset_token, password: "new-password" });
+  await client.login({ email: "jwsuh@amic.kr", password: "new-password" });
+
+  assert.equal(calls[0].url.endsWith("/api/desktop/password-reset/request"), true);
+  assert.equal(calls[1].url.endsWith("/api/desktop/password-reset/latest-email"), true);
+  assert.equal(calls[2].url.endsWith("/api/desktop/password-reset/confirm"), true);
+  assert.equal(calls[3].url.endsWith("/api/desktop/login"), true);
+  assert.equal(calls.every((call) => call.init.headers.authorization === "Bearer runtime-secret"), true);
+  assert.equal(JSON.stringify(latest).includes("runtime-secret"), false);
 });
 
 test("runtime client preserves 403 deny responses for general-account smoke checks", async () => {

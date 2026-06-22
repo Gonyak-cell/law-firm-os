@@ -28,7 +28,7 @@ Local AWS CLI was present during kickoff, but no default local AWS profile, acce
 | Account strategy | Reuse the existing AWS account, but isolate Matter with dedicated IAM roles/profiles, resource names, logs, and cost tags |
 | Region | `ap-northeast-2` |
 | Profile | `matter-staging-admin`, created and STS-verified |
-| Domain | Not required for desktop-first internal/temporary release. Placeholder only: `api.mater.example.com`; Route 53 hosted zone list was empty during preflight |
+| Domain | Not required for desktop-first internal/temporary release. Placeholder only: `api.matter.example.com`; Route 53 hosted zone list was empty during preflight |
 | Cost owner | `jws` or `firm/matter` |
 | Deletion policy | `retained staging` |
 
@@ -115,6 +115,7 @@ A no-domain AWS runtime now exists for desktop/internal smoke. It is intentional
 | Runtime mode | `aws-temporary-execute-api`, synthetic only |
 | Operator token | Provisioned in `.env.matter-vault-r4.local` and AWS Secrets Manager `/matter/staging/operator-token`; token material is not printed or committed |
 | Runtime auth | Bearer token required for `/api/desktop/*` and `/api/matter-vault/*`; Lambda verifies a SHA-256 hash, not plaintext token material |
+| Password/reset state store | AWS Secrets Manager `/matter/staging/desktop-auth-state`; Lambda role policy allows `secretsmanager:GetSecretValue` and `secretsmanager:PutSecretValue` only for that auth-state secret |
 | Account source | `launch/matter-vault-user-registration-seed.json` |
 | Highest privilege account | `jwsuh@amic.kr` only |
 
@@ -122,11 +123,14 @@ Remote smoke currently passes for:
 
 | Smoke | Result |
 | --- | --- |
-| `GET /health` | PASS, 9 registered accounts, custom domain not required, operator token configured |
+| `GET /health` | PASS, 9 registered accounts, custom domain not required, operator token configured, password login required, password credential store `aws_secrets_manager` |
 | `POST /api/desktop/login` without token | PASS, denied with HTTP 401 |
 | `POST /api/desktop/login` with invalid token | PASS, denied with HTTP 403 |
 | `GET /api/desktop/accounts` with operator token | PASS, seed account list returned without token material |
-| `POST /api/desktop/login` for `jwsuh@amic.kr` with operator token | PASS, `system_super_admin` returned without token material |
+| `POST /api/desktop/password-reset/request` for `jwsuh@amic.kr` and `ytkim@amic.kr` | PASS, accepted without returning reset token material |
+| `POST /api/desktop/password-reset/confirm` for `jwsuh@amic.kr` and `ytkim@amic.kr` | PASS, one-time reset token consumed and password credential activated |
+| `POST /api/desktop/login` for `jwsuh@amic.kr` with operator token and reset password | PASS, `system_super_admin` returned without token material |
+| `POST /api/desktop/login` for `ytkim@amic.kr` with operator token and reset password | PASS, general account login allowed without token material |
 | `POST /api/matter-vault/smoke` for `ytkim@amic.kr` admin feature with operator token | PASS, denied with HTTP 403 |
 
 ## Read-Only AWS Preflight
@@ -149,9 +153,9 @@ The desktop app can be internally or temporarily released without a custom web d
 
 | Desktop Field | Value |
 | --- | --- |
-| Product name | `mater` |
-| Internal app ID | `com.amic.mater.desktop.internal` |
-| Artifact name | `mater-internal-${version}-${os}-${arch}.${ext}` |
+| Product name | `matter` |
+| Internal app ID | `com.amic.matter.desktop.internal` |
+| Artifact name | `matter-internal-${version}-${os}-${arch}.${ext}` |
 | Publish channel | `null` |
 
 Domain registration is required only for a custom public API or download URL. If a staging API endpoint is needed before a custom domain exists, use an AWS-generated HTTPS endpoint such as API Gateway's `execute-api` URL and keep `MATTER_VAULT_R4_PRODUCTION_BASE_URL` pointed at that temporary endpoint.
@@ -160,11 +164,11 @@ Domain availability preflight:
 
 | Candidate | Availability |
 | --- | --- |
-| `mater.law` | `UNAVAILABLE` |
-| `materos.com` | `UNAVAILABLE` |
-| `materlegal.com` | `AVAILABLE` |
-| `materlegal.io` | `AVAILABLE` |
-| `usemater.com` | `AVAILABLE` |
+| `matter.law` | `UNAVAILABLE` |
+| `matteros.com` | `UNAVAILABLE` |
+| `matterlegal.com` | `AVAILABLE` |
+| `matterlegal.io` | `AVAILABLE` |
+| `usematter.com` | `AVAILABLE` |
 
 No domain was registered. Domain registration requires a selected domain, registrant/contact details, and purchase approval.
 

@@ -48,7 +48,7 @@ function valueFrom(env, fileValues, keys) {
 
 export function loadMatterVaultRuntimeConfig({
   env = process.env,
-  envPath = env.MATER_DESKTOP_ENV_FILE ?? resolve(process.cwd(), DEFAULT_ENV_FILE),
+  envPath = env.MATTER_DESKTOP_ENV_FILE ?? resolve(process.cwd(), DEFAULT_ENV_FILE),
   existsSyncImpl = existsSync,
   readFileSyncImpl = readFileSync
 } = {}) {
@@ -148,7 +148,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
   const requestJson = async (path, { method = "GET", body, actorEmail, authRequired = true } = {}) => {
     const url = new URL(String(path).replace(/^\/+/, ""), `${baseUrl}/`);
     const headers = authRequired ? jsonHeaders(operatorToken) : { "content-type": "application/json; charset=utf-8" };
-    if (actorEmail) headers["x-mater-actor-email"] = actorEmail;
+    if (actorEmail) headers["x-matter-actor-email"] = actorEmail;
     const response = await fetchImpl(url, {
       method,
       headers,
@@ -173,8 +173,17 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     accounts() {
       return requestJson("/api/desktop/accounts");
     },
-    login({ email } = {}) {
-      return requestJson("/api/desktop/login", { method: "POST", body: { email } });
+    requestPasswordReset({ email } = {}) {
+      return requestJson("/api/desktop/password-reset/request", { method: "POST", body: { email } });
+    },
+    latestResetEmail({ email } = {}) {
+      return requestJson("/api/desktop/password-reset/latest-email", { method: "POST", body: { email } });
+    },
+    confirmPasswordReset({ token, password } = {}) {
+      return requestJson("/api/desktop/password-reset/confirm", { method: "POST", body: { token, password } });
+    },
+    login({ email, password } = {}) {
+      return requestJson("/api/desktop/login", { method: "POST", body: { email, password } });
     },
     features({ email } = {}) {
       return requestJson("/api/matter-vault/features", { actorEmail: email });
@@ -212,6 +221,9 @@ export function createDisabledMatterVaultRuntimeClient(error) {
     },
     health: unavailable,
     accounts: unavailable,
+    requestPasswordReset: unavailable,
+    latestResetEmail: unavailable,
+    confirmPasswordReset: unavailable,
     login: unavailable,
     features: unavailable,
     smoke: unavailable

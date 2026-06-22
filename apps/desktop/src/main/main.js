@@ -13,7 +13,7 @@ import { createMainWindow } from "./window.js";
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 
 export const desktopSkeletonStatus = Object.freeze({
-  appName: "mater",
+  appName: "matter",
   electronPackage: true,
   nodeIntegration: false,
   contextIsolation: true,
@@ -36,7 +36,7 @@ export function desktopPreloadPath() {
 }
 
 export function rendererTargetFromEnv(env = process.env) {
-  return env.MATER_DESKTOP_RENDERER_URL ?? packagedRendererUrl();
+  return env.MATTER_DESKTOP_RENDERER_URL ?? packagedRendererUrl();
 }
 
 export function runtimeClientFromEnv(env = process.env) {

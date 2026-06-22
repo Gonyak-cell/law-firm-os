@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>mater desktop</title>
+  <title>matter desktop</title>
   <style>
     :root {
       color-scheme: light;
@@ -25,7 +25,8 @@
     }
 
     button,
-    select {
+    select,
+    input {
       font: inherit;
     }
 
@@ -50,7 +51,8 @@
       opacity: 0.55;
     }
 
-    select {
+    select,
+    input {
       width: 100%;
       min-height: 38px;
       border: 1px solid #b8c4ce;
@@ -58,6 +60,10 @@
       padding: 0 10px;
       background: #ffffff;
       color: #151b21;
+    }
+
+    input {
+      margin-top: 6px;
     }
 
     .app {
@@ -289,12 +295,12 @@
   </style>
 </head>
 <body>
-  <div class="app" data-mater-desktop-app>
+  <div class="app" data-matter-desktop-app>
     <header class="topbar">
       <div class="brand">
         <div class="mark" aria-hidden="true">m</div>
         <div>
-          <h1>mater</h1>
+          <h1>matter</h1>
           <p class="subtle">Internal desktop runtime</p>
         </div>
       </div>
@@ -316,10 +322,33 @@
             <select data-account-select aria-label="Registered account"></select>
           </label>
           <div class="button-row">
-            <button type="button" data-mater-login>Log in</button>
-            <button type="button" class="secondary" data-mater-logout>Log out</button>
+            <button type="button" data-reset-request>Send reset email</button>
+            <button type="button" class="secondary" data-reset-latest>Open latest reset email</button>
           </div>
-          <div class="result" data-login-result>Not signed in.</div>
+          <label>
+            <span class="subtle">Reset token</span>
+            <input data-reset-token aria-label="Reset token" autocomplete="off" />
+          </label>
+          <label>
+            <span class="subtle">New password</span>
+            <input data-new-password aria-label="New password" autocomplete="new-password" type="password" />
+          </label>
+          <label>
+            <span class="subtle">Confirm new password</span>
+            <input data-confirm-password aria-label="Confirm new password" autocomplete="new-password" type="password" />
+          </label>
+          <div class="button-row">
+            <button type="button" data-reset-confirm>Set password</button>
+          </div>
+          <label>
+            <span class="subtle">Password login</span>
+            <input data-login-password aria-label="Password login" autocomplete="current-password" type="password" />
+          </label>
+          <div class="button-row">
+            <button type="button" data-matter-login>Log in</button>
+            <button type="button" class="secondary" data-matter-logout>Log out</button>
+          </div>
+          <div class="result" data-login-result>Request a reset email, set a password, then log in.</div>
         </div>
       </section>
 
@@ -354,7 +383,7 @@
   </div>
 
   <script>
-    const api = window.materSession;
+    const api = window.matterSession;
     const state = {
       accounts: [],
       session: { state: "signed_out" },
@@ -366,8 +395,15 @@
       runtimeLabel: document.querySelector("[data-runtime-label]"),
       accountCount: document.querySelector("[data-account-count]"),
       accountSelect: document.querySelector("[data-account-select]"),
-      loginButton: document.querySelector("[data-mater-login]"),
-      logoutButton: document.querySelector("[data-mater-logout]"),
+      resetRequestButton: document.querySelector("[data-reset-request]"),
+      resetLatestButton: document.querySelector("[data-reset-latest]"),
+      resetTokenInput: document.querySelector("[data-reset-token]"),
+      newPasswordInput: document.querySelector("[data-new-password]"),
+      confirmPasswordInput: document.querySelector("[data-confirm-password]"),
+      resetConfirmButton: document.querySelector("[data-reset-confirm]"),
+      loginPasswordInput: document.querySelector("[data-login-password]"),
+      loginButton: document.querySelector("[data-matter-login]"),
+      logoutButton: document.querySelector("[data-matter-logout]"),
       dashboardSmokeButton: document.querySelector("[data-smoke-dashboard]"),
       adminSmokeButton: document.querySelector("[data-smoke-admin]"),
       loginResult: document.querySelector("[data-login-result]"),
@@ -384,6 +420,12 @@
 
     function selectedEmail() {
       return nodes.accountSelect.value;
+    }
+
+    function clearPasswordFields() {
+      nodes.newPasswordInput.value = "";
+      nodes.confirmPasswordInput.value = "";
+      nodes.loginPasswordInput.value = "";
     }
 
     function renderRuntime(runtime) {
@@ -462,9 +504,45 @@
       renderSession(await api.status());
     }
 
+    async function requestPasswordReset() {
+      const email = selectedEmail();
+      const response = await api.requestPasswordReset({ email });
+      nodes.loginResult.textContent = response.ok
+        ? `Reset email accepted for ${email}.`
+        : `Reset request failed: ${response.reason}`;
+    }
+
+    async function latestResetEmail() {
+      const email = selectedEmail();
+      const response = await api.latestResetEmail({ email });
+      if (response.ok && response.email_message?.reset_token) {
+        nodes.resetTokenInput.value = response.email_message.reset_token;
+        nodes.loginResult.textContent = `Latest reset email opened for ${response.email_message.to}. Expires at ${response.email_message.expires_at}.`;
+      } else {
+        nodes.loginResult.textContent = `Reset email unavailable: ${response.reason}`;
+      }
+    }
+
+    async function confirmPasswordReset() {
+      const token = nodes.resetTokenInput.value.trim();
+      const password = nodes.newPasswordInput.value;
+      if (password !== nodes.confirmPasswordInput.value) {
+        nodes.loginResult.textContent = "Password confirmation does not match.";
+        return;
+      }
+      const response = await api.confirmPasswordReset({ token, password });
+      if (response.ok) {
+        clearPasswordFields();
+        nodes.loginResult.textContent = "Password set. Log in with the new password.";
+      } else {
+        nodes.loginResult.textContent = `Password setup failed: ${response.reason}`;
+      }
+    }
+
     async function login() {
       const email = selectedEmail();
-      const response = await api.login({ email });
+      const password = nodes.loginPasswordInput.value;
+      const response = await api.login({ email, password });
       renderSession(response.session);
       renderFeatures(response.features ?? []);
       nodes.loginResult.textContent = response.ok
@@ -486,6 +564,15 @@
       nodes.smokeResult.textContent = summarizeSmoke(response);
     }
 
+    nodes.resetRequestButton.addEventListener("click", () => requestPasswordReset().catch((error) => {
+      nodes.loginResult.textContent = error.message;
+    }));
+    nodes.resetLatestButton.addEventListener("click", () => latestResetEmail().catch((error) => {
+      nodes.loginResult.textContent = error.message;
+    }));
+    nodes.resetConfirmButton.addEventListener("click", () => confirmPasswordReset().catch((error) => {
+      nodes.loginResult.textContent = error.message;
+    }));
     nodes.loginButton.addEventListener("click", () => login().catch((error) => {
       nodes.loginResult.textContent = error.message;
     }));

@@ -1,6 +1,6 @@
-appId: com.amic.mater.desktop.internal
-productName: mater
-artifactName: "mater-internal-${version}-${os}-${arch}.${ext}"
+appId: com.amic.matter.desktop.internal
+productName: matter
+artifactName: "matter-internal-${version}-${os}-${arch}.${ext}"
 
 directories:
   buildResources: build

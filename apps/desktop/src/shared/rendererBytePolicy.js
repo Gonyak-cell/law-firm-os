@@ -8,7 +8,7 @@ export const RENDERER_DOCUMENT_BYTE_FIELDS = Object.freeze([
 ]);
 
 function defaultRendererDocumentByteError(field) {
-  return new Error(`Renderer-supplied document bytes are forbidden on the mater file bridge: ${field}`);
+  return new Error(`Renderer-supplied document bytes are forbidden on the matter file bridge: ${field}`);
 }
 
 export function rendererDocumentByteField(request = {}) {

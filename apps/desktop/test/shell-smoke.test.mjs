@@ -65,7 +65,7 @@ test("desktop shell blocks unapproved renderer target and remote navigation", as
     () =>
       startDesktopShell({
         BrowserWindowConstructor: FakeBrowserWindow,
-        rendererUrl: "https://mater.example.com"
+        rendererUrl: "https://matter.example.com"
       }),
     /Blocked unapproved desktop renderer origin/
   );
@@ -74,10 +74,10 @@ test("desktop shell blocks unapproved renderer target and remote navigation", as
   let prevented = false;
   window.navigationHandlers.get("will-navigate")(
     { preventDefault: () => { prevented = true; } },
-    "https://mater.example.com"
+    "https://matter.example.com"
   );
   assert.equal(prevented, true);
-  assert.deepEqual(window.windowOpenHandler({ url: "https://mater.example.com" }), { action: "deny" });
+  assert.deepEqual(window.windowOpenHandler({ url: "https://matter.example.com" }), { action: "deny" });
 });
 
 test("desktop main entrypoint detection tolerates filesystem paths with spaces", () => {

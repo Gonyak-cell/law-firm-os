@@ -1,6 +1,6 @@
 {
   "schema": "law-firm-os.desktop.file-bridge-contract.v0.1",
-  "product": "mater",
+  "product": "matter",
   "status": "contract_active",
   "allowed_actions": [
     {

@@ -1,16 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DeepLinkError, parseMaterDeepLink } from "../src/main/deepLinks.js";
+import { DeepLinkError, parseMatterDeepLink } from "../src/main/deepLinks.js";
 
 test("parser accepts matter document task and auth callback route intents", () => {
-  assert.deepEqual(parseMaterDeepLink("mater://matter/MAT-248?tenant=tenant_hash"), {
+  assert.deepEqual(parseMatterDeepLink("matter://matter/MAT-248?tenant=tenant_hash"), {
     type: "matter",
     routeOnly: true,
     matterId: "MAT-248",
     tenantIdHash: "tenant_hash"
   });
 
-  assert.deepEqual(parseMaterDeepLink("mater://document/doc_123?matter=MAT-248&tenant=tenant_hash"), {
+  assert.deepEqual(parseMatterDeepLink("matter://document/doc_123?matter=MAT-248&tenant=tenant_hash"), {
     type: "document",
     routeOnly: true,
     documentId: "doc_123",
@@ -18,7 +18,7 @@ test("parser accepts matter document task and auth callback route intents", () =
     tenantIdHash: "tenant_hash"
   });
 
-  assert.deepEqual(parseMaterDeepLink("mater://task/task_123?matter=MAT-248"), {
+  assert.deepEqual(parseMatterDeepLink("matter://task/task_123?matter=MAT-248"), {
     type: "task",
     routeOnly: true,
     taskId: "task_123",
@@ -26,7 +26,7 @@ test("parser accepts matter document task and auth callback route intents", () =
     tenantIdHash: undefined
   });
 
-  assert.deepEqual(parseMaterDeepLink("mater://auth/callback?code=abc&state=def&issuer=idp"), {
+  assert.deepEqual(parseMatterDeepLink("matter://auth/callback?code=abc&state=def&issuer=idp"), {
     type: "auth_callback",
     routeOnly: true,
     code: "abc",
@@ -36,9 +36,9 @@ test("parser accepts matter document task and auth callback route intents", () =
 });
 
 test("parser validates scheme route type identifier shape and unknown parameters", () => {
-  assert.throws(() => parseMaterDeepLink("https://matter/MAT-248"), (error) => error instanceof DeepLinkError && error.code === "UNSUPPORTED_SCHEME");
-  assert.throws(() => parseMaterDeepLink("mater://calendar/view"), (error) => error instanceof DeepLinkError && error.code === "UNSUPPORTED_ROUTE");
-  assert.throws(() => parseMaterDeepLink("mater://matter/%2Fsecret"), (error) => error instanceof DeepLinkError && error.code === "INVALID_IDENTIFIER");
-  assert.throws(() => parseMaterDeepLink("mater://document/doc_123?extra=true"), (error) => error instanceof DeepLinkError && error.code === "UNKNOWN_QUERY_PARAMETER");
-  assert.throws(() => parseMaterDeepLink("mater://auth/callback?code=abc&state=def&issuer=idp&next=https://example.com"), (error) => error instanceof DeepLinkError && error.code === "UNKNOWN_QUERY_PARAMETER");
+  assert.throws(() => parseMatterDeepLink("https://matter/MAT-248"), (error) => error instanceof DeepLinkError && error.code === "UNSUPPORTED_SCHEME");
+  assert.throws(() => parseMatterDeepLink("matter://calendar/view"), (error) => error instanceof DeepLinkError && error.code === "UNSUPPORTED_ROUTE");
+  assert.throws(() => parseMatterDeepLink("matter://matter/%2Fsecret"), (error) => error instanceof DeepLinkError && error.code === "INVALID_IDENTIFIER");
+  assert.throws(() => parseMatterDeepLink("matter://document/doc_123?extra=true"), (error) => error instanceof DeepLinkError && error.code === "UNKNOWN_QUERY_PARAMETER");
+  assert.throws(() => parseMatterDeepLink("matter://auth/callback?code=abc&state=def&issuer=idp&next=https://example.com"), (error) => error instanceof DeepLinkError && error.code === "UNKNOWN_QUERY_PARAMETER");
 });

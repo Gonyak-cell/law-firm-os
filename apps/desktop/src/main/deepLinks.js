@@ -113,7 +113,7 @@ function queryValue(url, key) {
   return value === null || value === "" ? undefined : value;
 }
 
-export function parseMaterDeepLink(candidate) {
+export function parseMatterDeepLink(candidate) {
   let url;
   try {
     url = new URL(candidate);
@@ -121,8 +121,8 @@ export function parseMaterDeepLink(candidate) {
     throw new DeepLinkError("INVALID_URL", "Deep link must be a valid URL");
   }
 
-  if (url.protocol !== "mater:") {
-    throw new DeepLinkError("UNSUPPORTED_SCHEME", "Deep link scheme must be mater");
+  if (url.protocol !== "matter:") {
+    throw new DeepLinkError("UNSUPPORTED_SCHEME", "Deep link scheme must be matter");
   }
   assertNoActionExecution(url);
 
@@ -163,7 +163,7 @@ export function parseMaterDeepLink(candidate) {
   };
 }
 
-export async function openMaterDeepLink({
+export async function openMatterDeepLink({
   url,
   permissionClient = {
     async precheckDeepLinkOpen() {
@@ -172,7 +172,7 @@ export async function openMaterDeepLink({
   },
   auditLogger = { async record() {} }
 }) {
-  const intent = parseMaterDeepLink(url);
+  const intent = parseMatterDeepLink(url);
   const auditSpec = DEEP_LINK_AUDIT_EVENTS[intent.type];
 
   if (intent.type === "auth_callback") {

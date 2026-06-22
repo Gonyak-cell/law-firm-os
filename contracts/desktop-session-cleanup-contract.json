@@ -1,6 +1,6 @@
 {
   "schema": "law-firm-os.desktop.session-cleanup-contract.v0.1",
-  "product": "mater",
+  "product": "matter",
   "status": "active",
   "required_cache_classes": [
     "secure_store_tokens",

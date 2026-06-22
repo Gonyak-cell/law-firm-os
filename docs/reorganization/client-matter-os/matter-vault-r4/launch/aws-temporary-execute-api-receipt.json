@@ -2,6 +2,7 @@
   "schema_version": "law-firm-os.matter-vault-r4-aws-temporary-execute-api-receipt.v0.1",
   "status": "temporary_execute_api_runtime_created",
   "created_at": "2026-06-22T09:46:23+09:00",
+  "last_runtime_code_update_at": "2026-06-22T12:16:33+09:00",
   "aws_account_id": "770880870480",
   "aws_region": "ap-northeast-2",
   "aws_profile": "matter-staging-admin",
@@ -16,7 +17,7 @@
     "runtime": "nodejs20.x",
     "handler": "index.handler",
     "role": "arn:aws:iam::770880870480:role/matter-runtime-role",
-    "mode": "synthetic_mater_desktop_runtime"
+    "mode": "synthetic_matter_desktop_runtime"
   },
   "base_url": "https://73o8hpqpgl.execute-api.ap-northeast-2.amazonaws.com/staging",
   "health_url": "https://73o8hpqpgl.execute-api.ap-northeast-2.amazonaws.com/staging/health",
@@ -33,6 +34,9 @@
       "synthetic_only": true,
       "operator_token_required_for_runtime_routes": true,
       "operator_token_configured": true,
+      "password_login_required": true,
+      "password_reset_delivery_mode": "synthetic_email_outbox",
+      "password_credential_store": "aws_secrets_manager",
       "production_ready_completed": false,
       "public_release_completed": false
     }
@@ -64,8 +68,19 @@
       "path": "/api/desktop/login",
       "email": "jwsuh@amic.kr",
       "operator_bearer_required": true,
+      "password_reset_confirmed": true,
+      "password_login_required": true,
       "highest_privilege": true,
       "system_super_admin": true,
+      "token_material_returned": false
+    },
+    "general_account_password_login": {
+      "status": "pass",
+      "path": "/api/desktop/login",
+      "email": "ytkim@amic.kr",
+      "operator_bearer_required": true,
+      "password_reset_confirmed": true,
+      "password_login_required": true,
       "token_material_returned": false
     },
     "non_highest_admin_denial": {
@@ -108,6 +123,21 @@
     "plaintext_token_in_repo": false,
     "plaintext_token_in_lambda_environment": false,
     "token_material_printed": false
+  },
+  "auth_state_store": {
+    "status": "provisioned",
+    "aws_secret_name": "/matter/staging/desktop-auth-state",
+    "aws_secret_arn": "arn:aws:secretsmanager:ap-northeast-2:770880870480:secret:/matter/staging/desktop-auth-state-REvRV1",
+    "lambda_environment_key": "MATTER_DESKTOP_AUTH_STATE_SECRET_NAME",
+    "lambda_role_policy": "matter-desktop-auth-state-secret-access",
+    "allowed_actions": [
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:PutSecretValue"
+    ],
+    "stored_material": "password hashes, reset-token hashes, synthetic reset outbox metadata",
+    "plaintext_passwords_stored": false,
+    "plaintext_passwords_printed": false,
+    "reset_token_material_printed": false
   },
   "local_secret_candidate": {
     "key": "MATTER_VAULT_R4_PRODUCTION_BASE_URL",

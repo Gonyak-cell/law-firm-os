@@ -96,7 +96,7 @@ async function recordAuditEvent({ auditLogger, actionId, eventName, payload = {}
 function rendererBytesForbiddenError(field) {
   return new FileBridgeError(
     "RENDERER_FILE_BYTES_FORBIDDEN",
-    `Renderer-supplied document bytes are forbidden on the mater file bridge: ${field}`
+    `Renderer-supplied document bytes are forbidden on the matter file bridge: ${field}`
   );
 }
 
@@ -240,8 +240,8 @@ export function createFileBridgeController({
       });
 
       const result = await dialog.showSaveDialog({
-        title: request.title ?? "Save mater document",
-        defaultPath: request.suggestedName ?? "mater-document"
+        title: request.title ?? "Save matter document",
+        defaultPath: request.suggestedName ?? "matter-document"
       });
 
       if (result.canceled || !result.filePath) {

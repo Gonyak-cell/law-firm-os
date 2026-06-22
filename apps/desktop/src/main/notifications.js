@@ -1,12 +1,12 @@
-import { parseMaterDeepLink } from "./deepLinks.js";
+import { parseMatterDeepLink } from "./deepLinks.js";
 
 export const NOTIFICATION_TEMPLATES = Object.freeze({
   workspace_update: Object.freeze({
-    title: "mater update",
-    body: "Open mater to continue"
+    title: "matter update",
+    body: "Open matter to continue"
   }),
   review_required: Object.freeze({
-    title: "mater review",
+    title: "matter review",
     body: "A workspace item needs review"
   })
 });
@@ -23,7 +23,7 @@ export function createDesktopNotificationPayload({ id, routeUrl, templateId = "w
   };
 }
 
-export function notificationClickToRouteIntent(payload, { parse = parseMaterDeepLink } = {}) {
+export function notificationClickToRouteIntent(payload, { parse = parseMatterDeepLink } = {}) {
   if (!payload || typeof payload.routeUrl !== "string") {
     throw new Error("Notification click requires a routeUrl");
   }

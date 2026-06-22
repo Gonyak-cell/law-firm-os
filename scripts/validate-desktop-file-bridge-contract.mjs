@@ -24,7 +24,7 @@ const forbiddenActions = [
 ];
 
 assert.equal(contract.schema, "law-firm-os.desktop.file-bridge-contract.v0.1");
-assert.equal(contract.product, "mater");
+assert.equal(contract.product, "matter");
 assert.equal(contract.status, "contract_active");
 assert(Array.isArray(contract.allowed_actions), "allowed_actions must be an array");
 

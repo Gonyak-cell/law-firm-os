@@ -7,7 +7,7 @@ test("notification click passes only route intent through deep-link parser", () 
   const parsedInputs = [];
   const payload = createDesktopNotificationPayload({
     id: "notif_001",
-    routeUrl: "mater://matter/MAT-248?tenant=tenant_hash",
+    routeUrl: "matter://matter/MAT-248?tenant=tenant_hash",
     templateId: "workspace_update"
   });
   payload.clientName = "Sensitive Client";
@@ -20,9 +20,9 @@ test("notification click passes only route intent through deep-link parser", () 
     }
   });
 
-  assert.deepEqual(parsedInputs, ["mater://matter/MAT-248?tenant=tenant_hash"]);
-  assert.equal(payload.title, "mater update");
-  assert.equal(payload.body, "Open mater to continue");
+  assert.deepEqual(parsedInputs, ["matter://matter/MAT-248?tenant=tenant_hash"]);
+  assert.equal(payload.title, "matter update");
+  assert.equal(payload.body, "Open matter to continue");
   assert.equal(result.source, "notification");
   assert.equal(result.routeOnly, true);
   assert.deepEqual(result.intent, { type: "matter", matterId: "MAT-248", routeOnly: true });
@@ -33,7 +33,7 @@ test("notification click passes only route intent through deep-link parser", () 
 test("notification click rejects action execution route through parser", () => {
   const payload = createDesktopNotificationPayload({
     id: "notif_002",
-    routeUrl: "mater://download/doc_123"
+    routeUrl: "matter://download/doc_123"
   });
 
   assert.throws(

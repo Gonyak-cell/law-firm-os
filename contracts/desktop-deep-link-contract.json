@@ -1,11 +1,11 @@
 {
   "schema": "law-firm-os.desktop.deep-link-contract.v0.2",
-  "product": "mater",
+  "product": "matter",
   "status": "route_intents_active",
   "allowed_routes": [
     {
       "id": "matter",
-      "scheme": "mater",
+      "scheme": "matter",
       "host": "matter",
       "path": "/:matterId",
       "allowed_query": ["tenant"],
@@ -20,7 +20,7 @@
     },
     {
       "id": "document",
-      "scheme": "mater",
+      "scheme": "matter",
       "host": "document",
       "path": "/:documentId",
       "allowed_query": ["matter", "tenant"],
@@ -35,7 +35,7 @@
     },
     {
       "id": "task",
-      "scheme": "mater",
+      "scheme": "matter",
       "host": "task",
       "path": "/:taskId",
       "allowed_query": ["matter", "tenant"],
@@ -50,7 +50,7 @@
     },
     {
       "id": "auth_callback",
-      "scheme": "mater",
+      "scheme": "matter",
       "host": "auth",
       "path": "/callback",
       "allowed_query": ["code", "state", "issuer"],
@@ -76,7 +76,7 @@
     "execute_command"
   ],
   "validation_rules": {
-    "scheme_required": "mater",
+    "scheme_required": "matter",
     "route_id_allowlist_required": true,
     "identifier_shape_required": true,
     "unknown_query_parameters_rejected": true,

@@ -35,8 +35,14 @@ const requiredPlanPhrases = [
   "matter-temp-desktop-runtime",
   "aws-temporary-execute-api",
   "/matter/staging/operator-token",
+  "/matter/staging/desktop-auth-state",
   "Bearer token required",
   "SHA-256 hash",
+  "password login required",
+  "aws_secrets_manager",
+  "/api/desktop/password-reset/request",
+  "/api/desktop/password-reset/confirm",
+  "reset password",
   "jwsuh@amic.kr",
   "arn:aws:iam::770880870480:role/matter-staging-admin",
   "arn:aws:iam::770880870480:role/matter-prod-deploy-admin",
@@ -75,10 +81,10 @@ const requiredPlanPhrases = [
   "jws",
   "firm/matter",
   "Not required for desktop-first internal/temporary release.",
-  "api.mater.example.com",
+  "api.matter.example.com",
   "Domain Decision For Desktop-First Release",
   "AWS-generated HTTPS endpoint",
-  "materlegal.com",
+  "matterlegal.com",
   "AVAILABLE",
   "No domain was registered.",
   "AWS Resources To Create",
@@ -117,7 +123,9 @@ const requiredRemainingPhrases = [
   "https://73o8hpqpgl.execute-api.ap-northeast-2.amazonaws.com/staging",
   "Operator token material is provisioned",
   "/matter/staging/operator-token",
+  "/matter/staging/desktop-auth-state",
   "SHA-256 hash",
+  "Desktop login now requires password reset confirmation first",
 ];
 
 const forbiddenPlanPhrases = [
@@ -172,9 +180,31 @@ if (errors.length === 0) {
     errors.push("local secret candidate should have no remaining required keys");
   }
   if (receipt.health_smoke?.response?.operator_token_configured !== true) errors.push("operator token configured health smoke missing");
+  if (receipt.health_smoke?.response?.password_login_required !== true) errors.push("password login health smoke missing");
+  if (receipt.health_smoke?.response?.password_reset_delivery_mode !== "synthetic_email_outbox") {
+    errors.push("password reset delivery smoke missing");
+  }
+  if (receipt.health_smoke?.response?.password_credential_store !== "aws_secrets_manager") {
+    errors.push("password credential store must be aws_secrets_manager");
+  }
+  if (receipt.auth_state_store?.aws_secret_name !== "/matter/staging/desktop-auth-state") {
+    errors.push("auth state secret receipt missing");
+  }
+  if (receipt.auth_state_store?.plaintext_passwords_stored !== false) {
+    errors.push("plaintext passwords must not be stored");
+  }
+  if (receipt.auth_state_store?.reset_token_material_printed !== false) {
+    errors.push("reset token material must not be printed");
+  }
   if (receipt.runtime_smoke?.missing_operator_token?.http_status !== 401) errors.push("missing token 401 smoke missing");
   if (receipt.runtime_smoke?.invalid_operator_token?.http_status !== 403) errors.push("invalid token 403 smoke missing");
   if (receipt.runtime_smoke?.jwsuh_login?.system_super_admin !== true) errors.push("jwsuh system super admin smoke missing");
+  if (receipt.runtime_smoke?.jwsuh_login?.password_reset_confirmed !== true) {
+    errors.push("jwsuh password reset smoke missing");
+  }
+  if (receipt.runtime_smoke?.general_account_password_login?.password_reset_confirmed !== true) {
+    errors.push("general account password reset smoke missing");
+  }
   if (receipt.runtime_smoke?.non_highest_admin_denial?.http_status !== 403) errors.push("non-highest denial smoke missing");
 }
 

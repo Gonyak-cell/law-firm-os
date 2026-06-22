@@ -1,16 +1,16 @@
 import { createHmac } from "node:crypto";
 
-export const INTERNAL_UPDATE_KEY_ID = "mater-internal-update-key-v1";
+export const INTERNAL_UPDATE_KEY_ID = "matter-internal-update-key-v1";
 
-export function signUpdateMetadata(metadata, key = "mater-internal-update-key") {
+export function signUpdateMetadata(metadata, key = "matter-internal-update-key") {
   return createHmac("sha256", key).update(JSON.stringify(metadata)).digest("hex");
 }
 
-export function verifyUpdateMetadata({ metadata, signature, key = "mater-internal-update-key" }) {
+export function verifyUpdateMetadata({ metadata, signature, key = "matter-internal-update-key" }) {
   return signUpdateMetadata(metadata, key) === signature;
 }
 
-export function createUpdateController({ currentVersion, key = "mater-internal-update-key" } = {}) {
+export function createUpdateController({ currentVersion, key = "matter-internal-update-key" } = {}) {
   let activeVersion = currentVersion;
   let previousVersion = null;
   const verifiedVersions = new Set([currentVersion]);
