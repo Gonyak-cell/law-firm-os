@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { APPROVED_DEV_RENDERER_URL } from "../src/main/origin-policy.js";
-import { startDesktopShell } from "../src/main/main.js";
+import { desktopPreloadPath, isMainEntryPoint, packagedRendererUrl, startDesktopShell } from "../src/main/main.js";
 
 class FakeBrowserWindow {
   constructor(options) {
@@ -34,19 +34,30 @@ class FakeBrowserWindow {
   }
 }
 
-test("desktop shell starts with approved renderer target and hardened options", async () => {
+test("desktop shell starts with packaged renderer target, preload, and hardened options", async () => {
   const { window, target } = await startDesktopShell({ BrowserWindowConstructor: FakeBrowserWindow });
 
-  assert.equal(target, APPROVED_DEV_RENDERER_URL);
-  assert.equal(window.loadedURL, APPROVED_DEV_RENDERER_URL);
+  assert.equal(target, packagedRendererUrl());
+  assert.equal(window.loadedURL, packagedRendererUrl());
   assert.equal(window.options.webPreferences.nodeIntegration, false);
   assert.equal(window.options.webPreferences.contextIsolation, true);
   assert.equal(window.options.webPreferences.sandbox, true);
   assert.equal(window.options.webPreferences.webSecurity, true);
+  assert.equal(window.options.webPreferences.preload, desktopPreloadPath());
   assert.equal(window.readyEvent.eventName, "ready-to-show");
 
   window.readyEvent.handler();
   assert.equal(window.shown, true);
+});
+
+test("desktop shell can still target the approved local dev renderer when explicitly requested", async () => {
+  const { window, target } = await startDesktopShell({
+    BrowserWindowConstructor: FakeBrowserWindow,
+    rendererUrl: APPROVED_DEV_RENDERER_URL
+  });
+
+  assert.equal(target, APPROVED_DEV_RENDERER_URL);
+  assert.equal(window.loadedURL, APPROVED_DEV_RENDERER_URL);
 });
 
 test("desktop shell blocks unapproved renderer target and remote navigation", async () => {
@@ -67,4 +78,21 @@ test("desktop shell blocks unapproved renderer target and remote navigation", as
   );
   assert.equal(prevented, true);
   assert.deepEqual(window.windowOpenHandler({ url: "https://mater.example.com" }), { action: "deny" });
+});
+
+test("desktop main entrypoint detection tolerates filesystem paths with spaces", () => {
+  assert.equal(
+    isMainEntryPoint({
+      argv: ["/usr/bin/electron", new URL("../src/main/main.js", import.meta.url).pathname],
+      versions: { electron: "42.4.1" }
+    }),
+    false
+  );
+  assert.equal(
+    isMainEntryPoint({
+      argv: ["/usr/bin/electron", decodeURIComponent(new URL("../src/main/main.js", import.meta.url).pathname)],
+      versions: { electron: "42.4.1" }
+    }),
+    true
+  );
 });

@@ -71,3 +71,28 @@ test("auth coordinator rejects state mismatch and clears session on logout", asy
   assert.deepEqual(await coordinator.logout(), { state: "signed_out" });
   assert.deepEqual(secureStore.snapshot(), {});
 });
+
+test("auth coordinator signs into AWS runtime account without exposing operator material", async () => {
+  const coordinator = new MainProcessAuthCoordinator({
+    runtimeClient: {
+      login: async ({ email }) => ({
+        ok: true,
+        session: {
+          state: "signed_in",
+          email,
+          highest_privilege: "system_super_admin",
+          role_ids: ["system_super_admin"],
+          operatorToken: "must-not-render"
+        },
+        features: [{ feature_id: "matter_vault_admin", allowed: true, decision: "allow" }]
+      })
+    }
+  });
+
+  const response = await coordinator.login({ email: "jwsuh@amic.kr" });
+
+  assert.equal(response.session.email, "jwsuh@amic.kr");
+  assert.equal(response.session.highest_privilege, "system_super_admin");
+  assert.equal(JSON.stringify(response).includes("must-not-render"), false);
+  assert.equal(JSON.stringify(response).includes("operatorToken"), false);
+});

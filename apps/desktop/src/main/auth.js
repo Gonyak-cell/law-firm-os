@@ -1,5 +1,15 @@
 import { createHash, randomBytes } from "node:crypto";
 
+const RENDERER_FORBIDDEN_FIELDS = new Set([
+  "access_token",
+  "refresh_token",
+  "id_token",
+  "operator_token",
+  "operatorToken",
+  "password",
+  "secret"
+]);
+
 export const FORBIDDEN_RENDERER_TOKEN_FIELDS = Object.freeze(["access_token", "refresh_token", "id_token"]);
 
 export function base64Url(input) {
@@ -49,17 +59,32 @@ export async function wipeSessionCaches({ secureStore, cacheStores = [] } = {}) 
   };
 }
 
+export function sanitizeRendererPayload(value) {
+  if (value == null) return value;
+  if (Array.isArray(value)) return value.map((item) => sanitizeRendererPayload(item));
+  if (typeof value !== "object") return value;
+
+  const sanitized = {};
+  for (const [key, nested] of Object.entries(value)) {
+    if (RENDERER_FORBIDDEN_FIELDS.has(key)) continue;
+    sanitized[key] = sanitizeRendererPayload(nested);
+  }
+  return sanitized;
+}
+
 export class MainProcessAuthCoordinator {
   #pending = null;
   #session = { state: "signed_out" };
   #secureStore;
   #cacheStores;
   #now;
+  #runtimeClient;
 
-  constructor({ secureStore = memorySecureStore(), cacheStores = [], now = () => Date.now() } = {}) {
+  constructor({ secureStore = memorySecureStore(), cacheStores = [], now = () => Date.now(), runtimeClient = null } = {}) {
     this.#secureStore = secureStore;
     this.#cacheStores = cacheStores;
     this.#now = now;
+    this.#runtimeClient = runtimeClient;
   }
 
   startLogin({ issuerUrl, clientId, redirectUri, scope = "openid profile email", tenantIdHash = "tenant_pending" }) {
@@ -107,6 +132,75 @@ export class MainProcessAuthCoordinator {
 
   sessionStatus() {
     return { ...this.#session };
+  }
+
+  runtimeStatus() {
+    return this.#runtimeClient?.runtimeStatus?.() ?? {
+      configured: false,
+      mode: "aws-temporary-execute-api",
+      reason: "runtime_client_not_configured",
+      operatorTokenMaterialExposed: false
+    };
+  }
+
+  async accounts() {
+    const response = await this.#runtimeClient?.accounts?.();
+    return sanitizeRendererPayload(
+      response ?? {
+        ok: false,
+        reason: "runtime_client_not_configured",
+        token_material_returned: false
+      }
+    );
+  }
+
+  async login(input = {}) {
+    const email = typeof input === "string" ? input : input.email;
+    const response = sanitizeRendererPayload(
+      (await this.#runtimeClient?.login?.({ email })) ?? {
+        ok: false,
+        reason: "runtime_client_not_configured",
+        token_material_returned: false
+      }
+    );
+    if (response.ok && response.session) {
+      this.#session = sanitizeRendererPayload(response.session);
+    } else {
+      this.#session = {
+        state: "signed_out",
+        reason: response.reason ?? "login_failed"
+      };
+    }
+    return {
+      ...response,
+      session: this.sessionStatus(),
+      token_material_returned: false
+    };
+  }
+
+  async features(input = {}) {
+    const email = input.email ?? this.#session.email;
+    const response = await this.#runtimeClient?.features?.({ email });
+    return sanitizeRendererPayload(
+      response ?? {
+        ok: false,
+        reason: "runtime_client_not_configured",
+        token_material_returned: false
+      }
+    );
+  }
+
+  async smoke(input = {}) {
+    const email = input.email ?? this.#session.email;
+    const featureId = input.featureId ?? input.feature_id;
+    const response = await this.#runtimeClient?.smoke?.({ email, featureId });
+    return sanitizeRendererPayload(
+      response ?? {
+        ok: false,
+        reason: "runtime_client_not_configured",
+        token_material_returned: false
+      }
+    );
   }
 
   async logout() {

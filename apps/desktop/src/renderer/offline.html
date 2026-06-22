@@ -3,45 +3,278 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>mater offline fallback</title>
+  <title>mater desktop</title>
   <style>
     :root {
-      color-scheme: light dark;
+      color-scheme: light;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f5f7fa;
-      color: #202428;
+      background: #eef2f5;
+      color: #151b21;
+      font-size: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
       margin: 0;
       min-height: 100vh;
-      display: grid;
-      place-items: center;
+      background:
+        linear-gradient(180deg, #f8fafb 0%, #eef2f5 46%, #e8edf1 100%);
     }
 
-    main {
-      width: min(420px, calc(100vw - 48px));
-      display: grid;
-      gap: 10px;
-      padding: 24px;
-      border: 1px solid #d8dee8;
+    button,
+    select {
+      font: inherit;
+    }
+
+    button {
+      min-height: 36px;
+      border: 1px solid #1c5f8f;
       border-radius: 6px;
+      padding: 0 12px;
+      background: #236fa4;
+      color: #ffffff;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      border-color: #b9c5cd;
       background: #ffffff;
+      color: #26313a;
+    }
+
+    button:disabled {
+      cursor: default;
+      opacity: 0.55;
+    }
+
+    select {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid #b8c4ce;
+      border-radius: 6px;
+      padding: 0 10px;
+      background: #ffffff;
+      color: #151b21;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 16px 24px;
+      border-bottom: 1px solid #d4dde4;
+      background: rgba(255, 255, 255, 0.86);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: #16384f;
+      color: #ffffff;
+      font-weight: 700;
     }
 
     h1,
+    h2,
     p {
       margin: 0;
     }
 
     h1 {
-      font-size: 20px;
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #27323a;
+    }
+
+    .subtle {
+      color: #5e6b75;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 28px;
+      border: 1px solid #c9d4dc;
+      border-radius: 999px;
+      padding: 0 10px;
+      background: #ffffff;
+      color: #39464f;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #a86f00;
+    }
+
+    .dot.ok {
+      background: #23824d;
+    }
+
+    .dot.bad {
+      background: #a13b3b;
+    }
+
+    .workspace {
+      width: min(1180px, calc(100vw - 40px));
+      margin: 24px auto;
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid #d2dbe2;
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid #e1e7ec;
+    }
+
+    .panel-body {
+      display: grid;
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .meta-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .meta-row {
+      display: grid;
+      grid-template-columns: 118px 1fr;
+      gap: 10px;
+      align-items: start;
+      min-height: 24px;
+      font-size: 13px;
+    }
+
+    .meta-row strong {
+      color: #64717b;
       font-weight: 650;
     }
 
-    p {
-      color: #64707d;
-      line-height: 1.5;
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      border-radius: 999px;
+      padding: 0 8px;
+      background: #eef3f6;
+      color: #33414b;
+      font-size: 12px;
+    }
+
+    .pill.allow {
+      background: #e7f4ed;
+      color: #155f3a;
+    }
+
+    .pill.deny {
+      background: #f8eceb;
+      color: #8a2f2d;
+    }
+
+    .feature-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .feature {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 44px;
+      border: 1px solid #d8e1e7;
+      border-radius: 8px;
+      padding: 9px 10px;
+      background: #fbfcfd;
+    }
+
+    .result {
+      min-height: 42px;
+      border: 1px solid #d7e0e6;
+      border-radius: 8px;
+      padding: 10px;
+      background: #f7f9fa;
+      color: #26323b;
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 860px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+        width: min(100vw - 24px, 680px);
+        margin: 12px auto;
+      }
+
+      .meta-row {
+        grid-template-columns: 1fr;
+        gap: 3px;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -56,9 +289,219 @@
   </style>
 </head>
 <body>
-  <main aria-label="mater offline fallback">
-    <h1>mater</h1>
-    <p>Offline fallback is active. No client, matter, file, token, or account data is shown.</p>
-  </main>
+  <div class="app" data-mater-desktop-app>
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true">m</div>
+        <div>
+          <h1>mater</h1>
+          <p class="subtle">Internal desktop runtime</p>
+        </div>
+      </div>
+      <div class="status" data-runtime-status>
+        <span class="dot" data-runtime-dot></span>
+        <span data-runtime-label>Checking runtime</span>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="panel" aria-label="Account login">
+        <div class="panel-header">
+          <h2>Account</h2>
+          <span class="pill" data-account-count>0 registered</span>
+        </div>
+        <div class="panel-body">
+          <label>
+            <span class="subtle">Registered account</span>
+            <select data-account-select aria-label="Registered account"></select>
+          </label>
+          <div class="button-row">
+            <button type="button" data-mater-login>Log in</button>
+            <button type="button" class="secondary" data-mater-logout>Log out</button>
+          </div>
+          <div class="result" data-login-result>Not signed in.</div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Runtime smoke">
+        <div class="panel-header">
+          <h2>Session and function smoke</h2>
+          <div class="button-row">
+            <button type="button" class="secondary" data-smoke-dashboard>Dashboard smoke</button>
+            <button type="button" class="secondary" data-smoke-admin>Admin smoke</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="meta-grid" aria-label="Session status">
+            <div class="meta-row">
+              <strong>Email</strong>
+              <span data-session-email>signed out</span>
+            </div>
+            <div class="meta-row">
+              <strong>Privilege</strong>
+              <span data-session-privilege>none</span>
+            </div>
+            <div class="meta-row">
+              <strong>Roles</strong>
+              <div class="pill-row" data-session-roles></div>
+            </div>
+          </div>
+          <div class="feature-list" data-feature-list></div>
+          <div class="result" data-smoke-result>Select an account, log in, then run a smoke check.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const api = window.materSession;
+    const state = {
+      accounts: [],
+      session: { state: "signed_out" },
+      features: []
+    };
+
+    const nodes = {
+      runtimeDot: document.querySelector("[data-runtime-dot]"),
+      runtimeLabel: document.querySelector("[data-runtime-label]"),
+      accountCount: document.querySelector("[data-account-count]"),
+      accountSelect: document.querySelector("[data-account-select]"),
+      loginButton: document.querySelector("[data-mater-login]"),
+      logoutButton: document.querySelector("[data-mater-logout]"),
+      dashboardSmokeButton: document.querySelector("[data-smoke-dashboard]"),
+      adminSmokeButton: document.querySelector("[data-smoke-admin]"),
+      loginResult: document.querySelector("[data-login-result]"),
+      sessionEmail: document.querySelector("[data-session-email]"),
+      sessionPrivilege: document.querySelector("[data-session-privilege]"),
+      sessionRoles: document.querySelector("[data-session-roles]"),
+      featureList: document.querySelector("[data-feature-list]"),
+      smokeResult: document.querySelector("[data-smoke-result]")
+    };
+
+    function accountLabel(account) {
+      return `${account.email} - ${account.highest_privilege}`;
+    }
+
+    function selectedEmail() {
+      return nodes.accountSelect.value;
+    }
+
+    function renderRuntime(runtime) {
+      const ok = Boolean(runtime?.configured);
+      nodes.runtimeDot.className = `dot ${ok ? "ok" : "bad"}`;
+      nodes.runtimeLabel.textContent = ok
+        ? "AWS temporary runtime connected"
+        : `Runtime unavailable: ${runtime?.reason ?? "not configured"}`;
+    }
+
+    function renderAccounts(accounts) {
+      state.accounts = accounts;
+      nodes.accountCount.textContent = `${accounts.length} registered`;
+      nodes.accountSelect.replaceChildren(
+        ...accounts.map((account) => {
+          const option = document.createElement("option");
+          option.value = account.email;
+          option.textContent = accountLabel(account);
+          return option;
+        })
+      );
+      const preferred = accounts.find((account) => account.email === "jwsuh@amic.kr");
+      if (preferred) nodes.accountSelect.value = preferred.email;
+    }
+
+    function renderRoles(roles = []) {
+      nodes.sessionRoles.replaceChildren(
+        ...roles.map((role) => {
+          const pill = document.createElement("span");
+          pill.className = "pill";
+          pill.textContent = role;
+          return pill;
+        })
+      );
+    }
+
+    function renderSession(session = { state: "signed_out" }) {
+      state.session = session;
+      nodes.sessionEmail.textContent = session.email ?? "signed out";
+      nodes.sessionPrivilege.textContent = session.highest_privilege ?? "none";
+      renderRoles(session.role_ids ?? []);
+    }
+
+    function renderFeatures(features = []) {
+      state.features = features;
+      nodes.featureList.replaceChildren(
+        ...features.map((feature) => {
+          const row = document.createElement("div");
+          row.className = "feature";
+          const name = document.createElement("span");
+          name.textContent = feature.label;
+          const decision = document.createElement("span");
+          decision.className = `pill ${feature.allowed ? "allow" : "deny"}`;
+          decision.textContent = feature.decision;
+          row.append(name, decision);
+          return row;
+        })
+      );
+    }
+
+    function summarizeSmoke(response) {
+      const status = response.http_status ? `HTTP ${response.http_status}` : "local";
+      const decision = response.decision ?? response.reason ?? "unknown";
+      return `${status} ${decision}\nfeature: ${response.feature_id ?? "n/a"}\nactor: ${response.actor_email ?? selectedEmail()}`;
+    }
+
+    async function refresh() {
+      if (!api) {
+        renderRuntime({ configured: false, reason: "preload_api_unavailable" });
+        return;
+      }
+      renderRuntime(await api.runtime());
+      const accountsResponse = await api.accounts();
+      if (accountsResponse.ok) renderAccounts(accountsResponse.users ?? []);
+      else nodes.loginResult.textContent = `Account load failed: ${accountsResponse.reason}`;
+      renderSession(await api.status());
+    }
+
+    async function login() {
+      const email = selectedEmail();
+      const response = await api.login({ email });
+      renderSession(response.session);
+      renderFeatures(response.features ?? []);
+      nodes.loginResult.textContent = response.ok
+        ? `Signed in as ${response.session.email}.`
+        : `Login failed: ${response.reason}`;
+    }
+
+    async function logout() {
+      const session = await api.logout();
+      renderSession(session);
+      renderFeatures([]);
+      nodes.loginResult.textContent = "Signed out.";
+      nodes.smokeResult.textContent = "Select an account, log in, then run a smoke check.";
+    }
+
+    async function smoke(featureId) {
+      const email = state.session.email ?? selectedEmail();
+      const response = await api.smoke({ email, featureId });
+      nodes.smokeResult.textContent = summarizeSmoke(response);
+    }
+
+    nodes.loginButton.addEventListener("click", () => login().catch((error) => {
+      nodes.loginResult.textContent = error.message;
+    }));
+    nodes.logoutButton.addEventListener("click", () => logout().catch((error) => {
+      nodes.loginResult.textContent = error.message;
+    }));
+    nodes.dashboardSmokeButton.addEventListener("click", () => smoke("matter_vault_dashboard").catch((error) => {
+      nodes.smokeResult.textContent = error.message;
+    }));
+    nodes.adminSmokeButton.addEventListener("click", () => smoke("matter_vault_admin").catch((error) => {
+      nodes.smokeResult.textContent = error.message;
+    }));
+
+    refresh().catch((error) => {
+      renderRuntime({ configured: false, reason: error.message });
+    });
+  </script>
 </body>
 </html>
