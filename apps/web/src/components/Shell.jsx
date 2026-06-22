@@ -38,7 +38,7 @@ export function LoadingSurface({ labels, locale, theme, setLocale, setTheme, cla
 
 function ProductAxisNav({ view, setView }) {
   return (
-    <nav className="top-axis-nav" aria-label="Product axes" data-product-axis-nav="top-header">
+    <nav className="top-axis-nav" aria-label="Client Matter People Vault product axes" data-product-axis-nav="top-header">
       {navItems.map(({ id, label, icon: Icon }) => (
         <button
           key={id}

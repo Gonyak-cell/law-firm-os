@@ -1,4 +1,4 @@
-export const SPLASH_BRAND = "matter by AMIC";
+export const SPLASH_BRAND = "matter";
 export const SPLASH_HANDOFF_TIMEOUT_MS = 8000;
 
 export const SPLASH_WINDOW_OPTIONS = Object.freeze({
@@ -30,7 +30,7 @@ body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;c
 .mark{position:relative;width:88px;height:72px}
 .pill{position:absolute;top:4px;width:20px;height:58px;border-radius:999px;transform:rotate(31deg)}
 .red{left:10px;background:#ff2d55}.yellow{left:45px;background:#ffcc00}.dot{position:absolute;right:0;bottom:8px;width:22px;height:22px;border-radius:50%;background:#00ca72}
-.word{font-size:42px;font-weight:300}.byline{font-size:13px;color:#0f3a32}
+.word{font-size:42px;font-weight:300}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:1ms!important;transition-duration:1ms!important;scroll-behavior:auto!important}.splash{gap:8px}}
 </style>
 </head>
@@ -38,7 +38,6 @@ body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;c
 <main class="splash" aria-label="${SPLASH_BRAND}">
 <span class="mark" aria-hidden="true"><span class="pill red"></span><span class="pill yellow"></span><span class="dot"></span></span>
 <strong class="word">matter</strong>
-<span class="byline">by AMIC</span>
 </main>
 </body>
 </html>`;

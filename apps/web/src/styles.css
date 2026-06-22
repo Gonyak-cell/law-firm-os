@@ -588,60 +588,20 @@ kbd {
 .matter-mark {
   position: relative;
   width: 32px;
-  height: 26px;
+  height: 28px;
   flex: 0 0 auto;
 }
 
 .matter-logo:not(.compact) .matter-mark {
   width: 42px;
-  height: 34px;
+  height: 36px;
 }
 
-.mark-pill,
-.mark-dot {
-  position: absolute;
+.matter-mark img {
   display: block;
-}
-
-.mark-pill {
-  top: 1px;
-  width: 10px;
-  height: 25px;
-  border-radius: var(--am-radius-pill);
-  transform: rotate(31deg);
-}
-
-.matter-logo:not(.compact) .mark-pill {
-  width: 14px;
-  height: 33px;
-}
-
-.mark-pill.red {
-  left: 3px;
-  background: #ff2d55;
-}
-
-.mark-pill.yellow {
-  left: 16px;
-  background: #ffcc00;
-}
-
-.matter-logo:not(.compact) .mark-pill.yellow {
-  left: 23px;
-}
-
-.mark-dot {
-  right: 0;
-  bottom: 3px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #00ca72;
-}
-
-.matter-logo:not(.compact) .mark-dot {
-  width: 14px;
-  height: 14px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .matter-word {
@@ -733,49 +693,19 @@ kbd {
 
 .matter-splash-mark {
   position: relative;
-  width: calc(var(--matter-splash-size) * 1.12);
+  width: calc(var(--matter-splash-size) * 1.33);
   height: var(--matter-splash-size);
   flex: 0 0 auto;
-}
-
-.matter-splash-pill,
-.matter-splash-dot {
-  position: absolute;
-  display: block;
-  will-change: opacity, transform;
-}
-
-.matter-splash-pill {
-  top: calc(var(--matter-splash-size) * 0.04);
-  width: calc(var(--matter-splash-size) * 0.22);
-  height: calc(var(--matter-splash-size) * 0.76);
-  border-radius: var(--am-radius-pill);
-  transform: rotate(31deg) scaleY(0.14);
-  transform-origin: 50% 100%;
-}
-
-.matter-splash-pill.red {
-  left: calc(var(--matter-splash-size) * 0.09);
-  background: #ff2d55;
-  animation: matter-pill-rise 680ms cubic-bezier(0.16, 1.18, 0.32, 1) both;
-}
-
-.matter-splash-pill.yellow {
-  left: calc(var(--matter-splash-size) * 0.48);
-  background: #ffcc00;
-  animation: matter-pill-rise 680ms cubic-bezier(0.16, 1.18, 0.32, 1) 90ms both;
-}
-
-.matter-splash-dot {
-  right: calc(var(--matter-splash-size) * 0.02);
-  bottom: calc(var(--matter-splash-size) * 0.15);
-  width: calc(var(--matter-splash-size) * 0.28);
-  height: calc(var(--matter-splash-size) * 0.28);
-  border-radius: 50%;
-  background: #00ca72;
   opacity: 0;
-  transform: scale(0.5);
-  animation: matter-dot-pop 520ms cubic-bezier(0.16, 1.18, 0.32, 1) 180ms both;
+  transform: translateY(14px) scale(0.92);
+  animation: matter-mark-in 680ms cubic-bezier(0.16, 1.18, 0.32, 1) both;
+}
+
+.matter-splash-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .matter-splash-word {
@@ -835,22 +765,10 @@ kbd {
   font-weight: 500;
 }
 
-@keyframes matter-pill-rise {
-  from {
-    opacity: 0;
-    transform: rotate(31deg) translateY(18px) scaleY(0.14);
-  }
-
+@keyframes matter-mark-in {
   to {
     opacity: 1;
-    transform: rotate(31deg) translateY(0) scaleY(1);
-  }
-}
-
-@keyframes matter-dot-pop {
-  to {
-    opacity: 1;
-    transform: scale(1);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -893,8 +811,7 @@ kbd {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .matter-splash-pill,
-  .matter-splash-dot,
+  .matter-splash-mark,
   .matter-splash-word span,
   .matter-splash-byline,
   .matter-splash-image,
@@ -902,10 +819,6 @@ kbd {
     animation: none;
     opacity: 1;
     transform: none;
-  }
-
-  .matter-splash-pill {
-    transform: rotate(31deg);
   }
 
   .loading-stage.post-login-splash {

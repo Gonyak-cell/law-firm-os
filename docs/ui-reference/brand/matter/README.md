@@ -11,7 +11,7 @@ historical comparison and license tracking.
 
 | File | Purpose |
 | --- | --- |
-| `matter-logo.svg` | Reference source for the `matter by AMIC` logo derivative. |
+| `matter-logo.svg` | Reference source for the `matter` logo derivative. |
 | `../../../prototypes/matter-by-amic-logo-animation.html` | Historical prototype source for the original startup animation behavior. |
 
 ## Guardrails

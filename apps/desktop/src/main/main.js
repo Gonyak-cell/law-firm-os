@@ -35,6 +35,10 @@ export function desktopPreloadPath() {
   return join(moduleDir, "../preload/session.cjs");
 }
 
+export function desktopWindowIconPath() {
+  return join(moduleDir, "../../build/icon.png");
+}
+
 export function rendererTargetFromEnv(env = process.env) {
   return env.MATTER_DESKTOP_RENDERER_URL ?? packagedRendererUrl();
 }
@@ -50,6 +54,7 @@ export function runtimeClientFromEnv(env = process.env) {
 function windowOptionsWithPreload(windowOptions = {}) {
   return {
     ...windowOptions,
+    icon: windowOptions.icon ?? desktopWindowIconPath(),
     webPreferences: {
       ...(windowOptions.webPreferences ?? {}),
       preload: windowOptions.webPreferences?.preload ?? desktopPreloadPath()

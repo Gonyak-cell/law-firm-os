@@ -41,7 +41,7 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
             Saved charts inherit matter permissions and audit logging.
           </div>
           <Field label="Name" value="MAT-248 Event Segmentation" />
-          <Field label="Location" value="Selected matter workspace" />
+          <Field label="Location" value="Selected workspace" />
         </>
       )
     },
@@ -355,7 +355,7 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
             Dashboards can be shared with teams or kept private.
           </div>
           <Field label="Name" value="Matter activity dashboard" />
-          <Field label="Location" value="Selected matter workspace" />
+          <Field label="Location" value="Selected workspace" />
         </>
       )
     },

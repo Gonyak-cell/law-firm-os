@@ -19,6 +19,8 @@ const macosDir = join(contentsDir, "MacOS");
 const resourcesDir = join(contentsDir, "Resources");
 const executablePath = join(macosDir, "matter");
 const appSourceDir = join(resourcesDir, "app");
+const iconPath = join(desktopRoot, "build/icon.icns");
+const packagedIconPath = join(resourcesDir, "electron.icns");
 const zipPath = join(distRoot, `matter-internal-${packageJson.version}-macos.zip`);
 const dmgPath = join(distRoot, `matter-internal-${packageJson.version}-macos.dmg`);
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
@@ -27,7 +29,13 @@ const arch = process.env.MATTER_DESKTOP_MAC_ARCH ?? (process.arch === "arm64" ? 
 if (!existsSync(join(repoRoot, "node_modules/electron/dist/Electron.app"))) {
   throw new Error("Electron runtime is missing. Run `npm install --workspace apps/desktop` first.");
 }
+if (!existsSync(iconPath)) {
+  throw new Error("Matter desktop app icon is missing. Generate apps/desktop/build/icon.icns first.");
+}
 
+await execFileAsync(process.execPath, [join(scriptDir, "prepare-matter-desktop-web-renderer.mjs")], {
+  cwd: repoRoot
+});
 await rm(distRoot, { recursive: true, force: true });
 await mkdir(dirname(receiptPath), { recursive: true });
 
@@ -43,6 +51,7 @@ const [generatedAppRoot] = await packager({
   appCategoryType: "public.app-category.business",
   appVersion: packageJson.version,
   buildVersion: packageJson.version,
+  icon: iconPath,
   asar: false,
   prune: true,
   ignore: [
@@ -86,6 +95,8 @@ Version: \`${packageJson.version}\`
 ## Package Structure
 
 - Electron runtime: \`node_modules/electron/dist/Electron.app\`
+- app icon: \`apps/desktop/build/icon.icns\`
+- packaged app icon: \`apps/desktop/dist/mac/matter.app/Contents/Resources/electron.icns\`
 - packaged app source: \`apps/desktop/dist/mac/matter.app/Contents/Resources/app\`
 - executable: \`apps/desktop/dist/mac/matter.app/Contents/MacOS/matter\`
 - archive: \`apps/desktop/dist/mac/matter-internal-${packageJson.version}-macos.zip\`
@@ -102,6 +113,7 @@ Version: \`${packageJson.version}\`
 
 - bundle exists: ${existsSync(appBundle)}
 - executable exists: ${existsSync(executablePath)}
+- packaged app icon exists: ${existsSync(packagedIconPath)}
 - packaged app source exists: ${existsSync(appSourceDir)}
 - ZIP archive exists: ${existsSync(zipPath)}
 - DMG image exists: ${existsSync(dmgPath)}
@@ -131,6 +143,7 @@ console.log(
       codesign_verify: codesignVerify,
       notarization_state: "not_submitted_internal_only",
       install_smoke_result: "pass",
+      packaged_app_icon: existsSync(packagedIconPath),
       electron_runtime_packaged: true,
       public_release: false,
       owner_approval: false

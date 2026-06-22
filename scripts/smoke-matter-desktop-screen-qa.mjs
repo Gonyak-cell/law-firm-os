@@ -93,7 +93,7 @@ async function waitForProductUi(page) {
   await page.waitForSelector("[data-matter-logo-flow='post-login']", { timeout: 30_000 });
   const logoFlow = await page.evaluate(() => {
     const overlay = document.querySelector("[data-matter-logo-flow='post-login']");
-    const image = document.querySelector(".matter-splash-image");
+    const image = document.querySelector(".matter-splash-mark img, .matter-splash-image");
     const overlayStyle = overlay ? getComputedStyle(overlay) : null;
     return {
       observed: Boolean(overlay),

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { APPROVED_DEV_RENDERER_URL } from "../src/main/origin-policy.js";
-import { desktopPreloadPath, isMainEntryPoint, packagedRendererUrl, startDesktopShell } from "../src/main/main.js";
+import { desktopPreloadPath, desktopWindowIconPath, isMainEntryPoint, packagedRendererUrl, startDesktopShell } from "../src/main/main.js";
 
 class FakeBrowserWindow {
   constructor(options) {
@@ -44,6 +44,7 @@ test("desktop shell starts with packaged renderer target, preload, and hardened 
   assert.equal(window.options.webPreferences.sandbox, true);
   assert.equal(window.options.webPreferences.webSecurity, true);
   assert.equal(window.options.webPreferences.preload, desktopPreloadPath());
+  assert.equal(window.options.icon, desktopWindowIconPath());
   assert.equal(window.readyEvent.eventName, "ready-to-show");
 
   window.readyEvent.handler();

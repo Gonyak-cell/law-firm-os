@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-06-22T07:45:24.203Z",
+  "generated_at": "2026-06-22T08:12:55.238Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
   "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
@@ -37,7 +37,7 @@
       "password_reset_confirm": "passed",
       "password_login": "passed",
       "product_handoff": {
-        "url": "file:///Users/jws/Documents/Codex/law-firm-os-release-main-c52/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
+        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
         "title": "Client Matter People Vault",
         "capability_cards": 4,
         "capability_labels": [
@@ -55,7 +55,7 @@
         "logo_flow": {
           "observed": true,
           "image_alt": "matter",
-          "image_width": 346,
+          "image_width": 97,
           "overlay_background": "rgb(247, 249, 252)",
           "overlay_z_index": "3000",
           "by_amic_visible_in_logo": false
@@ -121,7 +121,7 @@
       "password_reset_confirm": "passed",
       "password_login": "passed",
       "product_handoff": {
-        "url": "file:///Users/jws/Documents/Codex/law-firm-os-release-main-c52/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
+        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
         "title": "Client Matter People Vault",
         "capability_cards": 4,
         "capability_labels": [
@@ -139,7 +139,7 @@
         "logo_flow": {
           "observed": true,
           "image_alt": "matter",
-          "image_width": 346,
+          "image_width": 97,
           "overlay_background": "rgb(247, 249, 252)",
           "overlay_z_index": "3000",
           "by_amic_visible_in_logo": false

@@ -57,8 +57,8 @@ test("matter startup branding uses shared splash and brand constants", async () 
 
   assert.match(brandSource, /PRODUCT_BRAND\s*=\s*"matter"/);
   assert.match(brandSource, /UI_BRAND\s*=\s*"matter"/);
-  assert.match(splashSource, /matter-logo\.svg/);
-  assert.match(splashSource, /matter-splash-image/);
+  assert.match(splashSource, /matter-mark\.svg/);
+  assert.match(splashSource, /matter-splash-mark/);
   assert.match(splashSource, /aria-label=\{UI_BRAND\}/);
   assert.doesNotMatch(logoSource, /amic-law|matter-byline|BRAND_BYLINE|BRAND_ORGANIZATION/);
   assert.match(shellSource, /<MatterSplash \/>/);
