@@ -281,36 +281,6 @@
     .matter-word span:nth-child(5) { animation-delay: 1.74s; }
     .matter-word span:nth-child(6) { animation-delay: 1.79s; }
 
-    .brand-byline {
-      position: absolute;
-      right: 12px;
-      top: calc(100% + 12px);
-      display: inline-flex;
-      align-items: baseline;
-      gap: 6px;
-      color: var(--green-dark);
-      opacity: 0;
-      transform: translateY(8px);
-      animation: bylineFade 0.5s var(--ease) 2.08s both;
-    }
-
-    .brand-byline .by {
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .brand-byline .amic {
-      font-size: 20px;
-      font-weight: 850;
-      letter-spacing: 0.08em;
-    }
-
-    .brand-byline .law {
-      font-size: 18px;
-      font-weight: 650;
-      letter-spacing: 0.02em;
-    }
-
     .login-panel {
       width: min(412px, 100%);
       border: 1px solid rgba(6, 16, 45, 0.08);
@@ -661,13 +631,6 @@
       }
     }
 
-    @keyframes bylineFade {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
     @keyframes brandSettle {
       to {
         transform: translateY(-24px) scale(0.72);
@@ -704,18 +667,6 @@
         --mark-size: 74px;
         --word-size: 56px;
         gap: 12px;
-      }
-
-      .brand-byline {
-        right: 2px;
-      }
-
-      .brand-byline .amic {
-        font-size: 16px;
-      }
-
-      .brand-byline .law {
-        font-size: 15px;
       }
 
       .login-panel {
@@ -783,7 +734,7 @@
 
     <main class="auth-stage" data-auth-stage>
       <div class="auth-stack">
-        <div class="brand-lockup" aria-label="matter by AMIC Law">
+        <div class="brand-lockup" aria-label="matter">
           <span class="matter-mark" aria-hidden="true">
             <span class="matter-bar red"></span>
             <span class="matter-bar yellow"></span>
@@ -791,11 +742,6 @@
           </span>
           <span class="matter-word" aria-hidden="true">
             <span>m</span><span>a</span><span>t</span><span>t</span><span>e</span><span>r</span>
-          </span>
-          <span class="brand-byline" aria-hidden="true">
-            <span class="by">by</span>
-            <span class="amic">AMIC</span>
-            <span class="law">LAW</span>
           </span>
         </div>
 

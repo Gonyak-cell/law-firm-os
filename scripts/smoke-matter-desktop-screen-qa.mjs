@@ -140,7 +140,7 @@ async function main() {
     assert.equal(initialBrandSnapshot.brand_visible, true, "matter brand lockup must be visible on initial login screen");
     assert.equal(initialBrandSnapshot.login_panel_visible, true, "matter login panel must be visible on initial login screen");
     assert(initialBrandSnapshot.text.includes("matter"), "initial login screen must render the matter wordmark");
-    assert(initialBrandSnapshot.text.includes("AMIC"), "initial login screen must render the AMIC byline");
+    assert.equal(initialBrandSnapshot.text.includes("AMIC"), false, "initial login screen must not render the AMIC byline");
     await page.screenshot({ path: initialLoginScreenshotPath, fullPage: true });
 
     const superAdmin = await resetAndLogin(page, "jwsuh@amic.kr");
@@ -250,7 +250,8 @@ async function main() {
         initial_login_brand_visible: initialBrandSnapshot.brand_visible,
         initial_login_panel_visible: initialBrandSnapshot.login_panel_visible,
         matter_wordmark_visible: initialBrandSnapshot.text.includes("matter"),
-        amic_byline_visible: initialBrandSnapshot.text.includes("AMIC")
+        amic_byline_visible: initialBrandSnapshot.text.includes("AMIC"),
+        amic_byline_removed: initialBrandSnapshot.text.includes("AMIC") === false
       },
       forbidden_material_checks: {
         token_or_password_visible_in_final_dom: false,
