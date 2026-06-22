@@ -15,6 +15,7 @@
     "test:file-bridge": "node --test test/file-bridge.test.mjs test/file-picker-gesture.test.mjs test/file-upload-bridge.test.mjs test/file-save-as.test.mjs test/temp-preview-cleanup.test.mjs && cd ../.. && node scripts/validate-desktop-file-bridge-contract.mjs && node scripts/validate-mater-desktop-file-bridge.mjs"
   },
   "devDependencies": {
+    "@electron/packager": "^20.0.1",
     "electron": "^42.4.1"
   }
 }

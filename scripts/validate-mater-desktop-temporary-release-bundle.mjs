@@ -37,7 +37,7 @@ assert.equal(manifest.owner_approval_claim, false);
 assert.equal(manifest.app_store_distribution_claim, false);
 assert.equal(manifest.microsoft_store_distribution_claim, false);
 assert.equal(manifest.external_pilot_distribution_claim, false);
-assert.equal(manifest.artifacts.length, 5);
+assert.equal(manifest.artifacts.length, 7);
 
 for (const artifact of manifest.artifacts) {
   const artifactPath = path.join(ROOT, artifact.path);
@@ -52,6 +52,8 @@ const requiredReceiptPhrases = [
   `Manifest | \`apps/desktop/dist/release/${releaseId}/release-manifest.json\``,
   "Custom domain requirement | false",
   "macOS app bundle | `apps/desktop/dist/mac/mater.app`",
+  "macOS ZIP archive",
+  "macOS DMG image",
   "Windows internal manifest",
   "Public release: false",
   "Production go-live: false",

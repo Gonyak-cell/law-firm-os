@@ -20,7 +20,21 @@ const artifacts = [
     path: "apps/desktop/dist/mac/mater.app/Contents/MacOS/mater",
     display_path: "apps/desktop/dist/mac/mater.app",
     platform: "darwin",
-    kind: "ad_hoc_signed_app_bundle",
+    kind: "ad_hoc_signed_electron_app_bundle",
+  },
+  {
+    id: "macos_zip_archive",
+    path: `apps/desktop/dist/mac/mater-internal-${version}-macos.zip`,
+    display_path: `apps/desktop/dist/mac/mater-internal-${version}-macos.zip`,
+    platform: "darwin",
+    kind: "internal_zip_archive",
+  },
+  {
+    id: "macos_dmg_image",
+    path: `apps/desktop/dist/mac/mater-internal-${version}-macos.dmg`,
+    display_path: `apps/desktop/dist/mac/mater-internal-${version}-macos.dmg`,
+    platform: "darwin",
+    kind: "internal_dmg_image",
   },
   {
     id: "windows_internal_manifest",
@@ -182,6 +196,8 @@ No domain was registered.
 | --- | --- |
 | macOS app bundle | \`apps/desktop/dist/mac/mater.app\` |
 | macOS executable SHA-256 | \`${artifactRecords.find((artifact) => artifact.id === "macos_app_bundle").sha256}\` |
+| macOS ZIP archive | \`apps/desktop/dist/mac/mater-internal-${version}-macos.zip\` |
+| macOS DMG image | \`apps/desktop/dist/mac/mater-internal-${version}-macos.dmg\` |
 | Windows internal manifest | \`apps/desktop/dist/win/mater-internal-${version}-win-installer-manifest.json\` |
 | Windows manifest SHA-256 | \`${artifactRecords.find((artifact) => artifact.id === "windows_internal_manifest").sha256}\` |
 | Windows detached signature | \`apps/desktop/dist/win/mater-internal-${version}-win-installer-manifest.json.sig\` |

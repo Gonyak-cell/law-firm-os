@@ -64,7 +64,9 @@ No domain was registered.
 | Artifact | Result |
 | --- | --- |
 | macOS app bundle | `apps/desktop/dist/mac/mater.app` |
-| macOS executable SHA-256 | `eea9cf263f0e5c7296b8238ff816128f27b9f4b59f41d3836d58cfb9bbff90ae` |
+| macOS executable SHA-256 | `c0bf182389ea930585e3b0bf5c4f16529461e02bf3be751cb364d0e25f2257e0` |
+| macOS ZIP archive | `apps/desktop/dist/mac/mater-internal-0.1.0-macos.zip` |
+| macOS DMG image | `apps/desktop/dist/mac/mater-internal-0.1.0-macos.dmg` |
 | Windows internal manifest | `apps/desktop/dist/win/mater-internal-0.1.0-win-installer-manifest.json` |
 | Windows manifest SHA-256 | `d320cffc7b404782d9ed81b06c972a2d7b307cfc953d6c92a4d0c8e5f76af063` |
 | Windows detached signature | `apps/desktop/dist/win/mater-internal-0.1.0-win-installer-manifest.json.sig` |
