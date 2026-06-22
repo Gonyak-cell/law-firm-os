@@ -12,12 +12,14 @@ Date: 2026-06-22
 | Artifact | Path |
 | --- | --- |
 | Sanitized QA result | `docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa-result.json` |
+| Initial login UI capture | `docs/lazycodex/evidence/matter-desktop/artifacts/desktop-initial-login-ui.png` |
 | Screen capture | `docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa.png` |
 
 ## Scope
 
 - Packaged macOS `matter.app` window opened successfully.
 - App name verified as `matter`.
+- Initial login screen verified the matter wordmark, AMIC byline, and reset-email password flow panel.
 - AWS temporary runtime connected in the packaged Electron desktop screen.
 - `jwsuh@amic.kr` completed reset email request, password reset confirmation, password login, dashboard smoke, and admin smoke.
 - `jwsuh@amic.kr` session roles include `system_super_admin`.

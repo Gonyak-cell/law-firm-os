@@ -17,6 +17,7 @@ const desktopMainPath = path.join(repoRoot, "apps/desktop/src/main/main.js");
 const packagedMacExecutablePath = path.join(repoRoot, "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter");
 const packagedMacAppPath = path.join(repoRoot, "apps/desktop/dist/mac/matter.app/Contents/Info.plist");
 const artifactDir = path.join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts");
+const initialLoginScreenshotPath = path.join(artifactDir, "desktop-initial-login-ui.png");
 const screenshotPath = path.join(artifactDir, "desktop-screen-qa.png");
 const resultPath = path.join(artifactDir, "desktop-screen-qa-result.json");
 
@@ -124,6 +125,23 @@ async function main() {
     );
     assert(accounts.some((account) => account.email === "jwsuh@amic.kr"), "jwsuh@amic.kr account missing from desktop UI");
     assert(accounts.some((account) => account.email === "ytkim@amic.kr"), "ytkim@amic.kr account missing from desktop UI");
+    await page.waitForTimeout(3_500);
+    const initialBrandSnapshot = await page.$eval(".auth-stage", (node) => {
+      const brand = node.querySelector(".brand-lockup");
+      const loginPanel = node.querySelector(".login-panel");
+      const brandRect = brand?.getBoundingClientRect();
+      const panelRect = loginPanel?.getBoundingClientRect();
+      return {
+        text: node.textContent?.replace(/\s+/g, " ").trim() ?? "",
+        brand_visible: Boolean(brandRect && brandRect.width > 200 && brandRect.height > 80),
+        login_panel_visible: Boolean(panelRect && panelRect.width > 300 && panelRect.height > 300)
+      };
+    });
+    assert.equal(initialBrandSnapshot.brand_visible, true, "matter brand lockup must be visible on initial login screen");
+    assert.equal(initialBrandSnapshot.login_panel_visible, true, "matter login panel must be visible on initial login screen");
+    assert(initialBrandSnapshot.text.includes("matter"), "initial login screen must render the matter wordmark");
+    assert(initialBrandSnapshot.text.includes("AMIC"), "initial login screen must render the AMIC byline");
+    await page.screenshot({ path: initialLoginScreenshotPath, fullPage: true });
 
     const superAdmin = await resetAndLogin(page, "jwsuh@amic.kr");
     assert(
@@ -153,10 +171,23 @@ async function main() {
       expected: /HTTP 403|deny|denied/i
     });
 
-    await page.fill("[data-reset-token]", "");
-    await page.fill("[data-new-password]", "");
-    await page.fill("[data-confirm-password]", "");
-    await page.fill("[data-login-password]", "");
+    await page.evaluate(() => {
+      for (const selector of ["[data-reset-token]", "[data-new-password]", "[data-confirm-password]", "[data-login-password]"]) {
+        const node = document.querySelector(selector);
+        if (node instanceof HTMLInputElement) node.value = "";
+      }
+    });
+    await page.waitForFunction(() => {
+      const shell = document.querySelector(".app-shell");
+      const authStage = document.querySelector(".auth-stage");
+      if (!shell || !authStage) return false;
+      const shellStyle = getComputedStyle(shell);
+      const authStyle = getComputedStyle(authStage);
+      return document.body.classList.contains("is-authenticated") &&
+        shellStyle.opacity === "1" &&
+        authStyle.visibility === "hidden";
+    }, null, { timeout: 30_000 });
+    await page.waitForTimeout(250);
     await page.screenshot({ path: screenshotPath, fullPage: true });
 
     const bodyText = (await page.textContent("body")) ?? "";
@@ -212,7 +243,14 @@ async function main() {
         }
       },
       ui_artifacts: {
+        initial_login_screenshot: path.relative(repoRoot, initialLoginScreenshotPath),
         screenshot: path.relative(repoRoot, screenshotPath)
+      },
+      ui_brand_checks: {
+        initial_login_brand_visible: initialBrandSnapshot.brand_visible,
+        initial_login_panel_visible: initialBrandSnapshot.login_panel_visible,
+        matter_wordmark_visible: initialBrandSnapshot.text.includes("matter"),
+        amic_byline_visible: initialBrandSnapshot.text.includes("AMIC")
       },
       forbidden_material_checks: {
         token_or_password_visible_in_final_dom: false,

@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-06-22T03:46:24.478Z",
+  "generated_at": "2026-06-22T04:06:23.043Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
   "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
@@ -24,7 +24,7 @@
     "count": 9,
     "jwsuh_at_amic_kr": {
       "email": "jwsuh@amic.kr",
-      "highest_privilege": "true",
+      "highest_privilege": "system super admin",
       "roles": [
         "system_super_admin",
         "tenant_owner",
@@ -47,7 +47,7 @@
     },
     "ytkim_at_amic_kr": {
       "email": "ytkim@amic.kr",
-      "highest_privilege": "false",
+      "highest_privilege": "standard account",
       "roles": [
         "tenant_owner",
         "managing_partner",
@@ -68,13 +68,20 @@
     }
   },
   "ui_artifacts": {
+    "initial_login_screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-initial-login-ui.png",
     "screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa.png"
+  },
+  "ui_brand_checks": {
+    "initial_login_brand_visible": true,
+    "initial_login_panel_visible": true,
+    "matter_wordmark_visible": true,
+    "amic_byline_visible": true
   },
   "forbidden_material_checks": {
     "token_or_password_visible_in_final_dom": false,
     "reset_token_input_cleared_before_screenshot": true,
     "generated_password_visible_in_final_dom": false,
-    "final_dom_character_count": 10286
+    "final_dom_character_count": 11709
   },
   "release_claims": {
     "production_go_live": false,
