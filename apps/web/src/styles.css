@@ -220,7 +220,7 @@ p {
 }
 
 .app-frame.sidebar-expanded {
-  grid-template-columns: var(--am-rail-width) var(--am-sidebar-width) minmax(0, 1fr);
+  grid-template-columns: var(--am-sidebar-width) minmax(0, 1fr);
 }
 
 .rail {
@@ -291,6 +291,10 @@ p {
 
 .app-frame.sidebar-expanded .sidebar {
   display: block;
+}
+
+.app-frame.sidebar-expanded .rail {
+  display: none;
 }
 
 .sidebar-brand {
@@ -4801,6 +4805,15 @@ html[data-theme="dark"] .public-preview {
     grid-template-columns: var(--am-rail-width) minmax(0, 1fr);
   }
 
+  .app-frame.sidebar-expanded {
+    grid-template-columns: var(--am-rail-width) minmax(0, 1fr);
+  }
+
+  .app-frame.sidebar-expanded .rail {
+    display: grid;
+  }
+
+  .app-frame.sidebar-expanded .sidebar,
   .sidebar {
     display: none;
   }

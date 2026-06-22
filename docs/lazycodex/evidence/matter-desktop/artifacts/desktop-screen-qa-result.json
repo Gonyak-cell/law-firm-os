@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-06-22T06:57:14.451Z",
+  "generated_at": "2026-06-22T07:01:18.854Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
   "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
@@ -56,11 +56,13 @@
         "sidebar": {
           "collapsed": {
             "state": "collapsed",
+            "rail_display": "grid",
             "sidebar_display": "none",
             "rail_word_visible": false
           },
           "expanded": {
             "state": "expanded",
+            "rail_display": "none",
             "sidebar_display": "block",
             "matter_word": "matter",
             "matter_word_visible": true,
@@ -113,11 +115,13 @@
         "sidebar": {
           "collapsed": {
             "state": "collapsed",
+            "rail_display": "grid",
             "sidebar_display": "none",
             "rail_word_visible": false
           },
           "expanded": {
             "state": "expanded",
+            "rail_display": "none",
             "sidebar_display": "block",
             "matter_word": "matter",
             "matter_word_visible": true,

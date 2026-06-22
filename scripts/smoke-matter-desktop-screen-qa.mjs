@@ -131,28 +131,35 @@ async function waitForProductUi(page) {
   assert.equal(snapshot.horizontal_overflow, false, "product UI must not horizontally overflow");
   const collapsedSidebar = await page.evaluate(() => {
     const frame = document.querySelector(".app-frame");
+    const rail = document.querySelector(".rail");
     const sidebar = document.querySelector(".sidebar");
+    const railStyle = rail ? getComputedStyle(rail) : null;
     const sidebarStyle = sidebar ? getComputedStyle(sidebar) : null;
     const railWord = document.querySelector(".rail-logo .matter-word");
     return {
       state: frame?.getAttribute("data-sidebar-state") ?? "",
+      rail_display: railStyle?.display ?? "",
       sidebar_display: sidebarStyle?.display ?? "",
       rail_word_visible: railWord ? getComputedStyle(railWord).display !== "none" : false
     };
   });
   assert.equal(collapsedSidebar.state, "collapsed", "post-login product UI must default to collapsed sidebar state");
+  assert.notEqual(collapsedSidebar.rail_display, "none", "collapsed sidebar state must show the side rail");
   assert.equal(collapsedSidebar.sidebar_display, "none", "collapsed sidebar must hide the expanded sidebar panel");
   assert.equal(collapsedSidebar.rail_word_visible, false, "collapsed sidebar rail must keep matter text hidden");
   await page.click(".nav-toggle");
   await page.waitForFunction(() => document.querySelector(".app-frame")?.getAttribute("data-sidebar-state") === "expanded", null, { timeout: 30_000 });
   const expandedSidebar = await page.evaluate(() => {
+    const rail = document.querySelector(".rail");
     const sidebar = document.querySelector(".sidebar");
     const sidebarBrand = document.querySelector(".sidebar-brand");
     const matterWord = sidebarBrand?.querySelector(".matter-word");
     const matterWordRect = matterWord?.getBoundingClientRect();
+    const railStyle = rail ? getComputedStyle(rail) : null;
     const sidebarStyle = sidebar ? getComputedStyle(sidebar) : null;
     return {
       state: document.querySelector(".app-frame")?.getAttribute("data-sidebar-state") ?? "",
+      rail_display: railStyle?.display ?? "",
       sidebar_display: sidebarStyle?.display ?? "",
       matter_word: matterWord?.textContent?.trim() ?? "",
       matter_word_visible: Boolean(matterWordRect && matterWordRect.width > 40 && matterWordRect.height > 12),
@@ -160,6 +167,7 @@ async function waitForProductUi(page) {
     };
   });
   assert.equal(expandedSidebar.state, "expanded", "expanded sidebar state must be recorded");
+  assert.equal(expandedSidebar.rail_display, "none", "expanded sidebar must replace the side rail");
   assert.notEqual(expandedSidebar.sidebar_display, "none", "expanded sidebar must render the sidebar panel");
   assert.equal(expandedSidebar.matter_word, "matter", "expanded sidebar must show the matter wordmark");
   assert.equal(expandedSidebar.matter_word_visible, true, "expanded sidebar matter wordmark must be visible");

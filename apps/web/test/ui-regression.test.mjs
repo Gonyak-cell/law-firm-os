@@ -101,6 +101,7 @@ test("desktop post-login route keeps logo image flow before command center", asy
   assert.match(shellSource, /<MatterLogo \/>/);
   assert.match(homeSource, /key=\{`\$\{endpoint\}-\$\{index\}`\}/);
   assert.match(stylesSource, /\.app-frame\.sidebar-expanded/);
+  assert.match(stylesSource, /\.app-frame\.sidebar-expanded \.rail/);
   assert.match(stylesSource, /\.sidebar-brand/);
 });
 

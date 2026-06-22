@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-22T06:56:23.523Z",
+  "generated_at": "2026-06-22T07:00:33.355Z",
   "splashState": {
     "logoFlow": "post-login",
     "imageAlt": "matter",
@@ -12,6 +12,7 @@
   },
   "finalState": {
     "state": "collapsed",
+    "railDisplay": "grid",
     "sidebarDisplay": "none",
     "railWordVisible": false,
     "title": "matter command center",
@@ -21,6 +22,7 @@
   "sidebarState": {
     "collapsed": {
       "state": "collapsed",
+      "railDisplay": "grid",
       "sidebarDisplay": "none",
       "railWordVisible": false,
       "title": "matter command center",
@@ -29,6 +31,7 @@
     },
     "expanded": {
       "state": "expanded",
+      "railDisplay": "none",
       "sidebarDisplay": "block",
       "matterWord": "matter",
       "matterWordVisible": true,
