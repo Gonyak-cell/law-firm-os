@@ -1,0 +1,328 @@
+{
+  "schema_version": "law-firm-os.matter-vault-user-registration-seed.v0.1",
+  "status": "registered-local-seed",
+  "created_at": "2026-06-22T00:00:00+09:00",
+  "tenant_id": "tenant_amic_matter_vault",
+  "source": {
+    "folder": "/Users/jws/Projects/amic-matter-vault-users",
+    "workbook": "/Users/jws/Projects/amic-matter-vault-users/연락처_아믹_페트라_2026.06.xlsx",
+    "sheet": "연락처",
+    "sha256": "cbb61404ac48363373716941e38d46ef96fc0dcda92c8bce9b7f4656e158a6f3",
+    "account_rows": "4-12",
+    "account_count": 9,
+    "phone_numbers_imported": false
+  },
+  "registration_boundary": {
+    "production_idp_account_creation": false,
+    "m365_graph_user_write": false,
+    "passwords_or_real_tokens_included": false,
+    "local_dev_synthetic_tokens_only": true,
+    "operator_approval_required_for_production_invites": true
+  },
+  "role_rank": {
+    "system_super_admin": 1000,
+    "tenant_owner": 900,
+    "managing_partner": 800,
+    "firm_admin": 700,
+    "matter_vault_admin": 650,
+    "attorney": 500,
+    "operations_lead": 400,
+    "support_user": 200,
+    "matter_vault_user": 100
+  },
+  "highest_privilege_account": {
+    "email": "jwsuh@amic.kr",
+    "role_id": "system_super_admin",
+    "privilege_rank": 1000
+  },
+  "users": [
+    {
+      "user_id": "user_amic_ytkim",
+      "email": "ytkim@amic.kr",
+      "display_name": "김양태",
+      "english_name": "Yangtae Kim",
+      "source_title": "대표",
+      "status": "active",
+      "registration_state": "registered_seed",
+      "mfa_required": true,
+      "highest_privilege": false,
+      "privilege_rank": 900,
+      "role_ids": ["tenant_owner", "managing_partner", "matter_vault_admin", "matter_vault_user"],
+      "group_ids": ["group_firm_leadership", "group_matter_vault_admins"],
+      "scopes": ["tenant.admin", "matter.read", "matter.write", "vault.read", "vault.write", "audit.read"],
+      "assurance_level": "mfa",
+      "local_dev": {
+        "synthetic_only": true,
+        "synthetic_token": "local-dev-only:ytkim@amic.kr"
+      },
+      "tenant_memberships": [
+        {
+          "tenant_id": "tenant_amic_matter_vault",
+          "role_ids": ["tenant_owner", "managing_partner", "matter_vault_admin", "matter_vault_user"],
+          "group_ids": ["group_firm_leadership", "group_matter_vault_admins"],
+          "scopes": ["tenant.admin", "matter.read", "matter.write", "vault.read", "vault.write", "audit.read"]
+        }
+      ]
+    },
+    {
+      "user_id": "user_amic_wsjo",
+      "email": "wsjo@amic.kr",
+      "display_name": "조우상",
+      "english_name": "Woosang Jo",
+      "source_title": "이사",
+      "status": "active",
+      "registration_state": "registered_seed",
+      "mfa_required": true,
+      "highest_privilege": false,
+      "privilege_rank": 700,
+      "role_ids": ["firm_admin", "matter_vault_admin", "matter_vault_user"],
+      "group_ids": ["group_firm_operations", "group_matter_vault_admins"],
+      "scopes": ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"],
+      "assurance_level": "mfa",
+      "local_dev": {
+        "synthetic_only": true,
+        "synthetic_token": "local-dev-only:wsjo@amic.kr"
+      },
+      "tenant_memberships": [
+        {
+          "tenant_id": "tenant_amic_matter_vault",
+          "role_ids": ["firm_admin", "matter_vault_admin", "matter_vault_user"],
+          "group_ids": ["group_firm_operations", "group_matter_vault_admins"],
+          "scopes": ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"]
+        }
+      ]
+    },
+    {
+      "user_id": "user_amic_sypark",
+      "email": "sypark@amic.kr",
+      "display_name": "박서영",
+      "english_name": "Seoyoung Park",
+      "source_title": "차장",
+      "status": "active",
+      "registration_state": "registered_seed",
+      "mfa_required": true,
+      "highest_privilege": false,
+      "privilege_rank": 100,
+      "role_ids": ["matter_vault_user"],
+      "group_ids": ["group_matter_vault_users"],
+      "scopes": ["matter.read", "vault.read"],
+      "assurance_level": "mfa",
+      "local_dev": {
+        "synthetic_only": true,
+        "synthetic_token": "local-dev-only:sypark@amic.kr"
+      },
+      "tenant_memberships": [
+        {
+          "tenant_id": "tenant_amic_matter_vault",
+          "role_ids": ["matter_vault_user"],
+          "group_ids": ["group_matter_vault_users"],
+          "scopes": ["matter.read", "vault.read"]
+        }
+      ]
+    },
+    {
+      "user_id": "user_amic_bj_park",
+      "email": "bj.park@amic.kr",
+      "display_name": "박병준",
+      "english_name": "Byungjoon Park",
+      "source_title": "대표변호사",
+      "status": "active",
+      "registration_state": "registered_seed",
+      "mfa_required": true,
+      "highest_privilege": false,
+      "privilege_rank": 800,
+      "role_ids": ["managing_partner", "attorney", "matter_vault_user"],
+      "group_ids": ["group_firm_leadership", "group_attorneys", "group_matter_vault_users"],
+      "scopes": ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"],
+      "assurance_level": "mfa",
+      "local_dev": {
+        "synthetic_only": true,
+        "synthetic_token": "local-dev-only:bj.park@amic.kr"
+      },
+      "tenant_memberships": [
+        {
+          "tenant_id": "tenant_amic_matter_vault",
+          "role_ids": ["managing_partner", "attorney", "matter_vault_user"],
+          "group_ids": ["group_firm_leadership", "group_attorneys", "group_matter_vault_users"],
+          "scopes": ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"]
+        }
+      ]
+    },
+    {
+      "user_id": "user_amic_yhlim",
+      "email": "yhlim@amic.kr",
+      "display_name": "임영훈",
+      "english_name": "Younghoon Lim",
+      "source_title": "대표변호사",
+      "status": "active",
+      "registration_state": "registered_seed",
+      "mfa_required": true,
+      "highest_privilege": false,
+      "privilege_rank": 800,
+      "role_ids": ["managing_partner", "attorney", "matter_vault_user"],
+      "group_ids": ["group_firm_leadership", "group_attorneys", "group_matter_vault_users"],
+      "scopes": ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"],
+      "assurance_level": "mfa",
+      "local_dev": {
+        "synthetic_only": true,
+        "synthetic_token": "local-dev-only:yhlim@amic.kr"
+      },
+      "tenant_memberships": [
+        {
+          "tenant_id": "tenant_amic_matter_vault",
+          "role_ids": ["managing_partner", "attorney", "matter_vault_user"],
+          "group_ids": ["group_firm_leadership", "group_attorneys", "group_matter_vault_users"],
+          "scopes": ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"]
+        }
+      ]
+    },
+    {
+      "user_id": "user_amic_jwsuh",
+      "email": "jwsuh@amic.kr",
+      "display_name": "서지원",
+      "english_name": "Jiwon Suh",
+      "source_title": "대표변호사",
+      "status": "active",
+      "registration_state": "registered_seed",
+      "mfa_required": true,
+      "highest_privilege": true,
+      "privilege_rank": 1000,
+      "role_ids": [
+        "system_super_admin",
+        "tenant_owner",
+        "managing_partner",
+        "security_admin",
+        "matter_vault_admin",
+        "matter_vault_user"
+      ],
+      "group_ids": ["group_system_admins", "group_firm_leadership", "group_matter_vault_admins"],
+      "scopes": [
+        "tenant.admin",
+        "user.admin",
+        "security.admin",
+        "cutover.execute",
+        "matter.read",
+        "matter.write",
+        "vault.read",
+        "vault.write",
+        "audit.read",
+        "audit.export"
+      ],
+      "assurance_level": "mfa",
+      "local_dev": {
+        "synthetic_only": true,
+        "synthetic_token": "local-dev-only:jwsuh@amic.kr"
+      },
+      "tenant_memberships": [
+        {
+          "tenant_id": "tenant_amic_matter_vault",
+          "role_ids": [
+            "system_super_admin",
+            "tenant_owner",
+            "managing_partner",
+            "security_admin",
+            "matter_vault_admin",
+            "matter_vault_user"
+          ],
+          "group_ids": ["group_system_admins", "group_firm_leadership", "group_matter_vault_admins"],
+          "scopes": [
+            "tenant.admin",
+            "user.admin",
+            "security.admin",
+            "cutover.execute",
+            "matter.read",
+            "matter.write",
+            "vault.read",
+            "vault.write",
+            "audit.read",
+            "audit.export"
+          ]
+        }
+      ]
+    },
+    {
+      "user_id": "user_amic_smcho",
+      "email": "smcho@amic.kr",
+      "display_name": "조성민",
+      "english_name": "Sungmin Cho",
+      "source_title": "대표변호사",
+      "status": "active",
+      "registration_state": "registered_seed",
+      "mfa_required": true,
+      "highest_privilege": false,
+      "privilege_rank": 800,
+      "role_ids": ["managing_partner", "attorney", "matter_vault_user"],
+      "group_ids": ["group_firm_leadership", "group_attorneys", "group_matter_vault_users"],
+      "scopes": ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"],
+      "assurance_level": "mfa",
+      "local_dev": {
+        "synthetic_only": true,
+        "synthetic_token": "local-dev-only:smcho@amic.kr"
+      },
+      "tenant_memberships": [
+        {
+          "tenant_id": "tenant_amic_matter_vault",
+          "role_ids": ["managing_partner", "attorney", "matter_vault_user"],
+          "group_ids": ["group_firm_leadership", "group_attorneys", "group_matter_vault_users"],
+          "scopes": ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"]
+        }
+      ]
+    },
+    {
+      "user_id": "user_amic_tryoon",
+      "email": "tryoon@amic.kr",
+      "display_name": "윤태리",
+      "english_name": "Taeri Yoon",
+      "source_title": "실장",
+      "status": "active",
+      "registration_state": "registered_seed",
+      "mfa_required": true,
+      "highest_privilege": false,
+      "privilege_rank": 400,
+      "role_ids": ["operations_lead", "matter_vault_user"],
+      "group_ids": ["group_firm_operations", "group_matter_vault_users"],
+      "scopes": ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"],
+      "assurance_level": "mfa",
+      "local_dev": {
+        "synthetic_only": true,
+        "synthetic_token": "local-dev-only:tryoon@amic.kr"
+      },
+      "tenant_memberships": [
+        {
+          "tenant_id": "tenant_amic_matter_vault",
+          "role_ids": ["operations_lead", "matter_vault_user"],
+          "group_ids": ["group_firm_operations", "group_matter_vault_users"],
+          "scopes": ["matter.read", "matter.write", "vault.read", "vault.write", "audit.read"]
+        }
+      ]
+    },
+    {
+      "user_id": "user_amic_yjlee",
+      "email": "yjlee@amic.kr",
+      "display_name": "이예진",
+      "english_name": "Yejin Lee",
+      "source_title": "대리",
+      "status": "active",
+      "registration_state": "registered_seed",
+      "mfa_required": true,
+      "highest_privilege": false,
+      "privilege_rank": 200,
+      "role_ids": ["support_user", "matter_vault_user"],
+      "group_ids": ["group_firm_operations", "group_matter_vault_users"],
+      "scopes": ["matter.read", "vault.read"],
+      "assurance_level": "mfa",
+      "local_dev": {
+        "synthetic_only": true,
+        "synthetic_token": "local-dev-only:yjlee@amic.kr"
+      },
+      "tenant_memberships": [
+        {
+          "tenant_id": "tenant_amic_matter_vault",
+          "role_ids": ["support_user", "matter_vault_user"],
+          "group_ids": ["group_firm_operations", "group_matter_vault_users"],
+          "scopes": ["matter.read", "vault.read"]
+        }
+      ]
+    }
+  ]
+}
