@@ -7,6 +7,7 @@
   "description": "matter desktop shell package with guarded file bridge, route-only deep links, and internal packaging/update smoke; no public release channel is exposed.",
   "scripts": {
     "start": "electron .",
+    "prepare:web-renderer": "node ../../scripts/prepare-matter-desktop-web-renderer.mjs",
     "build:mac": "node ../../scripts/build-matter-desktop-mac.mjs",
     "build:win": "node ../../scripts/build-matter-desktop-win.mjs",
     "test:smoke": "node --test test/*.test.mjs",

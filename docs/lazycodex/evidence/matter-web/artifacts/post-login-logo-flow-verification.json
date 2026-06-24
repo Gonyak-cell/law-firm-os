@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-06-22T07:00:33.355Z",
+  "splashState": {
+    "logoFlow": "post-login",
+    "imageAlt": "matter",
+    "imageWidth": 346,
+    "overlayBackground": "rgb(247, 249, 252)",
+    "overlayZIndex": "3000",
+    "actionsVisible": false,
+    "visibleText": "Opening your matter workspace",
+    "logoTextHasByAmic": false
+  },
+  "finalState": {
+    "state": "collapsed",
+    "railDisplay": "grid",
+    "sidebarDisplay": "none",
+    "railWordVisible": false,
+    "title": "matter command center",
+    "cards": 12,
+    "overflow": false
+  },
+  "sidebarState": {
+    "collapsed": {
+      "state": "collapsed",
+      "railDisplay": "grid",
+      "sidebarDisplay": "none",
+      "railWordVisible": false,
+      "title": "matter command center",
+      "cards": 12,
+      "overflow": false
+    },
+    "expanded": {
+      "state": "expanded",
+      "railDisplay": "none",
+      "sidebarDisplay": "block",
+      "matterWord": "matter",
+      "matterWordVisible": true,
+      "overflow": false
+    }
+  }
+}

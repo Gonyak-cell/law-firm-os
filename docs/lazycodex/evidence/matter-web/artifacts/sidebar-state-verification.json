@@ -1,0 +1,19 @@
+{
+  "collapsed": {
+    "state": "collapsed",
+    "railDisplay": "grid",
+    "sidebarDisplay": "none",
+    "railWordVisible": false,
+    "title": "matter command center",
+    "cards": 12,
+    "overflow": false
+  },
+  "expanded": {
+    "state": "expanded",
+    "railDisplay": "none",
+    "sidebarDisplay": "block",
+    "matterWord": "matter",
+    "matterWordVisible": true,
+    "overflow": false
+  }
+}

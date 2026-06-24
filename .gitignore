@@ -12,6 +12,8 @@ apps/desktop/src/renderer/web/
 !docs/ui-reference/amplitude-feb-2025/contact-sheets/*.png
 !docs/ui-reference/amplitude-feb-2025/visual-parity/*.png
 !docs/ui-reference/brand/*.png
+!docs/lazycodex/evidence/matter-web/artifacts/*.png
+!docs/lazycodex/evidence/matter-desktop/artifacts/*.png
 .DS_Store
 Law Firm OS UI/
 progress-control-room-live-data.js
