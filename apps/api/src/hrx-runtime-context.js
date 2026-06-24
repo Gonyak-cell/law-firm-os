@@ -31,8 +31,33 @@ import {
 
 const SYNTHETIC_TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
 export const HRX_RUNTIME_SEED_TENANT_ID = SYNTHETIC_TENANT;
+export const HRX_API_COMPATIBILITY_TENANT_ID = "tenant-a";
+const HRX_DEFAULT_SEED_TENANT_IDS = Object.freeze(
+  [...new Set([SYNTHETIC_TENANT, HRX_API_COMPATIBILITY_TENANT_ID])],
+);
 const REGISTERED_ACCOUNTS = listRegisteredAccounts();
 const SEED_SOURCE_REF = MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE;
+const COMPATIBILITY_SOURCE_REF = "HRX:api-compatibility-fixture";
+const COMPATIBILITY_PEOPLE = Object.freeze([
+  Object.freeze({
+    employee_id: "emp-001",
+    user_id: "user-hrx-001",
+    display_name: "Ari Kim",
+    legal_name: "Ari Kim",
+    work_email: "ari.kim@example.test",
+    title: "People Operations Lead",
+    org_unit_id: "group_people_ops",
+  }),
+  Object.freeze({
+    employee_id: "emp-002",
+    user_id: "user-hrx-002",
+    display_name: "Mina Park",
+    legal_name: "Mina Park",
+    work_email: "mina.park@example.test",
+    title: "Litigation Associate",
+    org_unit_id: "group_litigation",
+  }),
+]);
 
 function accountEmployeeId(account) {
   return `emp_${String(account.user_id).replace(/^user_/, "")}`;
@@ -75,8 +100,342 @@ function registeredEmployeeUserLinks(tenantId) {
   }));
 }
 
-function registeredEmployeeId(index) {
-  return accountEmployeeId(REGISTERED_ACCOUNTS[index] ?? REGISTERED_ACCOUNTS[0]);
+function compatibilityEmployees(tenantId) {
+  return COMPATIBILITY_PEOPLE.map((person) => ({
+    tenant_id: tenantId,
+    employee_id: person.employee_id,
+    display_name: person.display_name,
+    legal_name: person.legal_name,
+    work_email: person.work_email,
+    status: "active",
+    source_ref: COMPATIBILITY_SOURCE_REF,
+  }));
+}
+
+function compatibilityEmploymentProfiles(tenantId) {
+  return COMPATIBILITY_PEOPLE.map((person) => ({
+    tenant_id: tenantId,
+    profile_id: `profile-${person.employee_id}`,
+    employee_id: person.employee_id,
+    employment_type: "full_time",
+    status: "active",
+    title: person.title,
+    org_unit_id: person.org_unit_id,
+    effective_from: "2026-06-20",
+    source_ref: COMPATIBILITY_SOURCE_REF,
+  }));
+}
+
+function compatibilityEmployeeUserLinks(tenantId) {
+  return COMPATIBILITY_PEOPLE.map((person) => ({
+    tenant_id: tenantId,
+    link_id: `link-${person.employee_id}`,
+    employee_id: person.employee_id,
+    user_id: person.user_id,
+    purpose: "login_mapping",
+    source_ref: COMPATIBILITY_SOURCE_REF,
+  }));
+}
+
+function seedEmployees(tenantId) {
+  return tenantId === HRX_API_COMPATIBILITY_TENANT_ID ? compatibilityEmployees(tenantId) : registeredEmployees(tenantId);
+}
+
+function seedEmploymentProfiles(tenantId) {
+  return tenantId === HRX_API_COMPATIBILITY_TENANT_ID
+    ? compatibilityEmploymentProfiles(tenantId)
+    : registeredEmploymentProfiles(tenantId);
+}
+
+function seedEmployeeUserLinks(tenantId) {
+  return tenantId === HRX_API_COMPATIBILITY_TENANT_ID
+    ? compatibilityEmployeeUserLinks(tenantId)
+    : registeredEmployeeUserLinks(tenantId);
+}
+
+function seedEmployeeId(tenantId, index) {
+  const employees = seedEmployees(tenantId);
+  return employees[index]?.employee_id ?? employees[0]?.employee_id ?? `emp-${String(index + 1).padStart(3, "0")}`;
+}
+
+function resolveSeedTenantIds({ tenant_id, tenant_ids } = {}) {
+  const values = Array.isArray(tenant_ids) && tenant_ids.length > 0
+    ? tenant_ids
+    : tenant_id
+      ? [tenant_id]
+      : HRX_DEFAULT_SEED_TENANT_IDS;
+  return [...new Set(values.map((value) => String(value ?? "").trim()).filter(Boolean))];
+}
+
+function documentSeed(tenantId) {
+  return [
+    {
+      tenant_id: tenantId,
+      document_id: "doc-001",
+      employee_id: seedEmployeeId(tenantId, 0),
+      document_type: "policy_ack",
+      source_ref: "DMS:hr-policy-ack-001",
+      source_provider: "dms",
+      source_status: "verified",
+      source_verified_at: "2026-06-20T00:00:00.000Z",
+      source_version_ref: "DMS:hr-policy-ack-001:v1",
+      source_metadata: { provider_document_id: "hr-policy-ack-001", etag_present: true },
+      title: "Policy acknowledgement",
+    },
+    {
+      tenant_id: tenantId,
+      document_id: "doc-002",
+      employee_id: seedEmployeeId(tenantId, 1),
+      document_type: "leave_notice",
+      source_ref: "DMS:leave-notice-002",
+      source_provider: "dms",
+      source_status: "verified",
+      source_verified_at: "2026-06-20T00:00:00.000Z",
+      source_version_ref: "DMS:leave-notice-002:v1",
+      source_metadata: { provider_document_id: "leave-notice-002", etag_present: true },
+      title: "Leave notice",
+    },
+  ];
+}
+
+function leaveLedgerSeed(tenantId) {
+  return [
+    {
+      tenant_id: tenantId,
+      entry_id: "pto-earned-001",
+      employee_id: seedEmployeeId(tenantId, 0),
+      policy_id: "pto-us",
+      entry_type: "earned",
+      amount: 80,
+      occurred_on: "2026-06-01",
+      source_ref: "PolicyAccrual:2026-06",
+    },
+    {
+      tenant_id: tenantId,
+      entry_id: "pto-used-002",
+      employee_id: seedEmployeeId(tenantId, 1),
+      policy_id: "pto-us",
+      entry_type: "used",
+      amount: 16,
+      occurred_on: "2026-06-10",
+      source_ref: "LeaveRequest:leave-002",
+    },
+  ];
+}
+
+function leaveRequestSeed(tenantId) {
+  return [
+    {
+      tenant_id: tenantId,
+      request_id: "leave-002",
+      employee_id: seedEmployeeId(tenantId, 1),
+      policy_id: "pto-us",
+      leave_type: "pto",
+      amount: 16,
+      start_date: "2026-06-10",
+      end_date: "2026-06-11",
+      state: "approved",
+      approver_id: "manager-001",
+      decided_at: "2026-06-10T00:00:00.000Z",
+    },
+  ];
+}
+
+function approvalSeed(tenantId) {
+  return [
+    createApprovalRequest({
+      tenant_id: tenantId,
+      approval_id: "approval-leave-002",
+      object_type: "LeaveRequest",
+      object_id: "leave-002",
+      route: "manager",
+      approver_role: "manager",
+    }),
+    createApprovalRequest({
+      tenant_id: tenantId,
+      approval_id: "approval-legal-risk-001",
+      object_type: "LegalRisk",
+      object_id: "legal-risk-001",
+      route: "legal",
+      approver_role: "legal_ops",
+    }),
+  ];
+}
+
+function jobOpeningSeed(tenantId) {
+  return [
+    createJobOpening({
+      tenant_id: tenantId,
+      job_opening_id: "job-001",
+      title: "Senior Litigation Associate",
+      department_ref: "PracticeGroup:litigation",
+      hiring_manager_employee_id: seedEmployeeId(tenantId, 0),
+      position_count: 2,
+      state: "open",
+      approval_ref: "Approval:job-001",
+    }),
+  ];
+}
+
+function candidateSeed(tenantId) {
+  return [
+    createCandidateProfile({
+      tenant_id: tenantId,
+      candidate_id: "cand-001",
+      legal_name: "Candidate One",
+      email: "candidate@example.com",
+      source_ref: "ATS:synthetic:cand-001",
+      resume_ref: "DMS:candidate-resume-001",
+      retention_policy_id: "candidate-retention-2y",
+    }),
+  ];
+}
+
+function applicationSeed(tenantId) {
+  return [
+    createApplication({
+      tenant_id: tenantId,
+      application_id: "app-001",
+      candidate_id: "cand-001",
+      job_opening_id: "job-001",
+      stage: "interview",
+    }),
+  ];
+}
+
+function interviewSeed(tenantId) {
+  return [
+    createInterview({
+      tenant_id: tenantId,
+      interview_id: "int-001",
+      application_id: "app-001",
+      candidate_id: "cand-001",
+      scheduled_for: "2026-07-10T15:00:00.000Z",
+      schedule_source_ref: "CalendarEvent:int-001",
+      interviewer_employee_ids: [seedEmployeeId(tenantId, 0)],
+    }),
+  ];
+}
+
+function offerSeed(tenantId) {
+  return [
+    createOffer({
+      tenant_id: tenantId,
+      offer_id: "offer-001",
+      application_id: "app-001",
+      candidate_id: "cand-001",
+      compensation_ref: "CompPackage:offer-001",
+      document_ref: "DMS:offer-letter-001",
+      state: "sent",
+      approval_ref: "Approval:offer-001",
+    }),
+  ];
+}
+
+function onboardingSeed(tenantId) {
+  return [
+    createOnboardingPlan({
+      tenant_id: tenantId,
+      onboarding_id: "onb-001",
+      employee_id: seedEmployeeId(tenantId, 1),
+      start_date: "2026-08-01",
+      tasks: [
+        { task_id: "policy-ack", title: "Policy acknowledgement", owner_role: "people_ops" },
+        { task_id: "access-provision", title: "Provision core access", owner_role: "it_ops", status: "blocked" },
+      ],
+      document_refs: ["DMS:policy-ack"],
+      access_requests: [{ request_id: "access-001", system_ref: "IdP:core", access_level: "employee" }],
+    }),
+  ];
+}
+
+function offboardingSeed(tenantId) {
+  return [
+    createOffboardingCase({
+      tenant_id: tenantId,
+      offboarding_id: "off-001",
+      employee_id: seedEmployeeId(tenantId, 0),
+      separation_date: "2026-12-31",
+      access_revocations: [{ system_ref: "IdP:core", revoked: true }],
+      document_returns: [{ document_ref: "DMS:laptop-001", returned: true }],
+      legal_hold_checks: [{ hold_ref: "LegalHold:none", clear: true }],
+    }),
+  ];
+}
+
+function policySeed(tenantId) {
+  return [
+    createLeavePolicy({
+      tenant_id: tenantId,
+      policy_id: "pto-us",
+      policy_version: "2026.1",
+      leave_type: "pto",
+      accrual_rate_per_month: 8,
+      annual_entitlement: 96,
+      carryover_limit: 40,
+      effective_from: "2026-01-01",
+    }),
+    createApprovalPolicy({
+      tenant_id: tenantId,
+      policy_id: "approval-policy-2026.1",
+      routes: { manager: "manager", hr: "people_ops", legal: "legal_ops" },
+    }),
+    Object.freeze({
+      tenant_id: tenantId,
+      policy_id: "retention-hr-docs",
+      policy_type: "retention",
+      policy_version: "2026.1",
+      retention_period_days: 2555,
+      effective_from: "2026-01-01",
+    }),
+  ];
+}
+
+function aiSourceSeed(tenantId) {
+  return [
+    {
+      tenant_id: tenantId,
+      source_ref: "Policy:leave:2026",
+      source_type: "policy_document",
+      title: "Leave policy metadata",
+      tags: ["leave", "policy", "pto"],
+    },
+    {
+      tenant_id: tenantId,
+      source_ref: `Case:leave:${seedEmployeeId(tenantId, 1)}`,
+      source_type: "case_record",
+      title: "Leave accommodation case metadata",
+      tags: ["leave", "case"],
+    },
+    {
+      tenant_id: tenantId,
+      source_ref: `HRDoc:${seedEmployeeId(tenantId, 0)}:salary`,
+      source_type: "hr_document",
+      title: "Compensation source metadata",
+      tags: ["pay", "salary"],
+      sensitivity: "compensation",
+    },
+  ];
+}
+
+function matterAssignmentSeed(tenantId) {
+  return [
+    Object.freeze({
+      tenant_id: tenantId,
+      employee_id: seedEmployeeId(tenantId, 0),
+      matter_id: "matter-001",
+      hours: 12.5,
+      capacity_pct: 35,
+    }),
+    Object.freeze({
+      tenant_id: tenantId,
+      employee_id: seedEmployeeId(tenantId, 1),
+      matter_id: "matter-002",
+      hours: 7,
+      capacity_pct: 18,
+      billable: false,
+    }),
+  ];
 }
 
 function response(status, body) {
@@ -146,112 +505,48 @@ function hasRow(store, table, where) {
   return Boolean(store.query("selectOne", { table, where }));
 }
 
-export function seedHrxDurableRuntimeStore(store, { tenant_id: tenantId = SYNTHETIC_TENANT } = {}) {
-  if (!store || typeof store.query !== "function") throw new TypeError("HRX durable runtime seed requires store.query");
-
+function seedHrxDurableRuntimeTenant(store, tenantId) {
   const repository = createSqlHrxRepository({ store, clock: () => "2026-06-20T00:00:00.000Z" });
   const documents = createSqlHrxDocumentStore({ store });
   const leaveLedger = createSqlLeaveBalanceLedger({ store });
   const leaveStore = createSqlLeaveRequestStore({ store });
 
-  const employees = registeredEmployees(tenantId);
+  const employees = seedEmployees(tenantId);
   for (const employee of employees) {
     if (!hasRow(store, "hrx_employees", { tenant_id: employee.tenant_id, employee_id: employee.employee_id })) {
       repository.createEmployee(employee);
     }
   }
 
-  const profiles = registeredEmploymentProfiles(tenantId);
+  const profiles = seedEmploymentProfiles(tenantId);
   for (const profile of profiles) {
     if (!hasRow(store, "hrx_employment_profiles", { tenant_id: profile.tenant_id, profile_id: profile.profile_id })) {
       repository.createEmploymentProfile(profile);
     }
   }
 
-  const links = registeredEmployeeUserLinks(tenantId);
+  const links = seedEmployeeUserLinks(tenantId);
   for (const link of links) {
     if (!hasRow(store, "hrx_employee_user_links", { tenant_id: link.tenant_id, link_id: link.link_id })) {
       repository.createEmployeeUserLink(link);
     }
   }
 
-  const documentRows = [
-    {
-      tenant_id: tenantId,
-      document_id: "doc-001",
-      employee_id: registeredEmployeeId(0),
-      document_type: "policy_ack",
-      source_ref: "DMS:hr-policy-ack-001",
-      source_provider: "dms",
-      source_status: "verified",
-      source_verified_at: "2026-06-20T00:00:00.000Z",
-      source_version_ref: "DMS:hr-policy-ack-001:v1",
-      source_metadata: { provider_document_id: "hr-policy-ack-001", etag_present: true },
-      title: "Policy acknowledgement",
-    },
-    {
-      tenant_id: tenantId,
-      document_id: "doc-002",
-      employee_id: registeredEmployeeId(1),
-      document_type: "leave_notice",
-      source_ref: "DMS:leave-notice-002",
-      source_provider: "dms",
-      source_status: "verified",
-      source_verified_at: "2026-06-20T00:00:00.000Z",
-      source_version_ref: "DMS:leave-notice-002:v1",
-      source_metadata: { provider_document_id: "leave-notice-002", etag_present: true },
-      title: "Leave notice",
-    },
-  ];
+  const documentRows = documentSeed(tenantId);
   for (const document of documentRows) {
     if (!hasRow(store, "hrx_documents", { tenant_id: document.tenant_id, document_id: document.document_id })) {
       documents.create(document);
     }
   }
 
-  const ledgerEntries = [
-    {
-      tenant_id: tenantId,
-      entry_id: "pto-earned-001",
-      employee_id: registeredEmployeeId(0),
-      policy_id: "pto-us",
-      entry_type: "earned",
-      amount: 80,
-      occurred_on: "2026-06-01",
-      source_ref: "PolicyAccrual:2026-06",
-    },
-    {
-      tenant_id: tenantId,
-      entry_id: "pto-used-002",
-      employee_id: registeredEmployeeId(1),
-      policy_id: "pto-us",
-      entry_type: "used",
-      amount: 16,
-      occurred_on: "2026-06-10",
-      source_ref: "LeaveRequest:leave-002",
-    },
-  ];
+  const ledgerEntries = leaveLedgerSeed(tenantId);
   for (const entry of ledgerEntries) {
     if (!hasRow(store, "hrx_leave_balance_entries", { tenant_id: entry.tenant_id, entry_id: entry.entry_id })) {
       leaveLedger.append(entry);
     }
   }
 
-  const leaveRequests = [
-    {
-      tenant_id: tenantId,
-      request_id: "leave-002",
-      employee_id: registeredEmployeeId(1),
-      policy_id: "pto-us",
-      leave_type: "pto",
-      amount: 16,
-      start_date: "2026-06-10",
-      end_date: "2026-06-11",
-      state: "approved",
-      approver_id: "manager-001",
-      decided_at: "2026-06-10T00:00:00.000Z",
-    },
-  ];
+  const leaveRequests = leaveRequestSeed(tenantId);
   for (const leaveRequest of leaveRequests) {
     if (!hasRow(store, "hrx_leave_requests", { tenant_id: leaveRequest.tenant_id, request_id: leaveRequest.request_id })) {
       leaveStore.create(leaveRequest);
@@ -269,258 +564,67 @@ export function seedHrxDurableRuntimeStore(store, { tenant_id: tenantId = SYNTHE
   });
 }
 
+export function seedHrxDurableRuntimeStore(store, options = {}) {
+  if (!store || typeof store.query !== "function") throw new TypeError("HRX durable runtime seed requires store.query");
+  const summaries = resolveSeedTenantIds(options).map((tenantId) => seedHrxDurableRuntimeTenant(store, tenantId));
+  if (summaries.length === 1) return summaries[0];
+  return Object.freeze({
+    tenant_ids: summaries.map((summary) => summary.tenant_id),
+    tenants: summaries,
+    employees: summaries.reduce((total, summary) => total + summary.employees, 0),
+    employment_profiles: summaries.reduce((total, summary) => total + summary.employment_profiles, 0),
+    employee_user_links: summaries.reduce((total, summary) => total + summary.employee_user_links, 0),
+    documents: summaries.reduce((total, summary) => total + summary.documents, 0),
+    leave_balance_entries: summaries.reduce((total, summary) => total + summary.leave_balance_entries, 0),
+    leave_requests: summaries.reduce((total, summary) => total + summary.leave_requests, 0),
+  });
+}
+
 export function createHrxRuntimeContext({ repository: providedRepository, store } = {}) {
+  const seedTenantIds = HRX_DEFAULT_SEED_TENANT_IDS;
   const repository = providedRepository ?? (store ? createSqlHrxRepository({ store }) : createInMemoryHrxRepository({
-    employees: registeredEmployees(SYNTHETIC_TENANT),
-    employment_profiles: registeredEmploymentProfiles(SYNTHETIC_TENANT),
-    employee_user_links: registeredEmployeeUserLinks(SYNTHETIC_TENANT),
+    employees: seedTenantIds.flatMap(seedEmployees),
+    employment_profiles: seedTenantIds.flatMap(seedEmploymentProfiles),
+    employee_user_links: seedTenantIds.flatMap(seedEmployeeUserLinks),
   }));
-  const documents = store ? createSqlHrxDocumentStore({ store }) : createInMemoryHrxDocumentStore([
-    {
-      tenant_id: SYNTHETIC_TENANT,
-      document_id: "doc-001",
-      employee_id: registeredEmployeeId(0),
-      document_type: "policy_ack",
-      source_ref: "DMS:hr-policy-ack-001",
-      source_provider: "dms",
-      source_status: "verified",
-      source_verified_at: "2026-06-20T00:00:00.000Z",
-      source_version_ref: "DMS:hr-policy-ack-001:v1",
-      source_metadata: { provider_document_id: "hr-policy-ack-001", etag_present: true },
-      title: "Policy acknowledgement",
-    },
-    {
-      tenant_id: SYNTHETIC_TENANT,
-      document_id: "doc-002",
-      employee_id: registeredEmployeeId(1),
-      document_type: "leave_notice",
-      source_ref: "DMS:leave-notice-002",
-      source_provider: "dms",
-      source_status: "verified",
-      source_verified_at: "2026-06-20T00:00:00.000Z",
-      source_version_ref: "DMS:leave-notice-002:v1",
-      source_metadata: { provider_document_id: "leave-notice-002", etag_present: true },
-      title: "Leave notice",
-    },
-  ]);
-  const leaveLedger = store ? createSqlLeaveBalanceLedger({ store }) : createInMemoryLeaveBalanceLedger([
-    {
-      tenant_id: SYNTHETIC_TENANT,
-      entry_id: "pto-earned-001",
-      employee_id: registeredEmployeeId(0),
-      policy_id: "pto-us",
-      entry_type: "earned",
-      amount: 80,
-      occurred_on: "2026-06-01",
-      source_ref: "PolicyAccrual:2026-06",
-    },
-    {
-      tenant_id: SYNTHETIC_TENANT,
-      entry_id: "pto-used-002",
-      employee_id: registeredEmployeeId(1),
-      policy_id: "pto-us",
-      entry_type: "used",
-      amount: 16,
-      occurred_on: "2026-06-10",
-      source_ref: "LeaveRequest:leave-002",
-    },
-  ]);
-  const leaveStore = store ? createSqlLeaveRequestStore({ store }) : createInMemoryLeaveRequestStore([
-    {
-      tenant_id: SYNTHETIC_TENANT,
-      request_id: "leave-002",
-      employee_id: registeredEmployeeId(1),
-      policy_id: "pto-us",
-      leave_type: "pto",
-      amount: 16,
-      start_date: "2026-06-10",
-      end_date: "2026-06-11",
-      state: "approved",
-      approver_id: "manager-001",
-    },
-  ]);
+  const documents = store
+    ? createSqlHrxDocumentStore({ store })
+    : createInMemoryHrxDocumentStore(seedTenantIds.flatMap(documentSeed));
+  const leaveLedger = store
+    ? createSqlLeaveBalanceLedger({ store })
+    : createInMemoryLeaveBalanceLedger(seedTenantIds.flatMap(leaveLedgerSeed));
+  const leaveStore = store
+    ? createSqlLeaveRequestStore({ store })
+    : createInMemoryLeaveRequestStore(seedTenantIds.flatMap(leaveRequestSeed));
   const audit = store ? createDurableAuditStore({ store }) : createHrxAuditEventStore();
   const leaveService = createLeaveRequestService({ store: leaveStore, balanceLedger: leaveLedger, audit });
 
-  const approvalPolicy = createApprovalPolicy({
-    tenant_id: SYNTHETIC_TENANT,
-    policy_id: "approval-policy-2026.1",
-    routes: { manager: "manager", hr: "people_ops", legal: "legal_ops" },
-  });
-  const approvals = [
-    createApprovalRequest({
-      tenant_id: SYNTHETIC_TENANT,
-      approval_id: "approval-leave-002",
-      object_type: "LeaveRequest",
-      object_id: "leave-002",
-      route: "manager",
-      approver_role: "manager",
-    }),
-    createApprovalRequest({
-      tenant_id: SYNTHETIC_TENANT,
-      approval_id: "approval-legal-risk-001",
-      object_type: "LegalRisk",
-      object_id: "legal-risk-001",
-      route: "legal",
-      approver_role: "legal_ops",
-    }),
-  ];
-
-  const jobOpenings = [
-    createJobOpening({
-      tenant_id: SYNTHETIC_TENANT,
-      job_opening_id: "job-001",
-      title: "Senior Litigation Associate",
-      department_ref: "PracticeGroup:litigation",
-      hiring_manager_employee_id: registeredEmployeeId(0),
-      position_count: 2,
-      state: "open",
-      approval_ref: "Approval:job-001",
-    }),
-  ];
-  const candidates = [
-    createCandidateProfile({
-      tenant_id: SYNTHETIC_TENANT,
-      candidate_id: "cand-001",
-      legal_name: "Candidate One",
-      email: "candidate@example.com",
-      source_ref: "ATS:synthetic:cand-001",
-      resume_ref: "DMS:candidate-resume-001",
-      retention_policy_id: "candidate-retention-2y",
-    }),
-  ];
-  const applications = [
-    createApplication({
-      tenant_id: SYNTHETIC_TENANT,
-      application_id: "app-001",
-      candidate_id: "cand-001",
-      job_opening_id: "job-001",
-      stage: "interview",
-    }),
-  ];
-  const interviews = [
-    createInterview({
-      tenant_id: SYNTHETIC_TENANT,
-      interview_id: "int-001",
-      application_id: "app-001",
-      candidate_id: "cand-001",
-      scheduled_for: "2026-07-10T15:00:00.000Z",
-      schedule_source_ref: "CalendarEvent:int-001",
-      interviewer_employee_ids: [registeredEmployeeId(0)],
-    }),
-  ];
-  const offers = [
-    createOffer({
-      tenant_id: SYNTHETIC_TENANT,
-      offer_id: "offer-001",
-      application_id: "app-001",
-      candidate_id: "cand-001",
-      compensation_ref: "CompPackage:offer-001",
-      document_ref: "DMS:offer-letter-001",
-      state: "sent",
-      approval_ref: "Approval:offer-001",
-    }),
-  ];
-  const onboardingPlans = [
-    createOnboardingPlan({
-      tenant_id: SYNTHETIC_TENANT,
-      onboarding_id: "onb-001",
-      employee_id: registeredEmployeeId(1),
-      start_date: "2026-08-01",
-      tasks: [
-        { task_id: "policy-ack", title: "Policy acknowledgement", owner_role: "people_ops" },
-        { task_id: "access-provision", title: "Provision core access", owner_role: "it_ops", status: "blocked" },
-      ],
-      document_refs: ["DMS:policy-ack"],
-      access_requests: [{ request_id: "access-001", system_ref: "IdP:core", access_level: "employee" }],
-    }),
-  ];
-  const offboardingCases = [
-    createOffboardingCase({
-      tenant_id: SYNTHETIC_TENANT,
-      offboarding_id: "off-001",
-      employee_id: registeredEmployeeId(0),
-      separation_date: "2026-12-31",
-      access_revocations: [{ system_ref: "IdP:core", revoked: true }],
-      document_returns: [{ document_ref: "DMS:laptop-001", returned: true }],
-      legal_hold_checks: [{ hold_ref: "LegalHold:none", clear: true }],
-    }),
-  ];
-  const policies = [
-    createLeavePolicy({
-      tenant_id: SYNTHETIC_TENANT,
-      policy_id: "pto-us",
-      policy_version: "2026.1",
-      leave_type: "pto",
-      accrual_rate_per_month: 8,
-      annual_entitlement: 96,
-      carryover_limit: 40,
-      effective_from: "2026-01-01",
-    }),
-    approvalPolicy,
-    Object.freeze({
-      tenant_id: SYNTHETIC_TENANT,
-      policy_id: "retention-hr-docs",
-      policy_type: "retention",
-      policy_version: "2026.1",
-      retention_period_days: 2555,
-      effective_from: "2026-01-01",
-    }),
-  ];
-  const aiSourceRegistry = createHrxAiSourceRegistry([
-    {
-      tenant_id: SYNTHETIC_TENANT,
-      source_ref: "Policy:leave:2026",
-      source_type: "policy_document",
-      title: "Leave policy metadata",
-      tags: ["leave", "policy", "pto"],
-    },
-    {
-      tenant_id: SYNTHETIC_TENANT,
-      source_ref: "Case:leave:emp-002",
-      source_type: "case_record",
-      title: "Leave accommodation case metadata",
-      tags: ["leave", "case"],
-    },
-    {
-      tenant_id: SYNTHETIC_TENANT,
-      source_ref: "HRDoc:emp-001:salary",
-      source_type: "hr_document",
-      title: "Compensation source metadata",
-      tags: ["pay", "salary"],
-      sensitivity: "compensation",
-    },
-  ]);
+  const approvals = seedTenantIds.flatMap(approvalSeed);
+  const jobOpenings = seedTenantIds.flatMap(jobOpeningSeed);
+  const candidates = seedTenantIds.flatMap(candidateSeed);
+  const applications = seedTenantIds.flatMap(applicationSeed);
+  const interviews = seedTenantIds.flatMap(interviewSeed);
+  const offers = seedTenantIds.flatMap(offerSeed);
+  const onboardingPlans = seedTenantIds.flatMap(onboardingSeed);
+  const offboardingCases = seedTenantIds.flatMap(offboardingSeed);
+  const policies = seedTenantIds.flatMap(policySeed);
+  const aiSourceRegistry = createHrxAiSourceRegistry(seedTenantIds.flatMap(aiSourceSeed));
   const aiRetriever = createHrxPermissionAwareRetriever({ registry: aiSourceRegistry, authz: createSyntheticAiAuthz() });
   const aiReviewQueue = store ? createSqlHrxAiReviewQueue({ store }) : createInMemoryHrxAiReviewQueue();
   const aiRoute = createHrxAiRoute({ retriever: aiRetriever, reviewQueue: aiReviewQueue, audit });
   const payrollRoute = createHrxPayrollRoute({ audit });
-  const matterAssignments = Object.freeze([
-    Object.freeze({
-      tenant_id: SYNTHETIC_TENANT,
-      employee_id: registeredEmployeeId(0),
-      matter_id: "matter-001",
-      hours: 12.5,
-      capacity_pct: 35,
-    }),
-    Object.freeze({
-      tenant_id: SYNTHETIC_TENANT,
-      employee_id: registeredEmployeeId(1),
-      matter_id: "matter-002",
-      hours: 7,
-      capacity_pct: 18,
-      billable: false,
-    }),
-  ]);
+  const matterAssignments = Object.freeze(seedTenantIds.flatMap(matterAssignmentSeed));
 
-  appendRuntimeAudit(audit, {
-    tenant_id: SYNTHETIC_TENANT,
-    actor_id: "system-seed",
-    action: "hrx.audit.seed",
-    object_type: "HRXRuntime",
-    object_id: "seed",
-    reason: "synthetic_runtime_seeded",
-  });
+  for (const tenantId of seedTenantIds) {
+    appendRuntimeAudit(audit, {
+      tenant_id: tenantId,
+      actor_id: "system-seed",
+      action: "hrx.audit.seed",
+      object_type: "HRXRuntime",
+      object_id: "seed",
+      reason: "synthetic_runtime_seeded",
+    });
+  }
 
   return Object.freeze({
     repository,
