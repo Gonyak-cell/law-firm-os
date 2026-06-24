@@ -25,8 +25,15 @@ const appSourceDir = join(resourcesDir, "app");
 const iconPath = join(desktopRoot, "build/icon.icns");
 const packagedIconFile = "matter.icns";
 const packagedIconPath = join(resourcesDir, packagedIconFile);
-const zipPath = join(distRoot, `matter-internal-${packageJson.version}-macos.zip`);
-const dmgPath = join(distRoot, `matter-internal-${packageJson.version}-macos.dmg`);
+const releaseChannel = process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal";
+if (!["internal", "formal"].includes(releaseChannel)) {
+  throw new Error("MATTER_DESKTOP_RELEASE_CHANNEL must be internal or formal.");
+}
+const formalRelease = releaseChannel === "formal";
+const appBundleId = formalRelease ? "com.amic.matter.desktop" : "com.amic.matter.desktop.internal";
+const artifactName = formalRelease ? `matter-${packageJson.version}` : `matter-internal-${packageJson.version}`;
+const zipPath = join(distRoot, `${artifactName}-macos.zip`);
+const dmgPath = join(distRoot, `${artifactName}-macos.dmg`);
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
 const arch = process.env.MATTER_DESKTOP_MAC_ARCH ?? (process.arch === "arm64" ? "arm64" : "x64");
 const signingMode = process.env.MATTER_DESKTOP_SIGN ?? "internal";
@@ -154,7 +161,7 @@ try {
     arch,
     name: "matter",
     executableName: "matter",
-    appBundleId: "com.amic.matter.desktop.internal",
+    appBundleId,
     appCategoryType: "public.app-category.business",
     appVersion: packageJson.version,
     buildVersion: packageJson.version,
@@ -220,14 +227,15 @@ const smoke = await execFileAsync(executablePath, ["-e", "process.stdout.write(p
 await execFileAsync("/usr/bin/ditto", ["-c", "-k", "--sequesterRsrc", "--keepParent", appBundle, zipPath]);
 await execFileAsync("/usr/bin/hdiutil", ["create", "-volname", "matter", "-srcfolder", appBundle, "-ov", "-format", "UDZO", dmgPath]);
 
-const receipt = `# macOS Internal Build Receipt
+const receipt = `# macOS ${formalRelease ? "Formal Release Candidate" : "Internal"} Build Receipt
 
-Status: internal_electron_app_bundle_created
+Status: ${formalRelease ? "formal_release_candidate_electron_app_bundle_created" : "internal_electron_app_bundle_created"}
 Source TUW: MDT-P6-W01-T03
 App bundle: \`apps/desktop/dist/mac/matter.app\`
-App ID: \`com.amic.matter.desktop.internal\`
+App ID: \`${appBundleId}\`
 Product name: \`matter\`
 Version: \`${packageJson.version}\`
+Channel: \`${releaseChannel}\`
 
 ## Package Structure
 
@@ -236,8 +244,8 @@ Version: \`${packageJson.version}\`
 - packaged app icon: \`apps/desktop/dist/mac/matter.app/Contents/Resources/${packagedIconFile}\`
 - packaged app source: \`apps/desktop/dist/mac/matter.app/Contents/Resources/app\`
 - executable: \`apps/desktop/dist/mac/matter.app/Contents/MacOS/matter\`
-- archive: \`apps/desktop/dist/mac/matter-internal-${packageJson.version}-macos.zip\`
-- disk image: \`apps/desktop/dist/mac/matter-internal-${packageJson.version}-macos.dmg\`
+- archive: \`apps/desktop/dist/mac/${artifactName}-macos.zip\`
+- disk image: \`apps/desktop/dist/mac/${artifactName}-macos.dmg\`
 
 ## Signing
 
@@ -280,9 +288,11 @@ console.log(
     {
       verdict: "PASS",
       app_bundle: "apps/desktop/dist/mac/matter.app",
-      zip: `apps/desktop/dist/mac/matter-internal-${packageJson.version}-macos.zip`,
-      dmg: `apps/desktop/dist/mac/matter-internal-${packageJson.version}-macos.dmg`,
+      zip: `apps/desktop/dist/mac/${artifactName}-macos.zip`,
+      dmg: `apps/desktop/dist/mac/${artifactName}-macos.dmg`,
       receipt: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
+      release_channel: releaseChannel,
+      app_id: appBundleId,
       signing_mode: signingMode,
       signing_identity: osxSign?.identity ?? "not_applied_internal_package",
       developer_id_signature: developerIdSignature,

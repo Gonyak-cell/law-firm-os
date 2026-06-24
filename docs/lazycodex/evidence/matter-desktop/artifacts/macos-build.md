@@ -1,11 +1,12 @@
-# macOS Internal Build Receipt
+# macOS Formal Release Candidate Build Receipt
 
-Status: internal_electron_app_bundle_created
+Status: formal_release_candidate_electron_app_bundle_created
 Source TUW: MDT-P6-W01-T03
 App bundle: `apps/desktop/dist/mac/matter.app`
-App ID: `com.amic.matter.desktop.internal`
+App ID: `com.amic.matter.desktop`
 Product name: `matter`
 Version: `0.1.0`
+Channel: `formal`
 
 ## Package Structure
 
@@ -14,8 +15,8 @@ Version: `0.1.0`
 - packaged app icon: `apps/desktop/dist/mac/matter.app/Contents/Resources/matter.icns`
 - packaged app source: `apps/desktop/dist/mac/matter.app/Contents/Resources/app`
 - executable: `apps/desktop/dist/mac/matter.app/Contents/MacOS/matter`
-- archive: `apps/desktop/dist/mac/matter-internal-0.1.0-macos.zip`
-- disk image: `apps/desktop/dist/mac/matter-internal-0.1.0-macos.dmg`
+- archive: `apps/desktop/dist/mac/matter-0.1.0-macos.zip`
+- disk image: `apps/desktop/dist/mac/matter-0.1.0-macos.dmg`
 
 ## Signing
 

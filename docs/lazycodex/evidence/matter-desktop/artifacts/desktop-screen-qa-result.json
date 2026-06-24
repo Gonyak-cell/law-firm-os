@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-06-24T15:23:38.078Z",
+  "generated_at": "2026-06-24T15:53:57.263Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
   "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
@@ -19,7 +19,7 @@
     "mac_bundle_present": true,
     "cf_bundle_name": "matter",
     "cf_bundle_display_name": "matter",
-    "cf_bundle_identifier": "com.amic.matter.desktop.internal"
+    "cf_bundle_identifier": "com.amic.matter.desktop"
   },
   "accounts": {
     "count": 9,
@@ -127,7 +127,7 @@
         "logo_flow": {
           "observed": true,
           "image_alt": "matter",
-          "image_width": 100,
+          "image_width": 95,
           "overlay_background": "rgb(247, 249, 252)",
           "overlay_z_index": "3000",
           "by_amic_visible_in_logo": false

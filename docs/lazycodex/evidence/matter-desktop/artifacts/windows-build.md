@@ -1,24 +1,25 @@
-# Windows Internal Build Receipt
+# Windows Formal Release Candidate Build Receipt
 
-Status: internal_windows_build_manifest_created
+Status: formal_release_candidate_windows_manifest_created
 Source TUW: MDT-P6-W01-T04
-Installer manifest: `apps/desktop/dist/win/matter-internal-0.1.0-win-installer-manifest.json`
+Installer manifest: `apps/desktop/dist/win/matter-0.1.0-win-installer-manifest.json`
 App icon: `apps/desktop/build/icon.ico`
 App icon sha256: `a4ed00e8de3968d5bb6990753cbe97b8cf9a8c67584850a1f257caf4a2c02e93`
-App ID: `com.amic.matter.desktop.internal`
+App ID: `com.amic.matter.desktop`
 Product name: `matter`
 Version: `0.1.0`
+Channel: `formal`
 
 ## Signing
 
-- signing identity: matter-internal-nonproduction detached signature
+- signing identity: matter-formal-candidate-nonproduction-signing-key
 - signing type: HMAC receipt signature for internal validation, not Windows Authenticode
-- signature file: `apps/desktop/dist/win/matter-internal-0.1.0-win-installer-manifest.json.sig`
+- signature file: `apps/desktop/dist/win/matter-0.1.0-win-installer-manifest.json.sig`
 
 ## Installer Hash
 
 - installer hash algorithm: sha256
-- installer hash: `f9a1c0497c0561ca657fedca3ac614f952491ef4070e8707a2528ca553a0ab36`
+- installer hash: `d2cf5fe871580df3943d7048671cef32747fd6bfd2179b606122c903c1be5d93`
 
 ## Install Smoke
 
