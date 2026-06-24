@@ -1,0 +1,378 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-06-24T07:35:32.631Z",
+  "base_url": "http://127.0.0.1:5176",
+  "api_health_url": "http://127.0.0.1:4180/api/health",
+  "allowed_proper_nouns": [
+    "Client",
+    "Matter",
+    "People",
+    "Vault"
+  ],
+  "forbidden_term_count": 43,
+  "checked_route_count": 60,
+  "checked_routes": [
+    {
+      "locale": "ko",
+      "view": "home",
+      "section": null,
+      "url": "http://127.0.0.1:5176/?locale=ko&view=home&ctx=allow"
+    },
+    {
+      "locale": "ko",
+      "view": "loading",
+      "section": null,
+      "url": "http://127.0.0.1:5176/?locale=ko&view=loading&ctx=allow"
+    },
+    {
+      "locale": "ko",
+      "view": "auth",
+      "section": null,
+      "url": "http://127.0.0.1:5176/?locale=ko&view=auth&ctx=allow&authStep=login"
+    },
+    {
+      "locale": "ko",
+      "view": "clients",
+      "section": null,
+      "url": "http://127.0.0.1:5176/?locale=ko&view=clients&ctx=allow"
+    },
+    {
+      "locale": "ko",
+      "view": "clients",
+      "section": "client-leads",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=clients&ctx=allow#client-leads"
+    },
+    {
+      "locale": "ko",
+      "view": "clients",
+      "section": "client-opportunities",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=clients&ctx=allow#client-opportunities"
+    },
+    {
+      "locale": "ko",
+      "view": "clients",
+      "section": "client-intake",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=clients&ctx=allow#client-intake"
+    },
+    {
+      "locale": "ko",
+      "view": "clients",
+      "section": "client-accounts",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=clients&ctx=allow#client-accounts"
+    },
+    {
+      "locale": "ko",
+      "view": "clients",
+      "section": "client-contacts",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=clients&ctx=allow#client-contacts"
+    },
+    {
+      "locale": "ko",
+      "view": "clients",
+      "section": "client-data",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=clients&ctx=allow#client-data"
+    },
+    {
+      "locale": "ko",
+      "view": "clients",
+      "section": "client-reports",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=clients&ctx=allow#client-reports"
+    },
+    {
+      "locale": "ko",
+      "view": "clients",
+      "section": "client-import",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=clients&ctx=allow#client-import"
+    },
+    {
+      "locale": "ko",
+      "view": "matters",
+      "section": null,
+      "url": "http://127.0.0.1:5176/?locale=ko&view=matters&ctx=allow"
+    },
+    {
+      "locale": "ko",
+      "view": "matters",
+      "section": "matter-command",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=matters&ctx=allow#matter-command"
+    },
+    {
+      "locale": "ko",
+      "view": "matters",
+      "section": "matter-vault",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=matters&ctx=allow#matter-vault"
+    },
+    {
+      "locale": "ko",
+      "view": "matters",
+      "section": "matter-timeline",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=matters&ctx=allow#matter-timeline"
+    },
+    {
+      "locale": "ko",
+      "view": "matters",
+      "section": "matter-calendar",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=matters&ctx=allow#matter-calendar"
+    },
+    {
+      "locale": "ko",
+      "view": "matters",
+      "section": "matter-channel",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=matters&ctx=allow#matter-channel"
+    },
+    {
+      "locale": "ko",
+      "view": "matters",
+      "section": "matter-opening",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=matters&ctx=allow#matter-opening"
+    },
+    {
+      "locale": "ko",
+      "view": "matters",
+      "section": "matter-team",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=matters&ctx=allow#matter-team"
+    },
+    {
+      "locale": "ko",
+      "view": "matters",
+      "section": "matter-billing",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=matters&ctx=allow#matter-billing"
+    },
+    {
+      "locale": "ko",
+      "view": "matters",
+      "section": "matter-analytics",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=matters&ctx=allow#matter-analytics"
+    },
+    {
+      "locale": "ko",
+      "view": "matters",
+      "section": "matter-import",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=matters&ctx=allow#matter-import"
+    },
+    {
+      "locale": "ko",
+      "view": "people",
+      "section": null,
+      "url": "http://127.0.0.1:5176/?locale=ko&view=people&ctx=allow"
+    },
+    {
+      "locale": "ko",
+      "view": "people",
+      "section": "people-members",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=people&ctx=allow#people-members"
+    },
+    {
+      "locale": "ko",
+      "view": "people",
+      "section": "people-admin",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=people&ctx=allow#people-admin"
+    },
+    {
+      "locale": "ko",
+      "view": "people",
+      "section": "people-payroll",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=people&ctx=allow#people-payroll"
+    },
+    {
+      "locale": "ko",
+      "view": "people",
+      "section": "people-ai",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=people&ctx=allow#people-ai"
+    },
+    {
+      "locale": "ko",
+      "view": "vault",
+      "section": null,
+      "url": "http://127.0.0.1:5176/?locale=ko&view=vault&ctx=allow"
+    },
+    {
+      "locale": "ko",
+      "view": "vault",
+      "section": "vault-documents",
+      "url": "http://127.0.0.1:5176/?locale=ko&view=vault&ctx=allow#vault-documents"
+    },
+    {
+      "locale": "en",
+      "view": "home",
+      "section": null,
+      "url": "http://127.0.0.1:5176/?locale=en&view=home&ctx=allow"
+    },
+    {
+      "locale": "en",
+      "view": "loading",
+      "section": null,
+      "url": "http://127.0.0.1:5176/?locale=en&view=loading&ctx=allow"
+    },
+    {
+      "locale": "en",
+      "view": "auth",
+      "section": null,
+      "url": "http://127.0.0.1:5176/?locale=en&view=auth&ctx=allow&authStep=login"
+    },
+    {
+      "locale": "en",
+      "view": "clients",
+      "section": null,
+      "url": "http://127.0.0.1:5176/?locale=en&view=clients&ctx=allow"
+    },
+    {
+      "locale": "en",
+      "view": "clients",
+      "section": "client-leads",
+      "url": "http://127.0.0.1:5176/?locale=en&view=clients&ctx=allow#client-leads"
+    },
+    {
+      "locale": "en",
+      "view": "clients",
+      "section": "client-opportunities",
+      "url": "http://127.0.0.1:5176/?locale=en&view=clients&ctx=allow#client-opportunities"
+    },
+    {
+      "locale": "en",
+      "view": "clients",
+      "section": "client-intake",
+      "url": "http://127.0.0.1:5176/?locale=en&view=clients&ctx=allow#client-intake"
+    },
+    {
+      "locale": "en",
+      "view": "clients",
+      "section": "client-accounts",
+      "url": "http://127.0.0.1:5176/?locale=en&view=clients&ctx=allow#client-accounts"
+    },
+    {
+      "locale": "en",
+      "view": "clients",
+      "section": "client-contacts",
+      "url": "http://127.0.0.1:5176/?locale=en&view=clients&ctx=allow#client-contacts"
+    },
+    {
+      "locale": "en",
+      "view": "clients",
+      "section": "client-data",
+      "url": "http://127.0.0.1:5176/?locale=en&view=clients&ctx=allow#client-data"
+    },
+    {
+      "locale": "en",
+      "view": "clients",
+      "section": "client-reports",
+      "url": "http://127.0.0.1:5176/?locale=en&view=clients&ctx=allow#client-reports"
+    },
+    {
+      "locale": "en",
+      "view": "clients",
+      "section": "client-import",
+      "url": "http://127.0.0.1:5176/?locale=en&view=clients&ctx=allow#client-import"
+    },
+    {
+      "locale": "en",
+      "view": "matters",
+      "section": null,
+      "url": "http://127.0.0.1:5176/?locale=en&view=matters&ctx=allow"
+    },
+    {
+      "locale": "en",
+      "view": "matters",
+      "section": "matter-command",
+      "url": "http://127.0.0.1:5176/?locale=en&view=matters&ctx=allow#matter-command"
+    },
+    {
+      "locale": "en",
+      "view": "matters",
+      "section": "matter-vault",
+      "url": "http://127.0.0.1:5176/?locale=en&view=matters&ctx=allow#matter-vault"
+    },
+    {
+      "locale": "en",
+      "view": "matters",
+      "section": "matter-timeline",
+      "url": "http://127.0.0.1:5176/?locale=en&view=matters&ctx=allow#matter-timeline"
+    },
+    {
+      "locale": "en",
+      "view": "matters",
+      "section": "matter-calendar",
+      "url": "http://127.0.0.1:5176/?locale=en&view=matters&ctx=allow#matter-calendar"
+    },
+    {
+      "locale": "en",
+      "view": "matters",
+      "section": "matter-channel",
+      "url": "http://127.0.0.1:5176/?locale=en&view=matters&ctx=allow#matter-channel"
+    },
+    {
+      "locale": "en",
+      "view": "matters",
+      "section": "matter-opening",
+      "url": "http://127.0.0.1:5176/?locale=en&view=matters&ctx=allow#matter-opening"
+    },
+    {
+      "locale": "en",
+      "view": "matters",
+      "section": "matter-team",
+      "url": "http://127.0.0.1:5176/?locale=en&view=matters&ctx=allow#matter-team"
+    },
+    {
+      "locale": "en",
+      "view": "matters",
+      "section": "matter-billing",
+      "url": "http://127.0.0.1:5176/?locale=en&view=matters&ctx=allow#matter-billing"
+    },
+    {
+      "locale": "en",
+      "view": "matters",
+      "section": "matter-analytics",
+      "url": "http://127.0.0.1:5176/?locale=en&view=matters&ctx=allow#matter-analytics"
+    },
+    {
+      "locale": "en",
+      "view": "matters",
+      "section": "matter-import",
+      "url": "http://127.0.0.1:5176/?locale=en&view=matters&ctx=allow#matter-import"
+    },
+    {
+      "locale": "en",
+      "view": "people",
+      "section": null,
+      "url": "http://127.0.0.1:5176/?locale=en&view=people&ctx=allow"
+    },
+    {
+      "locale": "en",
+      "view": "people",
+      "section": "people-members",
+      "url": "http://127.0.0.1:5176/?locale=en&view=people&ctx=allow#people-members"
+    },
+    {
+      "locale": "en",
+      "view": "people",
+      "section": "people-admin",
+      "url": "http://127.0.0.1:5176/?locale=en&view=people&ctx=allow#people-admin"
+    },
+    {
+      "locale": "en",
+      "view": "people",
+      "section": "people-payroll",
+      "url": "http://127.0.0.1:5176/?locale=en&view=people&ctx=allow#people-payroll"
+    },
+    {
+      "locale": "en",
+      "view": "people",
+      "section": "people-ai",
+      "url": "http://127.0.0.1:5176/?locale=en&view=people&ctx=allow#people-ai"
+    },
+    {
+      "locale": "en",
+      "view": "vault",
+      "section": null,
+      "url": "http://127.0.0.1:5176/?locale=en&view=vault&ctx=allow"
+    },
+    {
+      "locale": "en",
+      "view": "vault",
+      "section": "vault-documents",
+      "url": "http://127.0.0.1:5176/?locale=en&view=vault&ctx=allow#vault-documents"
+    }
+  ],
+  "passed": true,
+  "failures": []
+}

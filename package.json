@@ -162,6 +162,7 @@
     "sf:client-matter-parity:objective-audit": "node scripts/generate-sf-client-matter-objective-audit.mjs",
     "sf:client-matter-parity:surface-ledger": "node scripts/generate-sf-client-matter-surface-ledger.mjs",
     "sf:client-matter-parity:browser-qa": "node scripts/run-sf-client-matter-browser-qa.mjs",
+    "sf:client-matter-parity:copy:validate": "node scripts/validate-sf-client-matter-ko-saas-copy.mjs",
     "sf:client-matter-parity:validate": "node scripts/validate-sf-client-matter-parity-crosswalk.mjs",
     "hro:deel-parity:screenshot-inventory": "swift scripts/generate-hro-deel-screenshot-inventory.swift",
     "hro:deel-parity:validate": "node scripts/validate-hro-deel-parity-crosswalk.mjs",

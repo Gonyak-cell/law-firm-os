@@ -141,7 +141,7 @@ export function App() {
           setLocale={setLocale}
           setTheme={setTheme}
           className="post-login-splash"
-          message={locale === "ko" ? "matter 작업공간을 여는 중" : "Opening your matter workspace"}
+          message="matter 작업공간을 여는 중"
         />
       )}
       {query && <GlobalSearch labels={labels} query={query} setQuery={setQuery} setView={navigateToView} />}
