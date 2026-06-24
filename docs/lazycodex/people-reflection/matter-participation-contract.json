@@ -1,0 +1,184 @@
+{
+  "schema_version": "lawos.lcx_ppl.matter_participation_contract.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "tuw": "LCX-PPL-02.03",
+  "status": "contract_ready_not_runtime_complete",
+  "depends_on": ["LCX-PPL-02.01", "LCX-PPL-02.02"],
+  "claim_boundary": {
+    "runtime_ready_candidate_complete": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false,
+    "matter_participation_runtime_complete": false,
+    "ai_final_decision_allowed": false
+  },
+  "matter_participant": {
+    "object_id": "MatterParticipant",
+    "required_fields": [
+      "matter_participant_id",
+      "matter_id",
+      "person_id",
+      "organization_id",
+      "matter_role_id",
+      "representation_side",
+      "participation_status",
+      "access_scope",
+      "effective_from",
+      "effective_to",
+      "tenant_scope",
+      "audit_ref"
+    ],
+    "participation_statuses": [
+      "proposed",
+      "active",
+      "inactive",
+      "blocked",
+      "review_required",
+      "historical"
+    ]
+  },
+  "matter_roles": [
+    {
+      "matter_role_id": "responsible_attorney",
+      "korean_label": "책임 변호사",
+      "category": "internal_team",
+      "requires_human_review": true,
+      "default_access_scope": "matter_core_full"
+    },
+    {
+      "matter_role_id": "billing_partner",
+      "korean_label": "청구 파트너",
+      "category": "internal_team",
+      "requires_human_review": true,
+      "default_access_scope": "finance_summary"
+    },
+    {
+      "matter_role_id": "associate",
+      "korean_label": "담당 변호사",
+      "category": "internal_team",
+      "requires_human_review": false,
+      "default_access_scope": "matter_work"
+    },
+    {
+      "matter_role_id": "paralegal",
+      "korean_label": "패러리걸",
+      "category": "internal_team",
+      "requires_human_review": false,
+      "default_access_scope": "matter_work_limited"
+    },
+    {
+      "matter_role_id": "client_decision_maker",
+      "korean_label": "고객 의사결정자",
+      "category": "client_side",
+      "requires_human_review": true,
+      "default_access_scope": "client_visible_limited"
+    },
+    {
+      "matter_role_id": "client_billing_contact",
+      "korean_label": "고객 청구 담당자",
+      "category": "client_side",
+      "requires_human_review": true,
+      "default_access_scope": "billing_client_visible"
+    },
+    {
+      "matter_role_id": "counterparty_representative",
+      "korean_label": "상대방 담당자",
+      "category": "adverse_or_transactional_side",
+      "requires_human_review": true,
+      "default_access_scope": "external_reference_only"
+    },
+    {
+      "matter_role_id": "opposing_counsel",
+      "korean_label": "상대방 대리인",
+      "category": "adverse_or_transactional_side",
+      "requires_human_review": true,
+      "default_access_scope": "external_reference_only"
+    },
+    {
+      "matter_role_id": "expert",
+      "korean_label": "전문가",
+      "category": "expert_or_witness",
+      "requires_human_review": true,
+      "default_access_scope": "expert_limited"
+    },
+    {
+      "matter_role_id": "witness",
+      "korean_label": "증인",
+      "category": "expert_or_witness",
+      "requires_human_review": true,
+      "default_access_scope": "witness_limited"
+    },
+    {
+      "matter_role_id": "court_actor",
+      "korean_label": "재판부/법원 관계자",
+      "category": "tribunal_or_regulator",
+      "requires_human_review": true,
+      "default_access_scope": "tribunal_reference_only"
+    },
+    {
+      "matter_role_id": "regulator_contact",
+      "korean_label": "규제기관 담당자",
+      "category": "tribunal_or_regulator",
+      "requires_human_review": true,
+      "default_access_scope": "regulator_reference_only"
+    }
+  ],
+  "representation_sides": [
+    {
+      "side_id": "firm_internal",
+      "korean_label": "내부 수행팀",
+      "description": "Law Firm OS internal lawyers, paralegals, and staff."
+    },
+    {
+      "side_id": "client_side",
+      "korean_label": "고객 측",
+      "description": "Client contacts and client-authorized participants."
+    },
+    {
+      "side_id": "adverse_side",
+      "korean_label": "상대방 측",
+      "description": "Adverse parties, counterparties, and their counsel."
+    },
+    {
+      "side_id": "neutral_expert",
+      "korean_label": "전문가/증인",
+      "description": "Experts, witnesses, and neutral evidence actors."
+    },
+    {
+      "side_id": "tribunal_or_regulator",
+      "korean_label": "재판부/규제기관",
+      "description": "Courts, arbitrators, regulators, and filing recipients."
+    }
+  ],
+  "permission_rules": [
+    "MatterParticipant access_scope must be deny-by-default and explicitly granted.",
+    "External participants are reference-only until portal or sharing access receives human approval.",
+    "Adverse-side and tribunal/regulator participants must never receive internal work-product access by default.",
+    "Ethical-wall membership must override role defaults.",
+    "Matter role changes affecting owner, billing, external visibility, conflict, or ethical-wall state require human review evidence."
+  ],
+  "audit_events": [
+    "people.matter_participant.proposed",
+    "people.matter_participant.activated",
+    "people.matter_participant.role_changed",
+    "people.matter_participant.access_scope_reviewed",
+    "people.matter_participant.blocked",
+    "people.matter_participant.deactivated"
+  ],
+  "matter_alignment": {
+    "existing_primitives": ["Matter", "MatterMember", "MatterTask", "MatterCalendarEvent", "MatterGraphNode", "MatterGraphEdge"],
+    "required_behavior": [
+      "LCX-PPL MatterParticipant must map to Matter member/team semantics without silently expanding access.",
+      "Client-side, adverse-side, expert/witness, and tribunal/regulator participants must remain distinguishable in API and UI payloads.",
+      "Runtime implementation must preserve audit evidence for participant lifecycle changes."
+    ]
+  },
+  "verification_requirements": [
+    "MatterParticipant must define matter_id, person_id, organization_id, matter_role_id, representation_side, access_scope, tenant_scope, and audit_ref.",
+    "Matter roles must cover internal team, client-side, adverse-side, expert/witness, and tribunal/regulator actors.",
+    "Representation sides must explicitly distinguish firm_internal, client_side, adverse_side, neutral_expert, and tribunal_or_regulator.",
+    "Permission rules must block default external/internal work-product leakage.",
+    "Production, go-live, enterprise trust, and AI-final-decision claims must remain false."
+  ]
+}
+
