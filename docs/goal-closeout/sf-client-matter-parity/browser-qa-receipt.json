@@ -12,7 +12,7 @@
   "environment": {
     "web_origin": "http://127.0.0.1:5176",
     "api_health": "http://127.0.0.1:4180/api/health",
-    "temp_store_dir": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-sf-browser-qa-XngZ2x",
+    "temp_store_dir": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-sf-browser-qa-SWUi4d",
     "managed_processes_started": [
       "web"
     ]
