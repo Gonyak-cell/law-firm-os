@@ -6,6 +6,8 @@ Program ID: `MATTER-INTERNAL-DESKTOP-CF-LAMBDA`
 
 This plan makes the no-custom-domain operating model explicit: internal users run the `matter` desktop app, the app talks to the AWS generated CloudFront HTTPS endpoint, and API requests are routed to AWS Lambda-backed runtimes. It does not claim public web launch, customer-data production readiness, enterprise trust certification, App Store distribution, Microsoft Store distribution, or custom-domain readiness.
 
+Detailed TUW ledger: [matter-internal-cloudfront-desktop-tuw-breakdown.md](matter-internal-cloudfront-desktop-tuw-breakdown.md)
+
 ## Target Architecture
 
 | Layer | Target |
@@ -40,7 +42,7 @@ Internal production is acceptable only when all of these are true:
 | Gate | Required Evidence |
 | --- | --- |
 | CloudFront web/API endpoint | `GET /` and `GET /api/health` return 200 from `https://d2mthcc8vp3cr2.cloudfront.net` |
-| Lambda runtime | `matter-lawos-api-prod` is `Active` and `LastUpdateStatus=Successful` with `LAWOS_DEPLOYMENT_COMMIT` equal to current `origin/main` |
+| Lambda runtime | `matter-lawos-api-prod` is `Active` and `LastUpdateStatus=Successful` with `LAWOS_DEPLOYMENT_COMMIT` equal to the latest runtime-bearing app/API commit, or current `origin/main` when runtime code changed |
 | Internal account login | Desktop runtime supports email and password login through main-process IPC without returning secret fields to renderer |
 | Account roster | Registered internal accounts are visible through `session:accounts`, and sensitive token/operator material is absent |
 | Desktop package | macOS internal artifact and Windows internal manifest are generated under `apps/desktop/dist` |
@@ -56,7 +58,7 @@ Internal production is acceptable only when all of these are true:
 
 | TUW | Work | Acceptance | Verification |
 | --- | --- | --- | --- |
-| WP01-T01 | Freeze current deploy identity | `origin/main`, Lambda env commit, CloudFront distribution, S3 bucket, and Lambda Function URL are recorded | `git rev-parse origin/main`; `aws lambda get-function-configuration`; `aws cloudfront get-distribution` |
+| WP01-T01 | Freeze current deploy identity | `origin/main`, latest runtime-bearing commit, Lambda env commit, CloudFront distribution, S3 bucket, and Lambda Function URL are recorded | `git rev-parse origin/main`; `aws lambda get-function-configuration`; `aws cloudfront get-distribution` |
 | WP01-T02 | Repackage Lambda from current main | zip includes `apps/api/src`, `packages`, package manifests, and packaged account seed | local package listing and Lambda update receipt |
 | WP01-T03 | Redeploy Lambda | `matter-lawos-api-prod` reports `Active/Successful` | `aws lambda wait function-updated`; config query |
 | WP01-T04 | Validate CloudFront API routing | CloudFront `/api/health`, HRX smoke, Client/Matter API examples pass | `curl`; bounded Node smoke script |
