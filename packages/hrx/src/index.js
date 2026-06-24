@@ -28,6 +28,7 @@ export * from "./retention-job.js";
 export * from "./people-graph.js";
 export * from "./legal-people-relationship-ledger.js";
 export * from "./legal-people-api.js";
+export * from "./legal-people-ethics.js";
 export * from "./rules/leave-policy.js";
 export * from "./leave/balance.js";
 export * from "./leave/request-service.js";

@@ -82,6 +82,16 @@ const HRX_ROUTE_POLICIES = Object.freeze([
     resource_type: "LegalPeopleRelationship",
   },
   {
+    id: "hrx.legal_people.ethics",
+    method: "GET",
+    pattern: /^\/api\/hrx\/legal-people\/ethics$/,
+    action: "hrx.legal_people.ethics.read",
+    sensitivity: "legal_people",
+    required_scope: "hrx.legal_people.read",
+    purpose: "legal_people_ethics_review",
+    resource_type: "LegalPeopleEthicsReview",
+  },
+  {
     id: "hrx.legal_people.detail",
     method: "GET",
     pattern: /^\/api\/hrx\/legal-people\/(?<person_id>[^/]+)$/,

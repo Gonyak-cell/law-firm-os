@@ -70,6 +70,23 @@ test("GET /api/hrx/legal-people/relationships supports Matter pivot with redacti
   assert.ok(body.relationships.some((relationship) => relationship.access_state === "restricted"));
 });
 
+test("GET /api/hrx/legal-people/ethics returns review queue, wall evidence, and reviewer receipt boundary", async () => {
+  const restricted = await json("/api/hrx/legal-people/ethics");
+  assert.equal(restricted.status, 200);
+  assert.equal(restricted.body.outcome, "ok");
+  assert.equal(restricted.body.review_queue.length, 4);
+  assert.equal(restricted.body.ethical_walls.length, 2);
+  assert.equal(restricted.body.reviewer_receipts[0].access_state, "restricted");
+  assert.equal(JSON.stringify(restricted.body).includes("reviewer-legal-001"), false);
+  assert.equal(restricted.body.claim_boundary.ai_final_decision_allowed, false);
+
+  const privileged = await json("/api/hrx/legal-people/ethics?matter_id=matter_lcx_001", PRIVILEGED_HEADERS);
+  assert.equal(privileged.status, 200);
+  assert.equal(privileged.body.permission_summary.can_view_reviewer_details, true);
+  assert.ok(privileged.body.reviewer_receipts.some((receipt) => receipt.rollback_ref));
+  assert.ok(privileged.body.permission_links.some((link) => link.admin_surface_ref === "People:permission-admin"));
+});
+
 test("legal People route authz fails before runtime when legal People scope is absent", async () => {
   const { status, body } = await json("/api/hrx/legal-people/search", {
     ...BASE_HEADERS,

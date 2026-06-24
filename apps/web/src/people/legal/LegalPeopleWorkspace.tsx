@@ -2,7 +2,7 @@ import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { Building2, Link2, LockKeyhole, Network, Scale, Search, ShieldAlert, UsersRound } from "lucide-react";
 import { Panel, Property } from "../../components/primitives.jsx";
-import { fetchLegalPeopleRelationships, fetchLegalPeopleSearch, fetchLegalPersonDetail } from "../hrxApiClient.ts";
+import { fetchLegalPeopleEthics, fetchLegalPeopleRelationships, fetchLegalPeopleSearch, fetchLegalPersonDetail } from "../hrxApiClient.ts";
 
 const TYPE_FILTERS = [
   { id: "", label: "전체", icon: UsersRound },
@@ -52,6 +52,27 @@ function relationshipLabel(value) {
   return labels[value] ?? value ?? "관계";
 }
 
+function reviewStateLabel(value) {
+  if (value === "pending_review") return "검토 대기";
+  if (value === "reviewed") return "검토됨";
+  if (value === "escalated") return "상향 검토";
+  if (value === "blocked") return "차단";
+  return value ?? "확인 필요";
+}
+
+function reviewTypeLabel(value) {
+  if (value === "conflict_check") return "충돌";
+  if (value === "ethical_wall") return "윤리벽";
+  return value ?? "검토";
+}
+
+function priorityLabel(value) {
+  if (value === "urgent") return "긴급";
+  if (value === "high") return "높음";
+  if (value === "normal") return "보통";
+  return value ?? "보통";
+}
+
 function targetLabel(relationship) {
   if (relationship.access_state === "restricted") return "권한 제한";
   if (!relationship.target_id) return "미표시";
@@ -75,6 +96,7 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
   const [selectedPersonId, setSelectedPersonId] = useState("");
   const [detailResult, setDetailResult] = useState(null);
   const [relationshipResult, setRelationshipResult] = useState(null);
+  const [ethicsResult, setEthicsResult] = useState(null);
   const config = MODE_META[mode] ?? MODE_META.directory;
 
   const filters = useMemo(() => ({ query, type_id: typeId }), [query, typeId]);
@@ -122,9 +144,24 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
     };
   }, [selectedPersonId, refreshKey]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setEthicsResult(null);
+    fetchLegalPeopleEthics(selectedPersonId ? { person_id: selectedPersonId } : {}).then((next) => {
+      if (!cancelled) setEthicsResult(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedPersonId, refreshKey]);
+
   const people = searchResult?.kind === "data" ? searchResult.people : [];
   const detail = detailResult?.kind === "data" ? detailResult : null;
   const relationships = detail?.relationships ?? (relationshipResult?.kind === "data" ? relationshipResult.relationships : []);
+  const ethics = ethicsResult?.kind === "data" ? ethicsResult : null;
+  const reviewQueue = ethics?.review_queue ?? [];
+  const ethicalWalls = ethics?.ethical_walls ?? [];
+  const reviewerReceipts = ethics?.reviewer_receipts ?? [];
   const restrictedCount = relationships.filter((relationship) => relationship.access_state === "restricted").length;
 
   return (
@@ -239,6 +276,79 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
           </div>
         )}
       </Panel>
+
+      {mode === "conflicts" && (
+        <Panel id="people-conflict-review-queue" className="people-panel legal-people-conflicts" title="충돌 검토 큐" meta={`${reviewQueue.length}건`}>
+          <div className="people-panel-kicker" data-lcx-ppl-06-conflict-review-queue="true">
+            <ShieldAlert size={15} />
+            자동 신호는 참고 상태로만 보관됩니다.
+          </div>
+          {ethicsResult === null && <div className="live-data-state live-data-loading">충돌 검토 큐를 불러오는 중입니다</div>}
+          {ethicsResult?.kind === "error" && <div className="live-data-state live-data-error">충돌 검토 큐를 불러오지 못했습니다.</div>}
+          {reviewQueue.length > 0 && (
+            <div className="legal-relationship-list">
+              {reviewQueue.map((item) => (
+                <div key={item.review_item_id} className={`legal-ethics-row ${item.state}`}>
+                  <div>
+                    <strong>{reviewTypeLabel(item.review_type)} · {reviewStateLabel(item.state)}</strong>
+                    <small>{item.related_ref} · {item.reviewer_role_required}</small>
+                  </div>
+                  <span>{priorityLabel(item.priority)}</span>
+                  <em>{item.ai_final_decision_allowed ? "확인 필요" : "사람 검토"}</em>
+                </div>
+              ))}
+            </div>
+          )}
+        </Panel>
+      )}
+
+      {mode === "conflicts" && (
+        <Panel id="people-ethical-wall-surface" className="people-panel legal-people-walls" title="윤리벽" meta={`${ethicalWalls.length}건`}>
+          <div className="people-panel-kicker" data-lcx-ppl-06-ethical-wall-ui="true">
+            <LockKeyhole size={15} />
+            벽 상태는 이유와 receipt 참조로 표시합니다.
+          </div>
+          {ethicalWalls.length === 0 && ethicsResult?.kind === "data" && <div className="live-data-state live-data-empty">표시할 윤리벽이 없습니다.</div>}
+          {ethicalWalls.length > 0 && (
+            <div className="legal-relationship-list">
+              {ethicalWalls.map((wall) => (
+                <div key={wall.wall_ref_id} className={`legal-ethics-row ${wall.wall_status}`}>
+                  <div>
+                    <strong>{reviewStateLabel(wall.wall_status)}</strong>
+                    <small>{wall.matter_id} · {wall.reason_code}</small>
+                  </div>
+                  <span>{wall.access_effect}</span>
+                  <em>{wall.reviewer_receipt_id ? "receipt" : "대기"}</em>
+                </div>
+              ))}
+            </div>
+          )}
+        </Panel>
+      )}
+
+      {mode === "conflicts" && (
+        <Panel id="people-reviewer-receipts" className="people-panel legal-people-receipts" title="Reviewer Receipts" meta={`${reviewerReceipts.length}건`}>
+          <div className="people-panel-kicker" data-lcx-ppl-06-reviewer-receipts="true">
+            <Scale size={15} />
+            결정, notes, rollback 포인터는 권한 경계에 따라 표시됩니다.
+          </div>
+          {reviewerReceipts.length === 0 && ethicsResult?.kind === "data" && <div className="live-data-state live-data-empty">표시할 receipt가 없습니다.</div>}
+          {reviewerReceipts.length > 0 && (
+            <div className="legal-relationship-list">
+              {reviewerReceipts.map((receipt) => (
+                <div key={receipt.receipt_id} className={receipt.access_state === "restricted" ? "legal-ethics-row restricted" : "legal-ethics-row"}>
+                  <div>
+                    <strong>{receipt.decision}</strong>
+                    <small>{receipt.reviewer_role} · {receipt.review_item_id}</small>
+                  </div>
+                  <span>{receipt.rollback_ref ? "rollback" : "제한"}</span>
+                  <em>{receipt.ai_final_decision_allowed ? "확인 필요" : "AI false"}</em>
+                </div>
+              ))}
+            </div>
+          )}
+        </Panel>
+      )}
     </div>
   );
 }

@@ -25,6 +25,10 @@ import {
   createLegalPeoplePermissionContext,
   createLegalPeopleReadModel,
 } from "../../../packages/hrx/src/legal-people-api.js";
+import {
+  createLegalPeopleEthicsReadModel,
+  createLegalPeopleEthicsSeed,
+} from "../../../packages/hrx/src/legal-people-ethics.js";
 import { createHrxMatterWorkloadProjection } from "../../../packages/matter/src/hrx-workload-projection.js";
 import { createHrxAiRoute } from "./routes/hrx/ai.js";
 import { createHrxPayrollRoute } from "./routes/hrx/payroll.js";
@@ -635,6 +639,14 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
   const payrollRoute = createHrxPayrollRoute({ audit });
   const matterAssignments = Object.freeze(seedTenantIds.flatMap(matterAssignmentSeed));
   const legalPeopleReadModel = createLegalPeopleReadModel({ seed: legalPeopleRuntimeSeed(seedTenantIds) });
+  const legalPeopleEthicsReadModel = createLegalPeopleEthicsReadModel({
+    seed: Object.freeze({
+      review_queue: seedTenantIds.flatMap((tenantId) => createLegalPeopleEthicsSeed(tenantId).review_queue),
+      ethical_walls: seedTenantIds.flatMap((tenantId) => createLegalPeopleEthicsSeed(tenantId).ethical_walls),
+      permission_links: seedTenantIds.flatMap((tenantId) => createLegalPeopleEthicsSeed(tenantId).permission_links),
+      reviewer_receipts: seedTenantIds.flatMap((tenantId) => createLegalPeopleEthicsSeed(tenantId).reviewer_receipts),
+    }),
+  });
 
   for (const tenantId of seedTenantIds) {
     appendRuntimeAudit(audit, {
@@ -670,6 +682,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
     payrollRoute,
     matterAssignments,
     legalPeopleReadModel,
+    legalPeopleEthicsReadModel,
   });
 }
 
@@ -757,6 +770,24 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         metadata: {
           result_count: result.relationships.length,
           sensitive_fields_visible: permissionContext.can_view_sensitive_relationship_details,
+        },
+      });
+      return response(200, result);
+    }
+
+    if (pathname === "/api/hrx/legal-people/ethics" && method === "GET") {
+      const permissionContext = createLegalPeoplePermissionContext(actorContext);
+      const result = context.legalPeopleEthicsReadModel.getEthicsOverview({ ...query, tenant_id: tenantId }, permissionContext);
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.legal_people.ethics.read",
+        object_type: "LegalPeopleEthicsReview",
+        object_id: query.person_id ?? query.matter_id ?? "ethics",
+        reason: "legal_people_ethics_surface_read",
+        metadata: {
+          review_item_count: result.review_queue.length,
+          ethical_wall_count: result.ethical_walls.length,
+          reviewer_details_visible: result.permission_summary.can_view_reviewer_details,
         },
       });
       return response(200, result);

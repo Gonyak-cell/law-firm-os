@@ -143,6 +143,21 @@ export async function fetchLegalPeopleRelationships(filters = {}) {
   };
 }
 
+export async function fetchLegalPeopleEthics(filters = {}) {
+  const result = await requestJson(withQuery("/api/hrx/legal-people/ethics", filters));
+  if (result.kind !== "data" || !Array.isArray(result.body.review_queue)) return { kind: "error" };
+  return {
+    kind: "data",
+    review_queue: result.body.review_queue,
+    ethical_walls: Array.isArray(result.body.ethical_walls) ? result.body.ethical_walls : [],
+    permission_links: Array.isArray(result.body.permission_links) ? result.body.permission_links : [],
+    reviewer_receipts: Array.isArray(result.body.reviewer_receipts) ? result.body.reviewer_receipts : [],
+    state_counts: result.body.state_counts ?? {},
+    permission_summary: result.body.permission_summary ?? null,
+    claim_boundary: result.body.claim_boundary ?? null
+  };
+}
+
 export async function fetchHrxDocuments(employeeId) {
   if (!employeeId) return { kind: "empty" };
   const result = await requestJson(withQuery("/api/hrx/documents", { employee_id: employeeId }));

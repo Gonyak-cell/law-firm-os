@@ -1,0 +1,75 @@
+{
+  "schema_version": "lawos.lcx_ppl.legal_people_ethics_contract.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "scope": [
+    "LCX-PPL-06.01",
+    "LCX-PPL-06.02",
+    "LCX-PPL-06.03",
+    "LCX-PPL-06.04"
+  ],
+  "status": "local_ethics_permission_surface_ready",
+  "source_plan": "docs/lazycodex/people-reflection/lcx-ppl-tuw-plan.md",
+  "runtime_route": "GET /api/hrx/legal-people/ethics",
+  "surfaces": [
+    {
+      "tuw": "LCX-PPL-06.01",
+      "name": "Ethical Wall UI",
+      "files": [
+        "packages/hrx/src/legal-people-ethics.js",
+        "apps/web/src/people/legal/LegalPeopleWorkspace.tsx"
+      ],
+      "done": true
+    },
+    {
+      "tuw": "LCX-PPL-06.02",
+      "name": "Conflict Review Queue",
+      "files": [
+        "packages/hrx/src/legal-people-ethics.js",
+        "apps/api/src/hrx-runtime-context.js",
+        "apps/web/src/people/legal/LegalPeopleWorkspace.tsx"
+      ],
+      "done": true
+    },
+    {
+      "tuw": "LCX-PPL-06.03",
+      "name": "Permission Admin Linkage",
+      "files": [
+        "packages/hrx/src/legal-people-ethics.js",
+        "apps/web/src/people/admin/PermissionAdminPanel.jsx"
+      ],
+      "done": true
+    },
+    {
+      "tuw": "LCX-PPL-06.04",
+      "name": "Reviewer Receipt Model",
+      "files": [
+        "packages/hrx/src/legal-people-ethics.js",
+        "packages/hrx/test/legal-people-ethics.test.js"
+      ],
+      "done": true
+    }
+  ],
+  "state_model": [
+    "pending_review",
+    "reviewed",
+    "escalated",
+    "blocked"
+  ],
+  "claim_boundary": {
+    "ethical_wall_ui_complete": true,
+    "conflict_review_queue_complete": true,
+    "permission_admin_linkage_complete": true,
+    "reviewer_receipt_model_complete": true,
+    "browser_qa_complete": false,
+    "runtime_ready_candidate_complete": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false,
+    "ai_final_decision_allowed": false
+  },
+  "non_claims": [
+    "No automated or AI final conflict decision is allowed.",
+    "No browser QA receipt is claimed here.",
+    "No production, go-live, or enterprise trust state is claimed."
+  ]
+}
