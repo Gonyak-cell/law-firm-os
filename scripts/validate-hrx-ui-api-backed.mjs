@@ -13,9 +13,11 @@ function read(path) {
   return readFileSync(resolve(root, path), "utf8");
 }
 
+const STATIC_UI_FALLBACK_PATTERN = /mockData|profileRows|const\s+matters\s*=\s*\[|from\s+["'][^"']*(?:mock|fixture|static)/;
+
 function assertNoLocalFallback(path) {
   const source = read(path);
-  assert(!/mockData|profileRows|matters/.test(source), `${path}: must not import static UI fallback data`);
+  assert(!STATIC_UI_FALLBACK_PATTERN.test(source), `${path}: must not import static UI fallback data`);
 }
 
 for (const file of [
@@ -80,7 +82,7 @@ assert(apiClient.includes('"x-lawos-actor-id"'), "HRX UI client must pass actor 
 assert(apiClient.includes('"x-lawos-hrx-scopes"'), "HRX UI client must pass HRX scopes to HRX API");
 assert(apiClient.includes('"x-lawos-hrx-step-up"'), "HRX UI client must pass step-up context to HRX API");
 assert(!/allow.*hrx|hrx.*allow|required_scope|evaluateHrxPolicy/.test(apiClient), "HRX UI client must not implement local HRX allow rules");
-assert(!/mockData|profileRows|matters/.test(apiClient), "HRX UI client must not fallback to static data");
+assert(!STATIC_UI_FALLBACK_PATTERN.test(apiClient), "HRX UI client must not fallback to static data");
 
 const employeeList = read("apps/web/src/people/employees/EmployeeList.tsx");
 assert(employeeList.includes("live-data-loading") && employeeList.includes("live-data-empty") && employeeList.includes("live-data-error"), "Employee list must expose loading, empty, and error states");
@@ -143,13 +145,13 @@ const analytics = read("apps/web/src/people/analytics/HRAnalytics.tsx");
 assert(analytics.includes("fetchHrxAnalytics") && analytics.includes("row_level_details_included"), "People analytics must fetch API and show privacy grain");
 assert(analytics.includes("구성원 현황") && analytics.includes("업무 요약"), "People analytics must use Korean panel copy");
 assert(!/People 현황|People 업무 요약|People 정보를/.test(analytics), "People analytics must not expose English People copy in Korean UI");
-assert(!/mockData|profileRows|matters/.test(analytics), "People analytics must not fallback to static data");
+assert(!STATIC_UI_FALLBACK_PATTERN.test(analytics), "People analytics must not fallback to static data");
 
 const ai = read("apps/web/src/people/ai/HRAIAssistant.tsx");
 assert(ai.includes("askHrxAiAssistant") && ai.includes("fetchHrxAiReviews"), "People AI assistant must use HRX AI routes");
 assert(ai.includes("검토 상태") && ai.includes("참고 자료"), "People AI assistant must show review state and citations");
 assert(ai.includes("인사 문의") && !ai.includes("People 문의"), "People AI assistant must use Korean panel title");
-assert(!/mockData|profileRows|matters/.test(ai), "People AI assistant must not fallback to static data");
+assert(!STATIC_UI_FALLBACK_PATTERN.test(ai), "People AI assistant must not fallback to static data");
 
 const payroll = read("apps/web/src/people/payroll/PayrollBoundaryPanel.tsx");
 assert(peopleHome.includes("PayrollBoundaryPanel") && peopleHome.includes("people-payroll"), "People home must expose payroll boundary panel");
@@ -163,7 +165,7 @@ assert(
   !/net_pay|gross_pay|tax_withholding|["']disbursement_instruction["']|disbursement_instruction\s*:/.test(payroll),
   "Payroll UI must not render blocked payroll execution fields"
 );
-assert(!/mockData|profileRows|matters/.test(payroll), "Payroll UI must not fallback to static data");
+assert(!STATIC_UI_FALLBACK_PATTERN.test(payroll), "Payroll UI must not fallback to static data");
 
 const stepUp = read("apps/web/src/people/security/HrxStepUpChallenge.tsx");
 assert(stepUp.includes('data-hrx-step-up-challenge="true"'), "Step-up challenge must have stable e2e marker");

@@ -143,7 +143,10 @@ export function Sidebar({ labels, view, setView, activeSection = "", expanded = 
       { label: "가져오기", view: "matters", section: "matter-import" }
     ],
     people: [
-      { label: "구성원", view: "people", section: "people-members" },
+      { label: "디렉터리", view: "people", section: "people-directory" },
+      { label: "관계망", view: "people", section: "people-relationships" },
+      { label: "충돌/벽", view: "people", section: "people-conflicts" },
+      { label: "구성원(HRX)", view: "people", section: "people-members" },
       { label: "인사 문서", view: "people", section: "people-documents" },
       { label: "휴가", view: "people", section: "people-leave" },
       { label: "승인", view: "people", section: "people-approvals" },

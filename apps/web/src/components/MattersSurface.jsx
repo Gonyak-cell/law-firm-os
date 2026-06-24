@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { CalendarClock, CheckCircle2, FileText, ListChecks, MessageSquare, Pencil, RefreshCw, ShieldCheck, UserCheck } from "lucide-react";
+import { CalendarClock, CheckCircle2, FileText, Link2, ListChecks, MessageSquare, Pencil, RefreshCw, ShieldCheck, UserCheck } from "lucide-react";
 import {
   bulkCompleteMatterStatus,
   changeMatterOwner,
@@ -48,6 +48,7 @@ import { MatterOpeningWizard } from "./MatterOpeningWizard.jsx";
 import { MatterTeamRoster } from "./MatterTeamRoster.jsx";
 import { MatterVaultPanel } from "./MatterVaultPanel.jsx";
 import { ImportDataMappingPanel } from "./ImportDataMappingPanel.jsx";
+import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
 
 const MATTER_PERMISSION_REF = "ui_cmp_g4_matter_live";
 const MATTER_AUDIT_HINT_REF = "ui_cmp_g4_matter_probe";
@@ -117,6 +118,38 @@ function providerStateLabel(value) {
 
 function resultItems(result) {
   return result?.kind === "data" && Array.isArray(result.items) ? result.items : [];
+}
+
+function legalPeopleItems(result) {
+  return result?.kind === "data" && Array.isArray(result.people) ? result.people : [];
+}
+
+function LegalMatterPeopleBacklinkPanel({ result }) {
+  const people = legalPeopleItems(result);
+  return (
+    <Panel id="matter-people-backlinks" className="record-list-panel" title="People 연결" meta="Client-Matter-People">
+      <div className="legal-people-backlink-panel" data-lcx-ppl-matter-backlink="true">
+        <div className="people-panel-kicker">
+          <Link2 size={15} />
+          Matter 참여자와 외부 관계자를 법률 People 런타임에서 함께 봅니다.
+        </div>
+        {result === null && <div className="live-data-state live-data-loading">Matter People 연결을 불러오는 중입니다</div>}
+        {result?.kind === "error" && <div className="live-data-state live-data-error">Matter People 연결을 불러오지 못했습니다.</div>}
+        {result?.kind === "data" && people.length === 0 && <div className="live-data-state live-data-empty">연결된 People 기록이 없습니다.</div>}
+        {people.length > 0 && (
+          <div className="legal-people-backlink-list" aria-label="Matter 연결 People">
+            {people.slice(0, 6).map((person) => (
+              <span key={person.person_id} className="legal-people-backlink-row">
+                <Link2 size={13} />
+                <strong>{matterTitleLabel(person.display_name, 0)}</strong>
+                <small>{person.korean_label ?? person.type_id}</small>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </Panel>
+  );
 }
 
 function applyMatterListView(matters, listView) {
@@ -1536,6 +1569,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
   const [channelResult, setChannelResult] = useState(null);
   const [channelMessageResult, setChannelMessageResult] = useState(null);
   const [channelProviderResult, setChannelProviderResult] = useState(null);
+  const [legalPeopleMatterResult, setLegalPeopleMatterResult] = useState(null);
   const [timeEntryPending, setTimeEntryPending] = useState(false);
   const [wipPending, setWipPending] = useState(false);
   const [paymentPending, setPaymentPending] = useState(false);
@@ -1645,6 +1679,17 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
       setSelectedMatterId(visibleMatters[0].matter_id);
     }
   }, [visibleMatters, selectedMatterId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLegalPeopleMatterResult(null);
+    fetchLegalPeopleSearch({ matter_id: "matter_lcx_001" }).then((next) => {
+      if (!cancelled) setLegalPeopleMatterResult(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeMatterId, liveCtx, refreshToken]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2239,7 +2284,10 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
           />
         )}
         {currentSection === "matter-team" && (
-          <MatterTeamRoster matters={matters} liveCtx={liveCtx} onMatterUpdated={applyMatterUpdate} />
+          <>
+            <MatterTeamRoster matters={matters} liveCtx={liveCtx} onMatterUpdated={applyMatterUpdate} />
+            <LegalMatterPeopleBacklinkPanel result={legalPeopleMatterResult} />
+          </>
         )}
         {currentSection === "matter-billing" && (
           <Panel id="matter-billing" className="record-list-panel" title="청구" meta="청구 관리">

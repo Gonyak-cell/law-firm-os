@@ -1,0 +1,90 @@
+{
+  "schema_version": "lawos.lcx_ppl.legal_people_ui_contract.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "scope": [
+    "LCX-PPL-05.01",
+    "LCX-PPL-05.02",
+    "LCX-PPL-05.03",
+    "LCX-PPL-05.04",
+    "LCX-PPL-05.05"
+  ],
+  "status": "local_ui_reflection_ready",
+  "source_plan": "docs/lazycodex/people-reflection/lcx-ppl-tuw-plan.md",
+  "lazyweb_research_basis": [
+    "Dense CRM/contact directory patterns with fast filters and record-first rows.",
+    "Contact profile patterns using a detail workspace plus relationship/timeline context.",
+    "Legal workspace patterns that keep matter/client context visible without turning People into a landing page."
+  ],
+  "ui_surfaces": [
+    {
+      "tuw": "LCX-PPL-05.01",
+      "surface": "People Navigation IA",
+      "files": [
+        "apps/web/src/components/Shell.jsx",
+        "apps/web/src/people/PeopleHome.tsx"
+      ],
+      "done": true
+    },
+    {
+      "tuw": "LCX-PPL-05.02",
+      "surface": "Legal People Directory UI",
+      "files": [
+        "apps/web/src/people/legal/LegalPeopleWorkspace.tsx",
+        "apps/web/src/styles.css"
+      ],
+      "done": true
+    },
+    {
+      "tuw": "LCX-PPL-05.03",
+      "surface": "People Detail Workspace",
+      "files": [
+        "apps/web/src/people/legal/LegalPeopleWorkspace.tsx",
+        "apps/web/src/people/hrxApiClient.ts"
+      ],
+      "done": true
+    },
+    {
+      "tuw": "LCX-PPL-05.04",
+      "surface": "Relationship Panel",
+      "files": [
+        "apps/web/src/people/legal/LegalPeopleWorkspace.tsx",
+        "apps/web/src/styles.css"
+      ],
+      "done": true
+    },
+    {
+      "tuw": "LCX-PPL-05.05",
+      "surface": "Client/Matter Backlinks",
+      "files": [
+        "apps/web/src/components/ClientsSurface.jsx",
+        "apps/web/src/components/MattersSurface.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "done": true
+    }
+  ],
+  "api_bindings": [
+    "GET /api/hrx/legal-people/search",
+    "GET /api/hrx/legal-people/:person_id",
+    "GET /api/hrx/legal-people/relationships"
+  ],
+  "claim_boundary": {
+    "people_navigation_ia_complete": true,
+    "legal_people_directory_ui_complete": true,
+    "people_detail_workspace_complete": true,
+    "relationship_panel_complete": true,
+    "client_matter_backlinks_complete": true,
+    "legal_people_ui_reflection_complete": true,
+    "browser_qa_complete": false,
+    "runtime_ready_candidate_complete": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false,
+    "ai_final_decision_allowed": false
+  },
+  "non_claims": [
+    "No browser QA receipt is claimed by this contract.",
+    "No production, go-live, or enterprise trust state is claimed.",
+    "Conflict and ethical-wall UI copy is review-state only, not final legal determination."
+  ]
+}

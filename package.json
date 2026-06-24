@@ -169,6 +169,7 @@
     "lcx:ppl:contract:validate": "node scripts/validate-lcx-ppl-legal-people-contract.mjs",
     "lcx:ppl:relationship:validate": "node scripts/validate-lcx-ppl-relationship-ledger.mjs",
     "lcx:ppl:api:validate": "node scripts/validate-lcx-ppl-api.mjs",
+    "lcx:ppl:ui:validate": "node scripts/validate-lcx-ppl-ui.mjs",
     "web:e2e": "node scripts/run-web-e2e.mjs",
     "db:migrate:test": "node --test packages/hrx/test/migration.test.js",
     "hrx:requirements:generate": "node scripts/generate-hrx-requirement-ledger.mjs",

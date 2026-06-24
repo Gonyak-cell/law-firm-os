@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Plus, RefreshCw, ShieldCheck } from "lucide-react";
+import { ArrowRight, Link2, Plus, RefreshCw, ShieldCheck } from "lucide-react";
 import {
   createCrmAccount,
   createCrmContact,
@@ -29,6 +29,7 @@ import { DataTable, PageHeader, Panel, Property } from "./primitives.jsx";
 import { ImportDataMappingPanel } from "./ImportDataMappingPanel.jsx";
 import { DataCloudEnrichmentPanel } from "./DataCloudEnrichmentPanel.jsx";
 import { ReportBuilderPanel } from "./ReportBuilderPanel.jsx";
+import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
 
 const CLIENTS_PERMISSION_REF = "ui_cmp_g2_party_clients_live";
 const CLIENTS_AUDIT_HINT_REF = "ui_cmp_g2_clients_live_probe";
@@ -111,6 +112,10 @@ function actionMessage(result, successText) {
 
 function resultItems(result) {
   return result?.kind === "data" && Array.isArray(result.items) ? result.items : [];
+}
+
+function legalPeopleItems(result) {
+  return result?.kind === "data" && Array.isArray(result.people) ? result.people : [];
 }
 
 function upsertResultItem(current, nextItem, key) {
@@ -426,6 +431,7 @@ function AccountsTable({
 
 function ContactsTable({
   result,
+  legalPeopleResult,
   mergeResult,
   createResult,
   createPending,
@@ -446,6 +452,7 @@ function ContactsTable({
   const state = renderLiveState(result, "연락처");
   if (state) return state;
   const contacts = resultItems(result);
+  const legalPeople = legalPeopleItems(legalPeopleResult);
   const editableContact = contacts.find((item) => item.contact_source === "crm-runtime.Contact");
   return (
     <div className="clients-live-stack" data-crm-contacts-read="true">
@@ -525,6 +532,30 @@ function ContactsTable({
           item.contact_point_value_included === false || item.email_value_included === false ? "보호됨" : "검토 필요"
         ])}
       />
+      <div className="record-action-strip legal-people-backlink-strip" data-lcx-ppl-client-backlink="true">
+        <div>
+          <strong>법률 People 연결</strong>
+          <span>Client 연락처를 Client-Matter-People 런타임 People 레코드와 함께 확인합니다.</span>
+          {legalPeopleResult === null && <em>법률 People 조회 중</em>}
+          {legalPeopleResult?.kind === "error" && <em>법률 People 조회 실패</em>}
+        </div>
+        <div className="legal-people-backlink-list" aria-label="Client 연결 People">
+          {legalPeople.slice(0, 4).map((person) => (
+            <span key={person.person_id} className="legal-people-backlink-row">
+              <Link2 size={13} />
+              <strong>{businessLabel(person.display_name, "People")}</strong>
+              <small>{person.korean_label ?? person.type_id}</small>
+            </span>
+          ))}
+          {legalPeople.length === 0 && legalPeopleResult?.kind === "data" && (
+            <span className="legal-people-backlink-row muted">
+              <Link2 size={13} />
+              <strong>연결 없음</strong>
+              <small>로컬 fixture 기준</small>
+            </span>
+          )}
+        </div>
+      </div>
       <MergeReviewPanel
         result={mergeResult}
         createResult={mergeCreateResult}
@@ -780,6 +811,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   const [clientRecordActionOwnerResult, setClientRecordActionOwnerResult] = useState(null);
   const [accountRecordActionResult, setAccountRecordActionResult] = useState(null);
   const [contactRecordActionResult, setContactRecordActionResult] = useState(null);
+  const [legalPeopleClientResult, setLegalPeopleClientResult] = useState(null);
   const [handoffPending, setHandoffPending] = useState(false);
   const [conflictPending, setConflictPending] = useState(false);
   const [clearancePending, setClearancePending] = useState(false);
@@ -806,6 +838,17 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
       auditHintRef: CLIENTS_AUDIT_HINT_REF
     }).then((next) => {
       if (!cancelled) setClientsResult(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [liveCtx, refreshToken]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLegalPeopleClientResult(null);
+    fetchLegalPeopleSearch({ client_id: "client_lcx_001" }).then((next) => {
+      if (!cancelled) setLegalPeopleClientResult(next);
     });
     return () => {
       cancelled = true;
@@ -1265,8 +1308,9 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
         )}
         {currentSection === "client-contacts" && (
           <Panel id="client-contacts" className="record-list-panel" title="연락처" meta="고객관리">
-          <ContactsTable
+            <ContactsTable
               result={contactsResult}
+              legalPeopleResult={legalPeopleClientResult}
               mergeResult={mergeProposalsResult}
               createResult={contactCreateResult}
               createPending={contactCreatePending}

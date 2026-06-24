@@ -17,8 +17,12 @@ import { HRAnalytics } from "./analytics/HRAnalytics.tsx";
 import { HRAIAssistant } from "./ai/HRAIAssistant.tsx";
 import { PayrollBoundaryPanel } from "./payroll/PayrollBoundaryPanel.tsx";
 import { PermissionAdminPanel } from "./admin/PermissionAdminPanel.jsx";
+import { LegalPeopleWorkspace } from "./legal/LegalPeopleWorkspace.tsx";
 
 const PEOPLE_SECTIONS = new Set([
+  "people-directory",
+  "people-relationships",
+  "people-conflicts",
   "people-members",
   "people-documents",
   "people-leave",
@@ -37,7 +41,7 @@ export function PeopleHome({ labels, activeSection = "" }) {
   const [overview, setOverview] = useState(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const currentSection = PEOPLE_SECTIONS.has(activeSection) ? activeSection : "people-members";
+  const currentSection = PEOPLE_SECTIONS.has(activeSection) ? activeSection : "people-directory";
 
   useEffect(() => {
     let cancelled = false;
@@ -54,7 +58,7 @@ export function PeopleHome({ labels, activeSection = "" }) {
     <section id="people-home" className="surface stack people-surface" data-hrx-api-backed="true">
       <PageHeader
         title={labels.peopleTitle}
-        subtitle="구성원, 인사 문서, 휴가, 승인, 채용, 입퇴사, 인사 정책, 활동 기록, 인사 현황, AI 검토, 급여정산, 권한 관리를 운영합니다."
+        subtitle="Client, Matter, 조직, 외부 참여자, 충돌/윤리벽 관계망을 중심으로 People을 운영하고 HRX 직원 관리는 하위 영역으로 유지합니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshKey((key) => key + 1)}>
             <RefreshCw size={15} />
@@ -69,6 +73,12 @@ export function PeopleHome({ labels, activeSection = "" }) {
           잠시 후 다시 시도해주세요.
         </div>
       )}
+
+      {currentSection === "people-directory" && <LegalPeopleWorkspace mode="directory" refreshKey={refreshKey} />}
+
+      {currentSection === "people-relationships" && <LegalPeopleWorkspace mode="relationships" refreshKey={refreshKey} />}
+
+      {currentSection === "people-conflicts" && <LegalPeopleWorkspace mode="conflicts" refreshKey={refreshKey} />}
 
       {currentSection === "people-members" && (
         <div className="people-runtime-grid">

@@ -20,6 +20,7 @@ const HRX_SCOPES = [
   "hrx.ai.review.read",
   "hrx.payroll.preview",
   "hrx.payroll.export",
+  "hrx.legal_people.read",
   "hrx.audit.read"
 ].join(",");
 
@@ -94,6 +95,51 @@ export async function fetchHrxEmployeeProfile(employeeId) {
     employee: result.body.employee,
     employment_profile: result.body.employment_profile ?? null,
     masked_compensation_ref: result.body.masked_compensation_ref ?? null
+  };
+}
+
+export async function fetchLegalPeopleSearch(filters = {}) {
+  const result = await requestJson(withQuery("/api/hrx/legal-people/search", filters));
+  if (result.kind !== "data" || !Array.isArray(result.body.people)) return { kind: "error" };
+  return {
+    kind: "data",
+    people: result.body.people,
+    facets: result.body.facets ?? {},
+    permission_summary: result.body.permission_summary ?? null,
+    claim_boundary: result.body.claim_boundary ?? null
+  };
+}
+
+export async function fetchLegalPersonDetail(personId) {
+  if (!personId) return { kind: "empty" };
+  const result = await requestJson(`/api/hrx/legal-people/${encodeURIComponent(personId)}`);
+  if (result.kind !== "data" || !result.body.person) return { kind: "error" };
+  return {
+    kind: "data",
+    person: result.body.person,
+    affiliations: Array.isArray(result.body.affiliations) ? result.body.affiliations : [],
+    clients: Array.isArray(result.body.clients) ? result.body.clients : [],
+    matters: Array.isArray(result.body.matters) ? result.body.matters : [],
+    relationships: Array.isArray(result.body.relationships) ? result.body.relationships : [],
+    relationships_grouped: result.body.relationships_grouped ?? {},
+    conflict_references: Array.isArray(result.body.conflict_references) ? result.body.conflict_references : [],
+    ethical_wall_references: Array.isArray(result.body.ethical_wall_references) ? result.body.ethical_wall_references : [],
+    audit_summary: result.body.audit_summary ?? null,
+    permission_summary: result.body.permission_summary ?? null,
+    claim_boundary: result.body.claim_boundary ?? null
+  };
+}
+
+export async function fetchLegalPeopleRelationships(filters = {}) {
+  const result = await requestJson(withQuery("/api/hrx/legal-people/relationships", filters));
+  if (result.kind !== "data" || !Array.isArray(result.body.relationships)) return { kind: "error" };
+  return {
+    kind: "data",
+    pivot: result.body.pivot ?? {},
+    relationships: result.body.relationships,
+    relationships_grouped: result.body.relationships_grouped ?? {},
+    permission_summary: result.body.permission_summary ?? null,
+    claim_boundary: result.body.claim_boundary ?? null
   };
 }
 
