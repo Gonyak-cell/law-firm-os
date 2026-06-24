@@ -13,6 +13,7 @@ export function filterVisibleMatters({ matters = [], actor = {} } = {}) {
         .map((matter) =>
           Object.freeze({
             matter_id: matter.matter_id,
+            matter_code: matter.matter_code ?? null,
             matter_number: matter.matter_number ?? null,
             title: matter.title,
             status: matter.status,

@@ -14,9 +14,12 @@ import {
   createMatterClientReportProjection,
   createMatterRepository,
   createMatterStatusHistoryStore,
+  deriveMatterCode,
   filterVisibleMatters,
   matterOpeningDependencyDecision,
   openMatterTransaction,
+  upsertCanonicalMatterIdentity,
+  validateMatterCode,
   reserveMatterNumber,
   transitionMatterTask,
 } from "../src/index.js";
@@ -102,6 +105,100 @@ test("Matter numbering blocks duplicate matter numbers and supports idempotent r
   );
 });
 
+test("Matter canonical identity upsert stores client and tenant-unique matter code idempotently", () => {
+  const repository = createMatterRepository();
+  assert.equal(validateMatterCode("AMIC/litigation/계약분쟁").valid, true);
+  assert.throws(
+    () =>
+      deriveMatterCode({
+        client_short_name: "A".repeat(110),
+        matter_type_english: "litigation",
+        matter_detail_type_korean: "계약분쟁",
+      }),
+    /120 characters/,
+  );
+
+  const first = upsertCanonicalMatterIdentity({
+    repository,
+    idempotency_key: "idem-canonical-1",
+    actor_id,
+    client: {
+      client_id: "client-amic",
+      client_display_name: "(주)AMIC 주식회사",
+    },
+    matter: {
+      matter_id: "matter-canonical-1",
+      tenant_id,
+      title: "Canonical migration matter",
+      status: "opening",
+      created_by: actor_id,
+      created_at: "2026-06-20T00:00:00.000Z",
+      matter_type_english: "litigation",
+      matter_detail_type_korean: "계약분쟁",
+      permission_envelope_id: "perm-canonical",
+      audit_trace_id: "audit-canonical",
+      source_revision: "approval-rev-1",
+    },
+  });
+  assert.equal(first.client.client_short_name, "AMIC");
+  assert.equal(first.matter.matter_code, "AMIC/litigation/계약분쟁");
+  assert.equal(first.matter.client_id, "client-amic");
+  assert.equal(repository.list({ tenant_id, model_type: "MatterClient" }).length, 1);
+  assert.equal(repository.list({ tenant_id, model_type: "Matter" }).length, 1);
+
+  const replay = upsertCanonicalMatterIdentity({
+    repository,
+    idempotency_key: "idem-canonical-1",
+    actor_id,
+    client: {
+      client_id: "client-amic",
+      client_display_name: "(주)AMIC 주식회사",
+    },
+    matter: {
+      matter_id: "matter-canonical-1",
+      tenant_id,
+      title: "Canonical migration matter",
+      status: "opening",
+      created_by: actor_id,
+      created_at: "2026-06-20T00:00:00.000Z",
+      matter_type_english: "litigation",
+      matter_detail_type_korean: "계약분쟁",
+      permission_envelope_id: "perm-canonical",
+      audit_trace_id: "audit-canonical",
+      source_revision: "approval-rev-1",
+    },
+  });
+  assert.equal(replay.idempotent_replay, true);
+  assert.equal(repository.list({ tenant_id, model_type: "Matter" }).length, 1);
+
+  assert.throws(
+    () =>
+      upsertCanonicalMatterIdentity({
+        repository,
+        idempotency_key: "idem-canonical-2",
+        actor_id,
+        client: {
+          client_id: "client-amic",
+          client_display_name: "(주)AMIC 주식회사",
+        },
+        matter: {
+          matter_id: "matter-canonical-2",
+          tenant_id,
+          title: "Duplicate canonical migration matter",
+          status: "opening",
+          created_by: actor_id,
+          created_at: "2026-06-20T00:00:00.000Z",
+          matter_type_english: "litigation",
+          matter_detail_type_korean: "계약분쟁",
+          permission_envelope_id: "perm-canonical",
+          audit_trace_id: "audit-canonical",
+          source_revision: "approval-rev-1",
+        },
+      }),
+    /Matter code already exists/,
+  );
+});
+
 test("Matter opening transaction rolls back when DMS or Billing side effects fail", () => {
   const repository = createMatterRepository();
   assert.throws(
@@ -122,7 +219,17 @@ test("Matter opening transaction rolls back when DMS or Billing side effects fai
 
   const result = openMatterTransaction({
     repository,
-    matter: matterInput({ matter_id: "matter-g4-opened" }),
+    client: {
+      client_id: "client-g4",
+      client_display_name: "G4 Client LLC",
+    },
+    require_canonical_matter_code: true,
+    matter: matterInput({
+      matter_id: "matter-g4-opened",
+      matter_type_english: "litigation",
+      matter_detail_type_korean: "개시",
+      source_revision: "approval-rev-opening",
+    }),
     clearance_token: clearanceToken(),
     matter_number_seed: "Opening Success",
     idempotency_key: "idem-opening-ok",
@@ -131,6 +238,8 @@ test("Matter opening transaction rolls back when DMS or Billing side effects fai
     billing: { createMatterLedger: ({ matter_id }) => ({ ledger_id: `ledger-${matter_id}` }) },
   });
   assert.equal(result.outcome, "created");
+  assert.equal(result.matter.matter_code, "G4 Client/litigation/개시");
+  assert.equal(repository.list({ tenant_id, model_type: "MatterClient" }).length, 1);
   assert.equal(repository.listAudit({ tenant_id, object_id: "matter-g4-opened" }).length, 1);
 });
 

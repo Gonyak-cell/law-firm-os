@@ -8,6 +8,7 @@ export * from "./hr-risk-link.js";
 export * from "./repository.js";
 export * from "./migrations/index.js";
 export * from "./numbering-service.js";
+export * from "./canonical-identity-service.js";
 export * from "./opening-service.js";
 export * from "./staffing-service.js";
 export * from "./role-policy.js";

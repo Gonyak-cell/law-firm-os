@@ -1,7 +1,12 @@
 import { createMatter } from "./model.js";
 import { appendMatterAuditEvent } from "./audit.js";
 import { assertMatterOpeningIntakeDependency } from "./intake-dependency-guard.js";
+import { reserveMatterCode, upsertMatterClient } from "./canonical-identity-service.js";
 import { reserveMatterNumber } from "./numbering-service.js";
+
+function compact(value) {
+  return String(value ?? "").trim();
+}
 
 function requiredString(input, field) {
   const value = input?.[field];
@@ -24,6 +29,8 @@ export function openMatterTransaction({
   clearance_token,
   matter_number_seed,
   idempotency_key,
+  client,
+  require_canonical_matter_code = false,
   dms,
   billing,
   actor_id,
@@ -40,6 +47,42 @@ export function openMatterTransaction({
   if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
 
   return repository.transaction((tx) => {
+    const canonicalClient = client
+      ? upsertMatterClient({
+          repository: tx,
+          client: {
+            ...client,
+            tenant_id: matter.tenant_id,
+            client_id: client.client_id ?? matter.client_id ?? matter.legal_client_party_id,
+            created_by: client.created_by ?? actor_id,
+            created_at: client.created_at ?? matter.created_at,
+            updated_by: client.updated_by ?? actor_id,
+            updated_at: client.updated_at ?? matter.updated_at ?? matter.created_at,
+            source_revision: client.source_revision ?? matter.source_revision,
+          },
+          idempotency_key: `${idempotency_key}:client`,
+        }).client
+      : null;
+    const hasMatterCodeContext = Boolean(
+      compact(matter.matter_code)
+        || (
+          compact(matter.matter_type_english)
+          && compact(matter.matter_detail_type_korean)
+          && (canonicalClient || compact(matter.client_short_name))
+        ),
+    );
+    const codeReservation = require_canonical_matter_code || hasMatterCodeContext
+      ? reserveMatterCode({
+          repository: tx,
+          tenant_id: matter.tenant_id,
+          matter_id: matter.matter_id,
+          matter_code: matter.matter_code,
+          client_short_name: canonicalClient?.client_short_name ?? matter.client_short_name,
+          matter_type_english: matter.matter_type_english,
+          matter_detail_type_korean: matter.matter_detail_type_korean,
+          idempotency_key: `${idempotency_key}:matter-code`,
+        })
+      : null;
     const numberReservation = reserveMatterNumber({
       repository: tx,
       tenant_id: matter.tenant_id,
@@ -49,13 +92,20 @@ export function openMatterTransaction({
     });
     const record = createMatter({
       ...matter,
-      client_id: matter.client_id ?? matter.legal_client_party_id,
+      client_id: canonicalClient?.client_id ?? matter.client_id ?? matter.legal_client_party_id,
+      client_display_name: canonicalClient?.client_display_name ?? matter.client_display_name,
       status: matter.status ?? "opening",
+      matter_code: codeReservation?.matter_code ?? matter.matter_code ?? null,
       matter_number: numberReservation.matter_number,
     });
     const persisted = tx.create({
       ...record,
       model_type: "Matter",
+      matter_code: codeReservation?.matter_code ?? record.matter_code ?? null,
+      client_display_name: canonicalClient?.client_display_name ?? record.client_display_name ?? null,
+      matter_type_english: matter.matter_type_english ?? record.matter_type_english ?? null,
+      matter_detail_type_korean: matter.matter_detail_type_korean ?? record.matter_detail_type_korean ?? null,
+      source_revision: matter.source_revision ?? record.source_revision ?? null,
       matter_number: numberReservation.matter_number,
       legal_client_party_id: matter.legal_client_party_id ?? record.client_id,
       billing_client_party_id: matter.billing_client_party_id ?? matter.legal_client_party_id ?? record.client_id,
@@ -80,7 +130,7 @@ export function openMatterTransaction({
         object_id: persisted.matter_id,
         decision: "allow",
         reason: "matter_opened_with_clearance",
-        metadata: { matter_number: persisted.matter_number, idempotency_key },
+        metadata: { matter_number: persisted.matter_number, matter_code: persisted.matter_code ?? null, idempotency_key },
       },
     });
     const response = Object.freeze({

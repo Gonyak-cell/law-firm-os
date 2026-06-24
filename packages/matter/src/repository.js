@@ -4,6 +4,7 @@ import { createMatterCoreRecord } from "./model.js";
 import { MATTER_CORE_MIGRATIONS } from "./migrations/index.js";
 
 const PRIMARY_ID_FIELDS = Object.freeze({
+  MatterClient: "client_id",
   Matter: "matter_id",
   MatterMember: "member_id",
   MatterTask: "task_id",
@@ -46,6 +47,28 @@ function normalizeRecord(input = {}) {
 
 function recordKey(record) {
   return `${record.tenant_id}:${record.model_type}:${primaryIdOf(record)}`;
+}
+
+function findUniquenessConflict({ records, record, key }) {
+  if (record.model_type === "Matter" && record.matter_code) {
+    return [...records.entries()].find(
+      ([existingKey, existing]) =>
+        existingKey !== key
+        && existing.tenant_id === record.tenant_id
+        && existing.model_type === "Matter"
+        && existing.matter_code === record.matter_code,
+    )?.[1];
+  }
+  if (record.model_type === "MatterClient" && record.client_short_name) {
+    return [...records.entries()].find(
+      ([existingKey, existing]) =>
+        existingKey !== key
+        && existing.tenant_id === record.tenant_id
+        && existing.model_type === "MatterClient"
+        && existing.client_short_name === record.client_short_name,
+    )?.[1];
+  }
+  return null;
 }
 
 function refKey(ref = {}) {
@@ -108,6 +131,11 @@ export function createMatterRepository({ filePath, seedRecords = [] } = {}) {
   function put(record, { overwrite = false } = {}) {
     const normalized = normalizeRecord(record);
     const key = recordKey(normalized);
+    const conflict = findUniquenessConflict({ records, record: normalized, key });
+    if (conflict) {
+      const field = normalized.model_type === "Matter" ? "matter_code" : "client_short_name";
+      throw new Error(`${normalized.model_type} ${field} already exists: ${normalized[field]}`);
+    }
     if (!overwrite && records.has(key)) throw new Error(`${normalized.model_type} already exists: ${primaryIdOf(normalized)}`);
     records.set(key, clone(normalized));
     persist();

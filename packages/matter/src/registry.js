@@ -2751,6 +2751,22 @@ export const MATTER_CORE_FUTURE_DEPENDENCIES = Object.freeze({
 });
 
 export const MATTER_CORE_MODEL_DEFINITIONS = Object.freeze({
+  MatterClient: Object.freeze({
+    primary_id: "client_id",
+    tenant_field: "tenant_id",
+    owner_module: "MatterCore",
+    lifecycle_statuses: Object.freeze(["active", "inactive", "needs_review", "merged"]),
+    matter_trace_policy: "none",
+    required_fields: Object.freeze([
+      "client_id",
+      "tenant_id",
+      "client_display_name",
+      "client_short_name",
+      "status",
+      "created_by",
+      "created_at",
+    ]),
+  }),
   Matter: Object.freeze({
     primary_id: "matter_id",
     tenant_field: "tenant_id",

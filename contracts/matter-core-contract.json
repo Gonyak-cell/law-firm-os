@@ -54,6 +54,7 @@
     "stable_tenant_field": "tenant_id",
     "owner_module": "MatterCore",
     "models": [
+      "MatterClient",
       "Matter",
       "MatterMember",
       "MatterTask",
@@ -74,6 +75,20 @@
       "synthetic_only",
       "writes_product_state=false"
     ]
+  },
+  "canonical_identity": {
+    "canonical_source": "Matter app",
+    "client_model": "MatterClient",
+    "matter_model": "Matter",
+    "matter_code_field": "matter_code",
+    "matter_code_format": "[client_short_name]/[matter_type_english]/[matter_detail_type_korean]",
+    "matter_code_max_length": 120,
+    "tenant_unique_fields": [
+      "Matter.matter_code",
+      "MatterClient.client_short_name"
+    ],
+    "matter_number_policy": "legacy_internal_reference_not_canonical_code",
+    "vault_policy": "Vault stores Matter app matter_code as projection/reference and does not create a separate namespace"
   },
   "v2_overlay": {
     "matter_wiki": {
