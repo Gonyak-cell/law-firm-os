@@ -4,6 +4,7 @@ import {
   ChevronDown,
   ClipboardList,
   Database,
+  Eye,
   KeyRound,
   LockKeyhole,
   LogIn,
@@ -12,6 +13,7 @@ import {
   UserPlus
 } from "lucide-react";
 import { PRODUCT_BRAND } from "../brand/brand";
+import parnasTower from "../assets/parnas-tower-login.jpg";
 import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
 import { Field } from "./primitives.jsx";
@@ -71,6 +73,31 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep, onLogin = (
   ];
   const current = steps.find(([id]) => id === authStep) ?? steps[0];
   const Icon = current[2];
+
+  if (authStep === "login") {
+    return (
+      <section className="auth-stage step-login matter-login-stage" data-login-screen="parnas-split">
+        <div className="matter-login-copy">
+          <div className="matter-login-form-column">
+            <MatterLogo />
+            <div className="matter-login-heading">
+              <h1>{`Log in to ${PRODUCT_BRAND}`}</h1>
+              <p>
+                {`Don't have a ${PRODUCT_BRAND} account yet? `}
+                <button type="button" onClick={() => setAuthStep("signup")}>
+                  Sign up now
+                </button>
+              </p>
+            </div>
+            <AuthForm labels={labels} locale={locale} step={authStep} onLogin={onLogin} />
+          </div>
+        </div>
+        <aside className="matter-login-photo-panel" aria-label="Samseong-dong Parnas Tower">
+          <img src={parnasTower} alt="Samseong-dong Parnas Tower" />
+        </aside>
+      </section>
+    );
+  }
 
   return (
     <section className={`auth-stage step-${authStep}`}>
@@ -161,7 +188,7 @@ export function AuthForm({ labels, locale, step, onLogin = () => {} }) {
   if (step === "login") {
     return (
       <form
-        className="form-stack"
+        className="form-stack matter-login-form"
         data-login-form="email-password"
         onSubmit={(event) => {
           event.preventDefault();
@@ -169,35 +196,46 @@ export function AuthForm({ labels, locale, step, onLogin = () => {} }) {
           onLogin({ email: loginEmail.trim(), password: loginPassword });
         }}
       >
-        <label className="field">
-          <span>이메일</span>
+        <label className="matter-login-field">
+          <span>Email</span>
           <input
             data-login-email
             value={loginEmail}
             onChange={(event) => setLoginEmail(event.target.value)}
             autoComplete="email"
             inputMode="email"
+            placeholder="jdoe@matter.local"
             type="email"
             required
           />
+          <Mail size={22} strokeWidth={1.9} aria-hidden="true" />
         </label>
-        <label className="field">
-          <span>비밀번호</span>
+        <label className="matter-login-field">
+          <span>Password</span>
           <input
             data-login-password
             value={loginPassword}
             onChange={(event) => setLoginPassword(event.target.value)}
             autoComplete="current-password"
+            placeholder="••••••••••••"
             type="password"
             required
           />
+          <Eye size={22} strokeWidth={1.9} aria-hidden="true" />
         </label>
-        <button className="primary-button full" type="submit">
-          로그인
-        </button>
-        <div className="auth-links">
-          <a>비밀번호를 잊으셨나요?</a>
+        <div className="matter-login-options">
+          <label className="matter-login-remember">
+            <input type="checkbox" />
+            <span>Remember me</span>
+          </label>
+          <button className="matter-login-forgot" type="button">
+            Forgot<br />
+            password?
+          </button>
         </div>
+        <button className="matter-login-submit" type="submit">
+          Log in
+        </button>
       </form>
     );
   }
