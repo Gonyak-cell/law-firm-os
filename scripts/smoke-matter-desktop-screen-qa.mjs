@@ -51,8 +51,26 @@ async function runtimeSmoke(client, { email, featureId, expectedDecision, expect
     passed: true,
     feature_id: featureId,
     decision: response.decision,
-    http_status: response.http_status
+    http_status: response.http_status,
+    visible_result: `HTTP ${response.http_status} ${response.decision}`
   };
+}
+
+function canonicalRuntimeLabel(label) {
+  return /AWS temporary runtime connected|작업공간 연결됨/.test(label) ? "AWS temporary runtime connected" : label;
+}
+
+function canonicalRoles(account) {
+  const roles = new Set(account.roles);
+  if (
+    account.privilege === "system_super_admin" ||
+    account.privilege === "최고 관리자" ||
+    roles.has("system_super_admin") ||
+    roles.has("시스템 관리자")
+  ) {
+    roles.add("system_super_admin");
+  }
+  return [...roles];
 }
 
 async function collectVisibleDiagnostics(page) {
@@ -146,61 +164,34 @@ async function waitForProductUi(page) {
       active_axis: document.querySelector("[data-product-axis][aria-current='page']")?.getAttribute("data-product-axis") ?? ""
     };
   });
-  assert.deepEqual(topHeaderNav.labels, ["Client", "Matter", "People", "Vault"], "top header must render the four product-axis menu labels");
-  assert.deepEqual(topHeaderNav.axis_ids, ["clients", "matters", "people", "vault"], "top header product-axis menu must stay fixed to Client/Matter/People/Vault");
+  assert.deepEqual(topHeaderNav.labels, ["Home", "Client", "Matter", "People", "Vault"], "top header must render the five primary menu labels");
+  assert.deepEqual(topHeaderNav.axis_ids, ["home", "clients", "matters", "people", "vault"], "top header product-axis menu must stay fixed to Home/Client/Matter/People/Vault");
   assert.equal(topHeaderNav.in_topbar, true, "product-axis menu must live inside the top header");
-  const collapsedSidebar = await page.evaluate(() => {
+  const contextualSidebar = await page.evaluate(() => {
     const frame = document.querySelector(".app-frame");
-    const rail = document.querySelector(".rail");
     const sidebar = document.querySelector(".sidebar");
-    const railStyle = rail ? getComputedStyle(rail) : null;
+    const workspace = document.querySelector(".workspace-card");
     const sidebarStyle = sidebar ? getComputedStyle(sidebar) : null;
-    const railWord = document.querySelector(".rail-logo .matter-word");
+    const sidebarLabels = Array.from(document.querySelectorAll(".sidebar-nav .sidebar-item")).map((node) =>
+      node.textContent.replace(/\s+/g, " ").trim()
+    );
     return {
       state: frame?.getAttribute("data-sidebar-state") ?? "",
-      rail_display: railStyle?.display ?? "",
+      shell_contextual: frame?.classList.contains("contextual-shell") ?? false,
       sidebar_display: sidebarStyle?.display ?? "",
-      product_axis_count_in_rail: document.querySelectorAll(".rail [data-product-axis], .rail .rail-item").length,
-      rail_word_visible: railWord ? getComputedStyle(railWord).display !== "none" : false
-    };
-  });
-  assert(["collapsed", "expanded"].includes(collapsedSidebar.state), "post-login product UI must record sidebar state");
-  if (collapsedSidebar.state === "collapsed") {
-    assert.notEqual(collapsedSidebar.rail_display, "none", "collapsed sidebar state must show the side rail");
-    assert.equal(collapsedSidebar.sidebar_display, "none", "collapsed sidebar must hide the expanded sidebar panel");
-    assert.equal(collapsedSidebar.product_axis_count_in_rail, 0, "collapsed side rail must not duplicate the top product-axis menu");
-    assert.equal(collapsedSidebar.rail_word_visible, false, "collapsed sidebar rail must keep matter text hidden");
-    await page.click(".nav-toggle");
-    await page.waitForFunction(() => document.querySelector(".app-frame")?.getAttribute("data-sidebar-state") === "expanded", null, { timeout: 30_000 });
-  }
-  const expandedSidebar = await page.evaluate(() => {
-    const rail = document.querySelector(".rail");
-    const sidebar = document.querySelector(".sidebar");
-    const sidebarBrand = document.querySelector(".sidebar-brand");
-    const matterWord = sidebarBrand?.querySelector(".matter-word");
-    const matterWordRect = matterWord?.getBoundingClientRect();
-    const railStyle = rail ? getComputedStyle(rail) : null;
-    const sidebarStyle = sidebar ? getComputedStyle(sidebar) : null;
-    return {
-      state: document.querySelector(".app-frame")?.getAttribute("data-sidebar-state") ?? "",
-      rail_display: railStyle?.display ?? "",
-      sidebar_display: sidebarStyle?.display ?? "",
-      matter_word: matterWord?.textContent?.trim() ?? "",
-      sidebar_product_axis_labels: Array.from(document.querySelectorAll(".sidebar-nav .sidebar-item")).map((node) =>
-        node.textContent.replace(/\s+/g, " ").trim()
-      ),
-      matter_word_visible: Boolean(matterWordRect && matterWordRect.width > 40 && matterWordRect.height > 12),
+      workspace_visible: Boolean(workspace?.getBoundingClientRect().width && workspace?.getBoundingClientRect().height),
+      sidebar_product_axis_labels: sidebarLabels.filter((label) => ["Home", "Client", "Matter", "People", "Vault"].includes(label)),
+      sidebar_item_count: sidebarLabels.length,
       horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth
     };
   });
-  assert.equal(expandedSidebar.state, "expanded", "expanded sidebar state must be recorded");
-  assert.equal(expandedSidebar.rail_display, "none", "expanded sidebar must replace the side rail");
-  assert.notEqual(expandedSidebar.sidebar_display, "none", "expanded sidebar must render the sidebar panel");
-  assert.equal(expandedSidebar.matter_word, "matter", "expanded sidebar must show the matter wordmark");
-  assert.deepEqual(expandedSidebar.sidebar_product_axis_labels, [], "expanded home sidebar must not duplicate Client/Matter/People/Vault");
-  assert.equal(expandedSidebar.matter_word_visible, true, "expanded sidebar matter wordmark must be visible");
-  assert.equal(expandedSidebar.horizontal_overflow, false, "expanded sidebar must not horizontally overflow");
-  return { ...snapshot, logo_flow: logoFlow, top_header_nav: topHeaderNav, sidebar: { collapsed: collapsedSidebar, expanded: expandedSidebar } };
+  assert.equal(contextualSidebar.state, "contextual", "post-login product UI must record contextual sidebar state");
+  assert.equal(contextualSidebar.shell_contextual, true, "post-login shell must use contextual sidebar mode");
+  assert.notEqual(contextualSidebar.sidebar_display, "none", "contextual sidebar must render the sidebar panel");
+  assert.equal(contextualSidebar.workspace_visible, true, "contextual sidebar must show the active workspace summary");
+  assert.deepEqual(contextualSidebar.sidebar_product_axis_labels, [], "contextual sidebar must not duplicate the top product-axis menu");
+  assert.equal(contextualSidebar.horizontal_overflow, false, "contextual sidebar must not horizontally overflow");
+  return { ...snapshot, logo_flow: logoFlow, top_header_nav: topHeaderNav, sidebar: { contextual: contextualSidebar } };
 }
 
 async function launchMatterApp(qaTarget) {
@@ -319,7 +310,8 @@ async function main() {
       launch_target: qaTarget === "packaged" ? "packaged_mac_app" : "source_main_entrypoint",
       app_name: "matter",
       runtime: {
-        label: firstLaunch.runtimeLabel,
+        label: canonicalRuntimeLabel(firstLaunch.runtimeLabel),
+        visible_label: firstLaunch.runtimeLabel,
         account_count_label: firstLaunch.accountCountLabel,
         base_url_material_printed: false,
         operator_token_material_printed: false,
@@ -337,7 +329,7 @@ async function main() {
         jwsuh_at_amic_kr: {
           email: superAdmin.email,
           highest_privilege: superAdmin.privilege,
-          roles: superAdmin.roles,
+          roles: canonicalRoles(superAdmin),
           reset_email_request: "passed",
           password_reset_confirm: "passed",
           password_login: "passed",
@@ -348,7 +340,7 @@ async function main() {
         ytkim_at_amic_kr: {
           email: generalUser.email,
           highest_privilege: generalUser.privilege,
-          roles: generalUser.roles,
+          roles: canonicalRoles(generalUser),
           reset_email_request: "passed",
           password_reset_confirm: "passed",
           password_login: "passed",

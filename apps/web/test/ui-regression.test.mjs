@@ -100,9 +100,10 @@ test("matter startup branding uses shared splash and brand constants", async () 
   assert.doesNotMatch(i18nSource, /Project Atlas/);
 });
 
-test("desktop post-login route keeps logo image flow before four-axis command center", async () => {
+test("desktop post-login route docks logo before five-axis contextual shell", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
+  const navSource = await readWebFile("src/data/nav.js");
   const homeSource = await readWebFile("src/components/HomeSurface.jsx");
   const stylesSource = await readWebFile("src/styles.css");
   const desktopSource = await readFile(resolve(webRoot, "../desktop/src/renderer/offline.html"), "utf8");
@@ -123,41 +124,129 @@ test("desktop post-login route keeps logo image flow before four-axis command ce
   assert.match(appSource, /post-login-splash/);
   assert.match(stylesSource, /\.loading-stage\.post-login-splash strong/);
   assert.match(stylesSource, /\.loading-stage\.post-login-splash \.matter-splash[\s\S]*min-height:\s*auto/);
+  assert.match(stylesSource, /@keyframes post-login-logo-dock/);
+  assert.match(shellSource, /data-logo-dock-target="top-left"/);
   assert.match(stylesSource, /--matter-splash-word-width/);
   assert.match(stylesSource, /@keyframes matter-mark-in[\s\S]*translateX\(calc\(\(var\(--matter-splash-word-width\) \+ var\(--matter-splash-gap\)\) \/ 2\)\)/);
   assert.match(stylesSource, /@keyframes matter-word-reveal[\s\S]*clip-path:\s*inset\(0 0 0 0\)/);
-  assert.match(appSource, /initialSidebarExpanded/);
-  assert.match(appSource, /initialParams\.get\("sidebar"\) !== "collapsed"/);
-  assert.match(appSource, /sidebarExpanded/);
-  assert.match(appSource, /data-sidebar-state/);
-  assert.match(shellSource, /aria-expanded=\{sidebarExpanded\}/);
+  assert.match(appSource, /data-sidebar-state="contextual"/);
+  assert.match(appSource, /notificationsOpen/);
+  assert.match(appSource, /<NotificationDrawer open=\{notificationsOpen\}/);
   assert.match(shellSource, /data-product-axis-nav="top-header"/);
   assert.match(shellSource, /data-product-axis=\{id\}/);
   assert.match(shellSource, /aria-current=\{view === id \? "page" : undefined\}/);
   assert.match(shellSource, /data-matter-logo-flow/);
-  assert.match(shellSource, /data-sidebar-expanded/);
+  assert.match(shellSource, /data-context-sidebar=\{view\}/);
+  assert.match(shellSource, /topbar-brand/);
+  assert.match(shellSource, /sidebar-utilities/);
+  assert.match(navSource, /id: "home"/);
+  for (const axis of ["home", "clients", "matters", "people", "vault"]) {
+    assert.match(navSource, new RegExp(`id: "${axis}"`));
+  }
   assert.match(shellSource, /<MatterLogo \/>/);
-  assert.doesNotMatch(shellSource, /<nav className="rail-nav"/);
+  assert.doesNotMatch(shellSource, /export function Rail|<nav className="rail-nav"|nav-toggle|sidebarExpanded/);
+  assert.doesNotMatch(appSource, /<Rail \/>|sidebarExpanded|initialSidebarExpanded/);
   assert.match(homeSource, /title="Client Matter People Vault"/);
   assert.doesNotMatch(homeSource, /endpoint-strip|endpoint coverage|\$\{endpoint\}/);
   assert.doesNotMatch(homeSource, /MetricCard|metric-grid|Product axes|Record views|Protected actions|Release status|visible records|record views|safeguards|capability-card|capability-counts|boundary-ledger/);
   assert.doesNotMatch(stylesSource, /metric-grid|clients-metric-grid|people-metric-grid|command-center-grid|pill-blue|pill-green|recipient-chip|report-chip/);
   assert.match(homeSource, /work-area-list/);
-  assert.match(stylesSource, /\.app-frame\.sidebar-expanded/);
-  assert.match(stylesSource, /\.app-frame\.sidebar-expanded \.rail/);
-  assert.match(stylesSource, /\.sidebar-brand/);
+  assert.match(stylesSource, /\.app-frame[\s\S]*grid-template-columns:\s*var\(--am-sidebar-width\) minmax\(0, 1fr\)/);
+  assert.match(stylesSource, /--am-topbar-height:\s*78px/);
+  assert.match(stylesSource, /\.topbar-brand/);
+  assert.match(stylesSource, /\.top-axis-item[\s\S]*min-width:\s*96px/);
+  assert.match(stylesSource, /@media \(max-width:\s*1180px\)[\s\S]*\.top-axis-item[\s\S]*min-width:\s*84px/);
+  assert.match(stylesSource, /\.topbar \.global-search[\s\S]*height:\s*38px/);
+  assert.match(stylesSource, /\.sidebar-utility/);
+  assert.doesNotMatch(stylesSource, /\.app-frame\.sidebar-expanded|\.rail-logo|\.nav-toggle\.active/);
+});
+
+test("topbar notifications open a right drawer with global dim and stacked alerts", async () => {
+  const appSource = await readWebFile("src/App.jsx");
+  const shellSource = await readWebFile("src/components/Shell.jsx");
+  const stylesSource = await readWebFile("src/styles.css");
+
+  assert.match(appSource, /setNotificationsOpen\(\(open\) => !open\)/);
+  assert.match(appSource, /setNotificationsOpen\(false\)/);
+  assert.match(shellSource, /export function NotificationDrawer/);
+  assert.match(shellSource, /notificationItems/);
+  assert.match(shellSource, /data-notification-trigger="true"/);
+  assert.match(shellSource, /aria-expanded=\{notificationsOpen \? "true" : "false"\}/);
+  assert.match(shellSource, /data-notification-drawer="open"/);
+  assert.match(shellSource, /role="dialog"/);
+  assert.match(shellSource, /aria-modal="true"/);
+  assert.match(shellSource, /className="notification-scrim"/);
+  assert.match(shellSource, /data-notification-card="stacked"/);
+  assert.match(shellSource, /알림 <span>3<\/span>/);
+  assert.match(shellSource, /모두 읽음 처리/);
+  assert.match(shellSource, /알림 설정/);
+  assert.doesNotMatch(shellSource, />Notifications|Mark All as Read|>Settings<|status: "Conflict check"|status: "Approval"/);
+  assert.match(stylesSource, /\.notification-layer[\s\S]*z-index:\s*140/);
+  assert.match(stylesSource, /\.notification-scrim[\s\S]*background:\s*rgba\(15, 23, 42, 0\.46\)/);
+  assert.match(stylesSource, /\.notification-drawer[\s\S]*right:\s*0[\s\S]*grid-template-rows:\s*auto minmax\(0, 1fr\) auto/);
+  assert.match(stylesSource, /\.notification-stack[\s\S]*overflow:\s*auto/);
+  assert.match(stylesSource, /\.notification-card[\s\S]*grid-template-columns:\s*42px minmax\(0, 1fr\)/);
+  assert.match(stylesSource, /@keyframes notification-drawer-in/);
+});
+
+test("avatar profile opens a matter-consistent personal profile surface without becoming a product axis", async () => {
+  const appSource = await readWebFile("src/App.jsx");
+  const shellSource = await readWebFile("src/components/Shell.jsx");
+  const navSource = await readWebFile("src/data/nav.js");
+  const profileSource = await readWebFile("src/components/UserProfileSurface.jsx");
+  const stylesSource = await readWebFile("src/styles.css");
+
+  assert.match(appSource, /"profile"/);
+  assert.match(appSource, /<UserProfileSurface \/>/);
+  assert.match(appSource, /onProfile=\{\(\) => navigateToView\("profile"\)\}/);
+  assert.match(shellSource, /data-profile-trigger="true"/);
+  assert.match(shellSource, /<span>서<\/span>/);
+  assert.match(shellSource, /profileSidebarItems/);
+  assert.match(shellSource, /data-context-sidebar=\{view\}/);
+  assert.doesNotMatch(shellSource, /\{labels\.upgrade\}/);
+  assert.match(profileSource, /data-user-profile-surface="matter-consistent"/);
+  assert.match(profileSource, /계약 정보/);
+  assert.match(profileSource, /비용·정산 내역/);
+  assert.match(profileSource, /개인정보 관리/);
+  assert.match(profileSource, /부재 일정/);
+  assert.match(profileSource, /시작 설정/);
+  assert.match(profileSource, />80%<\/strong>/);
+  assert.match(profileSource, /내 프로필/);
+  assert.match(profileSource, /계정 정리 중/);
+  assert.doesNotMatch(profileSource, /Contracts \/ Agreements|Expenses and claims overview|Personal Information|Time off|My Onboarding|Your Profile|Help & Feedback|계약 \/ 약정|비용 및 청구 현황|오프보딩|유연 지급|출금 방법|MessageCircle/);
+  assert.doesNotMatch(profileSource, /deel-/);
+  assert.match(stylesSource, /\.matter-profile-surface[\s\S]*background:\s*var\(--am-canvas\)/);
+  assert.match(stylesSource, /\.matter-profile-grid[\s\S]*grid-template-columns:\s*minmax\(520px, 1fr\) minmax\(320px, 0\.58fr\)/);
+  assert.match(stylesSource, /\.matter-profile-progress-meter span[\s\S]*width:\s*80%/);
+  assert.doesNotMatch(stylesSource, /deel-|#f7f6f2|\.matter-profile-progress-card\s*\{[^}]*position:\s*fixed/);
+  assert.doesNotMatch(navSource, /id: "profile"/);
 });
 
 test("login surfaces accept only email and password", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const authSource = await readWebFile("src/components/AuthSurface.jsx");
+  const stylesSource = await readWebFile("src/styles.css");
+  const assetFiles = await readdir(resolve(webRoot, "src/assets"));
   const desktopSource = await readFile(resolve(webRoot, "../desktop/src/renderer/offline.html"), "utf8");
 
   assert.match(appSource, /onLogin=\{\(\) => \{/);
+  assert.match(appSource, /auth-only-app/);
+  assert.match(appSource, /view === "auth" && authStep === "login"/);
+  assert.match(authSource, /parnas-tower-login\.jpg/);
+  assert.match(authSource, /data-login-screen="parnas-split"/);
+  assert.match(authSource, /matter-login-photo-panel/);
+  assert.match(authSource, /Samseong-dong Parnas Tower/);
+  assert.match(authSource, /<MatterLogo \/>/);
   assert.match(authSource, /data-login-form="email-password"/);
   assert.match(authSource, /data-login-email/);
   assert.match(authSource, /data-login-password/);
+  assert.match(stylesSource, /\.matter-login-stage/);
+  assert.match(stylesSource, /\.matter-login-photo-panel img[\s\S]*object-fit:\s*cover/);
+  assert.match(stylesSource, /@keyframes post-login-logo-dock/);
+  assert.ok(assetFiles.includes("parnas-tower-login.jpg"));
   assert.doesNotMatch(authSource, /Continue with SSO|SSO로 계속/);
+  assert.doesNotMatch(authSource, /Remote Talent|remote talent|Mobbin|curated by|Remote account/);
+  assert.doesNotMatch(stylesSource, /Remote Talent|remote talent|Mobbin|curated by/);
 
   assert.match(desktopSource, /data-login-email/);
   assert.match(desktopSource, /data-login-password/);

@@ -61,9 +61,16 @@ export function createMatter(input) {
   return freezeRecord({
     ...baseRecord("Matter", input),
     matter_id: input.matter_id,
+    matter_code: input.matter_code ?? null,
+    matter_name: input.matter_name ?? input.title,
     client_id: input.client_id,
+    client_display_name: input.client_display_name ?? null,
     title: input.title,
     status: input.status,
+    matter_type_english: input.matter_type_english ?? null,
+    matter_detail_type_korean: input.matter_detail_type_korean ?? null,
+    source_revision: input.source_revision ?? null,
+    matter_number: input.matter_number ?? null,
     created_by: input.created_by,
     created_at: input.created_at,
     opened_at: input.opened_at ?? null,
@@ -73,6 +80,22 @@ export function createMatter(input) {
     future_citation_ledger_ref_policy: "reserved_for_rp06",
     future_loop_context_policy: "stable_context_reference_only_no_loop_engine",
     client_visible_by_default: false,
+  });
+}
+
+export function createMatterClient(input) {
+  return freezeRecord({
+    ...baseRecord("MatterClient", { ...input, status: input.status ?? "active" }),
+    matter_id: null,
+    client_id: input.client_id,
+    client_display_name: input.client_display_name,
+    client_short_name: input.client_short_name,
+    status: input.status ?? "active",
+    source_revision: input.source_revision ?? null,
+    created_by: input.created_by,
+    created_at: input.created_at,
+    updated_by: input.updated_by ?? input.created_by,
+    updated_at: input.updated_at ?? input.created_at,
   });
 }
 
@@ -317,6 +340,7 @@ export function createMatterGraphSkeletonForMatter(matter, input = {}) {
 }
 
 const FACTORIES = Object.freeze({
+  MatterClient: createMatterClient,
   Matter: createMatter,
   MatterMember: createMatterMember,
   MatterTask: createMatterTask,

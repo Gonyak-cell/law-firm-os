@@ -45,11 +45,20 @@ function openingPayload(overrides = {}) {
     actor_id: "user_rp05_owner",
     idempotency_key: "matter-api-open-001",
     matter_number_seed: "API-OPEN-001",
+    require_canonical_matter_code: true,
+    client: {
+      client_id: "client_rp04_amic",
+      client_display_name: "(주)AMIC API 주식회사",
+    },
     matter: {
       matter_id: "matter_api_open_001",
       tenant_id: TENANT,
+      client_id: "client_rp04_amic",
       legal_client_party_id: "party_rp04_amic",
       billing_client_party_id: "party_rp04_amic",
+      matter_type_english: "litigation",
+      matter_detail_type_korean: "계약분쟁",
+      source_revision: "api-opening-test-revision",
       title: "API opened matter",
       status: "opening",
       matter_number: "M-TENANT-RP05-API-OPEN-001",
@@ -212,7 +221,9 @@ test("G4 Matter opening write persists, audits, and replays idempotently across 
     assert.equal(created.status, 201);
     assert.equal(created.body.outcome, "created");
     assert.equal(created.body.item.matter_id, "matter_api_open_001");
+    assert.equal(created.body.item.matter_code, "AMIC API/litigation/계약분쟁");
     assert.equal(created.body.item.matter_number, "M-TENANT-RP05-API-OPEN-001");
+    assert.equal(created.body.item.client_id, "client_rp04_amic");
     assert.equal(created.body.state_idempotent, true);
     assert.equal(created.body.audit_event.action, "matter.open");
 
@@ -228,6 +239,7 @@ test("G4 Matter opening write persists, audits, and replays idempotently across 
   await withServer(async (baseUrl) => {
     const detail = await json(baseUrl, `/api/matters/matter_api_open_001?${BASE_QUERY}`);
     assert.equal(detail.status, 200);
+    assert.equal(detail.body.item.matter_code, "AMIC API/litigation/계약분쟁");
     assert.equal(detail.body.item.matter_id, "matter_api_open_001");
     assert.equal(detail.body.client_report.unauthorized_count_leaked, false);
   }, { matterStorePath: storePath });

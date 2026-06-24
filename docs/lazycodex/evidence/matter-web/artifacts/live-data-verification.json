@@ -1,12 +1,22 @@
 {
   "schema_version": "matter.lcx-web.live-data-verification.v1",
-  "generated_at": "2026-06-22T07:17:58.319Z",
+  "generated_at": "2026-06-24T15:26:05.001Z",
   "base_url": "http://127.0.0.1:5173",
   "api_base": "http://127.0.0.1:4180 via vite dev proxy",
   "source_of_truth": "apps/web",
   "passed": true,
+  "api_response_count": 114,
+  "api_server_errors": [],
   "console_errors_recorded_not_gated": [
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
     "Failed to load resource: the server responded with a status of 403 (Forbidden)",
     "Failed to load resource: the server responded with a status of 403 (Forbidden)",
     "Failed to load resource: the server responded with a status of 400 (Bad Request)"
@@ -18,13 +28,15 @@
       "passed": true,
       "detail": {
         "capability_cards": 4,
-        "release_boundary_visible": true,
-        "status_labels": [
-          "live",
-          "live",
-          "unavailable",
-          "live"
-        ]
+        "work_area_labels": [
+          "Client",
+          "Matter",
+          "People",
+          "Vault"
+        ],
+        "open_buttons": 4,
+        "api_5xx_count": 0,
+        "api_5xx": []
       },
       "error": null
     },
@@ -36,8 +48,10 @@
         "denied": 0,
         "review": 0,
         "unavailable": 0,
-        "empty": 1,
-        "table_rows": 0
+        "empty": 0,
+        "table_rows": 1,
+        "api_5xx_count": 0,
+        "api_5xx": []
       },
       "error": null
     },
@@ -46,7 +60,9 @@
       "url": "/?locale=en&view=clients&data=live&ctx=denied",
       "passed": true,
       "detail": {
-        "state_text": "Access denied The permission gate blocked this ClientGroup request. No client rows are shown."
+        "state_text": "접근 권한이 없습니다 권한이 있는 Client 정보만 표시됩니다.",
+        "api_5xx_count": 0,
+        "api_5xx": []
       },
       "error": null
     },
@@ -55,7 +71,9 @@
       "url": "/?locale=en&view=clients&data=live&ctx=review",
       "passed": true,
       "detail": {
-        "state_text": "Review required This ClientGroup request requires review before the client rows can be displayed."
+        "state_text": "검토가 필요합니다 검토가 끝나면 Client 정보를 확인할 수 있습니다.",
+        "api_5xx_count": 0,
+        "api_5xx": []
       },
       "error": null
     },
@@ -64,16 +82,111 @@
       "url": "/?locale=en&view=vault&data=live&ctx=denied",
       "passed": true,
       "detail": {
-        "state_text": "Access denied Permission recheck denied this document workspace. No row counts, snippets, citations, or document metadata are shown."
+        "state_text": "접근 권한이 없습니다 권한이 있는 정보만 표시됩니다.",
+        "api_5xx_count": 0,
+        "api_5xx": []
       },
       "error": null
     },
     {
-      "name": "home-release-boundary-visible",
+      "name": "home-product-axis-state-visible",
       "url": "/?locale=en&view=home&data=live&ctx=allow",
       "passed": true,
       "detail": {
-        "production_go_live_false_visible": true
+        "capability_cards": 4,
+        "work_area_labels": [
+          "Client",
+          "Matter",
+          "People",
+          "Vault"
+        ],
+        "open_buttons": 4,
+        "api_5xx_count": 0,
+        "api_5xx": []
+      },
+      "error": null
+    },
+    {
+      "name": "matters-live-surface-no-5xx",
+      "url": "/?locale=ko&view=matters&data=live&ctx=allow",
+      "passed": true,
+      "detail": {
+        "selector": "[data-cmp-g4-live-matters='true']",
+        "state_text": "Matter Matter 진행, 구성원, 문서, 활동, 청구, 분석 업무를 관리합니다. 새로고침 Matter 목록 권한 적용 새 Matter 개시는 승인 후 반영됩니다. 전체 Matter 개시 중 종료 개시 저장 0개 선택 선택 완료 Matter 제목 진행 상태 청구 상태 Matter 1 Matter 1 개시 중 청구 준비 가능 개인 작업 기록 최근 본 항목 제목 상태 일시 Matter 1 Matter 1 개시 중 06. 25",
+        "api_5xx_count": 0,
+        "api_5xx": []
+      },
+      "error": null
+    },
+    {
+      "name": "people-directory-live-surface-no-5xx",
+      "url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "passed": true,
+      "detail": {
+        "selector": "[data-hrx-api-backed='true']",
+        "state_text": "구성원 관리 Client, Matter, 조직, 외부 참여자, 충돌/윤리벽 관계망을 중심으로 People을 운영하고 HRX 직원 관리는 하위 영역으로 유지합니다. 새로고침 법률 People 디렉터리 Client-Matter-People Client, Matter, 조직, 충돌 관계를 함께 탐색합니다. 전체 내부 변호사 Client 상대 대리인 전문가 규제기관 A Arbitrator Han 중재인 · Arbitration Ins",
+        "api_5xx_count": 0,
+        "api_5xx": []
+      },
+      "error": null
+    },
+    {
+      "name": "people-members-live-surface-no-5xx",
+      "url": "/?locale=ko&view=people&data=live&ctx=allow#people-members",
+      "passed": true,
+      "detail": {
+        "selector": "[data-hrx-api-backed='true']",
+        "state_text": "구성원 관리 Client, Matter, 조직, 외부 참여자, 충돌/윤리벽 관계망을 중심으로 People을 운영하고 HRX 직원 관리는 하위 영역으로 유지합니다. 새로고침 구성원 목록 권한 적용 권한이 있는 구성원 정보만 표시됩니다 박 박병준 등록 계정 재직 서 서지원 등록 계정 재직 조 조성민 등록 계정 재직 박 박서영 등록 계정 재직 윤 윤태리 등록 계정 재직 조 조우상 등록 계정 재직 임 임영훈 등록 계정 재직 이 이예진",
+        "api_5xx_count": 0,
+        "api_5xx": []
+      },
+      "error": null
+    },
+    {
+      "name": "vault-live-surface-no-5xx",
+      "url": "/?locale=ko&view=vault&data=live&ctx=allow",
+      "passed": true,
+      "detail": {
+        "selector": "[data-cmp-g5-vault-surface='true']",
+        "state_text": "Vault Vault 문서와 권한 정보를 관리합니다. 문서 내용은 권한이 있을 때만 표시됩니다. 새로고침 Vault 문서함 권한 적용 문서 내용은 권한이 있을 때만 표시됩니다. Matter 선택됨 / Vault / 작업공간 준비됨 보존 설정 없음 / 권한 적용 문서 제목 등록 계정 상태 버전 권한 보존 문서 1 Synthetic engagement letter 서지원 사용 중 현재 버전 기본 없음",
+        "api_5xx_count": 0,
+        "api_5xx": []
+      },
+      "error": null
+    },
+    {
+      "name": "client-intake-live-surface-no-5xx",
+      "url": "/?locale=ko&view=clients&data=live&ctx=allow#client-intake",
+      "passed": true,
+      "detail": {
+        "selector": "[data-cmp-g2-live-clients='true']",
+        "state_text": "Client Client, 잠재 Client, 기회, 접수를 한 화면에서 확인합니다. 새로고침 접수 상담 접수 접수 1 검토 대기 충돌 검토 통과 검토 스냅샷 필요 통과 처리 접수 상태 기회 범위 접수 1 접수 연결됨 범위 미지정 레코드 Client 1 상태 검토 필요 대표 당사자 미지정 구성원 2 연결 Matter 미지정 잠재 Client 1 기회 1 접수 1 계정 1 연락처 1 권한 기준에 맞춰 표시됩니다. 병합 검토 0건",
+        "api_5xx_count": 0,
+        "api_5xx": []
+      },
+      "error": null
+    },
+    {
+      "name": "client-data-cloud-live-surface-no-5xx",
+      "url": "/?locale=ko&view=clients&data=live&ctx=allow#client-data",
+      "passed": true,
+      "detail": {
+        "selector": "[data-cmp-g2-live-clients='true']",
+        "state_text": "Client Client, 잠재 Client, 기회, 접수를 한 화면에서 확인합니다. 새로고침 데이터 보강 Client 외부 연동 2개 확인 연동 요청 동의와 보존 보강 범위는 담당자 승인 후 적용됩니다. 승인 확인 외부 연동 등록 아직 실행 전 동의 상태 아직 실행 전 외부 연동 상태 범위 외부 연결 Salesforce Data Cloud 외부 확인 대기 기업 정보 / 관계 / Matter 맥락 아니오 FullContact ",
+        "api_5xx_count": 0,
+        "api_5xx": []
+      },
+      "error": null
+    },
+    {
+      "name": "client-reports-live-surface-no-5xx",
+      "url": "/?locale=ko&view=clients&data=live&ctx=allow#client-reports",
+      "passed": true,
+      "detail": {
+        "selector": "[data-cmp-g2-live-clients='true']",
+        "state_text": "Client Client, 잠재 Client, 기회, 접수를 한 화면에서 확인합니다. 새로고침 보고서 Client 저장된 보고서 2개 생성 필터와 열 Client 그룹 / Matter 수 / 손익 조정 생성 상태 아직 실행 전 정의 상태 아직 실행 전 보고서 범위 차트 공유 원문 Client 손익 개요 Client 막대 private 보호됨 Matter business overview Matter 표 private 보호됨 Cl",
+        "api_5xx_count": 0,
+        "api_5xx": []
       },
       "error": null
     }

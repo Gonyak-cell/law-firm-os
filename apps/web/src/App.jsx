@@ -2,17 +2,18 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { copy } from "./i18n.js";
 import { navItems } from "./data/nav.js";
-import { GlobalSearch, LoadingSurface, Rail, Sidebar, Topbar } from "./components/Shell.jsx";
+import { GlobalSearch, LoadingSurface, NotificationDrawer, Sidebar, Topbar } from "./components/Shell.jsx";
 import { AuthSurface } from "./components/AuthSurface.jsx";
 import { HomeSurface } from "./components/HomeSurface.jsx";
 import { ClientsSurface } from "./components/ClientsSurface.jsx";
 import { MattersSurface } from "./components/MattersSurface.jsx";
 import { VaultSurface } from "./components/VaultSurface.jsx";
+import { UserProfileSurface } from "./components/UserProfileSurface.jsx";
 import { PeopleHome } from "./people/PeopleHome.tsx";
 
 export function App() {
   const initialParams = new URLSearchParams(window.location.search);
-  const routableViews = ["auth", "home", "loading", ...navItems.map((item) => item.id)];
+  const routableViews = ["auth", "home", "loading", "profile", ...navItems.map((item) => item.id)];
   const initialLocale = initialParams.get("locale") === "en" ? "en" : "ko";
   const initialTheme = initialParams.get("theme") === "dark" ? "dark" : "light";
   const initialView = routableViews.includes(initialParams.get("view")) ? initialParams.get("view") : "home";
@@ -25,16 +26,15 @@ export function App() {
     : "allow";
   const initialSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
   const initialHandoffSplash = initialParams.get("splash") === "1";
-  const initialSidebarExpanded = initialParams.get("sidebar") !== "collapsed";
   const [locale, setLocale] = useState(initialLocale);
   const [theme, setTheme] = useState(initialTheme);
   const [view, setView] = useState(initialView);
   const [liveCtx, setLiveCtx] = useState(initialLiveCtx);
   const [activeSection, setActiveSection] = useState(initialSection);
   const [handoffSplashVisible, setHandoffSplashVisible] = useState(initialHandoffSplash);
-  const [sidebarExpanded, setSidebarExpanded] = useState(initialSidebarExpanded);
   const [authStep, setAuthStep] = useState(initialAuthStep);
   const [query, setQuery] = useState(initialQuery);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const labels = copy[locale];
 
   function routeFromLocation() {
@@ -57,6 +57,7 @@ export function App() {
     if (!routableViews.includes(nextView)) return;
     setView(nextView);
     setActiveSection(section);
+    setNotificationsOpen(false);
     window.history.pushState({ view: nextView, section }, "", routeUrl(nextView, section));
   }
 
@@ -87,6 +88,23 @@ export function App() {
     return <LoadingSurface labels={labels} locale={locale} theme={theme} setLocale={setLocale} setTheme={setTheme} />;
   }
 
+  if (view === "auth" && authStep === "login") {
+    return (
+      <div className="matter-app auth-only-app">
+        <AuthSurface
+          labels={labels}
+          locale={locale}
+          authStep={authStep}
+          setAuthStep={setAuthStep}
+          onLogin={() => {
+            setHandoffSplashVisible(true);
+            navigateToView("home");
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="matter-app">
       <Topbar
@@ -99,14 +117,14 @@ export function App() {
         setQuery={setQuery}
         view={view}
         setView={navigateToView}
-        sidebarExpanded={sidebarExpanded}
-        onToggleSidebar={() => setSidebarExpanded((current) => !current)}
         onCreate={() => navigateToView("matters", "matter-opening")}
         onInvite={() => navigateToView("people", "people-members")}
+        onProfile={() => navigateToView("profile")}
+        notificationsOpen={notificationsOpen}
+        onToggleNotifications={() => setNotificationsOpen((open) => !open)}
       />
-      <div className={sidebarExpanded ? "app-frame sidebar-expanded" : "app-frame sidebar-collapsed"} data-sidebar-state={sidebarExpanded ? "expanded" : "collapsed"}>
-        <Rail />
-        <Sidebar labels={labels} view={view} setView={navigateToView} activeSection={activeSection} expanded={sidebarExpanded} />
+      <div className="app-frame contextual-shell" data-sidebar-state="contextual">
+        <Sidebar labels={labels} view={view} setView={navigateToView} activeSection={activeSection} />
         <main className="page-canvas">
           {view === "auth" && (
             <AuthSurface
@@ -131,6 +149,7 @@ export function App() {
           {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
           {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} />}
           {view === "vault" && <VaultSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
+          {view === "profile" && <UserProfileSurface />}
         </main>
       </div>
       {handoffSplashVisible && (
@@ -145,6 +164,7 @@ export function App() {
         />
       )}
       {query && <GlobalSearch labels={labels} query={query} setQuery={setQuery} setView={navigateToView} />}
+      <NotificationDrawer open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
     </div>
   );
 }

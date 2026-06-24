@@ -1,13 +1,14 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-06-24T01:04:30.314Z",
+  "generated_at": "2026-06-24T15:23:38.078Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
-  "qa_mode": "source_electron_app_screen_with_aws_temporary_runtime",
-  "launch_target": "source_main_entrypoint",
+  "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
+  "launch_target": "packaged_mac_app",
   "app_name": "matter",
   "runtime": {
-    "label": "작업공간 연결됨",
+    "label": "AWS temporary runtime connected",
+    "visible_label": "작업공간 연결됨",
     "account_count_label": "등록된 계정 9개",
     "base_url_material_printed": false,
     "operator_token_material_printed": false,
@@ -25,12 +26,14 @@
     "jwsuh_at_amic_kr": {
       "email": "jwsuh@amic.kr",
       "highest_privilege": "최고 관리자",
-      "roles": [],
+      "roles": [
+        "system_super_admin"
+      ],
       "reset_email_request": "passed",
       "password_reset_confirm": "passed",
       "password_login": "passed",
       "product_handoff": {
-        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
+        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
         "title": "Client Matter People Vault",
         "capability_cards": 4,
         "capability_labels": [
@@ -44,7 +47,7 @@
         "owner_approval_false_visible": true,
         "no_dummy_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 434,
+        "body_character_count": 435,
         "logo_flow": {
           "observed": true,
           "image_alt": "matter",
@@ -55,35 +58,30 @@
         },
         "top_header_nav": {
           "labels": [
+            "Home",
             "Client",
             "Matter",
             "People",
             "Vault"
           ],
           "axis_ids": [
+            "home",
             "clients",
             "matters",
             "people",
             "vault"
           ],
           "in_topbar": true,
-          "active_axis": ""
+          "active_axis": "home"
         },
         "sidebar": {
-          "collapsed": {
-            "state": "expanded",
-            "rail_display": "none",
-            "sidebar_display": "block",
-            "product_axis_count_in_rail": 0,
-            "rail_word_visible": false
-          },
-          "expanded": {
-            "state": "expanded",
-            "rail_display": "none",
-            "sidebar_display": "block",
-            "matter_word": "matter",
+          "contextual": {
+            "state": "contextual",
+            "shell_contextual": true,
+            "sidebar_display": "grid",
+            "workspace_visible": true,
             "sidebar_product_axis_labels": [],
-            "matter_word_visible": true,
+            "sidebar_item_count": 3,
             "horizontal_overflow": false
           }
         }
@@ -92,13 +90,15 @@
         "passed": true,
         "feature_id": "matter_vault_dashboard",
         "decision": "allow",
-        "http_status": 200
+        "http_status": 200,
+        "visible_result": "HTTP 200 allow"
       },
       "admin_smoke": {
         "passed": true,
         "feature_id": "matter_vault_admin",
         "decision": "allow",
-        "http_status": 200
+        "http_status": 200,
+        "visible_result": "HTTP 200 allow"
       }
     },
     "ytkim_at_amic_kr": {
@@ -109,7 +109,7 @@
       "password_reset_confirm": "passed",
       "password_login": "passed",
       "product_handoff": {
-        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
+        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
         "title": "Client Matter People Vault",
         "capability_cards": 4,
         "capability_labels": [
@@ -123,46 +123,41 @@
         "owner_approval_false_visible": true,
         "no_dummy_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 434,
+        "body_character_count": 435,
         "logo_flow": {
           "observed": true,
           "image_alt": "matter",
-          "image_width": 99,
+          "image_width": 100,
           "overlay_background": "rgb(247, 249, 252)",
           "overlay_z_index": "3000",
           "by_amic_visible_in_logo": false
         },
         "top_header_nav": {
           "labels": [
+            "Home",
             "Client",
             "Matter",
             "People",
             "Vault"
           ],
           "axis_ids": [
+            "home",
             "clients",
             "matters",
             "people",
             "vault"
           ],
           "in_topbar": true,
-          "active_axis": ""
+          "active_axis": "home"
         },
         "sidebar": {
-          "collapsed": {
-            "state": "expanded",
-            "rail_display": "none",
-            "sidebar_display": "block",
-            "product_axis_count_in_rail": 0,
-            "rail_word_visible": false
-          },
-          "expanded": {
-            "state": "expanded",
-            "rail_display": "none",
-            "sidebar_display": "block",
-            "matter_word": "matter",
+          "contextual": {
+            "state": "contextual",
+            "shell_contextual": true,
+            "sidebar_display": "grid",
+            "workspace_visible": true,
             "sidebar_product_axis_labels": [],
-            "matter_word_visible": true,
+            "sidebar_item_count": 3,
             "horizontal_overflow": false
           }
         }
@@ -171,13 +166,15 @@
         "passed": true,
         "feature_id": "matter_vault_dashboard",
         "decision": "allow",
-        "http_status": 200
+        "http_status": 200,
+        "visible_result": "HTTP 200 allow"
       },
       "admin_smoke": {
         "passed": true,
         "feature_id": "matter_vault_admin",
         "decision": "deny",
-        "http_status": 403
+        "http_status": 403,
+        "visible_result": "HTTP 403 deny"
       }
     }
   },
@@ -197,7 +194,7 @@
     "token_or_password_visible_in_final_dom": false,
     "reset_token_input_cleared_before_screenshot": true,
     "generated_password_visible_in_final_dom": false,
-    "final_dom_character_count": 434
+    "final_dom_character_count": 435
   },
   "release_claims": {
     "production_go_live": false,

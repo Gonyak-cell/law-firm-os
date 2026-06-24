@@ -290,6 +290,7 @@ test("CP00-177 plan binding covers the planned 150 RP05 units", () => {
 test("Matter Core registry includes MatterWiki and provider-neutral MatterGraph vocabulary", () => {
   const registry = validateMatterCoreRegistry();
   assert.equal(registry.valid, true);
+  assert.ok(listMatterCoreModelTypes().includes("MatterClient"));
   assert.ok(listMatterCoreModelTypes().includes("MatterWiki"));
   assert.ok(listMatterCoreModelTypes().includes("MatterGraphNode"));
   assert.ok(listMatterCoreModelTypes().includes("MatterGraphEdge"));

@@ -16,6 +16,8 @@ export function openMatterWithVault({
   clearance_token,
   matter_number_seed,
   idempotency_key,
+  client,
+  require_canonical_matter_code = false,
   actor_id,
   billing,
 } = {}) {
@@ -37,6 +39,8 @@ export function openMatterWithVault({
       clearance_token,
       matter_number_seed,
       idempotency_key,
+      client,
+      require_canonical_matter_code,
       actor_id,
       billing,
     });
