@@ -1,0 +1,90 @@
+{
+  "schema_version": "lawos.lcx_ppl.evidence_receipt.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "generated_at": "2026-06-24T10:02:40Z",
+  "local_time": "2026-06-24T19:02:40+0900",
+  "scope": [
+    "LCX-PPL-03.01",
+    "LCX-PPL-03.02",
+    "LCX-PPL-03.03",
+    "LCX-PPL-03.04"
+  ],
+  "artifacts": [
+    "packages/hrx/src/legal-people-relationship-ledger.js",
+    "packages/hrx/test/legal-people-relationship-ledger.test.js",
+    "docs/lazycodex/people-reflection/relationship-ledger-contract.json",
+    "docs/lazycodex/people-reflection/relationship-ledger-contract.md",
+    "scripts/validate-lcx-ppl-relationship-ledger.mjs"
+  ],
+  "commands": [
+    {
+      "command": "npm run lcx:ppl:relationship:validate",
+      "status": "passed",
+      "summary": "6 relationships, 1 conflict reference, 1 ethical-wall reference, and 8 audit events validated"
+    },
+    {
+      "command": "node --test packages/hrx/test/legal-people-relationship-ledger.test.js",
+      "status": "passed",
+      "summary": "5 focused tests passed"
+    },
+    {
+      "command": "npm run lcx:ppl:contract:validate",
+      "status": "passed",
+      "summary": "LCX-PPL-02 contracts remained valid"
+    },
+    {
+      "command": "node --test packages/hrx/test/*.test.js",
+      "status": "passed",
+      "summary": "336 HRX package tests passed"
+    },
+    {
+      "command": "npm run hro:deel-parity:validate",
+      "status": "passed",
+      "summary": "HRO Deel parity validation remained green"
+    },
+    {
+      "command": "npm run sf:client-matter-parity:validate",
+      "status": "passed",
+      "summary": "SF Client/Matter parity validation remained green and production_or_trust_claim stayed false"
+    },
+    {
+      "command": "node -e JSON parse guard",
+      "status": "passed",
+      "summary": "package.json, relationship-ledger-contract.json, and lcx-ppl-03-evidence.json parse"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "no whitespace errors"
+    }
+  ],
+  "coverage": {
+    "relationship_count": 6,
+    "conflict_reference_count": 1,
+    "ethical_wall_reference_count": 1,
+    "audit_event_count": 8,
+    "seed_fixture_coverage": [
+      "internal_lawyer_to_internal_unit",
+      "client_contact_to_client",
+      "opposing_counsel_to_matter",
+      "expert_witness_to_document",
+      "court_actor_to_matter",
+      "regulator_contact_to_matter",
+      "counterparty_conflict_reference",
+      "internal_lawyer_ethical_wall_reference"
+    ]
+  },
+  "claim_boundary": {
+    "allowed_current_claim": "LCX-PPL-03 local relationship ledger repository foundation is validated.",
+    "people_search_api_complete": false,
+    "people_detail_api_complete": false,
+    "relationship_api_complete": false,
+    "permission_aware_api_response_complete": false,
+    "legal_people_ui_reflection_complete": false,
+    "browser_qa_complete": false,
+    "people_legal_relationship_runtime_ready_candidate_complete": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false
+  }
+}
