@@ -54,7 +54,7 @@ export function PeopleHome({ labels, activeSection = "" }) {
     <section id="people-home" className="surface stack people-surface" data-hrx-api-backed="true">
       <PageHeader
         title={labels.peopleTitle}
-        subtitle="구성원, 인사 문서, 휴가, 승인, 채용, 입퇴사, 인사 정책, 활동 기록, 인사 현황, 자동 검토, 급여정산, 권한 관리를 운영합니다."
+        subtitle="구성원, 인사 문서, 휴가, 승인, 채용, 입퇴사, 인사 정책, 활동 기록, 인사 현황, AI 검토, 급여정산, 권한 관리를 운영합니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshKey((key) => key + 1)}>
             <RefreshCw size={15} />

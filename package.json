@@ -166,6 +166,7 @@
     "sf:client-matter-parity:validate": "node scripts/validate-sf-client-matter-parity-crosswalk.mjs",
     "hro:deel-parity:screenshot-inventory": "swift scripts/generate-hro-deel-screenshot-inventory.swift",
     "hro:deel-parity:validate": "node scripts/validate-hro-deel-parity-crosswalk.mjs",
+    "lcx:ppl:contract:validate": "node scripts/validate-lcx-ppl-legal-people-contract.mjs",
     "web:e2e": "node scripts/run-web-e2e.mjs",
     "db:migrate:test": "node --test packages/hrx/test/migration.test.js",
     "hrx:requirements:generate": "node scripts/generate-hrx-requirement-ledger.mjs",

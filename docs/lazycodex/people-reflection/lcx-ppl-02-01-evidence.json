@@ -1,0 +1,61 @@
+{
+  "schema_version": "lawos.lcx_ppl.evidence_receipt.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "generated_at": "2026-06-24T09:50:23Z",
+  "scope": ["LCX-PPL-02.01"],
+  "artifacts": [
+    "docs/lazycodex/people-reflection/legal-people-taxonomy-contract.json",
+    "docs/lazycodex/people-reflection/legal-people-taxonomy-contract.md",
+    "scripts/validate-lcx-ppl-legal-people-contract.mjs"
+  ],
+  "package_scripts": {
+    "lcx:ppl:contract:validate": "node scripts/validate-lcx-ppl-legal-people-contract.mjs"
+  },
+  "person_types": [
+    "internal_lawyer",
+    "staff_paralegal",
+    "client_contact",
+    "counterparty",
+    "opposing_counsel",
+    "expert_witness",
+    "court_actor",
+    "arbitrator",
+    "regulator_contact"
+  ],
+  "relationship_primitives": [
+    "person_to_organization_affiliation",
+    "person_to_client_contact",
+    "person_to_matter_participation",
+    "person_to_person_relationship",
+    "person_to_document_reference",
+    "person_to_conflict_subject",
+    "person_to_ethical_wall_membership"
+  ],
+  "commands": [
+    {
+      "command": "npm run lcx:ppl:contract:validate",
+      "status": "passed",
+      "summary": "9 person types and 7 relationship primitives validated"
+    },
+    {
+      "command": "node -e JSON parse guard",
+      "status": "passed",
+      "summary": "package.json, legal-people-taxonomy-contract.json, and lcx-ppl-00-01-evidence.json parse"
+    },
+    {
+      "command": "npm run hro:deel-parity:validate",
+      "status": "passed",
+      "summary": "HRO Deel parity validation remained green"
+    }
+  ],
+  "claim_boundary": {
+    "allowed_current_claim": "LCX-PPL-02.01 legal People taxonomy contract is locally validated.",
+    "legal_people_runtime_apis_complete": false,
+    "people_relationship_ledger_complete": false,
+    "people_legal_relationship_ui_complete": false,
+    "people_legal_relationship_runtime_ready_candidate_complete": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false
+  }
+}

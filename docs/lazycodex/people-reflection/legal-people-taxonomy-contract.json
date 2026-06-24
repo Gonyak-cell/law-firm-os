@@ -1,0 +1,131 @@
+{
+  "schema_version": "lawos.lcx_ppl.legal_people_taxonomy.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "tuw": "LCX-PPL-02.01",
+  "status": "contract_ready_not_runtime_complete",
+  "claim_boundary": {
+    "runtime_ready_candidate_complete": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false,
+    "external_provider_ready": false,
+    "ai_final_decision_allowed": false
+  },
+  "identity_rules": [
+    "People is a first-class Law Firm OS axis, not only HRX.",
+    "HRX employee records remain embedded People records, not a separate product.",
+    "External legal actors are directory records with role, relationship, permission, and audit boundaries.",
+    "A Person record may have multiple current or historical affiliations.",
+    "A Person record may participate in multiple Client and Matter contexts with different roles.",
+    "Sensitive access, conflict, ethical-wall, payroll, evaluation, discipline, termination, and legal access decisions require human review evidence."
+  ],
+  "base_required_fields": [
+    "person_id",
+    "display_name",
+    "type_id",
+    "status",
+    "tenant_scope",
+    "created_at",
+    "updated_at",
+    "audit_ref"
+  ],
+  "person_types": [
+    {
+      "type_id": "internal_lawyer",
+      "korean_label": "내부 변호사",
+      "actor_category": "internal",
+      "required_fields": ["practice_group", "jurisdictions", "bar_admissions", "seniority", "rate_profile_ref"],
+      "sensitive_fields": ["rate_profile_ref", "utilization", "availability", "current_matter_load"],
+      "allowed_relationships": ["matter_team_member", "client_relationship_owner", "ethical_wall_member", "reviewer"],
+      "blocked_without_review": ["final_conflict_clearance", "final_legal_access_decision", "rate_change"]
+    },
+    {
+      "type_id": "staff_paralegal",
+      "korean_label": "스태프/패러리걸",
+      "actor_category": "internal",
+      "required_fields": ["team", "role_scope", "capacity_status"],
+      "sensitive_fields": ["availability", "current_matter_load", "performance_context"],
+      "allowed_relationships": ["matter_team_member", "task_assignee", "ethical_wall_member"],
+      "blocked_without_review": ["discipline_or_termination_state", "final_performance_decision"]
+    },
+    {
+      "type_id": "client_contact",
+      "korean_label": "고객 담당자",
+      "actor_category": "external_client",
+      "required_fields": ["client_id", "organization_id", "title", "decision_role"],
+      "sensitive_fields": ["portal_access_state", "billing_contact_state", "communication_preferences"],
+      "allowed_relationships": ["client_contact", "matter_client_contact", "portal_user", "billing_contact"],
+      "blocked_without_review": ["portal_access_grant", "client_visible_scope_change"]
+    },
+    {
+      "type_id": "counterparty",
+      "korean_label": "상대방",
+      "actor_category": "external_adverse_or_transactional",
+      "required_fields": ["organization_id", "representation_side", "related_matter_ids"],
+      "sensitive_fields": ["conflict_flags", "restricted_notes", "sanctions_screening_ref"],
+      "allowed_relationships": ["matter_counterparty", "client_related_party", "conflict_subject"],
+      "blocked_without_review": ["conflict_status_change", "adverse_party_clearance"]
+    },
+    {
+      "type_id": "opposing_counsel",
+      "korean_label": "상대방 대리인",
+      "actor_category": "external_counsel",
+      "required_fields": ["firm_organization_id", "jurisdictions", "related_matter_ids"],
+      "sensitive_fields": ["communication_history", "strategy_notes", "conflict_flags"],
+      "allowed_relationships": ["matter_opposing_counsel", "counterparty_representative", "communication_actor"],
+      "blocked_without_review": ["privileged_communication_release", "conflict_status_change"]
+    },
+    {
+      "type_id": "expert_witness",
+      "korean_label": "전문가/증인",
+      "actor_category": "external_expert",
+      "required_fields": ["expertise_area", "engagement_status", "related_matter_ids"],
+      "sensitive_fields": ["confidentiality_state", "testimony_status", "work_product_refs"],
+      "allowed_relationships": ["matter_expert", "matter_witness", "document_source", "confidentiality_subject"],
+      "blocked_without_review": ["engagement_approval", "testimony_status_change", "confidentiality_release"]
+    },
+    {
+      "type_id": "court_actor",
+      "korean_label": "재판부/법원 관계자",
+      "actor_category": "external_tribunal",
+      "required_fields": ["tribunal_id", "role_title", "jurisdiction"],
+      "sensitive_fields": ["appearance_history", "recusal_or_conflict_notes"],
+      "allowed_relationships": ["matter_tribunal_actor", "hearing_actor", "filing_recipient"],
+      "blocked_without_review": ["conflict_or_recusal_assessment"]
+    },
+    {
+      "type_id": "arbitrator",
+      "korean_label": "중재인",
+      "actor_category": "external_tribunal",
+      "required_fields": ["tribunal_id", "arbitration_institution", "jurisdiction"],
+      "sensitive_fields": ["appointment_history", "conflict_disclosure_refs"],
+      "allowed_relationships": ["matter_arbitrator", "tribunal_member", "conflict_subject"],
+      "blocked_without_review": ["arbitrator_conflict_clearance", "appointment_status_change"]
+    },
+    {
+      "type_id": "regulator_contact",
+      "korean_label": "규제기관 담당자",
+      "actor_category": "external_regulator",
+      "required_fields": ["regulator_organization_id", "jurisdiction", "matter_context"],
+      "sensitive_fields": ["communication_history", "filing_status_refs", "regulatory_strategy_notes"],
+      "allowed_relationships": ["matter_regulator_contact", "filing_recipient", "communication_actor"],
+      "blocked_without_review": ["regulated_disclosure_status_change", "privileged_communication_release"]
+    }
+  ],
+  "relationship_primitives": [
+    "person_to_organization_affiliation",
+    "person_to_client_contact",
+    "person_to_matter_participation",
+    "person_to_person_relationship",
+    "person_to_document_reference",
+    "person_to_conflict_subject",
+    "person_to_ethical_wall_membership"
+  ],
+  "verification_requirements": [
+    "Every person type must include a Korean label, actor category, required fields, sensitive fields, allowed relationships, and blocked-without-review states.",
+    "Every person type must include all base required fields through inheritance.",
+    "No person type may allow AI-only final decisions.",
+    "Runtime implementation must add permission-aware APIs before exposing new working UI."
+  ]
+}
+

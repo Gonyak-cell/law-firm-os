@@ -152,7 +152,7 @@ export function Sidebar({ labels, view, setView, activeSection = "", expanded = 
       { label: "인사 정책", view: "people", section: "people-policy" },
       { label: "활동 기록", view: "people", section: "people-audit" },
       { label: "인사 현황", view: "people", section: "people-analytics" },
-      { label: "자동 검토", view: "people", section: "people-ai" },
+      { label: "AI 검토", view: "people", section: "people-ai" },
       { label: "급여정산", view: "people", section: "people-payroll" },
       { label: "권한 관리", view: "people", section: "people-admin" }
     ],
