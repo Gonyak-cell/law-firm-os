@@ -171,6 +171,7 @@
     "lcx:ppl:api:validate": "node scripts/validate-lcx-ppl-api.mjs",
     "lcx:ppl:ui:validate": "node scripts/validate-lcx-ppl-ui.mjs",
     "lcx:ppl:ethics:validate": "node scripts/validate-lcx-ppl-ethics.mjs",
+    "lcx:hro:blocked:validate": "node scripts/validate-lcx-hro-blocked-backlog.mjs",
     "web:e2e": "node scripts/run-web-e2e.mjs",
     "db:migrate:test": "node --test packages/hrx/test/migration.test.js",
     "hrx:requirements:generate": "node scripts/generate-hrx-requirement-ledger.mjs",
