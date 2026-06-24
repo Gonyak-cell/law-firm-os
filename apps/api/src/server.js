@@ -93,6 +93,26 @@ import {
   createEnterpriseReadinessRuntimeContext,
   handleEnterpriseReadinessApiRequest,
 } from "./enterprise-readiness-context.js";
+import {
+  RECORD_ACTIONS_BOUNDED_CONTEXT,
+  handleRecordActionsApiRequest,
+} from "./record-actions-runtime-context.js";
+import {
+  IMPORT_DATA_MAPPING_BOUNDED_CONTEXT,
+  handleImportDataMappingApiRequest,
+} from "./import-data-mapping-runtime-context.js";
+import {
+  ADMIN_PERMISSION_BOUNDED_CONTEXT,
+  handleAdminPermissionApiRequest,
+} from "./admin-permission-runtime-context.js";
+import {
+  DATA_CLOUD_BOUNDED_CONTEXT,
+  handleDataCloudApiRequest,
+} from "./data-cloud-runtime-context.js";
+import {
+  REPORTS_BOUNDED_CONTEXT,
+  handleReportsApiRequest,
+} from "./reports-runtime-context.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
@@ -319,6 +339,11 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
     MATTER_BOUNDED_CONTEXT,
     VAULT_DMS_BOUNDED_CONTEXT,
     CRM_INTAKE_BOUNDED_CONTEXT,
+    RECORD_ACTIONS_BOUNDED_CONTEXT,
+    IMPORT_DATA_MAPPING_BOUNDED_CONTEXT,
+    ADMIN_PERMISSION_BOUNDED_CONTEXT,
+    DATA_CLOUD_BOUNDED_CONTEXT,
+    REPORTS_BOUNDED_CONTEXT,
     FINANCE_BOUNDED_CONTEXT,
     ANALYTICS_BOUNDED_CONTEXT,
     AI_BOUNDED_CONTEXT,
@@ -367,7 +392,7 @@ async function readRequestBody(req) {
 }
 
 function hasJsonRequestBody(method) {
-  return method === "POST" || method === "PATCH";
+  return method === "POST" || method === "PATCH" || method === "DELETE";
 }
 
 async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, enterpriseReadinessRuntime } = {}) {
@@ -381,6 +406,11 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
   const isMatterPath = pathname.startsWith("/api/matters");
   const isVaultPath = pathname.startsWith("/api/vault");
   const isCrmIntakePath = pathname.startsWith("/api/crm") || pathname.startsWith("/api/intake");
+  const isRecordActionsPath = pathname.startsWith("/api/record-actions");
+  const isImportDataMappingPath = pathname.startsWith("/api/import-jobs") || pathname.startsWith("/api/import-targets");
+  const isAdminPermissionPath = pathname.startsWith("/api/admin");
+  const isDataCloudPath = pathname.startsWith("/api/data-cloud");
+  const isReportsPath = pathname.startsWith("/api/reports");
   const isFinancePath = pathname.startsWith("/api/finance");
   const isAnalyticsPath = pathname.startsWith("/api/analytics");
   const isAiPath = pathname.startsWith("/api/ai");
@@ -396,6 +426,11 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
     isMatterPath ||
     isVaultPath ||
     isCrmIntakePath ||
+    isRecordActionsPath ||
+    isImportDataMappingPath ||
+    isAdminPermissionPath ||
+    isDataCloudPath ||
+    isReportsPath ||
     isFinancePath ||
     isAnalyticsPath ||
     isAiPath ||
@@ -407,7 +442,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
     sendJson(res, 404, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "not_found" });
     return;
   }
-  if (!isHrxPath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isUiReadinessPath && !isEnterpriseReadinessPath && req.method !== "GET") {
+  if (!isHrxPath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isUiReadinessPath && !isEnterpriseReadinessPath && req.method !== "GET") {
     sendJson(res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
@@ -477,6 +512,86 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       context,
       requestId,
       runtime: crmIntakeRuntime,
+    });
+    sendJson(res, result.status, result.body);
+    return;
+  }
+
+  if (isRecordActionsPath) {
+    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const result = await handleRecordActionsApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      context,
+      requestId,
+      runtime: { matterRuntime, crmIntakeRuntime, masterDataRuntime },
+    });
+    sendJson(res, result.status, result.body);
+    return;
+  }
+
+  if (isImportDataMappingPath) {
+    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const result = await handleImportDataMappingApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      context,
+      requestId,
+      runtime: { matterRuntime, crmIntakeRuntime, masterDataRuntime, financeRuntime },
+    });
+    sendJson(res, result.status, result.body);
+    return;
+  }
+
+  if (isAdminPermissionPath) {
+    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const result = await handleAdminPermissionApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      context,
+      requestId,
+      runtime: { matterRuntime },
+    });
+    sendJson(res, result.status, result.body);
+    return;
+  }
+
+  if (isDataCloudPath) {
+    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const result = await handleDataCloudApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      context,
+      requestId,
+      runtime: { matterRuntime },
+    });
+    sendJson(res, result.status, result.body);
+    return;
+  }
+
+  if (isReportsPath) {
+    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const result = await handleReportsApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      context,
+      requestId,
+      runtime: { analyticsRuntime },
     });
     sendJson(res, result.status, result.body);
     return;

@@ -320,3 +320,29 @@ For every `B-WxxR` lane:
 7. `scripts/run-sf-client-matter-browser-qa.mjs` drives the visible UI route and records screenshots.
 8. `scripts/validate-sf-client-matter-parity-crosswalk.mjs` and `surface-connection-ledger.json` classify the lane correctly.
 9. Hermes MCP remains check-only; production/go-live/trust claims remain false.
+
+## 16. Sequential Start Goal
+
+Recommended Codex Goal:
+
+```text
+Goal: SF-CLIENT-MATTER-PARITY Track B UI Exposure 프로그램을 W01R부터 W08R까지 순차 구현한다. Salesforce web Mar 2026 스크린샷과 현재 repo의 crosswalk/contract 원장을 기준으로, 아직 contract-only 또는 partial 상태인 Account/Contact canonical write/merge, broader record actions, activity/calendar/channel, document/email builder, import/data mapping, admin setup, Data Cloud/enrichment, report builder/client profitability 기능을 모두 backend-first로 구현하고, 각 기능을 실제 Client/Matter UI entrypoint로 노출한다.
+
+이 작업은 `workbook/salesforce-track-b-ui-exposure-implementation-plan.md`의 `SF-B-W01R` -> `SF-B-W08R` 순서를 따른다. 각 WxxR lane은 contract JSON 갱신, package repository/service, apps/api route, permission/audit/idempotency/safe response invariant, lane-specific API test, apiClient helper, ClientsSurface/MattersSurface UI entrypoint, UI regression marker, browser QA screenshot, surface ledger/objective audit/current validation receipt 갱신, Hermes MCP check-only evidence 귀속까지 닫아야 한다. UI는 최종적으로 전부 노출하되, provider/owner approval이 필요한 기능은 fake success UI가 아니라 실제 route-backed blocked/configuration/approval state로 노출한다.
+
+완료 기준은 1) W01R~W08R의 모든 TUW가 route-mounted, provider-blocked, 또는 owner-blocked 상태로 명확히 분류되고, 2) route-mounted 기능은 실제 Client/Matter sidebar, right panel, builder, wizard, setup, report 화면에서 보이며, 3) unsupported/fake controls는 남지 않고 forbidden-control validator가 tested-visible-control validator로 전환되며, 4) `npm run sf:client-matter-parity:validate`, lane-specific API tests, web UI regression, web build, browser QA, OMO CodeGraph review, Hermes check-only gate가 evidence로 귀속되고, 5) production approval, deployment, go-live, provider enablement, enterprise trust claim은 별도 인간 승인과 외부 receipt 없이는 주장하지 않는 상태다.
+```
+
+## 17. Sequential Execution Queue
+
+| Order | Lane | Start condition | Exit condition |
+| --- | --- | --- | --- |
+| 1 | `SF-B-W01R` | Current Account/Contact facade routes and Client UI are green. | Canonical write and approved merge are route-backed, tested, and visible in Client Account/Contact/right-panel UI. |
+| 2 | `SF-B-W02R` | W01R is classified in surface ledger. | Broader field edits, record action registry, bulk actions, and action audit are route-backed and visible in Client/Matter lists and right panels. |
+| 3 | `SF-B-W03R` | W02R record action audit exists. | Activity write, Calendar, Deadline board, and Matter Channel are visible; external provider sends remain blocked until receipt. |
+| 4 | `SF-B-W04R` | W03R timeline/activity model is mounted. | Template picker, builder draft, approval, Vault publish, and email draft/send-boundary UI are visible and tested. |
+| 5 | `SF-B-W05R` | W04R builder/Vault publish boundary is stable. | Import wizard covers target, source stage, mapping, dry-run, execute, rollback, and error report in Client/Matter UI. |
+| 6 | `SF-B-W06R` | Import route safety and audit patterns are reusable. | Permission sets, assignments, object policy, connected apps, and admin audit are visible in operations setup UI. |
+| 7 | `SF-B-W07R` | Admin/provider gate UI pattern is established. | Data provider, consent, enrichment jobs, identity resolution, unified profile, and segment activation UI are visible with provider gates. |
+| 8 | `SF-B-W08R` | Data/analytics safe aggregate boundaries are established. | Report builder, report run/share/audit, Client profitability, and Matter report links are visible and browser-driven. |
+| 9 | `SF-B-CLOSE` | W01R~W08R all satisfy lane DOD. | Full crosswalk, validators, browser QA receipt, screenshots, CodeGraph review, Hermes check-only evidence, and no production/go-live/trust claims. |

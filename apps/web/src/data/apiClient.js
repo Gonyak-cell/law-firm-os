@@ -10,6 +10,8 @@ const AI_TENANT_ID = "matter-runtime-tenant";
 const PORTAL_TENANT_ID = "matter-client-tenant";
 const UI_READINESS_TENANT_ID = "matter-runtime-tenant";
 const ENTERPRISE_TENANT_ID = "matter-runtime-tenant";
+const ADMIN_PERMISSION_TENANT_ID = runtimeTenant("tenant", "sf", "b", "w06", "synthetic");
+const DATA_CLOUD_TENANT_ID = runtimeTenant("tenant", "sf", "b", "w07", "synthetic");
 const DEFAULT_PERMISSION_REF = "ui_cmp_r4_master_data_live";
 const DEFAULT_AUDIT_HINT_REF = "ui_cmp_r4_master_data_probe";
 const DEFAULT_MATTER_PERMISSION_REF = "ui_cmp_g4_matter_live";
@@ -30,6 +32,12 @@ const DEFAULT_UI_READINESS_PERMISSION_REF = "ui_cmp_g11_readiness_live";
 const DEFAULT_UI_READINESS_AUDIT_HINT_REF = "ui_cmp_g11_readiness_probe";
 const DEFAULT_ENTERPRISE_PERMISSION_REF = "ui_cmp_g12_enterprise_live";
 const DEFAULT_ENTERPRISE_AUDIT_HINT_REF = "ui_cmp_g12_enterprise_probe";
+const DEFAULT_ADMIN_PERMISSION_REF = "ui_sf_b_w06_permission_admin";
+const DEFAULT_ADMIN_AUDIT_HINT_REF = "ui_sf_b_w06_permission_admin_probe";
+const DEFAULT_DATA_CLOUD_PERMISSION_REF = "ui_sf_b_w07_data_cloud_enrichment";
+const DEFAULT_DATA_CLOUD_AUDIT_HINT_REF = "ui_sf_b_w07_data_cloud_probe";
+const DEFAULT_REPORT_PERMISSION_REF = "ui_sf_b_w08_report_builder";
+const DEFAULT_REPORT_AUDIT_HINT_REF = "ui_sf_b_w08_report_builder_probe";
 
 const PRINCIPAL = {
   user_id: "matter_client_operator",
@@ -89,6 +97,24 @@ const ENTERPRISE_PRINCIPAL = {
   user_id: "matter_enterprise_operator",
   tenant_id: ENTERPRISE_TENANT_ID,
   role_ids: ["enterprise_operator"]
+};
+
+const ADMIN_PERMISSION_PRINCIPAL = {
+  user_id: "matter_admin_operator",
+  tenant_id: ADMIN_PERMISSION_TENANT_ID,
+  role_ids: ["security_admin", "people_admin"]
+};
+
+const DATA_CLOUD_PRINCIPAL = {
+  user_id: "matter_data_cloud_operator",
+  tenant_id: DATA_CLOUD_TENANT_ID,
+  role_ids: ["data_cloud_operator"]
+};
+
+const REPORT_PRINCIPAL = {
+  user_id: "matter_report_builder_operator",
+  tenant_id: ANALYTICS_TENANT_ID,
+  role_ids: ["report_builder", "analytics_user"]
 };
 
 const PERMISSION_CONTEXTS = {
@@ -267,6 +293,60 @@ const ENTERPRISE_PERMISSION_CONTEXTS = {
   review: {
     principal: ENTERPRISE_PRINCIPAL,
     rules: [{ id: "rule_enterprise_review", effect: "review_required", action: "*" }],
+    object_acl: []
+  }
+};
+
+const ADMIN_PERMISSION_CONTEXTS = {
+  allow: {
+    principal: ADMIN_PERMISSION_PRINCIPAL,
+    rules: [{ id: "rule_admin_permission_allow", effect: "allow", action: "*" }],
+    object_acl: []
+  },
+  denied: {
+    principal: ADMIN_PERMISSION_PRINCIPAL,
+    rules: [],
+    object_acl: []
+  },
+  review: {
+    principal: ADMIN_PERMISSION_PRINCIPAL,
+    rules: [{ id: "rule_admin_permission_review", effect: "review_required", action: "*" }],
+    object_acl: []
+  }
+};
+
+const DATA_CLOUD_PERMISSION_CONTEXTS = {
+  allow: {
+    principal: DATA_CLOUD_PRINCIPAL,
+    rules: [{ id: "rule_data_cloud_allow", effect: "allow", action: "*" }],
+    object_acl: []
+  },
+  denied: {
+    principal: DATA_CLOUD_PRINCIPAL,
+    rules: [],
+    object_acl: []
+  },
+  review: {
+    principal: DATA_CLOUD_PRINCIPAL,
+    rules: [{ id: "rule_data_cloud_review", effect: "review_required", action: "*" }],
+    object_acl: []
+  }
+};
+
+const REPORT_PERMISSION_CONTEXTS = {
+  allow: {
+    principal: REPORT_PRINCIPAL,
+    rules: [{ id: "rule_report_allow", effect: "allow", action: "*" }],
+    object_acl: []
+  },
+  denied: {
+    principal: REPORT_PRINCIPAL,
+    rules: [],
+    object_acl: []
+  },
+  review: {
+    principal: REPORT_PRINCIPAL,
+    rules: [{ id: "rule_report_review", effect: "review_required", action: "*" }],
     object_acl: []
   }
 };
@@ -508,6 +588,12 @@ async function writeMatterRuntime({ method = "POST", path, payload, ctx = "allow
     bulkAction: body.bulk_action ?? null,
     auditEvent: body.audit_event ?? null,
     timelineEvent: body.timeline_event ?? null,
+    deadlineChangeRequest: body.deadline_change_request ?? null,
+    confirmation: body.confirmation ?? null,
+    providerState: body.provider_state ?? null,
+    approvalRequest: body.approval_request ?? null,
+    publishState: body.publish_state ?? null,
+    preview: body.preview ?? null,
     safeErrorCodes: body.safe_error_codes ?? [],
     auditHintRef: body.audit_hint_ref ?? null,
     idempotentReplay: body.idempotent_replay === true,
@@ -523,6 +609,814 @@ function postMatterRuntime({ path, payload, ctx = "allow" } = {}) {
 
 function patchMatterRuntime({ path, payload, ctx = "allow" } = {}) {
   return writeMatterRuntime({ method: "PATCH", path, payload, ctx });
+}
+
+async function fetchMatterRuntimeCollection({
+  path,
+  ctx = "allow",
+  permissionRef = DEFAULT_MATTER_PERMISSION_REF,
+  auditHintRef = DEFAULT_MATTER_AUDIT_HINT_REF
+} = {}) {
+  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const params = new URLSearchParams({
+    tenant_id: MATTER_TENANT_ID,
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+
+  let body;
+  try {
+    const response = await fetch(`${path}?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+
+  if (!body || typeof body !== "object" || Array.isArray(body) || !Array.isArray(body.items)) {
+    return { kind: "error" };
+  }
+  return {
+    kind: "data",
+    requestId: body.request_id,
+    outcome: body.outcome,
+    uiState: body.ui_state,
+    items: body.items,
+    pageInfo: body.page_info ?? null,
+    safeErrorCodes: body.safe_error_codes ?? [],
+    auditHintRef: body.audit_hint_ref ?? null,
+    countLeakPrevented: body.count_leak_prevented === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+async function fetchMatterRuntimeItem({
+  path,
+  ctx = "allow",
+  permissionRef = DEFAULT_MATTER_PERMISSION_REF,
+  auditHintRef = DEFAULT_MATTER_AUDIT_HINT_REF
+} = {}) {
+  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const params = new URLSearchParams({
+    tenant_id: MATTER_TENANT_ID,
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+
+  let body;
+  try {
+    const response = await fetch(`${path}?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+
+  if (!body || typeof body !== "object" || Array.isArray(body) || !("item" in body)) {
+    return { kind: "error" };
+  }
+  return {
+    kind: "data",
+    requestId: body.request_id,
+    outcome: body.outcome,
+    uiState: body.ui_state,
+    item: body.item,
+    safeErrorCodes: body.safe_error_codes ?? [],
+    auditHintRef: body.audit_hint_ref ?? null,
+    countLeakPrevented: body.count_leak_prevented === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+function adminPermissionPayload(overrides = {}) {
+  return {
+    tenant_id: ADMIN_PERMISSION_TENANT_ID,
+    permission_ref: DEFAULT_ADMIN_PERMISSION_REF,
+    audit_hint_ref: DEFAULT_ADMIN_AUDIT_HINT_REF,
+    actor_id: ADMIN_PERMISSION_PRINCIPAL.user_id,
+    ...overrides
+  };
+}
+
+function normalizeAdminPermissionBody(body = {}) {
+  return {
+    kind: "data",
+    requestId: body.request_id ?? null,
+    outcome: body.outcome ?? null,
+    statusOutcome: body.outcome ?? null,
+    uiState: body.ui_state ?? null,
+    item: body.item ?? null,
+    items: Array.isArray(body.items) ? body.items : [],
+    auditEvent: body.audit_event ?? null,
+    safeErrorCodes: body.safe_error_codes ?? [],
+    auditHintRef: body.audit_hint_ref ?? null,
+    countLeakPrevented: body.count_leak_prevented === true,
+    idempotentReplay: body.idempotent_replay === true,
+    physicalSchemaMutated: body.physical_schema_mutated === true,
+    physicalSchemaMutationAllowed: body.physical_schema_mutation_allowed === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+async function fetchAdminPermissionCollection({ path, ctx = "allow" } = {}) {
+  const context = ADMIN_PERMISSION_CONTEXTS[ctx] ?? ADMIN_PERMISSION_CONTEXTS.allow;
+  const params = new URLSearchParams({
+    tenant_id: ADMIN_PERMISSION_TENANT_ID,
+    permission_ref: DEFAULT_ADMIN_PERMISSION_REF,
+    audit_hint_ref: DEFAULT_ADMIN_AUDIT_HINT_REF
+  });
+
+  let body;
+  try {
+    const response = await fetch(`${path}?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body) || !("outcome" in body)) {
+    return { kind: "error" };
+  }
+  return normalizeAdminPermissionBody(body);
+}
+
+async function writeAdminPermissionRuntime({ method = "POST", path, payload, ctx = "allow" } = {}) {
+  const context = ADMIN_PERMISSION_CONTEXTS[ctx] ?? ADMIN_PERMISSION_CONTEXTS.allow;
+  let body;
+  try {
+    const response = await fetch(path, {
+      method,
+      headers: {
+        "content-type": "application/json",
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+      },
+      body: JSON.stringify(adminPermissionPayload(payload))
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body) || !("outcome" in body)) {
+    return { kind: "error" };
+  }
+  return normalizeAdminPermissionBody(body);
+}
+
+export function fetchPermissionSets({ ctx = "allow" } = {}) {
+  return fetchAdminPermissionCollection({ path: "/api/admin/permission-sets", ctx });
+}
+
+export function createPermissionSet({
+  permissionSetId = `permission_set_ui_${Date.now()}`,
+  label = "Client Matter 검토 권한",
+  description = "Client와 Matter 작업면 검토 권한",
+  ctx = "allow"
+} = {}) {
+  return writeAdminPermissionRuntime({
+    path: "/api/admin/permission-sets",
+    ctx,
+    payload: {
+      idempotency_key: `ui:admin:permission-set:create:${permissionSetId}`,
+      permission_set_id: permissionSetId,
+      label,
+      description,
+      rule_refs: ["client:read", "matter:read", "audit:read"],
+      object_acl_refs: ["Client", "Matter"]
+    }
+  });
+}
+
+export function patchPermissionSet({
+  permissionSetId = "permission_set_client_matter_reviewer",
+  label = "Client Matter 검토 권한 갱신",
+  ctx = "allow"
+} = {}) {
+  return writeAdminPermissionRuntime({
+    method: "PATCH",
+    path: `/api/admin/permission-sets/${encodeURIComponent(permissionSetId)}`,
+    ctx,
+    payload: {
+      idempotency_key: `ui:admin:permission-set:patch:${permissionSetId}:${Date.now()}`,
+      patch: {
+        label,
+        description: "승인 검토가 필요한 권한 세트 변경",
+        rule_refs: ["client:read", "matter:read", "audit:read"]
+      }
+    }
+  });
+}
+
+export function fetchPermissionAssignments({ ctx = "allow" } = {}) {
+  return fetchAdminPermissionCollection({ path: "/api/admin/permission-assignments", ctx });
+}
+
+export function assignPermissionSet({
+  permissionSetId = "permission_set_client_matter_reviewer",
+  targetLabel = "Client Matter 검토 그룹",
+  ctx = "allow"
+} = {}) {
+  const stamp = Date.now();
+  return writeAdminPermissionRuntime({
+    path: "/api/admin/permission-assignments",
+    ctx,
+    payload: {
+      idempotency_key: `ui:admin:permission-assignment:${permissionSetId}:${stamp}`,
+      assignment_id: `permission_assignment_ui_${stamp}`,
+      permission_set_id: permissionSetId,
+      target_actor_ref: "actor:ui-review-group",
+      target_label: targetLabel
+    }
+  });
+}
+
+export function revokePermissionSetAssignment({
+  assignmentId = "permission_assignment_reviewer_seed",
+  ctx = "allow"
+} = {}) {
+  return writeAdminPermissionRuntime({
+    method: "DELETE",
+    path: `/api/admin/permission-assignments/${encodeURIComponent(assignmentId)}`,
+    ctx,
+    payload: {
+      idempotency_key: `ui:admin:permission-assignment:revoke:${assignmentId}:${Date.now()}`
+    }
+  });
+}
+
+export function fetchObjectManagerObjects({ ctx = "allow" } = {}) {
+  return fetchAdminPermissionCollection({ path: "/api/admin/object-manager/objects", ctx });
+}
+
+export function fetchObjectManagerFields({ objectName = "Client", ctx = "allow" } = {}) {
+  return fetchAdminPermissionCollection({
+    path: `/api/admin/object-manager/objects/${encodeURIComponent(objectName)}/fields`,
+    ctx
+  });
+}
+
+export function patchObjectFieldPolicy({
+  objectName = "Client",
+  fieldName = "status",
+  visibility = "visible",
+  ctx = "allow"
+} = {}) {
+  return writeAdminPermissionRuntime({
+    method: "PATCH",
+    path: `/api/admin/object-manager/objects/${encodeURIComponent(objectName)}/fields/${encodeURIComponent(fieldName)}`,
+    ctx,
+    payload: {
+      idempotency_key: `ui:admin:field-policy:${objectName}:${fieldName}:${Date.now()}`,
+      visibility,
+      owner_approval_required: true
+    }
+  });
+}
+
+export function fetchConnectedApps({ ctx = "allow" } = {}) {
+  return fetchAdminPermissionCollection({ path: "/api/admin/connected-apps", ctx });
+}
+
+export function createConnectedApp({
+  appId = `connected_app_ui_${Date.now()}`,
+  label = "외부 캘린더 연결",
+  ctx = "allow"
+} = {}) {
+  return writeAdminPermissionRuntime({
+    path: "/api/admin/connected-apps",
+    ctx,
+    payload: {
+      idempotency_key: `ui:admin:connected-app:create:${appId}`,
+      app_id: appId,
+      label
+    }
+  });
+}
+
+export function disableConnectedApp({ appId = "connected_app_microsoft_graph", ctx = "allow" } = {}) {
+  return writeAdminPermissionRuntime({
+    path: `/api/admin/connected-apps/${encodeURIComponent(appId)}/disable`,
+    ctx,
+    payload: {
+      idempotency_key: `ui:admin:connected-app:disable:${appId}:${Date.now()}`
+    }
+  });
+}
+
+export function fetchAdminPermissionAudit({ ctx = "allow" } = {}) {
+  return fetchAdminPermissionCollection({ path: "/api/admin/audit", ctx });
+}
+
+function dataCloudPayload(overrides = {}) {
+  return {
+    tenant_id: DATA_CLOUD_TENANT_ID,
+    permission_ref: DEFAULT_DATA_CLOUD_PERMISSION_REF,
+    audit_hint_ref: DEFAULT_DATA_CLOUD_AUDIT_HINT_REF,
+    actor_id: DATA_CLOUD_PRINCIPAL.user_id,
+    ...overrides
+  };
+}
+
+function normalizeDataCloudBody(body = {}) {
+  return {
+    kind: "data",
+    requestId: body.request_id ?? null,
+    outcome: body.outcome ?? null,
+    statusOutcome: body.outcome ?? null,
+    uiState: body.ui_state ?? null,
+    item: body.item ?? null,
+    result: body.result ?? null,
+    items: Array.isArray(body.items) ? body.items : [],
+    auditEvent: body.audit_event ?? null,
+    safeErrorCodes: body.safe_error_codes ?? [],
+    auditHintRef: body.audit_hint_ref ?? null,
+    countLeakPrevented: body.count_leak_prevented === true,
+    idempotentReplay: body.idempotent_replay === true,
+    providerPayloadIncluded: body.provider_payload_included === true,
+    rawIdentifiersIncluded: body.raw_identifiers_included === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+async function fetchDataCloudCollection({ path, ctx = "allow" } = {}) {
+  const context = DATA_CLOUD_PERMISSION_CONTEXTS[ctx] ?? DATA_CLOUD_PERMISSION_CONTEXTS.allow;
+  const params = new URLSearchParams({
+    tenant_id: DATA_CLOUD_TENANT_ID,
+    permission_ref: DEFAULT_DATA_CLOUD_PERMISSION_REF,
+    audit_hint_ref: DEFAULT_DATA_CLOUD_AUDIT_HINT_REF
+  });
+
+  let body;
+  try {
+    const response = await fetch(`${path}?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body) || !(("outcome" in body) && ("safe_error_codes" in body))) {
+    return { kind: "error" };
+  }
+  return normalizeDataCloudBody(body);
+}
+
+async function writeDataCloudRuntime({ path, payload, ctx = "allow" } = {}) {
+  const context = DATA_CLOUD_PERMISSION_CONTEXTS[ctx] ?? DATA_CLOUD_PERMISSION_CONTEXTS.allow;
+  let body;
+  try {
+    const response = await fetch(path, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+      },
+      body: JSON.stringify(dataCloudPayload(payload))
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body) || !(("outcome" in body) && ("safe_error_codes" in body))) {
+    return { kind: "error" };
+  }
+  return normalizeDataCloudBody(body);
+}
+
+export function fetchDataCloudProviders({ ctx = "allow" } = {}) {
+  return fetchDataCloudCollection({ path: "/api/data-cloud/providers", ctx });
+}
+
+export function createDataCloudProvider({
+  providerId = `provider_ui_${Date.now()}`,
+  label = "검토 대상 외부 연동",
+  ctx = "allow"
+} = {}) {
+  return writeDataCloudRuntime({
+    path: "/api/data-cloud/providers",
+    ctx,
+    payload: {
+      idempotency_key: `ui:data-cloud:provider:${providerId}`,
+      provider_id: providerId,
+      label,
+      data_categories: ["firmographic", "relationship"]
+    }
+  });
+}
+
+export function createDataCloudConsentRecord({ ctx = "allow" } = {}) {
+  const stamp = Date.now();
+  return writeDataCloudRuntime({
+    path: "/api/data-cloud/consent-records",
+    ctx,
+    payload: {
+      idempotency_key: `ui:data-cloud:consent:${stamp}`,
+      consent_record_id: `consent_ui_${stamp}`,
+      subject_label: "Client 보강 대상",
+      data_categories: ["firmographic", "relationship"],
+      lawful_basis: "owner_review_required",
+      retention_policy_ref: "retention_owner_review"
+    }
+  });
+}
+
+export function createEnrichmentJob({ jobId = `data_cloud_job_ui_${Date.now()}`, ctx = "allow" } = {}) {
+  return writeDataCloudRuntime({
+    path: "/api/data-cloud/enrichment-jobs",
+    ctx,
+    payload: {
+      idempotency_key: `ui:data-cloud:job:${jobId}`,
+      job_id: jobId,
+      provider_id: "provider_salesforce_data_cloud",
+      target_object: "Client",
+      target_refs: [{ object_type: "Client", record_ref: "client-ui-record", label: "Client" }],
+      data_categories: ["firmographic", "relationship"]
+    }
+  });
+}
+
+export function fetchEnrichmentPreview({ jobId, ctx = "allow" } = {}) {
+  return fetchDataCloudCollection({
+    path: `/api/data-cloud/enrichment-jobs/${encodeURIComponent(jobId)}/preview`,
+    ctx
+  });
+}
+
+export function executeEnrichmentJob({ jobId, ctx = "allow" } = {}) {
+  return writeDataCloudRuntime({
+    path: `/api/data-cloud/enrichment-jobs/${encodeURIComponent(jobId)}/execute`,
+    ctx,
+    payload: {
+      idempotency_key: `ui:data-cloud:execute:${jobId}:${Date.now()}`
+    }
+  });
+}
+
+export function fetchEnrichmentResults({ ctx = "allow" } = {}) {
+  return fetchDataCloudCollection({ path: "/api/data-cloud/enrichment-results", ctx });
+}
+
+export function runIdentityResolution({ ctx = "allow" } = {}) {
+  const stamp = Date.now();
+  return writeDataCloudRuntime({
+    path: "/api/data-cloud/identity-resolution",
+    ctx,
+    payload: {
+      idempotency_key: `ui:data-cloud:identity:${stamp}`,
+      identity_resolution_id: `identity_resolution_ui_${stamp}`
+    }
+  });
+}
+
+export function fetchUnifiedCustomerProfile({ profileId = "unified_profile_client_seed", ctx = "allow" } = {}) {
+  return fetchDataCloudCollection({
+    path: `/api/data-cloud/unified-profiles/${encodeURIComponent(profileId)}`,
+    ctx
+  });
+}
+
+export function activateDataCloudSegment({ ctx = "allow" } = {}) {
+  const stamp = Date.now();
+  return writeDataCloudRuntime({
+    path: "/api/data-cloud/segment-activations",
+    ctx,
+    payload: {
+      idempotency_key: `ui:data-cloud:segment:${stamp}`,
+      activation_id: `segment_activation_ui_${stamp}`,
+      segment_label: "Client 검토 세그먼트",
+      destination_label: "외부 연동 대상"
+    }
+  });
+}
+
+export function fetchDataCloudAudit({ ctx = "allow" } = {}) {
+  return fetchDataCloudCollection({ path: "/api/data-cloud/audit", ctx });
+}
+
+function importDataPayload(overrides = {}) {
+  return {
+    tenant_id: MATTER_TENANT_ID,
+    permission_ref: "ui_sf_b_w05_import_data_mapping",
+    audit_hint_ref: "ui_sf_b_w05_import_data_mapping_probe",
+    actor_id: MATTER_PRINCIPAL.user_id,
+    ...overrides
+  };
+}
+
+async function fetchImportDataCollection({ path, ctx = "allow" } = {}) {
+  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const params = new URLSearchParams({
+    tenant_id: MATTER_TENANT_ID,
+    permission_ref: "ui_sf_b_w05_import_data_mapping",
+    audit_hint_ref: "ui_sf_b_w05_import_data_mapping_probe"
+  });
+
+  let body;
+  try {
+    const response = await fetch(`${path}?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+
+  if (!body || typeof body !== "object" || Array.isArray(body) || !Array.isArray(body.items)) {
+    return { kind: "error" };
+  }
+  return {
+    kind: "data",
+    requestId: body.request_id,
+    outcome: body.outcome,
+    uiState: body.ui_state,
+    item: body.item ?? null,
+    items: body.items,
+    blockedTargets: Array.isArray(body.blocked_targets) ? body.blocked_targets : [],
+    pageInfo: body.page_info ?? null,
+    safeErrorCodes: body.safe_error_codes ?? [],
+    auditHintRef: body.audit_hint_ref ?? null,
+    countLeakPrevented: body.count_leak_prevented === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+export function fetchClientMatterImportTargets({ ctx = "allow" } = {}) {
+  return fetchImportDataCollection({ path: "/api/import-targets", ctx });
+}
+
+export function fetchClientMatterImportJobs({ ctx = "allow" } = {}) {
+  return fetchImportDataCollection({ path: "/api/import-jobs", ctx });
+}
+
+export function createClientMatterImportJob({ targetObject = "crm_account_facade", jobId = "import_job_ui_sf_b_w05", ctx = "allow" } = {}) {
+  return postMatterRuntime({
+    path: "/api/import-jobs",
+    ctx,
+    payload: importDataPayload({
+      idempotency_key: `ui-sf-b-w05-create-${jobId}`,
+      job_id: jobId,
+      target_object: targetObject,
+      source_type: "csv_manifest"
+    })
+  });
+}
+
+function importSourceColumns(targetObject) {
+  if (targetObject === "matter_runtime_patch") {
+    return {
+      columns: [
+        { source_field: "matter_title", label: "Matter 제목" },
+        { source_field: "matter_risk", label: "위험도" }
+      ],
+      sample_rows: [{ matter_title: "redacted by API", matter_risk: "standard" }]
+    };
+  }
+  return {
+    columns: [
+      { source_field: "company_name", label: "회사명" },
+      { source_field: "account_status", label: "상태" }
+    ],
+    sample_rows: [{ company_name: "redacted by API", account_status: "active" }]
+  };
+}
+
+function importFieldMappings(targetObject) {
+  if (targetObject === "matter_runtime_patch") {
+    return [
+      { source_field: "matter_title", target_field: "title" },
+      { source_field: "matter_risk", target_field: "risk_level" }
+    ];
+  }
+  return [
+    { source_field: "company_name", target_field: "display_name" },
+    { source_field: "account_status", target_field: "status" }
+  ];
+}
+
+export function stageImportSourceFile({ jobId = "import_job_ui_sf_b_w05", targetObject = "crm_account_facade", ctx = "allow" } = {}) {
+  const source = importSourceColumns(targetObject);
+  return postMatterRuntime({
+    path: `/api/import-jobs/${encodeURIComponent(jobId)}/source-files`,
+    ctx,
+    payload: importDataPayload({
+      idempotency_key: `ui-sf-b-w05-stage-${jobId}`,
+      source_file: {
+        file_name: "client-matter-import.csv",
+        mime_type: "text/csv",
+        row_count: 12,
+        columns: source.columns,
+        sample_rows: source.sample_rows
+      }
+    })
+  });
+}
+
+export function fetchClientMatterImportPreview({ jobId = "import_job_ui_sf_b_w05", ctx = "allow" } = {}) {
+  return fetchMatterRuntimeItem({
+    path: `/api/import-jobs/${encodeURIComponent(jobId)}/preview`,
+    ctx,
+    permissionRef: "ui_sf_b_w05_import_data_mapping",
+    auditHintRef: "ui_sf_b_w05_import_data_mapping_probe"
+  });
+}
+
+export function saveImportFieldMapping({ jobId = "import_job_ui_sf_b_w05", targetObject = "crm_account_facade", ctx = "allow" } = {}) {
+  return postMatterRuntime({
+    path: `/api/import-jobs/${encodeURIComponent(jobId)}/field-mappings`,
+    ctx,
+    payload: importDataPayload({
+      idempotency_key: `ui-sf-b-w05-mapping-${jobId}`,
+      field_mappings: importFieldMappings(targetObject)
+    })
+  });
+}
+
+export function dryRunClientMatterImport({ jobId = "import_job_ui_sf_b_w05", ctx = "allow" } = {}) {
+  return postMatterRuntime({
+    path: `/api/import-jobs/${encodeURIComponent(jobId)}/dry-run`,
+    ctx,
+    payload: importDataPayload({ idempotency_key: `ui-sf-b-w05-dry-run-${jobId}` })
+  });
+}
+
+export function executeClientMatterImport({ jobId = "import_job_ui_sf_b_w05", ctx = "allow" } = {}) {
+  return postMatterRuntime({
+    path: `/api/import-jobs/${encodeURIComponent(jobId)}/execute`,
+    ctx,
+    payload: importDataPayload({ idempotency_key: `ui-sf-b-w05-execute-${jobId}` })
+  });
+}
+
+export function rollbackClientMatterImport({ jobId = "import_job_ui_sf_b_w05", ctx = "allow" } = {}) {
+  return postMatterRuntime({
+    path: `/api/import-jobs/${encodeURIComponent(jobId)}/rollback`,
+    ctx,
+    payload: importDataPayload({ idempotency_key: `ui-sf-b-w05-rollback-${jobId}` })
+  });
+}
+
+export function fetchClientMatterImportErrorReport({ jobId = "import_job_ui_sf_b_w05", ctx = "allow" } = {}) {
+  return fetchImportDataCollection({
+    path: `/api/import-jobs/${encodeURIComponent(jobId)}/error-report`,
+    ctx
+  });
+}
+
+function normalizeRecordActionObject(objectName) {
+  const key = String(objectName ?? "").trim().toLowerCase().replace(/[-\s]/g, "_");
+  if (["matter", "matters"].includes(key)) return "matter";
+  if (["client", "clients", "client_group", "clientgroup"].includes(key)) return "client";
+  if (["account", "accounts"].includes(key)) return "account";
+  if (["contact", "contacts"].includes(key)) return "contact";
+  return "matter";
+}
+
+function recordActionRuntime(objectName, ctx = "allow") {
+  const normalized = normalizeRecordActionObject(objectName);
+  if (normalized === "matter") {
+    return {
+      objectName: normalized,
+      tenantId: MATTER_TENANT_ID,
+      principal: MATTER_PRINCIPAL,
+      context: MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow,
+      permissionRef: "ui_sf_b_w02_record_actions_matter",
+      auditHintRef: "ui_sf_b_w02_record_actions_matter_probe"
+    };
+  }
+  if (normalized === "client") {
+    return {
+      objectName: normalized,
+      tenantId: TENANT_ID,
+      principal: PRINCIPAL,
+      context: PERMISSION_CONTEXTS[ctx] ?? PERMISSION_CONTEXTS.allow,
+      permissionRef: "ui_sf_b_w02_record_actions_client",
+      auditHintRef: "ui_sf_b_w02_record_actions_client_probe"
+    };
+  }
+  return {
+    objectName: normalized,
+    tenantId: CRM_INTAKE_TENANT_ID,
+    principal: CRM_INTAKE_PRINCIPAL,
+    context: CRM_INTAKE_PERMISSION_CONTEXTS[ctx] ?? CRM_INTAKE_PERMISSION_CONTEXTS.allow,
+    permissionRef: "ui_sf_b_w02_record_actions_client",
+    auditHintRef: "ui_sf_b_w02_record_actions_client_probe"
+  };
+}
+
+function normalizeRecordActionBody(body = {}) {
+  return {
+    kind: "data",
+    statusOutcome: body.outcome ?? null,
+    item: body.item ?? null,
+    items: Array.isArray(body.items) ? body.items : [],
+    fieldPatch: body.field_patch ?? null,
+    bulkAction: body.bulk_action ?? null,
+    auditEvent: body.audit_event ?? null,
+    pageInfo: body.page_info ?? null,
+    safeErrorCodes: body.safe_error_codes ?? [],
+    auditHintRef: body.audit_hint_ref ?? null,
+    idempotentReplay: body.idempotent_replay === true,
+    stateIdempotent: body.state_idempotent === true,
+    uiState: body.ui_state ?? null,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+async function fetchRecordActionRuntime({ objectName, suffix, ctx = "allow" } = {}) {
+  const runtime = recordActionRuntime(objectName, ctx);
+  const params = new URLSearchParams({
+    tenant_id: runtime.tenantId,
+    permission_ref: runtime.permissionRef,
+    audit_hint_ref: runtime.auditHintRef
+  });
+  let body;
+  try {
+    const response = await fetch(`/api/record-actions/${runtime.objectName}${suffix}?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(runtime.context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body) || !("outcome" in body)) {
+    return { kind: "error" };
+  }
+  return normalizeRecordActionBody(body);
+}
+
+async function writeRecordActionRuntime({ objectName, suffix, payload, ctx = "allow" } = {}) {
+  const runtime = recordActionRuntime(objectName, ctx);
+  let body;
+  try {
+    const response = await fetch(`/api/record-actions/${runtime.objectName}${suffix}`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(runtime.context)
+      },
+      body: JSON.stringify({
+        tenant_id: runtime.tenantId,
+        permission_ref: runtime.permissionRef,
+        audit_hint_ref: runtime.auditHintRef,
+        actor_id: runtime.principal.user_id,
+        ...payload
+      })
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body) || !("outcome" in body)) {
+    return { kind: "error" };
+  }
+  return normalizeRecordActionBody(body);
+}
+
+export function fetchRecordActionFields({ objectName = "matter", ctx = "allow" } = {}) {
+  return fetchRecordActionRuntime({ objectName, suffix: "/fields", ctx });
+}
+
+export function fetchRecordBulkActions({ objectName = "matter", ctx = "allow" } = {}) {
+  return fetchRecordActionRuntime({ objectName, suffix: "/bulk-actions", ctx });
+}
+
+export function fetchRecordActionAudit({ objectName = "matter", recordId, ctx = "allow" } = {}) {
+  return fetchRecordActionRuntime({ objectName, suffix: `/${encodeURIComponent(recordId)}/audit`, ctx });
+}
+
+export function updateRecordActionField({ objectName = "matter", recordId, fieldUpdates = {}, ctx = "allow" } = {}) {
+  const safeRecordId = String(recordId ?? "record").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  return writeRecordActionRuntime({
+    objectName,
+    suffix: `/${encodeURIComponent(recordId)}/field-update`,
+    payload: {
+      idempotency_key: `ui:record-action:${normalizeRecordActionObject(objectName)}:${safeRecordId}:field:${stamp}`,
+      field_updates: fieldUpdates,
+      reason: "record_field_update"
+    },
+    ctx
+  });
+}
+
+export function bulkUpdateRecordActions({ objectName = "matter", recordIds = [], actionType = "field_update", fieldUpdates = {}, targetStatus = null, ctx = "allow" } = {}) {
+  const stamp = Date.now();
+  return writeRecordActionRuntime({
+    objectName,
+    suffix: "/bulk-updates",
+    payload: {
+      idempotency_key: `ui:record-action:${normalizeRecordActionObject(objectName)}:bulk:${actionType}:${stamp}`,
+      record_ids: recordIds,
+      action_type: actionType,
+      field_updates: fieldUpdates,
+      target_status: targetStatus,
+      bulk_action_ref: `ui_bulk_${normalizeRecordActionObject(objectName)}_${stamp}`,
+      reason: actionType === "owner_change" ? "owner_decision_required" : "bulk_record_action"
+    },
+    ctx
+  });
 }
 
 function normalizeMatterTeamMemberPayload(payload = {}) {
@@ -673,6 +1567,183 @@ export function createMatterDocumentFacade({ matterId, title, contentText, ctx =
   });
 }
 
+export function fetchMatterDocumentTemplates({ matterId, ctx = "allow" } = {}) {
+  return fetchMatterRuntimeCollection({
+    path: `/api/matters/${encodeURIComponent(matterId)}/document-templates`,
+    ctx,
+    permissionRef: "ui_sf_b_w04_document_template_read",
+    auditHintRef: "ui_sf_b_w04_document_template_read_probe"
+  });
+}
+
+export function createMatterBuilderDraft({
+  matterId,
+  draftId,
+  title = "위임계약서 초안",
+  body = "문서 초안 본문",
+  templateId = "matter_engagement_letter",
+  ctx = "allow"
+} = {}) {
+  const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  const safeDraftId = draftId ?? `builder_draft_${safeMatterId}_${stamp}`;
+  return postMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/builder-drafts`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_sf_b_w04_builder_draft_create",
+      audit_hint_ref: "ui_sf_b_w04_builder_draft_create_probe",
+      actor_id: MATTER_PRINCIPAL.user_id,
+      idempotency_key: `ui:${safeMatterId}:builder:${safeDraftId}:${stamp}`,
+      draft: {
+        draft_id: safeDraftId,
+        template_id: templateId,
+        title,
+        body
+      }
+    },
+    ctx
+  });
+}
+
+export function patchMatterBuilderDraft({
+  matterId,
+  draftId,
+  patch = { status: "ready_for_review", body: "검토 요청 전 초안 정리" },
+  ctx = "allow"
+} = {}) {
+  const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const safeDraftId = String(draftId ?? "builder_draft").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  return patchMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/builder-drafts/${encodeURIComponent(draftId)}`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_sf_b_w04_builder_draft_patch",
+      audit_hint_ref: "ui_sf_b_w04_builder_draft_patch_probe",
+      actor_id: MATTER_PRINCIPAL.user_id,
+      idempotency_key: `ui:${safeMatterId}:builder:${safeDraftId}:patch:${stamp}`,
+      patch
+    },
+    ctx
+  });
+}
+
+export function fetchMatterBuilderDraftPreview({ matterId, draftId, ctx = "allow" } = {}) {
+  return fetchMatterRuntimeItem({
+    path: `/api/matters/${encodeURIComponent(matterId)}/builder-drafts/${encodeURIComponent(draftId)}/preview`,
+    ctx,
+    permissionRef: "ui_sf_b_w04_builder_preview",
+    auditHintRef: "ui_sf_b_w04_builder_preview_probe"
+  });
+}
+
+export function requestMatterBuilderApproval({ matterId, draftId, ctx = "allow" } = {}) {
+  const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const safeDraftId = String(draftId ?? "builder_draft").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  return postMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/builder-drafts/${encodeURIComponent(draftId)}/approval-requests`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_sf_b_w04_builder_approval_request",
+      audit_hint_ref: "ui_sf_b_w04_builder_approval_request_probe",
+      actor_id: MATTER_PRINCIPAL.user_id,
+      idempotency_key: `ui:${safeMatterId}:builder:${safeDraftId}:approval:${stamp}`
+    },
+    ctx
+  });
+}
+
+export function fetchMatterBuilderApprovalRequests({ matterId, ctx = "allow" } = {}) {
+  return fetchMatterRuntimeCollection({
+    path: `/api/matters/${encodeURIComponent(matterId)}/builder-approval-requests`,
+    ctx,
+    permissionRef: "ui_sf_b_w04_builder_approval_read",
+    auditHintRef: "ui_sf_b_w04_builder_approval_read_probe"
+  });
+}
+
+export function publishMatterBuilderDraftToVault({ matterId, draftId, ctx = "allow" } = {}) {
+  return postMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/builder-drafts/${encodeURIComponent(draftId)}/publish-to-vault`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_sf_b_w04_builder_publish",
+      audit_hint_ref: "ui_sf_b_w04_builder_publish_probe",
+      actor_id: MATTER_PRINCIPAL.user_id
+    },
+    ctx
+  });
+}
+
+export function createMatterEmailDraft({
+  matterId,
+  draftId,
+  subject = "Matter 진행상황 안내",
+  body = "이메일 초안 본문",
+  templateId = "matter_status_update_email",
+  ctx = "allow"
+} = {}) {
+  const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  const safeDraftId = draftId ?? `email_draft_${safeMatterId}_${stamp}`;
+  return postMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/email-drafts`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_sf_b_w04_email_draft_create",
+      audit_hint_ref: "ui_sf_b_w04_email_draft_create_probe",
+      actor_id: MATTER_PRINCIPAL.user_id,
+      idempotency_key: `ui:${safeMatterId}:email:${safeDraftId}:${stamp}`,
+      draft: {
+        draft_id: safeDraftId,
+        template_id: templateId,
+        subject,
+        body,
+        recipient_refs: ["client_contact_ref"]
+      }
+    },
+    ctx
+  });
+}
+
+export function patchMatterEmailDraft({
+  matterId,
+  draftId,
+  patch = { subject: "Matter 진행상황 안내 업데이트", body: "이메일 초안 정리" },
+  ctx = "allow"
+} = {}) {
+  const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const safeDraftId = String(draftId ?? "email_draft").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  return patchMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/email-drafts/${encodeURIComponent(draftId)}`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_sf_b_w04_email_draft_patch",
+      audit_hint_ref: "ui_sf_b_w04_email_draft_patch_probe",
+      actor_id: MATTER_PRINCIPAL.user_id,
+      idempotency_key: `ui:${safeMatterId}:email:${safeDraftId}:patch:${stamp}`,
+      patch
+    },
+    ctx
+  });
+}
+
+export function requestMatterEmailDraftSendBoundary({ matterId, draftId, ctx = "allow" } = {}) {
+  return postMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/email-drafts/${encodeURIComponent(draftId)}/send`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_sf_b_w04_email_send_boundary",
+      audit_hint_ref: "ui_sf_b_w04_email_send_boundary_probe",
+      actor_id: MATTER_PRINCIPAL.user_id
+    },
+    ctx
+  });
+}
+
 export function completeMatterStatus({ matterId, ctx = "allow" } = {}) {
   const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
   const stamp = Date.now();
@@ -700,6 +1771,212 @@ export function markMatterRecentlyViewed({ matterId, ctx = "allow" } = {}) {
       audit_hint_ref: "ui_sf_b_w02_recently_viewed_probe",
       actor_id: MATTER_PRINCIPAL.user_id,
       viewed_at: new Date().toISOString()
+    },
+    ctx
+  });
+}
+
+export function fetchMatterActivities({ matterId, ctx = "allow" } = {}) {
+  return fetchMatterRuntimeCollection({
+    path: `/api/matters/${encodeURIComponent(matterId)}/activities`,
+    ctx,
+    permissionRef: "ui_sf_b_w03_activity_read",
+    auditHintRef: "ui_sf_b_w03_activity_read_probe"
+  });
+}
+
+export function createMatterActivity({
+  matterId,
+  activityType = "task",
+  title = "검토 작업",
+  status = "todo",
+  dueAt,
+  bodyText,
+  ctx = "allow"
+} = {}) {
+  const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  return postMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/activities`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_sf_b_w03_activity_write",
+      audit_hint_ref: "ui_sf_b_w03_activity_write_probe",
+      actor_id: MATTER_PRINCIPAL.user_id,
+      idempotency_key: `ui:${safeMatterId}:activity:${stamp}`,
+      activity: {
+        activity_id: `activity_${safeMatterId}_${stamp}`,
+        activity_type: activityType,
+        title,
+        status,
+        due_at: dueAt ?? new Date(Date.now() + 86400000).toISOString(),
+        body: bodyText
+      }
+    },
+    ctx
+  });
+}
+
+export function patchMatterActivity({ matterId, activityId, patch = { status: "in_progress" }, ctx = "allow" } = {}) {
+  const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const safeActivityId = String(activityId ?? "activity").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  return patchMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/activities/${encodeURIComponent(activityId)}`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_sf_b_w03_activity_patch",
+      audit_hint_ref: "ui_sf_b_w03_activity_patch_probe",
+      actor_id: MATTER_PRINCIPAL.user_id,
+      idempotency_key: `ui:${safeMatterId}:activity:${safeActivityId}:patch:${stamp}`,
+      patch
+    },
+    ctx
+  });
+}
+
+export function fetchMatterCalendarEvents({ matterId, ctx = "allow" } = {}) {
+  return fetchMatterRuntimeCollection({
+    path: `/api/matters/${encodeURIComponent(matterId)}/calendar-events`,
+    ctx,
+    permissionRef: "ui_sf_b_w03_calendar_read",
+    auditHintRef: "ui_sf_b_w03_calendar_read_probe"
+  });
+}
+
+export function createMatterCalendarEvent({
+  matterId,
+  title = "주요 기한",
+  startsAt,
+  endsAt,
+  criticality = "critical",
+  legalConsequence = "court_deadline",
+  ctx = "allow"
+} = {}) {
+  const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  const starts = startsAt ?? new Date(Date.now() + 172800000).toISOString();
+  const ends = endsAt ?? new Date(new Date(starts).getTime() + 3600000).toISOString();
+  return postMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/calendar-events`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_sf_b_w03_calendar_write",
+      audit_hint_ref: "ui_sf_b_w03_calendar_write_probe",
+      actor_id: MATTER_PRINCIPAL.user_id,
+      idempotency_key: `ui:${safeMatterId}:calendar:${stamp}`,
+      event: {
+        event_id: `calendar_${safeMatterId}_${stamp}`,
+        title,
+        status: "scheduled",
+        starts_at: starts,
+        ends_at: ends,
+        criticality,
+        legal_consequence: legalConsequence,
+        reminder_rule: "two_business_days"
+      }
+    },
+    ctx
+  });
+}
+
+export function patchMatterCalendarEvent({ matterId, eventId, patch = {}, ctx = "allow" } = {}) {
+  const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const safeEventId = String(eventId ?? "event").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  const starts = patch.starts_at ?? new Date(Date.now() + 259200000).toISOString();
+  const ends = patch.ends_at ?? new Date(new Date(starts).getTime() + 3600000).toISOString();
+  return patchMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/calendar-events/${encodeURIComponent(eventId)}`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_sf_b_w03_calendar_patch",
+      audit_hint_ref: "ui_sf_b_w03_calendar_patch_probe",
+      actor_id: MATTER_PRINCIPAL.user_id,
+      idempotency_key: `ui:${safeMatterId}:calendar:${safeEventId}:patch:${stamp}`,
+      patch: {
+        ...patch,
+        starts_at: starts,
+        ends_at: ends
+      }
+    },
+    ctx
+  });
+}
+
+export function fetchMatterDeadlines({ matterId, ctx = "allow" } = {}) {
+  return fetchMatterRuntimeCollection({
+    path: `/api/matters/${encodeURIComponent(matterId)}/deadlines`,
+    ctx,
+    permissionRef: "ui_sf_b_w03_deadline_read",
+    auditHintRef: "ui_sf_b_w03_deadline_read_probe"
+  });
+}
+
+export function confirmMatterDeadlineChange({
+  matterId,
+  deadlineId,
+  confirmerUserId = runtimeTenant("user", "rp05", "associate"),
+  ctx = "allow"
+} = {}) {
+  const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const safeDeadlineId = String(deadlineId ?? "deadline").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  return postMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/deadlines/${encodeURIComponent(deadlineId)}/confirm-change`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_sf_b_w03_deadline_confirm",
+      audit_hint_ref: "ui_sf_b_w03_deadline_confirm_probe",
+      actor_id: MATTER_PRINCIPAL.user_id,
+      confirmer_user_id: confirmerUserId,
+      idempotency_key: `ui:${safeMatterId}:deadline:${safeDeadlineId}:confirm:${stamp}`
+    },
+    ctx
+  });
+}
+
+export function fetchMatterChannel({ matterId, ctx = "allow" } = {}) {
+  return fetchMatterRuntimeItem({
+    path: `/api/matters/${encodeURIComponent(matterId)}/channel`,
+    ctx,
+    permissionRef: "ui_sf_b_w03_channel_read",
+    auditHintRef: "ui_sf_b_w03_channel_read_probe"
+  });
+}
+
+export function createMatterChannelMessage({
+  matterId,
+  message = "내부 준비 메모",
+  ctx = "allow"
+} = {}) {
+  const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  return postMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/channel/messages`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_sf_b_w03_channel_message",
+      audit_hint_ref: "ui_sf_b_w03_channel_message_probe",
+      actor_id: MATTER_PRINCIPAL.user_id,
+      idempotency_key: `ui:${safeMatterId}:channel:${stamp}`,
+      message: {
+        message_id: `channel_message_${safeMatterId}_${stamp}`,
+        body: message
+      }
+    },
+    ctx
+  });
+}
+
+export function syncMatterChannelProvider({ matterId, ctx = "allow" } = {}) {
+  return postMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/channel/provider-sync`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_sf_b_w03_channel_provider_sync",
+      audit_hint_ref: "ui_sf_b_w03_channel_provider_sync_probe",
+      actor_id: MATTER_PRINCIPAL.user_id
     },
     ctx
   });
@@ -1083,6 +2360,10 @@ async function postCrmIntakeRuntime({ path, payload, ctx = "allow" } = {}) {
     item: body.item ?? null,
     opportunity: body.opportunity ?? null,
     validation: body.validation ?? null,
+    mergeCandidates: body.merge_candidates ?? [],
+    canonicalWriteStatus: body.canonical_write_status ?? null,
+    canonicalRecordTypes: body.canonical_record_types ?? [],
+    rollbackMetadataRef: body.rollback_metadata_ref ?? null,
     auditEvent: body.audit_event ?? null,
     safeErrorCodes: body.safe_error_codes ?? [],
     auditHintRef: body.audit_hint_ref ?? null,
@@ -1247,6 +2528,68 @@ export function fetchCrmAccountContacts({ accountId, ...options } = {}) {
     return Promise.resolve({ kind: "data", uiState: "empty", outcome: "passed", items: [], safeErrorCodes: [] });
   }
   return fetchCrmIntakeCollection({ ...options, path: `/api/crm/accounts/${encodeURIComponent(accountId)}/contacts` });
+}
+
+export function fetchCrmMergeProposals(options = {}) {
+  return fetchCrmIntakeCollection({
+    permissionRef: "ui_sf_b_w01_merge_read",
+    auditHintRef: "ui_sf_b_w01_merge_read_probe",
+    ...options,
+    path: "/api/crm/duplicate-merge-proposals"
+  });
+}
+
+export function createCrmMergeProposal({
+  proposalId,
+  displayName = "CMP G6 synthetic",
+  sourcePartyId,
+  targetPartyId,
+  ownerApprovalRef,
+  dualControlApproverId,
+  ctx = "allow"
+} = {}) {
+  const stamp = Date.now();
+  const safeProposalId = proposalId ?? `dup_merge_ui_${stamp}`;
+  return postCrmIntakeRuntime({
+    path: "/api/crm/duplicate-merge-proposals",
+    ctx,
+    payload: {
+      tenant_id: CRM_INTAKE_TENANT_ID,
+      permission_ref: "ui_sf_b_w01_merge_write",
+      audit_hint_ref: "ui_sf_b_w01_merge_write_probe",
+      actor_id: CRM_INTAKE_PRINCIPAL.user_id,
+      idempotency_key: `ui:crm:merge:${safeProposalId}:${stamp}`,
+      proposal: {
+        proposal_id: safeProposalId,
+        tenant_id: CRM_INTAKE_TENANT_ID,
+        display_name: displayName,
+        identifier_type: "business_number",
+        identifier_value: "cmp-g6-001",
+        source_party_id: sourcePartyId ?? null,
+        target_party_id: targetPartyId ?? null,
+        owner_decision: ownerApprovalRef ? "approved" : "review_required",
+        owner_approval_ref: ownerApprovalRef ?? null,
+        dual_control_approver_id: dualControlApproverId ?? null,
+        reason: "duplicate_merge_proposal_created"
+      }
+    }
+  });
+}
+
+export function executeCrmMergeProposal({ proposalId, ctx = "allow" } = {}) {
+  const stamp = Date.now();
+  return postCrmIntakeRuntime({
+    path: `/api/crm/duplicate-merge-proposals/${encodeURIComponent(proposalId)}/execute`,
+    ctx,
+    payload: {
+      tenant_id: CRM_INTAKE_TENANT_ID,
+      permission_ref: "ui_sf_b_w01_merge_execute",
+      audit_hint_ref: "ui_sf_b_w01_merge_execute_probe",
+      actor_id: CRM_INTAKE_PRINCIPAL.user_id,
+      idempotency_key: `ui:crm:merge:${proposalId}:execute:${stamp}`,
+      reason: "duplicate_merge_execute_requested"
+    }
+  });
 }
 
 export function fetchIntakeRequests(options = {}) {
@@ -1539,6 +2882,29 @@ export async function fetchAnalyticsDashboards({
   };
 }
 
+function normalizeAnalyticsCollectionBody(body) {
+  const hasShape =
+    body !== null &&
+    typeof body === "object" &&
+    !Array.isArray(body) &&
+    ["request_id", "outcome", "items", "safe_error_codes", "audit_hint_ref", "production_ready_claim"]
+      .every((key) => key in body) &&
+    Array.isArray(body.items);
+  if (!hasShape) return { kind: "error" };
+  return {
+    kind: "data",
+    requestId: body.request_id,
+    uiState: body.ui_state,
+    outcome: body.outcome,
+    items: body.items,
+    pageInfo: body.page_info ?? null,
+    safeErrorCodes: body.safe_error_codes,
+    auditHintRef: body.audit_hint_ref,
+    countLeakPrevented: body.count_leak_prevented === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
 async function postAnalyticsRuntime({ path, payload, ctx = "allow" } = {}) {
   const context = ANALYTICS_PERMISSION_CONTEXTS[ctx] ?? ANALYTICS_PERMISSION_CONTEXTS.allow;
   let body;
@@ -1569,6 +2935,29 @@ async function postAnalyticsRuntime({ path, payload, ctx = "allow" } = {}) {
     auditHintRef: body.audit_hint_ref ?? null,
     productionReadyClaim: body.production_ready_claim === true
   };
+}
+
+export async function fetchAnalyticsClientProfitability({
+  ctx = "allow",
+  permissionRef = DEFAULT_ANALYTICS_PERMISSION_REF,
+  auditHintRef = DEFAULT_ANALYTICS_AUDIT_HINT_REF
+} = {}) {
+  const context = ANALYTICS_PERMISSION_CONTEXTS[ctx] ?? ANALYTICS_PERMISSION_CONTEXTS.allow;
+  const params = new URLSearchParams({
+    tenant_id: ANALYTICS_TENANT_ID,
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+  let body;
+  try {
+    const response = await fetch(`/api/analytics/client-profitability?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+  return normalizeAnalyticsCollectionBody(body);
 }
 
 export async function fetchAnalyticsMatterProfitability({
@@ -1645,6 +3034,26 @@ export function refreshMatterProfitability({ matterId, wipItems = [], invoices =
   });
 }
 
+export function refreshClientProfitability({
+  clientGroupId = "client_group_ui",
+  clientGroupLabel = "Client 그룹",
+  ctx = "allow"
+} = {}) {
+  return postAnalyticsRuntime({
+    path: "/api/analytics/client-profitability",
+    ctx,
+    payload: {
+      tenant_id: ANALYTICS_TENANT_ID,
+      permission_ref: DEFAULT_ANALYTICS_PERMISSION_REF,
+      audit_hint_ref: DEFAULT_ANALYTICS_AUDIT_HINT_REF,
+      actor_id: ANALYTICS_PRINCIPAL.user_id,
+      idempotency_key: `ui-client-profitability:${clientGroupId}`,
+      client_group_id: clientGroupId,
+      client_group_label: clientGroupLabel
+    }
+  });
+}
+
 export function createAnalyticsExport({ dashboardId, ctx = "allow" } = {}) {
   const safeDashboardId = dashboardId ?? "dashboard";
   return postAnalyticsRuntime({
@@ -1665,6 +3074,138 @@ export function createAnalyticsExport({ dashboardId, ctx = "allow" } = {}) {
       }
     }
   });
+}
+
+function reportPayload(overrides = {}) {
+  return {
+    tenant_id: ANALYTICS_TENANT_ID,
+    permission_ref: DEFAULT_REPORT_PERMISSION_REF,
+    audit_hint_ref: DEFAULT_REPORT_AUDIT_HINT_REF,
+    actor_id: REPORT_PRINCIPAL.user_id,
+    ...overrides
+  };
+}
+
+function normalizeReportBody(body = {}) {
+  if (!body || typeof body !== "object" || Array.isArray(body) || !("outcome" in body)) return { kind: "error" };
+  return {
+    kind: "data",
+    requestId: body.request_id ?? null,
+    outcome: body.outcome,
+    uiState: body.ui_state,
+    item: body.item ?? null,
+    items: Array.isArray(body.items) ? body.items : [],
+    auditEvent: body.audit_event ?? null,
+    safeErrorCodes: body.safe_error_codes ?? [],
+    auditHintRef: body.audit_hint_ref ?? null,
+    rawSqlIncluded: body.raw_sql_included === true,
+    rawQueryPayloadIncluded: body.raw_query_payload_included === true,
+    sourcePayloadIncluded: body.source_payload_included === true,
+    arbitrarySqlExecuted: body.arbitrary_sql_executed === true,
+    sourceObjectMutated: body.source_object_mutated === true,
+    countLeakPrevented: body.count_leak_prevented === true,
+    idempotentReplay: body.idempotent_replay === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+async function fetchReportRuntime({ path, ctx = "allow" } = {}) {
+  const context = REPORT_PERMISSION_CONTEXTS[ctx] ?? REPORT_PERMISSION_CONTEXTS.allow;
+  const params = new URLSearchParams({
+    tenant_id: ANALYTICS_TENANT_ID,
+    permission_ref: DEFAULT_REPORT_PERMISSION_REF,
+    audit_hint_ref: DEFAULT_REPORT_AUDIT_HINT_REF
+  });
+  let body;
+  try {
+    const response = await fetch(`${path}?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+  return normalizeReportBody(body);
+}
+
+async function writeReportRuntime({ path, payload, method = "POST", ctx = "allow" } = {}) {
+  const context = REPORT_PERMISSION_CONTEXTS[ctx] ?? REPORT_PERMISSION_CONTEXTS.allow;
+  let body;
+  try {
+    const response = await fetch(path, {
+      method,
+      headers: {
+        "content-type": "application/json",
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+      },
+      body: JSON.stringify(reportPayload(payload))
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+  return normalizeReportBody(body);
+}
+
+export function fetchReportDefinitions({ ctx = "allow" } = {}) {
+  return fetchReportRuntime({ path: "/api/reports", ctx });
+}
+
+export function createReportDefinition({ reportId = `report_ui_${Date.now()}`, ctx = "allow" } = {}) {
+  return writeReportRuntime({
+    path: "/api/reports",
+    ctx,
+    payload: {
+      idempotency_key: `ui-report:create:${reportId}`,
+      report_id: reportId,
+      name: "Client 손익 보고서",
+      object_scope: "Client",
+      column_refs: ["client_group", "matter_count", "profitability_amount"],
+      filter_manifest: [{ field: "period", operator: "current", value_label: "현재" }],
+      grouping_manifest: ["client_group"],
+      chart_manifest: { type: "bar", metric: "profitability_amount" }
+    }
+  });
+}
+
+export function patchReportDefinition({ reportId, ctx = "allow" } = {}) {
+  return writeReportRuntime({
+    path: `/api/reports/${encodeURIComponent(reportId)}`,
+    method: "PATCH",
+    ctx,
+    payload: {
+      idempotency_key: `ui-report:patch:${reportId}`,
+      name: "Client 손익 검토 보고서",
+      chart_manifest: { type: "line", metric: "profitability_amount" }
+    }
+  });
+}
+
+export function runReportQuery({ reportId, ctx = "allow" } = {}) {
+  return writeReportRuntime({
+    path: `/api/reports/${encodeURIComponent(reportId)}/run`,
+    ctx,
+    payload: {
+      idempotency_key: `ui-report:run:${reportId}:${Date.now()}`
+    }
+  });
+}
+
+export function shareReportDefinition({ reportId, ctx = "allow" } = {}) {
+  return writeReportRuntime({
+    path: `/api/reports/${encodeURIComponent(reportId)}/share`,
+    ctx,
+    payload: {
+      idempotency_key: `ui-report:share:${reportId}:${Date.now()}`,
+      target_type: "role",
+      target_ref_label: "검토 대상 역할"
+    }
+  });
+}
+
+export function fetchReportAudit({ reportId, ctx = "allow" } = {}) {
+  const path = reportId ? `/api/reports/${encodeURIComponent(reportId)}/audit` : "/api/reports/audit";
+  return fetchReportRuntime({ path, ctx });
 }
 
 export async function fetchAiReviewQueue({

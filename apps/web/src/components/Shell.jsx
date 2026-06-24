@@ -27,7 +27,7 @@ export function LoadingSurface({ labels, locale, theme, setLocale, setTheme, cla
     <main className={["loading-stage", className].filter(Boolean).join(" ")} data-matter-logo-flow={className.includes("post-login-splash") ? "post-login" : "startup"}>
       <MatterSplash />
       <strong>{message}</strong>
-      <p>{locale === "ko" ? "최근 작업공간을 준비하고 있습니다." : "Preparing your workspace."}</p>
+      <p>최근 작업공간을 준비하고 있습니다.</p>
       <div className="loading-actions">
         <button className="secondary-button" onClick={() => setLocale(locale === "ko" ? "en" : "ko")}>{labels.language}</button>
         <button className="secondary-button" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{labels.theme}</button>
@@ -120,21 +120,27 @@ export function Sidebar({ labels, view, setView, activeSection = "", expanded = 
     home: [],
     clients: [
       { label: "Client 목록", view: "clients", section: "clients-list" },
-      { label: "리드", view: "clients", section: "client-leads" },
+      { label: "잠재 Client", view: "clients", section: "client-leads" },
       { label: "기회", view: "clients", section: "client-opportunities" },
       { label: "접수", view: "clients", section: "client-intake" },
       { label: "계정", view: "clients", section: "client-accounts" },
-      { label: "연락처", view: "clients", section: "client-contacts" }
+      { label: "연락처", view: "clients", section: "client-contacts" },
+      { label: "데이터 관리", view: "clients", section: "client-data" },
+      { label: "보고서", view: "clients", section: "client-reports" },
+      { label: "가져오기", view: "clients", section: "client-import" }
     ],
     matters: [
       { label: "Matter 목록", view: "matters", section: "matters-list" },
-      { label: "Command", view: "matters", section: "matter-command" },
+      { label: "현황", view: "matters", section: "matter-command" },
       { label: "문서", view: "matters", section: "matter-vault" },
       { label: "활동", view: "matters", section: "matter-timeline" },
+      { label: "일정", view: "matters", section: "matter-calendar" },
+      { label: "대화", view: "matters", section: "matter-channel" },
       { label: "개시", view: "matters", section: "matter-opening" },
-      { label: "팀", view: "matters", section: "matter-team" },
+      { label: "구성원", view: "matters", section: "matter-team" },
       { label: "청구", view: "matters", section: "matter-billing" },
-      { label: "분석", view: "matters", section: "matter-analytics" }
+      { label: "분석", view: "matters", section: "matter-analytics" },
+      { label: "가져오기", view: "matters", section: "matter-import" }
     ],
     people: [
       { label: "구성원", view: "people", section: "people-members" },
@@ -146,8 +152,9 @@ export function Sidebar({ labels, view, setView, activeSection = "", expanded = 
       { label: "인사 정책", view: "people", section: "people-policy" },
       { label: "활동 기록", view: "people", section: "people-audit" },
       { label: "인사 현황", view: "people", section: "people-analytics" },
-      { label: "AI 검토", view: "people", section: "people-ai" },
-      { label: "급여정산", view: "people", section: "people-payroll" }
+      { label: "자동 검토", view: "people", section: "people-ai" },
+      { label: "급여정산", view: "people", section: "people-payroll" },
+      { label: "권한 관리", view: "people", section: "people-admin" }
     ],
     vault: [
       { label: "문서함", view: "vault", section: "vault-documents" },

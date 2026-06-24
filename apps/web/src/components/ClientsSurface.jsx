@@ -4,21 +4,31 @@ import { ArrowRight, Plus, RefreshCw, ShieldCheck } from "lucide-react";
 import {
   createCrmAccount,
   createCrmContact,
+  createCrmMergeProposal,
   createIntakeConflictCheck,
+  executeCrmMergeProposal,
   fetchCrmAccountContacts,
   fetchCrmAccounts,
   fetchCrmContacts,
   fetchCrmLeads,
+  fetchCrmMergeProposals,
   fetchCrmOpportunities,
   fetchIntakeAudit,
   fetchIntakeRequests,
   fetchMasterDataRecords,
+  fetchRecordActionAudit,
+  fetchRecordActionFields,
   handoffCrmOpportunityToIntake,
   issueIntakeClearanceToken,
+  bulkUpdateRecordActions,
   patchCrmAccount,
-  patchCrmContact
+  patchCrmContact,
+  updateRecordActionField
 } from "../data/apiClient.js";
 import { DataTable, PageHeader, Panel, Property } from "./primitives.jsx";
+import { ImportDataMappingPanel } from "./ImportDataMappingPanel.jsx";
+import { DataCloudEnrichmentPanel } from "./DataCloudEnrichmentPanel.jsx";
+import { ReportBuilderPanel } from "./ReportBuilderPanel.jsx";
 
 const CLIENTS_PERMISSION_REF = "ui_cmp_g2_party_clients_live";
 const CLIENTS_AUDIT_HINT_REF = "ui_cmp_g2_clients_live_probe";
@@ -28,7 +38,10 @@ const CLIENT_SECTIONS = new Set([
   "client-opportunities",
   "client-intake",
   "client-accounts",
-  "client-contacts"
+  "client-contacts",
+  "client-data",
+  "client-reports",
+  "client-import"
 ]);
 
 function clientDisplayName(item, index) {
@@ -64,6 +77,29 @@ function businessLabel(value, fallback) {
 
 function linkedLabel(value) {
   return value ? "연결됨" : "미연결";
+}
+
+function canonicalSyncLabel(value) {
+  if (value === "synced" || value === "canonical_source") return "동기화됨";
+  if (value === "facade_only") return "동기화 전";
+  return "확인 필요";
+}
+
+function proposalStateLabel(value) {
+  if (value === "executed") return "실행됨";
+  if (value === "approved") return "승인됨";
+  if (value === "owner_decision_required") return "승인 필요";
+  return "검토 필요";
+}
+
+function recordFieldLabel(value) {
+  const text = String(value ?? "").trim();
+  if (text === "Client display name") return "Client 표시 이름";
+  if (text === "Account status") return "계정 상태";
+  if (text === "Contact status") return "연락처 상태";
+  if (text === "Owner") return "담당자";
+  if (text === "Status") return "상태";
+  return text || "필드";
 }
 
 function actionMessage(result, successText) {
@@ -132,7 +168,7 @@ function renderLiveState(result, noun) {
   return null;
 }
 
-function ClientRecordPanel({ client, leadCount, opportunityCount, intakeCount, accountCount, contactCount }) {
+function ClientRecordPanel({ client, leadCount, opportunityCount, intakeCount, accountCount, contactCount, mergeProposalCount, executableMergeCount }) {
   return (
     <aside className="record-side-panel" data-client-record-workspace="right-panel">
       <div className="record-side-header">
@@ -147,23 +183,23 @@ function ClientRecordPanel({ client, leadCount, opportunityCount, intakeCount, a
       </div>
       <div className="record-meter-grid">
         <div>
-          <span>Lead</span>
+          <span>잠재 Client</span>
           <strong>{leadCount}</strong>
         </div>
         <div>
-          <span>Opportunity</span>
+          <span>기회</span>
           <strong>{opportunityCount}</strong>
         </div>
         <div>
-          <span>Intake</span>
+          <span>접수</span>
           <strong>{intakeCount}</strong>
         </div>
         <div>
-          <span>Account</span>
+          <span>계정</span>
           <strong>{accountCount}</strong>
         </div>
         <div>
-          <span>Contact</span>
+          <span>연락처</span>
           <strong>{contactCount}</strong>
         </div>
       </div>
@@ -171,7 +207,76 @@ function ClientRecordPanel({ client, leadCount, opportunityCount, intakeCount, a
         <ShieldCheck size={15} />
         <span>권한 기준에 맞춰 표시됩니다.</span>
       </div>
+      <div className="record-boundary-note" data-sf-b-w01r-right-panel-merge-review="true">
+        <ShieldCheck size={15} />
+        <span>병합 검토 {mergeProposalCount}건 / 실행 가능 {executableMergeCount}건</span>
+      </div>
+      <div className="record-boundary-note" data-sf-b-w07-right-panel-enrichment-summary="route-backed">
+        <ShieldCheck size={15} />
+        <span>데이터 보강 상태는 Client 데이터 관리에서 확인합니다.</span>
+      </div>
+      <div className="record-boundary-note" data-sf-b-w08-right-panel-report-summary="route-backed">
+        <ShieldCheck size={15} />
+        <span>보고서와 손익은 Client 보고서에서 확인합니다.</span>
+      </div>
     </aside>
+  );
+}
+
+function RecordActionSummary({ fieldsResult, auditResult, updateResult, ownerResult, pending, ownerPending, onFieldUpdate, onOwnerBlocked }) {
+  const fields = fieldsResult?.kind === "data" && Array.isArray(fieldsResult.item?.fields) ? fieldsResult.item.fields : [];
+  const audits = resultItems(auditResult);
+  return (
+    <div className="clients-live-stack" data-sf-b-w02-record-actions-panel="true">
+      <div className="record-action-strip" data-sf-b-w02-field-registry="true">
+        <div>
+          <strong>레코드 작업</strong>
+          <span>{fields.length > 0 ? fields.map((field) => recordFieldLabel(field.label)).join(" / ") : "허용 필드 확인 중"}</span>
+          <ActionNotice
+            pending={pending}
+            result={updateResult}
+            pendingText="필드를 업데이트 중입니다."
+            successText="허용된 필드가 업데이트되었습니다."
+          />
+        </div>
+        <button className="secondary-button" type="button" disabled={pending} onClick={onFieldUpdate}>
+          <ShieldCheck size={15} />
+          필드 업데이트
+        </button>
+      </div>
+      {updateResult?.kind === "data" && updateResult.fieldPatch && (
+        <div className="record-boundary-note" data-sf-b-w02-field-update-result="true">
+          <ShieldCheck size={15} />
+          <span>변경 필드 {updateResult.fieldPatch.changed_fields?.join(", ")}</span>
+        </div>
+      )}
+      <div className="record-action-strip" data-sf-b-w02-owner-blocked-action="true">
+        <div>
+          <strong>담당자 일괄 변경</strong>
+          <span>{ownerResult?.uiState === "owner_blocked" ? "승인 필요 상태" : "승인 조건 확인"}</span>
+          <ActionNotice
+            pending={ownerPending}
+            result={ownerResult}
+            pendingText="승인 조건을 확인 중입니다."
+            successText="승인 필요 상태가 기록되었습니다."
+          />
+        </div>
+        <button className="secondary-button" type="button" disabled={ownerPending} onClick={onOwnerBlocked}>
+          <ShieldCheck size={15} />
+          승인 확인
+        </button>
+      </div>
+      {ownerResult?.uiState === "owner_blocked" && (
+        <div className="record-boundary-note" data-sf-b-w02-owner-blocked-result="true">
+          <ShieldCheck size={15} />
+          <span>승인 후 처리할 수 있습니다.</span>
+        </div>
+      )}
+      <div className="record-boundary-note" data-sf-b-w02-action-audit-feed="true">
+        <ShieldCheck size={15} />
+        <span>최근 작업 {audits.length}건</span>
+      </div>
+    </div>
   );
 }
 
@@ -202,7 +307,19 @@ function ClientsTable({ result }) {
   );
 }
 
-function AccountsTable({ result, relationshipResult, createResult, createPending, patchResult, patchPending, onCreateAccount, onPatchAccount }) {
+function AccountsTable({
+  result,
+  relationshipResult,
+  createResult,
+  createPending,
+  patchResult,
+  patchPending,
+  recordActionResult,
+  recordActionPending,
+  onCreateAccount,
+  onPatchAccount,
+  onRecordActionFieldUpdate
+}) {
   const state = renderLiveState(result, "계정");
   if (state) return state;
   const accounts = resultItems(result);
@@ -227,9 +344,9 @@ function AccountsTable({ result, relationshipResult, createResult, createPending
         </button>
       </div>
       {createResult?.kind === "data" && createResult.item && (
-        <div className="record-boundary-note" data-crm-account-create-result="true">
+        <div className="record-boundary-note" data-crm-account-create-result="true" data-sf-b-w01r-account-canonical-sync="true">
           <ShieldCheck size={15} />
-          <span>계정 생성이 기록되었습니다.</span>
+          <span>계정 생성과 기준 데이터 동기화가 기록되었습니다.</span>
         </div>
       )}
       <div className="record-action-strip" data-crm-account-patch-action="true">
@@ -254,11 +371,34 @@ function AccountsTable({ result, relationshipResult, createResult, createPending
           <span>계정 상태가 반영되었습니다.</span>
         </div>
       )}
+      <div className="record-action-strip" data-sf-b-w02-account-record-action="true">
+        <div>
+          <strong>계정 필드 작업</strong>
+          <span>{editableAccount ? businessLabel(editableAccount.display_name, "생성된 계정") : "편집 가능한 계정 없음"}</span>
+          <ActionNotice
+            pending={recordActionPending}
+            result={recordActionResult}
+            pendingText="계정 필드를 업데이트 중입니다."
+            successText="계정 필드 작업이 기록되었습니다."
+          />
+        </div>
+        <button className="secondary-button" type="button" disabled={!editableAccount || recordActionPending} onClick={onRecordActionFieldUpdate}>
+          <ShieldCheck size={15} />
+          레코드 작업
+        </button>
+      </div>
+      {recordActionResult?.kind === "data" && recordActionResult.fieldPatch && (
+        <div className="record-boundary-note" data-sf-b-w02-account-record-action-result="true">
+          <ShieldCheck size={15} />
+          <span>계정 필드 작업이 완료되었습니다.</span>
+        </div>
+      )}
       <DataTable
-        columns={["계정", "상태", "Client Group", "식별자"]}
+        columns={["계정", "상태", "기준 데이터", "Client 그룹", "식별자"]}
         rows={accounts.map((item, index) => [
           businessLabel(item.display_name, `계정 ${index + 1}`),
           clientStatus(item.status),
+          canonicalSyncLabel(item.canonical_sync_state),
           linkedLabel(item.client_group_id),
           item.registration_number_included === false ? "보호됨" : "검토 필요"
         ])}
@@ -284,7 +424,25 @@ function AccountsTable({ result, relationshipResult, createResult, createPending
   );
 }
 
-function ContactsTable({ result, createResult, createPending, patchResult, patchPending, onCreateContact, onPatchContact }) {
+function ContactsTable({
+  result,
+  mergeResult,
+  createResult,
+  createPending,
+  patchResult,
+  patchPending,
+  recordActionResult,
+  recordActionPending,
+  mergeCreateResult,
+  mergeExecuteResult,
+  mergeCreatePending,
+  mergeExecutePending,
+  onCreateContact,
+  onPatchContact,
+  onRecordActionFieldUpdate,
+  onCreateMergeProposal,
+  onExecuteMergeProposal
+}) {
   const state = renderLiveState(result, "연락처");
   if (state) return state;
   const contacts = resultItems(result);
@@ -308,9 +466,9 @@ function ContactsTable({ result, createResult, createPending, patchResult, patch
         </button>
       </div>
       {createResult?.kind === "data" && createResult.item && (
-        <div className="record-boundary-note" data-crm-contact-create-result="true">
+        <div className="record-boundary-note" data-crm-contact-create-result="true" data-sf-b-w01r-contact-canonical-sync="true">
           <ShieldCheck size={15} />
-          <span>연락처가 등록되었습니다.</span>
+          <span>연락처와 기준 데이터 담당자 정보가 등록되었습니다.</span>
         </div>
       )}
       <div className="record-action-strip" data-crm-contact-patch-action="true">
@@ -335,27 +493,132 @@ function ContactsTable({ result, createResult, createPending, patchResult, patch
           <span>연락처 상태가 반영되었습니다.</span>
         </div>
       )}
+      <div className="record-action-strip" data-sf-b-w02-contact-record-action="true">
+        <div>
+          <strong>연락처 필드 작업</strong>
+          <span>{editableContact ? businessLabel(editableContact.display_name, "생성된 연락처") : "편집 가능한 연락처 없음"}</span>
+          <ActionNotice
+            pending={recordActionPending}
+            result={recordActionResult}
+            pendingText="연락처 필드를 업데이트 중입니다."
+            successText="연락처 필드 작업이 기록되었습니다."
+          />
+        </div>
+        <button className="secondary-button" type="button" disabled={!editableContact || recordActionPending} onClick={onRecordActionFieldUpdate}>
+          <ShieldCheck size={15} />
+          레코드 작업
+        </button>
+      </div>
+      {recordActionResult?.kind === "data" && recordActionResult.fieldPatch && (
+        <div className="record-boundary-note" data-sf-b-w02-contact-record-action-result="true">
+          <ShieldCheck size={15} />
+          <span>연락처 필드 작업이 완료되었습니다.</span>
+        </div>
+      )}
       <DataTable
-        columns={["연락처", "상태", "기본 연락", "연락값"]}
+        columns={["연락처", "상태", "기준 데이터", "기본 연락처", "연락값"]}
         rows={contacts.map((item, index) => [
           businessLabel(item.display_name, `연락처 ${index + 1}`),
           clientStatus(item.status),
+          canonicalSyncLabel(item.canonical_sync_state),
           item.primary_contact_type ?? "미지정",
           item.contact_point_value_included === false || item.email_value_included === false ? "보호됨" : "검토 필요"
         ])}
+      />
+      <MergeReviewPanel
+        result={mergeResult}
+        createResult={mergeCreateResult}
+        executeResult={mergeExecuteResult}
+        createPending={mergeCreatePending}
+        executePending={mergeExecutePending}
+        onCreateMergeProposal={onCreateMergeProposal}
+        onExecuteMergeProposal={onExecuteMergeProposal}
       />
     </div>
   );
 }
 
+function MergeReviewPanel({
+  result,
+  createResult,
+  executeResult,
+  createPending,
+  executePending,
+  onCreateMergeProposal,
+  onExecuteMergeProposal
+}) {
+  const proposals = resultItems(result);
+  const executableProposal = proposals.find((proposal) => proposal.executable);
+  const selectedProposal = executableProposal ?? proposals[0] ?? null;
+  return (
+    <div className="clients-live-stack" data-sf-b-w01r-merge-review="true">
+      <div className="record-action-strip">
+        <div>
+          <strong>병합 검토</strong>
+          <span>{selectedProposal ? proposalStateLabel(selectedProposal.proposal_state) : "검토 제안 없음"}</span>
+          <ActionNotice
+            pending={createPending}
+            result={createResult}
+            pendingText="병합 검토를 생성 중입니다."
+            successText="병합 검토가 생성되었습니다."
+          />
+        </div>
+        <button className="secondary-button" type="button" disabled={createPending} onClick={onCreateMergeProposal}>
+          <Plus size={15} />
+          검토 생성
+        </button>
+      </div>
+      <div className="record-action-strip" data-sf-b-w01r-merge-execute-guarded="true">
+        <div>
+          <strong>병합 실행</strong>
+          <span>{executableProposal ? "승인된 제안" : "담당자 승인 필요"}</span>
+          <ActionNotice
+            pending={executePending}
+            result={executeResult}
+            pendingText="병합 실행을 확인 중입니다."
+            successText="병합 실행 상태가 기록되었습니다."
+          />
+        </div>
+        <button
+          className="secondary-button"
+          type="button"
+          disabled={!executableProposal || executePending}
+          onClick={() => onExecuteMergeProposal(executableProposal)}
+        >
+          <ShieldCheck size={15} />
+          병합 실행
+        </button>
+      </div>
+      {result === null ? (
+        <div className="live-data-state live-data-loading">병합 검토를 불러오는 중입니다.</div>
+      ) : result?.kind === "error" ? (
+        <div className="live-data-state live-data-error">병합 검토를 불러오지 못했습니다.</div>
+      ) : proposals.length === 0 ? (
+        <div className="live-data-state live-data-empty">검토 제안이 없습니다.</div>
+      ) : (
+        <DataTable
+          columns={["제안", "상태", "후보", "승인", "실행"]}
+          rows={proposals.map((proposal, index) => [
+            `제안 ${index + 1}`,
+            proposalStateLabel(proposal.proposal_state),
+            `${proposal.candidate_count ?? 0}건`,
+            proposal.approval_ref_present ? "있음" : "필요",
+            proposal.executable ? "가능" : "보류"
+          ])}
+        />
+      )}
+    </div>
+  );
+}
+
 function LeadsTable({ result }) {
-  const state = renderLiveState(result, "Lead");
+  const state = renderLiveState(result, "잠재 Client");
   if (state) return state;
   return (
     <DataTable
-      columns={["Lead", "상태", "당사자", "담당"]}
+      columns={["잠재 Client", "상태", "당사자", "담당"]}
       rows={resultItems(result).map((item, index) => [
-        businessLabel(item.display_name, `Lead ${index + 1}`),
+        businessLabel(item.display_name, `잠재 Client ${index + 1}`),
         pipelineStatus(item.status),
         linkedLabel(item.party_id),
         item.owner_user_id ? "배정됨" : "미지정"
@@ -378,7 +641,7 @@ function OpportunityActionPanel({ opportunity, pending, result, onHandoff }) {
   return (
     <div className="record-action-strip" data-crm-handoff-action="true">
       <div>
-        <strong>{refreshedOpportunity ? businessLabel(refreshedOpportunity.display_name, "Opportunity 1") : "Opportunity"}</strong>
+          <strong>{refreshedOpportunity ? businessLabel(refreshedOpportunity.display_name, "기회 1") : "기회"}</strong>
         <span>{linked ? "접수 연결됨" : "접수 전환 대기"}</span>
         <ActionNotice
           pending={pending}
@@ -402,7 +665,7 @@ function IntakeActionPanel({ intakeRequest, auditCount, conflictResult, clearanc
     <div className="record-action-grid" data-intake-clearance-action="true">
       <div className="record-action-strip">
         <div>
-          <strong>{intakeRequest ? "Intake 1" : "Intake"}</strong>
+          <strong>{intakeRequest ? "접수 1" : "접수"}</strong>
           <span>{auditCount > 0 ? "감사 기록 있음" : "검토 대기"}</span>
           <ActionNotice
             pending={conflictPending}
@@ -417,7 +680,7 @@ function IntakeActionPanel({ intakeRequest, auditCount, conflictResult, clearanc
       </div>
       <div className="record-action-strip">
         <div>
-          <strong>{clearance?.valid ? "통과" : "Clearance"}</strong>
+          <strong>{clearance?.valid ? "통과" : "통과 검토"}</strong>
           <span>{conflict ? "스냅샷 확인됨" : "스냅샷 필요"}</span>
           <ActionNotice
             pending={clearancePending}
@@ -435,7 +698,7 @@ function IntakeActionPanel({ intakeRequest, auditCount, conflictResult, clearanc
 }
 
 function OpportunitiesTable({ result, pending, handoffResult, onHandoff }) {
-  const state = renderLiveState(result, "Opportunity");
+  const state = renderLiveState(result, "기회");
   if (state) return state;
   const opportunities = resultItems(result);
   return (
@@ -450,9 +713,9 @@ function OpportunitiesTable({ result, pending, handoffResult, onHandoff }) {
         </div>
       )}
       <DataTable
-        columns={["Opportunity", "Stage", "상태", "Intake"]}
+        columns={["기회", "단계", "상태", "접수"]}
         rows={opportunities.map((item, index) => [
-          businessLabel(item.display_name, `Opportunity ${index + 1}`),
+          businessLabel(item.display_name, `기회 ${index + 1}`),
           pipelineStatus(item.stage),
           pipelineStatus(item.status),
           linkedLabel(item.intake_request_id)
@@ -463,7 +726,7 @@ function OpportunitiesTable({ result, pending, handoffResult, onHandoff }) {
 }
 
 function IntakeTable({ result, auditResult, conflictResult, clearanceResult, conflictPending, clearancePending, onConflictCheck, onClearance }) {
-  const state = renderLiveState(result, "Intake");
+  const state = renderLiveState(result, "접수");
   if (state) return state;
   const intakes = resultItems(result);
   const auditCount = resultItems(auditResult).length;
@@ -480,9 +743,9 @@ function IntakeTable({ result, auditResult, conflictResult, clearanceResult, con
         onClearance={onClearance}
       />
       <DataTable
-        columns={["Intake", "상태", "Opportunity", "Scope"]}
+        columns={["접수", "상태", "기회", "범위"]}
         rows={intakes.map((item, index) => [
-          `Intake ${index + 1}`,
+          `접수 ${index + 1}`,
           pipelineStatus(item.status),
           linkedLabel(item.opportunity_id),
           businessLabel(item.requested_scope_summary, "범위 미지정")
@@ -497,6 +760,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   const [accountsResult, setAccountsResult] = useState(null);
   const [contactsResult, setContactsResult] = useState(null);
   const [accountContactsResult, setAccountContactsResult] = useState(null);
+  const [mergeProposalsResult, setMergeProposalsResult] = useState(null);
   const [leadsResult, setLeadsResult] = useState(null);
   const [opportunitiesResult, setOpportunitiesResult] = useState(null);
   const [intakeResult, setIntakeResult] = useState(null);
@@ -506,15 +770,29 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   const [clearanceResult, setClearanceResult] = useState(null);
   const [accountCreateResult, setAccountCreateResult] = useState(null);
   const [contactCreateResult, setContactCreateResult] = useState(null);
+  const [mergeCreateResult, setMergeCreateResult] = useState(null);
+  const [mergeExecuteResult, setMergeExecuteResult] = useState(null);
   const [accountPatchResult, setAccountPatchResult] = useState(null);
   const [contactPatchResult, setContactPatchResult] = useState(null);
+  const [clientRecordActionFieldsResult, setClientRecordActionFieldsResult] = useState(null);
+  const [clientRecordActionAuditResult, setClientRecordActionAuditResult] = useState(null);
+  const [clientRecordActionUpdateResult, setClientRecordActionUpdateResult] = useState(null);
+  const [clientRecordActionOwnerResult, setClientRecordActionOwnerResult] = useState(null);
+  const [accountRecordActionResult, setAccountRecordActionResult] = useState(null);
+  const [contactRecordActionResult, setContactRecordActionResult] = useState(null);
   const [handoffPending, setHandoffPending] = useState(false);
   const [conflictPending, setConflictPending] = useState(false);
   const [clearancePending, setClearancePending] = useState(false);
   const [accountCreatePending, setAccountCreatePending] = useState(false);
   const [contactCreatePending, setContactCreatePending] = useState(false);
+  const [mergeCreatePending, setMergeCreatePending] = useState(false);
+  const [mergeExecutePending, setMergeExecutePending] = useState(false);
   const [accountPatchPending, setAccountPatchPending] = useState(false);
   const [contactPatchPending, setContactPatchPending] = useState(false);
+  const [clientRecordActionPending, setClientRecordActionPending] = useState(false);
+  const [clientRecordActionOwnerPending, setClientRecordActionOwnerPending] = useState(false);
+  const [accountRecordActionPending, setAccountRecordActionPending] = useState(false);
+  const [contactRecordActionPending, setContactRecordActionPending] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
   const currentSection = CLIENT_SECTIONS.has(activeSection) ? activeSection : "clients-list";
 
@@ -543,18 +821,24 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     setAccountsResult(null);
     setContactsResult(null);
     setAccountContactsResult(null);
+    setMergeProposalsResult(null);
     setAccountCreateResult(null);
     setContactCreateResult(null);
+    setMergeCreateResult(null);
+    setMergeExecuteResult(null);
     setAccountPatchResult(null);
     setContactPatchResult(null);
+    setAccountRecordActionResult(null);
+    setContactRecordActionResult(null);
     Promise.all([
       fetchCrmLeads({ ctx: liveCtx }),
       fetchCrmOpportunities({ ctx: liveCtx }),
       fetchIntakeRequests({ ctx: liveCtx }),
       fetchIntakeAudit({ ctx: liveCtx }),
       fetchCrmAccounts({ ctx: liveCtx }),
-      fetchCrmContacts({ ctx: liveCtx })
-    ]).then(async ([leads, opportunities, intake, audit, accounts, contacts]) => {
+      fetchCrmContacts({ ctx: liveCtx }),
+      fetchCrmMergeProposals({ ctx: liveCtx })
+    ]).then(async ([leads, opportunities, intake, audit, accounts, contacts, mergeProposals]) => {
       if (cancelled) return;
       setLeadsResult(leads);
       setOpportunitiesResult(opportunities);
@@ -562,6 +846,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
       setIntakeAuditResult(audit);
       setAccountsResult(accounts);
       setContactsResult(contacts);
+      setMergeProposalsResult(mergeProposals);
       const firstAccountId = resultItems(accounts)[0]?.account_id;
       const accountContacts = await fetchCrmAccountContacts({ accountId: firstAccountId, ctx: liveCtx });
       if (!cancelled) setAccountContactsResult(accountContacts);
@@ -573,8 +858,12 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
 
   const clients = useMemo(() => resultItems(clientsResult), [clientsResult]);
   const selectedClient = clients[0] ?? null;
+  const selectedClientId = selectedClient?.client_group_id ?? null;
   const accountCount = resultItems(accountsResult).length;
   const contactCount = resultItems(contactsResult).length;
+  const mergeProposals = resultItems(mergeProposalsResult);
+  const mergeProposalCount = mergeProposals.length;
+  const executableMergeCount = mergeProposals.filter((proposal) => proposal.executable).length;
   const opportunities = resultItems(opportunitiesResult);
   const intakes = resultItems(intakeResult);
   const selectedOpportunity = opportunities[0] ?? null;
@@ -583,12 +872,29 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   const opportunityCount = opportunities.length;
   const intakeCount = intakes.length;
 
+  useEffect(() => {
+    let cancelled = false;
+    setClientRecordActionFieldsResult(null);
+    setClientRecordActionAuditResult(null);
+    Promise.all([
+      fetchRecordActionFields({ objectName: "client", ctx: liveCtx }),
+      selectedClientId ? fetchRecordActionAudit({ objectName: "client", recordId: selectedClientId, ctx: liveCtx }) : Promise.resolve({ kind: "data", items: [] })
+    ]).then(([fields, audit]) => {
+      if (cancelled) return;
+      setClientRecordActionFieldsResult(fields);
+      setClientRecordActionAuditResult(audit);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [liveCtx, refreshToken, selectedClientId]);
+
   async function handleOpportunityHandoff() {
     if (!selectedOpportunity?.opportunity_id) return;
     setHandoffPending(true);
     const next = await handoffCrmOpportunityToIntake({
       opportunityId: selectedOpportunity.opportunity_id,
-      requestedScopeSummary: businessLabel(selectedOpportunity.display_name, "Client intake request"),
+      requestedScopeSummary: businessLabel(selectedOpportunity.display_name, "Client 접수 요청"),
       ctx: liveCtx
     });
     setHandoffResult(next);
@@ -684,6 +990,47 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     }
   }
 
+  async function handleCreateMergeProposal() {
+    setMergeCreatePending(true);
+    const next = await createCrmMergeProposal({ ctx: liveCtx });
+    setMergeCreateResult(next);
+    setMergeCreatePending(false);
+    if (next.kind === "data" && next.item) {
+      setMergeProposalsResult((current) => {
+        const currentItems = resultItems(current).filter((item) => item.proposal_id !== next.item.proposal_id);
+        return {
+          ...(current?.kind === "data" ? current : {}),
+          kind: "data",
+          outcome: current?.outcome ?? "passed",
+          items: [next.item, ...currentItems],
+          safeErrorCodes: current?.safeErrorCodes ?? [],
+          productionReadyClaim: false
+        };
+      });
+    }
+  }
+
+  async function handleExecuteMergeProposal(proposal) {
+    if (!proposal?.proposal_id || !proposal.executable) return;
+    setMergeExecutePending(true);
+    const next = await executeCrmMergeProposal({ proposalId: proposal.proposal_id, ctx: liveCtx });
+    setMergeExecuteResult(next);
+    setMergeExecutePending(false);
+    if (next.kind === "data" && next.item) {
+      setMergeProposalsResult((current) => {
+        const currentItems = resultItems(current).filter((item) => item.proposal_id !== next.item.proposal_id);
+        return {
+          ...(current?.kind === "data" ? current : {}),
+          kind: "data",
+          outcome: current?.outcome ?? "passed",
+          items: [next.item, ...currentItems],
+          safeErrorCodes: current?.safeErrorCodes ?? [],
+          productionReadyClaim: false
+        };
+      });
+    }
+  }
+
   async function handlePatchAccount() {
     const account = resultItems(accountsResult).find((item) => item.account_source === "crm-runtime.Account");
     if (!account?.account_id) return;
@@ -750,6 +1097,104 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     }
   }
 
+  async function handleClientRecordActionFieldUpdate() {
+    if (!selectedClientId) return;
+    setClientRecordActionPending(true);
+    const next = await updateRecordActionField({
+      objectName: "client",
+      recordId: selectedClientId,
+      fieldUpdates: { display_name: "Client 작업 검토" },
+      ctx: liveCtx
+    });
+    setClientRecordActionUpdateResult(next);
+    setClientRecordActionPending(false);
+    if (next.kind === "data" && next.item) {
+      setClientsResult((current) => ({
+        ...(current?.kind === "data" ? current : {}),
+        kind: "data",
+        outcome: current?.outcome ?? "passed",
+        items: resultItems(current).map((item) =>
+          item.client_group_id === selectedClientId
+            ? { ...item, display_name: next.item.display_label ?? item.display_name, status: next.item.status ?? item.status }
+            : item,
+        ),
+        safeErrorCodes: current?.safeErrorCodes ?? [],
+        productionReadyClaim: false
+      }));
+      const audit = await fetchRecordActionAudit({ objectName: "client", recordId: selectedClientId, ctx: liveCtx });
+      setClientRecordActionAuditResult(audit);
+    }
+  }
+
+  async function handleClientOwnerBlockedAction() {
+    if (!selectedClientId) return;
+    setClientRecordActionOwnerPending(true);
+    const next = await bulkUpdateRecordActions({
+      objectName: "client",
+      recordIds: [selectedClientId],
+      actionType: "owner_change",
+      ctx: liveCtx
+    });
+    setClientRecordActionOwnerResult(next);
+    setClientRecordActionOwnerPending(false);
+  }
+
+  async function handleAccountRecordActionFieldUpdate() {
+    const account = resultItems(accountsResult).find((item) => item.account_source === "crm-runtime.Account");
+    if (!account?.account_id) return;
+    setAccountRecordActionPending(true);
+    const next = await updateRecordActionField({
+      objectName: "account",
+      recordId: account.account_id,
+      fieldUpdates: { display_name: "계정 작업 검토" },
+      ctx: liveCtx
+    });
+    setAccountRecordActionResult(next);
+    setAccountRecordActionPending(false);
+    if (next.kind === "data" && next.item) {
+      setAccountsResult((current) => ({
+        ...(current?.kind === "data" ? current : {}),
+        kind: "data",
+        outcome: current?.outcome ?? "passed",
+        items: resultItems(current).map((item) =>
+          item.account_id === account.account_id
+            ? { ...item, display_name: next.item.display_label ?? item.display_name, status: next.item.status ?? item.status }
+            : item,
+        ),
+        safeErrorCodes: current?.safeErrorCodes ?? [],
+        productionReadyClaim: false
+      }));
+    }
+  }
+
+  async function handleContactRecordActionFieldUpdate() {
+    const contact = resultItems(contactsResult).find((item) => item.contact_source === "crm-runtime.Contact");
+    if (!contact?.contact_id) return;
+    setContactRecordActionPending(true);
+    const next = await updateRecordActionField({
+      objectName: "contact",
+      recordId: contact.contact_id,
+      fieldUpdates: { display_name: "연락처 작업 검토" },
+      ctx: liveCtx
+    });
+    setContactRecordActionResult(next);
+    setContactRecordActionPending(false);
+    if (next.kind === "data" && next.item) {
+      setContactsResult((current) => ({
+        ...(current?.kind === "data" ? current : {}),
+        kind: "data",
+        outcome: current?.outcome ?? "passed",
+        items: resultItems(current).map((item) =>
+          item.contact_id === contact.contact_id
+            ? { ...item, display_name: next.item.display_label ?? item.display_name, status: next.item.status ?? item.status }
+            : item,
+        ),
+        safeErrorCodes: current?.safeErrorCodes ?? [],
+        productionReadyClaim: false
+      }));
+    }
+  }
+
   return (
     <section
       id="clients-home"
@@ -758,7 +1203,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     >
       <PageHeader
         title={labels.clientsTitle}
-        subtitle="Client, 리드, 기회, 접수를 한 화면에서 확인합니다."
+        subtitle="Client, 잠재 Client, 기회, 접수를 한 화면에서 확인합니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />
@@ -773,12 +1218,12 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
           </Panel>
         )}
         {currentSection === "client-leads" && (
-          <Panel id="client-leads" className="record-list-panel" title="리드" meta="CRM">
+          <Panel id="client-leads" className="record-list-panel" title="잠재 Client" meta="고객관리">
             <LeadsTable result={leadsResult} />
           </Panel>
         )}
         {currentSection === "client-opportunities" && (
-          <Panel id="client-opportunities" className="record-list-panel" title="기회" meta="CRM">
+          <Panel id="client-opportunities" className="record-list-panel" title="기회" meta="고객관리">
             <OpportunitiesTable
               result={opportunitiesResult}
               pending={handoffPending}
@@ -788,7 +1233,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
           </Panel>
         )}
         {currentSection === "client-intake" && (
-          <Panel id="client-intake" className="record-list-panel" title="접수" meta="Intake">
+          <Panel id="client-intake" className="record-list-panel" title="접수" meta="상담 접수">
             <IntakeTable
               result={intakeResult}
               auditResult={intakeAuditResult}
@@ -802,7 +1247,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
           </Panel>
         )}
         {currentSection === "client-accounts" && (
-          <Panel id="client-accounts" className="record-list-panel" title="계정" meta="CRM">
+          <Panel id="client-accounts" className="record-list-panel" title="계정" meta="고객관리">
             <AccountsTable
               result={accountsResult}
               relationshipResult={accountContactsResult}
@@ -810,23 +1255,45 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
               createPending={accountCreatePending}
               patchResult={accountPatchResult}
               patchPending={accountPatchPending}
+              recordActionResult={accountRecordActionResult}
+              recordActionPending={accountRecordActionPending}
               onCreateAccount={handleCreateAccount}
               onPatchAccount={handlePatchAccount}
+              onRecordActionFieldUpdate={handleAccountRecordActionFieldUpdate}
             />
           </Panel>
         )}
         {currentSection === "client-contacts" && (
-          <Panel id="client-contacts" className="record-list-panel" title="연락처" meta="CRM">
-            <ContactsTable
+          <Panel id="client-contacts" className="record-list-panel" title="연락처" meta="고객관리">
+          <ContactsTable
               result={contactsResult}
+              mergeResult={mergeProposalsResult}
               createResult={contactCreateResult}
               createPending={contactCreatePending}
               patchResult={contactPatchResult}
               patchPending={contactPatchPending}
+              recordActionResult={contactRecordActionResult}
+              recordActionPending={contactRecordActionPending}
+              mergeCreateResult={mergeCreateResult}
+              mergeExecuteResult={mergeExecuteResult}
+              mergeCreatePending={mergeCreatePending}
+              mergeExecutePending={mergeExecutePending}
               onCreateContact={handleCreateContact}
               onPatchContact={handlePatchContact}
+              onRecordActionFieldUpdate={handleContactRecordActionFieldUpdate}
+              onCreateMergeProposal={handleCreateMergeProposal}
+              onExecuteMergeProposal={handleExecuteMergeProposal}
             />
           </Panel>
+        )}
+        {currentSection === "client-data" && (
+          <DataCloudEnrichmentPanel ctx={liveCtx} />
+        )}
+        {currentSection === "client-reports" && (
+          <ReportBuilderPanel ctx={liveCtx} selectedClient={selectedClient} />
+        )}
+        {currentSection === "client-import" && (
+          <ImportDataMappingPanel ctx={liveCtx} surface="client" />
         )}
         <ClientRecordPanel
           client={selectedClient}
@@ -835,6 +1302,18 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
           intakeCount={intakeCount}
           accountCount={accountCount}
           contactCount={contactCount}
+          mergeProposalCount={mergeProposalCount}
+          executableMergeCount={executableMergeCount}
+        />
+        <RecordActionSummary
+          fieldsResult={clientRecordActionFieldsResult}
+          auditResult={clientRecordActionAuditResult}
+          updateResult={clientRecordActionUpdateResult}
+          ownerResult={clientRecordActionOwnerResult}
+          pending={clientRecordActionPending}
+          ownerPending={clientRecordActionOwnerPending}
+          onFieldUpdate={handleClientRecordActionFieldUpdate}
+          onOwnerBlocked={handleClientOwnerBlockedAction}
         />
       </div>
     </section>

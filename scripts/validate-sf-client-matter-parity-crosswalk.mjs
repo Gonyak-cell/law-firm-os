@@ -43,7 +43,7 @@ const permissionAdminUiPattern =
 const dataCloudEnrichmentUiPattern =
   /data-data-cloud-enrichment|data-enrichment-provider-admin|data-identity-resolution|data-unified-profile|data-segment-activation|createDataCloudProvider|createEnrichmentJob|executeEnrichmentJob|fetchEnrichmentResults|runIdentityResolution|fetchUnifiedCustomerProfile|activateDataCloudSegment/;
 const reportingBuilderUiPattern =
-  /data-report-builder|data-report-query-builder|data-report-share-action|data-client-profitability|createReportDefinition|runReportQuery|shareReportDefinition|fetchClientProfitability|refreshClientProfitability/;
+  /data-report-builder|data-report-query-builder|data-report-share-action|data-client-profitability|createReportDefinition|runReportQuery|shareReportDefinition|fetchAnalyticsClientProfitability|refreshClientProfitability/;
 const screenshotInventoryPath = "docs/goal-closeout/sf-client-matter-parity/salesforce-screenshot-inventory.json";
 const surfaceConnectionLedgerPath = "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json";
 const objectiveCompletionAuditPath = "docs/goal-closeout/sf-client-matter-parity/objective-completion-audit.json";
@@ -51,10 +51,21 @@ const currentValidationReceiptPath = "docs/goal-closeout/sf-client-matter-parity
 const browserQaReceiptPath = "docs/goal-closeout/sf-client-matter-parity/browser-qa-receipt.json";
 const browserQaScreenshotPaths = [
   "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-workspace.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-merge-review.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-record-actions.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-import.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-data-cloud.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-reports.png",
   "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-list.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-record-actions.png",
   "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-command.png",
   "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-vault.png",
-  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-timeline.png"
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-builder-email.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-import.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-timeline.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-calendar.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-channel.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-people-admin.png"
 ];
 const screenshotAbs = path.join(ROOT, screenshotDir);
 let atlasPngCount = 0;
@@ -158,8 +169,8 @@ if (surfaceConnectionLedger) {
   if (surfaceConnectionLedger.scope?.production_ready_claim !== false) failures.push("surfaceConnectionLedger:production_ready_claim_not_false");
   if (surfaceConnectionLedger.scope?.go_live_claim !== false) failures.push("surfaceConnectionLedger:go_live_claim_not_false");
   if (surfaceConnectionLedger.scope?.enterprise_trust_claim !== false) failures.push("surfaceConnectionLedger:enterprise_trust_claim_not_false");
-  if (surfaceConnectionLedger.summary?.row_count !== 10) failures.push(`surfaceConnectionLedger:row_count:${surfaceConnectionLedger.summary?.row_count}`);
-  if (surfaceConnectionLedger.summary?.connected_implemented_row_count !== 10) {
+  if (surfaceConnectionLedger.summary?.row_count !== 14) failures.push(`surfaceConnectionLedger:row_count:${surfaceConnectionLedger.summary?.row_count}`);
+  if (surfaceConnectionLedger.summary?.connected_implemented_row_count !== 14) {
     failures.push(`surfaceConnectionLedger:connected_implemented_row_count:${surfaceConnectionLedger.summary?.connected_implemented_row_count}`);
   }
   if (surfaceConnectionLedger.summary?.disconnected_implemented_row_count !== 0) {
@@ -174,6 +185,10 @@ if (surfaceConnectionLedger) {
     "SF-SURFACE-B02-ACTIONS",
     "SF-SURFACE-B03-TIMELINE",
     "SF-SURFACE-A04-DMS",
+    "SF-SURFACE-B05-IMPORT-DATA-MAPPING",
+    "SF-SURFACE-B06-PERMISSION-ADMIN",
+    "SF-SURFACE-B07-DATA-CLOUD-ENRICHMENT",
+    "SF-SURFACE-B08-REPORT-BUILDER-CLIENT-PROFITABILITY",
     "SF-SURFACE-A05-BILLING",
     "SF-SURFACE-A05-ANALYTICS"
   ];
@@ -211,17 +226,17 @@ if (objectiveCompletionAudit) {
   if (objectiveCompletionAudit.summary?.requirement_count !== 8) failures.push(`objectiveCompletionAudit:requirement_count:${objectiveCompletionAudit.summary?.requirement_count}`);
   if (objectiveCompletionAudit.summary?.evidence_mapped_count !== 8) failures.push(`objectiveCompletionAudit:evidence_mapped_count:${objectiveCompletionAudit.summary?.evidence_mapped_count}`);
   if (objectiveCompletionAudit.summary?.evidence_missing_count !== 0) failures.push(`objectiveCompletionAudit:evidence_missing_count:${objectiveCompletionAudit.summary?.evidence_missing_count}`);
-  if (objectiveCompletionAudit.summary?.backend_contract_count !== 7) failures.push(`objectiveCompletionAudit:backend_contract_count:${objectiveCompletionAudit.summary?.backend_contract_count}`);
-  if (objectiveCompletionAudit.summary?.surface_connection_row_count !== 10) failures.push(`objectiveCompletionAudit:surface_connection_row_count:${objectiveCompletionAudit.summary?.surface_connection_row_count}`);
-  if (objectiveCompletionAudit.summary?.current_validation_command_count !== 11) failures.push(`objectiveCompletionAudit:current_validation_command_count:${objectiveCompletionAudit.summary?.current_validation_command_count}`);
-  if (objectiveCompletionAudit.summary?.browser_qa_route_count !== 5) failures.push(`objectiveCompletionAudit:browser_qa_route_count:${objectiveCompletionAudit.summary?.browser_qa_route_count}`);
+  if (objectiveCompletionAudit.summary?.backend_contract_count !== 8) failures.push(`objectiveCompletionAudit:backend_contract_count:${objectiveCompletionAudit.summary?.backend_contract_count}`);
+  if (objectiveCompletionAudit.summary?.surface_connection_row_count !== 14) failures.push(`objectiveCompletionAudit:surface_connection_row_count:${objectiveCompletionAudit.summary?.surface_connection_row_count}`);
+  if (objectiveCompletionAudit.summary?.current_validation_command_count !== 18) failures.push(`objectiveCompletionAudit:current_validation_command_count:${objectiveCompletionAudit.summary?.current_validation_command_count}`);
+  if (objectiveCompletionAudit.summary?.browser_qa_route_count !== 13) failures.push(`objectiveCompletionAudit:browser_qa_route_count:${objectiveCompletionAudit.summary?.browser_qa_route_count}`);
   if (objectiveCompletionAudit.summary?.source_screenshot_count !== 883) failures.push(`objectiveCompletionAudit:source_screenshot_count:${objectiveCompletionAudit.summary?.source_screenshot_count}`);
   const expectedObjectiveRequirements = [
     "REQ-SF-01-SCREENSHOT-INVENTORY",
     "REQ-SF-02-CROSSWALK-CLASSIFICATION",
     "REQ-SF-03-UI-API-PACKAGE-CONNECTION",
     "REQ-SF-04-IMPLEMENTED-BACKEND-UI-ENTRYPOINTS",
-    "REQ-SF-05-BACKEND-FIRST-GAPS",
+    "REQ-SF-05-ROUTE-CONTRACT-GATES",
     "REQ-SF-06-WP-TUW-VC-EVIDENCE-PYRAMID",
     "REQ-SF-07-VALIDATION-EVIDENCE-BOUND",
     "REQ-SF-08-NO-PREMATURE-CLAIMS"
@@ -251,9 +266,9 @@ if (browserQaReceipt) {
   if (browserQaReceipt.scope?.production_ready_claim !== false) failures.push("browserQaReceipt:production_ready_claim_not_false");
   if (browserQaReceipt.scope?.go_live_claim !== false) failures.push("browserQaReceipt:go_live_claim_not_false");
   if (browserQaReceipt.scope?.enterprise_trust_claim !== false) failures.push("browserQaReceipt:enterprise_trust_claim_not_false");
-  if (browserQaReceipt.summary?.route_count !== 5) failures.push(`browserQaReceipt:route_count:${browserQaReceipt.summary?.route_count}`);
+  if (browserQaReceipt.summary?.route_count !== 13) failures.push(`browserQaReceipt:route_count:${browserQaReceipt.summary?.route_count}`);
   if (browserQaReceipt.summary?.failed_count !== 0) failures.push(`browserQaReceipt:failed_count:${browserQaReceipt.summary?.failed_count}`);
-  if (browserQaReceipt.summary?.check_count < 15) failures.push(`browserQaReceipt:check_count:${browserQaReceipt.summary?.check_count}`);
+  if (browserQaReceipt.summary?.check_count !== 147) failures.push(`browserQaReceipt:check_count:${browserQaReceipt.summary?.check_count}`);
   if (browserQaReceipt.summary?.passed_count !== browserQaReceipt.summary?.check_count) {
     failures.push(`browserQaReceipt:passed_count:${browserQaReceipt.summary?.passed_count}:${browserQaReceipt.summary?.check_count}`);
   }
@@ -275,17 +290,25 @@ if (currentValidationReceipt) {
   if (currentValidationReceipt.scope?.production_ready_claim !== false) failures.push("currentValidationReceipt:production_ready_claim_not_false");
   if (currentValidationReceipt.scope?.go_live_claim !== false) failures.push("currentValidationReceipt:go_live_claim_not_false");
   if (currentValidationReceipt.scope?.enterprise_trust_claim !== false) failures.push("currentValidationReceipt:enterprise_trust_claim_not_false");
-  if (currentValidationReceipt.summary?.command_count !== 11) failures.push(`currentValidationReceipt:command_count:${currentValidationReceipt.summary?.command_count}`);
-  if (currentValidationReceipt.summary?.passed_count !== 11) failures.push(`currentValidationReceipt:passed_count:${currentValidationReceipt.summary?.passed_count}`);
+  if (currentValidationReceipt.summary?.command_count !== 18) failures.push(`currentValidationReceipt:command_count:${currentValidationReceipt.summary?.command_count}`);
+  if (currentValidationReceipt.summary?.passed_count !== 18) failures.push(`currentValidationReceipt:passed_count:${currentValidationReceipt.summary?.passed_count}`);
   if (currentValidationReceipt.summary?.failed_count !== 0) failures.push(`currentValidationReceipt:failed_count:${currentValidationReceipt.summary?.failed_count}`);
   if (currentValidationReceipt.summary?.current_ui_regression_tests !== 15) failures.push(`currentValidationReceipt:current_ui_regression_tests:${currentValidationReceipt.summary?.current_ui_regression_tests}`);
-  if (currentValidationReceipt.summary?.current_api_regression_tests !== 31) failures.push(`currentValidationReceipt:current_api_regression_tests:${currentValidationReceipt.summary?.current_api_regression_tests}`);
+  if (currentValidationReceipt.summary?.current_api_regression_tests !== 60) failures.push(`currentValidationReceipt:current_api_regression_tests:${currentValidationReceipt.summary?.current_api_regression_tests}`);
   if (currentValidationReceipt.summary?.current_e2e_tests !== 1) failures.push(`currentValidationReceipt:current_e2e_tests:${currentValidationReceipt.summary?.current_e2e_tests}`);
-  if (currentValidationReceipt.summary?.current_browser_qa_routes !== 5) failures.push(`currentValidationReceipt:current_browser_qa_routes:${currentValidationReceipt.summary?.current_browser_qa_routes}`);
+  if (currentValidationReceipt.summary?.current_browser_qa_routes !== 13) failures.push(`currentValidationReceipt:current_browser_qa_routes:${currentValidationReceipt.summary?.current_browser_qa_routes}`);
+  if (currentValidationReceipt.summary?.current_browser_qa_checks !== 147) failures.push(`currentValidationReceipt:current_browser_qa_checks:${currentValidationReceipt.summary?.current_browser_qa_checks}`);
   const expectedCommandIds = [
     "SF-CURRENT-UI-REGRESSION",
     "SF-CURRENT-WEB-BUILD",
     "SF-CURRENT-API-REGRESSION",
+    "SF-CURRENT-W02-RECORD-ACTIONS-API",
+    "SF-CURRENT-W03-ACTIVITY-CALENDAR-CHANNEL-API",
+    "SF-CURRENT-W04-DOCUMENT-EMAIL-BUILDER-API",
+    "SF-CURRENT-W05-IMPORT-DATA-MAPPING-API",
+    "SF-CURRENT-W06-PERMISSION-ADMIN-API",
+    "SF-CURRENT-W07-DATA-CLOUD-ENRICHMENT-API",
+    "SF-CURRENT-W08-REPORT-BUILDER-CLIENT-PROFITABILITY-API",
     "SF-CURRENT-MATTER-VAULT-E2E",
     "SF-CURRENT-BROWSER-QA",
     "SF-CURRENT-SCREENSHOT-INVENTORY",
@@ -357,25 +380,40 @@ for (const label of [
   "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-saved-list-views.png",
   "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-bulk-status-action.png",
   "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-workspace.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-merge-review.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-record-actions.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-data-cloud.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-reports.png",
   "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-list.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-record-actions.png",
   "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-command.png",
   "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-vault.png",
   "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-timeline.png",
+  "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-people-admin.png",
   "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w01-account-contact-contract.json",
+  "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w02-record-actions-contract.json",
   "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w03-activity-calendar-channel-contract.json",
   "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w04-document-email-builder-contract.json",
   "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w05-import-data-mapping-contract.json",
   "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w06-permission-admin-contract.json",
   "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w07-data-cloud-enrichment-contract.json",
   "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w08-reporting-builder-contract.json",
-  "account_contact_patch_mounted_merge_blocked",
-  "timeline_read_reflected_activity_calendar_channel_contract_registered",
-  "document_email_builder_contract_registered_send_provider_blocked",
-  "import_data_mapping_contract_registered_execution_blocked",
-  "permission_admin_contract_registered_owner_gate_required",
-  "data_cloud_enrichment_contract_registered_provider_gate_required",
-  "reporting_builder_client_profitability_contract_registered_route_gate_required",
+  "w01r_canonical_write_merge_proposal_route_mounted",
+  "w02r_record_actions_route_mounted",
+  "w03r_activity_calendar_channel_route_mounted_provider_blocked",
+  "w04r_document_email_builder_route_mounted_owner_provider_blocked",
+  "w05r_import_data_mapping_route_mounted_owner_blocked",
+  "w06r_permission_admin_route_mounted_owner_provider_blocked",
+  "w07r_data_cloud_enrichment_route_mounted_owner_provider_blocked",
+  "w08r_report_builder_client_profitability_route_mounted_owner_blocked",
   "VC-SF-B-W01-API-001",
+  "VC-SF-B-W01-API-009",
+  "VC-SF-B-W01-API-010",
+  "VC-SF-B-W01-API-011",
+  "VC-SF-B-W02-API-001",
+  "VC-SF-B-W02-API-009",
+  "VC-SF-B-W02-UI-001",
+  "VC-SF-B-W02-BROWSER-001",
   "VC-SF-B-W03-API-001",
   "VC-SF-B-W04-API-001",
   "VC-SF-B-W04-API-010",
@@ -401,7 +439,7 @@ for (const label of [
   "/api/data-cloud/segment-activations",
   "/api/reports",
   "/api/analytics/client-profitability",
-  "createClientProfitability",
+  "ClientProfitability",
   "npm run sf:client-matter-parity:objective-audit",
   "npm run sf:client-matter-parity:surface-ledger",
   "x-lawos-permission-context",
@@ -435,6 +473,7 @@ for (const label of [
   "API regression",
   "Playwright Client/Matter click QA",
   "Playwright browser QA receipt",
+  "Playwright People permission admin QA",
   "Playwright Matter document facade action QA",
   "Playwright Matter analytics export action QA",
   "Playwright Matter Vault inventory/search/audit QA",
@@ -458,17 +497,26 @@ for (const label of [
   "Current validation receipt",
   "Browser QA receipt generation",
   "Surface connection ledger generation",
-  "SF-B-W01 contract JSON parse and invariant QA",
+  "SF-B-W01R contract JSON parse and invariant QA",
+  "SF-B-W02R record actions API regression",
+  "Playwright Client record actions QA",
+  "Playwright Matter record actions QA",
+  "Playwright Client data cloud QA",
+  "SF-B-W02R contract JSON parse and invariant QA",
   "SF-B-W03 contract JSON parse and invariant QA",
-  "SF-B-W04 contract JSON parse and invariant QA",
+  "SF-B-W04R document/email builder API regression",
+  "SF-B-W05R import/data mapping API regression",
   "SF-B-W05 contract JSON parse and invariant QA",
+  "SF-B-W05 tested visible-control search",
   "SF-B-W06 contract JSON parse and invariant QA",
-  "SF-B-W06 forbidden UI control search",
+  "SF-B-W06 tested visible-control search",
   "SF-B-W07 contract JSON parse and invariant QA",
-  "SF-B-W07 forbidden UI control search",
+  "SF-B-W07 data cloud/enrichment API regression",
+  "SF-B-W07 tested visible-control search",
   "SF-B-W08 contract JSON parse and invariant QA",
-  "SF-B-W08 forbidden UI control search",
-  "SF-B-W01 Account/Contact API regression",
+  "SF-B-W08 report builder/client profitability API regression",
+  "SF-B-W08 tested visible-control search",
+  "SF-B-W01R Account/Contact API regression",
   "Master Data runtime service regression",
   "Hermes MCP",
   "production approval",
@@ -506,12 +554,14 @@ for (const screenshotPath of browserQaScreenshotPaths) {
 }
 checkFile("docs/goal-closeout/sf-client-matter-parity/salesforce-screenshot-inventory.json");
 checkFile("docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w01-account-contact-contract.json");
+checkFile("docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w02-record-actions-contract.json");
 checkFile("docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w03-activity-calendar-channel-contract.json");
 checkFile("docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w04-document-email-builder-contract.json");
 checkFile("docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w05-import-data-mapping-contract.json");
 checkFile("docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w06-permission-admin-contract.json");
 checkFile("docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w07-data-cloud-enrichment-contract.json");
 checkFile("docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w08-reporting-builder-contract.json");
+checkFile("apps/api/test/sf-b-w08-report-builder-client-profitability.test.js");
 
 const sfB01ContractPath = "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w01-account-contact-contract.json";
 const sfB01Contract = read(sfB01ContractPath);
@@ -519,7 +569,7 @@ const sfB01ContractJson = parseJson(sfB01ContractPath);
 for (const pattern of [
   /"program":\s*"SF-CLIENT-MATTER-PARITY"/,
   /"workstream":\s*"SF-B-W01"/,
-  /"status":\s*"account_contact_patch_mounted_merge_blocked"/,
+  /"status":\s*"w01r_canonical_write_merge_proposal_route_mounted"/,
   /"ui_read_exposure_allowed_after_route_tests":\s*true/,
   /"ui_write_exposure_allowed_before_write_route_tests":\s*false/,
   /"ui_account_create_exposure_allowed_after_route_tests":\s*true/,
@@ -530,6 +580,8 @@ for (const pattern of [
   /PATCH \/api\/crm\/contacts\/:id/,
   /\/api\/crm\/accounts\/:id\/contacts/,
   /\/api\/crm\/duplicate-reviews/,
+  /\/api\/crm\/duplicate-merge-proposals/,
+  /\/api\/crm\/duplicate-merge-proposals\/:id\/execute/,
   /crm:account:read/,
   /crm:account:write/,
   /crm:account:patch/,
@@ -538,19 +590,28 @@ for (const pattern of [
   /crm:contact:patch/,
   /crm:account_contact:read/,
   /crm:duplicate_review:write/,
+  /crm:duplicate_merge_proposal:read/,
+  /crm:duplicate_merge_proposal:write/,
+  /crm:duplicate_merge_proposal:execute/,
+  /createCrmCanonicalWriteService/,
   /createOrganizationService/,
   /createPersonService/,
   /createClientGroupService/,
   /createContactPointService/,
   /createRelationshipService/,
   /createMasterDataDuplicateService/,
+  /createPartyMergeSplitService/,
   /VC-SF-B-W01-API-001/,
   /VC-SF-B-W01-API-006/,
+  /VC-SF-B-W01-API-009/,
+  /VC-SF-B-W01-API-010/,
+  /VC-SF-B-W01-API-011/,
   /VC-SF-B-W01-UI-001/,
   /Playwright Client Account\/Contact read QA/,
   /Playwright Client Contact create QA/,
   /Playwright Client Account patch QA/,
   /Playwright Client Contact patch QA/,
+  /Playwright Client merge review QA/,
   /patch_mounted_tested/,
   /"external_provider_dependencies":\s*\[\]/,
   /production, deployment, final approval, or enterprise trust claims/
@@ -561,16 +622,68 @@ if (sfB01ContractJson?.production_ready_claim !== false) failures.push("sfB01Con
 if (sfB01ContractJson?.go_live_claim !== false) failures.push("sfB01Contract:go_live_claim_not_false");
 if (sfB01ContractJson?.enterprise_trust_claim !== false) failures.push("sfB01Contract:enterprise_trust_claim_not_false");
 
+const sfB02ContractPath = "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w02-record-actions-contract.json";
+const sfB02Contract = read(sfB02ContractPath);
+const sfB02ContractJson = parseJson(sfB02ContractPath);
+for (const pattern of [
+  /"program":\s*"SF-CLIENT-MATTER-PARITY"/,
+  /"workstream":\s*"SF-B-W02"/,
+  /"lane":\s*"SF-B-W02R"/,
+  /"status":\s*"w02r_record_actions_route_mounted"/,
+  /GET \/api\/record-actions\/:object_name\/fields/,
+  /GET \/api\/record-actions\/:object_name\/bulk-actions/,
+  /POST \/api\/record-actions\/:object_name\/:record_id\/field-update/,
+  /POST \/api\/record-actions\/:object_name\/bulk-updates/,
+  /GET \/api\/record-actions\/:object_name\/:record_id\/audit/,
+  /record_action:field_registry:read/,
+  /record_action:bulk_registry:read/,
+  /record_action:field_update/,
+  /record_action:bulk_update/,
+  /record_action:audit:read/,
+  /fail_closed_x_lawos_permission_context/,
+  /idempotency_key persisted/,
+  /no raw tenant\/user\/contact values/,
+  /packages\/record-actions/,
+  /createRecordActionService/,
+  /implemented_objects/,
+  /field_registry/,
+  /allowlisted_field_update/,
+  /status_update_bulk/,
+  /owner_change_owner_blocked/,
+  /export_request_provider_blocked/,
+  /record_action_audit_feed/,
+  /no fake owner change success/,
+  /no fake export success/,
+  /data-sf-b-w02-record-actions-panel/,
+  /data-sf-b-w02-account-record-action-result/,
+  /data-sf-b-w02-contact-record-action-result/,
+  /data-sf-b-w02-matter-record-actions/,
+  /data-sf-b-w02-matter-owner-blocked-result/,
+  /VC-SF-B-W02-API-001/,
+  /VC-SF-B-W02-API-009/,
+  /VC-SF-B-W02-UI-001/,
+  /VC-SF-B-W02-BROWSER-001/,
+  /node --test apps\/api\/test\/sf-b-w02-record-actions\.test\.js/,
+  /route_backed_owner_blocked/,
+  /route_backed_provider_blocked/,
+  /fake_success_exposed":\s*false/
+]) {
+  check(sfB02Contract, pattern, `sfB02Contract:${pattern.source}`);
+}
+if (sfB02ContractJson?.production_ready_claim !== false) failures.push("sfB02Contract:production_ready_claim_not_false");
+if (sfB02ContractJson?.go_live_claim !== false) failures.push("sfB02Contract:go_live_claim_not_false");
+if (sfB02ContractJson?.enterprise_trust_claim !== false) failures.push("sfB02Contract:enterprise_trust_claim_not_false");
+
 const sfB03ContractPath = "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w03-activity-calendar-channel-contract.json";
 const sfB03Contract = read(sfB03ContractPath);
 const sfB03ContractJson = parseJson(sfB03ContractPath);
 for (const pattern of [
   /"program":\s*"SF-CLIENT-MATTER-PARITY"/,
   /"workstream":\s*"SF-B-W03"/,
-  /"status":\s*"timeline_read_reflected_activity_calendar_channel_contract_registered"/,
-  /"ui_write_exposure_allowed_before_write_route_tests":\s*false/,
-  /"ui_calendar_exposure_allowed_before_route_tests":\s*false/,
-  /"ui_channel_composer_exposure_allowed_before_route_tests":\s*false/,
+  /"status":\s*"w03r_activity_calendar_channel_route_mounted_provider_blocked"/,
+  /"ui_write_exposure_allowed_after_write_route_tests":\s*true/,
+  /"ui_calendar_exposure_allowed_after_route_tests":\s*true/,
+  /"ui_channel_composer_exposure_allowed_after_route_tests":\s*true/,
   /GET \/api\/matters\/:id\/timeline/,
   /POST \/api\/matters\/:id\/activities/,
   /GET \/api\/matters\/:id\/calendar-events/,
@@ -590,7 +703,8 @@ for (const pattern of [
   /VC-SF-B-W03-API-001/,
   /VC-SF-B-W03-API-010/,
   /VC-SF-B-W03-UI-001/,
-  /contract_only/,
+  /route_mounted/,
+  /provider_blocked/,
   /Microsoft Graph Calendar/,
   /Slack or Microsoft Teams/,
   /production, deployment, final approval, or enterprise trust claims/
@@ -607,11 +721,15 @@ const sfB04ContractJson = parseJson(sfB04ContractPath);
 for (const pattern of [
   /"program":\s*"SF-CLIENT-MATTER-PARITY"/,
   /"workstream":\s*"SF-B-W04"/,
-  /"status":\s*"document_email_builder_contract_registered_send_provider_blocked"/,
+  /"status":\s*"w04r_document_email_builder_route_mounted_owner_provider_blocked"/,
   /"ui_builder_exposure_allowed_before_route_tests":\s*false/,
+  /"ui_builder_exposure_allowed_after_route_tests":\s*true/,
   /"ui_approval_exposure_allowed_before_route_tests":\s*false/,
+  /"ui_approval_exposure_allowed_after_route_tests":\s*true/,
   /"ui_vault_publish_exposure_allowed_before_route_tests":\s*false/,
+  /"ui_vault_publish_blocked_exposure_allowed_after_route_tests":\s*true/,
   /"ui_email_send_exposure_allowed_before_provider_gate":\s*false/,
+  /"ui_email_send_blocked_exposure_allowed_after_route_tests":\s*true/,
   /POST \/api\/matters\/:id\/documents/,
   /GET \/api\/vault\/documents/,
   /POST \/api\/vault\/documents/,
@@ -624,13 +742,14 @@ for (const pattern of [
   /POST \/api\/matters\/:id\/builder-drafts\/:draftId\/publish-to-vault/,
   /POST \/api\/matters\/:id\/email-drafts/,
   /POST \/api\/matters\/:id\/email-drafts\/:draftId\/send/,
-  /matter:builder_template:read/,
-  /matter:builder_draft:write/,
-  /matter:builder_approval:request/,
-  /matter:builder_publish:vault/,
-  /matter:email_draft:write/,
-  /matter:email:send/,
+  /matter:builder:templates:read/,
+  /matter:builder:draft:create/,
+  /matter:builder:approval:request/,
+  /matter:builder:publish/,
+  /matter:email:draft:create/,
+  /matter:email:draft:send/,
   /handleMatterDocumentFacade/,
+  /createMatterDocumentEmailBuilderService/,
   /uploadDocument/,
   /createDmsRepository/,
   /createDmsDocument/,
@@ -639,8 +758,9 @@ for (const pattern of [
   /VC-SF-B-W04-API-001/,
   /VC-SF-B-W04-API-010/,
   /VC-SF-B-W04-UI-001/,
-  /contract_only/,
-  /external_provider_gate_only/,
+  /route_mounted/,
+  /route_mounted_owner_blocked/,
+  /route_mounted_provider_blocked/,
   /Microsoft Graph Mail \/ Outlook/,
   /document bytes omitted/,
   /raw_storage_path_included false/,
@@ -648,6 +768,8 @@ for (const pattern of [
   /storage_pointer_ref_included false/,
   /data-matter-document-builder/,
   /data-matter-email-composer/,
+  /data-sf-b-w04-builder-draft-action/,
+  /data-sf-b-w04-email-send-boundary-action/,
   /sendMatterEmail/,
   /production, deployment, final approval, or enterprise trust claims/
 ]) {
@@ -663,10 +785,15 @@ const sfB05ContractJson = parseJson(sfB05ContractPath);
 for (const pattern of [
   /"program":\s*"SF-CLIENT-MATTER-PARITY"/,
   /"workstream":\s*"SF-B-W05"/,
-  /"status":\s*"import_data_mapping_contract_registered_execution_blocked"/,
+  /"status":\s*"w05r_import_data_mapping_route_mounted_owner_blocked"/,
   /"ui_import_wizard_exposure_allowed_before_route_tests":\s*false/,
+  /"ui_import_wizard_exposure_allowed_after_route_tests":\s*true/,
   /"ui_field_mapping_exposure_allowed_before_route_tests":\s*false/,
+  /"ui_field_mapping_exposure_allowed_after_route_tests":\s*true/,
   /"ui_import_execution_exposure_allowed_before_dry_run_tests":\s*false/,
+  /"ui_import_execution_exposure_allowed_after_dry_run_tests":\s*true/,
+  /"execute_owner_blocked_until_owner_approval":\s*true/,
+  /"rollback_receipt_blocked_until_executed_receipt":\s*true/,
   /POST \/api\/finance\/payments/,
   /POST \/api\/crm\/duplicate-reviews/,
   /POST \/api\/matters\/bulk\/status-transitions/,
@@ -687,6 +814,11 @@ for (const pattern of [
   /import:execute/,
   /import:rollback/,
   /import:error_report:read/,
+  /handleImportDataMappingApiRequest/,
+  /matchImportDataMappingRoute/,
+  /createClientMatterImportJobService/,
+  /packages\/import-data\/src\/service\.js#createClientMatterImportJobService/,
+  /apps\/web\/src\/components\/ImportDataMappingPanel\.jsx/,
   /handleFinancePaymentImport/,
   /importFinancePayment/,
   /createPaymentsG5PaymentImportDescriptor/,
@@ -696,14 +828,21 @@ for (const pattern of [
   /VC-SF-B-W05-API-001/,
   /VC-SF-B-W05-API-010/,
   /VC-SF-B-W05-UI-001/,
-  /contract_only/,
+  /route_mounted/,
+  /route_mounted_owner_blocked/,
+  /route_mounted_receipt_blocked/,
   /dry-run mutates no product records/,
   /source file bytes omitted/,
   /raw row values omitted/,
   /data-client-matter-import-wizard/,
+  /data-sf-b-w05-field-mapping-stepper/,
   /executeClientMatterImport/,
+  /rollbackClientMatterImport/,
+  /fetchClientMatterImportErrorReport/,
+  /tested_visible_controls/,
+  /import_execution_success_without_owner_approval/,
   /Optional embedded importer provider such as OneSchema/,
-  /production, deployment, final approval, or enterprise trust claims/
+  /production, deployment, final approval, go-live, or enterprise trust claims/
 ]) {
   check(sfB05Contract, pattern, `sfB05Contract:${pattern.source}`);
 }
@@ -717,11 +856,15 @@ const sfB06ContractJson = parseJson(sfB06ContractPath);
 for (const pattern of [
   /"program":\s*"SF-CLIENT-MATTER-PARITY"/,
   /"workstream":\s*"SF-B-W06"/,
-  /"status":\s*"permission_admin_contract_registered_owner_gate_required"/,
+  /"status":\s*"w06r_permission_admin_route_mounted_owner_provider_blocked"/,
   /"ui_permission_set_exposure_allowed_before_route_tests":\s*false/,
   /"ui_role_assignment_exposure_allowed_before_route_tests":\s*false/,
   /"ui_object_manager_exposure_allowed_before_route_tests":\s*false/,
   /"ui_connected_app_exposure_allowed_before_owner_provider_gate":\s*false/,
+  /"ui_permission_set_exposure_route_tested":\s*true/,
+  /"ui_role_assignment_exposure_route_tested":\s*true/,
+  /"ui_object_manager_exposure_route_tested":\s*true/,
+  /"ui_connected_app_exposure_provider_blocked_route_tested":\s*true/,
   /x-lawos-permission-context/,
   /PERMISSION_CONTEXT_HEADER/,
   /\/permissions\/evaluate/,
@@ -738,21 +881,34 @@ for (const pattern of [
   /POST \/api\/admin\/permission-assignments/,
   /DELETE \/api\/admin\/permission-assignments\/:assignmentId/,
   /GET \/api\/admin\/object-manager\/objects/,
+  /GET \/api\/admin\/object-manager\/objects\/:objectName\/fields/,
   /PATCH \/api\/admin\/object-manager\/objects\/:objectName\/fields\/:fieldName/,
   /GET \/api\/admin\/connected-apps/,
+  /POST \/api\/admin\/connected-apps/,
   /POST \/api\/admin\/connected-apps\/:appId\/disable/,
+  /GET \/api\/admin\/audit/,
   /admin:permission_set:read/,
   /admin:permission_set:write/,
   /admin:permission_assignment:write/,
   /admin:permission_assignment:revoke/,
+  /admin:object_manager:field_read/,
   /admin:object_manager:patch/,
+  /admin:connected_app:write/,
   /admin:connected_app:disable/,
+  /admin:audit:read/,
   /VC-SF-B-W06-API-001/,
   /VC-SF-B-W06-API-010/,
+  /VC-SF-B-W06-API-011/,
   /VC-SF-B-W06-UI-001/,
-  /contract_only/,
-  /connected_app_provider_gate_only/,
+  /route_mounted/,
+  /route_mounted_owner_blocked/,
+  /route_mounted_provider_blocked/,
+  /tested_visible_controls/,
   /data-permission-set-admin/,
+  /data-object-manager-admin/,
+  /data-connected-apps-admin/,
+  /createPermissionAdminSetupService/,
+  /PermissionAdminPanel/,
   /patchObjectFieldPolicy/,
   /disableConnectedApp/,
   /production, deployment, final approval, or enterprise trust claims/
@@ -769,11 +925,13 @@ const sfB07ContractJson = parseJson(sfB07ContractPath);
 for (const pattern of [
   /"program":\s*"SF-CLIENT-MATTER-PARITY"/,
   /"workstream":\s*"SF-B-W07"/,
-  /"status":\s*"data_cloud_enrichment_contract_registered_provider_gate_required"/,
-  /"ui_enrichment_exposure_allowed_before_provider_gate":\s*false/,
-  /"ui_identity_resolution_exposure_allowed_before_route_tests":\s*false/,
-  /"ui_unified_profile_exposure_allowed_before_route_tests":\s*false/,
-  /"ui_segment_activation_exposure_allowed_before_provider_gate":\s*false/,
+  /"status":\s*"w07r_data_cloud_enrichment_route_mounted_owner_provider_blocked"/,
+  /"ui_enrichment_provider_effect_allowed_before_provider_gate":\s*false/,
+  /"ui_enrichment_exposure_allowed_with_provider_blocked_state":\s*true/,
+  /"ui_identity_resolution_exposure_allowed_with_owner_blocked_state":\s*true/,
+  /"ui_unified_profile_exposure_allowed_after_route_tests":\s*true/,
+  /"ui_segment_activation_provider_effect_allowed_before_provider_gate":\s*false/,
+  /"ui_segment_activation_exposure_allowed_with_provider_blocked_state":\s*true/,
   /Data Cloud/,
   /synthetic_crosswalk/,
   /matter_core_enrichment/,
@@ -788,6 +946,7 @@ for (const pattern of [
   /POST \/api\/data-cloud\/identity-resolution/,
   /GET \/api\/data-cloud\/unified-profiles\/:profileId/,
   /POST \/api\/data-cloud\/segment-activations/,
+  /GET \/api\/data-cloud\/audit/,
   /data_cloud:provider:read/,
   /data_cloud:provider:register/,
   /data_cloud:consent:write/,
@@ -798,11 +957,15 @@ for (const pattern of [
   /data_cloud:identity_resolution:write/,
   /data_cloud:unified_profile:read/,
   /data_cloud:segment_activation:create/,
+  /data_cloud:audit:read/,
   /VC-SF-B-W07-API-001/,
   /VC-SF-B-W07-API-010/,
+  /VC-SF-B-W07-API-011/,
   /VC-SF-B-W07-UI-001/,
-  /contract_only/,
-  /external_provider_gate_only/,
+  /route_mounted/,
+  /route_mounted_owner_blocked/,
+  /route_mounted_provider_blocked/,
+  /tested_visible_controls/,
   /provider credentials omitted/,
   /raw provider payloads and direct personal identifiers omitted/,
   /automatic merge is blocked/,
@@ -823,11 +986,12 @@ const sfB08ContractJson = parseJson(sfB08ContractPath);
 for (const pattern of [
   /"program":\s*"SF-CLIENT-MATTER-PARITY"/,
   /"workstream":\s*"SF-B-W08"/,
-  /"status":\s*"reporting_builder_client_profitability_contract_registered_route_gate_required"/,
-  /"ui_report_builder_exposure_allowed_before_route_tests":\s*false/,
-  /"ui_report_query_exposure_allowed_before_safe_query_tests":\s*false/,
-  /"ui_report_share_exposure_allowed_before_permission_tests":\s*false/,
-  /"ui_client_profitability_exposure_allowed_before_route_tests":\s*false/,
+  /"status":\s*"w08r_report_builder_client_profitability_route_mounted_owner_blocked"/,
+  /"ui_report_builder_exposure_allowed_before_route_tests":\s*true/,
+  /"ui_report_query_exposure_allowed_before_safe_query_tests":\s*true/,
+  /"ui_report_share_exposure_allowed_before_permission_tests":\s*true/,
+  /"ui_client_profitability_exposure_allowed_before_route_tests":\s*true/,
+  /"ui_report_share_success_allowed_without_owner_approval":\s*false/,
   /GET \/api\/analytics\/dashboards/,
   /POST \/api\/analytics\/refresh/,
   /GET \/api\/analytics\/matter-profitability/,
@@ -858,11 +1022,12 @@ for (const pattern of [
   /VC-SF-B-W08-API-001/,
   /VC-SF-B-W08-API-008/,
   /VC-SF-B-W08-UI-001/,
-  /contract_only/,
+  /route_mounted_owner_blocked/,
+  /node --test apps\/api\/test\/sf-b-w08-report-builder-client-profitability\.test\.js/,
   /data-report-builder/,
   /runReportQuery/,
   /shareReportDefinition/,
-  /fetchClientProfitability/,
+  /fetchAnalyticsClientProfitability/,
   /raw matter detail and raw billing payload omitted/,
   /created_client_identity false/,
   /production, deployment, final approval, go-live, or enterprise trust claims/
@@ -881,6 +1046,9 @@ for (const section of [
   "client-intake",
   "client-accounts",
   "client-contacts",
+  "client-data",
+  "client-reports",
+  "client-import",
   "matters-list",
   "matter-command",
   "matter-vault",
@@ -888,12 +1056,15 @@ for (const section of [
   "matter-opening",
   "matter-team",
   "matter-billing",
-  "matter-analytics"
+  "matter-analytics",
+  "matter-import"
 ]) {
   check(shell, new RegExp(section), `shell:${section}`);
 }
 
 const clients = read("apps/web/src/components/ClientsSurface.jsx");
+const dataCloudPanel = read("apps/web/src/components/DataCloudEnrichmentPanel.jsx");
+const reportBuilderPanel = read("apps/web/src/components/ReportBuilderPanel.jsx");
 for (const pattern of [
   /data-cmp-g2-live-clients="true"/,
   /data-salesforce-client-workspace="list-detail-right-panel"/,
@@ -929,15 +1100,107 @@ for (const pattern of [
   /data-intake-clearance-action="true"/,
   /record-side-panel/,
   /live-data-denied/,
-  /live-data-review/
+  /live-data-review/,
+  /RecordActionSummary/,
+  /fetchRecordActionFields/,
+  /fetchRecordActionAudit/,
+  /updateRecordActionField/,
+  /bulkUpdateRecordActions/,
+  /data-sf-b-w02-record-actions-panel="true"/,
+  /data-sf-b-w02-field-registry="true"/,
+  /data-sf-b-w02-field-update-result="true"/,
+  /data-sf-b-w02-owner-blocked-action="true"/,
+  /data-sf-b-w02-owner-blocked-result="true"/,
+  /data-sf-b-w02-action-audit-feed="true"/,
+  /data-sf-b-w02-account-record-action="true"/,
+  /data-sf-b-w02-account-record-action-result="true"/,
+  /data-sf-b-w02-contact-record-action="true"/,
+  /data-sf-b-w02-contact-record-action-result="true"/,
+  /ImportDataMappingPanel/,
+  /client-import/,
+  /surface="client"/,
+  /DataCloudEnrichmentPanel/,
+  /client-data/,
+  /data-sf-b-w07-right-panel-enrichment-summary="route-backed"/,
+  /ReportBuilderPanel/,
+  /client-reports/,
+  /data-sf-b-w08-right-panel-report-summary="route-backed"/
 ]) {
   check(clients, pattern, `clients:${pattern.source}`);
 }
 forbid(clients, /mergeCrmContact|deleteCrmContact|postCrmContactMerge/, "clients:no-contact-merge-delete-ui-before-routes");
-forbid(clients, /data-client-matter-import-wizard|data-import-field-mapping-stepper|createClientMatterImportJob|stageImportSourceFile|saveImportFieldMapping|dryRunClientMatterImport|executeClientMatterImport|rollbackClientMatterImport/, "clients:no-import-data-mapping-ui-before-routes");
 forbid(clients, permissionAdminUiPattern, "clients:no-permission-admin-ui-before-routes");
-forbid(clients, dataCloudEnrichmentUiPattern, "clients:no-data-cloud-enrichment-ui-before-routes");
-forbid(clients, reportingBuilderUiPattern, "clients:no-report-builder-client-profitability-ui-before-routes");
+
+for (const pattern of [
+  /data-data-cloud-enrichment="route-backed"/,
+  /data-enrichment-provider-admin="provider-blocked"/,
+  /data-sf-b-w07-provider-list="true"/,
+  /data-sf-b-w07-provider-register-action="true"/,
+  /data-sf-b-w07-provider-register-result="true"/,
+  /data-sf-b-w07-consent-record-action="true"/,
+  /data-sf-b-w07-consent-record-result="true"/,
+  /data-sf-b-w07-enrichment-job-action="true"/,
+  /data-sf-b-w07-enrichment-job-result="true"/,
+  /data-sf-b-w07-enrichment-preview="true"/,
+  /data-sf-b-w07-enrichment-execute-provider-blocked-action="true"/,
+  /data-sf-b-w07-enrichment-execute-provider-blocked-result="true"/,
+  /data-sf-b-w07-results-list="true"/,
+  /data-identity-resolution="route-backed"/,
+  /data-sf-b-w07-identity-resolution-action="true"/,
+  /data-sf-b-w07-identity-resolution-result="true"/,
+  /data-unified-profile="route-backed"/,
+  /data-sf-b-w07-unified-profile="true"/,
+  /data-segment-activation="provider-blocked"/,
+  /data-sf-b-w07-segment-activation-provider-blocked-action="true"/,
+  /data-sf-b-w07-segment-activation-provider-blocked-result="true"/,
+  /data-sf-b-w07-audit="true"/,
+  /fetchDataCloudProviders/,
+  /createDataCloudProvider/,
+  /createDataCloudConsentRecord/,
+  /createEnrichmentJob/,
+  /fetchEnrichmentPreview/,
+  /executeEnrichmentJob/,
+  /fetchEnrichmentResults/,
+  /runIdentityResolution/,
+  /fetchUnifiedCustomerProfile/,
+  /activateDataCloudSegment/,
+  /fetchDataCloudAudit/
+]) {
+  check(dataCloudPanel, pattern, `dataCloudPanel:${pattern.source}`);
+}
+
+for (const pattern of [
+  /data-report-builder="route-backed"/,
+  /data-report-query-builder="route-backed"/,
+  /data-sf-b-w08-report-list="true"/,
+  /data-sf-b-w08-report-create-action="true"/,
+  /data-sf-b-w08-report-create-result="true"/,
+  /data-sf-b-w08-report-patch-action="true"/,
+  /data-sf-b-w08-report-patch-result="true"/,
+  /data-client-profitability="route-backed"/,
+  /data-sf-b-w08-client-profitability-refresh-action="true"/,
+  /data-sf-b-w08-client-profitability-refresh-result="true"/,
+  /data-sf-b-w08-report-run-action="true"/,
+  /data-sf-b-w08-report-run-result="true"/,
+  /data-sf-b-w08-report-chart="true"/,
+  /data-sf-b-w08-report-result-table="true"/,
+  /data-report-share-action="owner-blocked"/,
+  /data-sf-b-w08-report-share-result="true"/,
+  /data-sf-b-w08-report-audit="true"/,
+  /fetchReportDefinitions/,
+  /createReportDefinition/,
+  /patchReportDefinition/,
+  /refreshClientProfitability/,
+  /fetchAnalyticsClientProfitability/,
+  /runReportQuery/,
+  /shareReportDefinition/,
+  /fetchReportAudit/,
+  /승인 대기/,
+  /임의 SQL/
+]) {
+  check(reportBuilderPanel, pattern, `reportBuilderPanel:${pattern.source}`);
+}
+forbid(reportBuilderPanel, /share_grant_success|arbitrary_sql_executed:\s*true|raw_query_payload_included:\s*true|row_level_billing_payload_included:\s*true|productionReadyClaim:\s*true/, "reportBuilderPanel:no-fake-report-share-or-raw-query-success");
 
 const crmRoutePolicies = read("apps/api/src/routes/crm.js");
 for (const pattern of [
@@ -1015,6 +1278,46 @@ for (const pattern of [
   /data-matter-activity-timeline="true"/,
   /data-matter-activity-filters="true"/,
   /data-matter-activity-read-boundary="true"/,
+  /fetchMatterActivities/,
+  /createMatterActivity/,
+  /patchMatterActivity/,
+  /fetchMatterCalendarEvents/,
+  /createMatterCalendarEvent/,
+  /patchMatterCalendarEvent/,
+  /fetchMatterDeadlines/,
+  /confirmMatterDeadlineChange/,
+  /fetchMatterChannel/,
+  /createMatterChannelMessage/,
+  /syncMatterChannelProvider/,
+  /data-sf-b-w03-activity-workspace="true"/,
+  /data-sf-b-w03-activity-composer="true"/,
+  /data-sf-b-w03-activity-create-result="true"/,
+  /data-sf-b-w03-activity-patch-result="true"/,
+  /data-sf-b-w03-calendar-workspace="true"/,
+  /data-sf-b-w03-calendar-create-action="true"/,
+  /data-sf-b-w03-calendar-create-result="true"/,
+  /data-sf-b-w03-deadline-board="true"/,
+  /data-sf-b-w03-deadline-approval-action="true"/,
+  /data-sf-b-w03-deadline-approval-result="true"/,
+  /data-sf-b-w03-deadline-confirm-action="true"/,
+  /data-sf-b-w03-deadline-confirm-result="true"/,
+  /data-sf-b-w03-channel-workspace="true"/,
+  /data-sf-b-w03-channel-composer="true"/,
+  /data-sf-b-w03-channel-message-result="true"/,
+  /data-sf-b-w03-channel-provider-state="true"/,
+  /data-sf-b-w03-provider-blocked-result="true"/,
+  /data-sf-b-w03-right-panel-deadline-highlight="true"/,
+  /data-sf-b-w03-right-panel-channel-tab="true"/,
+  /provider_blocked/,
+  /fetchRecordActionFields/,
+  /fetchRecordActionAudit/,
+  /updateRecordActionField/,
+  /bulkUpdateRecordActions/,
+  /data-sf-b-w02-matter-record-actions="true"/,
+  /data-sf-b-w02-matter-record-action-result="true"/,
+  /data-sf-b-w02-matter-owner-blocked-action="true"/,
+  /data-sf-b-w02-matter-owner-blocked-result="true"/,
+  /data-sf-b-w02-matter-action-audit-feed="true"/,
   /timelineCategory/,
   /timelineSourceLabel/,
   /ownerLabel/,
@@ -1022,18 +1325,20 @@ for (const pattern of [
   /data-audit-trail=\{marker\}/,
   /matter-command-audit-trail/,
   /matter-finance-audit-trail/,
-  /"matter-command", "matter-vault", "matter-timeline"/,
+  /"matter-command",\s*"matter-vault",\s*"matter-timeline",\s*"matter-calendar",\s*"matter-channel"/,
   /status-path/,
   /record-side-panel/,
   /MatterOpeningWizard/,
   /MatterTeamRoster/,
-  /MatterVaultPanel/
+  /MatterVaultPanel/,
+  /ImportDataMappingPanel/,
+  /matter-import/,
+  /surface="matter"/
 ]) {
   check(matters, pattern, `matters:${pattern.source}`);
 }
-forbid(matters, /data-matter-channel-composer|sendMatterChannelMessage|createMatterCalendarEvent\(|createMatterActivity\(/, "matters:no-activity-calendar-channel-write-ui-before-routes");
-forbid(matters, /data-matter-document-builder|data-matter-email-composer|requestBuilderApproval|publishBuilderDraft|sendMatterEmail|createBuilderDraft\(/, "matters:no-document-email-builder-ui-before-routes");
-forbid(matters, /data-client-matter-import-wizard|data-import-field-mapping-stepper|createClientMatterImportJob|stageImportSourceFile|saveImportFieldMapping|dryRunClientMatterImport|executeClientMatterImport|rollbackClientMatterImport/, "matters:no-import-data-mapping-ui-before-routes");
+forbid(matters, /sendMatterChannelMessage/, "matters:no-external-channel-send-before-provider-receipt");
+forbid(matters, /sendMatterEmail/, "matters:no-external-email-send-before-provider-receipt");
 forbid(matters, permissionAdminUiPattern, "matters:no-permission-admin-ui-before-routes");
 forbid(matters, dataCloudEnrichmentUiPattern, "matters:no-data-cloud-enrichment-ui-before-routes");
 forbid(matters, reportingBuilderUiPattern, "matters:no-report-builder-client-profitability-ui-before-routes");
@@ -1053,19 +1358,127 @@ for (const pattern of [
   /data-vault-preview=\{marker\}/,
   /matter-vault-documents/,
   /matter-vault-search/,
-  /matter-vault-audit/
+  /matter-vault-audit/,
+  /data-sf-b-w04-document-builder="true"/,
+  /data-matter-document-builder="route-backed"/,
+  /data-sf-b-w04-template-picker="true"/,
+  /data-sf-b-w04-builder-draft-action="true"/,
+  /data-sf-b-w04-builder-draft-result="true"/,
+  /data-sf-b-w04-builder-preview="true"/,
+  /data-sf-b-w04-builder-approval-action="true"/,
+  /data-sf-b-w04-builder-approval-result="true"/,
+  /data-sf-b-w04-builder-publish-action="true"/,
+  /data-sf-b-w04-builder-publish-blocked-result="true"/,
+  /data-sf-b-w04-email-composer="true"/,
+  /data-matter-email-composer="provider-blocked"/,
+  /data-sf-b-w04-email-draft-action="true"/,
+  /data-sf-b-w04-email-draft-result="true"/,
+  /data-sf-b-w04-email-send-boundary-action="true"/,
+  /data-sf-b-w04-email-send-provider-blocked="true"/,
+  /fetchMatterDocumentTemplates/,
+  /createMatterBuilderDraft/,
+  /requestMatterBuilderApproval/,
+  /publishMatterBuilderDraftToVault/,
+  /createMatterEmailDraft/,
+  /requestMatterEmailDraftSendBoundary/
 ]) {
   check(matterVaultPanel, pattern, `matterVaultPanel:${pattern.source}`);
 }
-forbid(matterVaultPanel, /data-matter-document-builder|data-matter-email-composer|requestBuilderApproval|publishBuilderDraft|sendMatterEmail|createBuilderDraft\(/, "matterVaultPanel:no-document-email-builder-ui-before-routes");
+forbid(matterVaultPanel, /sendMatterEmail|email_send_success_without_provider_receipt|vault_publish_success_without_owner_approval/, "matterVaultPanel:no-fake-document-email-success");
 forbid(matterVaultPanel, permissionAdminUiPattern, "matterVaultPanel:no-permission-admin-ui-before-routes");
 forbid(matterVaultPanel, dataCloudEnrichmentUiPattern, "matterVaultPanel:no-data-cloud-enrichment-ui-before-routes");
 forbid(matterVaultPanel, reportingBuilderUiPattern, "matterVaultPanel:no-report-builder-client-profitability-ui-before-routes");
+
+const importDataMappingPanel = read("apps/web/src/components/ImportDataMappingPanel.jsx");
+for (const pattern of [
+  /data-sf-b-w05-import-wizard="true"/,
+  /data-client-matter-import-wizard="route-backed"/,
+  /data-sf-b-w05-target-selector="true"/,
+  /data-sf-b-w05-job-list="true"/,
+  /data-sf-b-w05-source-stage-action="true"/,
+  /data-sf-b-w05-source-stage-result="true"/,
+  /data-sf-b-w05-field-mapping-stepper="true"/,
+  /data-sf-b-w05-field-mapping-result="true"/,
+  /data-sf-b-w05-preview-safe-sample="true"/,
+  /data-sf-b-w05-dry-run-action="true"/,
+  /data-sf-b-w05-dry-run-result="true"/,
+  /data-sf-b-w05-execute-owner-blocked-action="true"/,
+  /data-sf-b-w05-execute-owner-blocked-result="true"/,
+  /data-sf-b-w05-rollback-error-action="true"/,
+  /data-sf-b-w05-rollback-result="true"/,
+  /data-sf-b-w05-error-report="true"/,
+  /fetchClientMatterImportTargets/,
+  /fetchClientMatterImportJobs/,
+  /createClientMatterImportJob/,
+  /stageImportSourceFile/,
+  /fetchClientMatterImportPreview/,
+  /saveImportFieldMapping/,
+  /dryRunClientMatterImport/,
+  /executeClientMatterImport/,
+  /rollbackClientMatterImport/,
+  /fetchClientMatterImportErrorReport/,
+  /owner_blocked/,
+  /raw row 미노출/
+]) {
+  check(importDataMappingPanel, pattern, `importDataMappingPanel:${pattern.source}`);
+}
+forbid(importDataMappingPanel, /import_execution_success_without_owner_approval|raw_import_row_preview|raw_file_bytes_response|external_import_provider_enabled_without_receipt/, "importDataMappingPanel:no-fake-import-success-or-raw-data");
+forbid(importDataMappingPanel, permissionAdminUiPattern, "importDataMappingPanel:no-permission-admin-ui-before-routes");
+forbid(importDataMappingPanel, dataCloudEnrichmentUiPattern, "importDataMappingPanel:no-data-cloud-enrichment-ui-before-routes");
+forbid(importDataMappingPanel, reportingBuilderUiPattern, "importDataMappingPanel:no-report-builder-client-profitability-ui-before-routes");
 
 const adminSurface = read("apps/web/src/components/AdminSurface.jsx");
 forbid(adminSurface, permissionAdminUiPattern, "adminSurface:no-permission-admin-ui-before-routes");
 forbid(adminSurface, dataCloudEnrichmentUiPattern, "adminSurface:no-data-cloud-enrichment-ui-before-routes");
 forbid(adminSurface, reportingBuilderUiPattern, "adminSurface:no-report-builder-client-profitability-ui-before-routes");
+
+const peopleHome = read("apps/web/src/people/PeopleHome.tsx");
+check(peopleHome, /people-admin/, "peopleHome:people-admin-section");
+check(peopleHome, /PermissionAdminPanel/, "peopleHome:PermissionAdminPanel-mounted");
+
+const permissionAdminPanel = read("apps/web/src/people/admin/PermissionAdminPanel.jsx");
+for (const pattern of [
+  /data-sf-b-w06-admin-setup="true"/,
+  /data-permission-set-admin="route-backed"/,
+  /data-sf-b-w06-permission-set-list="true"/,
+  /data-sf-b-w06-permission-set-create-action="true"/,
+  /data-sf-b-w06-permission-set-create-result="true"/,
+  /data-sf-b-w06-permission-set-patch-action="true"/,
+  /data-sf-b-w06-permission-set-patch-result="true"/,
+  /data-permission-assignment-admin="route-backed"/,
+  /data-sf-b-w06-assignment-list="true"/,
+  /data-sf-b-w06-assignment-owner-blocked-action="true"/,
+  /data-sf-b-w06-assignment-owner-blocked-result="true"/,
+  /data-sf-b-w06-revoke-owner-blocked-action="true"/,
+  /data-sf-b-w06-revoke-owner-blocked-result="true"/,
+  /data-object-manager-admin="route-backed"/,
+  /data-sf-b-w06-object-manager="true"/,
+  /data-sf-b-w06-field-policy-owner-blocked-action="true"/,
+  /data-sf-b-w06-field-policy-owner-blocked-result="true"/,
+  /data-connected-apps-admin="provider-blocked"/,
+  /data-sf-b-w06-connected-app-list="true"/,
+  /data-sf-b-w06-connected-app-provider-blocked-action="true"/,
+  /data-sf-b-w06-connected-app-provider-blocked-result="true"/,
+  /data-sf-b-w06-admin-audit="true"/,
+  /fetchPermissionSets/,
+  /createPermissionSet/,
+  /patchPermissionSet/,
+  /fetchPermissionAssignments/,
+  /assignPermissionSet/,
+  /revokePermissionSetAssignment/,
+  /fetchObjectManagerObjects/,
+  /fetchObjectManagerFields/,
+  /patchObjectFieldPolicy/,
+  /fetchConnectedApps/,
+  /createConnectedApp/,
+  /disableConnectedApp/,
+  /fetchAdminPermissionAudit/,
+  /승인 대기/,
+  /외부 확인 대기/
+]) {
+  check(permissionAdminPanel, pattern, `permissionAdminPanel:${pattern.source}`);
+}
+forbid(permissionAdminPanel, /grant_success|revoke_success|schema_mutation_success|provider_revocation_success|productionReadyClaim:\s*true/, "permissionAdminPanel:no-fake-admin-success");
 
 const apiClient = read("apps/web/src/data/apiClient.js");
 for (const pattern of [
@@ -1098,6 +1511,19 @@ for (const pattern of [
   /normalizeMatterOpeningPayload/,
   /createMatterDocumentFacade/,
   /fetchMatterListViews/,
+  /fetchMatterDocumentTemplates/,
+  /\/api\/matters\/\$\{encodeURIComponent\(matterId\)\}\/document-templates/,
+  /createMatterBuilderDraft/,
+  /patchMatterBuilderDraft/,
+  /fetchMatterBuilderDraftPreview/,
+  /requestMatterBuilderApproval/,
+  /fetchMatterBuilderApprovalRequests/,
+  /publishMatterBuilderDraftToVault/,
+  /createMatterEmailDraft/,
+  /patchMatterEmailDraft/,
+  /requestMatterEmailDraftSendBoundary/,
+  /approvalRequest/,
+  /publishState/,
   /saveMatterListView/,
   /bulkCompleteMatterStatus/,
   /\/api\/matters\/\$\{encodeURIComponent\(matterId\)\}\/command-center/,
@@ -1117,6 +1543,12 @@ for (const pattern of [
   /ownerAssignment/,
   /\/api\/matters\/\$\{encodeURIComponent\(matterId\)\}\/timeline/,
   /\/api\/matters\/audit/,
+  /fetchRecordActionFields/,
+  /fetchRecordBulkActions/,
+  /fetchRecordActionAudit/,
+  /updateRecordActionField/,
+  /bulkUpdateRecordActions/,
+  /\/api\/record-actions\/\$\{runtime\.objectName\}\$\{suffix\}/,
   /fetchMatterVaultDocuments/,
   /fetchMatterVaultSearch/,
   /fetchMatterVaultAudit/,
@@ -1134,16 +1566,85 @@ for (const pattern of [
   /\/api\/analytics\/refresh/,
   /\/api\/analytics\/matter-profitability/,
   /createAnalyticsExport/,
-  /\/api\/analytics\/exports/
+  /\/api\/analytics\/exports/,
+  /fetchClientMatterImportTargets/,
+  /fetchClientMatterImportJobs/,
+  /createClientMatterImportJob/,
+  /stageImportSourceFile/,
+  /fetchClientMatterImportPreview/,
+  /saveImportFieldMapping/,
+  /dryRunClientMatterImport/,
+  /executeClientMatterImport/,
+  /rollbackClientMatterImport/,
+  /fetchClientMatterImportErrorReport/,
+  /\/api\/import-targets/,
+  /\/api\/import-jobs/
 ]) {
   check(apiClient, pattern, `apiClient:${pattern.source}`);
 }
 forbid(apiClient, /mergeCrmContact|deleteCrmContact|postCrmContactMerge|productionReadyClaim:\s*true/, "apiClient:no-contact-merge-delete-or-production-claim");
-forbid(apiClient, /requestBuilderApproval|publishBuilderDraft|sendMatterEmail|createBuilderDraft|createMatterEmailDraft/, "apiClient:no-document-email-builder-route-client-before-contract-implementation");
-forbid(apiClient, /createClientMatterImportJob|stageImportSourceFile|saveImportFieldMapping|dryRunClientMatterImport|executeClientMatterImport|rollbackClientMatterImport|getClientMatterImportErrorReport/, "apiClient:no-import-data-mapping-route-client-before-contract-implementation");
-forbid(apiClient, permissionAdminUiPattern, "apiClient:no-permission-admin-route-client-before-contract-implementation");
-forbid(apiClient, dataCloudEnrichmentUiPattern, "apiClient:no-data-cloud-enrichment-route-client-before-contract-implementation");
-forbid(apiClient, reportingBuilderUiPattern, "apiClient:no-report-builder-client-profitability-route-client-before-contract-implementation");
+forbid(apiClient, /sendMatterEmail|email_send_success_without_provider_receipt|vault_publish_success_without_owner_approval/, "apiClient:no-fake-document-email-success");
+for (const pattern of [
+  /fetchPermissionSets/,
+  /createPermissionSet/,
+  /patchPermissionSet/,
+  /fetchPermissionAssignments/,
+  /assignPermissionSet/,
+  /revokePermissionSetAssignment/,
+  /fetchObjectManagerObjects/,
+  /fetchObjectManagerFields/,
+  /patchObjectFieldPolicy/,
+  /fetchConnectedApps/,
+  /createConnectedApp/,
+  /disableConnectedApp/,
+  /fetchAdminPermissionAudit/,
+  /\/api\/admin\/permission-sets/,
+  /\/api\/admin\/permission-assignments/,
+  /\/api\/admin\/object-manager\/objects/,
+  /\/api\/admin\/connected-apps/,
+  /\/api\/admin\/audit/
+]) {
+  check(apiClient, pattern, `apiClient:w06:${pattern.source}`);
+}
+for (const pattern of [
+  /fetchDataCloudProviders/,
+  /createDataCloudProvider/,
+  /createDataCloudConsentRecord/,
+  /createEnrichmentJob/,
+  /fetchEnrichmentPreview/,
+  /executeEnrichmentJob/,
+  /fetchEnrichmentResults/,
+  /runIdentityResolution/,
+  /fetchUnifiedCustomerProfile/,
+  /activateDataCloudSegment/,
+  /fetchDataCloudAudit/,
+  /\/api\/data-cloud\/providers/,
+  /\/api\/data-cloud\/consent-records/,
+  /\/api\/data-cloud\/enrichment-jobs/,
+  /\/api\/data-cloud\/enrichment-results/,
+  /\/api\/data-cloud\/identity-resolution/,
+  /\/api\/data-cloud\/unified-profiles/,
+  /\/api\/data-cloud\/segment-activations/,
+  /\/api\/data-cloud\/audit/
+]) {
+  check(apiClient, pattern, `apiClient:w07:${pattern.source}`);
+}
+for (const pattern of [
+  /fetchReportDefinitions/,
+  /createReportDefinition/,
+  /patchReportDefinition/,
+  /runReportQuery/,
+  /shareReportDefinition/,
+  /fetchReportAudit/,
+  /fetchAnalyticsClientProfitability/,
+  /refreshClientProfitability/,
+  /\/api\/reports/,
+  /\/api\/analytics\/client-profitability/,
+  /DEFAULT_REPORT_PERMISSION_REF/,
+  /REPORT_PERMISSION_CONTEXTS/
+]) {
+  check(apiClient, pattern, `apiClient:w08:${pattern.source}`);
+}
 
 const crmRuntime = read("apps/api/src/crm-intake-runtime-context.js");
 for (const pattern of [
@@ -1200,6 +1701,16 @@ for (const pattern of [
   /GET \/api\/matters\/list-views/,
   /GET \/api\/matters\/recently-viewed/,
   /GET \/api\/matters\/audit/,
+  /GET \/api\/matters\/:matter_id\/document-templates/,
+  /POST \/api\/matters\/:matter_id\/builder-drafts/,
+  /PATCH \/api\/matters\/:matter_id\/builder-drafts\/:draft_id/,
+  /GET \/api\/matters\/:matter_id\/builder-drafts\/:draft_id\/preview/,
+  /POST \/api\/matters\/:matter_id\/builder-drafts\/:draft_id\/approval-requests/,
+  /GET \/api\/matters\/:matter_id\/builder-approval-requests/,
+  /POST \/api\/matters\/:matter_id\/builder-drafts\/:draft_id\/publish-to-vault/,
+  /POST \/api\/matters\/:matter_id\/email-drafts/,
+  /PATCH \/api\/matters\/:matter_id\/email-drafts\/:draft_id/,
+  /POST \/api\/matters\/:matter_id\/email-drafts\/:draft_id\/send/,
   /POST \/api\/matters\/openings/,
   /PATCH \/api\/matters\/:matter_id/,
   /POST \/api\/matters\/:matter_id\/documents/,
@@ -1234,11 +1745,250 @@ for (const pattern of [
   /owner_assignment/,
   /matter.owner.assignment/,
   /handleMatterDocumentFacade/,
+  /handleMatterDocumentTemplates/,
+  /handleMatterBuilderDraftCreate/,
+  /handleMatterBuilderDraftPatch/,
+  /handleMatterBuilderDraftPreview/,
+  /handleMatterBuilderApprovalRequest/,
+  /handleMatterBuilderApprovalList/,
+  /handleMatterBuilderPublishToVault/,
+  /handleMatterEmailDraftCreate/,
+  /handleMatterEmailDraftPatch/,
+  /handleMatterEmailDraftSend/,
+  /createMatterDocumentEmailBuilderService/,
+  /matter:builder:templates:read/,
+  /matter:builder:draft:create/,
+  /matter:builder:approval:request/,
+  /matter:builder:publish/,
+  /matter:email:draft:send/,
   /handleMatterCommandCenter/,
   /handleMatterTimeline/,
   /handleMatterAudit/
 ]) {
   check(matterRuntime, pattern, `matterRuntime:${pattern.source}`);
+}
+
+const recordActionsRuntime = read("apps/api/src/record-actions-runtime-context.js");
+for (const pattern of [
+  /RECORD_ACTIONS_BOUNDED_CONTEXT/,
+  /GET \/api\/record-actions\/:object_name\/fields/,
+  /GET \/api\/record-actions\/:object_name\/bulk-actions/,
+  /POST \/api\/record-actions\/:object_name\/:record_id\/field-update/,
+  /POST \/api\/record-actions\/:object_name\/bulk-updates/,
+  /GET \/api\/record-actions\/:object_name\/:record_id\/audit/,
+  /handleRecordActionsApiRequest/,
+  /evaluateRouteDecision/,
+  /record_action:field_registry:read/,
+  /record_action:bulk_registry:read/,
+  /record_action:field_update/,
+  /record_action:bulk_update/,
+  /record_action:audit:read/,
+  /idempotencyReplay/,
+  /recordIdempotency/,
+  /approval_required/,
+  /production_ready_claim:\s*false/
+]) {
+  check(recordActionsRuntime, pattern, `recordActionsRuntime:${pattern.source}`);
+}
+
+const recordActionRoutes = read("apps/api/src/routes/record-actions.js");
+for (const pattern of [
+  /RECORD_ACTION_ROUTE_POLICIES/,
+  /matchRecordActionRoute/,
+  /api\\\/record-actions\\\/\(\[\^\/\]\+\)\\\/fields/,
+  /api\\\/record-actions\\\/\(\[\^\/\]\+\)\\\/bulk-updates/,
+  /api\\\/record-actions\\\/\(\[\^\/\]\+\)\\\/\(\[\^\/\]\+\)\\\/audit/,
+  /record_action:field_registry:read/,
+  /record_action:bulk_registry:read/,
+  /record_action:field_update/,
+  /record_action:bulk_update/,
+  /record_action:audit:read/
+]) {
+  check(recordActionRoutes, pattern, `recordActionRoutes:${pattern.source}`);
+}
+
+const importDataMappingRoutes = read("apps/api/src/routes/import-data-mapping.js");
+for (const pattern of [
+  /IMPORT_DATA_MAPPING_ROUTE_POLICIES/,
+  /matchImportDataMappingRoute/,
+  /api\\\/import-jobs/,
+  /api\\\/import-targets/,
+  /api\\\/import-jobs\\\/\(\[\^\/\]\+\)\\\/source-files/,
+  /api\\\/import-jobs\\\/\(\[\^\/\]\+\)\\\/preview/,
+  /api\\\/import-jobs\\\/\(\[\^\/\]\+\)\\\/field-mappings/,
+  /api\\\/import-jobs\\\/\(\[\^\/\]\+\)\\\/dry-run/,
+  /api\\\/import-jobs\\\/\(\[\^\/\]\+\)\\\/execute/,
+  /api\\\/import-jobs\\\/\(\[\^\/\]\+\)\\\/rollback/,
+  /api\\\/import-jobs\\\/\(\[\^\/\]\+\)\\\/error-report/,
+  /import:job:read/,
+  /import:job:create/,
+  /import:target:read/,
+  /import:source:stage/,
+  /import:preview:read/,
+  /import:mapping:write/,
+  /import:dry_run/,
+  /import:execute/,
+  /import:rollback/,
+  /import:error_report:read/
+]) {
+  check(importDataMappingRoutes, pattern, `importDataMappingRoutes:${pattern.source}`);
+}
+
+const importDataMappingRuntime = read("apps/api/src/import-data-mapping-runtime-context.js");
+for (const pattern of [
+  /IMPORT_DATA_MAPPING_BOUNDED_CONTEXT/,
+  /handleImportDataMappingApiRequest/,
+  /GET \/api\/import-jobs/,
+  /POST \/api\/import-jobs/,
+  /GET \/api\/import-targets/,
+  /POST \/api\/import-jobs\/:jobId\/source-files/,
+  /GET \/api\/import-jobs\/:jobId\/preview/,
+  /POST \/api\/import-jobs\/:jobId\/field-mappings/,
+  /POST \/api\/import-jobs\/:jobId\/dry-run/,
+  /POST \/api\/import-jobs\/:jobId\/execute/,
+  /POST \/api\/import-jobs\/:jobId\/rollback/,
+  /GET \/api\/import-jobs\/:jobId\/error-report/,
+  /evaluateRouteDecision/,
+  /idempotencyReplay/,
+  /recordIdempotency/,
+  /count_leak_prevented:\s*true/,
+  /production_ready_claim:\s*false/,
+  /execute_owner_blocked:\s*true/,
+  /raw_schema_mutation_allowed:\s*false/,
+  /ui_state:\s*result\.execution\.ui_state/,
+  /ui_state:\s*"blocked"/
+]) {
+  check(importDataMappingRuntime, pattern, `importDataMappingRuntime:${pattern.source}`);
+}
+
+const importDataService = read("packages/import-data/src/service.js");
+for (const pattern of [
+  /CLIENT_MATTER_IMPORT_TARGETS/,
+  /BLOCKED_TARGETS/,
+  /createClientMatterImportJobService/,
+  /listTargets/,
+  /createJob/,
+  /stageSourceFile/,
+  /readPreview/,
+  /saveFieldMappings/,
+  /dryRun/,
+  /execute/,
+  /rollback/,
+  /errorReport/,
+  /raw_file_bytes_included:\s*false/,
+  /raw_rows_included:\s*false/,
+  /raw_personal_identifiers_included:\s*false/,
+  /target_records_mutated:\s*false/,
+  /owner_approval_required:\s*true/,
+  /outcome:\s*"owner_blocked"/,
+  /compensation_receipt_required/,
+  /production_ready_claim:\s*false/
+]) {
+  check(importDataService, pattern, `importDataService:${pattern.source}`);
+}
+
+const dataCloudRoutes = read("apps/api/src/routes/data-cloud.js");
+for (const pattern of [
+  /DATA_CLOUD_ROUTE_POLICIES/,
+  /matchDataCloudRoute/,
+  /api\\\/data-cloud\\\/providers/,
+  /api\\\/data-cloud\\\/consent-records/,
+  /api\\\/data-cloud\\\/enrichment-jobs/,
+  /api\\\/data-cloud\\\/enrichment-results/,
+  /api\\\/data-cloud\\\/identity-resolution/,
+  /api\\\/data-cloud\\\/unified-profiles/,
+  /api\\\/data-cloud\\\/segment-activations/,
+  /api\\\/data-cloud\\\/audit/,
+  /data_cloud:provider:read/,
+  /data_cloud:provider:register/,
+  /data_cloud:consent:write/,
+  /data_cloud:enrichment_job:create/,
+  /data_cloud:enrichment_preview:read/,
+  /data_cloud:enrichment_job:execute/,
+  /data_cloud:enrichment_result:read/,
+  /data_cloud:identity_resolution:write/,
+  /data_cloud:unified_profile:read/,
+  /data_cloud:segment_activation:create/,
+  /data_cloud:audit:read/
+]) {
+  check(dataCloudRoutes, pattern, `dataCloudRoutes:${pattern.source}`);
+}
+
+const dataCloudRuntime = read("apps/api/src/data-cloud-runtime-context.js");
+for (const pattern of [
+  /DATA_CLOUD_BOUNDED_CONTEXT/,
+  /handleDataCloudApiRequest/,
+  /GET \/api\/data-cloud\/providers/,
+  /POST \/api\/data-cloud\/providers/,
+  /POST \/api\/data-cloud\/consent-records/,
+  /POST \/api\/data-cloud\/enrichment-jobs/,
+  /GET \/api\/data-cloud\/enrichment-jobs\/:jobId\/preview/,
+  /POST \/api\/data-cloud\/enrichment-jobs\/:jobId\/execute/,
+  /GET \/api\/data-cloud\/enrichment-results/,
+  /POST \/api\/data-cloud\/identity-resolution/,
+  /GET \/api\/data-cloud\/unified-profiles\/:profileId/,
+  /POST \/api\/data-cloud\/segment-activations/,
+  /GET \/api\/data-cloud\/audit/,
+  /evaluateRouteDecision/,
+  /idempotencyReplay/,
+  /recordIdempotency/,
+  /external_provider_runtime_enabled:\s*false/,
+  /product_record_mutation_allowed:\s*false/,
+  /provider_blocked/,
+  /owner_blocked/,
+  /provider_payload_included:\s*false/,
+  /raw_identifiers_included:\s*false/,
+  /production_ready_claim:\s*false/
+]) {
+  check(dataCloudRuntime, pattern, `dataCloudRuntime:${pattern.source}`);
+}
+
+const dataCloudService = read("packages/data-cloud/src/service.js");
+for (const pattern of [
+  /DATA_CLOUD_MODEL/,
+  /createDataCloudEnrichmentService/,
+  /registerProvider/,
+  /recordConsent/,
+  /createEnrichmentJob/,
+  /previewEnrichmentJob/,
+  /executeEnrichmentJob/,
+  /listEnrichmentResults/,
+  /runIdentityResolution/,
+  /getUnifiedProfile/,
+  /createSegmentActivation/,
+  /listAudit/,
+  /provider_call_performed:\s*false/,
+  /product_records_mutated:\s*false/,
+  /raw_identifiers_included:\s*false/,
+  /provider_payload_included:\s*false/,
+  /direct_identifiers_included:\s*false/,
+  /automatic_merge_performed:\s*false/,
+  /canonical_master_data_write_performed:\s*false/,
+  /activation_submitted:\s*false/,
+  /provider_receipt_required:\s*true/,
+  /production_ready_claim:\s*false/
+]) {
+  check(dataCloudService, pattern, `dataCloudService:${pattern.source}`);
+}
+
+const recordActionService = read("packages/record-actions/src/service.js");
+for (const pattern of [
+  /RECORD_ACTION_OBJECTS/,
+  /normalizeRecordActionObject/,
+  /createRecordActionService/,
+  /registryFor/,
+  /bulkRegistryFor/,
+  /patchRecord/,
+  /bulkUpdate/,
+  /listAudit/,
+  /owner_blocked/,
+  /provider_approval_required/,
+  /record_action\.field_updated/,
+  /record_action\.\$\{action_type\}\.blocked/,
+  /actor_ref_included:\s*false/,
+  /raw_values_included:\s*false/
+]) {
+  check(recordActionService, pattern, `recordActionService:${pattern.source}`);
 }
 
 const vaultRuntime = read("apps/api/src/vault-dms-runtime-context.js");
@@ -1285,18 +2035,16 @@ for (const pattern of [
   /\/api\/analytics\/dashboards/,
   /\/api\/analytics\/refresh/,
   /\/api\/analytics\/matter-profitability/,
+  /\/api\/analytics\/client-profitability/,
   /\/api\/analytics\/exports/,
   /handleAnalyticsRefresh/,
   /handleMatterProfitabilityCreate/,
+  /handleClientProfitabilityCreate/,
   /handleAnalyticsExportCreate/
 ]) {
   check(analyticsRuntime, pattern, `analyticsRuntime:${pattern.source}`);
 }
-forbid(
-  analyticsRuntime,
-  /\/api\/reports|\/api\/analytics\/client-profitability|handleReportDefinition|handleReportQuery|handleReportShare|handleClientProfitability/,
-  "analyticsRuntime:no-report-builder-or-client-profitability-route-before-contract-implementation"
-);
+forbid(analyticsRuntime, /\/api\/reports|handleReportDefinition|handleReportQuery|handleReportShare/, "analyticsRuntime:no-report-builder-route-in-analytics-runtime");
 
 const analyticsMetricsService = read("packages/analytics/src/metrics-service.js");
 for (const pattern of [
@@ -1311,8 +2059,74 @@ for (const pattern of [
   check(analyticsMetricsService, pattern, `analyticsMetricsService:${pattern.source}`);
 }
 
+const reportsRuntime = read("apps/api/src/reports-runtime-context.js");
+for (const pattern of [
+  /REPORTS_BOUNDED_CONTEXT/,
+  /GET \/api\/reports/,
+  /POST \/api\/reports/,
+  /PATCH \/api\/reports\/:reportId/,
+  /POST \/api\/reports\/:reportId\/run/,
+  /POST \/api\/reports\/:reportId\/share/,
+  /GET \/api\/reports\/:reportId\/audit/,
+  /handleReportsApiRequest/,
+  /report:definition:read/,
+  /report:definition:write/,
+  /report:definition:patch/,
+  /report:query:run/,
+  /report:share:write/,
+  /report:audit:read/,
+  /owner_blocked/,
+  /arbitrary_sql_executed:\s*false/,
+  /source_object_mutated:\s*false/
+]) {
+  check(reportsRuntime, pattern, `reportsRuntime:${pattern.source}`);
+}
+
+const reportsRoutes = read("apps/api/src/routes/reports.js");
+for (const pattern of [
+  /api\\\/reports/,
+  /api\\\/reports\\\/\(\[\^\/\]\+\)\\\/run/,
+  /api\\\/reports\\\/\(\[\^\/\]\+\)\\\/share/,
+  /api\\\/reports\\\/\(\[\^\/\]\+\)\\\/audit/,
+  /matchReportRoute/
+]) {
+  check(reportsRoutes, pattern, `reportsRoutes:${pattern.source}`);
+}
+
+const reportsService = read("packages/reports/src/service.js");
+for (const pattern of [
+  /createReportBuilderService/,
+  /REPORT_MODEL/,
+  /listReports/,
+  /createReport/,
+  /patchReport/,
+  /runReport/,
+  /shareReport/,
+  /listAudit/,
+  /raw_sql_included:\s*false/,
+  /arbitrary_sql_executed:\s*false/,
+  /row_level_billing_payload_included:\s*false/,
+  /share_grant_applied:\s*false/,
+  /owner_decision_required:\s*true/
+]) {
+  check(reportsService, pattern, `reportsService:${pattern.source}`);
+}
+
 const apiServer = read("apps/api/src/server.js");
 for (const pattern of [
+  /RECORD_ACTIONS_BOUNDED_CONTEXT/,
+  /handleRecordActionsApiRequest/,
+  /isRecordActionsPath/,
+  /\/api\/record-actions/,
+  /IMPORT_DATA_MAPPING_BOUNDED_CONTEXT/,
+  /handleImportDataMappingApiRequest/,
+  /isImportDataMappingPath/,
+  /\/api\/import-jobs/,
+  /\/api\/import-targets/,
+  /REPORTS_BOUNDED_CONTEXT/,
+  /handleReportsApiRequest/,
+  /isReportsPath/,
+  /\/api\/reports/,
   /enrichment:\s*Object\.freeze/,
   /contract_ref:\s*"contracts\/matter-core-contract\.json"/,
   /mode:\s*"synthetic_crosswalk"/,
@@ -1425,7 +2239,10 @@ for (const file of [
   "packages/crm/src/opportunity-service.js",
   "packages/crm/src/intake-handoff-service.js",
   "packages/intake/src/intake-request-service.js",
+  "packages/record-actions/src/service.js",
+  "packages/import-data/src/service.js",
   "packages/matter/src/timeline-read-model.js",
+  "packages/matter/src/document-email-builder-service.js",
   "packages/billing/src/finance-repository.js",
   "packages/analytics/src/dashboard-service.js"
 ]) {
@@ -1458,6 +2275,16 @@ for (const pattern of [
   /data-matter-bulk-status-action="true"/,
   /data-matter-record-inline-edit-action="true"/,
   /data-matter-record-inline-edit-result="true"/,
+  /data-sf-b-w02-record-actions-panel="true"/,
+  /data-sf-b-w02-field-registry="true"/,
+  /data-sf-b-w02-action-audit-feed="true"/,
+  /data-sf-b-w02-owner-blocked-result="true"/,
+  /data-sf-b-w02-account-record-action-result="true"/,
+  /data-sf-b-w02-contact-record-action-result="true"/,
+  /data-sf-b-w02-matter-record-actions="true"/,
+  /data-sf-b-w02-matter-record-action-result="true"/,
+  /data-sf-b-w02-matter-owner-blocked-result="true"/,
+  /data-sf-b-w02-matter-action-audit-feed="true"/,
   /fetchMatterCommandCenter/,
   /fetchMatterListViews/,
   /saveMatterListView/,
@@ -1480,6 +2307,26 @@ for (const pattern of [
   /refreshMatterProfitability/,
   /createAnalyticsExport/,
   /createMatterDocumentFacade/,
+  /data-sf-b-w04-document-builder=\"true\"/,
+  /data-matter-document-builder=\"route-backed\"/,
+  /data-sf-b-w04-builder-draft-action=\"true\"/,
+  /data-sf-b-w04-builder-preview=\"true\"/,
+  /data-sf-b-w04-builder-approval-action=\"true\"/,
+  /data-sf-b-w04-builder-publish-blocked-result=\"true\"/,
+  /data-sf-b-w04-email-composer=\"true\"/,
+  /data-matter-email-composer=\"provider-blocked\"/,
+  /data-sf-b-w04-email-draft-action=\"true\"/,
+  /data-sf-b-w04-email-send-provider-blocked=\"true\"/,
+  /fetchMatterDocumentTemplates/,
+  /createMatterBuilderDraft/,
+  /requestMatterBuilderApproval/,
+  /publishMatterBuilderDraftToVault/,
+  /createMatterEmailDraft/,
+  /requestMatterEmailDraftSendBoundary/,
+  /fetchRecordActionFields/,
+  /fetchRecordActionAudit/,
+  /updateRecordActionField/,
+  /bulkUpdateRecordActions/,
   /data-crm-handoff-action="true"/,
   /data-crm-handoff-refresh-result="true"/,
   /data-crm-accounts-read="true"/,
@@ -1508,7 +2355,25 @@ for (const pattern of [
   /fetchMatterVaultAudit/,
   /matter-vault-documents/,
   /matter-vault-search/,
-  /matter-vault-audit/
+  /matter-vault-audit/,
+  /ImportDataMappingPanel/,
+  /client-import/,
+  /matter-import/,
+  /data-sf-b-w05-import-wizard="true"/,
+  /data-client-matter-import-wizard="route-backed"/,
+  /data-sf-b-w05-field-mapping-stepper="true"/,
+  /data-sf-b-w05-dry-run-action="true"/,
+  /data-sf-b-w05-execute-owner-blocked-result="true"/,
+  /data-sf-b-w05-rollback-result="true"/,
+  /data-sf-b-w05-error-report="true"/,
+  /fetchClientMatterImportTargets/,
+  /createClientMatterImportJob/,
+  /stageImportSourceFile/,
+  /saveImportFieldMapping/,
+  /dryRunClientMatterImport/,
+  /executeClientMatterImport/,
+  /rollbackClientMatterImport/,
+  /fetchClientMatterImportErrorReport/
 ]) {
   check(uiRegression, pattern, `uiRegression:${pattern.source}`);
 }
@@ -1518,9 +2383,9 @@ console.log("SF Client/Matter parity validation passed.");
 console.log("salesforce_atlas_png_count: >=894");
 console.log("salesforce_screenshot_inventory: 883 source + 11 derived PNG assets verified");
 console.log("objective_completion_audit: 8 requirements evidence-mapped, completion claim false");
-console.log("current_validation_receipt: 11 commands passed, local evidence only");
-console.log("browser_qa_receipt: 5 routes driven, local claims false");
-console.log("surface_connection_ledger: 10 connected rows verified");
+console.log("current_validation_receipt: 18 commands passed, local evidence only");
+console.log("browser_qa_receipt: 13 routes and 147 checks driven, local claims false");
+console.log("surface_connection_ledger: 14 connected rows verified");
 console.log("track_a_ui_entrypoints: verified");
-console.log("track_b_backend_first_gaps: verified");
+console.log("track_b_route_contract_gates: verified");
 console.log("production_or_trust_claim: false");

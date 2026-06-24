@@ -12,6 +12,7 @@ export * from "./contact-point-service.js";
 export * from "./billing-profile-service.js";
 export * from "./duplicate-service.js";
 export * from "./merge-split-service.js";
+export * from "./crm-canonical-write-service.js";
 export * from "./audit.js";
 export * from "./reference-integrity.js";
 export * from "./service.js";

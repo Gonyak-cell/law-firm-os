@@ -69,7 +69,7 @@ export function PayrollBoundaryPanel() {
         ["대상 기간", preview.payroll_period, `${preview.employee_ids.length}명`],
         ["정산 실행", executionStateLabel(preview.calculation_runtime), "계산·세금 처리는 아직 구현되지 않았습니다"],
         ["지급 실행", executionStateLabel(preview.disbursement_instruction_included), "송금·지급 처리는 아직 구현되지 않았습니다"],
-        ["검토", preview.human_review_required ? "필수" : "확인 필요", preview.external_provider ?? "외부 제공자 없음"]
+        ["검토", preview.human_review_required ? "필수" : "확인 필요", preview.external_provider ?? "외부 급여 서비스 없음"]
       ]
     : [];
 
@@ -97,7 +97,7 @@ export function PayrollBoundaryPanel() {
           <input value={form.employee_ids} onChange={(event) => setForm({ ...form, employee_ids: event.target.value })} />
         </label>
         <label>
-          <span>제공자</span>
+          <span>외부 급여 서비스</span>
           <input value={form.external_provider} onChange={(event) => setForm({ ...form, external_provider: event.target.value })} />
         </label>
         <label>

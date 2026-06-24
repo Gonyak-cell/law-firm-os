@@ -22,6 +22,24 @@ export const CRM_INTAKE_ROUTE_POLICIES = Object.freeze([
     resource_type: "crm_duplicate_review",
   }),
   Object.freeze({
+    method: "GET",
+    pattern: /^\/api\/crm\/duplicate-merge-proposals$/,
+    action: "crm:duplicate_merge_proposal:read",
+    resource_type: "crm_duplicate_merge_proposal",
+  }),
+  Object.freeze({
+    method: "POST",
+    pattern: /^\/api\/crm\/duplicate-merge-proposals$/,
+    action: "crm:duplicate_merge_proposal:write",
+    resource_type: "crm_duplicate_merge_proposal",
+  }),
+  Object.freeze({
+    method: "POST",
+    pattern: /^\/api\/crm\/duplicate-merge-proposals\/([^/]+)\/execute$/,
+    action: "crm:duplicate_merge_proposal:execute",
+    resource_type: "crm_duplicate_merge_proposal",
+  }),
+  Object.freeze({
     method: "POST",
     pattern: /^\/api\/crm\/opportunities\/([^/]+)\/handoff$/,
     action: "crm:opportunity:intake_handoff",

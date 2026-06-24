@@ -4,7 +4,7 @@
   "track": "Track B",
   "workstream": "SF-B-W01",
   "title": "Salesforce Account and Contact backend-first contract",
-  "status": "account_contact_patch_mounted_merge_blocked",
+  "status": "w01r_canonical_write_merge_proposal_route_mounted",
   "production_ready_claim": false,
   "go_live_claim": false,
   "enterprise_trust_claim": false,
@@ -28,11 +28,12 @@
       "POST /api/crm/contacts",
       "PATCH /api/crm/contacts/:id",
       "GET /api/crm/accounts/:id/contacts",
-      "POST /api/crm/duplicate-reviews"
+      "POST /api/crm/duplicate-reviews",
+      "GET /api/crm/duplicate-merge-proposals",
+      "POST /api/crm/duplicate-merge-proposals",
+      "POST /api/crm/duplicate-merge-proposals/:id/execute"
     ],
-    "mounted_routes_absent": [
-      "POST /api/crm/merge-reviews/:id/execute"
-    ],
+    "mounted_routes_absent": [],
     "existing_domain_services": [
       "packages/master-data/src/organization-service.js#createOrganizationService",
       "packages/master-data/src/person-service.js#createPersonService",
@@ -40,7 +41,9 @@
       "packages/master-data/src/contact-point-service.js#createContactPointService",
       "packages/master-data/src/relationship-service.js#createRelationshipService",
       "packages/master-data/src/duplicate-service.js#createMasterDataDuplicateService",
-      "packages/master-data/src/repository.js#createMasterDataRepository"
+      "packages/master-data/src/repository.js#createMasterDataRepository",
+      "packages/master-data/src/crm-canonical-write-service.js#createCrmCanonicalWriteService",
+      "packages/master-data/src/merge-split-service.js#createPartyMergeSplitService"
     ],
     "current_ui_boundary": [
       "Client > account section may read GET /api/crm/accounts after route tests pass",
@@ -48,7 +51,8 @@
       "Client > account section may call POST /api/crm/accounts after VC-SF-B-W01-API-002 passes",
       "Client > contact section may call POST /api/crm/contacts after VC-SF-B-W01-API-004 passes",
       "Client > account and contact sections may call tested PATCH routes for CRM runtime facade records only",
-      "No Client UI merge action may appear before merge route tests exist"
+      "Client > contact section may call tested duplicate merge proposal routes after VC-SF-B-W01-API-009 through VC-SF-B-W01-API-011 pass",
+      "Client right panel may display merge review status and guarded execute state without fake success controls"
     ]
   },
   "route_policy_contract": [
@@ -68,9 +72,9 @@
       "path": "/api/crm/accounts",
       "action": "crm:account:write",
       "resource_type": "crm_account",
-      "repository_source": "crm-runtime",
-      "service_boundary": "CRM runtime Account facade create with Master Data-safe projection boundary",
-      "status": "mounted_tested",
+      "repository_source": "crm-runtime + master-data",
+      "service_boundary": "CRM runtime Account facade create plus canonical Party/Entity/Organization/ClientGroup write",
+      "status": "mounted_tested_canonical_write",
       "verification_case": "VC-SF-B-W01-API-002"
     },
     {
@@ -89,9 +93,9 @@
       "path": "/api/crm/contacts",
       "action": "crm:contact:write",
       "resource_type": "crm_contact",
-      "repository_source": "crm-runtime",
-      "service_boundary": "CRM runtime Contact facade create with Master Data-safe ContactPoint projection boundary",
-      "status": "contact_create_mounted_tested",
+      "repository_source": "crm-runtime + master-data",
+      "service_boundary": "CRM runtime Contact facade create plus canonical Party/Entity/Person/ContactPoint/Relationship write",
+      "status": "mounted_tested_canonical_write",
       "verification_case": "VC-SF-B-W01-API-004"
     },
     {
@@ -135,13 +139,58 @@
       "repository_source": "master-data",
       "service_boundary": "createMasterDataDuplicateService",
       "verification_case": "VC-SF-B-W01-API-006"
+    },
+    {
+      "tuw": "SF-B-W01R-T03",
+      "method": "GET",
+      "path": "/api/crm/duplicate-merge-proposals",
+      "action": "crm:duplicate_merge_proposal:read",
+      "resource_type": "crm_duplicate_merge_proposal",
+      "repository_source": "crm-runtime",
+      "service_boundary": "DuplicateMergeProposal safe projection list",
+      "status": "mounted_tested",
+      "verification_case": "VC-SF-B-W01-API-009"
+    },
+    {
+      "tuw": "SF-B-W01R-T03",
+      "method": "POST",
+      "path": "/api/crm/duplicate-merge-proposals",
+      "action": "crm:duplicate_merge_proposal:write",
+      "resource_type": "crm_duplicate_merge_proposal",
+      "repository_source": "crm-runtime + master-data duplicate service",
+      "service_boundary": "Duplicate merge proposal create with candidate scoring and no automatic merge",
+      "status": "mounted_tested",
+      "verification_case": "VC-SF-B-W01-API-010"
+    },
+    {
+      "tuw": "SF-B-W01R-T04",
+      "method": "POST",
+      "path": "/api/crm/duplicate-merge-proposals/:id/execute",
+      "action": "crm:duplicate_merge_proposal:execute",
+      "resource_type": "crm_duplicate_merge_proposal",
+      "repository_source": "crm-runtime + master-data",
+      "service_boundary": "Owner-approved duplicate merge execution with rollback metadata and approval_required state before approval",
+      "status": "mounted_tested",
+      "verification_case": "VC-SF-B-W01-API-011"
     }
   ],
   "repository_service_contract": {
     "account_facade": {
-      "canonical_records": ["Party", "Entity", "Organization", "ClientGroup", "PartyIdentifier", "BillingProfile"],
-      "required_services": ["createOrganizationService", "createClientGroupService"],
-      "implemented_write_boundary": "POST /api/crm/accounts writes CRM runtime Account facade records only; Organization and ClientGroup canonical writes remain future Master Data work",
+      "canonical_records": [
+        "Party",
+        "Entity",
+        "Organization",
+        "ClientGroup",
+        "PartyIdentifier",
+        "BillingProfile"
+      ],
+      "required_services": [
+        "createCrmCanonicalWriteService",
+        "createOrganizationService",
+        "createClientGroupService",
+        "createMasterDataRepository"
+      ],
+      "implemented_write_boundary": "POST /api/crm/accounts writes a CRM runtime Account facade and canonical Party, Entity, Organization, and ClientGroup records inside the Master Data boundary; safe response exposes sync state but not registration number",
       "safe_output_rules": [
         "tenant_id scoped",
         "owner_user_id scoped",
@@ -151,9 +200,21 @@
       ]
     },
     "contact_facade": {
-      "canonical_records": ["Party", "Entity", "Person", "ContactPoint", "Relationship"],
-      "required_services": ["createPersonService", "createContactPointService", "createRelationshipService"],
-      "implemented_write_boundary": "POST /api/crm/contacts writes CRM runtime Contact facade records only; Person, ContactPoint, and Relationship canonical writes remain future Master Data work",
+      "canonical_records": [
+        "Party",
+        "Entity",
+        "Person",
+        "ContactPoint",
+        "Relationship"
+      ],
+      "required_services": [
+        "createCrmCanonicalWriteService",
+        "createPersonService",
+        "createContactPointService",
+        "createRelationshipService",
+        "createMasterDataRepository"
+      ],
+      "implemented_write_boundary": "POST /api/crm/contacts writes a CRM runtime Contact facade and canonical Party, Entity, Person, optional ContactPoint, and optional Relationship records; raw contact values remain blocked from request and response surfaces",
       "safe_output_rules": [
         "tenant_id scoped",
         "primary ContactPoint uniqueness enforced",
@@ -163,13 +224,39 @@
       ]
     },
     "account_contact_relationship": {
-      "canonical_records": ["Relationship"],
-      "required_services": ["createRelationshipService"],
-      "relationship_types": ["primary_contact", "billing_contact", "authorized_representative"],
+      "canonical_records": [
+        "Relationship"
+      ],
+      "required_services": [
+        "createRelationshipService"
+      ],
+      "relationship_types": [
+        "primary_contact",
+        "billing_contact",
+        "authorized_representative"
+      ],
       "safe_output_rules": [
         "relationship endpoints permission-trimmed",
         "cross-tenant relationship blocked",
         "hidden endpoint counts omitted"
+      ]
+    },
+    "duplicate_merge_proposal": {
+      "canonical_records": [
+        "Party"
+      ],
+      "required_services": [
+        "createMasterDataDuplicateService",
+        "createPartyMergeSplitService",
+        "createMasterDataRepository"
+      ],
+      "implemented_write_boundary": "GET/POST /api/crm/duplicate-merge-proposals and POST /api/crm/duplicate-merge-proposals/:id/execute are mounted. Proposal creation never merges automatically; execution requires owner_approval_ref, dual_control_approver_id, source_party_id, and target_party_id, then writes rollback metadata.",
+      "safe_output_rules": [
+        "candidate values omitted",
+        "contact point values omitted",
+        "approval_required state is route-backed",
+        "automatic_merge_executed false before approved execute",
+        "rollback metadata exposed by reference only"
       ]
     }
   },
@@ -208,18 +295,31 @@
     },
     {
       "id": "VC-SF-B-W01-UI-001",
-      "requirement": "Client account and contact UI may expose tested POST and PATCH routes for CRM runtime facade records; merge actions remain hidden until backend route tests pass"
+      "requirement": "Client account and contact UI exposes canonical sync state and route-backed merge review/guarded execute controls after backend route tests pass"
+    },
+    {
+      "id": "VC-SF-B-W01-API-009",
+      "requirement": "GET /api/crm/duplicate-merge-proposals returns tenant-scoped safe proposal projections without candidate value leakage"
+    },
+    {
+      "id": "VC-SF-B-W01-API-010",
+      "requirement": "POST /api/crm/duplicate-merge-proposals creates candidate-scored proposals, records audit evidence, persists safely, and never merges automatically"
+    },
+    {
+      "id": "VC-SF-B-W01-API-011",
+      "requirement": "POST /api/crm/duplicate-merge-proposals/:id/execute returns approval_required before owner approval and executes only approved proposals with rollback metadata"
     }
   ],
   "evidence_gates": [
     "scripts/validate-sf-client-matter-parity-crosswalk.mjs verifies this contract exists",
     "packages/master-data/test/runtime-services.test.js proves service-level duplicate, relationship, and ContactPoint rules",
-    "apps/api/test/cmp-r4-g6-crm-intake.test.js proves mounted read, Account create, Contact create, Account/Contact patch, and duplicate-review route envelopes",
+    "apps/api/test/cmp-r4-g6-crm-intake.test.js proves mounted read, Account/Contact canonical create, Account/Contact patch, duplicate-review, duplicate-merge proposal, approval gate, execution, rollback metadata, and safe route envelopes",
     "Playwright Client Account/Contact read QA proves tested read routes are visible in the Client workspace",
     "Playwright Client Account create QA proves tested Account write route is visible in the Client workspace",
     "Playwright Client Contact create QA proves tested Contact write route is visible in the Client workspace",
     "Playwright Client Account patch QA proves tested Account patch route is visible in the Client workspace",
     "Playwright Client Contact patch QA proves tested Contact patch route is visible in the Client workspace",
+    "Playwright Client merge review QA proves tested duplicate merge proposal controls are visible without fake success",
     "Hermes MCP remains check-only and cannot authorize production, deployment, final approval, or enterprise trust claims"
   ],
   "owner_decisions": [
@@ -234,12 +334,12 @@
     },
     {
       "decision": "Duplicate and merge review thresholds are owned by master-data governance",
-      "required_before_route_mount": true
+      "required_before_route_mount": false,
+      "resolved_for_route_backed_approval_state": true
     }
   ],
   "external_provider_dependencies": [],
   "blocked_until": [
-    "CRM merge execution route remains human-governed and audit/rollback tested",
-    "Canonical Master Data Organization/ClientGroup/Person/ContactPoint write migration remains a later owner decision"
+    "Production approval, deployment, go-live, provider enablement, and enterprise trust claims remain blocked without separate human approval and external receipt"
   ]
 }

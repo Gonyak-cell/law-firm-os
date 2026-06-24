@@ -19,37 +19,42 @@ const backendContracts = [
   {
     file: "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w01-account-contact-contract.json",
     workstream: "SF-B-W01",
-    status: "account_contact_patch_mounted_merge_blocked"
+    status: "w01r_canonical_write_merge_proposal_route_mounted"
+  },
+  {
+    file: "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w02-record-actions-contract.json",
+    workstream: "SF-B-W02",
+    status: "w02r_record_actions_route_mounted"
   },
   {
     file: "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w03-activity-calendar-channel-contract.json",
     workstream: "SF-B-W03",
-    status: "timeline_read_reflected_activity_calendar_channel_contract_registered"
+    status: "w03r_activity_calendar_channel_route_mounted_provider_blocked"
   },
   {
     file: "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w04-document-email-builder-contract.json",
     workstream: "SF-B-W04",
-    status: "document_email_builder_contract_registered_send_provider_blocked"
+    status: "w04r_document_email_builder_route_mounted_owner_provider_blocked"
   },
   {
     file: "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w05-import-data-mapping-contract.json",
     workstream: "SF-B-W05",
-    status: "import_data_mapping_contract_registered_execution_blocked"
+    status: "w05r_import_data_mapping_route_mounted_owner_blocked"
   },
   {
     file: "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w06-permission-admin-contract.json",
     workstream: "SF-B-W06",
-    status: "permission_admin_contract_registered_owner_gate_required"
+    status: "w06r_permission_admin_route_mounted_owner_provider_blocked"
   },
   {
     file: "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w07-data-cloud-enrichment-contract.json",
     workstream: "SF-B-W07",
-    status: "data_cloud_enrichment_contract_registered_provider_gate_required"
+    status: "w07r_data_cloud_enrichment_route_mounted_owner_provider_blocked"
   },
   {
     file: "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w08-reporting-builder-contract.json",
     workstream: "SF-B-W08",
-    status: "reporting_builder_client_profitability_contract_registered_route_gate_required"
+    status: "w08r_report_builder_client_profitability_route_mounted_owner_blocked"
   }
 ];
 
@@ -120,6 +125,10 @@ const expectedSurfaceRows = [
   "SF-SURFACE-B02-ACTIONS",
   "SF-SURFACE-B03-TIMELINE",
   "SF-SURFACE-A04-DMS",
+  "SF-SURFACE-B05-IMPORT-DATA-MAPPING",
+  "SF-SURFACE-B06-PERMISSION-ADMIN",
+  "SF-SURFACE-B07-DATA-CLOUD-ENRICHMENT",
+  "SF-SURFACE-B08-REPORT-BUILDER-CLIENT-PROFITABILITY",
   "SF-SURFACE-A05-BILLING",
   "SF-SURFACE-A05-ANALYTICS"
 ];
@@ -169,8 +178,8 @@ const requirements = [
     checks: [
       existsCheck(files.surfaceLedger, "surface connection ledger exists"),
       valueCheck("surface ledger schema", files.surfaceLedger, surfaceLedger?.schema_version === "law-firm-os.sf-client-matter-parity.surface-connection-ledger.v0.1", surfaceLedger?.schema_version),
-      valueCheck("surface row count is 10", files.surfaceLedger, surfaceLedger?.summary?.row_count === 10, surfaceLedger?.summary?.row_count),
-      valueCheck("connected implemented row count is 10", files.surfaceLedger, surfaceLedger?.summary?.connected_implemented_row_count === 10, surfaceLedger?.summary?.connected_implemented_row_count),
+      valueCheck("surface row count is 14", files.surfaceLedger, surfaceLedger?.summary?.row_count === 14, surfaceLedger?.summary?.row_count),
+      valueCheck("connected implemented row count is 14", files.surfaceLedger, surfaceLedger?.summary?.connected_implemented_row_count === 14, surfaceLedger?.summary?.connected_implemented_row_count),
       valueCheck("disconnected implemented row count is 0", files.surfaceLedger, surfaceLedger?.summary?.disconnected_implemented_row_count === 0, surfaceLedger?.summary?.disconnected_implemented_row_count),
       valueCheck("all expected surface row ids present", files.surfaceLedger, expectedSurfaceRows.every((id) => surfaceRows.some((row) => row.id === id)), surfaceRows.map((row) => row.id))
     ]
@@ -190,12 +199,12 @@ const requirements = [
     ]
   },
   {
-    id: "REQ-SF-05-BACKEND-FIRST-GAPS",
-    objective_clause: "Salesforce-visible features missing backend implementation are not exposed as fake UI and are registered as backend-first contracts.",
+    id: "REQ-SF-05-ROUTE-CONTRACT-GATES",
+    objective_clause: "Salesforce-visible capabilities are either route-mounted or explicitly owner/provider-blocked, without fake success UI.",
     evidence_mode: "backend_contracts",
     checks: [
       ...backendContracts.map((contract) => existsCheck(contract.file, `${contract.workstream} contract exists`)),
-      valueCheck("all expected backend-first workstreams present", "docs/goal-closeout/sf-client-matter-parity/backend-contracts", backendContracts.every((contract) => contractJson.some((item) => item.json?.workstream === contract.workstream)), contractJson.map((item) => item.json?.workstream)),
+      valueCheck("all expected route contract workstreams present", "docs/goal-closeout/sf-client-matter-parity/backend-contracts", backendContracts.every((contract) => contractJson.some((item) => item.json?.workstream === contract.workstream)), contractJson.map((item) => item.json?.workstream)),
       valueCheck("all backend contracts have expected status", "docs/goal-closeout/sf-client-matter-parity/backend-contracts", contractJson.every((item) => item.json?.status === item.status), contractJson.map((item) => `${item.workstream}:${item.json?.status}`)),
       valueCheck("all backend contracts carry route policy contracts", "docs/goal-closeout/sf-client-matter-parity/backend-contracts", contractJson.every((item) => Array.isArray(item.json?.route_policy_contract) && item.json.route_policy_contract.length > 0)),
       valueCheck("all backend contracts carry repository/service contracts", "docs/goal-closeout/sf-client-matter-parity/backend-contracts", contractJson.every((item) => item.json?.repository_service_contract !== undefined)),
@@ -228,12 +237,12 @@ const requirements = [
       existsCheck(files.evidence, "evidence document exists"),
       existsCheck(files.currentValidationReceipt, "current validation receipt exists"),
       valueCheck("current validation receipt schema", files.currentValidationReceipt, currentValidationReceipt?.schema_version === "law-firm-os.sf-client-matter-parity.current-validation-receipt.v0.1", currentValidationReceipt?.schema_version),
-      valueCheck("current validation receipt commands passed", files.currentValidationReceipt, currentValidationReceipt?.summary?.command_count === 11 && currentValidationReceipt?.summary?.passed_count === 11 && currentValidationReceipt?.summary?.failed_count === 0, currentValidationReceipt?.summary),
-      valueCheck("current validation receipt includes UI/API/e2e counts", files.currentValidationReceipt, currentValidationReceipt?.summary?.current_ui_regression_tests === 15 && currentValidationReceipt?.summary?.current_api_regression_tests === 31 && currentValidationReceipt?.summary?.current_e2e_tests === 1, currentValidationReceipt?.summary),
+      valueCheck("current validation receipt commands passed", files.currentValidationReceipt, currentValidationReceipt?.summary?.command_count === 18 && currentValidationReceipt?.summary?.passed_count === 18 && currentValidationReceipt?.summary?.failed_count === 0, currentValidationReceipt?.summary),
+      valueCheck("current validation receipt includes UI/API/e2e counts", files.currentValidationReceipt, currentValidationReceipt?.summary?.current_ui_regression_tests === 15 && currentValidationReceipt?.summary?.current_api_regression_tests === 60 && currentValidationReceipt?.summary?.current_e2e_tests === 1, currentValidationReceipt?.summary),
       valueCheck("current validation receipt claim boundary false", files.currentValidationReceipt, currentValidationReceipt?.scope?.production_ready_claim === false && currentValidationReceipt?.scope?.go_live_claim === false && currentValidationReceipt?.scope?.enterprise_trust_claim === false),
       existsCheck(files.browserQaReceipt, "browser QA receipt exists"),
       valueCheck("browser QA receipt schema", files.browserQaReceipt, browserQaReceipt?.schema_version === "law-firm-os.sf-client-matter-parity.browser-qa-receipt.v0.1", browserQaReceipt?.schema_version),
-      valueCheck("browser QA receipt routes passed", files.browserQaReceipt, browserQaReceipt?.summary?.route_count === 5 && browserQaReceipt?.summary?.failed_count === 0 && browserQaReceipt?.summary?.passed_count === browserQaReceipt?.summary?.check_count, browserQaReceipt?.summary),
+      valueCheck("browser QA receipt routes passed", files.browserQaReceipt, browserQaReceipt?.summary?.route_count === 13 && browserQaReceipt?.summary?.check_count === 147 && browserQaReceipt?.summary?.failed_count === 0 && browserQaReceipt?.summary?.passed_count === browserQaReceipt?.summary?.check_count, browserQaReceipt?.summary),
       valueCheck("browser QA receipt claim boundary false", files.browserQaReceipt, browserQaReceipt?.scope?.production_ready_claim === false && browserQaReceipt?.scope?.go_live_claim === false && browserQaReceipt?.scope?.enterprise_trust_claim === false),
       textCheck(files.evidence, /Lazyweb search/, "Lazyweb evidence listed"),
       textCheck(files.evidence, /CodeGraph/, "OMO CodeGraph evidence listed"),

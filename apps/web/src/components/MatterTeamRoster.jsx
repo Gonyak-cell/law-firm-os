@@ -102,7 +102,7 @@ export function MatterTeamRoster({ matters = [], liveCtx = "allow", onMatterUpda
   const canSubmit = Boolean(activeMatter && form.memberId.trim() && form.role.trim() && (form.employeeId.trim() || form.userId.trim()));
 
   return (
-    <Panel id="matter-team" className="matter-runtime-panel" title="Matter 팀" meta="권한 적용">
+    <Panel id="matter-team" className="matter-runtime-panel" title="Matter 구성원" meta="권한 적용">
       <div
         className="matter-team-roster"
         data-cmp-g4-team-roster="true"
@@ -110,7 +110,7 @@ export function MatterTeamRoster({ matters = [], liveCtx = "allow", onMatterUpda
       >
         <form className="matter-team-form" onSubmit={submit}>
           <label>
-            <span>팀원 ID</span>
+            <span>팀원 번호</span>
             <input value={form.memberId} onChange={update("memberId")} />
           </label>
           <label>
@@ -147,7 +147,7 @@ export function MatterTeamRoster({ matters = [], liveCtx = "allow", onMatterUpda
             <span>{ownerAssignmentLabel(result.ownerAssignment.owner_display_name)} 지정 완료</span>
           </div>
         )}
-        <DataTable columns={["팀원", "구성원", "사용자", "역할", "상태"]} rows={rows} />
+        <DataTable columns={["팀원", "구성원", "로그인 계정", "역할", "상태"]} rows={rows} />
       </div>
     </Panel>
   );

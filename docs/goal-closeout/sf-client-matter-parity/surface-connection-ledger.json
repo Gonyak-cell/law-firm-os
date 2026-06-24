@@ -11,14 +11,14 @@
     "enterprise_trust_claim": false
   },
   "summary": {
-    "row_count": 10,
-    "connected_implemented_row_count": 10,
+    "row_count": 14,
+    "connected_implemented_row_count": 14,
     "disconnected_implemented_row_count": 0,
-    "ui_marker_count": 32,
-    "api_client_marker_count": 40,
-    "api_route_marker_count": 40,
-    "package_service_marker_count": 22,
-    "evidence_marker_count": 25
+    "ui_marker_count": 103,
+    "api_client_marker_count": 105,
+    "api_route_marker_count": 111,
+    "package_service_marker_count": 59,
+    "evidence_marker_count": 46
   },
   "rows": [
     {
@@ -575,6 +575,12 @@
           "label": "Account patch action",
           "pattern": "data-crm-account-patch-action=\"true\"",
           "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Account canonical sync marker",
+          "pattern": "data-sf-b-w01r-account-canonical-sync=\"true\"",
+          "present": true
         }
       ],
       "api_client": [
@@ -619,6 +625,12 @@
       ],
       "package_service": [
         {
+          "file": "packages/master-data/src/crm-canonical-write-service.js",
+          "label": "CRM canonical write package service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
           "file": "packages/master-data/src/organization-service.js",
           "label": "Organization package service",
           "pattern": "exists",
@@ -651,7 +663,7 @@
           "present": true
         }
       ],
-      "boundary": "Runtime facade writes do not mutate canonical Master Data yet; canonical write migration stays backend-first.",
+      "boundary": "Runtime facade writes now create canonical Master Data Account projection; registration number and Matter shortcut fields remain hidden.",
       "connection_status": "ui_api_package_connected",
       "group_status": {
         "ui_menu": {
@@ -668,8 +680,8 @@
           ]
         },
         "ui_surface": {
-          "required_count": 3,
-          "passed_count": 3,
+          "required_count": 4,
+          "passed_count": 4,
           "passed": true,
           "markers": [
             {
@@ -688,6 +700,12 @@
               "file": "apps/web/src/components/ClientsSurface.jsx",
               "label": "Account patch action",
               "pattern": "data-crm-account-patch-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Account canonical sync marker",
+              "pattern": "data-sf-b-w01r-account-canonical-sync=\"true\"",
               "present": true
             }
           ]
@@ -743,10 +761,16 @@
           ]
         },
         "package_service": {
-          "required_count": 2,
-          "passed_count": 2,
+          "required_count": 3,
+          "passed_count": 3,
           "passed": true,
           "markers": [
+            {
+              "file": "packages/master-data/src/crm-canonical-write-service.js",
+              "label": "CRM canonical write package service",
+              "pattern": "exists",
+              "present": true
+            },
             {
               "file": "packages/master-data/src/organization-service.js",
               "label": "Organization package service",
@@ -829,6 +853,30 @@
           "label": "Account contacts read marker",
           "pattern": "data-crm-account-contacts-read=\"true\"",
           "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Contact canonical sync marker",
+          "pattern": "data-sf-b-w01r-contact-canonical-sync=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Merge review marker",
+          "pattern": "data-sf-b-w01r-merge-review=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Guarded merge execute marker",
+          "pattern": "data-sf-b-w01r-merge-execute-guarded=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Right panel merge review marker",
+          "pattern": "data-sf-b-w01r-right-panel-merge-review=\"true\"",
+          "present": true
         }
       ],
       "api_client": [
@@ -854,6 +902,24 @@
           "file": "apps/web/src/data/apiClient.js",
           "label": "Account contacts fetch helper",
           "pattern": "fetchCrmAccountContacts",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Merge proposals fetch helper",
+          "pattern": "fetchCrmMergeProposals",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Merge proposal create helper",
+          "pattern": "createCrmMergeProposal",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Merge proposal execute helper",
+          "pattern": "executeCrmMergeProposal",
           "present": true
         }
       ],
@@ -881,9 +947,33 @@
           "label": "Account contacts route",
           "pattern": "GET \\/api\\/crm\\/accounts\\/:id\\/contacts",
           "present": true
+        },
+        {
+          "file": "apps/api/src/crm-intake-runtime-context.js",
+          "label": "Merge proposals list route",
+          "pattern": "GET \\/api\\/crm\\/duplicate-merge-proposals",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/crm-intake-runtime-context.js",
+          "label": "Merge proposal create route",
+          "pattern": "POST \\/api\\/crm\\/duplicate-merge-proposals",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/crm-intake-runtime-context.js",
+          "label": "Merge proposal execute route",
+          "pattern": "POST \\/api\\/crm\\/duplicate-merge-proposals\\/:id\\/execute",
+          "present": true
         }
       ],
       "package_service": [
+        {
+          "file": "packages/master-data/src/crm-canonical-write-service.js",
+          "label": "CRM canonical write package service",
+          "pattern": "exists",
+          "present": true
+        },
         {
           "file": "packages/master-data/src/person-service.js",
           "label": "Person package service",
@@ -907,6 +997,12 @@
           "label": "Duplicate package service",
           "pattern": "exists",
           "present": true
+        },
+        {
+          "file": "packages/master-data/src/merge-split-service.js",
+          "label": "Merge split package service",
+          "pattern": "exists",
+          "present": true
         }
       ],
       "evidence": [
@@ -923,7 +1019,7 @@
           "present": true
         }
       ],
-      "boundary": "Merge/delete execution stays backend-first; raw contact values remain hidden.",
+      "boundary": "Contact create writes canonical Person/ContactPoint/Relationship state; merge proposal and approved execute are route-backed, owner-gated, and hide raw contact values.",
       "connection_status": "ui_api_package_connected",
       "group_status": {
         "ui_menu": {
@@ -940,8 +1036,8 @@
           ]
         },
         "ui_surface": {
-          "required_count": 4,
-          "passed_count": 4,
+          "required_count": 8,
+          "passed_count": 8,
           "passed": true,
           "markers": [
             {
@@ -967,12 +1063,36 @@
               "label": "Account contacts read marker",
               "pattern": "data-crm-account-contacts-read=\"true\"",
               "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Contact canonical sync marker",
+              "pattern": "data-sf-b-w01r-contact-canonical-sync=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Merge review marker",
+              "pattern": "data-sf-b-w01r-merge-review=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Guarded merge execute marker",
+              "pattern": "data-sf-b-w01r-merge-execute-guarded=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Right panel merge review marker",
+              "pattern": "data-sf-b-w01r-right-panel-merge-review=\"true\"",
+              "present": true
             }
           ]
         },
         "api_client": {
-          "required_count": 4,
-          "passed_count": 4,
+          "required_count": 7,
+          "passed_count": 7,
           "passed": true,
           "markers": [
             {
@@ -998,12 +1118,30 @@
               "label": "Account contacts fetch helper",
               "pattern": "fetchCrmAccountContacts",
               "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Merge proposals fetch helper",
+              "pattern": "fetchCrmMergeProposals",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Merge proposal create helper",
+              "pattern": "createCrmMergeProposal",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Merge proposal execute helper",
+              "pattern": "executeCrmMergeProposal",
+              "present": true
             }
           ]
         },
         "api_route": {
-          "required_count": 4,
-          "passed_count": 4,
+          "required_count": 7,
+          "passed_count": 7,
           "passed": true,
           "markers": [
             {
@@ -1029,14 +1167,38 @@
               "label": "Account contacts route",
               "pattern": "GET \\/api\\/crm\\/accounts\\/:id\\/contacts",
               "present": true
+            },
+            {
+              "file": "apps/api/src/crm-intake-runtime-context.js",
+              "label": "Merge proposals list route",
+              "pattern": "GET \\/api\\/crm\\/duplicate-merge-proposals",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/crm-intake-runtime-context.js",
+              "label": "Merge proposal create route",
+              "pattern": "POST \\/api\\/crm\\/duplicate-merge-proposals",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/crm-intake-runtime-context.js",
+              "label": "Merge proposal execute route",
+              "pattern": "POST \\/api\\/crm\\/duplicate-merge-proposals\\/:id\\/execute",
+              "present": true
             }
           ]
         },
         "package_service": {
-          "required_count": 4,
-          "passed_count": 4,
+          "required_count": 6,
+          "passed_count": 6,
           "passed": true,
           "markers": [
+            {
+              "file": "packages/master-data/src/crm-canonical-write-service.js",
+              "label": "CRM canonical write package service",
+              "pattern": "exists",
+              "present": true
+            },
             {
               "file": "packages/master-data/src/person-service.js",
               "label": "Person package service",
@@ -1058,6 +1220,12 @@
             {
               "file": "packages/master-data/src/duplicate-service.js",
               "label": "Duplicate package service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/master-data/src/merge-split-service.js",
+              "label": "Merge split package service",
               "pattern": "exists",
               "present": true
             }
@@ -1442,7 +1610,7 @@
     },
     {
       "id": "SF-SURFACE-B02-ACTIONS",
-      "salesforce_capability": "Matter path status, owner assignment/change, inline edit, and bulk status",
+      "salesforce_capability": "Client/Matter record actions, field registry, owner gates, inline edit, and bulk status",
       "parity_status": "implemented",
       "tuw_lanes": [
         "SF-B-W02-T01",
@@ -1454,12 +1622,54 @@
       "ui_menu": [
         {
           "file": "apps/web/src/components/Shell.jsx",
+          "label": "Client accounts section",
+          "pattern": "client-accounts",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Client contacts section",
+          "pattern": "client-contacts",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
           "label": "Matter command section",
           "pattern": "matter-command",
           "present": true
         }
       ],
       "ui_surface": [
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Client record actions panel",
+          "pattern": "data-sf-b-w02-record-actions-panel=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Client field registry marker",
+          "pattern": "data-sf-b-w02-field-registry=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Client owner gate blocked result",
+          "pattern": "data-sf-b-w02-owner-blocked-result=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Account record action result",
+          "pattern": "data-sf-b-w02-account-record-action-result=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Contact record action result",
+          "pattern": "data-sf-b-w02-contact-record-action-result=\"true\"",
+          "present": true
+        },
         {
           "file": "apps/web/src/components/MattersSurface.jsx",
           "label": "Status transition action",
@@ -1489,9 +1699,63 @@
           "label": "Bulk status action",
           "pattern": "data-matter-bulk-status-action=\"true\"",
           "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Matter record actions panel",
+          "pattern": "data-sf-b-w02-matter-record-actions=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Matter record action result",
+          "pattern": "data-sf-b-w02-matter-record-action-result=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Matter owner gate blocked result",
+          "pattern": "data-sf-b-w02-matter-owner-blocked-result=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Matter record action audit feed",
+          "pattern": "data-sf-b-w02-matter-action-audit-feed=\"true\"",
+          "present": true
         }
       ],
       "api_client": [
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Record action field registry helper",
+          "pattern": "fetchRecordActionFields",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Record action bulk registry helper",
+          "pattern": "fetchRecordBulkActions",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Record action audit helper",
+          "pattern": "fetchRecordActionAudit",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Record action field update helper",
+          "pattern": "updateRecordActionField",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Record action bulk update helper",
+          "pattern": "bulkUpdateRecordActions",
+          "present": true
+        },
         {
           "file": "apps/web/src/data/apiClient.js",
           "label": "Complete status helper",
@@ -1553,9 +1817,39 @@
           "label": "Bulk status route",
           "pattern": "POST \\/api\\/matters\\/bulk\\/status-transitions",
           "present": true
+        },
+        {
+          "file": "apps/api/src/record-actions-runtime-context.js",
+          "label": "Record action field registry route",
+          "pattern": "GET \\/api\\/record-actions\\/:object_name\\/fields",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/record-actions-runtime-context.js",
+          "label": "Record action field update route",
+          "pattern": "POST \\/api\\/record-actions\\/:object_name\\/:record_id\\/field-update",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/record-actions-runtime-context.js",
+          "label": "Record action bulk update route",
+          "pattern": "POST \\/api\\/record-actions\\/:object_name\\/bulk-updates",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/record-actions-runtime-context.js",
+          "label": "Record action audit route",
+          "pattern": "GET \\/api\\/record-actions\\/:object_name\\/:record_id\\/audit",
+          "present": true
         }
       ],
       "package_service": [
+        {
+          "file": "packages/record-actions/src/service.js",
+          "label": "Record actions package service",
+          "pattern": "exists",
+          "present": true
+        },
         {
           "file": "packages/matter/src/status-history.js",
           "label": "Matter status history package",
@@ -1605,16 +1899,46 @@
           "label": "Bulk status QA screenshot",
           "pattern": "exists",
           "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-record-actions.png",
+          "label": "Browser QA Client record actions screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-record-actions.png",
+          "label": "Browser QA Matter record actions screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w02-record-actions-contract.json",
+          "label": "W02R record actions contract",
+          "pattern": "exists",
+          "present": true
         }
       ],
-      "boundary": "Only tested status, owner, inline WIP, and selected bulk completion controls are exposed.",
+      "boundary": "Tested Client/Matter field registry, field update, action audit, and owner-gated bulk controls are exposed; unsupported owner/export effects stay route-backed blocked.",
       "connection_status": "ui_api_package_connected",
       "group_status": {
         "ui_menu": {
-          "required_count": 1,
-          "passed_count": 1,
+          "required_count": 3,
+          "passed_count": 3,
           "passed": true,
           "markers": [
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Client accounts section",
+              "pattern": "client-accounts",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Client contacts section",
+              "pattern": "client-contacts",
+              "present": true
+            },
             {
               "file": "apps/web/src/components/Shell.jsx",
               "label": "Matter command section",
@@ -1624,10 +1948,40 @@
           ]
         },
         "ui_surface": {
-          "required_count": 5,
-          "passed_count": 5,
+          "required_count": 14,
+          "passed_count": 14,
           "passed": true,
           "markers": [
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Client record actions panel",
+              "pattern": "data-sf-b-w02-record-actions-panel=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Client field registry marker",
+              "pattern": "data-sf-b-w02-field-registry=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Client owner gate blocked result",
+              "pattern": "data-sf-b-w02-owner-blocked-result=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Account record action result",
+              "pattern": "data-sf-b-w02-account-record-action-result=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Contact record action result",
+              "pattern": "data-sf-b-w02-contact-record-action-result=\"true\"",
+              "present": true
+            },
             {
               "file": "apps/web/src/components/MattersSurface.jsx",
               "label": "Status transition action",
@@ -1657,14 +2011,68 @@
               "label": "Bulk status action",
               "pattern": "data-matter-bulk-status-action=\"true\"",
               "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Matter record actions panel",
+              "pattern": "data-sf-b-w02-matter-record-actions=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Matter record action result",
+              "pattern": "data-sf-b-w02-matter-record-action-result=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Matter owner gate blocked result",
+              "pattern": "data-sf-b-w02-matter-owner-blocked-result=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Matter record action audit feed",
+              "pattern": "data-sf-b-w02-matter-action-audit-feed=\"true\"",
+              "present": true
             }
           ]
         },
         "api_client": {
-          "required_count": 5,
-          "passed_count": 5,
+          "required_count": 10,
+          "passed_count": 10,
           "passed": true,
           "markers": [
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Record action field registry helper",
+              "pattern": "fetchRecordActionFields",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Record action bulk registry helper",
+              "pattern": "fetchRecordBulkActions",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Record action audit helper",
+              "pattern": "fetchRecordActionAudit",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Record action field update helper",
+              "pattern": "updateRecordActionField",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Record action bulk update helper",
+              "pattern": "bulkUpdateRecordActions",
+              "present": true
+            },
             {
               "file": "apps/web/src/data/apiClient.js",
               "label": "Complete status helper",
@@ -1698,8 +2106,8 @@
           ]
         },
         "api_route": {
-          "required_count": 5,
-          "passed_count": 5,
+          "required_count": 9,
+          "passed_count": 9,
           "passed": true,
           "markers": [
             {
@@ -1731,14 +2139,44 @@
               "label": "Bulk status route",
               "pattern": "POST \\/api\\/matters\\/bulk\\/status-transitions",
               "present": true
+            },
+            {
+              "file": "apps/api/src/record-actions-runtime-context.js",
+              "label": "Record action field registry route",
+              "pattern": "GET \\/api\\/record-actions\\/:object_name\\/fields",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/record-actions-runtime-context.js",
+              "label": "Record action field update route",
+              "pattern": "POST \\/api\\/record-actions\\/:object_name\\/:record_id\\/field-update",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/record-actions-runtime-context.js",
+              "label": "Record action bulk update route",
+              "pattern": "POST \\/api\\/record-actions\\/:object_name\\/bulk-updates",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/record-actions-runtime-context.js",
+              "label": "Record action audit route",
+              "pattern": "GET \\/api\\/record-actions\\/:object_name\\/:record_id\\/audit",
+              "present": true
             }
           ]
         },
         "package_service": {
-          "required_count": 3,
-          "passed_count": 3,
+          "required_count": 4,
+          "passed_count": 4,
           "passed": true,
           "markers": [
+            {
+              "file": "packages/record-actions/src/service.js",
+              "label": "Record actions package service",
+              "pattern": "exists",
+              "present": true
+            },
             {
               "file": "packages/matter/src/status-history.js",
               "label": "Matter status history package",
@@ -1760,8 +2198,8 @@
           ]
         },
         "evidence": {
-          "required_count": 5,
-          "passed_count": 5,
+          "required_count": 8,
+          "passed_count": 8,
           "passed": true,
           "markers": [
             {
@@ -1793,6 +2231,24 @@
               "label": "Bulk status QA screenshot",
               "pattern": "exists",
               "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-record-actions.png",
+              "label": "Browser QA Client record actions screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-record-actions.png",
+              "label": "Browser QA Matter record actions screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w02-record-actions-contract.json",
+              "label": "W02R record actions contract",
+              "pattern": "exists",
+              "present": true
             }
           ]
         }
@@ -1800,17 +2256,33 @@
     },
     {
       "id": "SF-SURFACE-B03-TIMELINE",
-      "salesforce_capability": "Matter activity timeline read",
-      "parity_status": "implemented_read_only_with_backend_contract_for_writes",
+      "salesforce_capability": "Matter activity, calendar, deadline board, and Matter Channel",
+      "parity_status": "implemented_route_mounted_provider_blocked",
       "tuw_lanes": [
         "SF-A-W03-T06",
-        "SF-B-W03-T01"
+        "SF-B-W03-T01",
+        "SF-B-W03-T02",
+        "SF-B-W03-T03",
+        "SF-B-W03-T04",
+        "SF-B-W03-T05"
       ],
       "ui_menu": [
         {
           "file": "apps/web/src/components/Shell.jsx",
           "label": "Matter activity section",
           "pattern": "matter-timeline",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Matter calendar section",
+          "pattern": "matter-calendar",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Matter channel section",
+          "pattern": "matter-channel",
           "present": true
         }
       ],
@@ -1823,8 +2295,44 @@
         },
         {
           "file": "apps/web/src/components/MattersSurface.jsx",
-          "label": "Read boundary marker",
-          "pattern": "data-matter-activity-read-boundary=\"true\"",
+          "label": "Activity composer marker",
+          "pattern": "data-sf-b-w03-activity-composer=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Calendar workspace marker",
+          "pattern": "data-sf-b-w03-calendar-workspace=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Deadline board marker",
+          "pattern": "data-sf-b-w03-deadline-board=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Channel composer marker",
+          "pattern": "data-sf-b-w03-channel-composer=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Provider-blocked state marker",
+          "pattern": "data-sf-b-w03-provider-blocked-result=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Right panel deadline marker",
+          "pattern": "data-sf-b-w03-right-panel-deadline-highlight=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Right panel channel marker",
+          "pattern": "data-sf-b-w03-right-panel-channel-tab=\"true\"",
           "present": true
         }
       ],
@@ -1834,6 +2342,54 @@
           "label": "Timeline fetch helper",
           "pattern": "fetchMatterTimeline",
           "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Activities fetch helper",
+          "pattern": "fetchMatterActivities",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Activity create helper",
+          "pattern": "createMatterActivity",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Calendar fetch helper",
+          "pattern": "fetchMatterCalendarEvents",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Calendar create helper",
+          "pattern": "createMatterCalendarEvent",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Deadline confirm helper",
+          "pattern": "confirmMatterDeadlineChange",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Channel fetch helper",
+          "pattern": "fetchMatterChannel",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Channel message helper",
+          "pattern": "createMatterChannelMessage",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Channel provider blocked helper",
+          "pattern": "syncMatterChannelProvider",
+          "present": true
         }
       ],
       "api_route": [
@@ -1842,12 +2398,84 @@
           "label": "Timeline route",
           "pattern": "GET \\/api\\/matters\\/:matter_id\\/timeline",
           "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Activities read route",
+          "pattern": "GET \\/api\\/matters\\/:matter_id\\/activities",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Activities create route",
+          "pattern": "POST \\/api\\/matters\\/:matter_id\\/activities",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Calendar read route",
+          "pattern": "GET \\/api\\/matters\\/:matter_id\\/calendar-events",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Calendar create route",
+          "pattern": "POST \\/api\\/matters\\/:matter_id\\/calendar-events",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Deadline confirm route",
+          "pattern": "POST \\/api\\/matters\\/:matter_id\\/deadlines\\/:deadline_id\\/confirm-change",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Channel read route",
+          "pattern": "GET \\/api\\/matters\\/:matter_id\\/channel",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Channel message route",
+          "pattern": "POST \\/api\\/matters\\/:matter_id\\/channel\\/messages",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Channel provider blocked route",
+          "pattern": "POST \\/api\\/matters\\/:matter_id\\/channel\\/provider-sync",
+          "present": true
         }
       ],
       "package_service": [
         {
           "file": "packages/matter/src/timeline-read-model.js",
           "label": "Timeline read model service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/matter/src/activity-calendar-channel-service.js",
+          "label": "Activity calendar channel service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/matter/src/task-service.js",
+          "label": "Matter task transition service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/matter/src/calendar-service.js",
+          "label": "Matter calendar deadline service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/matter/src/deadline-dual-control.js",
+          "label": "Critical deadline dual-control service",
           "pattern": "exists",
           "present": true
         }
@@ -1860,18 +2488,36 @@
           "present": true
         },
         {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-timeline.png",
+          "label": "Browser QA activity screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-calendar.png",
+          "label": "Browser QA calendar screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-channel.png",
+          "label": "Browser QA channel screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
           "file": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w03-activity-calendar-channel-contract.json",
           "label": "Activity/calendar/channel contract",
           "pattern": "exists",
           "present": true
         }
       ],
-      "boundary": "Activity write, calendar, deadline, and channel composers are hidden until route/provider gates pass.",
+      "boundary": "Activity, calendar, deadline, and channel controls are route-backed; external channel/calendar provider effects remain provider-blocked until owner approval and provider receipt.",
       "connection_status": "ui_api_package_connected",
       "group_status": {
         "ui_menu": {
-          "required_count": 1,
-          "passed_count": 1,
+          "required_count": 3,
+          "passed_count": 3,
           "passed": true,
           "markers": [
             {
@@ -1879,12 +2525,24 @@
               "label": "Matter activity section",
               "pattern": "matter-timeline",
               "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Matter calendar section",
+              "pattern": "matter-calendar",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Matter channel section",
+              "pattern": "matter-channel",
+              "present": true
             }
           ]
         },
         "ui_surface": {
-          "required_count": 2,
-          "passed_count": 2,
+          "required_count": 8,
+          "passed_count": 8,
           "passed": true,
           "markers": [
             {
@@ -1895,15 +2553,51 @@
             },
             {
               "file": "apps/web/src/components/MattersSurface.jsx",
-              "label": "Read boundary marker",
-              "pattern": "data-matter-activity-read-boundary=\"true\"",
+              "label": "Activity composer marker",
+              "pattern": "data-sf-b-w03-activity-composer=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Calendar workspace marker",
+              "pattern": "data-sf-b-w03-calendar-workspace=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Deadline board marker",
+              "pattern": "data-sf-b-w03-deadline-board=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Channel composer marker",
+              "pattern": "data-sf-b-w03-channel-composer=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Provider-blocked state marker",
+              "pattern": "data-sf-b-w03-provider-blocked-result=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Right panel deadline marker",
+              "pattern": "data-sf-b-w03-right-panel-deadline-highlight=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Right panel channel marker",
+              "pattern": "data-sf-b-w03-right-panel-channel-tab=\"true\"",
               "present": true
             }
           ]
         },
         "api_client": {
-          "required_count": 1,
-          "passed_count": 1,
+          "required_count": 9,
+          "passed_count": 9,
           "passed": true,
           "markers": [
             {
@@ -1911,12 +2605,60 @@
               "label": "Timeline fetch helper",
               "pattern": "fetchMatterTimeline",
               "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Activities fetch helper",
+              "pattern": "fetchMatterActivities",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Activity create helper",
+              "pattern": "createMatterActivity",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Calendar fetch helper",
+              "pattern": "fetchMatterCalendarEvents",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Calendar create helper",
+              "pattern": "createMatterCalendarEvent",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Deadline confirm helper",
+              "pattern": "confirmMatterDeadlineChange",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Channel fetch helper",
+              "pattern": "fetchMatterChannel",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Channel message helper",
+              "pattern": "createMatterChannelMessage",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Channel provider blocked helper",
+              "pattern": "syncMatterChannelProvider",
+              "present": true
             }
           ]
         },
         "api_route": {
-          "required_count": 1,
-          "passed_count": 1,
+          "required_count": 9,
+          "passed_count": 9,
           "passed": true,
           "markers": [
             {
@@ -1924,12 +2666,60 @@
               "label": "Timeline route",
               "pattern": "GET \\/api\\/matters\\/:matter_id\\/timeline",
               "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Activities read route",
+              "pattern": "GET \\/api\\/matters\\/:matter_id\\/activities",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Activities create route",
+              "pattern": "POST \\/api\\/matters\\/:matter_id\\/activities",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Calendar read route",
+              "pattern": "GET \\/api\\/matters\\/:matter_id\\/calendar-events",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Calendar create route",
+              "pattern": "POST \\/api\\/matters\\/:matter_id\\/calendar-events",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Deadline confirm route",
+              "pattern": "POST \\/api\\/matters\\/:matter_id\\/deadlines\\/:deadline_id\\/confirm-change",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Channel read route",
+              "pattern": "GET \\/api\\/matters\\/:matter_id\\/channel",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Channel message route",
+              "pattern": "POST \\/api\\/matters\\/:matter_id\\/channel\\/messages",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Channel provider blocked route",
+              "pattern": "POST \\/api\\/matters\\/:matter_id\\/channel\\/provider-sync",
+              "present": true
             }
           ]
         },
         "package_service": {
-          "required_count": 1,
-          "passed_count": 1,
+          "required_count": 5,
+          "passed_count": 5,
           "passed": true,
           "markers": [
             {
@@ -1937,17 +2727,59 @@
               "label": "Timeline read model service",
               "pattern": "exists",
               "present": true
+            },
+            {
+              "file": "packages/matter/src/activity-calendar-channel-service.js",
+              "label": "Activity calendar channel service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/matter/src/task-service.js",
+              "label": "Matter task transition service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/matter/src/calendar-service.js",
+              "label": "Matter calendar deadline service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/matter/src/deadline-dual-control.js",
+              "label": "Critical deadline dual-control service",
+              "pattern": "exists",
+              "present": true
             }
           ]
         },
         "evidence": {
-          "required_count": 2,
-          "passed_count": 2,
+          "required_count": 5,
+          "passed_count": 5,
           "passed": true,
           "markers": [
             {
               "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-activity-timeline-read.png",
               "label": "Timeline read QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-timeline.png",
+              "label": "Browser QA activity screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-calendar.png",
+              "label": "Browser QA calendar screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-channel.png",
+              "label": "Browser QA channel screenshot",
               "pattern": "exists",
               "present": true
             },
@@ -1963,12 +2795,16 @@
     },
     {
       "id": "SF-SURFACE-A04-DMS",
-      "salesforce_capability": "Matter DMS files, Vault inventory, search, audit, and document facade",
-      "parity_status": "implemented",
+      "salesforce_capability": "Matter DMS files, Vault inventory, search, audit, document facade, document builder, and email composer",
+      "parity_status": "implemented_route_mounted_owner_provider_blocked",
       "tuw_lanes": [
         "SF-A-W04-T03",
         "SF-A-W04-T04",
-        "SF-A-W04-T05"
+        "SF-A-W04-T05",
+        "SF-B-W04-T01",
+        "SF-B-W04-T02",
+        "SF-B-W04-T03",
+        "SF-B-W04-T04"
       ],
       "ui_menu": [
         {
@@ -2008,6 +2844,42 @@
           "label": "Vault audit",
           "pattern": "matter-vault-audit",
           "present": true
+        },
+        {
+          "file": "apps/web/src/components/MatterVaultPanel.jsx",
+          "label": "Document builder marker",
+          "pattern": "data-sf-b-w04-document-builder=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MatterVaultPanel.jsx",
+          "label": "Builder preview marker",
+          "pattern": "data-sf-b-w04-builder-preview=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MatterVaultPanel.jsx",
+          "label": "Builder approval marker",
+          "pattern": "data-sf-b-w04-builder-approval-result=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MatterVaultPanel.jsx",
+          "label": "Builder owner-blocked publish marker",
+          "pattern": "data-sf-b-w04-builder-publish-blocked-result=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MatterVaultPanel.jsx",
+          "label": "Email composer marker",
+          "pattern": "data-sf-b-w04-email-composer=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MatterVaultPanel.jsx",
+          "label": "Email provider-blocked marker",
+          "pattern": "data-sf-b-w04-email-send-provider-blocked=\"true\"",
+          "present": true
         }
       ],
       "api_client": [
@@ -2034,6 +2906,48 @@
           "label": "Matter document facade helper",
           "pattern": "createMatterDocumentFacade",
           "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Document templates helper",
+          "pattern": "fetchMatterDocumentTemplates",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Builder draft helper",
+          "pattern": "createMatterBuilderDraft",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Builder preview helper",
+          "pattern": "fetchMatterBuilderDraftPreview",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Builder approval helper",
+          "pattern": "requestMatterBuilderApproval",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Builder publish blocked helper",
+          "pattern": "publishMatterBuilderDraftToVault",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Email draft helper",
+          "pattern": "createMatterEmailDraft",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Email send blocked helper",
+          "pattern": "requestMatterEmailDraftSendBoundary",
+          "present": true
         }
       ],
       "api_route": [
@@ -2041,6 +2955,48 @@
           "file": "apps/api/src/matter-runtime-context.js",
           "label": "Matter document facade route",
           "pattern": "POST \\/api\\/matters\\/:matter_id\\/documents",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Document template route",
+          "pattern": "GET \\/api\\/matters\\/:matter_id\\/document-templates",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Builder draft route",
+          "pattern": "POST \\/api\\/matters\\/:matter_id\\/builder-drafts",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Builder preview route",
+          "pattern": "GET \\/api\\/matters\\/:matter_id\\/builder-drafts\\/:draft_id\\/preview",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Builder approval route",
+          "pattern": "POST \\/api\\/matters\\/:matter_id\\/builder-drafts\\/:draft_id\\/approval-requests",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Builder publish blocked route",
+          "pattern": "POST \\/api\\/matters\\/:matter_id\\/builder-drafts\\/:draft_id\\/publish-to-vault",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Email draft route",
+          "pattern": "POST \\/api\\/matters\\/:matter_id\\/email-drafts",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Email send blocked route",
+          "pattern": "POST \\/api\\/matters\\/:matter_id\\/email-drafts\\/:draft_id\\/send",
           "present": true
         },
         {
@@ -2074,6 +3030,12 @@
           "label": "DMS search indexer",
           "pattern": "exists",
           "present": true
+        },
+        {
+          "file": "packages/matter/src/document-email-builder-service.js",
+          "label": "Document/email builder service",
+          "pattern": "exists",
+          "present": true
         }
       ],
       "evidence": [
@@ -2094,9 +3056,21 @@
           "label": "Vault inventory/search/audit QA screenshot",
           "pattern": "exists",
           "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-builder-email.png",
+          "label": "Browser QA builder/email screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w04-document-email-builder-contract.json",
+          "label": "W04R document/email builder contract",
+          "pattern": "exists",
+          "present": true
         }
       ],
-      "boundary": "Document bytes, raw storage paths, and raw text stay hidden.",
+      "boundary": "Document bytes, raw storage paths, raw body text, raw contact values, and external provider payloads stay hidden; publish/send controls expose owner/provider blocked states.",
       "connection_status": "ui_api_package_connected",
       "group_status": {
         "ui_menu": {
@@ -2113,8 +3087,8 @@
           ]
         },
         "ui_surface": {
-          "required_count": 5,
-          "passed_count": 5,
+          "required_count": 11,
+          "passed_count": 11,
           "passed": true,
           "markers": [
             {
@@ -2146,12 +3120,48 @@
               "label": "Vault audit",
               "pattern": "matter-vault-audit",
               "present": true
+            },
+            {
+              "file": "apps/web/src/components/MatterVaultPanel.jsx",
+              "label": "Document builder marker",
+              "pattern": "data-sf-b-w04-document-builder=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MatterVaultPanel.jsx",
+              "label": "Builder preview marker",
+              "pattern": "data-sf-b-w04-builder-preview=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MatterVaultPanel.jsx",
+              "label": "Builder approval marker",
+              "pattern": "data-sf-b-w04-builder-approval-result=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MatterVaultPanel.jsx",
+              "label": "Builder owner-blocked publish marker",
+              "pattern": "data-sf-b-w04-builder-publish-blocked-result=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MatterVaultPanel.jsx",
+              "label": "Email composer marker",
+              "pattern": "data-sf-b-w04-email-composer=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MatterVaultPanel.jsx",
+              "label": "Email provider-blocked marker",
+              "pattern": "data-sf-b-w04-email-send-provider-blocked=\"true\"",
+              "present": true
             }
           ]
         },
         "api_client": {
-          "required_count": 4,
-          "passed_count": 4,
+          "required_count": 11,
+          "passed_count": 11,
           "passed": true,
           "markers": [
             {
@@ -2177,18 +3187,102 @@
               "label": "Matter document facade helper",
               "pattern": "createMatterDocumentFacade",
               "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Document templates helper",
+              "pattern": "fetchMatterDocumentTemplates",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Builder draft helper",
+              "pattern": "createMatterBuilderDraft",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Builder preview helper",
+              "pattern": "fetchMatterBuilderDraftPreview",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Builder approval helper",
+              "pattern": "requestMatterBuilderApproval",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Builder publish blocked helper",
+              "pattern": "publishMatterBuilderDraftToVault",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Email draft helper",
+              "pattern": "createMatterEmailDraft",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Email send blocked helper",
+              "pattern": "requestMatterEmailDraftSendBoundary",
+              "present": true
             }
           ]
         },
         "api_route": {
-          "required_count": 4,
-          "passed_count": 4,
+          "required_count": 11,
+          "passed_count": 11,
           "passed": true,
           "markers": [
             {
               "file": "apps/api/src/matter-runtime-context.js",
               "label": "Matter document facade route",
               "pattern": "POST \\/api\\/matters\\/:matter_id\\/documents",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Document template route",
+              "pattern": "GET \\/api\\/matters\\/:matter_id\\/document-templates",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Builder draft route",
+              "pattern": "POST \\/api\\/matters\\/:matter_id\\/builder-drafts",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Builder preview route",
+              "pattern": "GET \\/api\\/matters\\/:matter_id\\/builder-drafts\\/:draft_id\\/preview",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Builder approval route",
+              "pattern": "POST \\/api\\/matters\\/:matter_id\\/builder-drafts\\/:draft_id\\/approval-requests",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Builder publish blocked route",
+              "pattern": "POST \\/api\\/matters\\/:matter_id\\/builder-drafts\\/:draft_id\\/publish-to-vault",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Email draft route",
+              "pattern": "POST \\/api\\/matters\\/:matter_id\\/email-drafts",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Email send blocked route",
+              "pattern": "POST \\/api\\/matters\\/:matter_id\\/email-drafts\\/:draft_id\\/send",
               "present": true
             },
             {
@@ -2212,8 +3306,8 @@
           ]
         },
         "package_service": {
-          "required_count": 2,
-          "passed_count": 2,
+          "required_count": 3,
+          "passed_count": 3,
           "passed": true,
           "markers": [
             {
@@ -2227,12 +3321,18 @@
               "label": "DMS search indexer",
               "pattern": "exists",
               "present": true
+            },
+            {
+              "file": "packages/matter/src/document-email-builder-service.js",
+              "label": "Document/email builder service",
+              "pattern": "exists",
+              "present": true
             }
           ]
         },
         "evidence": {
-          "required_count": 3,
-          "passed_count": 3,
+          "required_count": 5,
+          "passed_count": 5,
           "passed": true,
           "markers": [
             {
@@ -2250,6 +3350,2477 @@
             {
               "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-vault-inventory-search-audit.png",
               "label": "Vault inventory/search/audit QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-builder-email.png",
+              "label": "Browser QA builder/email screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w04-document-email-builder-contract.json",
+              "label": "W04R document/email builder contract",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "SF-SURFACE-B05-IMPORT-DATA-MAPPING",
+      "salesforce_capability": "Client/Matter import wizard, data mapping, dry-run, owner-blocked execute, rollback, and safe error report",
+      "parity_status": "implemented_route_mounted_owner_blocked",
+      "tuw_lanes": [
+        "SF-B-W05-T01",
+        "SF-B-W05-T02",
+        "SF-B-W05-T03"
+      ],
+      "ui_menu": [
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Client import section",
+          "pattern": "client-import",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Matter import section",
+          "pattern": "matter-import",
+          "present": true
+        }
+      ],
+      "ui_surface": [
+        {
+          "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+          "label": "Import wizard marker",
+          "pattern": "data-sf-b-w05-import-wizard=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+          "label": "Route-backed wizard marker",
+          "pattern": "data-client-matter-import-wizard=\"route-backed\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+          "label": "Target selector marker",
+          "pattern": "data-sf-b-w05-target-selector=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+          "label": "Source stage action marker",
+          "pattern": "data-sf-b-w05-source-stage-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+          "label": "Field mapping stepper marker",
+          "pattern": "data-sf-b-w05-field-mapping-stepper=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+          "label": "Safe preview marker",
+          "pattern": "data-sf-b-w05-preview-safe-sample=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+          "label": "Dry-run action marker",
+          "pattern": "data-sf-b-w05-dry-run-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+          "label": "Owner-blocked execute action marker",
+          "pattern": "data-sf-b-w05-execute-owner-blocked-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+          "label": "Rollback/error action marker",
+          "pattern": "data-sf-b-w05-rollback-error-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+          "label": "Safe error report marker",
+          "pattern": "data-sf-b-w05-error-report=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Client import panel mount",
+          "pattern": "ImportDataMappingPanel ctx=\\{liveCtx\\} surface=\"client\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Matter import panel mount",
+          "pattern": "ImportDataMappingPanel ctx=\\{liveCtx\\} surface=\"matter\"",
+          "present": true
+        }
+      ],
+      "api_client": [
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Import targets helper",
+          "pattern": "fetchClientMatterImportTargets",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Import jobs helper",
+          "pattern": "fetchClientMatterImportJobs",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Create import job helper",
+          "pattern": "createClientMatterImportJob",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Stage source helper",
+          "pattern": "stageImportSourceFile",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Preview helper",
+          "pattern": "fetchClientMatterImportPreview",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Field mapping helper",
+          "pattern": "saveImportFieldMapping",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Dry-run helper",
+          "pattern": "dryRunClientMatterImport",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Owner-blocked execute helper",
+          "pattern": "executeClientMatterImport",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Rollback helper",
+          "pattern": "rollbackClientMatterImport",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Error report helper",
+          "pattern": "fetchClientMatterImportErrorReport",
+          "present": true
+        }
+      ],
+      "api_route": [
+        {
+          "file": "apps/api/src/server.js",
+          "label": "Import data mapping server dispatch",
+          "pattern": "handleImportDataMappingApiRequest",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/import-data-mapping-runtime-context.js",
+          "label": "Import jobs list route",
+          "pattern": "GET \\/api\\/import-jobs",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/import-data-mapping-runtime-context.js",
+          "label": "Import job create route",
+          "pattern": "POST \\/api\\/import-jobs",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/import-data-mapping-runtime-context.js",
+          "label": "Import target list route",
+          "pattern": "GET \\/api\\/import-targets",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/import-data-mapping-runtime-context.js",
+          "label": "Source file stage route",
+          "pattern": "POST \\/api\\/import-jobs\\/:jobId\\/source-files",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/import-data-mapping-runtime-context.js",
+          "label": "Preview route",
+          "pattern": "GET \\/api\\/import-jobs\\/:jobId\\/preview",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/import-data-mapping-runtime-context.js",
+          "label": "Field mapping route",
+          "pattern": "POST \\/api\\/import-jobs\\/:jobId\\/field-mappings",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/import-data-mapping-runtime-context.js",
+          "label": "Dry-run route",
+          "pattern": "POST \\/api\\/import-jobs\\/:jobId\\/dry-run",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/import-data-mapping-runtime-context.js",
+          "label": "Owner-blocked execute route",
+          "pattern": "POST \\/api\\/import-jobs\\/:jobId\\/execute",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/import-data-mapping-runtime-context.js",
+          "label": "Receipt-blocked rollback route",
+          "pattern": "POST \\/api\\/import-jobs\\/:jobId\\/rollback",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/import-data-mapping-runtime-context.js",
+          "label": "Safe error report route",
+          "pattern": "GET \\/api\\/import-jobs\\/:jobId\\/error-report",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/routes/import-data-mapping.js",
+          "label": "Import route policy matcher",
+          "pattern": "matchImportDataMappingRoute",
+          "present": true
+        }
+      ],
+      "package_service": [
+        {
+          "file": "packages/import-data/src/service.js",
+          "label": "Import data mapping package service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/import-data/src/service.js",
+          "label": "Import job service factory",
+          "pattern": "createClientMatterImportJobService",
+          "present": true
+        },
+        {
+          "file": "packages/import-data/src/service.js",
+          "label": "Dry-run service",
+          "pattern": "dryRun",
+          "present": true
+        },
+        {
+          "file": "packages/import-data/src/service.js",
+          "label": "Owner-blocked execute service",
+          "pattern": "execute",
+          "present": true
+        },
+        {
+          "file": "packages/import-data/src/service.js",
+          "label": "Receipt-bound rollback service",
+          "pattern": "rollback",
+          "present": true
+        },
+        {
+          "file": "packages/import-data/src/service.js",
+          "label": "Safe error report service",
+          "pattern": "errorReport",
+          "present": true
+        }
+      ],
+      "evidence": [
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-import.png",
+          "label": "Browser QA Client import screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-import.png",
+          "label": "Browser QA Matter import screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w05-import-data-mapping-contract.json",
+          "label": "W05R import data mapping contract",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "apps/api/test/sf-b-w05-import-data-mapping.test.js",
+          "label": "W05R API regression",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "boundary": "Import wizard controls are route-backed and local-test-visible; execute remains owner-blocked, rollback remains receipt-bound, and raw rows/file bytes/provider enablement/fake success stay hidden.",
+      "connection_status": "ui_api_package_connected",
+      "group_status": {
+        "ui_menu": {
+          "required_count": 2,
+          "passed_count": 2,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Client import section",
+              "pattern": "client-import",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Matter import section",
+              "pattern": "matter-import",
+              "present": true
+            }
+          ]
+        },
+        "ui_surface": {
+          "required_count": 12,
+          "passed_count": 12,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+              "label": "Import wizard marker",
+              "pattern": "data-sf-b-w05-import-wizard=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+              "label": "Route-backed wizard marker",
+              "pattern": "data-client-matter-import-wizard=\"route-backed\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+              "label": "Target selector marker",
+              "pattern": "data-sf-b-w05-target-selector=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+              "label": "Source stage action marker",
+              "pattern": "data-sf-b-w05-source-stage-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+              "label": "Field mapping stepper marker",
+              "pattern": "data-sf-b-w05-field-mapping-stepper=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+              "label": "Safe preview marker",
+              "pattern": "data-sf-b-w05-preview-safe-sample=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+              "label": "Dry-run action marker",
+              "pattern": "data-sf-b-w05-dry-run-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+              "label": "Owner-blocked execute action marker",
+              "pattern": "data-sf-b-w05-execute-owner-blocked-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+              "label": "Rollback/error action marker",
+              "pattern": "data-sf-b-w05-rollback-error-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ImportDataMappingPanel.jsx",
+              "label": "Safe error report marker",
+              "pattern": "data-sf-b-w05-error-report=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Client import panel mount",
+              "pattern": "ImportDataMappingPanel ctx=\\{liveCtx\\} surface=\"client\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Matter import panel mount",
+              "pattern": "ImportDataMappingPanel ctx=\\{liveCtx\\} surface=\"matter\"",
+              "present": true
+            }
+          ]
+        },
+        "api_client": {
+          "required_count": 10,
+          "passed_count": 10,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Import targets helper",
+              "pattern": "fetchClientMatterImportTargets",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Import jobs helper",
+              "pattern": "fetchClientMatterImportJobs",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Create import job helper",
+              "pattern": "createClientMatterImportJob",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Stage source helper",
+              "pattern": "stageImportSourceFile",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Preview helper",
+              "pattern": "fetchClientMatterImportPreview",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Field mapping helper",
+              "pattern": "saveImportFieldMapping",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Dry-run helper",
+              "pattern": "dryRunClientMatterImport",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Owner-blocked execute helper",
+              "pattern": "executeClientMatterImport",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Rollback helper",
+              "pattern": "rollbackClientMatterImport",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Error report helper",
+              "pattern": "fetchClientMatterImportErrorReport",
+              "present": true
+            }
+          ]
+        },
+        "api_route": {
+          "required_count": 12,
+          "passed_count": 12,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/api/src/server.js",
+              "label": "Import data mapping server dispatch",
+              "pattern": "handleImportDataMappingApiRequest",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/import-data-mapping-runtime-context.js",
+              "label": "Import jobs list route",
+              "pattern": "GET \\/api\\/import-jobs",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/import-data-mapping-runtime-context.js",
+              "label": "Import job create route",
+              "pattern": "POST \\/api\\/import-jobs",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/import-data-mapping-runtime-context.js",
+              "label": "Import target list route",
+              "pattern": "GET \\/api\\/import-targets",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/import-data-mapping-runtime-context.js",
+              "label": "Source file stage route",
+              "pattern": "POST \\/api\\/import-jobs\\/:jobId\\/source-files",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/import-data-mapping-runtime-context.js",
+              "label": "Preview route",
+              "pattern": "GET \\/api\\/import-jobs\\/:jobId\\/preview",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/import-data-mapping-runtime-context.js",
+              "label": "Field mapping route",
+              "pattern": "POST \\/api\\/import-jobs\\/:jobId\\/field-mappings",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/import-data-mapping-runtime-context.js",
+              "label": "Dry-run route",
+              "pattern": "POST \\/api\\/import-jobs\\/:jobId\\/dry-run",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/import-data-mapping-runtime-context.js",
+              "label": "Owner-blocked execute route",
+              "pattern": "POST \\/api\\/import-jobs\\/:jobId\\/execute",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/import-data-mapping-runtime-context.js",
+              "label": "Receipt-blocked rollback route",
+              "pattern": "POST \\/api\\/import-jobs\\/:jobId\\/rollback",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/import-data-mapping-runtime-context.js",
+              "label": "Safe error report route",
+              "pattern": "GET \\/api\\/import-jobs\\/:jobId\\/error-report",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/routes/import-data-mapping.js",
+              "label": "Import route policy matcher",
+              "pattern": "matchImportDataMappingRoute",
+              "present": true
+            }
+          ]
+        },
+        "package_service": {
+          "required_count": 6,
+          "passed_count": 6,
+          "passed": true,
+          "markers": [
+            {
+              "file": "packages/import-data/src/service.js",
+              "label": "Import data mapping package service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/import-data/src/service.js",
+              "label": "Import job service factory",
+              "pattern": "createClientMatterImportJobService",
+              "present": true
+            },
+            {
+              "file": "packages/import-data/src/service.js",
+              "label": "Dry-run service",
+              "pattern": "dryRun",
+              "present": true
+            },
+            {
+              "file": "packages/import-data/src/service.js",
+              "label": "Owner-blocked execute service",
+              "pattern": "execute",
+              "present": true
+            },
+            {
+              "file": "packages/import-data/src/service.js",
+              "label": "Receipt-bound rollback service",
+              "pattern": "rollback",
+              "present": true
+            },
+            {
+              "file": "packages/import-data/src/service.js",
+              "label": "Safe error report service",
+              "pattern": "errorReport",
+              "present": true
+            }
+          ]
+        },
+        "evidence": {
+          "required_count": 4,
+          "passed_count": 4,
+          "passed": true,
+          "markers": [
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-import.png",
+              "label": "Browser QA Client import screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-import.png",
+              "label": "Browser QA Matter import screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w05-import-data-mapping-contract.json",
+              "label": "W05R import data mapping contract",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "apps/api/test/sf-b-w05-import-data-mapping.test.js",
+              "label": "W05R API regression",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "SF-SURFACE-B06-PERMISSION-ADMIN",
+      "salesforce_capability": "Salesforce permission sets, assignments, Object Manager, connected apps, and admin audit",
+      "parity_status": "implemented_route_mounted_owner_provider_blocked",
+      "tuw_lanes": [
+        "SF-B-W06-T01",
+        "SF-B-W06-T02",
+        "SF-B-W06-T03",
+        "SF-B-W06-T04",
+        "SF-B-W06-T05"
+      ],
+      "ui_menu": [
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "People permission admin section",
+          "pattern": "people-admin",
+          "present": true
+        }
+      ],
+      "ui_surface": [
+        {
+          "file": "apps/web/src/people/PeopleHome.tsx",
+          "label": "People admin panel mount",
+          "pattern": "PermissionAdminPanel",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+          "label": "W06 admin setup marker",
+          "pattern": "data-sf-b-w06-admin-setup=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+          "label": "Permission set panel marker",
+          "pattern": "data-permission-set-admin=\"route-backed\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+          "label": "Permission assignment marker",
+          "pattern": "data-permission-assignment-admin=\"route-backed\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+          "label": "Object Manager marker",
+          "pattern": "data-object-manager-admin=\"route-backed\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+          "label": "Connected apps provider blocked marker",
+          "pattern": "data-connected-apps-admin=\"provider-blocked\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+          "label": "Admin audit marker",
+          "pattern": "data-sf-b-w06-admin-audit=\"true\"",
+          "present": true
+        }
+      ],
+      "api_client": [
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Permission sets helper",
+          "pattern": "fetchPermissionSets",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Create permission set helper",
+          "pattern": "createPermissionSet",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Patch permission set helper",
+          "pattern": "patchPermissionSet",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Permission assignments helper",
+          "pattern": "fetchPermissionAssignments",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Assign permission set helper",
+          "pattern": "assignPermissionSet",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Revoke assignment helper",
+          "pattern": "revokePermissionSetAssignment",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Object Manager objects helper",
+          "pattern": "fetchObjectManagerObjects",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Object Manager fields helper",
+          "pattern": "fetchObjectManagerFields",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Field policy helper",
+          "pattern": "patchObjectFieldPolicy",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Connected apps helper",
+          "pattern": "fetchConnectedApps",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Create connected app helper",
+          "pattern": "createConnectedApp",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Disable connected app helper",
+          "pattern": "disableConnectedApp",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Admin audit helper",
+          "pattern": "fetchAdminPermissionAudit",
+          "present": true
+        }
+      ],
+      "api_route": [
+        {
+          "file": "apps/api/src/server.js",
+          "label": "Admin permission server dispatch",
+          "pattern": "handleAdminPermissionApiRequest",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/admin-permission-runtime-context.js",
+          "label": "Permission sets read route",
+          "pattern": "GET \\/api\\/admin\\/permission-sets",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/admin-permission-runtime-context.js",
+          "label": "Permission set create route",
+          "pattern": "POST \\/api\\/admin\\/permission-sets",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/admin-permission-runtime-context.js",
+          "label": "Permission set patch route",
+          "pattern": "PATCH \\/api\\/admin\\/permission-sets\\/:permissionSetId",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/admin-permission-runtime-context.js",
+          "label": "Permission assignments read route",
+          "pattern": "GET \\/api\\/admin\\/permission-assignments",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/admin-permission-runtime-context.js",
+          "label": "Permission assignment write route",
+          "pattern": "POST \\/api\\/admin\\/permission-assignments",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/admin-permission-runtime-context.js",
+          "label": "Permission assignment revoke route",
+          "pattern": "DELETE \\/api\\/admin\\/permission-assignments\\/:assignmentId",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/admin-permission-runtime-context.js",
+          "label": "Object Manager read route",
+          "pattern": "GET \\/api\\/admin\\/object-manager\\/objects",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/admin-permission-runtime-context.js",
+          "label": "Object fields read route",
+          "pattern": "GET \\/api\\/admin\\/object-manager\\/objects\\/:objectName\\/fields",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/admin-permission-runtime-context.js",
+          "label": "Field policy patch route",
+          "pattern": "PATCH \\/api\\/admin\\/object-manager\\/objects\\/:objectName\\/fields\\/:fieldName",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/admin-permission-runtime-context.js",
+          "label": "Connected apps read route",
+          "pattern": "GET \\/api\\/admin\\/connected-apps",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/admin-permission-runtime-context.js",
+          "label": "Connected app create route",
+          "pattern": "POST \\/api\\/admin\\/connected-apps",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/admin-permission-runtime-context.js",
+          "label": "Connected app disable route",
+          "pattern": "POST \\/api\\/admin\\/connected-apps\\/:appId\\/disable",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/admin-permission-runtime-context.js",
+          "label": "Admin audit route",
+          "pattern": "GET \\/api\\/admin\\/audit",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/routes/admin-permission.js",
+          "label": "Admin permission route policy matcher",
+          "pattern": "matchAdminPermissionRoute",
+          "present": true
+        }
+      ],
+      "package_service": [
+        {
+          "file": "packages/admin/src/permission-admin-service.js",
+          "label": "Permission admin package service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/admin/src/permission-admin-service.js",
+          "label": "Permission admin service factory",
+          "pattern": "createPermissionAdminSetupService",
+          "present": true
+        },
+        {
+          "file": "packages/admin/src/permission-admin-service.js",
+          "label": "Permission set create service",
+          "pattern": "createPermissionSet",
+          "present": true
+        },
+        {
+          "file": "packages/admin/src/permission-admin-service.js",
+          "label": "Permission assignment service",
+          "pattern": "assignPermissionSet",
+          "present": true
+        },
+        {
+          "file": "packages/admin/src/permission-admin-service.js",
+          "label": "Object field policy service",
+          "pattern": "patchObjectFieldPolicy",
+          "present": true
+        },
+        {
+          "file": "packages/admin/src/permission-admin-service.js",
+          "label": "Connected app provider-blocked service",
+          "pattern": "disableConnectedApp",
+          "present": true
+        }
+      ],
+      "evidence": [
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-people-admin.png",
+          "label": "Browser QA People admin screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w06-permission-admin-contract.json",
+          "label": "W06R permission admin contract",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "apps/api/test/sf-b-w06-permission-admin.test.js",
+          "label": "W06R API regression",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "boundary": "People 권한 관리 controls are route-backed and local-test-visible; permission grants, revocations, physical schema mutation, provider revocation, production approval, and trust claims remain owner/provider-blocked.",
+      "connection_status": "ui_api_package_connected",
+      "group_status": {
+        "ui_menu": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "People permission admin section",
+              "pattern": "people-admin",
+              "present": true
+            }
+          ]
+        },
+        "ui_surface": {
+          "required_count": 7,
+          "passed_count": 7,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/people/PeopleHome.tsx",
+              "label": "People admin panel mount",
+              "pattern": "PermissionAdminPanel",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+              "label": "W06 admin setup marker",
+              "pattern": "data-sf-b-w06-admin-setup=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+              "label": "Permission set panel marker",
+              "pattern": "data-permission-set-admin=\"route-backed\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+              "label": "Permission assignment marker",
+              "pattern": "data-permission-assignment-admin=\"route-backed\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+              "label": "Object Manager marker",
+              "pattern": "data-object-manager-admin=\"route-backed\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+              "label": "Connected apps provider blocked marker",
+              "pattern": "data-connected-apps-admin=\"provider-blocked\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+              "label": "Admin audit marker",
+              "pattern": "data-sf-b-w06-admin-audit=\"true\"",
+              "present": true
+            }
+          ]
+        },
+        "api_client": {
+          "required_count": 13,
+          "passed_count": 13,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Permission sets helper",
+              "pattern": "fetchPermissionSets",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Create permission set helper",
+              "pattern": "createPermissionSet",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Patch permission set helper",
+              "pattern": "patchPermissionSet",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Permission assignments helper",
+              "pattern": "fetchPermissionAssignments",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Assign permission set helper",
+              "pattern": "assignPermissionSet",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Revoke assignment helper",
+              "pattern": "revokePermissionSetAssignment",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Object Manager objects helper",
+              "pattern": "fetchObjectManagerObjects",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Object Manager fields helper",
+              "pattern": "fetchObjectManagerFields",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Field policy helper",
+              "pattern": "patchObjectFieldPolicy",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Connected apps helper",
+              "pattern": "fetchConnectedApps",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Create connected app helper",
+              "pattern": "createConnectedApp",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Disable connected app helper",
+              "pattern": "disableConnectedApp",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Admin audit helper",
+              "pattern": "fetchAdminPermissionAudit",
+              "present": true
+            }
+          ]
+        },
+        "api_route": {
+          "required_count": 15,
+          "passed_count": 15,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/api/src/server.js",
+              "label": "Admin permission server dispatch",
+              "pattern": "handleAdminPermissionApiRequest",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/admin-permission-runtime-context.js",
+              "label": "Permission sets read route",
+              "pattern": "GET \\/api\\/admin\\/permission-sets",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/admin-permission-runtime-context.js",
+              "label": "Permission set create route",
+              "pattern": "POST \\/api\\/admin\\/permission-sets",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/admin-permission-runtime-context.js",
+              "label": "Permission set patch route",
+              "pattern": "PATCH \\/api\\/admin\\/permission-sets\\/:permissionSetId",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/admin-permission-runtime-context.js",
+              "label": "Permission assignments read route",
+              "pattern": "GET \\/api\\/admin\\/permission-assignments",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/admin-permission-runtime-context.js",
+              "label": "Permission assignment write route",
+              "pattern": "POST \\/api\\/admin\\/permission-assignments",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/admin-permission-runtime-context.js",
+              "label": "Permission assignment revoke route",
+              "pattern": "DELETE \\/api\\/admin\\/permission-assignments\\/:assignmentId",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/admin-permission-runtime-context.js",
+              "label": "Object Manager read route",
+              "pattern": "GET \\/api\\/admin\\/object-manager\\/objects",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/admin-permission-runtime-context.js",
+              "label": "Object fields read route",
+              "pattern": "GET \\/api\\/admin\\/object-manager\\/objects\\/:objectName\\/fields",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/admin-permission-runtime-context.js",
+              "label": "Field policy patch route",
+              "pattern": "PATCH \\/api\\/admin\\/object-manager\\/objects\\/:objectName\\/fields\\/:fieldName",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/admin-permission-runtime-context.js",
+              "label": "Connected apps read route",
+              "pattern": "GET \\/api\\/admin\\/connected-apps",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/admin-permission-runtime-context.js",
+              "label": "Connected app create route",
+              "pattern": "POST \\/api\\/admin\\/connected-apps",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/admin-permission-runtime-context.js",
+              "label": "Connected app disable route",
+              "pattern": "POST \\/api\\/admin\\/connected-apps\\/:appId\\/disable",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/admin-permission-runtime-context.js",
+              "label": "Admin audit route",
+              "pattern": "GET \\/api\\/admin\\/audit",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/routes/admin-permission.js",
+              "label": "Admin permission route policy matcher",
+              "pattern": "matchAdminPermissionRoute",
+              "present": true
+            }
+          ]
+        },
+        "package_service": {
+          "required_count": 6,
+          "passed_count": 6,
+          "passed": true,
+          "markers": [
+            {
+              "file": "packages/admin/src/permission-admin-service.js",
+              "label": "Permission admin package service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/admin/src/permission-admin-service.js",
+              "label": "Permission admin service factory",
+              "pattern": "createPermissionAdminSetupService",
+              "present": true
+            },
+            {
+              "file": "packages/admin/src/permission-admin-service.js",
+              "label": "Permission set create service",
+              "pattern": "createPermissionSet",
+              "present": true
+            },
+            {
+              "file": "packages/admin/src/permission-admin-service.js",
+              "label": "Permission assignment service",
+              "pattern": "assignPermissionSet",
+              "present": true
+            },
+            {
+              "file": "packages/admin/src/permission-admin-service.js",
+              "label": "Object field policy service",
+              "pattern": "patchObjectFieldPolicy",
+              "present": true
+            },
+            {
+              "file": "packages/admin/src/permission-admin-service.js",
+              "label": "Connected app provider-blocked service",
+              "pattern": "disableConnectedApp",
+              "present": true
+            }
+          ]
+        },
+        "evidence": {
+          "required_count": 3,
+          "passed_count": 3,
+          "passed": true,
+          "markers": [
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-people-admin.png",
+              "label": "Browser QA People admin screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w06-permission-admin-contract.json",
+              "label": "W06R permission admin contract",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "apps/api/test/sf-b-w06-permission-admin.test.js",
+              "label": "W06R API regression",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "SF-SURFACE-B07-DATA-CLOUD-ENRICHMENT",
+      "salesforce_capability": "Salesforce Data Cloud provider setup, consent, enrichment preview, identity resolution, unified profile, and segment activation",
+      "parity_status": "implemented_route_mounted_owner_provider_blocked",
+      "tuw_lanes": [
+        "SF-B-W07-T01",
+        "SF-B-W07-T02",
+        "SF-B-W07-T03"
+      ],
+      "ui_menu": [
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Client data section",
+          "pattern": "client-data",
+          "present": true
+        }
+      ],
+      "ui_surface": [
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Client data cloud panel mount",
+          "pattern": "DataCloudEnrichmentPanel ctx=\\{liveCtx\\}",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Client right panel data marker",
+          "pattern": "data-sf-b-w07-right-panel-enrichment-summary=\"route-backed\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+          "label": "W07 data enrichment workspace",
+          "pattern": "data-data-cloud-enrichment=\"route-backed\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+          "label": "Provider admin provider-blocked marker",
+          "pattern": "data-enrichment-provider-admin=\"provider-blocked\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+          "label": "Provider register action",
+          "pattern": "data-sf-b-w07-provider-register-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+          "label": "Consent owner-blocked action",
+          "pattern": "data-sf-b-w07-consent-record-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+          "label": "Enrichment job action",
+          "pattern": "data-sf-b-w07-enrichment-job-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+          "label": "Safe enrichment preview",
+          "pattern": "data-sf-b-w07-enrichment-preview=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+          "label": "Provider-blocked execute action",
+          "pattern": "data-sf-b-w07-enrichment-execute-provider-blocked-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+          "label": "Identity resolution route-backed marker",
+          "pattern": "data-identity-resolution=\"route-backed\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+          "label": "Unified profile marker",
+          "pattern": "data-unified-profile=\"route-backed\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+          "label": "Segment activation provider-blocked marker",
+          "pattern": "data-segment-activation=\"provider-blocked\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+          "label": "Data Cloud audit marker",
+          "pattern": "data-sf-b-w07-audit=\"true\"",
+          "present": true
+        }
+      ],
+      "api_client": [
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Data Cloud providers helper",
+          "pattern": "fetchDataCloudProviders",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Provider register helper",
+          "pattern": "createDataCloudProvider",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Consent record helper",
+          "pattern": "createDataCloudConsentRecord",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Create enrichment job helper",
+          "pattern": "createEnrichmentJob",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Fetch enrichment preview helper",
+          "pattern": "fetchEnrichmentPreview",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Execute enrichment job helper",
+          "pattern": "executeEnrichmentJob",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Enrichment results helper",
+          "pattern": "fetchEnrichmentResults",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Identity resolution helper",
+          "pattern": "runIdentityResolution",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Unified profile helper",
+          "pattern": "fetchUnifiedCustomerProfile",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Segment activation helper",
+          "pattern": "activateDataCloudSegment",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Data Cloud audit helper",
+          "pattern": "fetchDataCloudAudit",
+          "present": true
+        }
+      ],
+      "api_route": [
+        {
+          "file": "apps/api/src/server.js",
+          "label": "Data Cloud server dispatch",
+          "pattern": "handleDataCloudApiRequest",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/data-cloud-runtime-context.js",
+          "label": "Provider list route",
+          "pattern": "GET \\/api\\/data-cloud\\/providers",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/data-cloud-runtime-context.js",
+          "label": "Provider register route",
+          "pattern": "POST \\/api\\/data-cloud\\/providers",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/data-cloud-runtime-context.js",
+          "label": "Consent record route",
+          "pattern": "POST \\/api\\/data-cloud\\/consent-records",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/data-cloud-runtime-context.js",
+          "label": "Enrichment job create route",
+          "pattern": "POST \\/api\\/data-cloud\\/enrichment-jobs",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/data-cloud-runtime-context.js",
+          "label": "Enrichment preview route",
+          "pattern": "GET \\/api\\/data-cloud\\/enrichment-jobs\\/:jobId\\/preview",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/data-cloud-runtime-context.js",
+          "label": "Provider-blocked execute route",
+          "pattern": "POST \\/api\\/data-cloud\\/enrichment-jobs\\/:jobId\\/execute",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/data-cloud-runtime-context.js",
+          "label": "Enrichment results route",
+          "pattern": "GET \\/api\\/data-cloud\\/enrichment-results",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/data-cloud-runtime-context.js",
+          "label": "Identity resolution route",
+          "pattern": "POST \\/api\\/data-cloud\\/identity-resolution",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/data-cloud-runtime-context.js",
+          "label": "Unified profile route",
+          "pattern": "GET \\/api\\/data-cloud\\/unified-profiles\\/:profileId",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/data-cloud-runtime-context.js",
+          "label": "Segment activation route",
+          "pattern": "POST \\/api\\/data-cloud\\/segment-activations",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/data-cloud-runtime-context.js",
+          "label": "Data Cloud audit route",
+          "pattern": "GET \\/api\\/data-cloud\\/audit",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/routes/data-cloud.js",
+          "label": "Data Cloud route policy matcher",
+          "pattern": "matchDataCloudRoute",
+          "present": true
+        }
+      ],
+      "package_service": [
+        {
+          "file": "packages/data-cloud/src/service.js",
+          "label": "Data Cloud enrichment package service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/data-cloud/src/service.js",
+          "label": "Data Cloud service factory",
+          "pattern": "createDataCloudEnrichmentService",
+          "present": true
+        },
+        {
+          "file": "packages/data-cloud/src/service.js",
+          "label": "Provider register service",
+          "pattern": "registerProvider",
+          "present": true
+        },
+        {
+          "file": "packages/data-cloud/src/service.js",
+          "label": "Consent service",
+          "pattern": "recordConsent",
+          "present": true
+        },
+        {
+          "file": "packages/data-cloud/src/service.js",
+          "label": "Enrichment job service",
+          "pattern": "createEnrichmentJob",
+          "present": true
+        },
+        {
+          "file": "packages/data-cloud/src/service.js",
+          "label": "Provider-blocked execute service",
+          "pattern": "executeEnrichmentJob",
+          "present": true
+        },
+        {
+          "file": "packages/data-cloud/src/service.js",
+          "label": "Identity resolution service",
+          "pattern": "runIdentityResolution",
+          "present": true
+        },
+        {
+          "file": "packages/data-cloud/src/service.js",
+          "label": "Unified profile service",
+          "pattern": "getUnifiedProfile",
+          "present": true
+        },
+        {
+          "file": "packages/data-cloud/src/service.js",
+          "label": "Segment activation service",
+          "pattern": "createSegmentActivation",
+          "present": true
+        }
+      ],
+      "evidence": [
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-data-cloud.png",
+          "label": "Browser QA Client data cloud screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w07-data-cloud-enrichment-contract.json",
+          "label": "W07R Data Cloud contract",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "apps/api/test/sf-b-w07-data-cloud-enrichment.test.js",
+          "label": "W07R API regression",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "boundary": "Data Cloud controls are route-backed and local-test-visible; external enrichment execution and segment activation remain provider-blocked, consent/identity effects remain owner-blocked, and raw identifiers/provider payloads/tokens/fake success stay hidden.",
+      "connection_status": "ui_api_package_connected",
+      "group_status": {
+        "ui_menu": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Client data section",
+              "pattern": "client-data",
+              "present": true
+            }
+          ]
+        },
+        "ui_surface": {
+          "required_count": 13,
+          "passed_count": 13,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Client data cloud panel mount",
+              "pattern": "DataCloudEnrichmentPanel ctx=\\{liveCtx\\}",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Client right panel data marker",
+              "pattern": "data-sf-b-w07-right-panel-enrichment-summary=\"route-backed\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+              "label": "W07 data enrichment workspace",
+              "pattern": "data-data-cloud-enrichment=\"route-backed\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+              "label": "Provider admin provider-blocked marker",
+              "pattern": "data-enrichment-provider-admin=\"provider-blocked\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+              "label": "Provider register action",
+              "pattern": "data-sf-b-w07-provider-register-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+              "label": "Consent owner-blocked action",
+              "pattern": "data-sf-b-w07-consent-record-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+              "label": "Enrichment job action",
+              "pattern": "data-sf-b-w07-enrichment-job-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+              "label": "Safe enrichment preview",
+              "pattern": "data-sf-b-w07-enrichment-preview=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+              "label": "Provider-blocked execute action",
+              "pattern": "data-sf-b-w07-enrichment-execute-provider-blocked-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+              "label": "Identity resolution route-backed marker",
+              "pattern": "data-identity-resolution=\"route-backed\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+              "label": "Unified profile marker",
+              "pattern": "data-unified-profile=\"route-backed\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+              "label": "Segment activation provider-blocked marker",
+              "pattern": "data-segment-activation=\"provider-blocked\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+              "label": "Data Cloud audit marker",
+              "pattern": "data-sf-b-w07-audit=\"true\"",
+              "present": true
+            }
+          ]
+        },
+        "api_client": {
+          "required_count": 11,
+          "passed_count": 11,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Data Cloud providers helper",
+              "pattern": "fetchDataCloudProviders",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Provider register helper",
+              "pattern": "createDataCloudProvider",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Consent record helper",
+              "pattern": "createDataCloudConsentRecord",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Create enrichment job helper",
+              "pattern": "createEnrichmentJob",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Fetch enrichment preview helper",
+              "pattern": "fetchEnrichmentPreview",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Execute enrichment job helper",
+              "pattern": "executeEnrichmentJob",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Enrichment results helper",
+              "pattern": "fetchEnrichmentResults",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Identity resolution helper",
+              "pattern": "runIdentityResolution",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Unified profile helper",
+              "pattern": "fetchUnifiedCustomerProfile",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Segment activation helper",
+              "pattern": "activateDataCloudSegment",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Data Cloud audit helper",
+              "pattern": "fetchDataCloudAudit",
+              "present": true
+            }
+          ]
+        },
+        "api_route": {
+          "required_count": 13,
+          "passed_count": 13,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/api/src/server.js",
+              "label": "Data Cloud server dispatch",
+              "pattern": "handleDataCloudApiRequest",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/data-cloud-runtime-context.js",
+              "label": "Provider list route",
+              "pattern": "GET \\/api\\/data-cloud\\/providers",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/data-cloud-runtime-context.js",
+              "label": "Provider register route",
+              "pattern": "POST \\/api\\/data-cloud\\/providers",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/data-cloud-runtime-context.js",
+              "label": "Consent record route",
+              "pattern": "POST \\/api\\/data-cloud\\/consent-records",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/data-cloud-runtime-context.js",
+              "label": "Enrichment job create route",
+              "pattern": "POST \\/api\\/data-cloud\\/enrichment-jobs",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/data-cloud-runtime-context.js",
+              "label": "Enrichment preview route",
+              "pattern": "GET \\/api\\/data-cloud\\/enrichment-jobs\\/:jobId\\/preview",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/data-cloud-runtime-context.js",
+              "label": "Provider-blocked execute route",
+              "pattern": "POST \\/api\\/data-cloud\\/enrichment-jobs\\/:jobId\\/execute",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/data-cloud-runtime-context.js",
+              "label": "Enrichment results route",
+              "pattern": "GET \\/api\\/data-cloud\\/enrichment-results",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/data-cloud-runtime-context.js",
+              "label": "Identity resolution route",
+              "pattern": "POST \\/api\\/data-cloud\\/identity-resolution",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/data-cloud-runtime-context.js",
+              "label": "Unified profile route",
+              "pattern": "GET \\/api\\/data-cloud\\/unified-profiles\\/:profileId",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/data-cloud-runtime-context.js",
+              "label": "Segment activation route",
+              "pattern": "POST \\/api\\/data-cloud\\/segment-activations",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/data-cloud-runtime-context.js",
+              "label": "Data Cloud audit route",
+              "pattern": "GET \\/api\\/data-cloud\\/audit",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/routes/data-cloud.js",
+              "label": "Data Cloud route policy matcher",
+              "pattern": "matchDataCloudRoute",
+              "present": true
+            }
+          ]
+        },
+        "package_service": {
+          "required_count": 9,
+          "passed_count": 9,
+          "passed": true,
+          "markers": [
+            {
+              "file": "packages/data-cloud/src/service.js",
+              "label": "Data Cloud enrichment package service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/data-cloud/src/service.js",
+              "label": "Data Cloud service factory",
+              "pattern": "createDataCloudEnrichmentService",
+              "present": true
+            },
+            {
+              "file": "packages/data-cloud/src/service.js",
+              "label": "Provider register service",
+              "pattern": "registerProvider",
+              "present": true
+            },
+            {
+              "file": "packages/data-cloud/src/service.js",
+              "label": "Consent service",
+              "pattern": "recordConsent",
+              "present": true
+            },
+            {
+              "file": "packages/data-cloud/src/service.js",
+              "label": "Enrichment job service",
+              "pattern": "createEnrichmentJob",
+              "present": true
+            },
+            {
+              "file": "packages/data-cloud/src/service.js",
+              "label": "Provider-blocked execute service",
+              "pattern": "executeEnrichmentJob",
+              "present": true
+            },
+            {
+              "file": "packages/data-cloud/src/service.js",
+              "label": "Identity resolution service",
+              "pattern": "runIdentityResolution",
+              "present": true
+            },
+            {
+              "file": "packages/data-cloud/src/service.js",
+              "label": "Unified profile service",
+              "pattern": "getUnifiedProfile",
+              "present": true
+            },
+            {
+              "file": "packages/data-cloud/src/service.js",
+              "label": "Segment activation service",
+              "pattern": "createSegmentActivation",
+              "present": true
+            }
+          ]
+        },
+        "evidence": {
+          "required_count": 3,
+          "passed_count": 3,
+          "passed": true,
+          "markers": [
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-data-cloud.png",
+              "label": "Browser QA Client data cloud screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w07-data-cloud-enrichment-contract.json",
+              "label": "W07R Data Cloud contract",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "apps/api/test/sf-b-w07-data-cloud-enrichment.test.js",
+              "label": "W07R API regression",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "SF-SURFACE-B08-REPORT-BUILDER-CLIENT-PROFITABILITY",
+      "salesforce_capability": "Salesforce reports tab, report builder save/run/share, bounded table/chart results, and Client profitability analytics",
+      "parity_status": "implemented_route_mounted_owner_blocked",
+      "tuw_lanes": [
+        "SF-B-W08-T01",
+        "SF-B-W08-T02",
+        "SF-B-W08-T03",
+        "SF-B-W08-T04"
+      ],
+      "ui_menu": [
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Client reports section",
+          "pattern": "client-reports",
+          "present": true
+        }
+      ],
+      "ui_surface": [
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Client report builder mount",
+          "pattern": "ReportBuilderPanel ctx=\\{liveCtx\\}",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Client right panel report marker",
+          "pattern": "data-sf-b-w08-right-panel-report-summary=\"route-backed\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+          "label": "W08 report builder workspace",
+          "pattern": "data-report-builder=\"route-backed\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+          "label": "W08 query builder marker",
+          "pattern": "data-report-query-builder=\"route-backed\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+          "label": "Saved report list",
+          "pattern": "data-sf-b-w08-report-list=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+          "label": "Report create action",
+          "pattern": "data-sf-b-w08-report-create-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+          "label": "Report patch action",
+          "pattern": "data-sf-b-w08-report-patch-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+          "label": "Client profitability marker",
+          "pattern": "data-client-profitability=\"route-backed\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+          "label": "Client profitability refresh",
+          "pattern": "data-sf-b-w08-client-profitability-refresh-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+          "label": "Report run action",
+          "pattern": "data-sf-b-w08-report-run-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+          "label": "Bounded report result",
+          "pattern": "data-sf-b-w08-report-result-table=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+          "label": "Owner-blocked report share",
+          "pattern": "data-report-share-action=\"owner-blocked\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+          "label": "Report audit marker",
+          "pattern": "data-sf-b-w08-report-audit=\"true\"",
+          "present": true
+        }
+      ],
+      "api_client": [
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Report definitions helper",
+          "pattern": "fetchReportDefinitions",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Report create helper",
+          "pattern": "createReportDefinition",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Report patch helper",
+          "pattern": "patchReportDefinition",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Report query run helper",
+          "pattern": "runReportQuery",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Report share helper",
+          "pattern": "shareReportDefinition",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Report audit helper",
+          "pattern": "fetchReportAudit",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Client profitability read helper",
+          "pattern": "fetchAnalyticsClientProfitability",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Client profitability refresh helper",
+          "pattern": "refreshClientProfitability",
+          "present": true
+        }
+      ],
+      "api_route": [
+        {
+          "file": "apps/api/src/server.js",
+          "label": "Report server dispatch",
+          "pattern": "handleReportsApiRequest",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/reports-runtime-context.js",
+          "label": "Report list route",
+          "pattern": "GET \\/api\\/reports",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/reports-runtime-context.js",
+          "label": "Report create route",
+          "pattern": "POST \\/api\\/reports",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/reports-runtime-context.js",
+          "label": "Report patch route",
+          "pattern": "PATCH \\/api\\/reports\\/:reportId",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/reports-runtime-context.js",
+          "label": "Report run route",
+          "pattern": "POST \\/api\\/reports\\/:reportId\\/run",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/reports-runtime-context.js",
+          "label": "Report owner-blocked share route",
+          "pattern": "POST \\/api\\/reports\\/:reportId\\/share",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/reports-runtime-context.js",
+          "label": "Report audit route",
+          "pattern": "GET \\/api\\/reports\\/:reportId\\/audit",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/routes/reports.js",
+          "label": "Report route policy matcher",
+          "pattern": "matchReportRoute",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/analytics-runtime-context.js",
+          "label": "Client profitability analytics route",
+          "pattern": "\\/api\\/analytics\\/client-profitability",
+          "present": true
+        }
+      ],
+      "package_service": [
+        {
+          "file": "packages/reports/src/service.js",
+          "label": "Report builder package service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/reports/src/service.js",
+          "label": "Report service factory",
+          "pattern": "createReportBuilderService",
+          "present": true
+        },
+        {
+          "file": "packages/reports/src/service.js",
+          "label": "Report create service",
+          "pattern": "createReport",
+          "present": true
+        },
+        {
+          "file": "packages/reports/src/service.js",
+          "label": "Report patch service",
+          "pattern": "patchReport",
+          "present": true
+        },
+        {
+          "file": "packages/reports/src/service.js",
+          "label": "Safe aggregate report run service",
+          "pattern": "runReport",
+          "present": true
+        },
+        {
+          "file": "packages/reports/src/service.js",
+          "label": "Owner-blocked share service",
+          "pattern": "shareReport",
+          "present": true
+        },
+        {
+          "file": "packages/analytics/src/metrics-service.js",
+          "label": "Client profitability service",
+          "pattern": "createClientProfitability",
+          "present": true
+        }
+      ],
+      "evidence": [
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-reports.png",
+          "label": "Browser QA Client reports screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w08-reporting-builder-contract.json",
+          "label": "W08R report builder contract",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "apps/api/test/sf-b-w08-report-builder-client-profitability.test.js",
+          "label": "W08R API regression",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "boundary": "Report builder and Client profitability controls are route-backed and local-test-visible; report sharing remains owner-blocked, arbitrary SQL/raw query payload/source billing rows stay hidden, and production approval/trust claims remain false.",
+      "connection_status": "ui_api_package_connected",
+      "group_status": {
+        "ui_menu": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Client reports section",
+              "pattern": "client-reports",
+              "present": true
+            }
+          ]
+        },
+        "ui_surface": {
+          "required_count": 13,
+          "passed_count": 13,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Client report builder mount",
+              "pattern": "ReportBuilderPanel ctx=\\{liveCtx\\}",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Client right panel report marker",
+              "pattern": "data-sf-b-w08-right-panel-report-summary=\"route-backed\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+              "label": "W08 report builder workspace",
+              "pattern": "data-report-builder=\"route-backed\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+              "label": "W08 query builder marker",
+              "pattern": "data-report-query-builder=\"route-backed\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+              "label": "Saved report list",
+              "pattern": "data-sf-b-w08-report-list=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+              "label": "Report create action",
+              "pattern": "data-sf-b-w08-report-create-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+              "label": "Report patch action",
+              "pattern": "data-sf-b-w08-report-patch-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+              "label": "Client profitability marker",
+              "pattern": "data-client-profitability=\"route-backed\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+              "label": "Client profitability refresh",
+              "pattern": "data-sf-b-w08-client-profitability-refresh-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+              "label": "Report run action",
+              "pattern": "data-sf-b-w08-report-run-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+              "label": "Bounded report result",
+              "pattern": "data-sf-b-w08-report-result-table=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+              "label": "Owner-blocked report share",
+              "pattern": "data-report-share-action=\"owner-blocked\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ReportBuilderPanel.jsx",
+              "label": "Report audit marker",
+              "pattern": "data-sf-b-w08-report-audit=\"true\"",
+              "present": true
+            }
+          ]
+        },
+        "api_client": {
+          "required_count": 8,
+          "passed_count": 8,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Report definitions helper",
+              "pattern": "fetchReportDefinitions",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Report create helper",
+              "pattern": "createReportDefinition",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Report patch helper",
+              "pattern": "patchReportDefinition",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Report query run helper",
+              "pattern": "runReportQuery",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Report share helper",
+              "pattern": "shareReportDefinition",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Report audit helper",
+              "pattern": "fetchReportAudit",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Client profitability read helper",
+              "pattern": "fetchAnalyticsClientProfitability",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Client profitability refresh helper",
+              "pattern": "refreshClientProfitability",
+              "present": true
+            }
+          ]
+        },
+        "api_route": {
+          "required_count": 9,
+          "passed_count": 9,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/api/src/server.js",
+              "label": "Report server dispatch",
+              "pattern": "handleReportsApiRequest",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/reports-runtime-context.js",
+              "label": "Report list route",
+              "pattern": "GET \\/api\\/reports",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/reports-runtime-context.js",
+              "label": "Report create route",
+              "pattern": "POST \\/api\\/reports",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/reports-runtime-context.js",
+              "label": "Report patch route",
+              "pattern": "PATCH \\/api\\/reports\\/:reportId",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/reports-runtime-context.js",
+              "label": "Report run route",
+              "pattern": "POST \\/api\\/reports\\/:reportId\\/run",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/reports-runtime-context.js",
+              "label": "Report owner-blocked share route",
+              "pattern": "POST \\/api\\/reports\\/:reportId\\/share",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/reports-runtime-context.js",
+              "label": "Report audit route",
+              "pattern": "GET \\/api\\/reports\\/:reportId\\/audit",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/routes/reports.js",
+              "label": "Report route policy matcher",
+              "pattern": "matchReportRoute",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/analytics-runtime-context.js",
+              "label": "Client profitability analytics route",
+              "pattern": "\\/api\\/analytics\\/client-profitability",
+              "present": true
+            }
+          ]
+        },
+        "package_service": {
+          "required_count": 7,
+          "passed_count": 7,
+          "passed": true,
+          "markers": [
+            {
+              "file": "packages/reports/src/service.js",
+              "label": "Report builder package service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/reports/src/service.js",
+              "label": "Report service factory",
+              "pattern": "createReportBuilderService",
+              "present": true
+            },
+            {
+              "file": "packages/reports/src/service.js",
+              "label": "Report create service",
+              "pattern": "createReport",
+              "present": true
+            },
+            {
+              "file": "packages/reports/src/service.js",
+              "label": "Report patch service",
+              "pattern": "patchReport",
+              "present": true
+            },
+            {
+              "file": "packages/reports/src/service.js",
+              "label": "Safe aggregate report run service",
+              "pattern": "runReport",
+              "present": true
+            },
+            {
+              "file": "packages/reports/src/service.js",
+              "label": "Owner-blocked share service",
+              "pattern": "shareReport",
+              "present": true
+            },
+            {
+              "file": "packages/analytics/src/metrics-service.js",
+              "label": "Client profitability service",
+              "pattern": "createClientProfitability",
+              "present": true
+            }
+          ]
+        },
+        "evidence": {
+          "required_count": 3,
+          "passed_count": 3,
+          "passed": true,
+          "markers": [
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-reports.png",
+              "label": "Browser QA Client reports screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w08-reporting-builder-contract.json",
+              "label": "W08R report builder contract",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "apps/api/test/sf-b-w08-report-builder-client-profitability.test.js",
+              "label": "W08R API regression",
               "pattern": "exists",
               "present": true
             }
@@ -2711,7 +6282,7 @@
           "present": true
         }
       ],
-      "boundary": "Report builder and Client profitability route exposure remain SF-B-W08 backend-first work.",
+      "boundary": "Matter analytics remains focused on dashboard, matter profitability, refresh, and export review; broader report-builder controls now live in SF-B-W08 Client reports with owner-blocked sharing.",
       "connection_status": "ui_api_package_connected",
       "group_status": {
         "ui_menu": {

@@ -1,0 +1,214 @@
+{
+  "schema_version": "law-firm-os.sf-client-matter-parity.backend-contract.v0.1",
+  "program": "SF-CLIENT-MATTER-PARITY",
+  "workstream": "SF-B-W02",
+  "lane": "SF-B-W02R",
+  "title": "Broader Record Actions and Mass Update",
+  "status": "w02r_record_actions_route_mounted",
+  "date": "2026-06-24",
+  "source_reference": {
+    "salesforce_screenshot_corpus": "Law Firm OS UI/Salesforce web Mar 2026/",
+    "crosswalk": "workbook/sf-client-matter-parity-crosswalk.md",
+    "implementation_plan": "workbook/salesforce-track-b-ui-exposure-implementation-plan.md"
+  },
+  "mounted_routes_present": [
+    "GET /api/record-actions/:object_name/fields",
+    "GET /api/record-actions/:object_name/bulk-actions",
+    "POST /api/record-actions/:object_name/:record_id/field-update",
+    "POST /api/record-actions/:object_name/bulk-updates",
+    "GET /api/record-actions/:object_name/:record_id/audit",
+    "PATCH /api/matters/:matter_id",
+    "POST /api/matters/:matter_id/owner-change",
+    "POST /api/matters/bulk/status-transitions",
+    "POST /api/matters/:matter_id/status-transitions"
+  ],
+  "mounted_routes_absent": [],
+  "route_policy_contract": [
+    {
+      "route": "GET /api/record-actions/:object_name/fields",
+      "action": "record_action:field_registry:read",
+      "resource_type": "record_action_field_registry",
+      "permission_gate": "fail_closed_x_lawos_permission_context",
+      "safe_response_invariant": "allowlisted field metadata only; unsafe fields omitted"
+    },
+    {
+      "route": "GET /api/record-actions/:object_name/bulk-actions",
+      "action": "record_action:bulk_registry:read",
+      "resource_type": "record_action_bulk_registry",
+      "permission_gate": "fail_closed_x_lawos_permission_context",
+      "safe_response_invariant": "safe action metadata and approval requirements only"
+    },
+    {
+      "route": "POST /api/record-actions/:object_name/:record_id/field-update",
+      "action": "record_action:field_update",
+      "resource_type": "record_action_field_update",
+      "permission_gate": "fail_closed_x_lawos_permission_context",
+      "idempotency": "idempotency_key persisted in object audit repository",
+      "audit": "record_action.field_updated",
+      "safe_response_invariant": "changed fields and safe record summary only; no raw tenant/user/contact values"
+    },
+    {
+      "route": "POST /api/record-actions/:object_name/bulk-updates",
+      "action": "record_action:bulk_update",
+      "resource_type": "record_action_bulk_update",
+      "permission_gate": "fail_closed_x_lawos_permission_context",
+      "idempotency": "idempotency_key persisted in object audit repository",
+      "audit": "record_action.<action_type>.completed or .blocked",
+      "safe_response_invariant": "all-or-blocked counts; unsupported owner/export effects return owner/provider blocked state"
+    },
+    {
+      "route": "GET /api/record-actions/:object_name/:record_id/audit",
+      "action": "record_action:audit:read",
+      "resource_type": "record_action_audit",
+      "permission_gate": "fail_closed_x_lawos_permission_context",
+      "safe_response_invariant": "actor refs and raw values omitted"
+    }
+  ],
+  "repository_service_contract": {
+    "package": "packages/record-actions",
+    "service": "createRecordActionService",
+    "repositories": [
+      "matter_runtime_repository",
+      "crm_runtime_repository",
+      "master_data_repository"
+    ],
+    "implemented_objects": [
+      "client",
+      "account",
+      "contact",
+      "matter"
+    ],
+    "implemented_behaviors": [
+      "field_registry",
+      "bulk_action_registry",
+      "allowlisted_field_update",
+      "status_update_bulk",
+      "owner_change_owner_blocked",
+      "export_request_provider_blocked",
+      "record_action_audit_feed"
+    ],
+    "unsupported_behavior_boundary": [
+      "no arbitrary schema mutation",
+      "no raw contact value write",
+      "no raw tenant/user identifier exposure",
+      "no fake owner change success",
+      "no fake export success"
+    ]
+  },
+  "ui_contract": {
+    "client_surface": [
+      "Client right panel field registry",
+      "Client right panel recent action audit",
+      "Client owner-gated bulk action state",
+      "Account record action field update",
+      "Contact record action field update"
+    ],
+    "matter_surface": [
+      "Matter right panel field registry",
+      "Matter right panel record action audit",
+      "Matter right panel owner-gated bulk action state",
+      "Matter field update"
+    ],
+    "visible_markers": [
+      "data-sf-b-w02-record-actions-panel",
+      "data-sf-b-w02-field-registry",
+      "data-sf-b-w02-action-audit-feed",
+      "data-sf-b-w02-owner-blocked-result",
+      "data-sf-b-w02-account-record-action-result",
+      "data-sf-b-w02-contact-record-action-result",
+      "data-sf-b-w02-matter-record-actions",
+      "data-sf-b-w02-matter-record-action-result",
+      "data-sf-b-w02-matter-owner-blocked-result",
+      "data-sf-b-w02-matter-action-audit-feed"
+    ]
+  },
+  "verification_cases": [
+    {
+      "id": "VC-SF-B-W02-API-001",
+      "case": "health descriptor exposes record-actions bounded context",
+      "status": "passed"
+    },
+    {
+      "id": "VC-SF-B-W02-API-002",
+      "case": "field registry exposes only allowlisted fields and unsafe omissions",
+      "status": "passed"
+    },
+    {
+      "id": "VC-SF-B-W02-API-003",
+      "case": "Matter field update persists safely and audits",
+      "status": "passed"
+    },
+    {
+      "id": "VC-SF-B-W02-API-004",
+      "case": "Matter field update idempotency replays",
+      "status": "passed"
+    },
+    {
+      "id": "VC-SF-B-W02-API-005",
+      "case": "record action audit feed omits actor refs and raw values",
+      "status": "passed"
+    },
+    {
+      "id": "VC-SF-B-W02-API-006",
+      "case": "unsupported field update fails blocked",
+      "status": "passed"
+    },
+    {
+      "id": "VC-SF-B-W02-API-007",
+      "case": "Client, Account, and Contact field updates are route backed",
+      "status": "passed"
+    },
+    {
+      "id": "VC-SF-B-W02-API-008",
+      "case": "bulk status update is all-or-blocked with safe counts",
+      "status": "passed"
+    },
+    {
+      "id": "VC-SF-B-W02-API-009",
+      "case": "owner change bulk action returns owner approval required instead of fake success",
+      "status": "passed"
+    },
+    {
+      "id": "VC-SF-B-W02-UI-001",
+      "case": "Client/Matter UI regression asserts W02R visible controls and apiClient helpers",
+      "status": "passed"
+    },
+    {
+      "id": "VC-SF-B-W02-BROWSER-001",
+      "case": "browser QA clicks Client and Matter W02R controls and captures screenshots",
+      "status": "passed"
+    }
+  ],
+  "evidence_gates": {
+    "api_test": "node --test apps/api/test/sf-b-w02-record-actions.test.js",
+    "ui_regression": "npm --workspace apps/web run test:ui",
+    "web_build": "npm --workspace apps/web run build",
+    "browser_qa": "npm run sf:client-matter-parity:browser-qa",
+    "surface_ledger": "npm run sf:client-matter-parity:surface-ledger",
+    "objective_audit": "npm run sf:client-matter-parity:objective-audit",
+    "parity_validator": "npm run sf:client-matter-parity:validate",
+    "hermes_check_only": "hermes.validate.core and hermes.desktop.authority_boundary check-only"
+  },
+  "owner_decisions": [
+    {
+      "decision": "Bulk owner change approval policy",
+      "current_state": "route_backed_owner_blocked",
+      "fake_success_exposed": false
+    },
+    {
+      "decision": "Export request/provider enablement",
+      "current_state": "route_backed_provider_blocked",
+      "fake_success_exposed": false
+    }
+  ],
+  "external_provider_dependencies": [
+    {
+      "provider": "export/provider runtime",
+      "current_state": "not enabled",
+      "ui_state": "provider/owner blocked only"
+    }
+  ],
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "enterprise_trust_claim": false
+}

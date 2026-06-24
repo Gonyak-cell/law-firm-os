@@ -1,13 +1,23 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { FileClock, FilePlus2, FolderOpen, RefreshCw, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Eye, FileClock, FilePlus2, FileText, FolderOpen, Lock, MailPlus, RefreshCw, Send, ShieldCheck } from "lucide-react";
 import {
+  createMatterBuilderDraft,
   createMatterDocumentFacade,
+  createMatterEmailDraft,
+  fetchMatterBuilderApprovalRequests,
+  fetchMatterBuilderDraftPreview,
+  fetchMatterDocumentTemplates,
   fetchMatterTimeline,
   fetchMatterVaultAudit,
   fetchMatterVaultDocuments,
   fetchMatterVaultSearch,
-  fetchMatterVaultSummary
+  fetchMatterVaultSummary,
+  patchMatterBuilderDraft,
+  patchMatterEmailDraft,
+  publishMatterBuilderDraftToVault,
+  requestMatterBuilderApproval,
+  requestMatterEmailDraftSendBoundary
 } from "../data/apiClient.js";
 import { DataTable, Panel } from "./primitives.jsx";
 
@@ -15,9 +25,15 @@ function timelineRows(entries = []) {
   return entries.map((entry, index) => [
     `활동 ${index + 1}`,
     timelineTypeLabel(entry.type),
-    entry.title,
+    timelineTitleLabel(entry.title, index),
     entry.source_ref ? "권한 적용" : "일반"
   ]);
+}
+
+function timelineTitleLabel(value, index = 0) {
+  const text = String(value ?? "").trim();
+  if (text === "Channel message") return "대화 메시지";
+  return text || `활동 ${index + 1}`;
 }
 
 function timelineTypeLabel(value) {
@@ -85,7 +101,7 @@ function renderVaultCollectionState(result, noun) {
 function documentRows(result) {
   return collectionItems(result).map((item, index) => [
     item.title ?? `문서 ${index + 1}`,
-    item.status ?? "active",
+    item.status === "active" ? "사용 중" : item.status ?? "확인 필요",
     item.registered_account_email ?? "등록 계정",
     item.storage_pointer_ref_included === false && item.document_bytes_included === false ? "보호됨" : "검토 필요"
   ]);
@@ -108,6 +124,43 @@ function auditRows(result) {
   ]);
 }
 
+function templateRows(result) {
+  return collectionItems(result).map((item) => [
+    item.label ?? item.template_id,
+    item.category === "email" ? "이메일" : "문서",
+    `${item.merge_field_count ?? 0}개`,
+    item.requires_approval ? "승인 필요" : "내부 사용"
+  ]);
+}
+
+function approvalRows(result) {
+  return collectionItems(result).map((item, index) => [
+    `승인 요청 ${index + 1}`,
+    "문서 초안",
+    item.status === "pending_owner_approval" ? "승인 대기" : item.status ?? "대기",
+    item.reviewer_user_ref_included === false ? "보호됨" : "검토 필요"
+  ]);
+}
+
+function builderMessage(result) {
+  if (!result) return null;
+  if (result.kind === "error") return "문서 초안 작업을 완료하지 못했습니다.";
+  if (result.statusOutcome === "approval_required") return "승인 대기 상태로 등록되었습니다.";
+  if (result.statusOutcome === "owner_blocked" || result.uiState === "owner_blocked") return "담당자 승인 후 진행할 수 있습니다.";
+  if (result.statusOutcome === "created") return "문서 초안이 생성되었습니다.";
+  if (result.statusOutcome === "updated") return "문서 초안이 검토 상태로 정리되었습니다.";
+  return "문서 초안 상태가 갱신되었습니다.";
+}
+
+function emailMessage(result) {
+  if (!result) return null;
+  if (result.kind === "error") return "이메일 초안 작업을 완료하지 못했습니다.";
+  if (result.statusOutcome === "provider_blocked" || result.uiState === "provider_blocked") return "외부 발송 연결이 필요해 대기 상태입니다.";
+  if (result.statusOutcome === "created") return "이메일 초안이 생성되었습니다.";
+  if (result.statusOutcome === "updated") return "이메일 초안이 갱신되었습니다.";
+  return "이메일 초안 상태가 갱신되었습니다.";
+}
+
 function VaultCollectionTable({ result, noun, columns, rows, marker }) {
   const state = renderVaultCollectionState(result, noun);
   return (
@@ -123,8 +176,22 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
   const [vaultDocuments, setVaultDocuments] = useState(null);
   const [vaultSearch, setVaultSearch] = useState(null);
   const [vaultAudit, setVaultAudit] = useState(null);
+  const [documentTemplates, setDocumentTemplates] = useState(null);
+  const [approvalRequests, setApprovalRequests] = useState(null);
   const [documentResult, setDocumentResult] = useState(null);
+  const [builderDraftResult, setBuilderDraftResult] = useState(null);
+  const [builderPatchResult, setBuilderPatchResult] = useState(null);
+  const [builderPreview, setBuilderPreview] = useState(null);
+  const [builderApprovalResult, setBuilderApprovalResult] = useState(null);
+  const [builderPublishResult, setBuilderPublishResult] = useState(null);
+  const [emailDraftResult, setEmailDraftResult] = useState(null);
+  const [emailPatchResult, setEmailPatchResult] = useState(null);
+  const [emailSendResult, setEmailSendResult] = useState(null);
   const [documentPending, setDocumentPending] = useState(false);
+  const [builderPending, setBuilderPending] = useState(false);
+  const [emailPending, setEmailPending] = useState(false);
+  const [builderDraftId, setBuilderDraftId] = useState(null);
+  const [emailDraftId, setEmailDraftId] = useState(null);
   const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
@@ -134,20 +201,26 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
     setVaultDocuments(null);
     setVaultSearch(null);
     setVaultAudit(null);
+    setDocumentTemplates(null);
+    setApprovalRequests(null);
     if (!matterId) return undefined;
     Promise.all([
       fetchMatterVaultSummary({ matterId, ctx: liveCtx }),
       fetchMatterTimeline({ matterId, ctx: liveCtx }),
       fetchMatterVaultDocuments({ matterId, ctx: liveCtx }),
       fetchMatterVaultSearch({ matterId, ctx: liveCtx }),
-      fetchMatterVaultAudit({ matterId, ctx: liveCtx })
-    ]).then(([nextSummary, nextTimeline, nextDocuments, nextSearch, nextAudit]) => {
+      fetchMatterVaultAudit({ matterId, ctx: liveCtx }),
+      fetchMatterDocumentTemplates({ matterId, ctx: liveCtx }),
+      fetchMatterBuilderApprovalRequests({ matterId, ctx: liveCtx })
+    ]).then(([nextSummary, nextTimeline, nextDocuments, nextSearch, nextAudit, nextTemplates, nextApprovals]) => {
       if (!cancelled) {
         setSummary(nextSummary);
         setTimeline(nextTimeline);
         setVaultDocuments(nextDocuments);
         setVaultSearch(nextSearch);
         setVaultAudit(nextAudit);
+        setDocumentTemplates(nextTemplates);
+        setApprovalRequests(nextApprovals);
       }
     });
     return () => {
@@ -157,6 +230,16 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
 
   useEffect(() => {
     setDocumentResult(null);
+    setBuilderDraftResult(null);
+    setBuilderPatchResult(null);
+    setBuilderPreview(null);
+    setBuilderApprovalResult(null);
+    setBuilderPublishResult(null);
+    setEmailDraftResult(null);
+    setEmailPatchResult(null);
+    setEmailSendResult(null);
+    setBuilderDraftId(null);
+    setEmailDraftId(null);
   }, [matterId, liveCtx]);
 
   const item = summary?.kind === "data" ? summary.item : null;
@@ -179,6 +262,72 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
     setDocumentResult(next);
     setDocumentPending(false);
     if (next.kind === "data" && next.item) setRefreshToken((value) => value + 1);
+  }
+
+  async function handleCreateBuilderDraft() {
+    if (!matterId || builderPending) return;
+    setBuilderPending(true);
+    const next = await createMatterBuilderDraft({ matterId, ctx: liveCtx });
+    setBuilderDraftResult(next);
+    if (next.kind === "data" && next.item?.draft_id) {
+      setBuilderDraftId(next.item.draft_id);
+      const preview = await fetchMatterBuilderDraftPreview({ matterId, draftId: next.item.draft_id, ctx: liveCtx });
+      setBuilderPreview(preview);
+    }
+    setBuilderPending(false);
+  }
+
+  async function handlePatchBuilderDraft() {
+    if (!matterId || !builderDraftId || builderPending) return;
+    setBuilderPending(true);
+    const next = await patchMatterBuilderDraft({ matterId, draftId: builderDraftId, ctx: liveCtx });
+    setBuilderPatchResult(next);
+    const preview = await fetchMatterBuilderDraftPreview({ matterId, draftId: builderDraftId, ctx: liveCtx });
+    setBuilderPreview(preview);
+    setBuilderPending(false);
+  }
+
+  async function handleRequestBuilderApproval() {
+    if (!matterId || !builderDraftId || builderPending) return;
+    setBuilderPending(true);
+    const next = await requestMatterBuilderApproval({ matterId, draftId: builderDraftId, ctx: liveCtx });
+    setBuilderApprovalResult(next);
+    const approvals = await fetchMatterBuilderApprovalRequests({ matterId, ctx: liveCtx });
+    setApprovalRequests(approvals);
+    setBuilderPending(false);
+  }
+
+  async function handlePublishBuilderDraft() {
+    if (!matterId || !builderDraftId || builderPending) return;
+    setBuilderPending(true);
+    const next = await publishMatterBuilderDraftToVault({ matterId, draftId: builderDraftId, ctx: liveCtx });
+    setBuilderPublishResult(next);
+    setBuilderPending(false);
+  }
+
+  async function handleCreateEmailDraft() {
+    if (!matterId || emailPending) return;
+    setEmailPending(true);
+    const next = await createMatterEmailDraft({ matterId, ctx: liveCtx });
+    setEmailDraftResult(next);
+    if (next.kind === "data" && next.item?.draft_id) setEmailDraftId(next.item.draft_id);
+    setEmailPending(false);
+  }
+
+  async function handlePatchEmailDraft() {
+    if (!matterId || !emailDraftId || emailPending) return;
+    setEmailPending(true);
+    const next = await patchMatterEmailDraft({ matterId, draftId: emailDraftId, ctx: liveCtx });
+    setEmailPatchResult(next);
+    setEmailPending(false);
+  }
+
+  async function handleEmailSendBoundary() {
+    if (!matterId || !emailDraftId || emailPending) return;
+    setEmailPending(true);
+    const next = await requestMatterEmailDraftSendBoundary({ matterId, draftId: emailDraftId, ctx: liveCtx });
+    setEmailSendResult(next);
+    setEmailPending(false);
   }
 
   let body;
@@ -244,6 +393,114 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
           columns={["이벤트", "대상", "상태"]}
           rows={auditRows(vaultAudit)}
         />
+        <div className="vault-preview-block" data-sf-b-w04-document-builder="true" data-matter-document-builder="route-backed">
+          <div className="vault-safe-strip">
+            <FileText size={15} />
+            <span>문서 초안</span>
+          </div>
+          <VaultCollectionTable
+            result={documentTemplates}
+            noun="템플릿"
+            marker="matter-builder-templates"
+            columns={["템플릿", "유형", "필드", "승인"]}
+            rows={templateRows(documentTemplates)}
+          />
+          <div className="record-action-strip" data-sf-b-w04-template-picker="true">
+            <span>{builderDraftId ? "문서 초안 준비됨" : "템플릿 선택 후 초안을 만들 수 있습니다"}</span>
+            <button className="secondary-button" data-sf-b-w04-builder-draft-action="true" disabled={builderPending} onClick={handleCreateBuilderDraft}>
+              <FilePlus2 size={15} />
+              {builderPending ? "처리 중" : "초안 생성"}
+            </button>
+            <button className="secondary-button" disabled={!builderDraftId || builderPending} onClick={handlePatchBuilderDraft}>
+              <CheckCircle2 size={15} />
+              검토 준비
+            </button>
+            <button className="secondary-button" disabled={!builderDraftId || builderPending} onClick={handleRequestBuilderApproval} data-sf-b-w04-builder-approval-action="true">
+              <Lock size={15} />
+              승인 요청
+            </button>
+            <button className="secondary-button" disabled={!builderDraftId || builderPending} onClick={handlePublishBuilderDraft} data-sf-b-w04-builder-publish-action="true">
+              <FolderOpen size={15} />
+              Vault 등록 요청
+            </button>
+          </div>
+          {builderDraftResult && (
+            <div className="live-data-state live-data-review" data-sf-b-w04-builder-draft-result="true">
+              <strong>{builderMessage(builderDraftResult)}</strong>
+              <span>본문과 병합 값은 표시하지 않습니다.</span>
+            </div>
+          )}
+          {builderPatchResult && (
+            <div className="live-data-state live-data-review" data-sf-b-w04-builder-patch-result="true">
+              <strong>{builderMessage(builderPatchResult)}</strong>
+              <span>검토 상태와 감사 기록만 표시됩니다.</span>
+            </div>
+          )}
+          {builderPreview?.kind === "data" && (
+            <div className="live-data-state live-data-review" data-sf-b-w04-builder-preview="true">
+              <strong>{builderPreview.item?.title ?? "문서 미리보기"}</strong>
+              <span>{Array.isArray(builderPreview.item?.preview_sections) ? builderPreview.item.preview_sections.join(" / ") : "미리보기 대기"}</span>
+            </div>
+          )}
+          {builderApprovalResult && (
+            <div className="live-data-state live-data-review" data-sf-b-w04-builder-approval-result="true">
+              <strong>{builderMessage(builderApprovalResult)}</strong>
+              <span>승인자 식별값은 표시하지 않습니다.</span>
+            </div>
+          )}
+          {builderPublishResult && (
+            <div className="live-data-state live-data-denied" data-sf-b-w04-builder-publish-blocked-result="true">
+              <strong>{builderMessage(builderPublishResult)}</strong>
+              <span>승인 완료 전에는 문서가 새로 생성되지 않습니다.</span>
+            </div>
+          )}
+          <VaultCollectionTable
+            result={approvalRequests}
+            noun="승인 요청"
+            marker="matter-builder-approvals"
+            columns={["요청", "초안", "상태", "보호"]}
+            rows={approvalRows(approvalRequests)}
+          />
+        </div>
+        <div className="vault-preview-block" data-sf-b-w04-email-composer="true" data-matter-email-composer="provider-blocked">
+          <div className="vault-safe-strip">
+            <MailPlus size={15} />
+            <span>이메일 초안</span>
+          </div>
+          <div className="record-action-strip">
+            <span>{emailDraftId ? "이메일 초안 준비됨" : "초안 작성 후 발송 경계를 확인할 수 있습니다"}</span>
+            <button className="secondary-button" disabled={emailPending} onClick={handleCreateEmailDraft} data-sf-b-w04-email-draft-action="true">
+              <FilePlus2 size={15} />
+              {emailPending ? "처리 중" : "초안 생성"}
+            </button>
+            <button className="secondary-button" disabled={!emailDraftId || emailPending} onClick={handlePatchEmailDraft}>
+              <Eye size={15} />
+              내용 정리
+            </button>
+            <button className="secondary-button" disabled={!emailDraftId || emailPending} onClick={handleEmailSendBoundary} data-sf-b-w04-email-send-boundary-action="true">
+              <Send size={15} />
+              발송 요청
+            </button>
+          </div>
+          {emailDraftResult && (
+            <div className="live-data-state live-data-review" data-sf-b-w04-email-draft-result="true">
+              <strong>{emailMessage(emailDraftResult)}</strong>
+              <span>수신자와 본문 원문은 표시하지 않습니다.</span>
+            </div>
+          )}
+          {emailPatchResult && (
+            <div className="live-data-state live-data-review" data-sf-b-w04-email-patch-result="true">
+              <strong>{emailMessage(emailPatchResult)}</strong>
+              <span>초안 메타데이터만 갱신됩니다.</span>
+            </div>
+          )}
+          {emailSendResult && (
+            <div className="live-data-state live-data-denied" data-sf-b-w04-email-send-provider-blocked="true">
+              <strong>{emailMessage(emailSendResult)}</strong>
+              <span>발송 성공으로 표시하지 않습니다.</span>
+            </div>
+          )}
+        </div>
       </div>
     );
   }

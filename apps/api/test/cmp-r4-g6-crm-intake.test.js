@@ -205,6 +205,163 @@ test("G6 CRM duplicate review uses Master Data candidates without automatic merg
   });
 });
 
+test("G6 W01R Account and Contact canonical writes plus duplicate merge proposal gates execution", async () => {
+  const crmStorePath = join(mkdtempSync(join(tmpdir(), "crm-w01r-api-")), "crm.json");
+  const crmMasterDataStorePath = join(mkdtempSync(join(tmpdir(), "crm-w01r-master-data-")), "master-data.json");
+  const accountId = "account_cmp_g6_w01r_001";
+  const contactId = "contact_cmp_g6_w01r_001";
+  const sourcePartyId = `party_${contactId}`;
+  const targetPartyId = `party_${accountId}`;
+
+  await withServer(async (baseUrl) => {
+    const account = await json(baseUrl, "/api/crm/accounts", {
+      method: "POST",
+      body: JSON.stringify(accountPayload({
+        idempotency_key: "api-w01r-account-create-1",
+        account: {
+          account_id: accountId,
+          tenant_id: TENANT,
+          display_name: "W01R canonical account",
+          status: "active",
+        },
+      })),
+    });
+    assert.equal(account.status, 201);
+    assert.equal(account.body.canonical_write_status, "created");
+    assert.equal(account.body.item.account_id, accountId);
+    assert.equal(account.body.item.organization_id, accountId);
+    assert.equal(account.body.item.client_group_id, `client_group_${accountId}`);
+    assert.equal(account.body.item.canonical_sync_state, "synced");
+    assert.equal(account.body.item.registration_number_included, false);
+    assert.equal("registration_number" in account.body.item, false);
+    assert.equal(account.body.audit_event.metadata.canonical_write_status, "created");
+
+    const contact = await json(baseUrl, "/api/crm/contacts", {
+      method: "POST",
+      body: JSON.stringify(contactPayload({
+        idempotency_key: "api-w01r-contact-create-1",
+        contact: {
+          contact_id: contactId,
+          tenant_id: TENANT,
+          account_id: accountId,
+          display_name: "W01R canonical contact",
+          status: "active",
+          primary_contact_fingerprint: "w01r-contact-fingerprint-001",
+        },
+      })),
+    });
+    assert.equal(contact.status, 201);
+    assert.equal(contact.body.canonical_write_status, "created");
+    assert.equal(contact.body.item.contact_id, contactId);
+    assert.equal(contact.body.item.person_id, contactId);
+    assert.equal(contact.body.item.primary_contact_point_id, `contact_point_${contactId}`);
+    assert.equal(contact.body.item.canonical_sync_state, "synced");
+    assert.equal(contact.body.item.contact_point_value_included, false);
+    assert.equal("email" in contact.body.item, false);
+
+    const listedAccounts = await json(baseUrl, `/api/crm/accounts?${BASE_QUERY}`);
+    assert.equal(listedAccounts.body.items.filter((item) => item.account_id === accountId).length, 1);
+    assert.equal(listedAccounts.body.items.find((item) => item.account_id === accountId).canonical_sync_state, "synced");
+
+    const listedContacts = await json(baseUrl, `/api/crm/contacts?${BASE_QUERY}`);
+    assert.equal(listedContacts.body.items.filter((item) => item.contact_id === contactId).length, 1);
+    assert.equal(listedContacts.body.items.find((item) => item.contact_id === contactId).canonical_sync_state, "synced");
+
+    const relationships = await json(baseUrl, `/api/crm/accounts/${accountId}/contacts?${BASE_QUERY}`);
+    assert.equal(relationships.body.items.filter((item) => item.contact_id === contactId).length, 1);
+
+    const blockedProposal = await json(baseUrl, "/api/crm/duplicate-merge-proposals", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_merge_write",
+        audit_hint_ref: "audit_hint_cmp_g6_merge_write",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-w01r-merge-proposal-blocked",
+        proposal: {
+          proposal_id: "dup_merge_w01r_blocked",
+          tenant_id: TENANT,
+          display_name: "W01R canonical",
+          source_party_id: sourcePartyId,
+          target_party_id: targetPartyId,
+        },
+      }),
+    });
+    assert.equal(blockedProposal.status, 201);
+    assert.equal(blockedProposal.body.item.proposal_state, "owner_decision_required");
+    assert.equal(blockedProposal.body.item.executable, false);
+    assert.equal(blockedProposal.body.item.candidate_values_included, false);
+    assert.equal(blockedProposal.body.merge_candidates.every((candidate) => candidate.identifier_value_included === false), true);
+
+    const blockedExecute = await json(baseUrl, "/api/crm/duplicate-merge-proposals/dup_merge_w01r_blocked/execute", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_merge_execute",
+        audit_hint_ref: "audit_hint_cmp_g6_merge_execute",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-w01r-merge-execute-blocked",
+      }),
+    });
+    assert.equal(blockedExecute.status, 200);
+    assert.equal(blockedExecute.body.outcome, "approval_required");
+    assert.deepEqual(blockedExecute.body.safe_error_codes, ["CRM_INTAKE_APPROVAL_REQUIRED"]);
+    assert.equal(blockedExecute.body.item.automatic_merge_executed, false);
+
+    const approvedProposal = await json(baseUrl, "/api/crm/duplicate-merge-proposals", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_merge_write",
+        audit_hint_ref: "audit_hint_cmp_g6_merge_write",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-w01r-merge-proposal-approved",
+        proposal: {
+          proposal_id: "dup_merge_w01r_approved",
+          tenant_id: TENANT,
+          display_name: "W01R canonical",
+          source_party_id: sourcePartyId,
+          target_party_id: targetPartyId,
+          owner_decision: "approved",
+          owner_approval_ref: "owner-approval-w01r-001",
+          dual_control_approver_id: "user_cmp_g6_second_approver",
+        },
+      }),
+    });
+    assert.equal(approvedProposal.status, 201);
+    assert.equal(approvedProposal.body.item.proposal_state, "approved");
+    assert.equal(approvedProposal.body.item.executable, true);
+
+    const executed = await json(baseUrl, "/api/crm/duplicate-merge-proposals/dup_merge_w01r_approved/execute", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_merge_execute",
+        audit_hint_ref: "audit_hint_cmp_g6_merge_execute",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-w01r-merge-execute-approved",
+      }),
+    });
+    assert.equal(executed.status, 200);
+    assert.equal(executed.body.outcome, "executed");
+    assert.equal(executed.body.item.automatic_merge_executed, true);
+    assert.equal(executed.body.item.rollback_metadata_present, true);
+    assert.match(executed.body.rollback_metadata_ref, /^rollback:dup_merge_w01r_approved:/);
+
+    const proposals = await json(baseUrl, `/api/crm/duplicate-merge-proposals?${BASE_QUERY}`);
+    assert.equal(proposals.status, 200);
+    assert.ok(proposals.body.items.some((item) => item.proposal_id === "dup_merge_w01r_blocked"));
+    assert.ok(proposals.body.items.some((item) => item.proposal_id === "dup_merge_w01r_approved"));
+  }, { crmStorePath, crmMasterDataStorePath });
+
+  await withServer(async (baseUrl) => {
+    const accounts = await json(baseUrl, `/api/crm/accounts?${BASE_QUERY}`);
+    const contacts = await json(baseUrl, `/api/crm/contacts?${BASE_QUERY}`);
+    assert.ok(accounts.body.items.some((item) => item.account_id === accountId && item.canonical_sync_state === "synced"));
+    assert.ok(contacts.body.items.some((item) => item.contact_id === contactId && item.canonical_sync_state === "synced"));
+  }, { crmStorePath, crmMasterDataStorePath });
+});
+
 test("G6 CRM Account create is route-backed, audited, idempotent, and safe-source", async () => {
   const crmStorePath = join(mkdtempSync(join(tmpdir(), "crm-account-api-g6-")), "crm.json");
   await withServer(async (baseUrl) => {

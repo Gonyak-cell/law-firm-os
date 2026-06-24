@@ -9,9 +9,11 @@ import { issueClearanceToken, validateClearanceToken } from "../../../packages/i
 import {
   createClientGroupService,
   createContactPointService,
+  createCrmCanonicalWriteService,
   createMasterDataDuplicateService,
   createMasterDataRepository,
   createOrganizationService,
+  createPartyMergeSplitService,
   createPersonService,
   createRelationshipService,
   seedMasterDataRepository,
@@ -36,6 +38,9 @@ export const CRM_INTAKE_BOUNDED_CONTEXT = Object.freeze({
     "PATCH /api/crm/contacts/:id",
     "GET /api/crm/accounts/:id/contacts",
     "POST /api/crm/duplicate-reviews",
+    "GET /api/crm/duplicate-merge-proposals",
+    "POST /api/crm/duplicate-merge-proposals",
+    "POST /api/crm/duplicate-merge-proposals/:id/execute",
     "POST /api/crm/opportunities/:id/handoff",
     "GET /api/intake/requests",
     "POST /api/intake/requests",
@@ -236,6 +241,8 @@ export function createCrmIntakeRuntimeContext({
       contactPointService: createContactPointService({ repository: masterDataRepository }),
       relationshipService: createRelationshipService({ repository: masterDataRepository }),
       duplicateService: createMasterDataDuplicateService({ repository: masterDataRepository }),
+      canonicalWriteService: createCrmCanonicalWriteService({ repository: masterDataRepository }),
+      mergeSplitService: createPartyMergeSplitService({ repository: masterDataRepository }),
     }),
     intakeService: Object.freeze({
       createIntakeRequest: ({ request, actor_id, idempotency_key }) =>
@@ -410,6 +417,21 @@ function organizationForAccountId(repository, tenantId, accountId) {
     ) ?? null;
 }
 
+function runtimeAccountForAccountId(repository, tenantId, accountId) {
+  return repository
+    .list({ tenant_id: tenantId, model_type: "Account" })
+    .find((account) => account.account_id === accountId || account.resource_id === accountId) ?? null;
+}
+
+function resolveAccountOrganization(runtime, tenantId, accountId) {
+  if (!accountId) return null;
+  const masterAccount = organizationForAccountId(runtime.masterDataRepository, tenantId, accountId);
+  if (masterAccount) return masterAccount;
+  const runtimeAccount = runtimeAccountForAccountId(runtime.crmRepository, tenantId, accountId);
+  if (!runtimeAccount?.organization_id) return null;
+  return organizationForAccountId(runtime.masterDataRepository, tenantId, runtimeAccount.organization_id);
+}
+
 function serializeAccount(organization, runtime) {
   const clientGroup = clientGroupForOrganization(runtime.masterDataRepository, organization);
   return Object.freeze({
@@ -425,6 +447,8 @@ function serializeAccount(organization, runtime) {
     owner_user_id: organization.owner_user_id,
     account_source: "master-data.Organization",
     client_group_source: clientGroup ? "master-data.ClientGroup" : null,
+    canonical_sync_state: "canonical_source",
+    canonical_write_mounted: true,
     registration_number_included: false,
     direct_matter_reference_included: false,
     production_ready_claim: false,
@@ -445,6 +469,8 @@ function serializeRuntimeAccount(account) {
     owner_user_id: account.owner_user_id ?? null,
     account_source: "crm-runtime.Account",
     client_group_source: account.client_group_id ? "crm-runtime.linked_client_group" : null,
+    canonical_sync_state: account.organization_id && account.client_group_id ? "synced" : "facade_only",
+    canonical_write_mounted: account.organization_id && account.client_group_id ? true : false,
     registration_number_included: false,
     direct_matter_reference_included: false,
     production_ready_claim: false,
@@ -464,6 +490,8 @@ function serializeContact(person, runtime) {
     status: person.status,
     owner_user_id: person.owner_user_id,
     contact_source: "master-data.Person",
+    canonical_sync_state: "canonical_source",
+    canonical_write_mounted: true,
     primary_contact_point_id: primaryContactPoint?.contact_point_id ?? null,
     primary_contact_type: primaryContactPoint?.contact_type ?? null,
     primary_contact_verified: primaryContactPoint?.verified === true,
@@ -487,6 +515,8 @@ function serializeRuntimeContact(contact) {
     status: contact.status ?? "active",
     owner_user_id: contact.owner_user_id ?? null,
     contact_source: "crm-runtime.Contact",
+    canonical_sync_state: contact.person_id ? "synced" : "facade_only",
+    canonical_write_mounted: contact.person_id ? true : false,
     primary_contact_point_id: contact.primary_contact_point_id ?? null,
     primary_contact_type: contact.primary_contact_type ?? null,
     primary_contact_verified: false,
@@ -559,6 +589,121 @@ function serializeDuplicateCandidate(record, source) {
   });
 }
 
+function mergeCandidateScore(record, source, displayName) {
+  if (source === "identifier") return 0.98;
+  const candidateName = String(record.display_name ?? "").trim().toLowerCase();
+  const requestedName = String(displayName ?? "").trim().toLowerCase();
+  if (candidateName && requestedName && candidateName === requestedName) return 0.9;
+  return 0.74;
+}
+
+function mergeProposalState(input = {}) {
+  const approved =
+    input.owner_decision === "approved" &&
+    typeof input.owner_approval_ref === "string" &&
+    input.owner_approval_ref.trim() !== "" &&
+    typeof input.dual_control_approver_id === "string" &&
+    input.dual_control_approver_id.trim() !== "" &&
+    input.dual_control_approver_id !== input.actor_id &&
+    typeof input.source_party_id === "string" &&
+    input.source_party_id.trim() !== "" &&
+    typeof input.target_party_id === "string" &&
+    input.target_party_id.trim() !== "";
+  return approved ? "approved" : "owner_decision_required";
+}
+
+function serializeMergeCandidate(record, source, displayName) {
+  const serialized = serializeDuplicateCandidate(record, source);
+  return Object.freeze({
+    ...serialized,
+    candidate_score: mergeCandidateScore(record, source, displayName),
+    merge_reference_bound: Boolean(record.party_id || record.model_type === "Party"),
+  });
+}
+
+function uniqueMergeCandidates(candidates = {}, displayName) {
+  const seen = new Set();
+  return [...(candidates.name_candidates ?? []), ...(candidates.identifier_candidates ?? [])]
+    .map((candidate) => {
+      const source = (candidates.identifier_candidates ?? []).includes(candidate) ? "identifier" : "name";
+      return serializeMergeCandidate(candidate, source, displayName);
+    })
+    .filter((candidate) => {
+      const key = `${candidate.model_type}:${candidate.resource_id}:${candidate.candidate_source}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+function serializeDuplicateMergeProposal(proposal = {}) {
+  return Object.freeze({
+    resource_id: proposal.proposal_id,
+    tenant_id: proposal.tenant_id,
+    proposal_id: proposal.proposal_id,
+    proposal_state: proposal.proposal_state,
+    owner_decision_state: proposal.owner_decision_state,
+    candidate_count: proposal.candidate_count ?? 0,
+    source_party_bound: Boolean(proposal.source_party_id),
+    target_party_bound: Boolean(proposal.target_party_id),
+    approval_ref_present: Boolean(proposal.owner_approval_ref),
+    dual_control_required: true,
+    executable:
+      proposal.proposal_state === "approved" &&
+      Boolean(proposal.source_party_id) &&
+      Boolean(proposal.target_party_id) &&
+      Boolean(proposal.owner_approval_ref) &&
+      Boolean(proposal.dual_control_approver_id),
+    automatic_merge_executed: proposal.automatic_merge_executed === true,
+    rollback_metadata_present: Boolean(proposal.rollback_metadata_ref),
+    candidate_values_included: false,
+    contact_point_value_included: false,
+    direct_matter_reference_included: false,
+    production_ready_claim: false,
+  });
+}
+
+function mergeProposalListResponse({ requestId, query, context, policy, items }) {
+  const serialized = items.map(serializeDuplicateMergeProposal);
+  const { allowed } = trimItemsByPermission({
+    context,
+    items: serialized,
+    action: policy.action,
+    resourceType: policy.resource_type,
+  });
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      items: allowed,
+      page_info: { returned_count: allowed.length, omitted_item_count: null },
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: allowed.length === 0 ? "empty" : null,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+function mergeProposalItemResponse({ requestId, auditHintRef, outcome, item, auditEvent, status = 200, safeErrorCodes = [], extra = {} }) {
+  return {
+    status,
+    body: {
+      request_id: requestId,
+      outcome,
+      item: serializeDuplicateMergeProposal(item),
+      audit_event: auditEvent,
+      safe_error_codes: safeErrorCodes,
+      audit_hint_ref: auditHintRef,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+      ...extra,
+    },
+  };
+}
+
 export function handleCrmLeadList({ query, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
   const gated = routeGate({ context, query, requestId, policy });
   if (gated) return gated;
@@ -574,12 +719,14 @@ export function handleCrmLeadList({ query, context, requestId, runtime = DEFAULT
 export function handleCrmAccountList({ query, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
   const gated = routeGate({ context, query, requestId, policy });
   if (gated) return gated;
-  const masterDataAccounts = runtime.masterDataRepository
-    .list({ tenant_id: query.tenant_id, model_type: "Organization" })
-    .map((organization) => serializeAccount(organization, runtime));
   const runtimeAccounts = runtime.crmRepository
     .list({ tenant_id: query.tenant_id, model_type: "Account" })
     .map((account) => serializeRuntimeAccount(account));
+  const runtimeCanonicalAccountIds = new Set(runtimeAccounts.map((account) => account.organization_id).filter(Boolean));
+  const masterDataAccounts = runtime.masterDataRepository
+    .list({ tenant_id: query.tenant_id, model_type: "Organization" })
+    .filter((organization) => !runtimeCanonicalAccountIds.has(organization.organization_id))
+    .map((organization) => serializeAccount(organization, runtime));
   return listResponse({
     requestId,
     query,
@@ -620,57 +767,82 @@ export function handleCrmAccountCreate({ body, context, requestId, runtime = DEF
   try {
     const createdAt = account.created_at && !Number.isNaN(Date.parse(account.created_at)) ? account.created_at : new Date().toISOString();
     const safeAccountId = String(account.account_id ?? `account_${Date.now().toString(36)}`).replace(/[^a-zA-Z0-9_-]/g, "_");
-    const persisted = runtime.crmRepository.create({
-      model_type: "Account",
-      resource_id: safeAccountId,
-      account_id: safeAccountId,
-      tenant_id: query.tenant_id,
-      display_name: displayName,
-      status: account.status === "review_required" ? "review_required" : "active",
-      owner_user_id: actorId,
-      account_source: "crm-runtime.Account",
-      created_by: actorId,
-      created_at: createdAt,
-      registration_number_included: false,
-      direct_matter_reference_included: false,
-      production_ready_claim: false,
-    });
-    const safeItem = serializeRuntimeAccount(persisted);
-    const auditEvent = runtime.crmRepository.appendAudit({
-      event_id: `crm.account.created:${query.tenant_id}:${safeAccountId}`,
-      tenant_id: query.tenant_id,
-      actor_id: actorId,
-      action: "crm.account.created",
-      object_type: "CRMAccount",
-      object_id: safeAccountId,
-      decision: "allow",
-      reason: body?.reason ?? "account_created",
-      occurred_at: createdAt,
-      metadata: {
+    const result = runtime.masterDataRepository.transaction((masterTx) => {
+      const canonicalWrite = createCrmCanonicalWriteService({ repository: masterTx }).writeAccount({
+        tenant_id: query.tenant_id,
+        account_id: safeAccountId,
+        display_name: displayName,
+        status: account.status,
+        owner_user_id: actorId,
         permission_ref: query.permission_ref,
-        registration_number_included: false,
-        automatic_matter_creation: false,
-      },
+        audit_hint_ref: query.audit_hint_ref,
+        registration_number: account.registration_number,
+      });
+      return runtime.crmRepository.transaction((crmTx) => {
+        const persisted = crmTx.create({
+          model_type: "Account",
+          resource_id: safeAccountId,
+          account_id: safeAccountId,
+          tenant_id: query.tenant_id,
+          organization_id: canonicalWrite.organization.organization_id,
+          client_group_id: canonicalWrite.client_group.client_group_id,
+          party_id: canonicalWrite.party.party_id,
+          entity_id: canonicalWrite.entity.entity_id,
+          display_name: displayName,
+          status: account.status === "review_required" ? "review_required" : "active",
+          owner_user_id: actorId,
+          account_source: "crm-runtime.Account",
+          canonical_sync_state: "synced",
+          canonical_write_mounted: true,
+          created_by: actorId,
+          created_at: createdAt,
+          registration_number_included: false,
+          direct_matter_reference_included: false,
+          production_ready_claim: false,
+        });
+        const safeItem = serializeRuntimeAccount(persisted);
+        const auditEvent = crmTx.appendAudit({
+          event_id: `crm.account.created:${query.tenant_id}:${safeAccountId}`,
+          tenant_id: query.tenant_id,
+          actor_id: actorId,
+          action: "crm.account.created",
+          object_type: "CRMAccount",
+          object_id: safeAccountId,
+          decision: "allow",
+          reason: body?.reason ?? "account_created",
+          occurred_at: createdAt,
+          metadata: {
+            permission_ref: query.permission_ref,
+            canonical_write_status: canonicalWrite.canonical_write_status,
+            canonical_record_types: ["Party", "Entity", "Organization", "ClientGroup"],
+            registration_number_included: false,
+            automatic_matter_creation: false,
+          },
+        });
+        const response = {
+          request_id: requestId,
+          outcome: "created",
+          item: sanitizeItem(safeItem),
+          audit_event: auditEvent,
+          safe_error_codes: [],
+          audit_hint_ref: query.audit_hint_ref,
+          idempotent_replay: false,
+          state_idempotent: true,
+          canonical_write_status: canonicalWrite.canonical_write_status,
+          canonical_record_types: ["Party", "Entity", "Organization", "ClientGroup"],
+          production_ready_claim: false,
+        };
+        crmTx.recordIdempotency({
+          tenant_id: query.tenant_id,
+          idempotency_key: idempotencyKey,
+          operation: "crm_account_create",
+          response,
+          created_at: createdAt,
+        });
+        return { response };
+      });
     });
-    const response = {
-      request_id: requestId,
-      outcome: "created",
-      item: sanitizeItem(safeItem),
-      audit_event: auditEvent,
-      safe_error_codes: [],
-      audit_hint_ref: query.audit_hint_ref,
-      idempotent_replay: false,
-      state_idempotent: true,
-      production_ready_claim: false,
-    };
-    runtime.crmRepository.recordIdempotency({
-      tenant_id: query.tenant_id,
-      idempotency_key: idempotencyKey,
-      operation: "crm_account_create",
-      response,
-      created_at: createdAt,
-    });
-    return { status: 201, body: response };
+    return { status: 201, body: result.response };
   } catch {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
@@ -787,8 +959,10 @@ export function handleCrmContactList({ query, context, requestId, runtime = DEFA
   const runtimeContacts = runtime.crmRepository
     .list({ tenant_id: query.tenant_id, model_type: "Contact" })
     .map((contact) => serializeRuntimeContact(contact));
+  const runtimeCanonicalContactIds = new Set(runtimeContacts.map((contact) => contact.person_id).filter(Boolean));
   const masterDataContacts = runtime.masterDataRepository
     .list({ tenant_id: query.tenant_id, model_type: "Person" })
+    .filter((person) => !runtimeCanonicalContactIds.has(person.person_id))
     .map((person) => serializeContact(person, runtime));
   return listResponse({
     requestId,
@@ -828,10 +1002,8 @@ export function handleCrmContactCreate({ body, context, requestId, runtime = DEF
   const safeContactId = String(contact.contact_id ?? `contact_${Date.now().toString(36)}`).replace(/[^a-zA-Z0-9_-]/g, "_");
   const accountId = typeof contact.account_id === "string" && contact.account_id.trim() !== "" ? contact.account_id.trim() : null;
   if (accountId) {
-    const masterAccount = organizationForAccountId(runtime.masterDataRepository, query.tenant_id, accountId);
-    const runtimeAccount = runtime.crmRepository
-      .list({ tenant_id: query.tenant_id, model_type: "Account" })
-      .find((account) => account.account_id === accountId || account.resource_id === accountId) ?? null;
+    const masterAccount = resolveAccountOrganization(runtime, query.tenant_id, accountId);
+    const runtimeAccount = runtimeAccountForAccountId(runtime.crmRepository, query.tenant_id, accountId);
     if (!masterAccount && !runtimeAccount) {
       return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
     }
@@ -904,64 +1076,92 @@ export function handleCrmContactCreate({ body, context, requestId, runtime = DEF
   }
   try {
     const createdAt = contact.created_at && !Number.isNaN(Date.parse(contact.created_at)) ? contact.created_at : new Date().toISOString();
-    const persisted = runtime.crmRepository.create({
-      model_type: "Contact",
-      resource_id: safeContactId,
-      contact_id: safeContactId,
-      tenant_id: query.tenant_id,
-      account_id: accountId,
-      display_name: displayName,
-      status: contact.status === "review_required" ? "review_required" : "active",
-      owner_user_id: actorId,
-      contact_source: "crm-runtime.Contact",
-      primary_contact_point_id: contactFingerprint ? `contact_point_${safeContactId}` : null,
-      primary_contact_type: contactFingerprint ? "email" : null,
-      primary_contact_fingerprint: contactFingerprint || null,
-      created_by: actorId,
-      created_at: createdAt,
-      email_value_included: false,
-      contact_point_value_included: false,
-      direct_matter_reference_included: false,
-      production_ready_claim: false,
-    });
-    const safeItem = serializeRuntimeContact(persisted);
-    const auditEvent = runtime.crmRepository.appendAudit({
-      event_id: `crm.contact.created:${query.tenant_id}:${safeContactId}`,
-      tenant_id: query.tenant_id,
-      actor_id: actorId,
-      action: "crm.contact.created",
-      object_type: "CRMContact",
-      object_id: safeContactId,
-      decision: "allow",
-      reason: body?.reason ?? "contact_created",
-      occurred_at: createdAt,
-      metadata: {
+    const accountOrganization = resolveAccountOrganization(runtime, query.tenant_id, accountId);
+    const result = runtime.masterDataRepository.transaction((masterTx) => {
+      const canonicalWrite = createCrmCanonicalWriteService({ repository: masterTx }).writeContact({
+        tenant_id: query.tenant_id,
+        contact_id: safeContactId,
+        display_name: displayName,
+        status: contact.status,
+        owner_user_id: actorId,
         permission_ref: query.permission_ref,
-        account_id: accountId,
-        email_value_included: false,
-        contact_point_value_included: false,
-        automatic_merge_executed: false,
-      },
+        audit_hint_ref: query.audit_hint_ref,
+        primary_contact_fingerprint: contactFingerprint || null,
+        account_entity_id: accountOrganization?.entity_id ?? null,
+        account_party_id: accountOrganization?.party_id ?? null,
+      });
+      return runtime.crmRepository.transaction((crmTx) => {
+        const persisted = crmTx.create({
+          model_type: "Contact",
+          resource_id: safeContactId,
+          contact_id: safeContactId,
+          tenant_id: query.tenant_id,
+          account_id: accountId,
+          person_id: canonicalWrite.person.person_id,
+          party_id: canonicalWrite.party.party_id,
+          entity_id: canonicalWrite.entity.entity_id,
+          primary_contact_point_id: canonicalWrite.contact_point?.contact_point_id ?? null,
+          relationship_id: canonicalWrite.relationship?.relationship_id ?? null,
+          display_name: displayName,
+          status: contact.status === "review_required" ? "review_required" : "active",
+          owner_user_id: actorId,
+          contact_source: "crm-runtime.Contact",
+          canonical_sync_state: "synced",
+          canonical_write_mounted: true,
+          primary_contact_type: canonicalWrite.contact_point?.contact_type ?? (contactFingerprint ? "email" : null),
+          primary_contact_fingerprint: contactFingerprint || null,
+          created_by: actorId,
+          created_at: createdAt,
+          email_value_included: false,
+          contact_point_value_included: false,
+          direct_matter_reference_included: false,
+          production_ready_claim: false,
+        });
+        const safeItem = serializeRuntimeContact(persisted);
+        const auditEvent = crmTx.appendAudit({
+          event_id: `crm.contact.created:${query.tenant_id}:${safeContactId}`,
+          tenant_id: query.tenant_id,
+          actor_id: actorId,
+          action: "crm.contact.created",
+          object_type: "CRMContact",
+          object_id: safeContactId,
+          decision: "allow",
+          reason: body?.reason ?? "contact_created",
+          occurred_at: createdAt,
+          metadata: {
+            permission_ref: query.permission_ref,
+            account_id: accountId,
+            canonical_write_status: canonicalWrite.canonical_write_status,
+            canonical_record_types: ["Party", "Entity", "Person", "ContactPoint", "Relationship"],
+            email_value_included: false,
+            contact_point_value_included: false,
+            automatic_merge_executed: false,
+          },
+        });
+        const response = {
+          request_id: requestId,
+          outcome: "created",
+          item: sanitizeItem(safeItem),
+          audit_event: auditEvent,
+          safe_error_codes: [],
+          audit_hint_ref: query.audit_hint_ref,
+          idempotent_replay: false,
+          state_idempotent: true,
+          canonical_write_status: canonicalWrite.canonical_write_status,
+          canonical_record_types: ["Party", "Entity", "Person", "ContactPoint", "Relationship"],
+          production_ready_claim: false,
+        };
+        crmTx.recordIdempotency({
+          tenant_id: query.tenant_id,
+          idempotency_key: idempotencyKey,
+          operation: "crm_contact_create",
+          response,
+          created_at: createdAt,
+        });
+        return { response };
+      });
     });
-    const response = {
-      request_id: requestId,
-      outcome: "created",
-      item: sanitizeItem(safeItem),
-      audit_event: auditEvent,
-      safe_error_codes: [],
-      audit_hint_ref: query.audit_hint_ref,
-      idempotent_replay: false,
-      state_idempotent: true,
-      production_ready_claim: false,
-    };
-    runtime.crmRepository.recordIdempotency({
-      tenant_id: query.tenant_id,
-      idempotency_key: idempotencyKey,
-      operation: "crm_contact_create",
-      response,
-      created_at: createdAt,
-    });
-    return { status: 201, body: response };
+    return { status: 201, body: result.response };
   } catch {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
@@ -1082,13 +1282,15 @@ export function handleCrmAccountContactList({
     .list({ tenant_id: query.tenant_id, model_type: "Contact" })
     .filter((contact) => contact.account_id === accountId)
     .map((contact) => serializeRuntimeAccountContact(contact, accountId));
+  const runtimeRelationshipContactIds = new Set(runtimeRelationships.map((relationship) => relationship.contact_id).filter(Boolean));
   const account = organizationForAccountId(runtime.masterDataRepository, query.tenant_id, accountId);
   if (!account) {
     return listResponse({ requestId, query, context, policy, items: runtimeRelationships });
   }
   const masterDataRelationships = runtime.masterDataServices.relationshipService
     .listForEntity({ tenant_id: query.tenant_id, entity_id: account.entity_id })
-    .map((relationship) => serializeAccountContact(relationship, account, runtime));
+    .map((relationship) => serializeAccountContact(relationship, account, runtime))
+    .filter((relationship) => !runtimeRelationshipContactIds.has(relationship.contact_id));
   return listResponse({
     requestId,
     query,
@@ -1139,6 +1341,274 @@ export function handleCrmDuplicateReview({ body, context, requestId, runtime = D
       production_ready_claim: false,
     },
   };
+}
+
+export function handleCrmDuplicateMergeProposalList({ query, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
+  const gated = routeGate({ context, query, requestId, policy });
+  if (gated) return gated;
+  const proposals = runtime.crmRepository.list({ tenant_id: query.tenant_id, model_type: "DuplicateMergeProposal" });
+  return mergeProposalListResponse({ requestId, query, context, policy, items: proposals });
+}
+
+export function handleCrmDuplicateMergeProposalCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
+  const proposalInput = body?.proposal ?? body ?? {};
+  const query = {
+    tenant_id: proposalInput.tenant_id ?? body?.tenant_id,
+    permission_ref: proposalInput.permission_ref ?? body?.permission_ref,
+    audit_hint_ref: proposalInput.audit_hint_ref ?? body?.audit_hint_ref,
+  };
+  const gated = routeGate({ context, query, requestId, policy });
+  if (gated) return gated;
+  const actorId = proposalInput.actor_id ?? body?.actor_id ?? context?.principal?.user_id;
+  if (typeof actorId !== "string" || actorId.trim() === "") {
+    return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+  const displayName = String(proposalInput.display_name ?? "").trim();
+  const proposalId = String(proposalInput.proposal_id ?? `dup_merge_${Date.now().toString(36)}`).replace(/[^a-zA-Z0-9_-]/g, "_");
+  const idempotencyKey = proposalInput.idempotency_key ?? body?.idempotency_key ?? `crm-duplicate-merge-proposal:${query.tenant_id}:${proposalId}`;
+  const replay = runtime.crmRepository.getIdempotency({ tenant_id: query.tenant_id, idempotency_key: idempotencyKey });
+  if (replay?.response) {
+    return {
+      status: 200,
+      body: {
+        ...replay.response,
+        request_id: requestId,
+        outcome: "idempotent_replay",
+        idempotent_replay: true,
+        audit_hint_ref: query.audit_hint_ref,
+        production_ready_claim: false,
+      },
+    };
+  }
+  try {
+    const createdAt = new Date().toISOString();
+    const candidates = runtime.masterDataServices.duplicateService.findCandidates({
+      tenant_id: query.tenant_id,
+      display_name: displayName,
+      identifier_type: proposalInput.identifier_type,
+      identifier_value: proposalInput.identifier_value,
+    });
+    const safeCandidates = uniqueMergeCandidates(candidates, displayName);
+    const proposalState = mergeProposalState({ ...proposalInput, actor_id: actorId });
+    const persisted = runtime.crmRepository.transaction((crmTx) => {
+      const proposal = crmTx.create({
+        model_type: "DuplicateMergeProposal",
+        resource_id: proposalId,
+        proposal_id: proposalId,
+        tenant_id: query.tenant_id,
+        display_name: displayName || "Duplicate merge proposal",
+        proposal_state: proposalState,
+        owner_decision_state: proposalState === "approved" ? "approved" : "owner_decision_required",
+        source_party_id: proposalInput.source_party_id ?? null,
+        target_party_id: proposalInput.target_party_id ?? null,
+        owner_approval_ref: proposalInput.owner_approval_ref ?? null,
+        dual_control_approver_id: proposalInput.dual_control_approver_id ?? null,
+        candidate_count: safeCandidates.length,
+        candidate_refs: safeCandidates.map((candidate) => ({
+          model_type: candidate.model_type,
+          resource_id: candidate.resource_id,
+          candidate_source: candidate.candidate_source,
+          candidate_score: candidate.candidate_score,
+        })),
+        automatic_merge_executed: false,
+        candidate_values_included: false,
+        contact_point_value_included: false,
+        created_by: actorId,
+        created_at: createdAt,
+        production_ready_claim: false,
+      });
+      const auditEvent = crmTx.appendAudit({
+        event_id: `crm.duplicate_merge.proposal.created:${query.tenant_id}:${proposalId}`,
+        tenant_id: query.tenant_id,
+        actor_id: actorId,
+        action: "crm.duplicate_merge.proposal.created",
+        object_type: "CRMDuplicateMergeProposal",
+        object_id: proposalId,
+        decision: proposalState === "approved" ? "allow" : "approval_required",
+        reason: proposalInput.reason ?? "duplicate_merge_proposal_created",
+        occurred_at: createdAt,
+        metadata: {
+          permission_ref: query.permission_ref,
+          candidate_count: safeCandidates.length,
+          automatic_merge_executed: false,
+          candidate_values_included: false,
+        },
+      });
+      const response = {
+        request_id: requestId,
+        outcome: "created",
+        item: serializeDuplicateMergeProposal(proposal),
+        audit_event: auditEvent,
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        idempotent_replay: false,
+        state_idempotent: true,
+        merge_candidates: safeCandidates,
+        production_ready_claim: false,
+      };
+      crmTx.recordIdempotency({
+        tenant_id: query.tenant_id,
+        idempotency_key: idempotencyKey,
+        operation: "crm_duplicate_merge_proposal_create",
+        response,
+        created_at: createdAt,
+      });
+      return { proposal, auditEvent, response };
+    });
+    return { status: 201, body: persisted.response };
+  } catch {
+    return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleCrmDuplicateMergeProposalExecute({
+  proposalId,
+  body,
+  context,
+  requestId,
+  runtime = DEFAULT_RUNTIME,
+  policy,
+} = {}) {
+  const query = {
+    tenant_id: body?.tenant_id,
+    permission_ref: body?.permission_ref,
+    audit_hint_ref: body?.audit_hint_ref,
+    resource_id: proposalId,
+  };
+  const gated = routeGate({ context, query, requestId, policy });
+  if (gated) return gated;
+  const actorId = body?.actor_id ?? context?.principal?.user_id;
+  if (typeof actorId !== "string" || actorId.trim() === "") {
+    return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+  const idempotencyKey = body?.idempotency_key ?? `crm-duplicate-merge-proposal-execute:${query.tenant_id}:${proposalId}`;
+  const replay = runtime.crmRepository.getIdempotency({ tenant_id: query.tenant_id, idempotency_key: idempotencyKey });
+  if (replay?.response) {
+    return {
+      status: 200,
+      body: {
+        ...replay.response,
+        request_id: requestId,
+        outcome: "idempotent_replay",
+        idempotent_replay: true,
+        audit_hint_ref: query.audit_hint_ref,
+        production_ready_claim: false,
+      },
+    };
+  }
+  const proposal = runtime.crmRepository.get({
+    tenant_id: query.tenant_id,
+    model_type: "DuplicateMergeProposal",
+    resource_id: proposalId,
+  });
+  if (!proposal) {
+    return errorResponse(404, requestId, [CRM_INTAKE_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+  if (
+    proposal.proposal_state !== "approved" ||
+    !proposal.source_party_id ||
+    !proposal.target_party_id ||
+    !proposal.owner_approval_ref ||
+    !proposal.dual_control_approver_id
+  ) {
+    const auditEvent = runtime.crmRepository.appendAudit({
+      event_id: `crm.duplicate_merge.proposal.execute_blocked:${query.tenant_id}:${proposalId}:${idempotencyKey}`,
+      tenant_id: query.tenant_id,
+      actor_id: actorId,
+      action: "crm.duplicate_merge.proposal.execute_blocked",
+      object_type: "CRMDuplicateMergeProposal",
+      object_id: proposalId,
+      decision: "approval_required",
+      reason: "owner_approval_required",
+      occurred_at: new Date().toISOString(),
+      metadata: { permission_ref: query.permission_ref, automatic_merge_executed: false },
+    });
+    return mergeProposalItemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: "approval_required",
+      item: proposal,
+      auditEvent,
+      safeErrorCodes: [CRM_INTAKE_API_ERROR_CODES.approval_required],
+      extra: { ui_state: "approval_required" },
+    });
+  }
+  try {
+    const executedAt = new Date().toISOString();
+    const result = runtime.masterDataRepository.transaction((masterTx) => {
+      const source = masterTx.get({ tenant_id: query.tenant_id, model_type: "Party", id: proposal.source_party_id });
+      const target = masterTx.get({ tenant_id: query.tenant_id, model_type: "Party", id: proposal.target_party_id });
+      if (!source || !target) throw new ReferenceError("duplicate merge Party endpoint not found");
+      masterTx.update(
+        { tenant_id: query.tenant_id, model_type: "Party", id: proposal.source_party_id },
+        {
+          status: "archived",
+          canonical_entity_id: target.canonical_entity_id ?? target.party_id,
+          audit_hint_ref: `crm_duplicate_merge:${proposalId}`,
+        },
+      );
+      return runtime.crmRepository.transaction((crmTx) => {
+        const rollbackMetadataRef = `rollback:${proposalId}:${executedAt}`;
+        const updated = crmTx.update(
+          { tenant_id: query.tenant_id, model_type: "DuplicateMergeProposal", resource_id: proposalId },
+          {
+            proposal_state: "executed",
+            owner_decision_state: "approved",
+            automatic_merge_executed: true,
+            executed_by: actorId,
+            executed_at: executedAt,
+            rollback_metadata_ref: rollbackMetadataRef,
+            rollback_metadata: {
+              operation: "party_merge_archive_source",
+              source_party_id: proposal.source_party_id,
+              target_party_id: proposal.target_party_id,
+              previous_source_status: source.status,
+            },
+          },
+        );
+        const auditEvent = crmTx.appendAudit({
+          event_id: `crm.duplicate_merge.proposal.executed:${query.tenant_id}:${proposalId}:${idempotencyKey}`,
+          tenant_id: query.tenant_id,
+          actor_id: actorId,
+          action: "crm.duplicate_merge.proposal.executed",
+          object_type: "CRMDuplicateMergeProposal",
+          object_id: proposalId,
+          decision: "allow",
+          reason: body?.reason ?? "owner_approved_duplicate_merge_executed",
+          occurred_at: executedAt,
+          metadata: {
+            permission_ref: query.permission_ref,
+            owner_approval_ref_present: true,
+            rollback_metadata_ref: rollbackMetadataRef,
+            automatic_merge_executed: true,
+          },
+        });
+        const response = {
+          request_id: requestId,
+          outcome: "executed",
+          item: serializeDuplicateMergeProposal(updated),
+          audit_event: auditEvent,
+          safe_error_codes: [],
+          audit_hint_ref: query.audit_hint_ref,
+          idempotent_replay: false,
+          state_idempotent: true,
+          rollback_metadata_ref: rollbackMetadataRef,
+          production_ready_claim: false,
+        };
+        crmTx.recordIdempotency({
+          tenant_id: query.tenant_id,
+          idempotency_key: idempotencyKey,
+          operation: "crm_duplicate_merge_proposal_execute",
+          response,
+          created_at: executedAt,
+        });
+        return { response };
+      });
+    });
+    return { status: 200, body: result.response };
+  } catch {
+    return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
 }
 
 export function handleCrmOpportunityList({ query, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
@@ -1390,6 +1860,22 @@ export async function handleCrmIntakeApiRequest({
   }
   if (pathname === "/api/crm/duplicate-reviews" && method === "POST") {
     return handleCrmDuplicateReview({ body, context, requestId, runtime, policy });
+  }
+  if (pathname === "/api/crm/duplicate-merge-proposals" && method === "GET") {
+    return handleCrmDuplicateMergeProposalList({ query, context, requestId, runtime, policy });
+  }
+  if (pathname === "/api/crm/duplicate-merge-proposals" && method === "POST") {
+    return handleCrmDuplicateMergeProposalCreate({ body, context, requestId, runtime, policy });
+  }
+  if (policy.action === "crm:duplicate_merge_proposal:execute" && policy.params?.[0] && method === "POST") {
+    return handleCrmDuplicateMergeProposalExecute({
+      proposalId: decodeURIComponent(policy.params[0]),
+      body,
+      context,
+      requestId,
+      runtime,
+      policy,
+    });
   }
   if (pathname === "/api/crm/opportunities" && method === "GET") return handleCrmOpportunityList({ query, context, requestId, runtime, policy });
   if (pathname === "/api/crm/opportunities" && method === "POST") return handleCrmOpportunityCreate({ body, context, requestId, runtime, policy });

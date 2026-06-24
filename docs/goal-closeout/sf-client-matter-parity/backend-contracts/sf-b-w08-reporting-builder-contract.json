@@ -4,14 +4,15 @@
   "track": "Track B",
   "workstream": "SF-B-W08",
   "title": "Salesforce report builder and client profitability backend-first contract",
-  "status": "reporting_builder_client_profitability_contract_registered_route_gate_required",
+  "status": "w08r_report_builder_client_profitability_route_mounted_owner_blocked",
   "production_ready_claim": false,
   "go_live_claim": false,
   "enterprise_trust_claim": false,
-  "ui_report_builder_exposure_allowed_before_route_tests": false,
-  "ui_report_query_exposure_allowed_before_safe_query_tests": false,
-  "ui_report_share_exposure_allowed_before_permission_tests": false,
-  "ui_client_profitability_exposure_allowed_before_route_tests": false,
+  "ui_report_builder_exposure_allowed_before_route_tests": true,
+  "ui_report_query_exposure_allowed_before_safe_query_tests": true,
+  "ui_report_share_exposure_allowed_before_permission_tests": true,
+  "ui_client_profitability_exposure_allowed_before_route_tests": true,
+  "ui_report_share_success_allowed_without_owner_approval": false,
   "salesforce_visible_capabilities": [
     "Salesforce Reports and Analytics tab",
     "Report builder save/open flow",
@@ -32,15 +33,10 @@
       "POST /api/analytics/refresh",
       "GET /api/analytics/matter-profitability",
       "POST /api/analytics/matter-profitability",
+      "GET /api/analytics/client-profitability",
+      "POST /api/analytics/client-profitability",
       "POST /api/analytics/exports",
       "GET /api/analytics/audit",
-      "GET /api/finance/time-entries",
-      "GET /api/finance/invoices",
-      "GET /api/finance/ar-aging",
-      "POST /api/finance/wip",
-      "POST /api/finance/payments"
-    ],
-    "mounted_routes_absent": [
       "GET /api/reports",
       "POST /api/reports",
       "GET /api/reports/:reportId",
@@ -48,9 +44,13 @@
       "POST /api/reports/:reportId/run",
       "POST /api/reports/:reportId/share",
       "GET /api/reports/:reportId/audit",
-      "GET /api/analytics/client-profitability",
-      "POST /api/analytics/client-profitability"
+      "GET /api/finance/time-entries",
+      "GET /api/finance/invoices",
+      "GET /api/finance/ar-aging",
+      "POST /api/finance/wip",
+      "POST /api/finance/payments"
     ],
+    "mounted_routes_absent": [],
     "existing_domain_foundation": [
       "packages/analytics/src/metrics-service.js#createClientProfitability",
       "packages/analytics/src/metrics-service.js#createMatterProfitability",
@@ -65,16 +65,16 @@
     ],
     "existing_domain_foundation_properties": [
       "MatterProfitability and ClientProfitability package services exist and persist safe analytic read models",
-      "ClientProfitability is not mounted through apps/api and is not exposed through apiClient or ClientsSurface",
-      "current Matter analytics UI lists dashboards, matter profitability, refresh, and export-review actions only",
+      "ClientProfitability is mounted through apps/api and exposed through apiClient and Client reports UI",
+      "current Matter analytics UI lists dashboards, matter profitability, refresh, and export-review actions only; Client reports UI handles report builder and Client profitability",
       "current export control creates review-ready export metadata and omits credential material",
-      "no report definition CRUD, report query runtime, report result table/chart runtime, report share route, or report audit route is mounted"
+      "report definition CRUD, safe aggregate query runtime, bounded report result table/chart runtime, owner-blocked report share route, and report audit route are mounted"
     ],
     "current_ui_boundary": [
       "Matter analytics may display existing dashboard and matter profitability records from tested routes",
       "Matter analytics may expose dashboard refresh, matter profitability refresh, and analytics export-review actions from tested routes",
-      "Client UI may not show client profitability charts, client profitability refresh, or client-level business overview analytics before route tests exist",
-      "Client/Matter UI may not show report builder, report field picker, filter builder, saved report list, report run button, chart/table report result, share recipients, subscription controls, or report audit before route tests exist",
+      "Client UI may show client profitability charts, client profitability refresh, and client-level business overview analytics from tested routes",
+      "Client UI may show report builder, report field picker, filter builder, saved report list, report run button, chart/table report result, owner-blocked share controls, and report audit from tested routes",
       "No raw matter detail, row-level billing source payload, direct personal contact value, hidden tenant/user id, or credential material may be exposed in report or profitability output"
     ]
   },
@@ -87,7 +87,7 @@
       "resource_type": "report_definition",
       "repository_source": "reporting-runtime + analytics repository",
       "service_boundary": "List saved report definitions for the tenant with object type, columns, filters, chart type, owner label, and share state only; row data and source payload omitted",
-      "status": "contract_only",
+      "status": "route_mounted",
       "verification_case": "VC-SF-B-W08-API-001"
     },
     {
@@ -98,7 +98,7 @@
       "resource_type": "report_definition",
       "repository_source": "reporting-runtime + analytics repository",
       "service_boundary": "Create a saved report definition from allowlisted object, column, filter, grouping, and chart metadata; no query execution or source mutation at save time",
-      "status": "contract_only",
+      "status": "route_mounted",
       "verification_case": "VC-SF-B-W08-API-002"
     },
     {
@@ -109,7 +109,7 @@
       "resource_type": "report_definition",
       "repository_source": "reporting-runtime + analytics repository",
       "service_boundary": "Patch saved report metadata, columns, filters, grouping, and chart config with idempotency and audit; no source-object mutation",
-      "status": "contract_only",
+      "status": "route_mounted",
       "verification_case": "VC-SF-B-W08-API-003"
     },
     {
@@ -120,7 +120,7 @@
       "resource_type": "report_query_result",
       "repository_source": "reporting-query-runtime + analytics read models + finance read models",
       "service_boundary": "Run a safe aggregate query from an allowlisted report definition; return bounded table/chart rows, omitted-row counts, and safe error codes only",
-      "status": "contract_only",
+      "status": "route_mounted",
       "verification_case": "VC-SF-B-W08-API-004"
     },
     {
@@ -131,7 +131,7 @@
       "resource_type": "report_share",
       "repository_source": "reporting-runtime + authz permission store",
       "service_boundary": "Create report share grants for user, group, or role refs after permission check; recipient direct contact values omitted and audit event required",
-      "status": "contract_only",
+      "status": "route_mounted_owner_blocked",
       "verification_case": "VC-SF-B-W08-API-005"
     },
     {
@@ -142,7 +142,7 @@
       "resource_type": "report_audit",
       "repository_source": "reporting-runtime + audit ledger",
       "service_boundary": "Read report definition, run, and share audit events with actor labels, action labels, and timestamps only; raw query payloads omitted",
-      "status": "contract_only",
+      "status": "route_mounted",
       "verification_case": "VC-SF-B-W08-API-006"
     },
     {
@@ -153,7 +153,7 @@
       "resource_type": "client_profitability",
       "repository_source": "analytics-runtime-context + packages/analytics createClientProfitability",
       "service_boundary": "Read ClientProfitability records aggregated by Party Master ClientGroup with matter_count, profitability amount, and source mutation flags only",
-      "status": "contract_only",
+      "status": "route_mounted",
       "verification_case": "VC-SF-B-W08-API-007"
     },
     {
@@ -164,7 +164,7 @@
       "resource_type": "client_profitability",
       "repository_source": "analytics-runtime-context + packages/analytics createClientProfitability",
       "service_boundary": "Refresh client profitability from existing matter profitability rows; must not create ClientGroup identity, mutate Matter/Finance source objects, or expose row-level billing payload",
-      "status": "contract_only",
+      "status": "route_mounted",
       "verification_case": "VC-SF-B-W08-API-008"
     }
   ],
@@ -248,24 +248,34 @@
     "VC-SF-B-W08-UI-001: Client/Matter UI exposes no report builder, report run/share controls, saved report list, report result table/chart, or client profitability controls before route tests pass"
   ],
   "evidence_gate": {
-    "required_before_ui_exposure": [
-      "node --test apps/api/test/sf-b-w08-reporting-builder.test.js",
+    "route_mounted_evidence": [
+      "node --test apps/api/test/sf-b-w08-report-builder-client-profitability.test.js",
       "node --test packages/analytics/test/runtime-services.test.js",
       "npm --workspace apps/web run test:ui",
-      "Playwright report builder and client profitability QA",
+      "Playwright Client report builder and client profitability QA",
       "OMO CodeGraph caller check for report definition handlers, report query runtime, report share handlers, and client profitability route handlers",
       "Hermes MCP check-only: hermes.validate.core and hermes.desktop_authority_boundary"
     ],
-    "forbidden_before_gate": [
+    "tested_visible_controls": [
       "data-report-builder",
       "data-report-query-builder",
       "data-report-share-action",
       "data-client-profitability",
       "createReportDefinition",
+      "patchReportDefinition",
       "runReportQuery",
       "shareReportDefinition",
-      "fetchClientProfitability",
+      "fetchAnalyticsClientProfitability",
       "refreshClientProfitability"
+    ],
+    "still_forbidden_without_owner_approval": [
+      "report share grant success",
+      "arbitrary SQL execution",
+      "raw query payload exposure",
+      "row-level billing payload exposure",
+      "source object mutation",
+      "production approval",
+      "enterprise trust claim"
     ],
     "claim_boundary": "Passing this contract validator does not create production, deployment, final approval, go-live, or enterprise trust claims."
   }

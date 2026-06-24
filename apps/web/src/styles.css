@@ -6301,6 +6301,31 @@ html[data-theme="dark"] .public-preview {
   grid-column: 1 / -1;
 }
 
+.people-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+
+.people-admin-panel {
+  min-width: 0;
+}
+
+.admin-action-row,
+.object-manager-tabs,
+.connected-app-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.connected-app-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .people-metric {
   min-height: 76px;
   display: grid;
@@ -6596,6 +6621,7 @@ html[data-theme="dark"] .public-preview {
 
 @media (max-width: 980px) {
   .people-runtime-grid,
+  .people-admin-grid,
   .clients-runtime-grid,
   .matter-runtime-grid,
   .lifecycle-board-grid,

@@ -1,4 +1,9 @@
-import { createMatterCoreSyntheticFixture, createMatterRepository } from "../../../packages/matter/src/index.js";
+import {
+  createMatterActivityCalendarChannelService,
+  createMatterCoreSyntheticFixture,
+  createMatterDocumentEmailBuilderService,
+  createMatterRepository,
+} from "../../../packages/matter/src/index.js";
 import { addMatterTeamMember } from "../../../packages/matter/src/staffing-service.js";
 import { appendMatterAuditEvent } from "../../../packages/matter/src/audit.js";
 import { openMatterTransaction } from "../../../packages/matter/src/opening-service.js";
@@ -32,6 +37,27 @@ export const MATTER_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/matters/:matter_id/command-center",
     "GET /api/matters/:matter_id/vault-summary",
     "GET /api/matters/:matter_id/timeline",
+    "GET /api/matters/:matter_id/activities",
+    "POST /api/matters/:matter_id/activities",
+    "PATCH /api/matters/:matter_id/activities/:activity_id",
+    "GET /api/matters/:matter_id/calendar-events",
+    "POST /api/matters/:matter_id/calendar-events",
+    "PATCH /api/matters/:matter_id/calendar-events/:event_id",
+    "GET /api/matters/:matter_id/deadlines",
+    "POST /api/matters/:matter_id/deadlines/:deadline_id/confirm-change",
+    "GET /api/matters/:matter_id/channel",
+    "POST /api/matters/:matter_id/channel/messages",
+    "POST /api/matters/:matter_id/channel/provider-sync",
+    "GET /api/matters/:matter_id/document-templates",
+    "POST /api/matters/:matter_id/builder-drafts",
+    "PATCH /api/matters/:matter_id/builder-drafts/:draft_id",
+    "GET /api/matters/:matter_id/builder-drafts/:draft_id/preview",
+    "POST /api/matters/:matter_id/builder-drafts/:draft_id/approval-requests",
+    "GET /api/matters/:matter_id/builder-approval-requests",
+    "POST /api/matters/:matter_id/builder-drafts/:draft_id/publish-to-vault",
+    "POST /api/matters/:matter_id/email-drafts",
+    "PATCH /api/matters/:matter_id/email-drafts/:draft_id",
+    "POST /api/matters/:matter_id/email-drafts/:draft_id/send",
     "GET /api/matters/list-views",
     "GET /api/matters/recently-viewed",
     "PATCH /api/matters/:matter_id",
@@ -430,6 +456,87 @@ function routeGate({ context, query, requestId, action, resource }) {
     action,
   });
   return gateDecisionResponse(decision, requestId, query.audit_hint_ref);
+}
+
+function queryFromBody(body = {}) {
+  return {
+    tenant_id: body.tenant_id,
+    permission_ref: body.permission_ref,
+    audit_hint_ref: body.audit_hint_ref,
+  };
+}
+
+function matterActivityService(runtime) {
+  return createMatterActivityCalendarChannelService({ repository: runtime.repository });
+}
+
+function matterDocumentEmailBuilderService(runtime) {
+  return createMatterDocumentEmailBuilderService({ repository: runtime.repository });
+}
+
+function matterRuntimeReplay(repository, query, idempotencyKey, requestId) {
+  const replay = repository?.getIdempotency?.({ tenant_id: query.tenant_id, idempotency_key: idempotencyKey });
+  if (!replay?.response) return null;
+  return {
+    status: 200,
+    body: {
+      ...replay.response,
+      request_id: requestId,
+      outcome: "idempotent_replay",
+      idempotent_replay: true,
+      state_idempotent: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+function recordMatterRuntimeReplay(repository, query, idempotencyKey, operation, response) {
+  repository?.recordIdempotency?.({
+    tenant_id: query.tenant_id,
+    idempotency_key: idempotencyKey,
+    operation,
+    response,
+    created_at: new Date().toISOString(),
+  });
+}
+
+function activityCollectionResponse({ items, requestId, query }) {
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      items,
+      page_info: { returned_count: items.length, omitted_item_count: null },
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: items.length === 0 ? "empty" : null,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+function activityItemResponse({ result, requestId, query, outcome = "created" }) {
+  return {
+    request_id: requestId,
+    outcome: result.outcome ?? outcome,
+    ui_state: result.ui_state ?? null,
+    item: result.item ?? null,
+    audit_event: result.audit_event ?? null,
+    timeline_event: result.timeline_event ?? null,
+    deadline_change_request: result.deadline_change_request ?? null,
+    confirmation: result.confirmation ?? null,
+    provider_state: result.provider_state ?? null,
+    approval_request: result.approval_request ?? null,
+    publish_state: result.publish_state ?? null,
+    safe_error_codes: [],
+    audit_hint_ref: query.audit_hint_ref,
+    state_idempotent: true,
+    idempotent_replay: false,
+    count_leak_prevented: true,
+    production_ready_claim: false,
+  };
 }
 
 function appendAudit(runtime, event) {
@@ -863,6 +970,593 @@ export function handleMatterTimeline({ matterId, query, context, requestId, runt
       production_ready_claim: false,
     },
   };
+}
+
+export function handleMatterActivitiesList({ matterId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:activity:read",
+    resource: { resource_type: "matter_activity", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  return activityCollectionResponse({
+    items: matterActivityService(runtime).listActivities({ tenant_id: query.tenant_id, matter_id: matterId }),
+    requestId,
+    query,
+  });
+}
+
+export function handleMatterActivityCreate({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:activity:write",
+    resource: { resource_type: "matter_activity", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const idempotencyKey = body?.idempotency_key ?? `matter.activity.create:${matterId}:${body?.activity?.activity_id ?? body?.activity?.title ?? requestId}`;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
+  if (replay) return replay;
+  try {
+    const result = matterActivityService(runtime).createActivity({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      activity: body?.activity,
+      actor_id: body?.actor_id ?? context.principal.user_id,
+      occurred_at: body?.occurred_at,
+    });
+    const response = activityItemResponse({ result, requestId, query, outcome: "created" });
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_activity_create", response);
+    return { status: 201, body: response };
+  } catch (error) {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterActivityPatch({ matterId, activityId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:activity:patch",
+    resource: { resource_type: "matter_activity", resource_id: activityId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const idempotencyKey = body?.idempotency_key ?? `matter.activity.patch:${matterId}:${activityId}:${requestId}`;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
+  if (replay) return replay;
+  try {
+    const result = matterActivityService(runtime).patchActivity({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      activity_id: activityId,
+      patch: body?.patch,
+      actor_id: body?.actor_id ?? context.principal.user_id,
+      occurred_at: body?.occurred_at,
+    });
+    const response = activityItemResponse({ result, requestId, query, outcome: "updated" });
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_activity_patch", response);
+    return { status: 200, body: response };
+  } catch (error) {
+    return errorResponse(error.message === "activity not found" ? 404 : 400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: error.message === "activity not found" ? "empty" : "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterCalendarList({ matterId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:calendar:read",
+    resource: { resource_type: "matter_calendar", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  return activityCollectionResponse({
+    items: matterActivityService(runtime).listCalendarEvents({ tenant_id: query.tenant_id, matter_id: matterId }),
+    requestId,
+    query,
+  });
+}
+
+export function handleMatterCalendarCreate({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:calendar:write",
+    resource: { resource_type: "matter_calendar", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const idempotencyKey = body?.idempotency_key ?? `matter.calendar.create:${matterId}:${body?.event?.event_id ?? body?.event?.title ?? requestId}`;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
+  if (replay) return replay;
+  try {
+    const result = matterActivityService(runtime).createCalendarEvent({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      event: body?.event,
+      actor_id: body?.actor_id ?? context.principal.user_id,
+      occurred_at: body?.occurred_at,
+    });
+    const response = activityItemResponse({ result, requestId, query, outcome: "created" });
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_calendar_create", response);
+    return { status: 201, body: response };
+  } catch (error) {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterCalendarPatch({ matterId, eventId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:calendar:patch",
+    resource: { resource_type: "matter_calendar", resource_id: eventId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const idempotencyKey = body?.idempotency_key ?? `matter.calendar.patch:${matterId}:${eventId}:${requestId}`;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
+  if (replay) return replay;
+  try {
+    const result = matterActivityService(runtime).patchCalendarEvent({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      event_id: eventId,
+      patch: body?.patch,
+      actor_id: body?.actor_id ?? context.principal.user_id,
+      occurred_at: body?.occurred_at,
+    });
+    const response = activityItemResponse({ result, requestId, query, outcome: "updated" });
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_calendar_patch", response);
+    return { status: 200, body: response };
+  } catch (error) {
+    return errorResponse(error.message === "calendar event not found" ? 404 : 400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: error.message === "calendar event not found" ? "empty" : "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterDeadlinesList({ matterId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:deadline:read",
+    resource: { resource_type: "matter_deadline", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  return activityCollectionResponse({
+    items: matterActivityService(runtime).listDeadlines({ tenant_id: query.tenant_id, matter_id: matterId }),
+    requestId,
+    query,
+  });
+}
+
+export function handleMatterDeadlineConfirm({ matterId, deadlineId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:deadline:confirm_change",
+    resource: { resource_type: "matter_deadline", resource_id: deadlineId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const idempotencyKey = body?.idempotency_key ?? `matter.deadline.confirm:${matterId}:${deadlineId}:${body?.confirmer_user_id ?? requestId}`;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
+  if (replay) return replay;
+  try {
+    const result = matterActivityService(runtime).confirmDeadlineChange({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      deadline_id: deadlineId,
+      confirmer_user_id: body?.confirmer_user_id ?? body?.actor_id ?? context.principal.user_id,
+      occurred_at: body?.occurred_at,
+    });
+    const response = activityItemResponse({ result, requestId, query, outcome: "confirmed" });
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_deadline_confirm", response);
+    return { status: 200, body: response };
+  } catch (error) {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterChannelRead({ matterId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:channel:read",
+    resource: { resource_type: "matter_channel", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const channel = matterActivityService(runtime).listChannel({ tenant_id: query.tenant_id, matter_id: matterId });
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      item: channel,
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: channel.messages.length === 0 ? "empty" : null,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+export function handleMatterChannelMessageCreate({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:channel:message_write",
+    resource: { resource_type: "matter_channel", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const idempotencyKey = body?.idempotency_key ?? `matter.channel.message:${matterId}:${body?.message?.message_id ?? requestId}`;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
+  if (replay) return replay;
+  try {
+    const result = matterActivityService(runtime).createChannelMessage({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      message: body?.message,
+      actor_id: body?.actor_id ?? context.principal.user_id,
+      occurred_at: body?.occurred_at,
+    });
+    const response = activityItemResponse({ result, requestId, query, outcome: "created" });
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_channel_message_create", response);
+    return { status: 201, body: response };
+  } catch (error) {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterChannelProviderSync({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:channel:provider_sync",
+    resource: { resource_type: "matter_channel_provider", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const result = matterActivityService(runtime).providerSyncBlocked({
+    tenant_id: query.tenant_id,
+    matter_id: matterId,
+    actor_id: body?.actor_id ?? context.principal.user_id,
+    occurred_at: body?.occurred_at,
+  });
+  return {
+    status: 200,
+    body: activityItemResponse({ result, requestId, query, outcome: "provider_blocked" }),
+  };
+}
+
+export function handleMatterDocumentTemplates({ matterId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:builder:templates:read",
+    resource: { resource_type: "matter_document_template", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  return activityCollectionResponse({
+    items: matterDocumentEmailBuilderService(runtime).listDocumentTemplates({ tenant_id: query.tenant_id, matter_id: matterId }),
+    requestId,
+    query,
+  });
+}
+
+export function handleMatterBuilderDraftCreate({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:builder:draft:create",
+    resource: { resource_type: "matter_builder_draft", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const idempotencyKey = body?.idempotency_key ?? `matter.builder.draft.create:${matterId}:${body?.draft?.draft_id ?? body?.draft?.title ?? requestId}`;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
+  if (replay) return replay;
+  try {
+    const result = matterDocumentEmailBuilderService(runtime).createBuilderDraft({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      draft: body?.draft,
+      actor_id: body?.actor_id ?? context.principal.user_id,
+      occurred_at: body?.occurred_at,
+    });
+    const response = activityItemResponse({ result, requestId, query, outcome: "created" });
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_builder_draft_create", response);
+    return { status: 201, body: response };
+  } catch (error) {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterBuilderDraftPatch({ matterId, draftId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:builder:draft:patch",
+    resource: { resource_type: "matter_builder_draft", resource_id: draftId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const idempotencyKey = body?.idempotency_key ?? `matter.builder.draft.patch:${matterId}:${draftId}:${requestId}`;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
+  if (replay) return replay;
+  try {
+    const result = matterDocumentEmailBuilderService(runtime).patchBuilderDraft({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      draft_id: draftId,
+      patch: body?.patch,
+      actor_id: body?.actor_id ?? context.principal.user_id,
+      occurred_at: body?.occurred_at,
+    });
+    const response = activityItemResponse({ result, requestId, query, outcome: "updated" });
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_builder_draft_patch", response);
+    return { status: 200, body: response };
+  } catch (error) {
+    return errorResponse(error.message === "builder draft not found" ? 404 : 400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: error.message === "builder draft not found" ? "empty" : "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterBuilderDraftPreview({ matterId, draftId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:builder:draft:preview",
+    resource: { resource_type: "matter_builder_preview", resource_id: draftId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  try {
+    const result = matterDocumentEmailBuilderService(runtime).previewBuilderDraft({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      draft_id: draftId,
+    });
+    return {
+      status: 200,
+      body: {
+        ...activityItemResponse({ result, requestId, query, outcome: "passed" }),
+        outcome: "passed",
+      },
+    };
+  } catch (error) {
+    return errorResponse(error.message === "builder draft not found" ? 404 : 400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: error.message === "builder draft not found" ? "empty" : "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterBuilderApprovalRequest({ matterId, draftId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:builder:approval:request",
+    resource: { resource_type: "matter_builder_approval", resource_id: draftId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const idempotencyKey = body?.idempotency_key ?? `matter.builder.approval:${matterId}:${draftId}:${requestId}`;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
+  if (replay) return replay;
+  try {
+    const result = matterDocumentEmailBuilderService(runtime).requestBuilderApproval({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      draft_id: draftId,
+      actor_id: body?.actor_id ?? context.principal.user_id,
+      occurred_at: body?.occurred_at,
+    });
+    const response = activityItemResponse({ result, requestId, query, outcome: "approval_required" });
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_builder_approval_request", response);
+    return { status: 200, body: response };
+  } catch (error) {
+    return errorResponse(error.message === "builder draft not found" ? 404 : 400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: error.message === "builder draft not found" ? "empty" : "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterBuilderApprovalList({ matterId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:builder:approval:read",
+    resource: { resource_type: "matter_builder_approval", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  return activityCollectionResponse({
+    items: matterDocumentEmailBuilderService(runtime).listBuilderApprovalRequests({ tenant_id: query.tenant_id, matter_id: matterId }),
+    requestId,
+    query,
+  });
+}
+
+export function handleMatterBuilderPublishToVault({ matterId, draftId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:builder:publish",
+    resource: { resource_type: "matter_builder_publish", resource_id: draftId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  try {
+    const result = matterDocumentEmailBuilderService(runtime).publishBuilderDraftToVault({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      draft_id: draftId,
+      actor_id: body?.actor_id ?? context.principal.user_id,
+      occurred_at: body?.occurred_at,
+    });
+    return {
+      status: 200,
+      body: activityItemResponse({ result, requestId, query, outcome: "owner_blocked" }),
+    };
+  } catch (error) {
+    return errorResponse(error.message === "builder draft not found" ? 404 : 400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: error.message === "builder draft not found" ? "empty" : "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterEmailDraftCreate({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:email:draft:create",
+    resource: { resource_type: "matter_email_draft", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const idempotencyKey = body?.idempotency_key ?? `matter.email.draft.create:${matterId}:${body?.draft?.draft_id ?? body?.draft?.subject ?? requestId}`;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
+  if (replay) return replay;
+  try {
+    const result = matterDocumentEmailBuilderService(runtime).createEmailDraft({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      draft: body?.draft,
+      actor_id: body?.actor_id ?? context.principal.user_id,
+      occurred_at: body?.occurred_at,
+    });
+    const response = activityItemResponse({ result, requestId, query, outcome: "created" });
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_email_draft_create", response);
+    return { status: 201, body: response };
+  } catch (error) {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterEmailDraftPatch({ matterId, draftId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:email:draft:patch",
+    resource: { resource_type: "matter_email_draft", resource_id: draftId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const idempotencyKey = body?.idempotency_key ?? `matter.email.draft.patch:${matterId}:${draftId}:${requestId}`;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
+  if (replay) return replay;
+  try {
+    const result = matterDocumentEmailBuilderService(runtime).patchEmailDraft({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      draft_id: draftId,
+      patch: body?.patch,
+      actor_id: body?.actor_id ?? context.principal.user_id,
+      occurred_at: body?.occurred_at,
+    });
+    const response = activityItemResponse({ result, requestId, query, outcome: "updated" });
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_email_draft_patch", response);
+    return { status: 200, body: response };
+  } catch (error) {
+    return errorResponse(error.message === "email draft not found" ? 404 : 400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: error.message === "email draft not found" ? "empty" : "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterEmailDraftSend({ matterId, draftId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:email:draft:send",
+    resource: { resource_type: "matter_email_provider", resource_id: draftId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  try {
+    const result = matterDocumentEmailBuilderService(runtime).sendEmailDraftBlocked({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      draft_id: draftId,
+      actor_id: body?.actor_id ?? context.principal.user_id,
+      occurred_at: body?.occurred_at,
+    });
+    return {
+      status: 200,
+      body: activityItemResponse({ result, requestId, query, outcome: "provider_blocked" }),
+    };
+  } catch (error) {
+    return errorResponse(error.message === "email draft not found" ? 404 : 400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: error.message === "email draft not found" ? "empty" : "blocked",
+      message: error.message,
+    });
+  }
 }
 
 export function handleMatterTeamMemberCreate({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
@@ -1840,6 +2534,223 @@ export async function handleMatterApiRequest({
     return handleMatterTimeline({
       matterId: decodeURIComponent(timelineMatch[1]),
       query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const activitiesMatch = pathname.match(/^\/api\/matters\/([^/]+)\/activities$/);
+  if (activitiesMatch && method === "GET") {
+    return handleMatterActivitiesList({
+      matterId: decodeURIComponent(activitiesMatch[1]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  if (activitiesMatch && method === "POST") {
+    return handleMatterActivityCreate({
+      matterId: decodeURIComponent(activitiesMatch[1]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const activityPatchMatch = pathname.match(/^\/api\/matters\/([^/]+)\/activities\/([^/]+)$/);
+  if (activityPatchMatch && method === "PATCH") {
+    return handleMatterActivityPatch({
+      matterId: decodeURIComponent(activityPatchMatch[1]),
+      activityId: decodeURIComponent(activityPatchMatch[2]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const calendarMatch = pathname.match(/^\/api\/matters\/([^/]+)\/calendar-events$/);
+  if (calendarMatch && method === "GET") {
+    return handleMatterCalendarList({
+      matterId: decodeURIComponent(calendarMatch[1]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  if (calendarMatch && method === "POST") {
+    return handleMatterCalendarCreate({
+      matterId: decodeURIComponent(calendarMatch[1]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const calendarPatchMatch = pathname.match(/^\/api\/matters\/([^/]+)\/calendar-events\/([^/]+)$/);
+  if (calendarPatchMatch && method === "PATCH") {
+    return handleMatterCalendarPatch({
+      matterId: decodeURIComponent(calendarPatchMatch[1]),
+      eventId: decodeURIComponent(calendarPatchMatch[2]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const deadlinesMatch = pathname.match(/^\/api\/matters\/([^/]+)\/deadlines$/);
+  if (deadlinesMatch && method === "GET") {
+    return handleMatterDeadlinesList({
+      matterId: decodeURIComponent(deadlinesMatch[1]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const deadlineConfirmMatch = pathname.match(/^\/api\/matters\/([^/]+)\/deadlines\/([^/]+)\/confirm-change$/);
+  if (deadlineConfirmMatch && method === "POST") {
+    return handleMatterDeadlineConfirm({
+      matterId: decodeURIComponent(deadlineConfirmMatch[1]),
+      deadlineId: decodeURIComponent(deadlineConfirmMatch[2]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const channelMatch = pathname.match(/^\/api\/matters\/([^/]+)\/channel$/);
+  if (channelMatch && method === "GET") {
+    return handleMatterChannelRead({
+      matterId: decodeURIComponent(channelMatch[1]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const channelMessagesMatch = pathname.match(/^\/api\/matters\/([^/]+)\/channel\/messages$/);
+  if (channelMessagesMatch && method === "POST") {
+    return handleMatterChannelMessageCreate({
+      matterId: decodeURIComponent(channelMessagesMatch[1]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const channelProviderSyncMatch = pathname.match(/^\/api\/matters\/([^/]+)\/channel\/provider-sync$/);
+  if (channelProviderSyncMatch && method === "POST") {
+    return handleMatterChannelProviderSync({
+      matterId: decodeURIComponent(channelProviderSyncMatch[1]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const documentTemplatesMatch = pathname.match(/^\/api\/matters\/([^/]+)\/document-templates$/);
+  if (documentTemplatesMatch && method === "GET") {
+    return handleMatterDocumentTemplates({
+      matterId: decodeURIComponent(documentTemplatesMatch[1]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const builderDraftsMatch = pathname.match(/^\/api\/matters\/([^/]+)\/builder-drafts$/);
+  if (builderDraftsMatch && method === "POST") {
+    return handleMatterBuilderDraftCreate({
+      matterId: decodeURIComponent(builderDraftsMatch[1]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const builderDraftMatch = pathname.match(/^\/api\/matters\/([^/]+)\/builder-drafts\/([^/]+)$/);
+  if (builderDraftMatch && method === "PATCH") {
+    return handleMatterBuilderDraftPatch({
+      matterId: decodeURIComponent(builderDraftMatch[1]),
+      draftId: decodeURIComponent(builderDraftMatch[2]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const builderPreviewMatch = pathname.match(/^\/api\/matters\/([^/]+)\/builder-drafts\/([^/]+)\/preview$/);
+  if (builderPreviewMatch && method === "GET") {
+    return handleMatterBuilderDraftPreview({
+      matterId: decodeURIComponent(builderPreviewMatch[1]),
+      draftId: decodeURIComponent(builderPreviewMatch[2]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const builderApprovalRequestMatch = pathname.match(/^\/api\/matters\/([^/]+)\/builder-drafts\/([^/]+)\/approval-requests$/);
+  if (builderApprovalRequestMatch && method === "POST") {
+    return handleMatterBuilderApprovalRequest({
+      matterId: decodeURIComponent(builderApprovalRequestMatch[1]),
+      draftId: decodeURIComponent(builderApprovalRequestMatch[2]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const builderApprovalListMatch = pathname.match(/^\/api\/matters\/([^/]+)\/builder-approval-requests$/);
+  if (builderApprovalListMatch && method === "GET") {
+    return handleMatterBuilderApprovalList({
+      matterId: decodeURIComponent(builderApprovalListMatch[1]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const builderPublishMatch = pathname.match(/^\/api\/matters\/([^/]+)\/builder-drafts\/([^/]+)\/publish-to-vault$/);
+  if (builderPublishMatch && method === "POST") {
+    return handleMatterBuilderPublishToVault({
+      matterId: decodeURIComponent(builderPublishMatch[1]),
+      draftId: decodeURIComponent(builderPublishMatch[2]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const emailDraftsMatch = pathname.match(/^\/api\/matters\/([^/]+)\/email-drafts$/);
+  if (emailDraftsMatch && method === "POST") {
+    return handleMatterEmailDraftCreate({
+      matterId: decodeURIComponent(emailDraftsMatch[1]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const emailDraftMatch = pathname.match(/^\/api\/matters\/([^/]+)\/email-drafts\/([^/]+)$/);
+  if (emailDraftMatch && method === "PATCH") {
+    return handleMatterEmailDraftPatch({
+      matterId: decodeURIComponent(emailDraftMatch[1]),
+      draftId: decodeURIComponent(emailDraftMatch[2]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const emailDraftSendMatch = pathname.match(/^\/api\/matters\/([^/]+)\/email-drafts\/([^/]+)\/send$/);
+  if (emailDraftSendMatch && method === "POST") {
+    return handleMatterEmailDraftSend({
+      matterId: decodeURIComponent(emailDraftSendMatch[1]),
+      draftId: decodeURIComponent(emailDraftSendMatch[2]),
+      body,
       context,
       requestId,
       runtime,

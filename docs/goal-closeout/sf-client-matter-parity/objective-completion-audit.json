@@ -13,10 +13,10 @@
     "requirement_count": 8,
     "evidence_mapped_count": 8,
     "evidence_missing_count": 0,
-    "backend_contract_count": 7,
-    "surface_connection_row_count": 10,
-    "current_validation_command_count": 11,
-    "browser_qa_route_count": 5,
+    "backend_contract_count": 8,
+    "surface_connection_row_count": 14,
+    "current_validation_command_count": 18,
+    "browser_qa_route_count": 13,
     "source_screenshot_count": 883
   },
   "requirements": [
@@ -178,16 +178,16 @@
           "actual": "law-firm-os.sf-client-matter-parity.surface-connection-ledger.v0.1"
         },
         {
-          "label": "surface row count is 10",
+          "label": "surface row count is 14",
           "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
           "passed": true,
-          "actual": 10
+          "actual": 14
         },
         {
-          "label": "connected implemented row count is 10",
+          "label": "connected implemented row count is 14",
           "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
           "passed": true,
-          "actual": 10
+          "actual": 14
         },
         {
           "label": "disconnected implemented row count is 0",
@@ -208,6 +208,10 @@
             "SF-SURFACE-B02-ACTIONS",
             "SF-SURFACE-B03-TIMELINE",
             "SF-SURFACE-A04-DMS",
+            "SF-SURFACE-B05-IMPORT-DATA-MAPPING",
+            "SF-SURFACE-B06-PERMISSION-ADMIN",
+            "SF-SURFACE-B07-DATA-CLOUD-ENRICHMENT",
+            "SF-SURFACE-B08-REPORT-BUILDER-CLIENT-PROFITABILITY",
             "SF-SURFACE-A05-BILLING",
             "SF-SURFACE-A05-ANALYTICS"
           ]
@@ -235,6 +239,10 @@
             "SF-SURFACE-B02-ACTIONS:ui_api_package_connected",
             "SF-SURFACE-B03-TIMELINE:ui_api_package_connected",
             "SF-SURFACE-A04-DMS:ui_api_package_connected",
+            "SF-SURFACE-B05-IMPORT-DATA-MAPPING:ui_api_package_connected",
+            "SF-SURFACE-B06-PERMISSION-ADMIN:ui_api_package_connected",
+            "SF-SURFACE-B07-DATA-CLOUD-ENRICHMENT:ui_api_package_connected",
+            "SF-SURFACE-B08-REPORT-BUILDER-CLIENT-PROFITABILITY:ui_api_package_connected",
             "SF-SURFACE-A05-BILLING:ui_api_package_connected",
             "SF-SURFACE-A05-ANALYTICS:ui_api_package_connected"
           ]
@@ -275,13 +283,18 @@
       "failed_checks": []
     },
     {
-      "id": "REQ-SF-05-BACKEND-FIRST-GAPS",
-      "objective_clause": "Salesforce-visible features missing backend implementation are not exposed as fake UI and are registered as backend-first contracts.",
+      "id": "REQ-SF-05-ROUTE-CONTRACT-GATES",
+      "objective_clause": "Salesforce-visible capabilities are either route-mounted or explicitly owner/provider-blocked, without fake success UI.",
       "evidence_mode": "backend_contracts",
       "checks": [
         {
           "label": "SF-B-W01 contract exists",
           "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w01-account-contact-contract.json",
+          "passed": true
+        },
+        {
+          "label": "SF-B-W02 contract exists",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w02-record-actions-contract.json",
           "passed": true
         },
         {
@@ -315,11 +328,12 @@
           "passed": true
         },
         {
-          "label": "all expected backend-first workstreams present",
+          "label": "all expected route contract workstreams present",
           "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts",
           "passed": true,
           "actual": [
             "SF-B-W01",
+            "SF-B-W02",
             "SF-B-W03",
             "SF-B-W04",
             "SF-B-W05",
@@ -333,13 +347,14 @@
           "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts",
           "passed": true,
           "actual": [
-            "SF-B-W01:account_contact_patch_mounted_merge_blocked",
-            "SF-B-W03:timeline_read_reflected_activity_calendar_channel_contract_registered",
-            "SF-B-W04:document_email_builder_contract_registered_send_provider_blocked",
-            "SF-B-W05:import_data_mapping_contract_registered_execution_blocked",
-            "SF-B-W06:permission_admin_contract_registered_owner_gate_required",
-            "SF-B-W07:data_cloud_enrichment_contract_registered_provider_gate_required",
-            "SF-B-W08:reporting_builder_client_profitability_contract_registered_route_gate_required"
+            "SF-B-W01:w01r_canonical_write_merge_proposal_route_mounted",
+            "SF-B-W02:w02r_record_actions_route_mounted",
+            "SF-B-W03:w03r_activity_calendar_channel_route_mounted_provider_blocked",
+            "SF-B-W04:w04r_document_email_builder_route_mounted_owner_provider_blocked",
+            "SF-B-W05:w05r_import_data_mapping_route_mounted_owner_blocked",
+            "SF-B-W06:w06r_permission_admin_route_mounted_owner_provider_blocked",
+            "SF-B-W07:w07r_data_cloud_enrichment_route_mounted_owner_provider_blocked",
+            "SF-B-W08:w08r_report_builder_client_profitability_route_mounted_owner_blocked"
           ]
         },
         {
@@ -460,14 +475,15 @@
           "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/current-validation-receipt.json",
           "passed": true,
           "actual": {
-            "command_count": 11,
-            "passed_count": 11,
+            "command_count": 18,
+            "passed_count": 18,
             "failed_count": 0,
             "current_ui_regression_tests": 15,
-            "current_api_regression_tests": 31,
+            "current_api_regression_tests": 60,
             "current_e2e_tests": 1,
-            "current_browser_qa_routes": 5,
-            "claim_boundary": "This receipt is current local validation evidence only. It does not create production approval, go-live approval, or enterprise trust claims."
+            "current_browser_qa_routes": 13,
+            "claim_boundary": "This receipt is current local validation evidence only. It does not create production approval, go-live approval, or enterprise trust claims.",
+            "current_browser_qa_checks": 147
           }
         },
         {
@@ -475,14 +491,15 @@
           "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/current-validation-receipt.json",
           "passed": true,
           "actual": {
-            "command_count": 11,
-            "passed_count": 11,
+            "command_count": 18,
+            "passed_count": 18,
             "failed_count": 0,
             "current_ui_regression_tests": 15,
-            "current_api_regression_tests": 31,
+            "current_api_regression_tests": 60,
             "current_e2e_tests": 1,
-            "current_browser_qa_routes": 5,
-            "claim_boundary": "This receipt is current local validation evidence only. It does not create production approval, go-live approval, or enterprise trust claims."
+            "current_browser_qa_routes": 13,
+            "claim_boundary": "This receipt is current local validation evidence only. It does not create production approval, go-live approval, or enterprise trust claims.",
+            "current_browser_qa_checks": 147
           }
         },
         {
@@ -506,9 +523,9 @@
           "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/browser-qa-receipt.json",
           "passed": true,
           "actual": {
-            "route_count": 5,
-            "check_count": 20,
-            "passed_count": 20,
+            "route_count": 13,
+            "check_count": 147,
+            "passed_count": 147,
             "failed_count": 0
           }
         },

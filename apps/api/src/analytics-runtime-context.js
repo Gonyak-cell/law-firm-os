@@ -1,6 +1,6 @@
 import { createAnalyticsRepository } from "../../../packages/analytics/src/runtime-repository.js";
 import { refreshAnalyticsReadModels } from "../../../packages/analytics/src/refresh-job-service.js";
-import { createMatterProfitability } from "../../../packages/analytics/src/metrics-service.js";
+import { createClientProfitability, createMatterProfitability } from "../../../packages/analytics/src/metrics-service.js";
 import { createAnalyticsExport } from "../../../packages/analytics/src/export-control-service.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
 
@@ -13,6 +13,8 @@ export const ANALYTICS_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/analytics/refresh",
     "GET /api/analytics/matter-profitability",
     "POST /api/analytics/matter-profitability",
+    "GET /api/analytics/client-profitability",
+    "POST /api/analytics/client-profitability",
     "POST /api/analytics/exports",
     "GET /api/analytics/audit",
   ]),
@@ -224,6 +226,45 @@ export function handleMatterProfitabilityCreate({ body, context, requestId, runt
   }
 }
 
+export function handleClientProfitabilityCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = { tenant_id: body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, action: "analytics:client_profitability:write", resourceType: "client_profitability" });
+  if (gated) return gated;
+  try {
+    const matterRows =
+      Array.isArray(body.matter_rows) && body.matter_rows.length > 0
+        ? body.matter_rows
+        : runtime.repository.list({ tenant_id: body.tenant_id, model_type: "MatterProfitability" });
+    const result = createClientProfitability({
+      repository: runtime.repository,
+      tenant_id: body.tenant_id,
+      client_group_id: body.client_group_id,
+      matter_rows: matterRows,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return {
+      status: result.idempotent_replay ? 200 : 201,
+      body: {
+        request_id: requestId,
+        outcome: result.idempotent_replay ? "idempotent_replay" : "created",
+        item: sanitizeAnalyticsItem({
+          ...result.item,
+          client_group_label: body.client_group_label ?? "Client Group",
+          matter_level_rows_included: false,
+          row_level_billing_payload_included: false,
+        }),
+        audit_event: result.audit_event,
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        production_ready_claim: false,
+      },
+    };
+  } catch {
+    return errorResponse(400, requestId, [ANALYTICS_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
 export function handleAnalyticsExportCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const query = { tenant_id: body?.analytics_export?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
   const gated = routeGate({ context, query, requestId, action: "analytics:export:write", resourceType: "analytics_export" });
@@ -279,6 +320,10 @@ export async function handleAnalyticsApiRequest({ pathname, method, query, body,
     return listResponse({ query, context, requestId, runtime, action: "analytics:profitability:read", resourceType: "matter_profitability", modelType: "MatterProfitability" });
   }
   if (pathname === "/api/analytics/matter-profitability" && method === "POST") return handleMatterProfitabilityCreate({ body, context, requestId, runtime });
+  if (pathname === "/api/analytics/client-profitability" && method === "GET") {
+    return listResponse({ query, context, requestId, runtime, action: "analytics:client_profitability:read", resourceType: "client_profitability", modelType: "ClientProfitability" });
+  }
+  if (pathname === "/api/analytics/client-profitability" && method === "POST") return handleClientProfitabilityCreate({ body, context, requestId, runtime });
   if (pathname === "/api/analytics/exports" && method === "POST") return handleAnalyticsExportCreate({ body, context, requestId, runtime });
   if (pathname === "/api/analytics/audit" && method === "GET") return handleAnalyticsAudit({ query, context, requestId, runtime });
   return errorResponse(404, requestId, [ANALYTICS_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref });

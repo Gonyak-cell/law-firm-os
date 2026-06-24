@@ -7,24 +7,39 @@ import {
   completeMatterStatus,
   createAnalyticsExport,
   createFinanceTimeEntry,
+  createMatterActivity,
+  createMatterCalendarEvent,
+  createMatterChannelMessage,
   fetchAnalyticsDashboards,
   fetchAnalyticsMatterProfitability,
   fetchFinanceAudit,
   fetchFinanceArAging,
   fetchFinanceInvoices,
   fetchFinanceTimeEntries,
+  fetchMatterActivities,
   fetchMatterAudit,
+  fetchMatterCalendarEvents,
+  fetchMatterChannel,
   fetchMatterCommandCenter,
+  fetchMatterDeadlines,
   fetchMatterListViews,
   fetchMatterRecentlyViewed,
   fetchMatterRecords,
   fetchMatterTimeline,
+  fetchRecordActionAudit,
+  fetchRecordActionFields,
   generateFinanceWip,
   importFinancePayment,
   markMatterRecentlyViewed,
+  patchMatterActivity,
+  patchMatterCalendarEvent,
   refreshAnalyticsDashboards,
   refreshMatterProfitability,
   saveMatterListView,
+  syncMatterChannelProvider,
+  confirmMatterDeadlineChange,
+  bulkUpdateRecordActions,
+  updateRecordActionField,
   updateMatterInlineFields
 } from "../data/apiClient.js";
 import { DataTable, PageHeader, Panel, Property } from "./primitives.jsx";
@@ -32,6 +47,7 @@ import { DesktopDeniedState } from "./DesktopDeniedState.jsx";
 import { MatterOpeningWizard } from "./MatterOpeningWizard.jsx";
 import { MatterTeamRoster } from "./MatterTeamRoster.jsx";
 import { MatterVaultPanel } from "./MatterVaultPanel.jsx";
+import { ImportDataMappingPanel } from "./ImportDataMappingPanel.jsx";
 
 const MATTER_PERMISSION_REF = "ui_cmp_g4_matter_live";
 const MATTER_AUDIT_HINT_REF = "ui_cmp_g4_matter_probe";
@@ -40,10 +56,13 @@ const MATTER_SECTIONS = new Set([
   "matter-command",
   "matter-vault",
   "matter-timeline",
+  "matter-calendar",
+  "matter-channel",
   "matter-opening",
   "matter-team",
   "matter-billing",
-  "matter-analytics"
+  "matter-analytics",
+  "matter-import"
 ]);
 const MATTER_PATH_STEPS = ["신규", "충돌검토", "계약", "수행", "청구"];
 const TIMELINE_FILTERS = Object.freeze([
@@ -78,8 +97,22 @@ function billingStatus(value) {
   if (value === "review_required") return "검토 필요";
   if (value === "completed") return "완료";
   if (value === "ethical_wall") return "제한";
-  if (value === "opening_wip_clear") return "WIP 가능";
+  if (value === "opening_wip_clear") return "청구 준비 가능";
   return "진행 중";
+}
+
+function activityStatusLabel(value) {
+  if (value === "todo") return "예정";
+  if (value === "in_progress") return "진행";
+  if (value === "done") return "완료";
+  if (value === "cancelled") return "취소";
+  return "기록됨";
+}
+
+function providerStateLabel(value) {
+  if (value === "provider_blocked") return "연동 승인 대기";
+  if (value === "internal_only") return "내부 기록";
+  return "내부 준비";
 }
 
 function resultItems(result) {
@@ -138,17 +171,54 @@ function timelineSourceLabel(entry) {
   const category = timelineCategory(entry);
   if (category === "document") return "Vault";
   if (category === "schedule") return "일정";
-  if (category === "message") return "Channel";
-  if (entry?.type === "matter.status.transitioned") return "Path";
-  return "Record";
+  if (category === "message") return "대화";
+  if (entry?.type === "matter.status.transitioned") return "단계";
+  return "기록";
 }
 
 function timelineTitleLabel(entry, index = 0) {
   const text = String(entry?.title ?? "").trim();
+  if (text === "Channel message") return "대화 메시지";
   if (text === "Matter status updated") return "Matter 상태 업데이트";
   if (text === "Matter document linked") return "문서 연결";
+  if (text === "Confirm matter opening checklist") return "Matter 개시 체크리스트 확인";
   if (!text || /synthetic|rp0|tenant|_[a-z0-9]/i.test(text)) return `활동 ${index + 1}`;
   return text;
+}
+
+function activityTitleLabel(value, index = 0) {
+  return timelineTitleLabel({ title: value }, index);
+}
+
+function recordFieldLabel(value) {
+  const text = String(value ?? "").trim();
+  if (text === "Matter title") return "Matter 제목";
+  if (text === "WIP status") return "청구 준비 상태";
+  if (text === "Risk") return "위험도";
+  if (text === "Risk level") return "위험도";
+  if (text === "Status") return "상태";
+  return text || "필드";
+}
+
+function riskLabel(value) {
+  if (value === "standard") return "표준";
+  if (value === "high") return "높음";
+  if (value === "critical") return "중요";
+  if (value === "low") return "낮음";
+  return value ?? "미지정";
+}
+
+function clientReportSectionLabel(section, index = 0) {
+  const text = String(section?.title ?? section?.section_id ?? "").trim();
+  if (text === "Status" || text === "status") return "상태";
+  if (text === "Internal" || text === "internal") return "내부";
+  if (!text) return `구분 ${index + 1}`;
+  return text;
+}
+
+function clientReportBodyLabel(section) {
+  if (section?.section_id === "status") return matterStatus(section.body);
+  return section?.body ?? "권한 적용";
 }
 
 function moneyLabel(value, currency = "KRW") {
@@ -158,10 +228,10 @@ function moneyLabel(value, currency = "KRW") {
 }
 
 function dashboardTypeLabel(value) {
-  if (value === "ar_aging") return "AR Aging";
-  if (value === "client_health") return "Client Health";
-  if (value === "practice_pnl") return "Practice P&L";
-  return "Dashboard";
+  if (value === "ar_aging") return "미수금 현황";
+  if (value === "client_health") return "Client 상태";
+  if (value === "practice_pnl") return "업무 손익";
+  return "대시보드";
 }
 
 function dashboardStatusLabel(value) {
@@ -179,13 +249,15 @@ function dashboardMetricLabel(item) {
 function actionMessage(result, successText) {
   if (!result) return null;
   if (result.kind === "error") return "처리하지 못했습니다.";
+  if (result.uiState === "approval_required") return "승인이 필요합니다.";
+  if (result.uiState === "provider_blocked") return "설정과 승인이 필요합니다.";
   if (result.uiState === "blocked" || result.uiState === "review_required") return "검토가 필요합니다.";
   return successText;
 }
 
 function auditActionLabel(value) {
   if (value === "time.entry.create") return "시간 생성";
-  if (value === "wip.generate") return "WIP 생성";
+  if (value === "wip.generate") return "청구 준비 생성";
   if (value === "payment.import") return "수납 기록";
   if (value === "matter.open") return "Matter 개시";
   if (value === "matter.team.add") return "팀 추가";
@@ -259,14 +331,14 @@ function renderCommandState(result, matter) {
   if (!matter || result === null) {
     return (
       <div className="live-data-state live-data-loading">
-        <strong>Command Center를 불러오는 중입니다</strong>
+        <strong>Matter 현황을 불러오는 중입니다</strong>
       </div>
     );
   }
   if (result.kind === "error") {
     return (
       <div className="live-data-state live-data-error">
-        <strong>Command Center를 불러오지 못했습니다</strong>
+        <strong>Matter 현황을 불러오지 못했습니다</strong>
         잠시 후 다시 시도해주세요.
       </div>
     );
@@ -292,6 +364,8 @@ function MatterRecordPanel({
   matter,
   commandResult,
   timelineResult,
+  deadlineResult,
+  channelResult,
   billingCount,
   analyticsCount,
   inlineEditResult,
@@ -299,12 +373,25 @@ function MatterRecordPanel({
   onInlineEdit,
   ownerChangeResult,
   ownerChangePending,
-  onOwnerChange
+  onOwnerChange,
+  recordActionFieldsResult,
+  recordActionAuditResult,
+  recordActionUpdateResult,
+  recordActionBulkResult,
+  recordActionPending,
+  recordActionBulkPending,
+  onRecordActionFieldUpdate,
+  onRecordActionOwnerBlocked
 }) {
   const command = commandResult?.kind === "data" ? commandResult : null;
   const timelineEntries = timelineResult?.kind === "data" ? timelineResult.item?.visible_entries ?? [] : [];
+  const deadlineCount = resultItems(deadlineResult).length;
+  const channelCount = channelResult?.kind === "data" ? channelResult.item?.messages?.length ?? 0 : 0;
+  const channelProviderState = channelResult?.kind === "data" ? channelResult.item?.provider_state?.external_send_state : null;
   const teamCount = command?.team?.length ?? matter?.team_member_count ?? 0;
   const vaultCount = command?.vaultSummary?.document_count ?? matter?.document_count ?? 0;
+  const recordActionFields = recordActionFieldsResult?.kind === "data" && Array.isArray(recordActionFieldsResult.item?.fields) ? recordActionFieldsResult.item.fields : [];
+  const recordActionAuditCount = resultItems(recordActionAuditResult).length;
   return (
     <aside className="record-side-panel" data-matter-record-workspace="right-panel">
       <div className="record-side-header">
@@ -322,6 +409,14 @@ function MatterRecordPanel({
         <div>
           <span>활동</span>
           <strong>{timelineEntries.length}</strong>
+        </div>
+        <div data-sf-b-w03-right-panel-deadline-highlight="true">
+          <span>기한</span>
+          <strong>{deadlineCount}</strong>
+        </div>
+        <div data-sf-b-w03-right-panel-channel-tab="true">
+          <span>대화</span>
+          <strong>{channelCount}</strong>
         </div>
         <div>
           <span>청구</span>
@@ -376,6 +471,58 @@ function MatterRecordPanel({
           <span>책임자 변경이 기록되었습니다.</span>
         </div>
       )}
+      <div className="record-action-strip" data-sf-b-w02-matter-record-actions="true">
+        <div>
+          <strong>레코드 필드</strong>
+          <span>{recordActionFields.length > 0 ? recordActionFields.map((field) => recordFieldLabel(field.label)).join(" / ") : "허용 필드 확인 중"}</span>
+          <ActionNotice
+            pending={recordActionPending}
+            result={recordActionUpdateResult}
+            pendingText="레코드 필드를 업데이트 중입니다."
+            successText="레코드 필드가 업데이트되었습니다."
+          />
+        </div>
+        <button className="secondary-button" type="button" disabled={!matter || recordActionPending} onClick={onRecordActionFieldUpdate}>
+          <Pencil size={15} />
+          필드 작업
+        </button>
+      </div>
+      {recordActionUpdateResult?.kind === "data" && recordActionUpdateResult.fieldPatch && (
+        <div className="record-boundary-note" data-sf-b-w02-matter-record-action-result="true">
+          <ShieldCheck size={15} />
+          <span>허용된 Matter 필드가 업데이트되었습니다.</span>
+        </div>
+      )}
+      <div className="record-action-strip" data-sf-b-w02-matter-owner-blocked-action="true">
+        <div>
+          <strong>책임자 일괄 변경</strong>
+          <span>{recordActionBulkResult?.uiState === "owner_blocked" ? "승인 필요" : "승인 조건 확인"}</span>
+          <ActionNotice
+            pending={recordActionBulkPending}
+            result={recordActionBulkResult}
+            pendingText="승인 조건을 확인 중입니다."
+            successText="승인 필요 상태가 기록되었습니다."
+          />
+        </div>
+        <button className="secondary-button" type="button" disabled={!matter || recordActionBulkPending} onClick={onRecordActionOwnerBlocked}>
+          <ShieldCheck size={15} />
+          승인 확인
+        </button>
+      </div>
+      {recordActionBulkResult?.uiState === "owner_blocked" && (
+        <div className="record-boundary-note" data-sf-b-w02-matter-owner-blocked-result="true">
+          <ShieldCheck size={15} />
+          <span>승인 후 처리할 수 있습니다.</span>
+        </div>
+      )}
+      <div className="record-boundary-note" data-sf-b-w02-matter-action-audit-feed="true">
+        <ShieldCheck size={15} />
+        <span>최근 작업 {recordActionAuditCount}건</span>
+      </div>
+      <div className="record-boundary-note" data-sf-b-w03-channel-provider-state="true">
+        <ShieldCheck size={15} />
+        <span>{channelProviderState === "provider_blocked" ? "외부 연동 승인 대기" : "내부 대화 준비"}</span>
+      </div>
       <div className="record-boundary-note">
         <ShieldCheck size={15} />
         <span>권한 기준에 맞춰 표시됩니다.</span>
@@ -437,7 +584,7 @@ function MatterListViewPanel({
   const views = resultItems(result);
   return (
     <div className="matter-list-view-panel" data-matter-saved-list-views="true">
-      <div className="matter-list-view-options" role="tablist" aria-label="Matter saved list views">
+      <div className="matter-list-view-options" role="tablist" aria-label="Matter 저장 목록">
         {views.length === 0 && <span className="subtle-text">저장된 View 없음</span>}
         {views.map((view) => {
           const active = view.list_view_id === activeListViewId;
@@ -516,7 +663,7 @@ function MatterSelectableList({
   const selectedSet = new Set(selectedMatterIds);
   const allVisibleSelected = matters.length > 0 && matters.every((item) => selectedSet.has(item.matter_id));
   return (
-    <div className="matter-selectable-list" data-matter-selected-record-list="true" role="listbox" aria-label="Matter records">
+    <div className="matter-selectable-list" data-matter-selected-record-list="true" role="listbox" aria-label="Matter 레코드">
       <div className="matter-selectable-header">
         <span>
           <input
@@ -658,15 +805,15 @@ function CommandPanel({ result, matter, statusResult, statusPending, onCompleteS
       <div className="record-summary-grid">
         <Property label="제목" value={matterTitleLabel(item.title)} />
         <Property label="Client" value={item.legal_client_party_id || item.client_id ? "연결됨" : "미지정"} />
-        <Property label="Risk" value={item.risk_level ?? "standard"} />
+        <Property label="위험도" value={riskLabel(item.risk_level)} />
         <Property label="Vault" value={result.vaultLink?.vault_workspace_id || item.vault_workspace_id ? "연결됨" : "미연결"} />
       </div>
       <DataTable
-        columns={["Section", "값", "표시"]}
-        rows={(result.clientReport?.sections ?? []).map((section) => [
-          section.title ?? section.section_id,
-          section.body ?? "권한 적용",
-          section.client_visible ? "Client" : "Internal"
+        columns={["구분", "값", "표시"]}
+        rows={(result.clientReport?.sections ?? []).map((section, index) => [
+          clientReportSectionLabel(section, index),
+          clientReportBodyLabel(section),
+          section.client_visible ? "Client" : "내부"
         ])}
       />
     </div>
@@ -764,6 +911,262 @@ function TimelinePanel({ result }) {
   );
 }
 
+function ActivityWorkspacePanel({
+  activityResult,
+  timelineResult,
+  createResult,
+  patchResult,
+  createPending,
+  patchPending,
+  onCreateActivity,
+  onPatchActivity
+}) {
+  const activities = resultItems(activityResult);
+  const targetActivity = activities.find((item) => item.activity_type === "task") ?? createResult?.item ?? activities[0] ?? null;
+  return (
+    <div className="matter-live-stack" data-sf-b-w03-activity-workspace="true">
+      <div className="record-action-grid" data-sf-b-w03-activity-composer="true">
+        <div className="record-action-strip">
+          <div>
+            <strong>작업</strong>
+            <span>{targetActivity ? activityStatusLabel(targetActivity.status) : "새 작업"}</span>
+            <ActionNotice
+              pending={createPending}
+              result={createResult}
+              pendingText="작업을 기록 중입니다."
+              successText="작업이 기록되었습니다."
+            />
+          </div>
+          <button className="secondary-button" type="button" disabled={createPending} onClick={onCreateActivity}>
+            <ListChecks size={15} />
+            작업 추가
+          </button>
+        </div>
+        <div className="record-action-strip">
+          <div>
+            <strong>상태</strong>
+            <span>{targetActivity ? activityStatusLabel(targetActivity.status) : "작업 선택"}</span>
+            <ActionNotice
+              pending={patchPending}
+              result={patchResult}
+              pendingText="상태를 저장 중입니다."
+              successText="상태가 저장되었습니다."
+            />
+          </div>
+          <button className="secondary-button" type="button" disabled={!targetActivity || patchPending} onClick={() => onPatchActivity(targetActivity)}>
+            <Pencil size={15} />
+            상태 저장
+          </button>
+        </div>
+      </div>
+      {createResult?.kind === "data" && createResult.item && (
+        <div className="record-boundary-note" data-sf-b-w03-activity-create-result="true">
+          <ShieldCheck size={15} />
+          <span>활동이 감사 이력과 활동 이력에 기록되었습니다.</span>
+        </div>
+      )}
+      {patchResult?.kind === "data" && patchResult.item && (
+        <div className="record-boundary-note" data-sf-b-w03-activity-patch-result="true">
+          <ShieldCheck size={15} />
+          <span>활동 상태가 저장되었습니다.</span>
+        </div>
+      )}
+      <TimelinePanel result={timelineResult} />
+      <DataTable
+        columns={["활동", "상태", "일시", "전송"]}
+        rows={activities.map((item, index) => [
+          activityTitleLabel(item.title, index),
+          activityStatusLabel(item.status),
+          timelineTimeLabel(item.due_at),
+          providerStateLabel(item.external_send_state)
+        ])}
+      />
+    </div>
+  );
+}
+
+function CalendarWorkspacePanel({
+  calendarResult,
+  deadlineResult,
+  createResult,
+  approvalResult,
+  confirmResult,
+  createPending,
+  approvalPending,
+  confirmPending,
+  onCreateCalendarEvent,
+  onRequestDeadlineChange,
+  onConfirmDeadlineChange
+}) {
+  const events = resultItems(calendarResult);
+  const deadlines = resultItems(deadlineResult);
+  const targetEvent = events.find((item) => item.criticality === "critical") ?? createResult?.item ?? events[0] ?? null;
+  const pendingDeadlineId = approvalResult?.deadlineChangeRequest?.event_id ?? targetEvent?.event_id ?? deadlines[0]?.deadline_id;
+  return (
+    <div className="matter-live-stack" data-sf-b-w03-calendar-workspace="true">
+      <div className="record-action-grid">
+        <div className="record-action-strip" data-sf-b-w03-calendar-create-action="true">
+          <div>
+            <strong>일정</strong>
+            <span>{targetEvent ? providerStateLabel(targetEvent.provider_sync_state) : "기한 추가"}</span>
+            <ActionNotice
+              pending={createPending}
+              result={createResult}
+              pendingText="일정을 기록 중입니다."
+              successText="일정이 기록되었습니다."
+            />
+          </div>
+          <button className="secondary-button" type="button" disabled={createPending} onClick={onCreateCalendarEvent}>
+            <CalendarClock size={15} />
+            일정 추가
+          </button>
+        </div>
+        <div className="record-action-strip" data-sf-b-w03-deadline-approval-action="true">
+          <div>
+            <strong>기한 변경</strong>
+            <span>{approvalResult?.uiState === "approval_required" ? "승인 필요" : "이중 확인"}</span>
+            <ActionNotice
+              pending={approvalPending}
+              result={approvalResult}
+              pendingText="기한 변경을 요청 중입니다."
+              successText="승인 필요 상태가 기록되었습니다."
+            />
+          </div>
+          <button className="secondary-button" type="button" disabled={!targetEvent || approvalPending} onClick={() => onRequestDeadlineChange(targetEvent)}>
+            <ShieldCheck size={15} />
+            변경 요청
+          </button>
+        </div>
+        <div className="record-action-strip" data-sf-b-w03-deadline-confirm-action="true">
+          <div>
+            <strong>확인</strong>
+            <span>{confirmResult?.confirmation?.dual_control_satisfied ? "확인됨" : "대기"}</span>
+            <ActionNotice
+              pending={confirmPending}
+              result={confirmResult}
+              pendingText="확인 중입니다."
+              successText="기한 변경이 확인되었습니다."
+            />
+          </div>
+          <button className="secondary-button" type="button" disabled={!pendingDeadlineId || confirmPending} onClick={() => onConfirmDeadlineChange(pendingDeadlineId)}>
+            <CheckCircle2 size={15} />
+            확인
+          </button>
+        </div>
+      </div>
+      {createResult?.kind === "data" && createResult.item && (
+        <div className="record-boundary-note" data-sf-b-w03-calendar-create-result="true">
+          <ShieldCheck size={15} />
+          <span>일정이 Matter 기록에 연결되었습니다.</span>
+        </div>
+      )}
+      {approvalResult?.uiState === "approval_required" && (
+        <div className="record-boundary-note" data-sf-b-w03-deadline-approval-result="true">
+          <ShieldCheck size={15} />
+          <span>중요 기한 변경은 승인 후 확정됩니다.</span>
+        </div>
+      )}
+      {confirmResult?.confirmation?.dual_control_satisfied && (
+        <div className="record-boundary-note" data-sf-b-w03-deadline-confirm-result="true">
+          <ShieldCheck size={15} />
+          <span>다른 확인자 기준으로 기한 변경이 확정되었습니다.</span>
+        </div>
+      )}
+      <div data-sf-b-w03-deadline-board="true">
+        <DataTable
+          columns={["일정", "기한", "중요도", "연동"]}
+          rows={events.map((item, index) => [
+            activityTitleLabel(item.title, index),
+            timelineTimeLabel(item.starts_at),
+            item.criticality === "critical" ? "중요" : "표준",
+            providerStateLabel(item.provider_sync_state)
+          ])}
+        />
+      </div>
+      <DataTable
+        columns={["기한", "일시", "확인", "상태"]}
+        rows={deadlines.map((item, index) => [
+          activityTitleLabel(item.title, index),
+          timelineTimeLabel(item.due_at),
+          item.dual_control_required ? "필요" : "불필요",
+          activityStatusLabel(item.status)
+        ])}
+      />
+    </div>
+  );
+}
+
+function ChannelWorkspacePanel({
+  channelResult,
+  messageResult,
+  providerResult,
+  messagePending,
+  providerPending,
+  onCreateMessage,
+  onProviderSync
+}) {
+  const channel = channelResult?.kind === "data" ? channelResult.item : null;
+  const messages = channel?.messages ?? [];
+  return (
+    <div className="matter-live-stack" data-sf-b-w03-channel-workspace="true">
+      <div className="record-action-grid" data-sf-b-w03-channel-composer="true">
+        <div className="record-action-strip">
+          <div>
+            <strong>메시지</strong>
+            <span>{messages.length > 0 ? `${messages.length}건` : "내부 기록"}</span>
+            <ActionNotice
+              pending={messagePending}
+              result={messageResult}
+              pendingText="메시지를 기록 중입니다."
+              successText="메시지가 기록되었습니다."
+            />
+          </div>
+          <button className="secondary-button" type="button" disabled={messagePending} onClick={onCreateMessage}>
+            <MessageSquare size={15} />
+            메시지 기록
+          </button>
+        </div>
+        <div className="record-action-strip">
+          <div>
+            <strong>외부 연동</strong>
+            <span>{providerStateLabel(providerResult?.providerState?.external_send_state ?? channel?.provider_state?.external_send_state)}</span>
+            <ActionNotice
+              pending={providerPending}
+              result={providerResult}
+              pendingText="연동 상태를 확인 중입니다."
+              successText="연동 승인 대기 상태입니다."
+            />
+          </div>
+          <button className="secondary-button" type="button" disabled={providerPending} onClick={onProviderSync}>
+            <ShieldCheck size={15} />
+            상태 확인
+          </button>
+        </div>
+      </div>
+      {messageResult?.kind === "data" && messageResult.item && (
+        <div className="record-boundary-note" data-sf-b-w03-channel-message-result="true">
+          <ShieldCheck size={15} />
+          <span>메시지가 내부 대화에 기록되었습니다.</span>
+        </div>
+      )}
+      {(providerResult?.uiState === "provider_blocked" || channel?.provider_state?.external_send_state === "provider_blocked") && (
+        <div className="record-boundary-note" data-sf-b-w03-provider-blocked-result="true">
+          <ShieldCheck size={15} />
+          <span>외부 연동은 승인과 설정이 필요합니다.</span>
+        </div>
+      )}
+      <DataTable
+        columns={["메시지", "작성", "상태"]}
+        rows={messages.map((item, index) => [
+          item.safe_message_excerpt || `메시지 ${index + 1}`,
+          timelineTimeLabel(item.created_at),
+          providerStateLabel(item.external_send_state)
+        ])}
+      />
+    </div>
+  );
+}
+
 function AuditTrailPanel({ result, events = [], marker = "matter-audit-trail" }) {
   if (result === null && events.length === 0) {
     return (
@@ -846,12 +1249,12 @@ function BillingActionPanel({
       </div>
       <div className="record-action-strip">
         <div>
-          <strong>{wipItems.length > 0 ? moneyLabel(wipItems[0]?.amount, wipItems[0]?.currency ?? "KRW") : "WIP"}</strong>
-          <span>{wipItems.length > 0 ? "WIP 생성됨" : "승인 시간 기준"}</span>
-          <ActionNotice pending={wipPending} result={wipResult} pendingText="WIP 생성 중입니다." successText="WIP가 생성되었습니다." />
+          <strong>{wipItems.length > 0 ? moneyLabel(wipItems[0]?.amount, wipItems[0]?.currency ?? "KRW") : "청구 준비"}</strong>
+          <span>{wipItems.length > 0 ? "청구 준비됨" : "승인 시간 기준"}</span>
+          <ActionNotice pending={wipPending} result={wipResult} pendingText="청구 준비 중입니다." successText="청구 준비가 생성되었습니다." />
         </div>
         <button className="secondary-button" type="button" disabled={!matter || wipPending} onClick={onGenerateWip}>
-          WIP 생성
+          청구 준비
         </button>
       </div>
       <div className="record-action-strip">
@@ -934,7 +1337,7 @@ function BillingPanel({
       <DataTable
         columns={["시간", "일자", "상태", "분"]}
         rows={timeRows.map((item, index) => [
-          `Time ${index + 1}`,
+          `시간 ${index + 1}`,
           item.work_date ?? "미지정",
           billingStatus(item.status),
           String(item.duration_minutes ?? 0)
@@ -943,7 +1346,7 @@ function BillingPanel({
       <DataTable
         columns={["청구서", "상태", "금액", "통화"]}
         rows={invoiceRows.map((item, index) => [
-          `Invoice ${index + 1}`,
+          `청구서 ${index + 1}`,
           billingStatus(item.status),
           moneyLabel(item.amount_due, item.currency ?? "KRW"),
           item.currency ?? "KRW"
@@ -951,9 +1354,9 @@ function BillingPanel({
       />
       {agingRows.length > 0 && (
         <DataTable
-          columns={["AR", "상태", "잔액"]}
+          columns={["미수금", "상태", "잔액"]}
           rows={agingRows.map((item, index) => [
-            `AR ${index + 1}`,
+            `미수금 ${index + 1}`,
             billingStatus(item.status),
             moneyLabel(item.balance ?? item.balance_total, "KRW")
           ])}
@@ -1008,7 +1411,7 @@ function AnalyticsActionPanel({
           <ActionNotice pending={exportPending} result={exportResult} pendingText="내보내기 요청 중입니다." successText="내보내기 검토가 생성되었습니다." />
           {exportReady && (
             <small data-matter-analytics-export-safe-state="true">
-              세부 Matter와 credential은 포함하지 않습니다.
+              세부 Matter와 인증 정보는 포함하지 않습니다.
             </small>
           )}
         </div>
@@ -1019,7 +1422,7 @@ function AnalyticsActionPanel({
       <div className="record-action-strip">
         <div>
           <strong>손익</strong>
-          <span>{canRefreshProfitability ? "증거 준비됨" : "WIP/수납 필요"}</span>
+          <span>{canRefreshProfitability ? "증거 준비됨" : "청구 준비/수납 필요"}</span>
           <ActionNotice pending={profitabilityPending} result={profitabilityActionResult} pendingText="손익 갱신 중입니다." successText="손익이 갱신되었습니다." />
         </div>
         <button className="secondary-button" type="button" disabled={!canRefreshProfitability || profitabilityPending} onClick={onProfitability}>
@@ -1047,7 +1450,7 @@ function AnalyticsPanel({
   onExport,
   onProfitability
 }) {
-  const state = renderCollectionState(result, "Analytics");
+  const state = renderCollectionState(result, "분석");
   if (state) return state;
   const matterId = matter?.matter_id;
   const dashboards = resultItems(result);
@@ -1118,6 +1521,21 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
   const [bulkTransitionResult, setBulkTransitionResult] = useState(null);
   const [inlineEditResult, setInlineEditResult] = useState(null);
   const [ownerChangeResult, setOwnerChangeResult] = useState(null);
+  const [recordActionFieldsResult, setRecordActionFieldsResult] = useState(null);
+  const [recordActionAuditResult, setRecordActionAuditResult] = useState(null);
+  const [recordActionUpdateResult, setRecordActionUpdateResult] = useState(null);
+  const [recordActionBulkResult, setRecordActionBulkResult] = useState(null);
+  const [activityResult, setActivityResult] = useState(null);
+  const [activityCreateResult, setActivityCreateResult] = useState(null);
+  const [activityPatchResult, setActivityPatchResult] = useState(null);
+  const [calendarResult, setCalendarResult] = useState(null);
+  const [calendarCreateResult, setCalendarCreateResult] = useState(null);
+  const [deadlineResult, setDeadlineResult] = useState(null);
+  const [deadlineApprovalResult, setDeadlineApprovalResult] = useState(null);
+  const [deadlineConfirmResult, setDeadlineConfirmResult] = useState(null);
+  const [channelResult, setChannelResult] = useState(null);
+  const [channelMessageResult, setChannelMessageResult] = useState(null);
+  const [channelProviderResult, setChannelProviderResult] = useState(null);
   const [timeEntryPending, setTimeEntryPending] = useState(false);
   const [wipPending, setWipPending] = useState(false);
   const [paymentPending, setPaymentPending] = useState(false);
@@ -1129,6 +1547,15 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
   const [bulkTransitionPending, setBulkTransitionPending] = useState(false);
   const [inlineEditPending, setInlineEditPending] = useState(false);
   const [ownerChangePending, setOwnerChangePending] = useState(false);
+  const [recordActionPending, setRecordActionPending] = useState(false);
+  const [recordActionBulkPending, setRecordActionBulkPending] = useState(false);
+  const [activityCreatePending, setActivityCreatePending] = useState(false);
+  const [activityPatchPending, setActivityPatchPending] = useState(false);
+  const [calendarCreatePending, setCalendarCreatePending] = useState(false);
+  const [deadlineApprovalPending, setDeadlineApprovalPending] = useState(false);
+  const [deadlineConfirmPending, setDeadlineConfirmPending] = useState(false);
+  const [channelMessagePending, setChannelMessagePending] = useState(false);
+  const [channelProviderPending, setChannelProviderPending] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
   const [createdItems, setCreatedItems] = useState([]);
   const [selectedMatterId, setSelectedMatterId] = useState(null);
@@ -1178,6 +1605,23 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
   const activeMatterId = selectedMatter?.matter_id ?? null;
 
   useEffect(() => {
+    let cancelled = false;
+    setRecordActionFieldsResult(null);
+    setRecordActionAuditResult(null);
+    Promise.all([
+      fetchRecordActionFields({ objectName: "matter", ctx: liveCtx }),
+      activeMatterId ? fetchRecordActionAudit({ objectName: "matter", recordId: activeMatterId, ctx: liveCtx }) : Promise.resolve({ kind: "data", items: [] })
+    ]).then(([fields, audit]) => {
+      if (cancelled) return;
+      setRecordActionFieldsResult(fields);
+      setRecordActionAuditResult(audit);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [liveCtx, refreshToken, activeMatterId]);
+
+  useEffect(() => {
     const visibleIds = new Set(visibleMatters.map((item) => item.matter_id));
     setSelectedMatterIds((current) => current.filter((matterId) => visibleIds.has(matterId)));
   }, [visibleMatters]);
@@ -1216,10 +1660,25 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
     setStatusTransitionResult(null);
     setInlineEditResult(null);
     setOwnerChangeResult(null);
+    setActivityResult(null);
+    setActivityCreateResult(null);
+    setActivityPatchResult(null);
+    setCalendarResult(null);
+    setCalendarCreateResult(null);
+    setDeadlineResult(null);
+    setDeadlineApprovalResult(null);
+    setDeadlineConfirmResult(null);
+    setChannelResult(null);
+    setChannelMessageResult(null);
+    setChannelProviderResult(null);
     if (!activeMatterId) return undefined;
     Promise.all([
       fetchMatterCommandCenter({ matterId: activeMatterId, ctx: liveCtx }),
       fetchMatterTimeline({ matterId: activeMatterId, ctx: liveCtx }),
+      fetchMatterActivities({ matterId: activeMatterId, ctx: liveCtx }),
+      fetchMatterCalendarEvents({ matterId: activeMatterId, ctx: liveCtx }),
+      fetchMatterDeadlines({ matterId: activeMatterId, ctx: liveCtx }),
+      fetchMatterChannel({ matterId: activeMatterId, ctx: liveCtx }),
       fetchFinanceTimeEntries({ ctx: liveCtx }),
       fetchFinanceInvoices({ ctx: liveCtx }),
       fetchFinanceArAging({ ctx: liveCtx }),
@@ -1227,10 +1686,14 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
       fetchFinanceAudit({ ctx: liveCtx }),
       fetchAnalyticsDashboards({ ctx: liveCtx }),
       fetchAnalyticsMatterProfitability({ ctx: liveCtx })
-    ]).then(([command, timeline, time, invoices, aging, matterAudit, financeAudit, analytics, profitability]) => {
+    ]).then(([command, timeline, activities, calendar, deadlines, channel, time, invoices, aging, matterAudit, financeAudit, analytics, profitability]) => {
       if (cancelled) return;
       setCommandResult(command);
       setTimelineResult(timeline);
+      setActivityResult(activities);
+      setCalendarResult(calendar);
+      setDeadlineResult(deadlines);
+      setChannelResult(channel);
       setTimeResult(time);
       setInvoiceResult(invoices);
       setAgingResult(aging);
@@ -1411,6 +1874,169 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
     }
   }
 
+  async function handleRecordActionFieldUpdate() {
+    if (!activeMatterId) return;
+    setRecordActionPending(true);
+    const next = await updateRecordActionField({
+      objectName: "matter",
+      recordId: activeMatterId,
+      fieldUpdates: { risk_level: "elevated" },
+      ctx: liveCtx
+    });
+    setRecordActionUpdateResult(next);
+    setRecordActionPending(false);
+    if (next.kind === "data" && next.item) {
+      applyMatterUpdate({
+        ...selectedMatter,
+        matter_id: activeMatterId,
+        risk_level: next.item.risk_level ?? selectedMatter?.risk_level,
+        title: next.item.title ?? selectedMatter?.title,
+        status: next.item.status ?? selectedMatter?.status,
+      });
+      const audit = await fetchRecordActionAudit({ objectName: "matter", recordId: activeMatterId, ctx: liveCtx });
+      setRecordActionAuditResult(audit);
+    }
+  }
+
+  async function handleRecordActionOwnerBlocked() {
+    if (!activeMatterId) return;
+    setRecordActionBulkPending(true);
+    const next = await bulkUpdateRecordActions({
+      objectName: "matter",
+      recordIds: [activeMatterId],
+      actionType: "owner_change",
+      ctx: liveCtx
+    });
+    setRecordActionBulkResult(next);
+    setRecordActionBulkPending(false);
+  }
+
+  async function refreshMatterActivitySurfaces() {
+    if (!activeMatterId) return;
+    const [timeline, activities, calendar, deadlines, channel] = await Promise.all([
+      fetchMatterTimeline({ matterId: activeMatterId, ctx: liveCtx }),
+      fetchMatterActivities({ matterId: activeMatterId, ctx: liveCtx }),
+      fetchMatterCalendarEvents({ matterId: activeMatterId, ctx: liveCtx }),
+      fetchMatterDeadlines({ matterId: activeMatterId, ctx: liveCtx }),
+      fetchMatterChannel({ matterId: activeMatterId, ctx: liveCtx })
+    ]);
+    setTimelineResult(timeline);
+    setActivityResult(activities);
+    setCalendarResult(calendar);
+    setDeadlineResult(deadlines);
+    setChannelResult(channel);
+  }
+
+  async function handleCreateActivity() {
+    if (!activeMatterId) return;
+    setActivityCreatePending(true);
+    const next = await createMatterActivity({
+      matterId: activeMatterId,
+      title: "증거 검토 작업",
+      status: "todo",
+      ctx: liveCtx
+    });
+    setActivityCreateResult(next);
+    setActivityCreatePending(false);
+    if (next.kind === "data") {
+      await refreshMatterActivitySurfaces();
+    }
+  }
+
+  async function handlePatchActivity(activity) {
+    const activityId = activity?.activity_id;
+    if (!activeMatterId || !activityId) return;
+    setActivityPatchPending(true);
+    const next = await patchMatterActivity({
+      matterId: activeMatterId,
+      activityId,
+      patch: { status: activity.status === "todo" ? "in_progress" : activity.status },
+      ctx: liveCtx
+    });
+    setActivityPatchResult(next);
+    setActivityPatchPending(false);
+    if (next.kind === "data") {
+      await refreshMatterActivitySurfaces();
+    }
+  }
+
+  async function handleCreateCalendarEvent() {
+    if (!activeMatterId) return;
+    setCalendarCreatePending(true);
+    const next = await createMatterCalendarEvent({
+      matterId: activeMatterId,
+      title: "주요 제출 기한",
+      criticality: "critical",
+      legalConsequence: "court_deadline",
+      ctx: liveCtx
+    });
+    setCalendarCreateResult(next);
+    setCalendarCreatePending(false);
+    if (next.kind === "data") {
+      await refreshMatterActivitySurfaces();
+    }
+  }
+
+  async function handleRequestDeadlineChange(event) {
+    if (!activeMatterId || !event?.event_id) return;
+    setDeadlineApprovalPending(true);
+    const baseTime = Number.isNaN(Date.parse(event.starts_at)) ? Date.now() : new Date(event.starts_at).getTime();
+    const startsAt = new Date(baseTime + 86400000).toISOString();
+    const endsAt = new Date(new Date(startsAt).getTime() + 3600000).toISOString();
+    const next = await patchMatterCalendarEvent({
+      matterId: activeMatterId,
+      eventId: event.event_id,
+      patch: { starts_at: startsAt, ends_at: endsAt },
+      ctx: liveCtx
+    });
+    setDeadlineApprovalResult(next);
+    setDeadlineApprovalPending(false);
+    if (next.kind === "data") {
+      await refreshMatterActivitySurfaces();
+    }
+  }
+
+  async function handleConfirmDeadlineChange(deadlineId) {
+    if (!activeMatterId || !deadlineId) return;
+    setDeadlineConfirmPending(true);
+    const next = await confirmMatterDeadlineChange({
+      matterId: activeMatterId,
+      deadlineId,
+      ctx: liveCtx
+    });
+    setDeadlineConfirmResult(next);
+    setDeadlineConfirmPending(false);
+    if (next.kind === "data") {
+      await refreshMatterActivitySurfaces();
+    }
+  }
+
+  async function handleCreateChannelMessage() {
+    if (!activeMatterId) return;
+    setChannelMessagePending(true);
+    const next = await createMatterChannelMessage({
+      matterId: activeMatterId,
+      message: "내부 준비 상황을 기록합니다.",
+      ctx: liveCtx
+    });
+    setChannelMessageResult(next);
+    setChannelMessagePending(false);
+    if (next.kind === "data") {
+      await refreshMatterActivitySurfaces();
+    }
+  }
+
+  async function handleChannelProviderSync() {
+    if (!activeMatterId) return;
+    setChannelProviderPending(true);
+    const next = await syncMatterChannelProvider({ matterId: activeMatterId, ctx: liveCtx });
+    setChannelProviderResult(next);
+    setChannelProviderPending(false);
+    if (next.kind === "data") {
+      await refreshMatterActivitySurfaces();
+    }
+  }
+
   async function handleSaveOpeningListView() {
     setListViewPending(true);
     const next = await saveMatterListView({
@@ -1510,7 +2136,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
     <section id="matters-home" className="surface stack matters-surface" data-cmp-g4-live-matters="true">
       <PageHeader
         title={labels.mattersTitle}
-        subtitle="Matter 진행, 팀, 문서, 활동, 청구, 분석 업무를 관리합니다."
+        subtitle="Matter 진행, 구성원, 문서, 활동, 청구, 분석 업무를 관리합니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />
@@ -1543,7 +2169,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
           </Panel>
         )}
         {currentSection === "matter-command" && (
-          <Panel id="matter-command" className="record-list-panel" title="Command Center" meta="Matter">
+          <Panel id="matter-command" className="record-list-panel" title="Matter 현황" meta="진행 관리">
             <CommandPanel
               result={commandResult}
               matter={selectedMatter}
@@ -1560,8 +2186,47 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
         )}
         {currentSection === "matter-vault" && <MatterVaultPanel matterId={activeMatterId} liveCtx={liveCtx} />}
         {currentSection === "matter-timeline" && (
-          <Panel id="matter-timeline" className="record-list-panel" title="활동" meta="Timeline">
-            <TimelinePanel result={timelineResult} />
+          <Panel id="matter-timeline" className="record-list-panel" title="활동" meta="활동 이력">
+            <ActivityWorkspacePanel
+              activityResult={activityResult}
+              timelineResult={timelineResult}
+              createResult={activityCreateResult}
+              patchResult={activityPatchResult}
+              createPending={activityCreatePending}
+              patchPending={activityPatchPending}
+              onCreateActivity={handleCreateActivity}
+              onPatchActivity={handlePatchActivity}
+            />
+          </Panel>
+        )}
+        {currentSection === "matter-calendar" && (
+          <Panel id="matter-calendar" className="record-list-panel" title="일정" meta="일정 관리">
+            <CalendarWorkspacePanel
+              calendarResult={calendarResult}
+              deadlineResult={deadlineResult}
+              createResult={calendarCreateResult}
+              approvalResult={deadlineApprovalResult}
+              confirmResult={deadlineConfirmResult}
+              createPending={calendarCreatePending}
+              approvalPending={deadlineApprovalPending}
+              confirmPending={deadlineConfirmPending}
+              onCreateCalendarEvent={handleCreateCalendarEvent}
+              onRequestDeadlineChange={handleRequestDeadlineChange}
+              onConfirmDeadlineChange={handleConfirmDeadlineChange}
+            />
+          </Panel>
+        )}
+        {currentSection === "matter-channel" && (
+          <Panel id="matter-channel" className="record-list-panel" title="대화" meta="메시지">
+            <ChannelWorkspacePanel
+              channelResult={channelResult}
+              messageResult={channelMessageResult}
+              providerResult={channelProviderResult}
+              messagePending={channelMessagePending}
+              providerPending={channelProviderPending}
+              onCreateMessage={handleCreateChannelMessage}
+              onProviderSync={handleChannelProviderSync}
+            />
           </Panel>
         )}
         {currentSection === "matter-opening" && (
@@ -1577,7 +2242,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
           <MatterTeamRoster matters={matters} liveCtx={liveCtx} onMatterUpdated={applyMatterUpdate} />
         )}
         {currentSection === "matter-billing" && (
-          <Panel id="matter-billing" className="record-list-panel" title="청구" meta="Finance">
+          <Panel id="matter-billing" className="record-list-panel" title="청구" meta="청구 관리">
             <BillingPanel
               timeResult={timeResult}
               invoiceResult={invoiceResult}
@@ -1598,7 +2263,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
           </Panel>
         )}
         {currentSection === "matter-analytics" && (
-          <Panel id="matter-analytics" className="record-list-panel" title="분석" meta="Analytics">
+          <Panel id="matter-analytics" className="record-list-panel" title="분석" meta="분석 관리">
             <AnalyticsPanel
               result={analyticsResult}
               profitabilityResult={profitabilityResult}
@@ -1618,11 +2283,16 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
             />
           </Panel>
         )}
-        {["matters-list", "matter-command", "matter-vault", "matter-timeline", "matter-team", "matter-billing", "matter-analytics"].includes(currentSection) && (
+        {currentSection === "matter-import" && (
+          <ImportDataMappingPanel ctx={liveCtx} surface="matter" />
+        )}
+        {["matters-list", "matter-command", "matter-vault", "matter-timeline", "matter-calendar", "matter-channel", "matter-team", "matter-billing", "matter-analytics", "matter-import"].includes(currentSection) && (
           <MatterRecordPanel
             matter={selectedMatter}
             commandResult={commandResult}
             timelineResult={timelineResult}
+            deadlineResult={deadlineResult}
+            channelResult={channelResult}
             billingCount={billingCount}
             analyticsCount={analyticsCount}
             inlineEditResult={inlineEditResult}
@@ -1631,6 +2301,14 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
             ownerChangeResult={ownerChangeResult}
             ownerChangePending={ownerChangePending}
             onOwnerChange={handleOwnerChange}
+            recordActionFieldsResult={recordActionFieldsResult}
+            recordActionAuditResult={recordActionAuditResult}
+            recordActionUpdateResult={recordActionUpdateResult}
+            recordActionBulkResult={recordActionBulkResult}
+            recordActionPending={recordActionPending}
+            recordActionBulkPending={recordActionBulkPending}
+            onRecordActionFieldUpdate={handleRecordActionFieldUpdate}
+            onRecordActionOwnerBlocked={handleRecordActionOwnerBlocked}
           />
         )}
       </div>
