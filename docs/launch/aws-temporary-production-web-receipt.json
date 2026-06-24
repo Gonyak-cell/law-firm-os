@@ -1,0 +1,43 @@
+{
+  "schema_version": "law-firm-os.aws-temporary-production-web-receipt.v0.1",
+  "generated_at": "2026-06-24T08:50:45Z",
+  "deployment_target": "aws_s3_cloudfront_lambda_function_url",
+  "deployed_commit": "535751df8dc34887f4a487e8d4f65f3cd29dfe45",
+  "aws_account": "770880870480",
+  "region": "ap-northeast-2",
+  "web_entrypoint": {
+    "cloudfront_distribution_id": "E3MVAKX2DIR3CS",
+    "cloudfront_domain": "d2mthcc8vp3cr2.cloudfront.net",
+    "url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "s3_bucket": "matter-lawos-web-prod-770880870480-apne2",
+    "custom_domain_required": false
+  },
+  "api_entrypoint": {
+    "lambda_function_name": "matter-lawos-api-prod",
+    "lambda_function_url": "https://43whkpla74oln46xkmjar4jgae0ebzba.lambda-url.ap-northeast-2.on.aws/",
+    "cloudfront_api_behavior": "api*",
+    "runtime_mode": "lambda_function_url",
+    "synthetic_only": true,
+    "uses_real_client_data": false
+  },
+  "smoke": {
+    "web_root": "PASS",
+    "cloudfront_api_health": "PASS",
+    "client_matter_api_examples": "PASS",
+    "korean_saas_copy_validation": "PASS: 60 routes, 43 forbidden terms",
+    "playwright_surface_smoke": "PASS: 19 checks across Client, Matter, People, Vault"
+  },
+  "boundaries": {
+    "production_ready_claim": false,
+    "public_release_completed": false,
+    "enterprise_trust_claim": false,
+    "custom_domain_present": false,
+    "real_client_data_used": false
+  },
+  "known_residuals": [
+    "AWS entrypoint is the CloudFront temporary domain, not a custom domain.",
+    "API runtime uses synthetic file-backed repositories in Lambda temporary storage.",
+    "Provider/owner gated features remain blocked/configuration states, not fake success.",
+    "A broad apps/api full-suite run still has pre-existing HRX durable-runtime failures; Salesforce Track B targeted API tests and production smoke passed separately."
+  ]
+}
