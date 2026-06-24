@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.aws-temporary-production-web-receipt.v0.1",
-  "generated_at": "2026-06-24T12:16:22Z",
+  "generated_at": "2026-06-24T12:18:57Z",
   "deployment_target": "aws_s3_cloudfront_lambda_function_url",
   "deployed_commit": "625298f6bdcd7b22f150d895286d7152e5b534b1",
   "aws_account": "770880870480",
@@ -60,7 +60,9 @@
     "desktop_runtime_cloudfront_smoke": "PASS: npm run matter-desktop:aws-runtime:smoke with MATTER_VAULT_R4_PRODUCTION_BASE_URL=https://d2mthcc8vp3cr2.cloudfront.net; 9 accounts; jwsuh@amic.kr system_super_admin login allow; ytkim@amic.kr login allow; admin restriction deny",
     "lambda_packaging_recovery": "PASS: first package exposed missing seed-file 502; redeployed package includes docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
     "lambda_final_main_redeploy": "PASS: matter-lawos-api-prod Active/Successful with LAWOS_DEPLOYMENT_COMMIT=625298f6bdcd7b22f150d895286d7152e5b534b1, Runtime=nodejs22.x, CodeSha256=PiUeELBuIV1MXbccIgRAfKQ48qsy4wu2RcPWZyvAOBY=",
-    "web_s3_cloudfront_publish": "PASS: apps/web/dist synced to s3://matter-lawos-web-prod-770880870480-apne2 with --delete and CloudFront invalidation IANB4MZ226ORR3LQ4QLRKJHLFI completed"
+    "web_s3_cloudfront_publish": "PASS: apps/web/dist synced to s3://matter-lawos-web-prod-770880870480-apne2 with --delete and CloudFront invalidation IANB4MZ226ORR3LQ4QLRKJHLFI completed",
+    "hermes_desktop_read_model_check_only": "PASS: hermes.desktop.read_model check-only, ready_for_desktop_shell, 8/8 sections, 30/30 sources, authority boundary ready",
+    "hermes_factory_receipt_preflight_check_only": "PASS: hermes.factory.receipt_preflight check-only, ready_for_f0_1_receipt_preflight, targets 2/2, authority flags opened 0"
   },
   "boundaries": {
     "production_ready_claim": false,
