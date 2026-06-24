@@ -3,7 +3,7 @@
 Status: internal-temporary-release-executed-with-artifacts
 Date: 2026-06-22
 
-This receipt records the current desktop-first temporary release execution. It does not claim public release, production go-live, owner approval, store distribution, external pilot distribution, or custom-domain readiness.
+This receipt records the current desktop-first temporary release execution. It does not claim public release, production go-live, owner approval, store distribution, external pilot distribution, or custom-domain readiness as a required milestone. A custom domain, including a brand-name custom domain, is not required for the company-internal desktop app channel.
 
 ## Release Manifest
 
@@ -19,7 +19,7 @@ This receipt records the current desktop-first temporary release execution. It d
 
 Custom domain requirement: false.
 
-The desktop app can be packaged and smoke-tested without a custom domain. Backend/API smoke uses the AWS-generated HTTPS endpoint recorded below until a real owned API domain is selected.
+The desktop app can be packaged, smoke-tested, and used by internal company users without a custom domain. Backend/API smoke uses the AWS-generated CloudFront HTTPS endpoint recorded in [matter-cloudfront-no-custom-domain-decision.md](matter-cloudfront-no-custom-domain-decision.md). A real owned API domain or brand-name custom domain is only a future owner-approved public or external-channel decision, not a blocker for internal desktop operation.
 
 ## Desktop Identity
 
@@ -110,7 +110,7 @@ No domain was registered.
 | --- | --- |
 | Production customer data migration | not run |
 | Route 53 hosted zones | empty |
-| Custom API domain | not required for desktop temporary release |
+| Custom API domain | not required for company-internal desktop release |
 | Windows native install smoke | not run on Darwin |
 | macOS Developer ID notarization | submitted and accepted; stapled app validates locally |
 
@@ -122,4 +122,6 @@ No domain was registered.
 - App Store distribution: false
 - Microsoft Store distribution: false
 - External pilot distribution: false
-- Custom-domain readiness: false
+- Custom-domain required: false
+- Brand-name custom domain required: false
+- Custom-domain readiness required: false

@@ -1,10 +1,20 @@
 {
   "schema_version": "law-firm-os.aws-temporary-production-web-receipt.v0.1",
-  "generated_at": "2026-06-24T12:18:57Z",
+  "generated_at": "2026-06-24T12:25:29Z",
   "deployment_target": "aws_s3_cloudfront_lambda_function_url",
   "deployed_commit": "625298f6bdcd7b22f150d895286d7152e5b534b1",
   "aws_account": "770880870480",
   "region": "ap-northeast-2",
+  "domain_decision": {
+    "decision_id": "MATTER-DESKTOP-DOMAIN-001",
+    "decision_record": "docs/desktop/matter-cloudfront-no-custom-domain-decision.md",
+    "company_internal_only": true,
+    "desktop_app_packaged_channel": true,
+    "custom_domain_required": false,
+    "brand_name_custom_domain_required": false,
+    "custom_domain_launch_gate": false,
+    "accepted_internal_entrypoint": "https://d2mthcc8vp3cr2.cloudfront.net"
+  },
   "web_entrypoint": {
     "cloudfront_distribution_id": "E3MVAKX2DIR3CS",
     "cloudfront_domain": "d2mthcc8vp3cr2.cloudfront.net",
@@ -69,10 +79,12 @@
     "public_release_completed": false,
     "enterprise_trust_claim": false,
     "custom_domain_present": false,
+    "custom_domain_required": false,
+    "brand_name_custom_domain_required": false,
     "real_client_data_used": false
   },
   "known_residuals": [
-    "AWS entrypoint is the CloudFront temporary domain, not a custom domain.",
+    "AWS entrypoint is the approved CloudFront generated domain for company-internal desktop operation; custom domain and brand-name custom domain are not required.",
     "API runtime uses synthetic file-backed repositories in Lambda temporary storage.",
     "Provider/owner gated features remain blocked/configuration states, not fake success."
   ]

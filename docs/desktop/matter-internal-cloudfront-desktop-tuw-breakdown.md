@@ -5,7 +5,7 @@ Date: 2026-06-24
 Program ID: `MATTER-INTERNAL-DESKTOP-CF-LAMBDA`
 Parent plan: [matter-internal-cloudfront-desktop-production-plan.md](matter-internal-cloudfront-desktop-production-plan.md)
 
-This document decomposes the internal production model into testable units of work. The scope is the no-custom-domain internal desktop path:
+This document decomposes the internal production model into testable units of work. The scope is the no-custom-domain internal desktop path. Company-internal users consume the packaged `matter` desktop app, so a brand-name custom domain is not required:
 
 - CloudFront temporary domain: `https://d2mthcc8vp3cr2.cloudfront.net`
 - General app API: `matter-lawos-api-prod`
@@ -52,7 +52,7 @@ Blast radius from CodeGraph:
 | MDCF-W01-T04 | Lock desktop runtime origin | `health`, `api/desktop*`, and `api/matter-vault*` target `matter-temp-desktop-api-origin`. | `MDCF-VC-CF-004`: CloudFront behavior order query. | AWS config excerpt |
 | MDCF-W01-T05 | Preserve behavior precedence | Desktop runtime behaviors precede `api*`, preventing `/api/desktop*` from falling into the general API. | `MDCF-VC-CF-005`: sorted behavior query shows `health`, `api/desktop*`, `api/matter-vault*`, `api/health`, `api*`. | AWS config excerpt |
 | MDCF-W01-T06 | Validate public health split | `/api/health` returns app API descriptor and `/health` returns desktop runtime health. | `MDCF-VC-CF-006`: bounded Node smoke over both endpoints. | production smoke receipt |
-| MDCF-W01-T07 | Validate no custom domain dependency | All CloudFront smoke runs use `d2mthcc8vp3cr2.cloudfront.net`; no custom domain variable is required. | `MDCF-VC-CF-007`: env-based smoke with CloudFront domain only. | production smoke receipt |
+| MDCF-W01-T07 | Validate no custom domain dependency | All CloudFront smoke runs use `d2mthcc8vp3cr2.cloudfront.net`; no custom domain variable, brand-name domain, Route 53 hosted zone, ACM certificate, or owned DNS delegation is required. | `MDCF-VC-CF-007`: env-based smoke with CloudFront domain only. | production smoke receipt |
 
 ## W02 App API Lambda Runtime
 
@@ -194,7 +194,8 @@ Add `npm --workspace apps/desktop run build:mac`, `npm --workspace apps/desktop 
 
 This program can be called internally production-routed only when every required TUW above has evidence. It still must not claim:
 
-- custom domain readiness
+- custom domain requirement
+- brand-name custom domain requirement
 - public web launch
 - external customer access
 - real client data migration

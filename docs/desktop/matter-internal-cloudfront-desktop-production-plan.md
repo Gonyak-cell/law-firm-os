@@ -4,9 +4,11 @@ Status: cloudfront-desktop-runtime-routed
 Date: 2026-06-24
 Program ID: `MATTER-INTERNAL-DESKTOP-CF-LAMBDA`
 
-This plan makes the no-custom-domain operating model explicit: internal users run the `matter` desktop app, the app talks to the AWS generated CloudFront HTTPS endpoint, and API requests are routed to AWS Lambda-backed runtimes. It does not claim public web launch, customer-data production readiness, enterprise trust certification, App Store distribution, Microsoft Store distribution, or custom-domain readiness.
+This plan makes the no-custom-domain operating model explicit: internal users run the packaged `matter` desktop app, the app talks to the AWS generated CloudFront HTTPS endpoint, and API requests are routed to AWS Lambda-backed runtimes. A custom domain, including a brand-name custom domain, is not required for the company-internal desktop production channel. It does not claim public web launch, customer-data production readiness, enterprise trust certification, App Store distribution, Microsoft Store distribution, or custom-domain readiness as a required milestone.
 
 Detailed TUW ledger: [matter-internal-cloudfront-desktop-tuw-breakdown.md](matter-internal-cloudfront-desktop-tuw-breakdown.md)
+
+Domain decision: [matter-cloudfront-no-custom-domain-decision.md](matter-cloudfront-no-custom-domain-decision.md)
 
 ## Target Architecture
 
@@ -22,7 +24,7 @@ Detailed TUW ledger: [matter-internal-cloudfront-desktop-tuw-breakdown.md](matte
 | Internal account source | packaged Matter/Vault registered account seed plus HRX compatibility seed |
 | Desktop session authority | Electron main process and OS secure store |
 | Renderer authority | bounded session status only; no token or operator-token material |
-| Custom domain | not required for internal desktop operation |
+| Custom domain | not required for company-internal desktop operation; brand-name custom domain not required; CloudFront generated domain is the accepted entrypoint |
 
 ## Current Applied Baseline
 
@@ -34,6 +36,7 @@ Detailed TUW ledger: [matter-internal-cloudfront-desktop-tuw-breakdown.md](matte
 | Desktop runtime | `health`, `api/desktop*`, and `api/matter-vault*` route to API Gateway `73o8hpqpgl.execute-api.ap-northeast-2.amazonaws.com/staging` |
 | Desktop login smoke | PASS through CloudFront: 9 accounts, `jwsuh@amic.kr` super-admin login allow, `ytkim@amic.kr` login allow, admin restriction deny |
 | Data boundary | synthetic-only; no real client data migrated or used |
+| Domain decision | custom domain and brand-name custom domain are not launch gates for the company-internal desktop channel |
 
 ## Completion Definition
 
@@ -50,7 +53,7 @@ Internal production is acceptable only when all of these are true:
 | Runtime smoke | `npm run matter-desktop:aws-runtime:smoke` passes against the CloudFront base URL |
 | API regression | `npm --workspace apps/api test` passes with 0 failures |
 | Product smoke | Client/Matter/People/Vault route smoke passes through CloudFront |
-| Boundary scan | no public release, store distribution, enterprise trust, custom-domain, or real-client-data claims are added |
+| Boundary scan | no public release, store distribution, enterprise trust, custom-domain requirement, or real-client-data claims are added |
 
 ## WP/TUW Plan
 
@@ -179,6 +182,8 @@ node scripts/validate-matter-desktop-no-public-release-claim.mjs
 ## Non-Claims
 
 - Custom domain required: false
+- Brand-name custom domain required: false
+- Custom-domain readiness required: false
 - Public web launch: false
 - External customer access: false
 - Real client data migration: false
