@@ -1,8 +1,8 @@
 {
   "schema_version": "law-firm-os.aws-temporary-production-web-receipt.v0.1",
-  "generated_at": "2026-06-24T08:50:45Z",
+  "generated_at": "2026-06-24T09:11:33Z",
   "deployment_target": "aws_s3_cloudfront_lambda_function_url",
-  "deployed_commit": "535751df8dc34887f4a487e8d4f65f3cd29dfe45",
+  "deployed_commit": "aec0a4983021a70e99b36469c7cd3890409d5e5a",
   "aws_account": "770880870480",
   "region": "ap-northeast-2",
   "web_entrypoint": {
@@ -25,7 +25,9 @@
     "cloudfront_api_health": "PASS",
     "client_matter_api_examples": "PASS",
     "korean_saas_copy_validation": "PASS: 60 routes, 43 forbidden terms",
-    "playwright_surface_smoke": "PASS: 19 checks across Client, Matter, People, Vault"
+    "playwright_surface_smoke": "PASS: 19 checks across Client, Matter, People, Vault",
+    "apps_api_full_suite": "PASS: 179 tests, 0 failures",
+    "hrx_cloudfront_smoke": "PASS: emp-001 read, analytics headcount, candidate portal, AI advisory answer, leave write, tenant-b isolation"
   },
   "boundaries": {
     "production_ready_claim": false,
@@ -37,7 +39,6 @@
   "known_residuals": [
     "AWS entrypoint is the CloudFront temporary domain, not a custom domain.",
     "API runtime uses synthetic file-backed repositories in Lambda temporary storage.",
-    "Provider/owner gated features remain blocked/configuration states, not fake success.",
-    "A broad apps/api full-suite run still has pre-existing HRX durable-runtime failures; Salesforce Track B targeted API tests and production smoke passed separately."
+    "Provider/owner gated features remain blocked/configuration states, not fake success."
   ]
 }
