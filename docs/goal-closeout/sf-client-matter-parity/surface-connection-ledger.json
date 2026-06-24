@@ -1,0 +1,2876 @@
+{
+  "schema_version": "law-firm-os.sf-client-matter-parity.surface-connection-ledger.v0.1",
+  "program": "SF-CLIENT-MATTER-PARITY",
+  "ledger_date": "2026-06-24",
+  "scope": {
+    "client_matter_only": true,
+    "implemented_rows_require_ui_api_package_evidence": true,
+    "backend_missing_rows_are_registered_in_backend_contracts": true,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "enterprise_trust_claim": false
+  },
+  "summary": {
+    "row_count": 10,
+    "connected_implemented_row_count": 10,
+    "disconnected_implemented_row_count": 0,
+    "ui_marker_count": 32,
+    "api_client_marker_count": 40,
+    "api_route_marker_count": 40,
+    "package_service_marker_count": 22,
+    "evidence_marker_count": 25
+  },
+  "rows": [
+    {
+      "id": "SF-SURFACE-A01",
+      "salesforce_capability": "Client navigation, object tabs, and list/detail/right-panel workspace",
+      "parity_status": "implemented",
+      "tuw_lanes": [
+        "SF-A-W01-T01",
+        "SF-A-W01-T03"
+      ],
+      "ui_menu": [
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Client list section",
+          "pattern": "clients-list",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Client leads section",
+          "pattern": "client-leads",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Client opportunities section",
+          "pattern": "client-opportunities",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Client intake section",
+          "pattern": "client-intake",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Client accounts section",
+          "pattern": "client-accounts",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Client contacts section",
+          "pattern": "client-contacts",
+          "present": true
+        }
+      ],
+      "ui_surface": [
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Client record workspace marker",
+          "pattern": "data-salesforce-client-workspace=\"list-detail-right-panel\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Client right panel",
+          "pattern": "record-side-panel",
+          "present": true
+        }
+      ],
+      "api_client": [
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Master Data client fetch helper",
+          "pattern": "fetchMasterDataRecords",
+          "present": true
+        }
+      ],
+      "api_route": [
+        {
+          "file": "apps/api/src/master-data-context.js",
+          "label": "ClientGroup resolution handler",
+          "pattern": "handleClientGroupResolution",
+          "present": true
+        }
+      ],
+      "package_service": [
+        {
+          "file": "packages/master-data/src/client-group-service.js",
+          "label": "ClientGroup package service",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "evidence": [
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/client-sections.png",
+          "label": "Client sections screenshot",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "boundary": "Client workspace is API-backed and fail-closed; no static local data fallback.",
+      "connection_status": "ui_api_package_connected",
+      "group_status": {
+        "ui_menu": {
+          "required_count": 6,
+          "passed_count": 6,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Client list section",
+              "pattern": "clients-list",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Client leads section",
+              "pattern": "client-leads",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Client opportunities section",
+              "pattern": "client-opportunities",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Client intake section",
+              "pattern": "client-intake",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Client accounts section",
+              "pattern": "client-accounts",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Client contacts section",
+              "pattern": "client-contacts",
+              "present": true
+            }
+          ]
+        },
+        "ui_surface": {
+          "required_count": 2,
+          "passed_count": 2,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Client record workspace marker",
+              "pattern": "data-salesforce-client-workspace=\"list-detail-right-panel\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Client right panel",
+              "pattern": "record-side-panel",
+              "present": true
+            }
+          ]
+        },
+        "api_client": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Master Data client fetch helper",
+              "pattern": "fetchMasterDataRecords",
+              "present": true
+            }
+          ]
+        },
+        "api_route": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/api/src/master-data-context.js",
+              "label": "ClientGroup resolution handler",
+              "pattern": "handleClientGroupResolution",
+              "present": true
+            }
+          ]
+        },
+        "package_service": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "packages/master-data/src/client-group-service.js",
+              "label": "ClientGroup package service",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        },
+        "evidence": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/client-sections.png",
+              "label": "Client sections screenshot",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "SF-SURFACE-A02",
+      "salesforce_capability": "Lead, Opportunity, and Intake funnel",
+      "parity_status": "implemented",
+      "tuw_lanes": [
+        "SF-A-W02-T01",
+        "SF-A-W02-T02",
+        "SF-A-W02-T03",
+        "SF-A-W02-T04"
+      ],
+      "ui_menu": [
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Lead section",
+          "pattern": "client-leads",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Opportunity section",
+          "pattern": "client-opportunities",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Intake section",
+          "pattern": "client-intake",
+          "present": true
+        }
+      ],
+      "ui_surface": [
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Opportunity handoff action",
+          "pattern": "data-crm-handoff-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Intake clearance action",
+          "pattern": "data-intake-clearance-action=\"true\"",
+          "present": true
+        }
+      ],
+      "api_client": [
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Lead fetch helper",
+          "pattern": "fetchCrmLeads",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Opportunity fetch helper",
+          "pattern": "fetchCrmOpportunities",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Opportunity handoff helper",
+          "pattern": "handoffCrmOpportunityToIntake",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Conflict check helper",
+          "pattern": "createIntakeConflictCheck",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Clearance token helper",
+          "pattern": "issueIntakeClearanceToken",
+          "present": true
+        }
+      ],
+      "api_route": [
+        {
+          "file": "apps/api/src/crm-intake-runtime-context.js",
+          "label": "Lead list route",
+          "pattern": "GET \\/api\\/crm\\/leads",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/crm-intake-runtime-context.js",
+          "label": "Opportunity list route",
+          "pattern": "GET \\/api\\/crm\\/opportunities",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/crm-intake-runtime-context.js",
+          "label": "Opportunity handoff route",
+          "pattern": "POST \\/api\\/crm\\/opportunities\\/:id\\/handoff",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/crm-intake-runtime-context.js",
+          "label": "Conflict check route",
+          "pattern": "POST \\/api\\/intake\\/conflict-checks",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/crm-intake-runtime-context.js",
+          "label": "Clearance token route",
+          "pattern": "POST \\/api\\/intake\\/clearance-tokens",
+          "present": true
+        }
+      ],
+      "package_service": [
+        {
+          "file": "packages/crm/src/lead-service.js",
+          "label": "Lead package service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/crm/src/opportunity-service.js",
+          "label": "Opportunity package service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/crm/src/intake-handoff-service.js",
+          "label": "Intake handoff package service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/intake/src/intake-request-service.js",
+          "label": "Intake package service",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "evidence": [
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/client-opportunity-handoff-refresh.png",
+          "label": "Opportunity handoff QA screenshot",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "boundary": "Opportunity handoff refreshes safe Intake/Opportunity state; direct Matter creation remains backend-blocked.",
+      "connection_status": "ui_api_package_connected",
+      "group_status": {
+        "ui_menu": {
+          "required_count": 3,
+          "passed_count": 3,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Lead section",
+              "pattern": "client-leads",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Opportunity section",
+              "pattern": "client-opportunities",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Intake section",
+              "pattern": "client-intake",
+              "present": true
+            }
+          ]
+        },
+        "ui_surface": {
+          "required_count": 2,
+          "passed_count": 2,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Opportunity handoff action",
+              "pattern": "data-crm-handoff-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Intake clearance action",
+              "pattern": "data-intake-clearance-action=\"true\"",
+              "present": true
+            }
+          ]
+        },
+        "api_client": {
+          "required_count": 5,
+          "passed_count": 5,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Lead fetch helper",
+              "pattern": "fetchCrmLeads",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Opportunity fetch helper",
+              "pattern": "fetchCrmOpportunities",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Opportunity handoff helper",
+              "pattern": "handoffCrmOpportunityToIntake",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Conflict check helper",
+              "pattern": "createIntakeConflictCheck",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Clearance token helper",
+              "pattern": "issueIntakeClearanceToken",
+              "present": true
+            }
+          ]
+        },
+        "api_route": {
+          "required_count": 5,
+          "passed_count": 5,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/api/src/crm-intake-runtime-context.js",
+              "label": "Lead list route",
+              "pattern": "GET \\/api\\/crm\\/leads",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/crm-intake-runtime-context.js",
+              "label": "Opportunity list route",
+              "pattern": "GET \\/api\\/crm\\/opportunities",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/crm-intake-runtime-context.js",
+              "label": "Opportunity handoff route",
+              "pattern": "POST \\/api\\/crm\\/opportunities\\/:id\\/handoff",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/crm-intake-runtime-context.js",
+              "label": "Conflict check route",
+              "pattern": "POST \\/api\\/intake\\/conflict-checks",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/crm-intake-runtime-context.js",
+              "label": "Clearance token route",
+              "pattern": "POST \\/api\\/intake\\/clearance-tokens",
+              "present": true
+            }
+          ]
+        },
+        "package_service": {
+          "required_count": 4,
+          "passed_count": 4,
+          "passed": true,
+          "markers": [
+            {
+              "file": "packages/crm/src/lead-service.js",
+              "label": "Lead package service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/crm/src/opportunity-service.js",
+              "label": "Opportunity package service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/crm/src/intake-handoff-service.js",
+              "label": "Intake handoff package service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/intake/src/intake-request-service.js",
+              "label": "Intake package service",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        },
+        "evidence": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/client-opportunity-handoff-refresh.png",
+              "label": "Opportunity handoff QA screenshot",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "SF-SURFACE-B01-ACCOUNT",
+      "salesforce_capability": "Salesforce Account object read/create/patch",
+      "parity_status": "implemented",
+      "tuw_lanes": [
+        "SF-B-W01-T01",
+        "SF-B-W01-T05"
+      ],
+      "ui_menu": [
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Accounts section",
+          "pattern": "client-accounts",
+          "present": true
+        }
+      ],
+      "ui_surface": [
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Accounts read marker",
+          "pattern": "data-crm-accounts-read=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Account create action",
+          "pattern": "data-crm-account-create-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Account patch action",
+          "pattern": "data-crm-account-patch-action=\"true\"",
+          "present": true
+        }
+      ],
+      "api_client": [
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Accounts fetch helper",
+          "pattern": "fetchCrmAccounts",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Account create helper",
+          "pattern": "createCrmAccount",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Account patch helper",
+          "pattern": "patchCrmAccount",
+          "present": true
+        }
+      ],
+      "api_route": [
+        {
+          "file": "apps/api/src/crm-intake-runtime-context.js",
+          "label": "Account list route",
+          "pattern": "GET \\/api\\/crm\\/accounts",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/crm-intake-runtime-context.js",
+          "label": "Account create route",
+          "pattern": "POST \\/api\\/crm\\/accounts",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/crm-intake-runtime-context.js",
+          "label": "Account patch route",
+          "pattern": "PATCH \\/api\\/crm\\/accounts\\/:id",
+          "present": true
+        }
+      ],
+      "package_service": [
+        {
+          "file": "packages/master-data/src/organization-service.js",
+          "label": "Organization package service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/master-data/src/client-group-service.js",
+          "label": "ClientGroup package service",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "evidence": [
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/client-account-contact-read.png",
+          "label": "Account read QA screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/client-account-create-action.png",
+          "label": "Account create QA screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/client-account-patch-action.png",
+          "label": "Account patch QA screenshot",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "boundary": "Runtime facade writes do not mutate canonical Master Data yet; canonical write migration stays backend-first.",
+      "connection_status": "ui_api_package_connected",
+      "group_status": {
+        "ui_menu": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Accounts section",
+              "pattern": "client-accounts",
+              "present": true
+            }
+          ]
+        },
+        "ui_surface": {
+          "required_count": 3,
+          "passed_count": 3,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Accounts read marker",
+              "pattern": "data-crm-accounts-read=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Account create action",
+              "pattern": "data-crm-account-create-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Account patch action",
+              "pattern": "data-crm-account-patch-action=\"true\"",
+              "present": true
+            }
+          ]
+        },
+        "api_client": {
+          "required_count": 3,
+          "passed_count": 3,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Accounts fetch helper",
+              "pattern": "fetchCrmAccounts",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Account create helper",
+              "pattern": "createCrmAccount",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Account patch helper",
+              "pattern": "patchCrmAccount",
+              "present": true
+            }
+          ]
+        },
+        "api_route": {
+          "required_count": 3,
+          "passed_count": 3,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/api/src/crm-intake-runtime-context.js",
+              "label": "Account list route",
+              "pattern": "GET \\/api\\/crm\\/accounts",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/crm-intake-runtime-context.js",
+              "label": "Account create route",
+              "pattern": "POST \\/api\\/crm\\/accounts",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/crm-intake-runtime-context.js",
+              "label": "Account patch route",
+              "pattern": "PATCH \\/api\\/crm\\/accounts\\/:id",
+              "present": true
+            }
+          ]
+        },
+        "package_service": {
+          "required_count": 2,
+          "passed_count": 2,
+          "passed": true,
+          "markers": [
+            {
+              "file": "packages/master-data/src/organization-service.js",
+              "label": "Organization package service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/master-data/src/client-group-service.js",
+              "label": "ClientGroup package service",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        },
+        "evidence": {
+          "required_count": 3,
+          "passed_count": 3,
+          "passed": true,
+          "markers": [
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/client-account-contact-read.png",
+              "label": "Account read QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/client-account-create-action.png",
+              "label": "Account create QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/client-account-patch-action.png",
+              "label": "Account patch QA screenshot",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "SF-SURFACE-B01-CONTACT",
+      "salesforce_capability": "Salesforce Contact object read/create/patch and Account-Contact relationship read",
+      "parity_status": "implemented",
+      "tuw_lanes": [
+        "SF-B-W01-T02",
+        "SF-B-W01-T03",
+        "SF-B-W01-T05"
+      ],
+      "ui_menu": [
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Contacts section",
+          "pattern": "client-contacts",
+          "present": true
+        }
+      ],
+      "ui_surface": [
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Contacts read marker",
+          "pattern": "data-crm-contacts-read=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Contact create action",
+          "pattern": "data-crm-contact-create-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Contact patch action",
+          "pattern": "data-crm-contact-patch-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/ClientsSurface.jsx",
+          "label": "Account contacts read marker",
+          "pattern": "data-crm-account-contacts-read=\"true\"",
+          "present": true
+        }
+      ],
+      "api_client": [
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Contacts fetch helper",
+          "pattern": "fetchCrmContacts",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Contact create helper",
+          "pattern": "createCrmContact",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Contact patch helper",
+          "pattern": "patchCrmContact",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Account contacts fetch helper",
+          "pattern": "fetchCrmAccountContacts",
+          "present": true
+        }
+      ],
+      "api_route": [
+        {
+          "file": "apps/api/src/crm-intake-runtime-context.js",
+          "label": "Contact list route",
+          "pattern": "GET \\/api\\/crm\\/contacts",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/crm-intake-runtime-context.js",
+          "label": "Contact create route",
+          "pattern": "POST \\/api\\/crm\\/contacts",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/crm-intake-runtime-context.js",
+          "label": "Contact patch route",
+          "pattern": "PATCH \\/api\\/crm\\/contacts\\/:id",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/crm-intake-runtime-context.js",
+          "label": "Account contacts route",
+          "pattern": "GET \\/api\\/crm\\/accounts\\/:id\\/contacts",
+          "present": true
+        }
+      ],
+      "package_service": [
+        {
+          "file": "packages/master-data/src/person-service.js",
+          "label": "Person package service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/master-data/src/contact-point-service.js",
+          "label": "ContactPoint package service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/master-data/src/relationship-service.js",
+          "label": "Relationship package service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/master-data/src/duplicate-service.js",
+          "label": "Duplicate package service",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "evidence": [
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/client-contact-create-action.png",
+          "label": "Contact create QA screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/client-contact-patch-action.png",
+          "label": "Contact patch QA screenshot",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "boundary": "Merge/delete execution stays backend-first; raw contact values remain hidden.",
+      "connection_status": "ui_api_package_connected",
+      "group_status": {
+        "ui_menu": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Contacts section",
+              "pattern": "client-contacts",
+              "present": true
+            }
+          ]
+        },
+        "ui_surface": {
+          "required_count": 4,
+          "passed_count": 4,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Contacts read marker",
+              "pattern": "data-crm-contacts-read=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Contact create action",
+              "pattern": "data-crm-contact-create-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Contact patch action",
+              "pattern": "data-crm-contact-patch-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/ClientsSurface.jsx",
+              "label": "Account contacts read marker",
+              "pattern": "data-crm-account-contacts-read=\"true\"",
+              "present": true
+            }
+          ]
+        },
+        "api_client": {
+          "required_count": 4,
+          "passed_count": 4,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Contacts fetch helper",
+              "pattern": "fetchCrmContacts",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Contact create helper",
+              "pattern": "createCrmContact",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Contact patch helper",
+              "pattern": "patchCrmContact",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Account contacts fetch helper",
+              "pattern": "fetchCrmAccountContacts",
+              "present": true
+            }
+          ]
+        },
+        "api_route": {
+          "required_count": 4,
+          "passed_count": 4,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/api/src/crm-intake-runtime-context.js",
+              "label": "Contact list route",
+              "pattern": "GET \\/api\\/crm\\/contacts",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/crm-intake-runtime-context.js",
+              "label": "Contact create route",
+              "pattern": "POST \\/api\\/crm\\/contacts",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/crm-intake-runtime-context.js",
+              "label": "Contact patch route",
+              "pattern": "PATCH \\/api\\/crm\\/contacts\\/:id",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/crm-intake-runtime-context.js",
+              "label": "Account contacts route",
+              "pattern": "GET \\/api\\/crm\\/accounts\\/:id\\/contacts",
+              "present": true
+            }
+          ]
+        },
+        "package_service": {
+          "required_count": 4,
+          "passed_count": 4,
+          "passed": true,
+          "markers": [
+            {
+              "file": "packages/master-data/src/person-service.js",
+              "label": "Person package service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/master-data/src/contact-point-service.js",
+              "label": "ContactPoint package service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/master-data/src/relationship-service.js",
+              "label": "Relationship package service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/master-data/src/duplicate-service.js",
+              "label": "Duplicate package service",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        },
+        "evidence": {
+          "required_count": 2,
+          "passed_count": 2,
+          "passed": true,
+          "markers": [
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/client-contact-create-action.png",
+              "label": "Contact create QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/client-contact-patch-action.png",
+              "label": "Contact patch QA screenshot",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "SF-SURFACE-A03",
+      "salesforce_capability": "Matter navigation, list views, selected record workspace, and right panel",
+      "parity_status": "implemented",
+      "tuw_lanes": [
+        "SF-A-W01-T01",
+        "SF-A-W03-T01",
+        "SF-B-W02-T06"
+      ],
+      "ui_menu": [
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Matter list section",
+          "pattern": "matters-list",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Matter command section",
+          "pattern": "matter-command",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Matter Vault section",
+          "pattern": "matter-vault",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Matter timeline section",
+          "pattern": "matter-timeline",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Matter billing section",
+          "pattern": "matter-billing",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Matter analytics section",
+          "pattern": "matter-analytics",
+          "present": true
+        }
+      ],
+      "ui_surface": [
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Matter record workspace marker",
+          "pattern": "data-salesforce-matter-workspace=\"list-detail-right-panel\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Matter selected list marker",
+          "pattern": "data-matter-selected-record-list=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Matter saved list action",
+          "pattern": "data-matter-save-list-view-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Matter recently viewed marker",
+          "pattern": "data-matter-recently-viewed=\"true\"",
+          "present": true
+        }
+      ],
+      "api_client": [
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Matter records helper",
+          "pattern": "fetchMatterRecords",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Matter list views helper",
+          "pattern": "fetchMatterListViews",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Matter save list view helper",
+          "pattern": "saveMatterListView",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Matter recently viewed helper",
+          "pattern": "fetchMatterRecentlyViewed",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Matter recently viewed mark helper",
+          "pattern": "markMatterRecentlyViewed",
+          "present": true
+        }
+      ],
+      "api_route": [
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Matter list route",
+          "pattern": "GET \\/api\\/matters",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Matter list views route",
+          "pattern": "GET \\/api\\/matters\\/list-views",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Matter save list view route",
+          "pattern": "POST \\/api\\/matters\\/list-views",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Matter recently viewed list route",
+          "pattern": "GET \\/api\\/matters\\/recently-viewed",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Matter recently viewed mark route",
+          "pattern": "POST \\/api\\/matters\\/:matter_id\\/recently-viewed",
+          "present": true
+        }
+      ],
+      "package_service": [
+        {
+          "file": "packages/matter/src/repository.js",
+          "label": "Matter repository package",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "evidence": [
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-selected-record-workspace.png",
+          "label": "Selected record workspace QA screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-saved-list-views.png",
+          "label": "Saved list views QA screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-recently-viewed.png",
+          "label": "Recently viewed QA screenshot",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "boundary": "Selected Matter context drives downstream sections; broader mass update remains backend-first.",
+      "connection_status": "ui_api_package_connected",
+      "group_status": {
+        "ui_menu": {
+          "required_count": 6,
+          "passed_count": 6,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Matter list section",
+              "pattern": "matters-list",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Matter command section",
+              "pattern": "matter-command",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Matter Vault section",
+              "pattern": "matter-vault",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Matter timeline section",
+              "pattern": "matter-timeline",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Matter billing section",
+              "pattern": "matter-billing",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Matter analytics section",
+              "pattern": "matter-analytics",
+              "present": true
+            }
+          ]
+        },
+        "ui_surface": {
+          "required_count": 4,
+          "passed_count": 4,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Matter record workspace marker",
+              "pattern": "data-salesforce-matter-workspace=\"list-detail-right-panel\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Matter selected list marker",
+              "pattern": "data-matter-selected-record-list=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Matter saved list action",
+              "pattern": "data-matter-save-list-view-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Matter recently viewed marker",
+              "pattern": "data-matter-recently-viewed=\"true\"",
+              "present": true
+            }
+          ]
+        },
+        "api_client": {
+          "required_count": 5,
+          "passed_count": 5,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Matter records helper",
+              "pattern": "fetchMatterRecords",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Matter list views helper",
+              "pattern": "fetchMatterListViews",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Matter save list view helper",
+              "pattern": "saveMatterListView",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Matter recently viewed helper",
+              "pattern": "fetchMatterRecentlyViewed",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Matter recently viewed mark helper",
+              "pattern": "markMatterRecentlyViewed",
+              "present": true
+            }
+          ]
+        },
+        "api_route": {
+          "required_count": 5,
+          "passed_count": 5,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Matter list route",
+              "pattern": "GET \\/api\\/matters",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Matter list views route",
+              "pattern": "GET \\/api\\/matters\\/list-views",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Matter save list view route",
+              "pattern": "POST \\/api\\/matters\\/list-views",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Matter recently viewed list route",
+              "pattern": "GET \\/api\\/matters\\/recently-viewed",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Matter recently viewed mark route",
+              "pattern": "POST \\/api\\/matters\\/:matter_id\\/recently-viewed",
+              "present": true
+            }
+          ]
+        },
+        "package_service": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "packages/matter/src/repository.js",
+              "label": "Matter repository package",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        },
+        "evidence": {
+          "required_count": 3,
+          "passed_count": 3,
+          "passed": true,
+          "markers": [
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-selected-record-workspace.png",
+              "label": "Selected record workspace QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-saved-list-views.png",
+              "label": "Saved list views QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-recently-viewed.png",
+              "label": "Recently viewed QA screenshot",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "SF-SURFACE-B02-ACTIONS",
+      "salesforce_capability": "Matter path status, owner assignment/change, inline edit, and bulk status",
+      "parity_status": "implemented",
+      "tuw_lanes": [
+        "SF-B-W02-T01",
+        "SF-B-W02-T02",
+        "SF-B-W02-T03",
+        "SF-B-W02-T04",
+        "SF-B-W02-T07"
+      ],
+      "ui_menu": [
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Matter command section",
+          "pattern": "matter-command",
+          "present": true
+        }
+      ],
+      "ui_surface": [
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Status transition action",
+          "pattern": "data-matter-status-transition-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MatterTeamRoster.jsx",
+          "label": "Owner assignment action",
+          "pattern": "data-matter-owner-assignment-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Owner change action",
+          "pattern": "data-matter-record-owner-change-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Inline edit action",
+          "pattern": "data-matter-record-inline-edit-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Bulk status action",
+          "pattern": "data-matter-bulk-status-action=\"true\"",
+          "present": true
+        }
+      ],
+      "api_client": [
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Complete status helper",
+          "pattern": "completeMatterStatus",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Owner change helper",
+          "pattern": "changeMatterOwner",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Inline field helper",
+          "pattern": "updateMatterInlineFields",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Bulk status helper",
+          "pattern": "bulkCompleteMatterStatus",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Team member normalize helper",
+          "pattern": "normalizeMatterTeamMemberPayload",
+          "present": true
+        }
+      ],
+      "api_route": [
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Status transition route",
+          "pattern": "POST \\/api\\/matters\\/:matter_id\\/status-transitions",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Team member route",
+          "pattern": "POST \\/api\\/matters\\/:matter_id\\/team-members",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Owner change route",
+          "pattern": "POST \\/api\\/matters\\/:matter_id\\/owner-change",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Inline patch route",
+          "pattern": "PATCH \\/api\\/matters\\/:matter_id",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Bulk status route",
+          "pattern": "POST \\/api\\/matters\\/bulk\\/status-transitions",
+          "present": true
+        }
+      ],
+      "package_service": [
+        {
+          "file": "packages/matter/src/status-history.js",
+          "label": "Matter status history package",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/matter/src/staffing-service.js",
+          "label": "Matter staffing package",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/matter/src/service.js",
+          "label": "Matter service package",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "evidence": [
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-status-transition-action.png",
+          "label": "Status transition QA screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-owner-assignment-action.png",
+          "label": "Owner assignment QA screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-record-owner-change-action.png",
+          "label": "Owner change QA screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-inline-edit-action.png",
+          "label": "Inline edit QA screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-bulk-status-action.png",
+          "label": "Bulk status QA screenshot",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "boundary": "Only tested status, owner, inline WIP, and selected bulk completion controls are exposed.",
+      "connection_status": "ui_api_package_connected",
+      "group_status": {
+        "ui_menu": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Matter command section",
+              "pattern": "matter-command",
+              "present": true
+            }
+          ]
+        },
+        "ui_surface": {
+          "required_count": 5,
+          "passed_count": 5,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Status transition action",
+              "pattern": "data-matter-status-transition-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MatterTeamRoster.jsx",
+              "label": "Owner assignment action",
+              "pattern": "data-matter-owner-assignment-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Owner change action",
+              "pattern": "data-matter-record-owner-change-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Inline edit action",
+              "pattern": "data-matter-record-inline-edit-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Bulk status action",
+              "pattern": "data-matter-bulk-status-action=\"true\"",
+              "present": true
+            }
+          ]
+        },
+        "api_client": {
+          "required_count": 5,
+          "passed_count": 5,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Complete status helper",
+              "pattern": "completeMatterStatus",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Owner change helper",
+              "pattern": "changeMatterOwner",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Inline field helper",
+              "pattern": "updateMatterInlineFields",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Bulk status helper",
+              "pattern": "bulkCompleteMatterStatus",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Team member normalize helper",
+              "pattern": "normalizeMatterTeamMemberPayload",
+              "present": true
+            }
+          ]
+        },
+        "api_route": {
+          "required_count": 5,
+          "passed_count": 5,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Status transition route",
+              "pattern": "POST \\/api\\/matters\\/:matter_id\\/status-transitions",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Team member route",
+              "pattern": "POST \\/api\\/matters\\/:matter_id\\/team-members",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Owner change route",
+              "pattern": "POST \\/api\\/matters\\/:matter_id\\/owner-change",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Inline patch route",
+              "pattern": "PATCH \\/api\\/matters\\/:matter_id",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Bulk status route",
+              "pattern": "POST \\/api\\/matters\\/bulk\\/status-transitions",
+              "present": true
+            }
+          ]
+        },
+        "package_service": {
+          "required_count": 3,
+          "passed_count": 3,
+          "passed": true,
+          "markers": [
+            {
+              "file": "packages/matter/src/status-history.js",
+              "label": "Matter status history package",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/matter/src/staffing-service.js",
+              "label": "Matter staffing package",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/matter/src/service.js",
+              "label": "Matter service package",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        },
+        "evidence": {
+          "required_count": 5,
+          "passed_count": 5,
+          "passed": true,
+          "markers": [
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-status-transition-action.png",
+              "label": "Status transition QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-owner-assignment-action.png",
+              "label": "Owner assignment QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-record-owner-change-action.png",
+              "label": "Owner change QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-inline-edit-action.png",
+              "label": "Inline edit QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-bulk-status-action.png",
+              "label": "Bulk status QA screenshot",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "SF-SURFACE-B03-TIMELINE",
+      "salesforce_capability": "Matter activity timeline read",
+      "parity_status": "implemented_read_only_with_backend_contract_for_writes",
+      "tuw_lanes": [
+        "SF-A-W03-T06",
+        "SF-B-W03-T01"
+      ],
+      "ui_menu": [
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Matter activity section",
+          "pattern": "matter-timeline",
+          "present": true
+        }
+      ],
+      "ui_surface": [
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Activity timeline marker",
+          "pattern": "data-matter-activity-timeline=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Read boundary marker",
+          "pattern": "data-matter-activity-read-boundary=\"true\"",
+          "present": true
+        }
+      ],
+      "api_client": [
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Timeline fetch helper",
+          "pattern": "fetchMatterTimeline",
+          "present": true
+        }
+      ],
+      "api_route": [
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Timeline route",
+          "pattern": "GET \\/api\\/matters\\/:matter_id\\/timeline",
+          "present": true
+        }
+      ],
+      "package_service": [
+        {
+          "file": "packages/matter/src/timeline-read-model.js",
+          "label": "Timeline read model service",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "evidence": [
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-activity-timeline-read.png",
+          "label": "Timeline read QA screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w03-activity-calendar-channel-contract.json",
+          "label": "Activity/calendar/channel contract",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "boundary": "Activity write, calendar, deadline, and channel composers are hidden until route/provider gates pass.",
+      "connection_status": "ui_api_package_connected",
+      "group_status": {
+        "ui_menu": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Matter activity section",
+              "pattern": "matter-timeline",
+              "present": true
+            }
+          ]
+        },
+        "ui_surface": {
+          "required_count": 2,
+          "passed_count": 2,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Activity timeline marker",
+              "pattern": "data-matter-activity-timeline=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Read boundary marker",
+              "pattern": "data-matter-activity-read-boundary=\"true\"",
+              "present": true
+            }
+          ]
+        },
+        "api_client": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Timeline fetch helper",
+              "pattern": "fetchMatterTimeline",
+              "present": true
+            }
+          ]
+        },
+        "api_route": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Timeline route",
+              "pattern": "GET \\/api\\/matters\\/:matter_id\\/timeline",
+              "present": true
+            }
+          ]
+        },
+        "package_service": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "packages/matter/src/timeline-read-model.js",
+              "label": "Timeline read model service",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        },
+        "evidence": {
+          "required_count": 2,
+          "passed_count": 2,
+          "passed": true,
+          "markers": [
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-activity-timeline-read.png",
+              "label": "Timeline read QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w03-activity-calendar-channel-contract.json",
+              "label": "Activity/calendar/channel contract",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "SF-SURFACE-A04-DMS",
+      "salesforce_capability": "Matter DMS files, Vault inventory, search, audit, and document facade",
+      "parity_status": "implemented",
+      "tuw_lanes": [
+        "SF-A-W04-T03",
+        "SF-A-W04-T04",
+        "SF-A-W04-T05"
+      ],
+      "ui_menu": [
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Matter Vault section",
+          "pattern": "matter-vault",
+          "present": true
+        }
+      ],
+      "ui_surface": [
+        {
+          "file": "apps/web/src/components/MatterVaultPanel.jsx",
+          "label": "Matter Vault workspace",
+          "pattern": "data-matter-vault-record-workspace=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MatterVaultPanel.jsx",
+          "label": "Document facade action",
+          "pattern": "data-matter-document-facade-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MatterVaultPanel.jsx",
+          "label": "Vault document inventory",
+          "pattern": "matter-vault-documents",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MatterVaultPanel.jsx",
+          "label": "Vault search",
+          "pattern": "matter-vault-search",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MatterVaultPanel.jsx",
+          "label": "Vault audit",
+          "pattern": "matter-vault-audit",
+          "present": true
+        }
+      ],
+      "api_client": [
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Vault documents helper",
+          "pattern": "fetchMatterVaultDocuments",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Vault search helper",
+          "pattern": "fetchMatterVaultSearch",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Vault audit helper",
+          "pattern": "fetchMatterVaultAudit",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Matter document facade helper",
+          "pattern": "createMatterDocumentFacade",
+          "present": true
+        }
+      ],
+      "api_route": [
+        {
+          "file": "apps/api/src/matter-runtime-context.js",
+          "label": "Matter document facade route",
+          "pattern": "POST \\/api\\/matters\\/:matter_id\\/documents",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/vault-dms-runtime-context.js",
+          "label": "Vault documents route",
+          "pattern": "GET \\/api\\/vault\\/documents",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/vault-dms-runtime-context.js",
+          "label": "Vault search route",
+          "pattern": "GET \\/api\\/vault\\/search",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/vault-dms-runtime-context.js",
+          "label": "Vault audit route",
+          "pattern": "GET \\/api\\/vault\\/audit",
+          "present": true
+        }
+      ],
+      "package_service": [
+        {
+          "file": "packages/dms/src/document-service.js",
+          "label": "DMS document service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/dms/src/search/indexer.js",
+          "label": "DMS search indexer",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "evidence": [
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-vault-workspace.png",
+          "label": "Matter Vault workspace QA screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-document-facade-action.png",
+          "label": "Document facade QA screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-vault-inventory-search-audit.png",
+          "label": "Vault inventory/search/audit QA screenshot",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "boundary": "Document bytes, raw storage paths, and raw text stay hidden.",
+      "connection_status": "ui_api_package_connected",
+      "group_status": {
+        "ui_menu": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Matter Vault section",
+              "pattern": "matter-vault",
+              "present": true
+            }
+          ]
+        },
+        "ui_surface": {
+          "required_count": 5,
+          "passed_count": 5,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/MatterVaultPanel.jsx",
+              "label": "Matter Vault workspace",
+              "pattern": "data-matter-vault-record-workspace=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MatterVaultPanel.jsx",
+              "label": "Document facade action",
+              "pattern": "data-matter-document-facade-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MatterVaultPanel.jsx",
+              "label": "Vault document inventory",
+              "pattern": "matter-vault-documents",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MatterVaultPanel.jsx",
+              "label": "Vault search",
+              "pattern": "matter-vault-search",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MatterVaultPanel.jsx",
+              "label": "Vault audit",
+              "pattern": "matter-vault-audit",
+              "present": true
+            }
+          ]
+        },
+        "api_client": {
+          "required_count": 4,
+          "passed_count": 4,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Vault documents helper",
+              "pattern": "fetchMatterVaultDocuments",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Vault search helper",
+              "pattern": "fetchMatterVaultSearch",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Vault audit helper",
+              "pattern": "fetchMatterVaultAudit",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Matter document facade helper",
+              "pattern": "createMatterDocumentFacade",
+              "present": true
+            }
+          ]
+        },
+        "api_route": {
+          "required_count": 4,
+          "passed_count": 4,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/api/src/matter-runtime-context.js",
+              "label": "Matter document facade route",
+              "pattern": "POST \\/api\\/matters\\/:matter_id\\/documents",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/vault-dms-runtime-context.js",
+              "label": "Vault documents route",
+              "pattern": "GET \\/api\\/vault\\/documents",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/vault-dms-runtime-context.js",
+              "label": "Vault search route",
+              "pattern": "GET \\/api\\/vault\\/search",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/vault-dms-runtime-context.js",
+              "label": "Vault audit route",
+              "pattern": "GET \\/api\\/vault\\/audit",
+              "present": true
+            }
+          ]
+        },
+        "package_service": {
+          "required_count": 2,
+          "passed_count": 2,
+          "passed": true,
+          "markers": [
+            {
+              "file": "packages/dms/src/document-service.js",
+              "label": "DMS document service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/dms/src/search/indexer.js",
+              "label": "DMS search indexer",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        },
+        "evidence": {
+          "required_count": 3,
+          "passed_count": 3,
+          "passed": true,
+          "markers": [
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-vault-workspace.png",
+              "label": "Matter Vault workspace QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-document-facade-action.png",
+              "label": "Document facade QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-vault-inventory-search-audit.png",
+              "label": "Vault inventory/search/audit QA screenshot",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "SF-SURFACE-A05-BILLING",
+      "salesforce_capability": "Matter billing, ERP invoices, WIP, payments, and finance audit",
+      "parity_status": "implemented",
+      "tuw_lanes": [
+        "SF-A-W05-T01",
+        "SF-A-W05-T02",
+        "SF-A-W05-T03"
+      ],
+      "ui_menu": [
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Matter billing section",
+          "pattern": "matter-billing",
+          "present": true
+        }
+      ],
+      "ui_surface": [
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Billing actions marker",
+          "pattern": "data-matter-billing-actions=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Time entry action marker",
+          "pattern": "data-matter-time-entry-action=\"true\"",
+          "present": true
+        }
+      ],
+      "api_client": [
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Time entries fetch helper",
+          "pattern": "fetchFinanceTimeEntries",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Invoices fetch helper",
+          "pattern": "fetchFinanceInvoices",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "AR aging fetch helper",
+          "pattern": "fetchFinanceArAging",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Time entry create helper",
+          "pattern": "createFinanceTimeEntry",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "WIP helper",
+          "pattern": "generateFinanceWip",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Payment import helper",
+          "pattern": "importFinancePayment",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Finance audit helper",
+          "pattern": "fetchFinanceAudit",
+          "present": true
+        }
+      ],
+      "api_route": [
+        {
+          "file": "apps/api/src/finance-runtime-context.js",
+          "label": "Time entries route",
+          "pattern": "GET \\/api\\/finance\\/time-entries",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/finance-runtime-context.js",
+          "label": "Time entry create route",
+          "pattern": "POST \\/api\\/finance\\/time-entries",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/finance-runtime-context.js",
+          "label": "Invoices route",
+          "pattern": "GET \\/api\\/finance\\/invoices",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/finance-runtime-context.js",
+          "label": "AR aging route",
+          "pattern": "GET \\/api\\/finance\\/ar-aging",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/finance-runtime-context.js",
+          "label": "WIP route",
+          "pattern": "POST \\/api\\/finance\\/wip",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/finance-runtime-context.js",
+          "label": "Payment import route",
+          "pattern": "POST \\/api\\/finance\\/payments",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/finance-runtime-context.js",
+          "label": "Finance audit route",
+          "pattern": "GET \\/api\\/finance\\/audit",
+          "present": true
+        }
+      ],
+      "package_service": [
+        {
+          "file": "packages/billing/src/finance-repository.js",
+          "label": "Billing finance repository",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "evidence": [
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-billing-actions.png",
+          "label": "Matter billing QA screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-time-entry-action.png",
+          "label": "Matter time entry QA screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-audit-trail.png",
+          "label": "Matter/finance audit QA screenshot",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "boundary": "Generic import/data mapping remains separate SF-B-W05 backend-first work.",
+      "connection_status": "ui_api_package_connected",
+      "group_status": {
+        "ui_menu": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Matter billing section",
+              "pattern": "matter-billing",
+              "present": true
+            }
+          ]
+        },
+        "ui_surface": {
+          "required_count": 2,
+          "passed_count": 2,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Billing actions marker",
+              "pattern": "data-matter-billing-actions=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Time entry action marker",
+              "pattern": "data-matter-time-entry-action=\"true\"",
+              "present": true
+            }
+          ]
+        },
+        "api_client": {
+          "required_count": 7,
+          "passed_count": 7,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Time entries fetch helper",
+              "pattern": "fetchFinanceTimeEntries",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Invoices fetch helper",
+              "pattern": "fetchFinanceInvoices",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "AR aging fetch helper",
+              "pattern": "fetchFinanceArAging",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Time entry create helper",
+              "pattern": "createFinanceTimeEntry",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "WIP helper",
+              "pattern": "generateFinanceWip",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Payment import helper",
+              "pattern": "importFinancePayment",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Finance audit helper",
+              "pattern": "fetchFinanceAudit",
+              "present": true
+            }
+          ]
+        },
+        "api_route": {
+          "required_count": 7,
+          "passed_count": 7,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/api/src/finance-runtime-context.js",
+              "label": "Time entries route",
+              "pattern": "GET \\/api\\/finance\\/time-entries",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/finance-runtime-context.js",
+              "label": "Time entry create route",
+              "pattern": "POST \\/api\\/finance\\/time-entries",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/finance-runtime-context.js",
+              "label": "Invoices route",
+              "pattern": "GET \\/api\\/finance\\/invoices",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/finance-runtime-context.js",
+              "label": "AR aging route",
+              "pattern": "GET \\/api\\/finance\\/ar-aging",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/finance-runtime-context.js",
+              "label": "WIP route",
+              "pattern": "POST \\/api\\/finance\\/wip",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/finance-runtime-context.js",
+              "label": "Payment import route",
+              "pattern": "POST \\/api\\/finance\\/payments",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/finance-runtime-context.js",
+              "label": "Finance audit route",
+              "pattern": "GET \\/api\\/finance\\/audit",
+              "present": true
+            }
+          ]
+        },
+        "package_service": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "packages/billing/src/finance-repository.js",
+              "label": "Billing finance repository",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        },
+        "evidence": {
+          "required_count": 3,
+          "passed_count": 3,
+          "passed": true,
+          "markers": [
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-billing-actions.png",
+              "label": "Matter billing QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-time-entry-action.png",
+              "label": "Matter time entry QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-audit-trail.png",
+              "label": "Matter/finance audit QA screenshot",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "SF-SURFACE-A05-ANALYTICS",
+      "salesforce_capability": "Matter analytics dashboards, matter profitability, refresh, and export",
+      "parity_status": "implemented",
+      "tuw_lanes": [
+        "SF-A-W05-T04",
+        "SF-A-W05-T05"
+      ],
+      "ui_menu": [
+        {
+          "file": "apps/web/src/components/Shell.jsx",
+          "label": "Matter analytics section",
+          "pattern": "matter-analytics",
+          "present": true
+        }
+      ],
+      "ui_surface": [
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Analytics action marker",
+          "pattern": "data-matter-analytics-actions=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Analytics export action",
+          "pattern": "data-matter-analytics-export-action=\"true\"",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/components/MattersSurface.jsx",
+          "label": "Analytics export safe state",
+          "pattern": "data-matter-analytics-export-safe-state=\"true\"",
+          "present": true
+        }
+      ],
+      "api_client": [
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Analytics dashboard helper",
+          "pattern": "fetchAnalyticsDashboards",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Matter profitability helper",
+          "pattern": "fetchAnalyticsMatterProfitability",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Analytics refresh helper",
+          "pattern": "refreshAnalyticsDashboards",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Matter profitability refresh helper",
+          "pattern": "refreshMatterProfitability",
+          "present": true
+        },
+        {
+          "file": "apps/web/src/data/apiClient.js",
+          "label": "Analytics export helper",
+          "pattern": "createAnalyticsExport",
+          "present": true
+        }
+      ],
+      "api_route": [
+        {
+          "file": "apps/api/src/analytics-runtime-context.js",
+          "label": "Analytics dashboards route",
+          "pattern": "\\/api\\/analytics\\/dashboards",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/analytics-runtime-context.js",
+          "label": "Analytics refresh route",
+          "pattern": "\\/api\\/analytics\\/refresh",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/analytics-runtime-context.js",
+          "label": "Matter profitability route",
+          "pattern": "\\/api\\/analytics\\/matter-profitability",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/analytics-runtime-context.js",
+          "label": "Analytics export route",
+          "pattern": "\\/api\\/analytics\\/exports",
+          "present": true
+        },
+        {
+          "file": "apps/api/src/analytics-runtime-context.js",
+          "label": "Analytics audit route",
+          "pattern": "\\/api\\/analytics\\/audit",
+          "present": true
+        }
+      ],
+      "package_service": [
+        {
+          "file": "packages/analytics/src/dashboard-service.js",
+          "label": "Analytics dashboard service",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "packages/analytics/src/metrics-service.js",
+          "label": "Matter profitability service",
+          "pattern": "createMatterProfitability",
+          "present": true
+        },
+        {
+          "file": "packages/analytics/src/export-control-service.js",
+          "label": "Analytics export service",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "evidence": [
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-analytics-actions.png",
+          "label": "Matter analytics QA screenshot",
+          "pattern": "exists",
+          "present": true
+        },
+        {
+          "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-analytics-export-action.png",
+          "label": "Analytics export QA screenshot",
+          "pattern": "exists",
+          "present": true
+        }
+      ],
+      "boundary": "Report builder and Client profitability route exposure remain SF-B-W08 backend-first work.",
+      "connection_status": "ui_api_package_connected",
+      "group_status": {
+        "ui_menu": {
+          "required_count": 1,
+          "passed_count": 1,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/Shell.jsx",
+              "label": "Matter analytics section",
+              "pattern": "matter-analytics",
+              "present": true
+            }
+          ]
+        },
+        "ui_surface": {
+          "required_count": 3,
+          "passed_count": 3,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Analytics action marker",
+              "pattern": "data-matter-analytics-actions=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Analytics export action",
+              "pattern": "data-matter-analytics-export-action=\"true\"",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/components/MattersSurface.jsx",
+              "label": "Analytics export safe state",
+              "pattern": "data-matter-analytics-export-safe-state=\"true\"",
+              "present": true
+            }
+          ]
+        },
+        "api_client": {
+          "required_count": 5,
+          "passed_count": 5,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Analytics dashboard helper",
+              "pattern": "fetchAnalyticsDashboards",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Matter profitability helper",
+              "pattern": "fetchAnalyticsMatterProfitability",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Analytics refresh helper",
+              "pattern": "refreshAnalyticsDashboards",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Matter profitability refresh helper",
+              "pattern": "refreshMatterProfitability",
+              "present": true
+            },
+            {
+              "file": "apps/web/src/data/apiClient.js",
+              "label": "Analytics export helper",
+              "pattern": "createAnalyticsExport",
+              "present": true
+            }
+          ]
+        },
+        "api_route": {
+          "required_count": 5,
+          "passed_count": 5,
+          "passed": true,
+          "markers": [
+            {
+              "file": "apps/api/src/analytics-runtime-context.js",
+              "label": "Analytics dashboards route",
+              "pattern": "\\/api\\/analytics\\/dashboards",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/analytics-runtime-context.js",
+              "label": "Analytics refresh route",
+              "pattern": "\\/api\\/analytics\\/refresh",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/analytics-runtime-context.js",
+              "label": "Matter profitability route",
+              "pattern": "\\/api\\/analytics\\/matter-profitability",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/analytics-runtime-context.js",
+              "label": "Analytics export route",
+              "pattern": "\\/api\\/analytics\\/exports",
+              "present": true
+            },
+            {
+              "file": "apps/api/src/analytics-runtime-context.js",
+              "label": "Analytics audit route",
+              "pattern": "\\/api\\/analytics\\/audit",
+              "present": true
+            }
+          ]
+        },
+        "package_service": {
+          "required_count": 3,
+          "passed_count": 3,
+          "passed": true,
+          "markers": [
+            {
+              "file": "packages/analytics/src/dashboard-service.js",
+              "label": "Analytics dashboard service",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "packages/analytics/src/metrics-service.js",
+              "label": "Matter profitability service",
+              "pattern": "createMatterProfitability",
+              "present": true
+            },
+            {
+              "file": "packages/analytics/src/export-control-service.js",
+              "label": "Analytics export service",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        },
+        "evidence": {
+          "required_count": 2,
+          "passed_count": 2,
+          "passed": true,
+          "markers": [
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-analytics-actions.png",
+              "label": "Matter analytics QA screenshot",
+              "pattern": "exists",
+              "present": true
+            },
+            {
+              "file": "docs/goal-closeout/sf-client-matter-parity/artifacts/matter-analytics-export-action.png",
+              "label": "Analytics export QA screenshot",
+              "pattern": "exists",
+              "present": true
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

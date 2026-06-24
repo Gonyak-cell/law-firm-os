@@ -72,6 +72,93 @@ function openingPayload(overrides = {}) {
   };
 }
 
+function statusTransitionPayload(overrides = {}) {
+  return {
+    tenant_id: TENANT,
+    permission_ref: "perm_ref_rp05_status",
+    audit_hint_ref: "audit_hint_rp05_status",
+    actor_id: "user_rp05_owner",
+    idempotency_key: "matter-api-status-001",
+    target_status: "closed",
+    reason: "status_complete",
+    occurred_at: "2026-06-20T12:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function recentlyViewedPayload(overrides = {}) {
+  return {
+    tenant_id: TENANT,
+    permission_ref: "perm_ref_rp05_recent",
+    audit_hint_ref: "audit_hint_rp05_recent",
+    actor_id: "user_rp05_owner",
+    viewed_at: "2026-06-20T13:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function listViewPayload(overrides = {}) {
+  return {
+    tenant_id: TENANT,
+    permission_ref: "perm_ref_rp05_list_view",
+    audit_hint_ref: "audit_hint_rp05_list_view",
+    actor_id: "user_rp05_owner",
+    list_view_id: "matter_view_api_opening",
+    label: "Opening matters",
+    filter: { status: "opening" },
+    sort: "updated_desc",
+    updated_at: "2026-06-20T14:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function bulkStatusPayload(overrides = {}) {
+  return {
+    tenant_id: TENANT,
+    permission_ref: "perm_ref_rp05_bulk_status",
+    audit_hint_ref: "audit_hint_rp05_bulk_status",
+    actor_id: "user_rp05_owner",
+    idempotency_key: "matter-api-bulk-status-001",
+    matter_ids: ["matter_rp05_synthetic_opening", "matter_api_bulk_open_001"],
+    target_status: "closed",
+    reason: "bulk_status_complete",
+    occurred_at: "2026-06-20T14:30:00.000Z",
+    ...overrides,
+  };
+}
+
+function ownerChangePayload(overrides = {}) {
+  return {
+    tenant_id: TENANT,
+    permission_ref: "perm_ref_rp05_owner_change",
+    audit_hint_ref: "audit_hint_rp05_owner_change",
+    actor_id: "user_rp05_owner",
+    idempotency_key: "matter-api-owner-change-001",
+    owner: {
+      employee_id: "emp-001",
+    },
+    reason: "record_owner_changed",
+    assigned_at: "2026-06-20T14:45:00.000Z",
+    ...overrides,
+  };
+}
+
+function inlinePatchPayload(overrides = {}) {
+  return {
+    tenant_id: TENANT,
+    permission_ref: "perm_ref_rp05_inline_patch",
+    audit_hint_ref: "audit_hint_rp05_inline_patch",
+    actor_id: "user_rp05_owner",
+    idempotency_key: "matter-api-inline-patch-001",
+    field_updates: {
+      wip_status: "review_required",
+    },
+    reason: "inline_field_edit",
+    edited_at: "2026-06-20T15:00:00.000Z",
+    ...overrides,
+  };
+}
+
 test("G4 Matter API health descriptor exposes matter-core runtime without production-ready claim", async () => {
   await withServer(async (baseUrl) => {
     const { status, body } = await json(baseUrl, "/api/health");
@@ -167,6 +254,30 @@ test("G4 Matter team write requires employee-backed staffing and records audit",
     });
     assert.equal(created.status, 201);
     assert.equal(created.body.item.employee_id, "emp-002");
+    assert.equal(created.body.owner_assignment, null);
+
+    const ownerAssigned = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/team-members", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_rp05_team",
+        audit_hint_ref: "audit_hint_rp05_team",
+        actor_id: "user_rp05_owner",
+        member: {
+          member_id: "member_api_responsible",
+          tenant_id: TENANT,
+          employee_id: "emp-001",
+          user_id: "user_rp05_owner",
+          role: "responsible_attorney",
+          status: "active",
+        },
+      }),
+    });
+    assert.equal(ownerAssigned.status, 201);
+    assert.equal(ownerAssigned.body.owner_assignment.owner_employee_id, "emp-001");
+    assert.equal(ownerAssigned.body.owner_assignment.owner_user_id, "user_rp05_owner");
+    assert.equal(ownerAssigned.body.matter.owner_employee_id, "emp-001");
+    assert.equal(ownerAssigned.body.audit_event.action, "matter.owner.assignment");
 
     const blocked = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/team-members", {
       method: "POST",
@@ -190,5 +301,283 @@ test("G4 Matter team write requires employee-backed staffing and records audit",
     const audit = await json(baseUrl, `/api/matters/audit?${BASE_QUERY}`);
     assert.equal(audit.status, 200);
     assert.ok(audit.body.items.some((event) => event.action === "matter.team.member.add"));
+    assert.ok(audit.body.items.some((event) => event.action === "matter.owner.assignment"));
+
+    const detail = await json(baseUrl, `/api/matters/matter_rp05_synthetic_opening?${BASE_QUERY}`);
+    assert.equal(detail.status, 200);
+    assert.equal(detail.body.item.owner_employee_id, "emp-001");
+    assert.equal(detail.body.item.owner_user_id, "user_rp05_owner");
   });
+});
+
+test("G4 Matter generic owner change is employee backed, audited, idempotent, and persisted", async () => {
+  const storePath = join(mkdtempSync(join(tmpdir(), "lawos-matter-owner-change-g4-")), "matter-store.json");
+  await withServer(async (baseUrl) => {
+    const changed = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/owner-change", {
+      method: "POST",
+      body: JSON.stringify(ownerChangePayload()),
+    });
+    assert.equal(changed.status, 200);
+    assert.equal(changed.body.outcome, "updated");
+    assert.equal(changed.body.item.owner_employee_id, "emp-001");
+    assert.equal(changed.body.owner_assignment.owner_employee_id, "emp-001");
+    assert.equal(changed.body.audit_event.action, "matter.owner.change");
+    assert.equal(changed.body.state_idempotent, true);
+    assert.equal(changed.body.production_ready_claim, false);
+
+    const replay = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/owner-change", {
+      method: "POST",
+      body: JSON.stringify(ownerChangePayload()),
+    });
+    assert.equal(replay.status, 200);
+    assert.equal(replay.body.outcome, "idempotent_replay");
+    assert.equal(replay.body.idempotent_replay, true);
+
+    const blocked = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/owner-change", {
+      method: "POST",
+      body: JSON.stringify(ownerChangePayload({
+        idempotency_key: "matter-api-owner-change-blocked-001",
+        owner: { employee_id: "emp-offboarded" },
+      })),
+    });
+    assert.equal(blocked.status, 400);
+    assert.deepEqual(blocked.body.safe_error_codes, ["MATTER_API_VALIDATION_ERROR"]);
+
+    const audit = await json(baseUrl, `/api/matters/audit?${BASE_QUERY}`);
+    assert.equal(audit.status, 200);
+    assert.ok(audit.body.items.some((event) => event.action === "matter.owner.change"));
+  }, { matterStorePath: storePath });
+
+  await withServer(async (baseUrl) => {
+    const detail = await json(baseUrl, `/api/matters/matter_rp05_synthetic_opening?${BASE_QUERY}`);
+    assert.equal(detail.status, 200);
+    assert.equal(detail.body.item.owner_employee_id, "emp-001");
+  }, { matterStorePath: storePath });
+});
+
+test("G4 Matter inline field patch is allowlisted, audited, idempotent, and persisted", async () => {
+  const storePath = join(mkdtempSync(join(tmpdir(), "lawos-matter-inline-patch-g4-")), "matter-store.json");
+  await withServer(async (baseUrl) => {
+    const patched = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening", {
+      method: "PATCH",
+      body: JSON.stringify(inlinePatchPayload()),
+    });
+    assert.equal(patched.status, 200);
+    assert.equal(patched.body.outcome, "updated");
+    assert.equal(patched.body.item.wip_status, "review_required");
+    assert.deepEqual(patched.body.field_patch.changed_fields, ["wip_status"]);
+    assert.equal(patched.body.field_patch.field_level_allowlist, true);
+    assert.equal(patched.body.audit_event.action, "matter.inline.patch");
+    assert.equal(patched.body.state_idempotent, true);
+    assert.equal(patched.body.production_ready_claim, false);
+
+    const replay = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening", {
+      method: "PATCH",
+      body: JSON.stringify(inlinePatchPayload()),
+    });
+    assert.equal(replay.status, 200);
+    assert.equal(replay.body.outcome, "idempotent_replay");
+    assert.equal(replay.body.idempotent_replay, true);
+
+    const blocked = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening", {
+      method: "PATCH",
+      body: JSON.stringify(inlinePatchPayload({
+        idempotency_key: "matter-api-inline-patch-blocked-001",
+        field_updates: { owner_user_id: "user_direct_write" },
+      })),
+    });
+    assert.equal(blocked.status, 400);
+    assert.deepEqual(blocked.body.safe_error_codes, ["MATTER_API_VALIDATION_ERROR"]);
+
+    const audit = await json(baseUrl, `/api/matters/audit?${BASE_QUERY}`);
+    assert.equal(audit.status, 200);
+    assert.ok(audit.body.items.some((event) => event.action === "matter.inline.patch"));
+  }, { matterStorePath: storePath });
+
+  await withServer(async (baseUrl) => {
+    const detail = await json(baseUrl, `/api/matters/matter_rp05_synthetic_opening?${BASE_QUERY}`);
+    assert.equal(detail.status, 200);
+    assert.equal(detail.body.item.wip_status, "review_required");
+  }, { matterStorePath: storePath });
+});
+
+test("G4 Matter recently viewed is viewer scoped, audited, and persisted", async () => {
+  const storePath = join(mkdtempSync(join(tmpdir(), "lawos-matter-recent-g4-")), "matter-store.json");
+  await withServer(async (baseUrl) => {
+    const marked = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/recently-viewed", {
+      method: "POST",
+      body: JSON.stringify(recentlyViewedPayload()),
+    });
+    assert.equal(marked.status, 200);
+    assert.equal(marked.body.outcome, "updated");
+    assert.equal(marked.body.item.matter_id, "matter_rp05_synthetic_opening");
+    assert.equal(marked.body.item.viewer_scoped, true);
+    assert.equal(marked.body.item.production_ready_claim, false);
+    assert.equal(marked.body.audit_event.action, "matter.recently_viewed.mark");
+    assert.equal(JSON.stringify(marked.body.item).includes("viewer_user_id"), false);
+    assert.equal(JSON.stringify(marked.body.item).includes("user_rp05_owner"), false);
+
+    const recent = await json(baseUrl, `/api/matters/recently-viewed?${BASE_QUERY}`);
+    assert.equal(recent.status, 200);
+    assert.equal(recent.body.items.length, 1);
+    assert.equal(recent.body.items[0].matter_id, "matter_rp05_synthetic_opening");
+    assert.equal(recent.body.items[0].viewer_scoped, true);
+    assert.equal(JSON.stringify(recent.body.items[0]).includes("viewer_user_id"), false);
+
+    const audit = await json(baseUrl, `/api/matters/audit?${BASE_QUERY}`);
+    assert.equal(audit.status, 200);
+    assert.ok(audit.body.items.some((event) => event.action === "matter.recently_viewed.mark"));
+  }, { matterStorePath: storePath });
+
+  await withServer(async (baseUrl) => {
+    const recent = await json(baseUrl, `/api/matters/recently-viewed?${BASE_QUERY}`);
+    assert.equal(recent.status, 200);
+    assert.equal(recent.body.items.length, 1);
+    assert.equal(recent.body.items[0].viewed_at, "2026-06-20T13:00:00.000Z");
+  }, { matterStorePath: storePath });
+});
+
+test("G4 Matter saved list views are owner scoped, audited, and persisted", async () => {
+  const storePath = join(mkdtempSync(join(tmpdir(), "lawos-matter-list-view-g4-")), "matter-store.json");
+  await withServer(async (baseUrl) => {
+    const systemViews = await json(baseUrl, `/api/matters/list-views?${BASE_QUERY}`);
+    assert.equal(systemViews.status, 200);
+    assert.ok(systemViews.body.items.some((item) => item.list_view_id === "matter_view_all"));
+    assert.equal(systemViews.body.count_leak_prevented, true);
+    assert.equal(systemViews.body.production_ready_claim, false);
+    assert.equal(JSON.stringify(systemViews.body.items).includes("owner_user_id"), false);
+
+    const saved = await json(baseUrl, "/api/matters/list-views", {
+      method: "POST",
+      body: JSON.stringify(listViewPayload()),
+    });
+    assert.equal(saved.status, 201);
+    assert.equal(saved.body.outcome, "created");
+    assert.equal(saved.body.item.list_view_id, "matter_view_api_opening");
+    assert.deepEqual(saved.body.item.filter, { status: "opening" });
+    assert.equal(saved.body.item.owner_scoped, true);
+    assert.equal(saved.body.item.production_ready_claim, false);
+    assert.equal(saved.body.audit_event.action, "matter.list_view.saved");
+    assert.equal(JSON.stringify(saved.body.item).includes("owner_user_id"), false);
+    assert.equal(JSON.stringify(saved.body.item).includes("user_rp05_owner"), false);
+
+    const listed = await json(baseUrl, `/api/matters/list-views?${BASE_QUERY}`);
+    assert.equal(listed.status, 200);
+    assert.ok(listed.body.items.some((item) => item.list_view_id === "matter_view_api_opening"));
+
+    const audit = await json(baseUrl, `/api/matters/audit?${BASE_QUERY}`);
+    assert.equal(audit.status, 200);
+    assert.ok(audit.body.items.some((event) => event.action === "matter.list_view.saved"));
+  }, { matterStorePath: storePath });
+
+  await withServer(async (baseUrl) => {
+    const listed = await json(baseUrl, `/api/matters/list-views?${BASE_QUERY}`);
+    assert.equal(listed.status, 200);
+    assert.ok(listed.body.items.some((item) => item.list_view_id === "matter_view_api_opening"));
+  }, { matterStorePath: storePath });
+});
+
+test("G4 Matter bulk status transition is permission gated, audited, and persisted", async () => {
+  const storePath = join(mkdtempSync(join(tmpdir(), "lawos-matter-bulk-status-g4-")), "matter-store.json");
+  await withServer(async (baseUrl) => {
+    const created = await json(baseUrl, "/api/matters/openings", {
+      method: "POST",
+      body: JSON.stringify(openingPayload({
+        idempotency_key: "matter-api-bulk-open-001",
+        matter_number_seed: "API-BULK-001",
+        matter: {
+          ...openingPayload().matter,
+          matter_id: "matter_api_bulk_open_001",
+          title: "API bulk opened matter",
+          matter_number: "M-TENANT-RP05-API-BULK-001",
+          permission_envelope_id: "perm_matter_api_bulk_open_001",
+          audit_trace_id: "audit_matter_api_bulk_open_001",
+        },
+        clearance_token: {
+          ...openingPayload().clearance_token,
+          clearance_token_id: "clearance_api_bulk_open_001",
+          intake_request_id: "intake_api_bulk_open_001",
+          conflict_check_id: "conflict_api_bulk_open_001",
+          engagement_id: "engagement_api_bulk_open_001",
+          snapshot_hash: "sha256:clearance-api-bulk-open-001",
+        },
+      })),
+    });
+    assert.equal(created.status, 201);
+
+    const bulk = await json(baseUrl, "/api/matters/bulk/status-transitions", {
+      method: "POST",
+      body: JSON.stringify(bulkStatusPayload()),
+    });
+    assert.equal(bulk.status, 200);
+    assert.equal(bulk.body.outcome, "updated");
+    assert.equal(bulk.body.items.length, 2);
+    assert.equal(bulk.body.bulk_action.updated_count, 2);
+    assert.equal(bulk.body.bulk_action.partial_update, false);
+    assert.equal(bulk.body.bulk_action.automatic_matter_creation, false);
+    assert.equal(bulk.body.audit_event.action, "matter.bulk.status_transition");
+    assert.equal(bulk.body.audit_events.length, 2);
+    assert.ok(bulk.body.items.every((item) => item.status === "closed"));
+    assert.equal(JSON.stringify(bulk.body.bulk_action).includes("user_rp05_owner"), false);
+
+    const replay = await json(baseUrl, "/api/matters/bulk/status-transitions", {
+      method: "POST",
+      body: JSON.stringify(bulkStatusPayload()),
+    });
+    assert.equal(replay.status, 200);
+    assert.equal(replay.body.outcome, "idempotent_replay");
+    assert.equal(replay.body.idempotent_replay, true);
+
+    const audit = await json(baseUrl, `/api/matters/audit?${BASE_QUERY}`);
+    assert.equal(audit.status, 200);
+    assert.ok(audit.body.items.some((event) => event.action === "matter.bulk.status_transition"));
+    assert.ok(audit.body.items.some((event) => event.action === "matter.status.bulk_transitioned"));
+  }, { matterStorePath: storePath });
+
+  await withServer(async (baseUrl) => {
+    const detail = await json(baseUrl, `/api/matters/matter_api_bulk_open_001?${BASE_QUERY}`);
+    assert.equal(detail.status, 200);
+    assert.equal(detail.body.item.status, "closed");
+    assert.equal(detail.body.item.closed_at, "2026-06-20T14:30:00.000Z");
+  }, { matterStorePath: storePath });
+});
+
+test("G4 Matter status transition is idempotent, audited, and persisted", async () => {
+  const storePath = join(mkdtempSync(join(tmpdir(), "lawos-matter-status-g4-")), "matter-store.json");
+  await withServer(async (baseUrl) => {
+    const updated = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/status-transitions", {
+      method: "POST",
+      body: JSON.stringify(statusTransitionPayload()),
+    });
+    assert.equal(updated.status, 200);
+    assert.equal(updated.body.outcome, "updated");
+    assert.equal(updated.body.item.status, "closed");
+    assert.equal(updated.body.item.wip_status, "completed");
+    assert.equal(updated.body.transition.previous_status, "opening");
+    assert.equal(updated.body.transition.target_status, "closed");
+    assert.equal(updated.body.transition.automatic_matter_creation, false);
+    assert.equal(updated.body.state_idempotent, true);
+    assert.equal(updated.body.production_ready_claim, false);
+    assert.equal(updated.body.audit_event.action, "matter.status.transitioned");
+    assert.equal(updated.body.timeline_event.document_bytes_included, false);
+
+    const replay = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/status-transitions", {
+      method: "POST",
+      body: JSON.stringify(statusTransitionPayload()),
+    });
+    assert.equal(replay.status, 200);
+    assert.equal(replay.body.outcome, "idempotent_replay");
+    assert.equal(replay.body.idempotent_replay, true);
+
+    const audit = await json(baseUrl, `/api/matters/audit?${BASE_QUERY}`);
+    assert.equal(audit.status, 200);
+    assert.ok(audit.body.items.some((event) => event.action === "matter.status.transitioned"));
+  }, { matterStorePath: storePath });
+
+  await withServer(async (baseUrl) => {
+    const detail = await json(baseUrl, `/api/matters/matter_rp05_synthetic_opening?${BASE_QUERY}`);
+    assert.equal(detail.status, 200);
+    assert.equal(detail.body.item.status, "closed");
+    assert.equal(detail.body.item.closed_at, "2026-06-20T12:00:00.000Z");
+  }, { matterStorePath: storePath });
 });

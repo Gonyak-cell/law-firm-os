@@ -27,7 +27,7 @@ export function LoadingSurface({ labels, locale, theme, setLocale, setTheme, cla
     <main className={["loading-stage", className].filter(Boolean).join(" ")} data-matter-logo-flow={className.includes("post-login-splash") ? "post-login" : "startup"}>
       <MatterSplash />
       <strong>{message}</strong>
-      <p>{locale === "ko" ? "최근 작업공간과 권한을 확인하고 있습니다." : "Checking your workspace and permissions."}</p>
+      <p>{locale === "ko" ? "최근 작업공간을 준비하고 있습니다." : "Preparing your workspace."}</p>
       <div className="loading-actions">
         <button className="secondary-button" onClick={() => setLocale(locale === "ko" ? "en" : "ko")}>{labels.language}</button>
         <button className="secondary-button" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{labels.theme}</button>
@@ -38,7 +38,7 @@ export function LoadingSurface({ labels, locale, theme, setLocale, setTheme, cla
 
 function ProductAxisNav({ view, setView }) {
   return (
-    <nav className="top-axis-nav" aria-label="Client Matter People Vault product axes" data-product-axis-nav="top-header">
+    <nav className="top-axis-nav" aria-label="Client Matter People Vault" data-product-axis-nav="top-header">
       {navItems.map(({ id, label, icon: Icon }) => (
         <button
           key={id}
@@ -61,7 +61,7 @@ export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQ
     <header className="topbar">
       <button
         className={sidebarExpanded ? "icon-button nav-toggle active" : "icon-button nav-toggle"}
-        aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+        aria-label={sidebarExpanded ? "사이드바 접기" : "사이드바 펼치기"}
         aria-expanded={sidebarExpanded}
         onClick={onToggleSidebar}
       >
@@ -82,10 +82,10 @@ export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQ
           <UserPlus size={15} />
           {labels.invite}
         </button>
-        <button className="icon-button" aria-label="Notifications">
+        <button className="icon-button" aria-label="알림">
           <Bell size={17} />
         </button>
-        <button className="icon-button" aria-label="Help">
+        <button className="icon-button" aria-label="도움말">
           <CircleHelp size={17} />
         </button>
         <button className="icon-button" aria-label={labels.theme} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
@@ -111,40 +111,48 @@ export function Rail() {
   );
 }
 
-export function Sidebar({ labels, view, setView, expanded = false }) {
+export function Sidebar({ labels, view, setView, activeSection = "", expanded = false }) {
   const subnav = {
     auth: [
-      { label: "Login", view: "auth" },
-      { label: "Password reset", view: "auth" }
+      { label: "로그인", view: "auth" },
+      { label: "비밀번호 재설정", view: "auth" }
     ],
     home: [],
     clients: [
-      { label: "Client groups", view: "clients" },
-      { label: "Parties", view: "clients" },
-      { label: "Relationships", view: "clients" },
-      { label: "Review", view: "clients" },
-      { label: "Audit", view: "clients" }
+      { label: "Client 목록", view: "clients", section: "clients-list" },
+      { label: "리드", view: "clients", section: "client-leads" },
+      { label: "기회", view: "clients", section: "client-opportunities" },
+      { label: "접수", view: "clients", section: "client-intake" },
+      { label: "계정", view: "clients", section: "client-accounts" },
+      { label: "연락처", view: "clients", section: "client-contacts" }
     ],
     matters: [
-      { label: "Matter home", view: "matters" },
-      { label: "Opening", view: "matters" },
-      { label: "Team", view: "matters" },
-      { label: "Finance", view: "matters" },
-      { label: "AI review", view: "matters" }
+      { label: "Matter 목록", view: "matters", section: "matters-list" },
+      { label: "Command", view: "matters", section: "matter-command" },
+      { label: "문서", view: "matters", section: "matter-vault" },
+      { label: "활동", view: "matters", section: "matter-timeline" },
+      { label: "개시", view: "matters", section: "matter-opening" },
+      { label: "팀", view: "matters", section: "matter-team" },
+      { label: "청구", view: "matters", section: "matter-billing" },
+      { label: "분석", view: "matters", section: "matter-analytics" }
     ],
     people: [
-      { label: "Overview", view: "people" },
-      { label: "Employees", view: "people" },
-      { label: "Documents", view: "people" },
-      { label: "Leave", view: "people" },
-      { label: "Lifecycle", view: "people" }
+      { label: "구성원", view: "people", section: "people-members" },
+      { label: "인사 문서", view: "people", section: "people-documents" },
+      { label: "휴가", view: "people", section: "people-leave" },
+      { label: "승인", view: "people", section: "people-approvals" },
+      { label: "채용", view: "people", section: "people-recruiting" },
+      { label: "입퇴사", view: "people", section: "people-lifecycle" },
+      { label: "인사 정책", view: "people", section: "people-policy" },
+      { label: "활동 기록", view: "people", section: "people-audit" },
+      { label: "인사 현황", view: "people", section: "people-analytics" },
+      { label: "AI 검토", view: "people", section: "people-ai" },
+      { label: "급여정산", view: "people", section: "people-payroll" }
     ],
     vault: [
-      { label: "Documents", view: "vault" },
-      { label: "Folders", view: "vault" },
-      { label: "Versions", view: "vault" },
-      { label: "Legal hold", view: "vault" },
-      { label: "Audit", view: "vault" }
+      { label: "문서함", view: "vault", section: "vault-documents" },
+      { label: "상세", view: "vault", section: "vault-detail" },
+      { label: "메일 보관", view: "vault", section: "vault-email" }
     ]
   }[view] ?? [];
 
@@ -162,12 +170,21 @@ export function Sidebar({ labels, view, setView, expanded = false }) {
       </div>
       {subnav.length > 0 && (
         <nav className="sidebar-nav">
-          {subnav.map((item, index) => (
-            <button key={item.label} className={index === 0 ? "sidebar-item active" : "sidebar-item"} onClick={() => setView(item.view)}>
+          {subnav.map((item, index) => {
+            const active = item.section ? activeSection === item.section || (!activeSection && index === 0) : index === 0;
+            return (
+            <button
+              key={item.label}
+              type="button"
+              className={active ? "sidebar-item active" : "sidebar-item"}
+              aria-current={active ? "location" : undefined}
+              onClick={() => setView(item.view, item.section ?? "")}
+            >
               <span className="sidebar-dot" />
               {item.label}
             </button>
-          ))}
+            );
+          })}
         </nav>
       )}
     </aside>
@@ -177,7 +194,7 @@ export function Sidebar({ labels, view, setView, expanded = false }) {
 export function GlobalSearch({ labels, query, setQuery, setView }) {
   const results = navItems.map(({ id, icon }) => ({
     icon,
-    title: query.trim() ? `${labels[id]} axis for "${query.trim()}"` : `${labels[id]} axis`,
+    title: query.trim() ? `${labels[id]}에서 "${query.trim()}" 검색` : labels[id],
     view: id
   }));
 

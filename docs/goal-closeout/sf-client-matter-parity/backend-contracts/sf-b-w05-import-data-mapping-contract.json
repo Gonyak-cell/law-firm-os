@@ -1,0 +1,272 @@
+{
+  "schema_version": "law-firm-os.sf-client-matter-parity.backend-contract.v0.1",
+  "program": "SF-CLIENT-MATTER-PARITY",
+  "track": "Track B",
+  "workstream": "SF-B-W05",
+  "title": "Salesforce import and data mapping backend-first contract",
+  "status": "import_data_mapping_contract_registered_execution_blocked",
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "enterprise_trust_claim": false,
+  "ui_import_wizard_exposure_allowed_before_route_tests": false,
+  "ui_field_mapping_exposure_allowed_before_route_tests": false,
+  "ui_import_execution_exposure_allowed_before_dry_run_tests": false,
+  "ui_error_report_exposure_allowed_after_route_tests": true,
+  "salesforce_visible_capabilities": [
+    "Salesforce data import wizard",
+    "CSV/source file staging",
+    "Object target selection",
+    "Source field to target field mapping",
+    "Validation preview and error report",
+    "Dry-run import",
+    "Execute import",
+    "Rollback or compensation receipt"
+  ],
+  "current_lawos_state": {
+    "mounted_routes_present": [
+      "POST /api/finance/payments",
+      "GET /api/crm/accounts",
+      "POST /api/crm/accounts",
+      "PATCH /api/crm/accounts/:id",
+      "GET /api/crm/contacts",
+      "POST /api/crm/contacts",
+      "PATCH /api/crm/contacts/:id",
+      "POST /api/crm/duplicate-reviews",
+      "POST /api/matters/bulk/status-transitions"
+    ],
+    "mounted_routes_absent": [
+      "GET /api/import-jobs",
+      "POST /api/import-jobs",
+      "GET /api/import-targets",
+      "POST /api/import-jobs/:jobId/source-files",
+      "GET /api/import-jobs/:jobId/preview",
+      "POST /api/import-jobs/:jobId/field-mappings",
+      "POST /api/import-jobs/:jobId/dry-run",
+      "POST /api/import-jobs/:jobId/execute",
+      "POST /api/import-jobs/:jobId/rollback",
+      "GET /api/import-jobs/:jobId/error-report"
+    ],
+    "existing_domain_foundation": [
+      "apps/api/src/finance-runtime-context.js#handleFinancePaymentImport",
+      "apps/web/src/data/apiClient.js#importFinancePayment",
+      "packages/payments/src/client-matter-g5.js#createPaymentsG5PaymentImportDescriptor",
+      "packages/payments/src/client-matter-g5.js#createPaymentsG5PaymentMatchingDescriptor",
+      "packages/master-data/src/duplicate-service.js#createMasterDataDuplicateService",
+      "packages/master-data/src/organization-service.js#createOrganizationService",
+      "packages/master-data/src/person-service.js#createPersonService",
+      "packages/master-data/src/contact-point-service.js#createContactPointService",
+      "packages/master-data/src/relationship-service.js#createRelationshipService"
+    ],
+    "current_ui_boundary": [
+      "Matter billing may expose the tested payment import action backed by POST /api/finance/payments",
+      "Matter bulk status completion may expose the tested POST /api/matters/bulk/status-transitions route",
+      "Client Account/Contact create and patch surfaces may expose tested CRM runtime facade writes",
+      "No generic Client/Matter import wizard, CSV upload, field mapping stepper, dry-run import, execute import, rollback, or error-report UI may appear before mounted API tests exist",
+      "Existing payment import is not Salesforce-style import/data mapping parity"
+    ]
+  },
+  "route_policy_contract": [
+    {
+      "tuw": "SF-B-W05-T01",
+      "method": "GET",
+      "path": "/api/import-jobs",
+      "action": "import:job:read",
+      "resource_type": "client_matter_import_job",
+      "repository_source": "import-runtime",
+      "service_boundary": "Read tenant-scoped import job metadata and safe status only; source file contents, raw rows, and direct personal identifiers omitted",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W05-API-001"
+    },
+    {
+      "tuw": "SF-B-W05-T01",
+      "method": "POST",
+      "path": "/api/import-jobs",
+      "action": "import:job:create",
+      "resource_type": "client_matter_import_job",
+      "repository_source": "import-runtime",
+      "service_boundary": "Create staged import job for allowlisted target objects only; no target records are mutated at job creation",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W05-API-002"
+    },
+    {
+      "tuw": "SF-B-W05-T01",
+      "method": "GET",
+      "path": "/api/import-targets",
+      "action": "import:target:read",
+      "resource_type": "client_matter_import_target",
+      "repository_source": "import-runtime",
+      "service_boundary": "Read object/field registry for allowlisted import targets and required permission scopes; admin metadata writes are out of scope",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W05-API-003"
+    },
+    {
+      "tuw": "SF-B-W05-T01",
+      "method": "POST",
+      "path": "/api/import-jobs/:jobId/source-files",
+      "action": "import:source:stage",
+      "resource_type": "client_matter_import_source_file",
+      "repository_source": "import-runtime",
+      "service_boundary": "Stage source file manifest and parsed safe column profile; raw file bytes and raw row values stay outside API response",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W05-API-004"
+    },
+    {
+      "tuw": "SF-B-W05-T02",
+      "method": "GET",
+      "path": "/api/import-jobs/:jobId/preview",
+      "action": "import:preview:read",
+      "resource_type": "client_matter_import_preview",
+      "repository_source": "import-runtime",
+      "service_boundary": "Return sampled, redacted, row-count-safe preview plus validation summary; raw row payloads and omitted counts are not returned",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W05-API-005"
+    },
+    {
+      "tuw": "SF-B-W05-T02",
+      "method": "POST",
+      "path": "/api/import-jobs/:jobId/field-mappings",
+      "action": "import:mapping:write",
+      "resource_type": "client_matter_import_mapping",
+      "repository_source": "import-runtime",
+      "service_boundary": "Persist source field to target field mappings only for allowlisted target fields; unsafe direct Matter creation, raw contact values, and privilege labels are blocked",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W05-API-006"
+    },
+    {
+      "tuw": "SF-B-W05-T03",
+      "method": "POST",
+      "path": "/api/import-jobs/:jobId/dry-run",
+      "action": "import:dry_run",
+      "resource_type": "client_matter_import_dry_run",
+      "repository_source": "import-runtime",
+      "service_boundary": "Validate mappings, duplicate policy, permission scope, target constraints, and rollback plan without mutating Client, Matter, Billing, or DMS records",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W05-API-007"
+    },
+    {
+      "tuw": "SF-B-W05-T03",
+      "method": "POST",
+      "path": "/api/import-jobs/:jobId/execute",
+      "action": "import:execute",
+      "resource_type": "client_matter_import_execution",
+      "repository_source": "import-runtime",
+      "service_boundary": "Execute only after passed dry-run, owner-approved target policy, idempotency key, and rollback plan exist; mutation receipt must list safe counts and audit ids only",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W05-API-008"
+    },
+    {
+      "tuw": "SF-B-W05-T03",
+      "method": "POST",
+      "path": "/api/import-jobs/:jobId/rollback",
+      "action": "import:rollback",
+      "resource_type": "client_matter_import_rollback",
+      "repository_source": "import-runtime",
+      "service_boundary": "Rollback or compensate executed import using receipt-bound operations only; no silent success and no raw failed-row leakage",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W05-API-009"
+    },
+    {
+      "tuw": "SF-B-W05-T03",
+      "method": "GET",
+      "path": "/api/import-jobs/:jobId/error-report",
+      "action": "import:error_report:read",
+      "resource_type": "client_matter_import_error_report",
+      "repository_source": "import-runtime",
+      "service_boundary": "Read safe error categories, row labels, and remediation hints only; raw rows, raw personal identifiers, and storage pointers omitted",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W05-API-010"
+    }
+  ],
+  "repository_service_contract": {
+    "import_job_model": {
+      "canonical_records": ["ClientMatterImportJob", "ClientMatterImportSource", "ClientMatterImportTarget", "ClientMatterImportAuditEvent"],
+      "required_services": ["createClientMatterImportRepository", "createClientMatterImportJobService"],
+      "model_migration_required": [
+        "import_job_id",
+        "target_object",
+        "source_manifest_ref",
+        "source_profile_hash",
+        "status",
+        "permission_scope_ref",
+        "created_by_actor_ref",
+        "retention_policy_id"
+      ],
+      "safe_output_rules": [
+        "source file bytes omitted",
+        "raw row values omitted",
+        "direct personal contact identifiers omitted",
+        "storage pointer omitted",
+        "tenant_id scoped"
+      ]
+    },
+    "field_mapping_model": {
+      "canonical_records": ["ClientMatterImportMapping", "ClientMatterImportValidationIssue", "ClientMatterImportAuditEvent"],
+      "required_services": ["createClientMatterFieldMappingService", "createClientMatterImportValidationService"],
+      "target_objects_allowed_initially": ["crm_account_facade", "crm_contact_facade", "matter_runtime_patch", "finance_payment"],
+      "target_objects_blocked_until_owner_decision": ["canonical_master_data_person", "canonical_master_data_organization", "matter_opening", "dms_document_bytes"],
+      "safe_output_rules": [
+        "mapping targets must be allowlisted",
+        "privilege labels and legal holds cannot be imported by generic mapping",
+        "raw contact values stay redacted in preview and error report",
+        "duplicate handling must use duplicate review contract before canonical writes"
+      ]
+    },
+    "dry_run_execution_model": {
+      "canonical_records": ["ClientMatterImportDryRun", "ClientMatterImportExecutionReceipt", "ClientMatterImportRollbackReceipt", "ClientMatterImportAuditEvent"],
+      "required_services": ["createClientMatterImportDryRunService", "createClientMatterImportExecutionService", "createClientMatterImportRollbackService"],
+      "safe_output_rules": [
+        "dry-run mutates no product records",
+        "execute requires passed dry-run hash",
+        "execute requires idempotency key",
+        "execution receipt returns safe counts and audit ids only",
+        "rollback receipt required for every executed batch"
+      ]
+    }
+  },
+  "owner_decisions_required": [
+    "initial import target object allowlist",
+    "field-level mapping allowlist and required fields per target",
+    "duplicate handling policy and review threshold",
+    "source file retention and deletion policy",
+    "who may approve execution after dry-run",
+    "rollback versus compensation strategy per target object",
+    "whether an external embedded importer such as OneSchema is allowed"
+  ],
+  "external_provider_dependencies": [
+    "None required for first-party CSV/manifest import",
+    "Optional embedded importer provider such as OneSchema requires separate owner/security decision"
+  ],
+  "verification_cases": [
+    "VC-SF-B-W05-API-001: list import jobs returns safe metadata and no raw source rows",
+    "VC-SF-B-W05-API-002: create import job stages metadata only and mutates no target records",
+    "VC-SF-B-W05-API-003: import targets read returns allowlisted objects and fields only",
+    "VC-SF-B-W05-API-004: source file staging stores manifest/profile and omits bytes/raw rows from response",
+    "VC-SF-B-W05-API-005: preview returns redacted sample rows and count-leak-safe validation summary",
+    "VC-SF-B-W05-API-006: mapping write rejects blocked target objects, unsafe fields, and direct Matter creation shortcuts",
+    "VC-SF-B-W05-API-007: dry-run validates mappings, duplicates, permissions, and rollback plan without mutations",
+    "VC-SF-B-W05-API-008: execute requires passed dry-run, idempotency key, owner policy, and audit receipt",
+    "VC-SF-B-W05-API-009: rollback produces receipt-bound reversal or compensation evidence",
+    "VC-SF-B-W05-API-010: error report hides raw rows, raw personal identifiers, and storage pointers",
+    "VC-SF-B-W05-UI-001: Client/Matter UI exposes no import wizard, mapping stepper, run import, rollback, or error report controls before route tests pass"
+  ],
+  "evidence_gate": {
+    "required_before_ui_exposure": [
+      "node --test apps/api/test/sf-b-w05-import-data-mapping.test.js",
+      "npm --workspace apps/web run test:ui",
+      "Playwright Client/Matter import wizard QA",
+      "OMO CodeGraph caller check for import job, mapping, dry-run, execute, rollback, and error-report handlers",
+      "Hermes MCP check-only: hermes.validate.core and hermes.desktop_authority_boundary"
+    ],
+    "forbidden_before_gate": [
+      "data-client-matter-import-wizard",
+      "data-import-field-mapping-stepper",
+      "createClientMatterImportJob",
+      "stageImportSourceFile",
+      "saveImportFieldMapping",
+      "dryRunClientMatterImport",
+      "executeClientMatterImport",
+      "rollbackClientMatterImport"
+    ]
+  },
+  "decision_boundary": "This contract registers backend-first work only. It does not authorize import wizard UI, generic CSV upload, field mapping stepper, import execution, rollback controls, external importer providers, production, deployment, final approval, or enterprise trust claims."
+}

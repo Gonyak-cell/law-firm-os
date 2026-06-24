@@ -14,9 +14,9 @@ export function PageHeader({ eyebrow, title, subtitle, actions }) {
   );
 }
 
-export function Panel({ title, meta, children, className = "" }) {
+export function Panel({ id, title, meta, children, className = "" }) {
   return (
-    <section className={`panel ${className}`}>
+    <section id={id} className={`panel ${className}`}>
       <header className="panel-head">
         <div>
           <h2>{title}</h2>
@@ -28,16 +28,6 @@ export function Panel({ title, meta, children, className = "" }) {
       </header>
       <div className="panel-body">{children}</div>
     </section>
-  );
-}
-
-export function MetricCard({ label, value, delta, tone }) {
-  return (
-    <div className={`metric-card ${tone}`}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <small>{delta}</small>
-    </div>
   );
 }
 
@@ -79,54 +69,6 @@ export function DataTable({ columns, rows }) {
           ))}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-export function MiniLineChart({ variant = "small" }) {
-  if (variant === "bars") {
-    return (
-      <div className="bar-chart" aria-hidden="true">
-        {[32, 64, 48, 76, 54, 92, 68].map((height, index) => (
-          <span key={index} style={{ height: `${height}%` }} />
-        ))}
-      </div>
-    );
-  }
-
-  const height = variant === "large" ? 240 : 168;
-  return (
-    <svg className="line-chart" viewBox={`0 0 640 ${height}`} role="img" aria-label="Line chart">
-      <defs>
-        <linearGradient id={`chartFill-${variant}`} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="var(--am-blue-soft)" />
-          <stop offset="100%" stopColor="rgba(11, 101, 229, 0)" />
-        </linearGradient>
-      </defs>
-      {[0, 1, 2, 3, 4].map((line) => (
-        <line key={line} x1="32" x2="610" y1={32 + line * 34} y2={32 + line * 34} />
-      ))}
-      <path d={`M32 ${height - 42} L110 ${height - 70} L190 ${height - 92} L278 ${height - 64} L366 ${height - 118} L482 ${height - 82} L610 ${height - 150}`} />
-      <path
-        className="chart-fill"
-        d={`M32 ${height - 42} L110 ${height - 70} L190 ${height - 92} L278 ${height - 64} L366 ${height - 118} L482 ${height - 82} L610 ${height - 150} L610 ${height - 16} L32 ${height - 16} Z`}
-        fill={`url(#chartFill-${variant})`}
-      />
-    </svg>
-  );
-}
-
-export function GaugeChart({ value }) {
-  const angle = -120 + value * 2.4;
-  return (
-    <div className="gauge">
-      <svg viewBox="0 0 180 120" aria-label={`Gauge ${value}`}>
-        <path d="M28 96 A62 62 0 0 1 152 96" />
-        <path className="active" d="M28 96 A62 62 0 0 1 152 96" strokeDasharray={`${value * 1.56} 160`} />
-        <line x1="90" y1="96" x2="90" y2="42" transform={`rotate(${angle} 90 96)`} />
-      </svg>
-      <strong>{value}</strong>
-      <span>0s</span>
     </div>
   );
 }

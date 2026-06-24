@@ -1,0 +1,245 @@
+{
+  "schema_version": "law-firm-os.sf-client-matter-parity.backend-contract.v0.1",
+  "program": "SF-CLIENT-MATTER-PARITY",
+  "track": "Track B",
+  "workstream": "SF-B-W01",
+  "title": "Salesforce Account and Contact backend-first contract",
+  "status": "account_contact_patch_mounted_merge_blocked",
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "enterprise_trust_claim": false,
+  "ui_read_exposure_allowed_after_route_tests": true,
+  "ui_write_exposure_allowed_before_write_route_tests": false,
+  "ui_account_create_exposure_allowed_after_route_tests": true,
+  "ui_contact_create_exposure_allowed_after_route_tests": true,
+  "ui_account_contact_patch_exposure_allowed_after_route_tests": true,
+  "salesforce_visible_capabilities": [
+    "Salesforce Account object",
+    "Salesforce Contact object",
+    "Account-Contact relationship",
+    "Duplicate and merge review"
+  ],
+  "current_lawos_state": {
+    "mounted_routes_present": [
+      "GET /api/crm/accounts",
+      "POST /api/crm/accounts",
+      "PATCH /api/crm/accounts/:id",
+      "GET /api/crm/contacts",
+      "POST /api/crm/contacts",
+      "PATCH /api/crm/contacts/:id",
+      "GET /api/crm/accounts/:id/contacts",
+      "POST /api/crm/duplicate-reviews"
+    ],
+    "mounted_routes_absent": [
+      "POST /api/crm/merge-reviews/:id/execute"
+    ],
+    "existing_domain_services": [
+      "packages/master-data/src/organization-service.js#createOrganizationService",
+      "packages/master-data/src/person-service.js#createPersonService",
+      "packages/master-data/src/client-group-service.js#createClientGroupService",
+      "packages/master-data/src/contact-point-service.js#createContactPointService",
+      "packages/master-data/src/relationship-service.js#createRelationshipService",
+      "packages/master-data/src/duplicate-service.js#createMasterDataDuplicateService",
+      "packages/master-data/src/repository.js#createMasterDataRepository"
+    ],
+    "current_ui_boundary": [
+      "Client > account section may read GET /api/crm/accounts after route tests pass",
+      "Client > contact section may read GET /api/crm/contacts after route tests pass",
+      "Client > account section may call POST /api/crm/accounts after VC-SF-B-W01-API-002 passes",
+      "Client > contact section may call POST /api/crm/contacts after VC-SF-B-W01-API-004 passes",
+      "Client > account and contact sections may call tested PATCH routes for CRM runtime facade records only",
+      "No Client UI merge action may appear before merge route tests exist"
+    ]
+  },
+  "route_policy_contract": [
+    {
+      "tuw": "SF-B-W01-T01",
+      "method": "GET",
+      "path": "/api/crm/accounts",
+      "action": "crm:account:read",
+      "resource_type": "crm_account",
+      "repository_source": "master-data",
+      "service_boundary": "Organization + ClientGroup read facade",
+      "verification_case": "VC-SF-B-W01-API-001"
+    },
+    {
+      "tuw": "SF-B-W01-T01",
+      "method": "POST",
+      "path": "/api/crm/accounts",
+      "action": "crm:account:write",
+      "resource_type": "crm_account",
+      "repository_source": "crm-runtime",
+      "service_boundary": "CRM runtime Account facade create with Master Data-safe projection boundary",
+      "status": "mounted_tested",
+      "verification_case": "VC-SF-B-W01-API-002"
+    },
+    {
+      "tuw": "SF-B-W01-T02",
+      "method": "GET",
+      "path": "/api/crm/contacts",
+      "action": "crm:contact:read",
+      "resource_type": "crm_contact",
+      "repository_source": "master-data",
+      "service_boundary": "Person + ContactPoint read facade",
+      "verification_case": "VC-SF-B-W01-API-003"
+    },
+    {
+      "tuw": "SF-B-W01-T02",
+      "method": "POST",
+      "path": "/api/crm/contacts",
+      "action": "crm:contact:write",
+      "resource_type": "crm_contact",
+      "repository_source": "crm-runtime",
+      "service_boundary": "CRM runtime Contact facade create with Master Data-safe ContactPoint projection boundary",
+      "status": "contact_create_mounted_tested",
+      "verification_case": "VC-SF-B-W01-API-004"
+    },
+    {
+      "tuw": "SF-B-W01-T05",
+      "method": "PATCH",
+      "path": "/api/crm/accounts/:id",
+      "action": "crm:account:patch",
+      "resource_type": "crm_account",
+      "repository_source": "crm-runtime",
+      "service_boundary": "CRM runtime Account facade allowlisted field patch; canonical Master Data Organization patch remains blocked",
+      "status": "patch_mounted_tested",
+      "verification_case": "VC-SF-B-W01-API-007"
+    },
+    {
+      "tuw": "SF-B-W01-T05",
+      "method": "PATCH",
+      "path": "/api/crm/contacts/:id",
+      "action": "crm:contact:patch",
+      "resource_type": "crm_contact",
+      "repository_source": "crm-runtime",
+      "service_boundary": "CRM runtime Contact facade allowlisted field patch; canonical Master Data Person/ContactPoint patch remains blocked",
+      "status": "patch_mounted_tested",
+      "verification_case": "VC-SF-B-W01-API-008"
+    },
+    {
+      "tuw": "SF-B-W01-T03",
+      "method": "GET",
+      "path": "/api/crm/accounts/:id/contacts",
+      "action": "crm:account_contact:read",
+      "resource_type": "crm_account_contact_relationship",
+      "repository_source": "master-data",
+      "service_boundary": "createRelationshipService",
+      "verification_case": "VC-SF-B-W01-API-005"
+    },
+    {
+      "tuw": "SF-B-W01-T04",
+      "method": "POST",
+      "path": "/api/crm/duplicate-reviews",
+      "action": "crm:duplicate_review:write",
+      "resource_type": "crm_duplicate_review",
+      "repository_source": "master-data",
+      "service_boundary": "createMasterDataDuplicateService",
+      "verification_case": "VC-SF-B-W01-API-006"
+    }
+  ],
+  "repository_service_contract": {
+    "account_facade": {
+      "canonical_records": ["Party", "Entity", "Organization", "ClientGroup", "PartyIdentifier", "BillingProfile"],
+      "required_services": ["createOrganizationService", "createClientGroupService"],
+      "implemented_write_boundary": "POST /api/crm/accounts writes CRM runtime Account facade records only; Organization and ClientGroup canonical writes remain future Master Data work",
+      "safe_output_rules": [
+        "tenant_id scoped",
+        "owner_user_id scoped",
+        "registration_number exposed only through normalized safe field policy",
+        "no Matter creation shortcut",
+        "count_leak_prevented true"
+      ]
+    },
+    "contact_facade": {
+      "canonical_records": ["Party", "Entity", "Person", "ContactPoint", "Relationship"],
+      "required_services": ["createPersonService", "createContactPointService", "createRelationshipService"],
+      "implemented_write_boundary": "POST /api/crm/contacts writes CRM runtime Contact facade records only; Person, ContactPoint, and Relationship canonical writes remain future Master Data work",
+      "safe_output_rules": [
+        "tenant_id scoped",
+        "primary ContactPoint uniqueness enforced",
+        "duplicate email returns review warning rather than silent merge",
+        "no raw private memo",
+        "count_leak_prevented true"
+      ]
+    },
+    "account_contact_relationship": {
+      "canonical_records": ["Relationship"],
+      "required_services": ["createRelationshipService"],
+      "relationship_types": ["primary_contact", "billing_contact", "authorized_representative"],
+      "safe_output_rules": [
+        "relationship endpoints permission-trimmed",
+        "cross-tenant relationship blocked",
+        "hidden endpoint counts omitted"
+      ]
+    }
+  },
+  "verification_cases": [
+    {
+      "id": "VC-SF-B-W01-API-001",
+      "requirement": "GET /api/crm/accounts returns allow, denied, and review_required safe envelopes before Client UI can read it"
+    },
+    {
+      "id": "VC-SF-B-W01-API-002",
+      "requirement": "POST /api/crm/accounts writes a CRM runtime Account facade, emits audit evidence, blocks direct Matter shortcuts, persists safely, and supports idempotency"
+    },
+    {
+      "id": "VC-SF-B-W01-API-003",
+      "requirement": "GET /api/crm/contacts returns Person and ContactPoint safe projections with count leak prevention"
+    },
+    {
+      "id": "VC-SF-B-W01-API-004",
+      "requirement": "POST /api/crm/contacts writes a CRM runtime Contact facade, emits audit evidence, blocks raw contact values and Matter shortcuts, persists safely, supports idempotency, and returns duplicate ContactPoint fingerprint review without automatic merge"
+    },
+    {
+      "id": "VC-SF-B-W01-API-005",
+      "requirement": "GET /api/crm/accounts/:id/contacts trims relationship endpoints by permission"
+    },
+    {
+      "id": "VC-SF-B-W01-API-006",
+      "requirement": "POST /api/crm/duplicate-reviews produces review evidence without merging records automatically"
+    },
+    {
+      "id": "VC-SF-B-W01-API-007",
+      "requirement": "PATCH /api/crm/accounts/:id updates only CRM runtime Account facade allowlisted fields, audits the patch, persists safely, supports idempotency, blocks canonical Master Data records, and blocks registration/Matter shortcut fields"
+    },
+    {
+      "id": "VC-SF-B-W01-API-008",
+      "requirement": "PATCH /api/crm/contacts/:id updates only CRM runtime Contact facade allowlisted fields, audits the patch, persists safely, supports idempotency, blocks canonical Master Data records, and blocks raw contact values/Matter shortcut fields"
+    },
+    {
+      "id": "VC-SF-B-W01-UI-001",
+      "requirement": "Client account and contact UI may expose tested POST and PATCH routes for CRM runtime facade records; merge actions remain hidden until backend route tests pass"
+    }
+  ],
+  "evidence_gates": [
+    "scripts/validate-sf-client-matter-parity-crosswalk.mjs verifies this contract exists",
+    "packages/master-data/test/runtime-services.test.js proves service-level duplicate, relationship, and ContactPoint rules",
+    "apps/api/test/cmp-r4-g6-crm-intake.test.js proves mounted read, Account create, Contact create, Account/Contact patch, and duplicate-review route envelopes",
+    "Playwright Client Account/Contact read QA proves tested read routes are visible in the Client workspace",
+    "Playwright Client Account create QA proves tested Account write route is visible in the Client workspace",
+    "Playwright Client Contact create QA proves tested Contact write route is visible in the Client workspace",
+    "Playwright Client Account patch QA proves tested Account patch route is visible in the Client workspace",
+    "Playwright Client Contact patch QA proves tested Contact patch route is visible in the Client workspace",
+    "Hermes MCP remains check-only and cannot authorize production, deployment, final approval, or enterprise trust claims"
+  ],
+  "owner_decisions": [
+    {
+      "decision": "Salesforce Account maps to Law Firm OS Organization plus ClientGroup facade",
+      "required_before_route_mount": true
+    },
+    {
+      "decision": "Salesforce Contact maps to Law Firm OS Person plus ContactPoint facade",
+      "required_before_route_mount": false,
+      "resolved_for_runtime_facade": true
+    },
+    {
+      "decision": "Duplicate and merge review thresholds are owned by master-data governance",
+      "required_before_route_mount": true
+    }
+  ],
+  "external_provider_dependencies": [],
+  "blocked_until": [
+    "CRM merge execution route remains human-governed and audit/rollback tested",
+    "Canonical Master Data Organization/ClientGroup/Person/ContactPoint write migration remains a later owner decision"
+  ]
+}

@@ -90,52 +90,52 @@ export function MatterOpeningWizard({ liveCtx = "allow", onCreated }) {
 
   const statusText =
     result?.kind === "data"
-      ? `${result.statusOutcome}${result.productionReadyClaim ? " / production claim" : " / gated"}`
+      ? result.productionReadyClaim ? "승인 검토 필요" : "Matter가 개시되었습니다"
       : result?.kind === "error"
-        ? "error"
-        : "enter runtime values";
+        ? "다시 확인해주세요"
+        : "필수 정보를 입력해주세요";
 
   return (
-    <Panel className="matter-runtime-panel" title="Matter Opening" meta={MATTER_AUDIT_HINT_REF}>
+    <Panel id="matter-opening" className="matter-runtime-panel" title="Matter 개시" meta="승인 필요">
       <form className="matter-opening-form" data-cmp-g4-opening-wizard="true" onSubmit={submit}>
         <label>
-          <span>Matter ID</span>
+          <span>Matter 등록번호</span>
           <input value={form.matterId} onChange={update("matterId")} />
         </label>
         <label>
-          <span>Title</span>
+          <span>제목</span>
           <input value={form.title} onChange={update("title")} />
         </label>
         <label>
-          <span>Number seed</span>
+          <span>Matter 번호</span>
           <input value={form.matterNumberSeed} onChange={update("matterNumberSeed")} />
         </label>
         <label>
-          <span>Legal client party ID</span>
+          <span>법률 Client</span>
           <input value={form.legalClientPartyId} onChange={update("legalClientPartyId")} />
         </label>
         <label>
-          <span>Billing client party ID</span>
+          <span>청구 Client</span>
           <input value={form.billingClientPartyId} onChange={update("billingClientPartyId")} />
         </label>
         <label>
-          <span>Clearance token ID</span>
+          <span>이해상충 확인 번호</span>
           <input value={form.clearanceTokenId} onChange={update("clearanceTokenId")} />
         </label>
         <label>
-          <span>Intake request ID</span>
+          <span>접수 번호</span>
           <input value={form.intakeRequestId} onChange={update("intakeRequestId")} />
         </label>
         <label>
-          <span>Conflict check ID</span>
+          <span>검토 번호</span>
           <input value={form.conflictCheckId} onChange={update("conflictCheckId")} />
         </label>
         <label>
-          <span>Engagement ID</span>
+          <span>위임 계약 번호</span>
           <input value={form.engagementId} onChange={update("engagementId")} />
         </label>
         <label>
-          <span>Snapshot hash</span>
+          <span>확인 번호</span>
           <input value={form.snapshotHash} onChange={update("snapshotHash")} />
         </label>
         <div className="matter-form-footer">
@@ -145,7 +145,7 @@ export function MatterOpeningWizard({ liveCtx = "allow", onCreated }) {
           </div>
           <button className="primary-button" disabled={!canSubmit || submitting}>
             <Send size={15} />
-            {submitting ? "Opening" : "Open"}
+            {submitting ? "개시 중" : "개시"}
           </button>
         </div>
       </form>

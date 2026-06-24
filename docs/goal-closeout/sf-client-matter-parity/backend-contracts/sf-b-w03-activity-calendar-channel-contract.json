@@ -1,0 +1,310 @@
+{
+  "schema_version": "law-firm-os.sf-client-matter-parity.backend-contract.v0.1",
+  "program": "SF-CLIENT-MATTER-PARITY",
+  "track": "Track B",
+  "workstream": "SF-B-W03",
+  "title": "Salesforce Activity, Calendar, and Matter Channel backend-first contract",
+  "status": "timeline_read_reflected_activity_calendar_channel_contract_registered",
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "enterprise_trust_claim": false,
+  "ui_read_exposure_allowed_after_route_tests": true,
+  "ui_write_exposure_allowed_before_write_route_tests": false,
+  "ui_calendar_exposure_allowed_before_route_tests": false,
+  "ui_channel_composer_exposure_allowed_before_route_tests": false,
+  "salesforce_visible_capabilities": [
+    "Salesforce activity timeline composer",
+    "Salesforce task and event activity model",
+    "Calendar and scheduling",
+    "Deadline board",
+    "Matter Channel threaded collaboration",
+    "External channel/provider bridge"
+  ],
+  "current_lawos_state": {
+    "mounted_routes_present": [
+      "GET /api/matters/:id/timeline"
+    ],
+    "mounted_routes_absent": [
+      "POST /api/matters/:id/timeline-entries",
+      "GET /api/matters/:id/activities",
+      "POST /api/matters/:id/activities",
+      "PATCH /api/matters/:id/activities/:activityId",
+      "GET /api/matters/:id/calendar-events",
+      "POST /api/matters/:id/calendar-events",
+      "PATCH /api/matters/:id/calendar-events/:eventId",
+      "GET /api/matters/:id/deadlines",
+      "POST /api/matters/:id/deadlines/:deadlineId/confirm-change",
+      "GET /api/matters/:id/channel",
+      "POST /api/matters/:id/channel/messages",
+      "POST /api/matters/:id/channel/provider-sync"
+    ],
+    "existing_domain_foundation": [
+      "packages/matter/src/timeline-read-model.js#buildMatterTimelineReadModel",
+      "packages/matter/src/timeline-repository.js#appendMatterTimelineEvent",
+      "packages/matter/src/model.js#createMatterTask",
+      "packages/matter/src/model.js#createMatterCalendarEvent",
+      "packages/matter/src/task-service.js#transitionMatterTask",
+      "packages/matter/src/calendar-service.js#changeMatterDeadline",
+      "packages/matter/src/deadline-dual-control.js#confirmCriticalDeadlineChange",
+      "packages/matter/src/client-matter-g4.js#createMatterTaskTransitionDescriptor",
+      "packages/matter/src/client-matter-g4.js#createMatterCalendarDeadlineChangeDescriptor",
+      "packages/matter/src/client-matter-g4.js#createMatterCriticalDeadlineDualControlDescriptor"
+    ],
+    "current_ui_boundary": [
+      "Matter > activity may read GET /api/matters/:id/timeline after route tests pass",
+      "Matter > activity may show safe type/source labels and filters over visible timeline entries",
+      "No activity composer, task create action, calendar editor, deadline edit action, or channel message composer may appear before mounted API tests exist",
+      "Schedule/message categories in the current timeline UI are presentation labels only, not write affordances"
+    ]
+  },
+  "route_policy_contract": [
+    {
+      "tuw": "SF-B-W03-T01",
+      "method": "GET",
+      "path": "/api/matters/:id/activities",
+      "action": "matter:activity:read",
+      "resource_type": "matter_activity",
+      "repository_source": "matter-runtime",
+      "service_boundary": "Read facade over MatterTimelineEvent, MatterTask, MatterCalendarEvent, and channel metadata; returns safe records only",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W03-API-001"
+    },
+    {
+      "tuw": "SF-B-W03-T02",
+      "method": "POST",
+      "path": "/api/matters/:id/activities",
+      "action": "matter:activity:write",
+      "resource_type": "matter_activity",
+      "repository_source": "matter-runtime",
+      "service_boundary": "Create task/event/call/email-log activity and append a permission-trimmed timeline event; no email send or external calendar mutation",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W03-API-002"
+    },
+    {
+      "tuw": "SF-B-W03-T02",
+      "method": "PATCH",
+      "path": "/api/matters/:id/activities/:activityId",
+      "action": "matter:activity:patch",
+      "resource_type": "matter_activity",
+      "repository_source": "matter-runtime",
+      "service_boundary": "Allowlisted activity status, due date, assignee, and note metadata updates only; raw body and external provider identifiers stay hidden",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W03-API-003"
+    },
+    {
+      "tuw": "SF-B-W03-T03",
+      "method": "GET",
+      "path": "/api/matters/:id/calendar-events",
+      "action": "matter:calendar:read",
+      "resource_type": "matter_calendar_event",
+      "repository_source": "matter-runtime",
+      "service_boundary": "Read MatterCalendarEvent records with legal consequence and reminder fields only after model migration; provider event ids omitted",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W03-API-004"
+    },
+    {
+      "tuw": "SF-B-W03-T03",
+      "method": "POST",
+      "path": "/api/matters/:id/calendar-events",
+      "action": "matter:calendar:write",
+      "resource_type": "matter_calendar_event",
+      "repository_source": "matter-runtime",
+      "service_boundary": "Create internal Matter calendar event and audit evidence; Microsoft Graph or provider mutation requires separate owner-approved provider gate",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W03-API-005"
+    },
+    {
+      "tuw": "SF-B-W03-T03",
+      "method": "PATCH",
+      "path": "/api/matters/:id/calendar-events/:eventId",
+      "action": "matter:calendar:patch",
+      "resource_type": "matter_calendar_event",
+      "repository_source": "matter-runtime",
+      "service_boundary": "Use changeMatterDeadline with critical-deadline dual-control for legal consequence changes",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W03-API-006"
+    },
+    {
+      "tuw": "SF-B-W03-T04",
+      "method": "GET",
+      "path": "/api/matters/:id/deadlines",
+      "action": "matter:deadline:read",
+      "resource_type": "matter_deadline",
+      "repository_source": "matter-runtime",
+      "service_boundary": "Deadline board projection over MatterCalendarEvent and MatterTask with count-leak prevention",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W03-API-007"
+    },
+    {
+      "tuw": "SF-B-W03-T04",
+      "method": "POST",
+      "path": "/api/matters/:id/deadlines/:deadlineId/confirm-change",
+      "action": "matter:deadline:confirm_change",
+      "resource_type": "matter_deadline",
+      "repository_source": "matter-runtime",
+      "service_boundary": "Critical deadline change confirmation through confirmCriticalDeadlineChange; requester and confirmer must differ",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W03-API-008"
+    },
+    {
+      "tuw": "SF-B-W03-T05",
+      "method": "GET",
+      "path": "/api/matters/:id/channel",
+      "action": "matter:channel:read",
+      "resource_type": "matter_channel",
+      "repository_source": "matter-runtime",
+      "service_boundary": "Metadata-only thread and message projection; raw provider payloads, attachments, and direct personal contact identifiers omitted",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W03-API-009"
+    },
+    {
+      "tuw": "SF-B-W03-T05",
+      "method": "POST",
+      "path": "/api/matters/:id/channel/messages",
+      "action": "matter:channel:message_write",
+      "resource_type": "matter_channel_message",
+      "repository_source": "matter-runtime",
+      "service_boundary": "Create internal message draft/log only; external Slack/Teams/email send requires provider receipt and human approval",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W03-API-010"
+    }
+  ],
+  "repository_service_contract": {
+    "activity_model": {
+      "canonical_records": ["MatterTimelineEvent", "MatterTask", "MatterCalendarEvent", "MatterAuditEvent"],
+      "required_services": ["appendMatterTimelineEvent", "transitionMatterTask", "appendMatterAuditEvent"],
+      "safe_output_rules": [
+        "tenant_id scoped",
+        "matter_id scoped",
+        "hidden/silent timeline entries filtered",
+        "omitted counts not returned",
+        "raw body, raw query, storage path, and direct provider payloads omitted"
+      ]
+    },
+    "calendar_model": {
+      "canonical_records": ["MatterCalendarEvent", "MatterTask", "MatterAuditEvent"],
+      "required_services": ["changeMatterDeadline", "confirmCriticalDeadlineChange"],
+      "model_migration_required": [
+        "legal_consequence",
+        "reminder_rule",
+        "criticality",
+        "provider_sync_state"
+      ],
+      "safe_output_rules": [
+        "provider_event_id omitted unless provider owner gate resolves",
+        "critical deadline changes require dual control",
+        "client-visible calendar entries require explicit review flag"
+      ]
+    },
+    "channel_model": {
+      "canonical_records": ["MatterChannel", "MatterChannelThread", "MatterChannelMessage", "MatterAuditEvent"],
+      "required_services": [
+        "createMatterChannelRepository",
+        "createMatterChannelService",
+        "createMatterChannelProviderAdapter"
+      ],
+      "model_migration_required": [
+        "thread_id",
+        "message_id",
+        "safe_message_excerpt",
+        "author_role",
+        "provider_ref_hash",
+        "external_send_state"
+      ],
+      "safe_output_rules": [
+        "raw provider payload omitted",
+        "attachment bytes omitted",
+        "direct personal contact identifiers omitted",
+        "external send actions blocked until provider receipt exists"
+      ]
+    }
+  },
+  "verification_cases": [
+    {
+      "id": "VC-SF-B-W03-API-001",
+      "requirement": "GET /api/matters/:id/activities returns task, event, email-log, call, and channel metadata projections with denied/review_required envelopes and no hidden counts"
+    },
+    {
+      "id": "VC-SF-B-W03-API-002",
+      "requirement": "POST /api/matters/:id/activities creates an internal activity, appends timeline and audit evidence, supports idempotency, and blocks email send/calendar provider shortcuts"
+    },
+    {
+      "id": "VC-SF-B-W03-API-003",
+      "requirement": "PATCH /api/matters/:id/activities/:activityId updates only allowlisted fields and blocks raw body/provider payload edits"
+    },
+    {
+      "id": "VC-SF-B-W03-API-004",
+      "requirement": "GET /api/matters/:id/calendar-events returns internal calendar events with safe legal deadline metadata and no provider event ids"
+    },
+    {
+      "id": "VC-SF-B-W03-API-005",
+      "requirement": "POST /api/matters/:id/calendar-events creates an internal calendar event, records audit evidence, supports idempotency, and does not mutate external calendars"
+    },
+    {
+      "id": "VC-SF-B-W03-API-006",
+      "requirement": "PATCH /api/matters/:id/calendar-events/:eventId enforces allowlisted date/status changes and dual control for critical legal deadline changes"
+    },
+    {
+      "id": "VC-SF-B-W03-API-007",
+      "requirement": "GET /api/matters/:id/deadlines returns a permission-trimmed deadline board projection without raw source refs"
+    },
+    {
+      "id": "VC-SF-B-W03-API-008",
+      "requirement": "POST /api/matters/:id/deadlines/:deadlineId/confirm-change requires different requester/confirmer principals and emits audit evidence"
+    },
+    {
+      "id": "VC-SF-B-W03-API-009",
+      "requirement": "GET /api/matters/:id/channel returns metadata-only Matter Channel threads/messages without raw provider payloads or direct personal contact identifiers"
+    },
+    {
+      "id": "VC-SF-B-W03-API-010",
+      "requirement": "POST /api/matters/:id/channel/messages creates an internal message draft/log, blocks external send by default, records audit evidence, and supports idempotency"
+    },
+    {
+      "id": "VC-SF-B-W03-UI-001",
+      "requirement": "Matter UI may expose activity/calendar/channel write controls only after the corresponding API route policy, repository/service, API regression, Playwright QA, and owner/provider gate pass"
+    }
+  ],
+  "evidence_gates": [
+    "scripts/validate-sf-client-matter-parity-crosswalk.mjs verifies this contract exists and forbids composer/channel write UI before tested routes exist",
+    "packages/matter/test/runtime-services.test.js proves current task transition, calendar deadline change, critical deadline dual-control, and timeline read-model primitives",
+    "apps/api/test/cmp-r4-g4-matter.test.js must add mounted API route regressions before any UI write exposure",
+    "Playwright Matter activity/calendar/channel QA must prove real route-backed controls, safe output, and no raw provider data before UI exposure",
+    "Hermes MCP remains check-only and cannot authorize production, deployment, final approval, or enterprise trust claims"
+  ],
+  "owner_decisions": [
+    {
+      "decision": "Activity type taxonomy for task, event, call, email-log, note, and channel-message must be approved before write route mount",
+      "required_before_route_mount": true
+    },
+    {
+      "decision": "Critical deadline dual-control policy and legal consequence labels must be approved before calendar patch route mount",
+      "required_before_route_mount": true
+    },
+    {
+      "decision": "Matter Channel provider strategy must choose internal-only, Slack, Teams, Outlook, or hybrid before provider-sync route mount",
+      "required_before_route_mount": true
+    }
+  ],
+  "external_provider_dependencies": [
+    {
+      "provider": "Microsoft Graph Calendar",
+      "needed_for": "External calendar read/write sync",
+      "status": "owner_decision_required",
+      "ui_exposure_before_provider_receipt": false
+    },
+    {
+      "provider": "Slack or Microsoft Teams",
+      "needed_for": "External channel send/sync",
+      "status": "owner_decision_required",
+      "ui_exposure_before_provider_receipt": false
+    }
+  ],
+  "blocked_until": [
+    "Activity write route policy, repository/service, API regression, and audit evidence are implemented",
+    "Calendar/deadline model migration adds legal_consequence, reminder_rule, criticality, and provider_sync_state",
+    "Matter Channel repository/service and provider adapter boundaries are implemented",
+    "External provider owner decisions and receipts exist for calendar/channel sync",
+    "Playwright QA proves route-backed controls and no raw provider payload exposure"
+  ]
+}

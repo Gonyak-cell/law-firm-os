@@ -1,6 +1,6 @@
 import React from "react";
-import { Bell, CreditCard, Save, UserPlus } from "lucide-react";
-import { DataTable, Field, GaugeChart, MetricCard, PageHeader, Panel } from "./primitives.jsx";
+import { Bell, CircleUserRound, CreditCard, Save, UserPlus } from "lucide-react";
+import { DataTable, Field, PageHeader, Panel } from "./primitives.jsx";
 
 export function AdminSurface({ labels, variant, onInvite, onProfilePicture }) {
   if (variant === "profile") {
@@ -11,7 +11,7 @@ export function AdminSurface({ labels, variant, onInvite, onProfilePicture }) {
     <section className="surface stack">
       <PageHeader
         title={labels.adminTitle}
-        subtitle="Manage data settings, teammates, notifications, billing, and account preferences."
+        subtitle="조직 구성원, 알림, 요금제, 계정 설정을 관리합니다."
         actions={
           <>
             <button className="secondary-button">
@@ -26,22 +26,21 @@ export function AdminSurface({ labels, variant, onInvite, onProfilePicture }) {
         }
       />
       <div className="admin-layout">
-        <Panel title="Team Members" meta="Workspace members">
-          <DataTable columns={["Name", "Role", "Team", "Status"]} rows={[]} />
+        <Panel title="구성원" meta="작업공간">
+          <DataTable columns={["이름", "역할", "팀", "상태"]} rows={[]} />
         </Panel>
-        <Panel title={labels.billingTitle} meta="Usage and checkout preview">
+        <Panel title={labels.billingTitle} meta="결제 정보">
           <div className="billing-card">
-            <GaugeChart value={58} />
             <div>
-              <strong>No local usage rows</strong>
-              <p>Usage and billing values require a live admin API.</p>
-              <button className="primary-button full">Purchase add-on</button>
+              <strong>표시할 결제 정보가 없습니다</strong>
+              <p>요금제와 결제 정보가 연결되면 이곳에 표시됩니다.</p>
+              <button className="primary-button full">추가 기능 문의</button>
             </div>
           </div>
         </Panel>
-        <Panel title="Notifications" meta="Digest and usage toggles">
+        <Panel title="알림" meta="업무 알림">
           <div className="toggle-list">
-            {["Weekly matter summary", "Audit exception digest", "Billing approval alerts", "Experiment change notices"].map((item, index) => (
+            {["주간 Matter 요약", "감사 예외 알림", "청구 승인 알림", "업무 변경 알림"].map((item, index) => (
               <label key={item} className="toggle-row">
                 <span>{item}</span>
                 <input type="checkbox" defaultChecked={index !== 1} />
@@ -58,13 +57,13 @@ export function ProfileSettingsSurface({ labels, onProfilePicture }) {
   return (
     <section className="surface stack">
       <PageHeader
-        title="Profile"
-        subtitle="Manage personal information, notification preferences, and account details."
+        title="프로필"
+        subtitle="개인 정보, 알림 설정, 계정 정보를 관리합니다."
         actions={
           <>
             <button className="secondary-button">
               <Bell size={15} />
-              Notifications
+              알림
             </button>
             <button className="primary-button">
               <Save size={15} />
@@ -74,34 +73,27 @@ export function ProfileSettingsSurface({ labels, onProfilePicture }) {
         }
       />
       <div className="profile-settings-layout">
-        <Panel title="Personal Information" meta="Profile settings">
+        <Panel title="개인 정보" meta="프로필 설정">
           <div className="profile-form-layout">
             <button className="profile-avatar-button" onClick={onProfilePicture}>
-              <span>AS</span>
-              <small>Change Photo</small>
+              <CircleUserRound size={24} />
+              <small>사진 변경</small>
             </button>
             <div className="form-stack">
-              <Field label="Full name" value="" />
-              <Field label="Email" value="" />
-              <Field label="Title" value="" />
+              <Field label="이름" value="" />
+              <Field label="이메일" value="" />
+              <Field label="직함" value="" />
             </div>
           </div>
         </Panel>
-        <Panel title="Notifications" meta="Email and workspace updates">
+        <Panel title="알림" meta="이메일과 작업공간">
           <div className="toggle-list">
-            {["Weekly review", "Product updates", "Billing alerts", "Security notifications"].map((item, index) => (
+            {["주간 검토", "제품 안내", "청구 알림", "보안 알림"].map((item, index) => (
               <label key={item} className="toggle-row">
                 <span>{item}</span>
                 <input type="checkbox" defaultChecked={index !== 1} />
               </label>
             ))}
-          </div>
-        </Panel>
-        <Panel title="Year in Review" meta="Workspace activity">
-          <div className="review-stat-grid">
-            <MetricCard label="Charts viewed" value="1.2k" delta="+18%" tone="blue" />
-            <MetricCard label="Cohorts saved" value="42" delta="+7" tone="green" />
-            <MetricCard label="Reports shared" value="19" delta="+3" tone="purple" />
           </div>
         </Panel>
       </div>

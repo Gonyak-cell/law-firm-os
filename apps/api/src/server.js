@@ -51,6 +51,7 @@ import {
 } from "./vault-dms-runtime-context.js";
 import {
   CRM_INTAKE_BOUNDED_CONTEXT,
+  CRM_MASTER_DATA_SEED,
   CRM_RUNTIME_SEED,
   INTAKE_RUNTIME_SEED,
   createCrmIntakeRuntimeContext,
@@ -114,6 +115,10 @@ function createEphemeralDmsStorePath() {
 
 function createEphemeralCrmStorePath() {
   return join(mkdtempSync(join(tmpdir(), "lawos-crm-runtime-")), "crm-store.json");
+}
+
+function createEphemeralCrmMasterDataStorePath() {
+  return join(mkdtempSync(join(tmpdir(), "lawos-crm-master-data-runtime-")), "master-data-store.json");
 }
 
 function createEphemeralIntakeStorePath() {
@@ -198,8 +203,10 @@ export function createDefaultDmsRuntime({
 export function createDefaultCrmIntakeRuntime({
   crmRepository,
   intakeRepository,
+  crmMasterDataRepository,
   crmStorePath = process.env.LAWOS_CRM_STORE_PATH,
   intakeStorePath = process.env.LAWOS_INTAKE_STORE_PATH,
+  crmMasterDataStorePath = process.env.LAWOS_CRM_MASTER_DATA_STORE_PATH,
 } = {}) {
   const crmRepo =
     crmRepository ??
@@ -213,7 +220,17 @@ export function createDefaultCrmIntakeRuntime({
       filePath: intakeStorePath || createEphemeralIntakeStorePath(),
       seedRecords: INTAKE_RUNTIME_SEED,
     });
-  return createCrmIntakeRuntimeContext({ crmRepository: crmRepo, intakeRepository: intakeRepo });
+  const masterDataRepo =
+    crmMasterDataRepository ??
+    createMasterDataRepository({
+      filePath: crmMasterDataStorePath || createEphemeralCrmMasterDataStorePath(),
+      seedRecords: CRM_MASTER_DATA_SEED,
+    });
+  return createCrmIntakeRuntimeContext({
+    crmRepository: crmRepo,
+    intakeRepository: intakeRepo,
+    masterDataRepository: masterDataRepo,
+  });
 }
 
 export function createDefaultFinanceRuntime({
@@ -349,6 +366,10 @@ async function readRequestBody(req) {
   return JSON.parse(raw);
 }
 
+function hasJsonRequestBody(method) {
+  return method === "POST" || method === "PATCH";
+}
+
 async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, enterpriseReadinessRuntime } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
@@ -415,7 +436,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
 
   if (isMatterPath) {
     const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
-    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = await handleMatterApiRequest({
       pathname,
       method: req.method,
@@ -447,7 +468,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
 
   if (isCrmIntakePath) {
     const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
-    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = await handleCrmIntakeApiRequest({
       pathname,
       method: req.method,
@@ -584,8 +605,10 @@ export function startApiServer({
   crmIntakeRuntime,
   crmRepository,
   intakeRepository,
+  crmMasterDataRepository,
   crmStorePath,
   intakeStorePath,
+  crmMasterDataStorePath,
   financeRuntime,
   financeRepository,
   financeStorePath,
@@ -617,7 +640,14 @@ export function startApiServer({
     createDefaultMatterRuntime({ repository: matterRepository, storePath: matterStorePath, dmsRuntime: dmsRuntimeContext });
   const crmIntakeRuntimeContext =
     crmIntakeRuntime ??
-    createDefaultCrmIntakeRuntime({ crmRepository, intakeRepository, crmStorePath, intakeStorePath });
+    createDefaultCrmIntakeRuntime({
+      crmRepository,
+      intakeRepository,
+      crmMasterDataRepository,
+      crmStorePath,
+      intakeStorePath,
+      crmMasterDataStorePath,
+    });
   const financeRuntimeContext =
     financeRuntime ??
     createDefaultFinanceRuntime({ repository: financeRepository, storePath: financeStorePath });
@@ -657,9 +687,35 @@ export function startApiServer({
   });
 }
 
+let cliApiServer = null;
+let cliKeepAlive = null;
+
+function stopCliServer(signal) {
+  if (cliKeepAlive) {
+    clearInterval(cliKeepAlive);
+    cliKeepAlive = null;
+  }
+  if (!cliApiServer) {
+    process.exit(signal ? 0 : process.exitCode ?? 0);
+  }
+  cliApiServer.close(() => {
+    process.exit(signal ? 0 : process.exitCode ?? 0);
+  });
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  startApiServer().then(({ port }) => {
+  startApiServer().then(({ server, port }) => {
+    cliApiServer = server;
+    cliKeepAlive = setInterval(() => {}, 2_147_483_647);
+    server.once("close", () => {
+      if (cliKeepAlive) {
+        clearInterval(cliKeepAlive);
+        cliKeepAlive = null;
+      }
+    });
     console.log(`law-firm-os api listening on http://${HOST}:${port}`);
     console.log(`health: http://${HOST}:${port}/api/health`);
   });
+  process.once("SIGINT", () => stopCliServer("SIGINT"));
+  process.once("SIGTERM", () => stopCliServer("SIGTERM"));
 }

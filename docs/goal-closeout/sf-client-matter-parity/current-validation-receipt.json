@@ -1,0 +1,150 @@
+{
+  "schema_version": "law-firm-os.sf-client-matter-parity.current-validation-receipt.v0.1",
+  "program": "SF-CLIENT-MATTER-PARITY",
+  "receipt_date": "2026-06-24",
+  "scope": {
+    "current_worktree_validation": true,
+    "local_runtime_evidence_only": true,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "enterprise_trust_claim": false
+  },
+  "commands": [
+    {
+      "id": "SF-CURRENT-UI-REGRESSION",
+      "command": "npm --workspace apps/web run test:ui",
+      "status": "passed",
+      "tests": {
+        "total": 15,
+        "passed": 15,
+        "failed": 0
+      },
+      "evidence_note": "Client/Matter/Vault/People source UI regression markers, API-backed surfaces, login email/password boundary, and Korean Matter-Vault accessibility labels passed."
+    },
+    {
+      "id": "SF-CURRENT-WEB-BUILD",
+      "command": "npm --workspace apps/web run build",
+      "status": "passed",
+      "evidence_note": "Vite production build completed with 1664 modules transformed."
+    },
+    {
+      "id": "SF-CURRENT-API-REGRESSION",
+      "command": "node --test apps/api/test/cmp-r4-g4-matter.test.js apps/api/test/cmp-r4-g5-vault.test.js apps/api/test/cmp-r4-g6-crm-intake.test.js apps/api/test/cmp-r4-g7-finance.test.js apps/api/test/cmp-r4-g8-analytics.test.js",
+      "status": "passed",
+      "tests": {
+        "total": 31,
+        "passed": 31,
+        "failed": 0
+      },
+      "evidence_note": "Matter, Vault, CRM/Intake, Finance, and Analytics route regressions passed in the current worktree."
+    },
+    {
+      "id": "SF-CURRENT-MATTER-VAULT-E2E",
+      "command": "npm run web:e2e -- matter-vault",
+      "status": "passed",
+      "tests": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "evidence_note": "Matter Vault routed/API-backed/hardened surface e2e passed after aligning stale English aria-label expectations with the current Korean product UI."
+    },
+    {
+      "id": "SF-CURRENT-BROWSER-QA",
+      "command": "npm run sf:client-matter-parity:browser-qa",
+      "status": "passed",
+      "summary": {
+        "route_count": 5,
+        "check_count": 20,
+        "passed_count": 20,
+        "failed_count": 0
+      },
+      "screenshots": [
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-workspace.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-list.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-command.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-vault.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-timeline.png"
+      ],
+      "evidence_note": "Chromium drove Client accounts, Matter list, Matter command, Matter Vault, and Matter activity routes against the local API/Vite stack with local claims false."
+    },
+    {
+      "id": "SF-CURRENT-SCREENSHOT-INVENTORY",
+      "command": "npm run sf:client-matter-parity:inventory",
+      "status": "passed",
+      "summary": {
+        "source_screenshot_count": 883,
+        "derived_png_asset_count": 11,
+        "png_total_count": 894,
+        "missing_source_index_count": 0,
+        "extra_source_index_count": 0,
+        "feature_taxonomy_count": 10
+      }
+    },
+    {
+      "id": "SF-CURRENT-SURFACE-LEDGER",
+      "command": "npm run sf:client-matter-parity:surface-ledger",
+      "status": "passed",
+      "summary": {
+        "row_count": 10,
+        "connected_implemented_row_count": 10,
+        "disconnected_implemented_row_count": 0,
+        "ui_marker_count": 32,
+        "api_client_marker_count": 40,
+        "api_route_marker_count": 40,
+        "package_service_marker_count": 22
+      }
+    },
+    {
+      "id": "SF-CURRENT-OBJECTIVE-AUDIT",
+      "command": "npm run sf:client-matter-parity:objective-audit",
+      "status": "passed",
+      "summary": {
+        "requirement_count": 8,
+        "evidence_mapped_count": 8,
+        "evidence_missing_count": 0,
+        "goal_completion_claim_allowed": false
+      }
+    },
+    {
+      "id": "SF-CURRENT-PARITY-VALIDATOR",
+      "command": "npm run sf:client-matter-parity:validate",
+      "status": "passed",
+      "evidence_note": "Parity validator passed with screenshot inventory, objective audit, surface ledger, Track A UI entrypoints, Track B backend-first gaps, and production/trust claim false."
+    },
+    {
+      "id": "SF-CURRENT-HERMES-CORE",
+      "command": "hermes.validate.core check-only",
+      "status": "passed",
+      "authority": {
+        "mutation_allowed_now": false,
+        "deployment_allowed_now": false,
+        "final_approval_allowed_now": false,
+        "production_pass_allowed_now": false,
+        "enterprise_trust_claim_allowed_now": false
+      }
+    },
+    {
+      "id": "SF-CURRENT-HERMES-DESKTOP-AUTHORITY",
+      "command": "hermes.desktop.authority_boundary check-only",
+      "status": "passed",
+      "authority": {
+        "mutation_allowed_now": false,
+        "deployment_allowed_now": false,
+        "final_approval_allowed_now": false,
+        "production_pass_allowed_now": false,
+        "enterprise_trust_claim_allowed_now": false
+      }
+    }
+  ],
+  "summary": {
+    "command_count": 11,
+    "passed_count": 11,
+    "failed_count": 0,
+    "current_ui_regression_tests": 15,
+    "current_api_regression_tests": 31,
+    "current_e2e_tests": 1,
+    "current_browser_qa_routes": 5,
+    "claim_boundary": "This receipt is current local validation evidence only. It does not create production approval, go-live approval, or enterprise trust claims."
+  }
+}

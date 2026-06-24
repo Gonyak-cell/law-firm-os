@@ -1,0 +1,629 @@
+{
+  "schema_version": "law-firm-os.sf-client-matter-parity.objective-completion-audit.v0.1",
+  "program": "SF-CLIENT-MATTER-PARITY",
+  "audit_date": "2026-06-24",
+  "scope": {
+    "evidence_mapping_only": true,
+    "goal_completion_claim_allowed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "enterprise_trust_claim": false
+  },
+  "summary": {
+    "requirement_count": 8,
+    "evidence_mapped_count": 8,
+    "evidence_missing_count": 0,
+    "backend_contract_count": 7,
+    "surface_connection_row_count": 10,
+    "current_validation_command_count": 11,
+    "browser_qa_route_count": 5,
+    "source_screenshot_count": 883
+  },
+  "requirements": [
+    {
+      "id": "REQ-SF-01-SCREENSHOT-INVENTORY",
+      "objective_clause": "Salesforce web Mar 2026 screenshots are the reference corpus.",
+      "evidence_mode": "durable_inventory",
+      "checks": [
+        {
+          "label": "screenshot inventory JSON exists",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/salesforce-screenshot-inventory.json",
+          "passed": true
+        },
+        {
+          "label": "screenshot inventory schema",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/salesforce-screenshot-inventory.json",
+          "passed": true,
+          "actual": "law-firm-os.sf-client-matter-parity.salesforce-screenshot-inventory.v0.1"
+        },
+        {
+          "label": "source screenshot count is 883",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/salesforce-screenshot-inventory.json",
+          "passed": true,
+          "actual": 883
+        },
+        {
+          "label": "derived PNG asset count is 11",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/salesforce-screenshot-inventory.json",
+          "passed": true,
+          "actual": 11
+        },
+        {
+          "label": "total PNG count is 894",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/salesforce-screenshot-inventory.json",
+          "passed": true,
+          "actual": 894
+        },
+        {
+          "label": "no missing or extra source screenshot indices",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/salesforce-screenshot-inventory.json",
+          "passed": true,
+          "actual": {
+            "missing": 0,
+            "extra": 0
+          }
+        },
+        {
+          "label": "feature taxonomy has 10 rows",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/salesforce-screenshot-inventory.json",
+          "passed": true,
+          "actual": 10
+        }
+      ],
+      "status": "evidence_mapped",
+      "passed": true,
+      "failed_checks": []
+    },
+    {
+      "id": "REQ-SF-02-CROSSWALK-CLASSIFICATION",
+      "objective_clause": "Salesforce-style Client/Matter capabilities are classified against Law Firm OS state.",
+      "evidence_mode": "crosswalk_ledger",
+      "checks": [
+        {
+          "label": "crosswalk ledger exists",
+          "evidence_ref": "workbook/sf-client-matter-parity-crosswalk.md",
+          "passed": true
+        },
+        {
+          "label": "implemented status present",
+          "evidence_ref": "workbook/sf-client-matter-parity-crosswalk.md",
+          "pattern": "Implemented",
+          "passed": true
+        },
+        {
+          "label": "UI needed status present",
+          "evidence_ref": "workbook/sf-client-matter-parity-crosswalk.md",
+          "pattern": "UI needed",
+          "passed": true
+        },
+        {
+          "label": "backend contract status present",
+          "evidence_ref": "workbook/sf-client-matter-parity-crosswalk.md",
+          "pattern": "Backend contract needed",
+          "passed": true
+        },
+        {
+          "label": "external owner gate status present",
+          "evidence_ref": "workbook/sf-client-matter-parity-crosswalk.md",
+          "pattern": "External\\/owner gate",
+          "passed": true
+        },
+        {
+          "label": "Account capability classified",
+          "evidence_ref": "workbook/sf-client-matter-parity-crosswalk.md",
+          "pattern": "Salesforce Account object",
+          "passed": true
+        },
+        {
+          "label": "Contact capability classified",
+          "evidence_ref": "workbook/sf-client-matter-parity-crosswalk.md",
+          "pattern": "Salesforce Contact object",
+          "passed": true
+        },
+        {
+          "label": "report builder capability classified",
+          "evidence_ref": "workbook/sf-client-matter-parity-crosswalk.md",
+          "pattern": "Report builder \\/ client profitability",
+          "passed": true
+        },
+        {
+          "label": "calendar capability classified",
+          "evidence_ref": "workbook/sf-client-matter-parity-crosswalk.md",
+          "pattern": "Calendar \\/ schedule",
+          "passed": true
+        },
+        {
+          "label": "document email builder capability classified",
+          "evidence_ref": "workbook/sf-client-matter-parity-crosswalk.md",
+          "pattern": "Document\\/email builder",
+          "passed": true
+        },
+        {
+          "label": "import mapping capability classified",
+          "evidence_ref": "workbook/sf-client-matter-parity-crosswalk.md",
+          "pattern": "Import \\/ data mapping",
+          "passed": true
+        },
+        {
+          "label": "permission admin capability classified",
+          "evidence_ref": "workbook/sf-client-matter-parity-crosswalk.md",
+          "pattern": "Permission sets \\/ admin setup",
+          "passed": true
+        },
+        {
+          "label": "Data Cloud capability classified",
+          "evidence_ref": "workbook/sf-client-matter-parity-crosswalk.md",
+          "pattern": "Data Cloud \\/ enrichment",
+          "passed": true
+        }
+      ],
+      "status": "evidence_mapped",
+      "passed": true,
+      "failed_checks": []
+    },
+    {
+      "id": "REQ-SF-03-UI-API-PACKAGE-CONNECTION",
+      "objective_clause": "Current UI menu, Client/Matter screens, apps/api routes, package services, and apiClient state are contrasted.",
+      "evidence_mode": "surface_connection_ledger",
+      "checks": [
+        {
+          "label": "surface connection ledger exists",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
+          "passed": true
+        },
+        {
+          "label": "surface ledger schema",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
+          "passed": true,
+          "actual": "law-firm-os.sf-client-matter-parity.surface-connection-ledger.v0.1"
+        },
+        {
+          "label": "surface row count is 10",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
+          "passed": true,
+          "actual": 10
+        },
+        {
+          "label": "connected implemented row count is 10",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
+          "passed": true,
+          "actual": 10
+        },
+        {
+          "label": "disconnected implemented row count is 0",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
+          "passed": true,
+          "actual": 0
+        },
+        {
+          "label": "all expected surface row ids present",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
+          "passed": true,
+          "actual": [
+            "SF-SURFACE-A01",
+            "SF-SURFACE-A02",
+            "SF-SURFACE-B01-ACCOUNT",
+            "SF-SURFACE-B01-CONTACT",
+            "SF-SURFACE-A03",
+            "SF-SURFACE-B02-ACTIONS",
+            "SF-SURFACE-B03-TIMELINE",
+            "SF-SURFACE-A04-DMS",
+            "SF-SURFACE-A05-BILLING",
+            "SF-SURFACE-A05-ANALYTICS"
+          ]
+        }
+      ],
+      "status": "evidence_mapped",
+      "passed": true,
+      "failed_checks": []
+    },
+    {
+      "id": "REQ-SF-04-IMPLEMENTED-BACKEND-UI-ENTRYPOINTS",
+      "objective_clause": "Already implemented backend features have real UI entrypoints, route/section/workspace state, permission or audit boundaries, and evidence.",
+      "evidence_mode": "surface_group_checks",
+      "checks": [
+        {
+          "label": "every implemented row is connected",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
+          "passed": true,
+          "actual": [
+            "SF-SURFACE-A01:ui_api_package_connected",
+            "SF-SURFACE-A02:ui_api_package_connected",
+            "SF-SURFACE-B01-ACCOUNT:ui_api_package_connected",
+            "SF-SURFACE-B01-CONTACT:ui_api_package_connected",
+            "SF-SURFACE-A03:ui_api_package_connected",
+            "SF-SURFACE-B02-ACTIONS:ui_api_package_connected",
+            "SF-SURFACE-B03-TIMELINE:ui_api_package_connected",
+            "SF-SURFACE-A04-DMS:ui_api_package_connected",
+            "SF-SURFACE-A05-BILLING:ui_api_package_connected",
+            "SF-SURFACE-A05-ANALYTICS:ui_api_package_connected"
+          ]
+        },
+        {
+          "label": "every row has UI menu evidence",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
+          "passed": true
+        },
+        {
+          "label": "every row has UI surface evidence",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
+          "passed": true
+        },
+        {
+          "label": "every row has apiClient evidence",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
+          "passed": true
+        },
+        {
+          "label": "every row has apps/api route evidence",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
+          "passed": true
+        },
+        {
+          "label": "every row has package service evidence",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
+          "passed": true
+        },
+        {
+          "label": "every row has QA or artifact evidence",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
+          "passed": true
+        }
+      ],
+      "status": "evidence_mapped",
+      "passed": true,
+      "failed_checks": []
+    },
+    {
+      "id": "REQ-SF-05-BACKEND-FIRST-GAPS",
+      "objective_clause": "Salesforce-visible features missing backend implementation are not exposed as fake UI and are registered as backend-first contracts.",
+      "evidence_mode": "backend_contracts",
+      "checks": [
+        {
+          "label": "SF-B-W01 contract exists",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w01-account-contact-contract.json",
+          "passed": true
+        },
+        {
+          "label": "SF-B-W03 contract exists",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w03-activity-calendar-channel-contract.json",
+          "passed": true
+        },
+        {
+          "label": "SF-B-W04 contract exists",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w04-document-email-builder-contract.json",
+          "passed": true
+        },
+        {
+          "label": "SF-B-W05 contract exists",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w05-import-data-mapping-contract.json",
+          "passed": true
+        },
+        {
+          "label": "SF-B-W06 contract exists",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w06-permission-admin-contract.json",
+          "passed": true
+        },
+        {
+          "label": "SF-B-W07 contract exists",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w07-data-cloud-enrichment-contract.json",
+          "passed": true
+        },
+        {
+          "label": "SF-B-W08 contract exists",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w08-reporting-builder-contract.json",
+          "passed": true
+        },
+        {
+          "label": "all expected backend-first workstreams present",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts",
+          "passed": true,
+          "actual": [
+            "SF-B-W01",
+            "SF-B-W03",
+            "SF-B-W04",
+            "SF-B-W05",
+            "SF-B-W06",
+            "SF-B-W07",
+            "SF-B-W08"
+          ]
+        },
+        {
+          "label": "all backend contracts have expected status",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts",
+          "passed": true,
+          "actual": [
+            "SF-B-W01:account_contact_patch_mounted_merge_blocked",
+            "SF-B-W03:timeline_read_reflected_activity_calendar_channel_contract_registered",
+            "SF-B-W04:document_email_builder_contract_registered_send_provider_blocked",
+            "SF-B-W05:import_data_mapping_contract_registered_execution_blocked",
+            "SF-B-W06:permission_admin_contract_registered_owner_gate_required",
+            "SF-B-W07:data_cloud_enrichment_contract_registered_provider_gate_required",
+            "SF-B-W08:reporting_builder_client_profitability_contract_registered_route_gate_required"
+          ]
+        },
+        {
+          "label": "all backend contracts carry route policy contracts",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts",
+          "passed": true
+        },
+        {
+          "label": "all backend contracts carry repository/service contracts",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts",
+          "passed": true
+        },
+        {
+          "label": "all backend contracts carry verification cases",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts",
+          "passed": true
+        },
+        {
+          "label": "all backend contracts carry evidence gates",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts",
+          "passed": true
+        },
+        {
+          "label": "all backend contracts carry owner or external decision boundaries",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts",
+          "passed": true
+        },
+        {
+          "label": "all backend contracts avoid production/go-live/trust claims",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts",
+          "passed": true
+        }
+      ],
+      "status": "evidence_mapped",
+      "passed": true,
+      "failed_checks": []
+    },
+    {
+      "id": "REQ-SF-06-WP-TUW-VC-EVIDENCE-PYRAMID",
+      "objective_clause": "The SF-CLIENT-MATTER-PARITY program is organized by WP/TUW/VC/Evidence hierarchy.",
+      "evidence_mode": "tuw_plan",
+      "checks": [
+        {
+          "label": "TUW pyramid plan exists",
+          "evidence_ref": "workbook/salesforce-parity-tuw-plan.md",
+          "passed": true
+        },
+        {
+          "label": "WP hierarchy declared",
+          "evidence_ref": "workbook/salesforce-parity-tuw-plan.md",
+          "pattern": "SP3\\s*\\|\\s*Work Package",
+          "passed": true
+        },
+        {
+          "label": "TUW units declared",
+          "evidence_ref": "workbook/salesforce-parity-tuw-plan.md",
+          "pattern": "TUW",
+          "passed": true
+        },
+        {
+          "label": "verification case section declared",
+          "evidence_ref": "workbook/salesforce-parity-tuw-plan.md",
+          "pattern": "Verification cases",
+          "passed": true
+        },
+        {
+          "label": "API VC baseline declared",
+          "evidence_ref": "workbook/salesforce-parity-tuw-plan.md",
+          "pattern": "VC-SF-API-001",
+          "passed": true
+        },
+        {
+          "label": "UI VC baseline declared",
+          "evidence_ref": "workbook/salesforce-parity-tuw-plan.md",
+          "pattern": "VC-SF-UI-001",
+          "passed": true
+        },
+        {
+          "label": "manual QA VC declared",
+          "evidence_ref": "workbook/salesforce-parity-tuw-plan.md",
+          "pattern": "VC-SF-MANUAL-001",
+          "passed": true
+        },
+        {
+          "label": "evidence gate declared",
+          "evidence_ref": "workbook/salesforce-parity-tuw-plan.md",
+          "pattern": "QA-G1",
+          "passed": true
+        }
+      ],
+      "status": "evidence_mapped",
+      "passed": true,
+      "failed_checks": []
+    },
+    {
+      "id": "REQ-SF-07-VALIDATION-EVIDENCE-BOUND",
+      "objective_clause": "LazyCodex/OMO repo verification, npm validators/tests, Playwright QA, and Hermes check-only results are bound as evidence.",
+      "evidence_mode": "evidence_doc",
+      "checks": [
+        {
+          "label": "evidence document exists",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/evidence.md",
+          "passed": true
+        },
+        {
+          "label": "current validation receipt exists",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/current-validation-receipt.json",
+          "passed": true
+        },
+        {
+          "label": "current validation receipt schema",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/current-validation-receipt.json",
+          "passed": true,
+          "actual": "law-firm-os.sf-client-matter-parity.current-validation-receipt.v0.1"
+        },
+        {
+          "label": "current validation receipt commands passed",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/current-validation-receipt.json",
+          "passed": true,
+          "actual": {
+            "command_count": 11,
+            "passed_count": 11,
+            "failed_count": 0,
+            "current_ui_regression_tests": 15,
+            "current_api_regression_tests": 31,
+            "current_e2e_tests": 1,
+            "current_browser_qa_routes": 5,
+            "claim_boundary": "This receipt is current local validation evidence only. It does not create production approval, go-live approval, or enterprise trust claims."
+          }
+        },
+        {
+          "label": "current validation receipt includes UI/API/e2e counts",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/current-validation-receipt.json",
+          "passed": true,
+          "actual": {
+            "command_count": 11,
+            "passed_count": 11,
+            "failed_count": 0,
+            "current_ui_regression_tests": 15,
+            "current_api_regression_tests": 31,
+            "current_e2e_tests": 1,
+            "current_browser_qa_routes": 5,
+            "claim_boundary": "This receipt is current local validation evidence only. It does not create production approval, go-live approval, or enterprise trust claims."
+          }
+        },
+        {
+          "label": "current validation receipt claim boundary false",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/current-validation-receipt.json",
+          "passed": true
+        },
+        {
+          "label": "browser QA receipt exists",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/browser-qa-receipt.json",
+          "passed": true
+        },
+        {
+          "label": "browser QA receipt schema",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/browser-qa-receipt.json",
+          "passed": true,
+          "actual": "law-firm-os.sf-client-matter-parity.browser-qa-receipt.v0.1"
+        },
+        {
+          "label": "browser QA receipt routes passed",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/browser-qa-receipt.json",
+          "passed": true,
+          "actual": {
+            "route_count": 5,
+            "check_count": 20,
+            "passed_count": 20,
+            "failed_count": 0
+          }
+        },
+        {
+          "label": "browser QA receipt claim boundary false",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/browser-qa-receipt.json",
+          "passed": true
+        },
+        {
+          "label": "Lazyweb evidence listed",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/evidence.md",
+          "pattern": "Lazyweb search",
+          "passed": true
+        },
+        {
+          "label": "OMO CodeGraph evidence listed",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/evidence.md",
+          "pattern": "CodeGraph",
+          "passed": true
+        },
+        {
+          "label": "browser QA receipt listed",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/evidence.md",
+          "pattern": "Browser QA receipt",
+          "passed": true
+        },
+        {
+          "label": "SF parity validator command listed",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/evidence.md",
+          "pattern": "npm run sf:client-matter-parity:validate",
+          "passed": true
+        },
+        {
+          "label": "browser QA command listed",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/evidence.md",
+          "pattern": "npm run sf:client-matter-parity:browser-qa",
+          "passed": true
+        },
+        {
+          "label": "web build command listed",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/evidence.md",
+          "pattern": "npm --workspace apps\\/web run build",
+          "passed": true
+        },
+        {
+          "label": "API regression command listed",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/evidence.md",
+          "pattern": "node --test apps\\/api\\/test\\/cmp-r4-g4-matter\\.test\\.js",
+          "passed": true
+        },
+        {
+          "label": "Playwright Client/Matter QA listed",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/evidence.md",
+          "pattern": "Playwright Client\\/Matter click QA",
+          "passed": true
+        },
+        {
+          "label": "current validation receipt listed",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/evidence.md",
+          "pattern": "Current validation receipt",
+          "passed": true
+        },
+        {
+          "label": "Hermes check-only evidence listed",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/evidence.md",
+          "pattern": "Hermes MCP check-only",
+          "passed": true
+        },
+        {
+          "label": "surface ledger generation evidence listed",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/evidence.md",
+          "pattern": "Surface connection ledger generation",
+          "passed": true
+        }
+      ],
+      "status": "evidence_mapped",
+      "passed": true,
+      "failed_checks": []
+    },
+    {
+      "id": "REQ-SF-08-NO-PREMATURE-CLAIMS",
+      "objective_clause": "No go-live, production approval, or enterprise trust claim is made without separate human approval.",
+      "evidence_mode": "claim_boundary",
+      "checks": [
+        {
+          "label": "screenshot inventory claim boundary false",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/salesforce-screenshot-inventory.json",
+          "passed": true
+        },
+        {
+          "label": "surface ledger claim boundary false",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/surface-connection-ledger.json",
+          "passed": true
+        },
+        {
+          "label": "crosswalk states no production/trust/go-live claim",
+          "evidence_ref": "workbook/sf-client-matter-parity-crosswalk.md",
+          "pattern": "Boundary: no production approval, no enterprise trust claim, no go-live claim",
+          "passed": true
+        },
+        {
+          "label": "evidence states no production/trust claim",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/evidence.md",
+          "pattern": "No production, deployment, final approval, or enterprise trust claim is made",
+          "passed": true
+        },
+        {
+          "label": "backend contracts claim boundary false",
+          "evidence_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts",
+          "passed": true
+        }
+      ],
+      "status": "evidence_mapped",
+      "passed": true,
+      "failed_checks": []
+    }
+  ]
+}
