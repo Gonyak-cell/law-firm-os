@@ -4,6 +4,10 @@ import { UsersRound } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
 import { fetchHrxEmployees } from "../hrxApiClient.ts";
 
+function accountLabel(employee) {
+  return employee.work_email ? "등록 계정" : "계정 미등록";
+}
+
 export function EmployeeList({ selectedEmployeeId, onSelectEmployee, refreshKey }) {
   const [result, setResult] = useState(null);
 
@@ -24,11 +28,11 @@ export function EmployeeList({ selectedEmployeeId, onSelectEmployee, refreshKey 
 
   let body;
   if (result === null) {
-    body = <div className="live-data-state live-data-loading">Loading employees from /api/hrx/employees</div>;
+    body = <div className="live-data-state live-data-loading">구성원 정보를 불러오는 중입니다</div>;
   } else if (result.kind === "error") {
-    body = <div className="live-data-state live-data-error">Employee API failed. No mock employee list is rendered.</div>;
+    body = <div className="live-data-state live-data-error">구성원 정보를 불러오지 못했습니다.</div>;
   } else if (result.employees.length === 0) {
-    body = <div className="live-data-state live-data-empty">No employees returned for this tenant.</div>;
+    body = <div className="live-data-state live-data-empty">표시할 구성원이 없습니다.</div>;
   } else {
     body = (
       <div className="people-row-list">
@@ -41,9 +45,9 @@ export function EmployeeList({ selectedEmployeeId, onSelectEmployee, refreshKey 
             <span className="people-row-avatar">{employee.display_name?.slice(0, 1) ?? "E"}</span>
             <span>
               <strong>{employee.display_name}</strong>
-              <small>{employee.employee_id}</small>
+              <small>{accountLabel(employee)}</small>
             </span>
-            <em>{employee.status}</em>
+            <em>{employee.status === "active" ? "재직" : employee.status === "on_leave" ? "휴가" : "확인 필요"}</em>
           </button>
         ))}
       </div>
@@ -51,10 +55,10 @@ export function EmployeeList({ selectedEmployeeId, onSelectEmployee, refreshKey 
   }
 
   return (
-    <Panel className="people-panel people-list-panel" title="Employee List" meta="API-backed">
+    <Panel id="people-members" className="people-panel people-list-panel" title="구성원 목록" meta="권한 적용">
       <div className="people-panel-kicker">
         <UsersRound size={15} />
-        /api/hrx/employees
+        권한이 있는 구성원 정보만 표시됩니다
       </div>
       {body}
     </Panel>

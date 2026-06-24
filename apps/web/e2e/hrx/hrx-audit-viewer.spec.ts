@@ -10,7 +10,7 @@ async function readWebFile(path) {
   return readFile(resolve(root, path), "utf8");
 }
 
-test("HRX audit viewer fetches tenant-scoped audit events through API only", async () => {
+test("People audit viewer fetches workspace audit events through API only", async () => {
   const component = await readWebFile("src/admin/hrx/HRXAuditViewer.tsx");
   const api = await readWebFile("src/people/hrxApiClient.ts");
   const home = await readWebFile("src/people/PeopleHome.tsx");
@@ -21,6 +21,6 @@ test("HRX audit viewer fetches tenant-scoped audit events through API only", asy
   assert.match(component, /step_up_required/);
   assert.match(api, /\/api\/hrx\/audit/);
   assert.match(api, /body\?\.step_up_required === true/);
-  assert.match(component, /Tenant-scoped audit events only after fresh step-up/);
+  assert.match(component, /중요한 활동은 추가 확인 후 표시됩니다/);
   assert.doesNotMatch(component, /mockData|profileRows|matters/);
 });

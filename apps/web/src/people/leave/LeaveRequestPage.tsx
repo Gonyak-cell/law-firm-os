@@ -4,10 +4,18 @@ import { CalendarCheck } from "lucide-react";
 import { DataTable, Panel } from "../../components/primitives.jsx";
 import { fetchHrxLeaveState, submitHrxLeaveRequest } from "../hrxApiClient.ts";
 
+function leaveStateLabel(value) {
+  if (value === "approved") return "승인";
+  if (value === "rejected") return "반려";
+  if (value === "pending") return "대기";
+  return "확인 필요";
+}
+
 export function LeaveRequestPage({ employeeId, refreshKey, onSubmitted }) {
   const [result, setResult] = useState(null);
-  const [form, setForm] = useState({ amount: "8", start_date: "2026-07-01", end_date: "2026-07-01" });
+  const [form, setForm] = useState({ amount: "", start_date: "", end_date: "" });
   const [submitting, setSubmitting] = useState(false);
+  const canSubmit = Boolean(employeeId && form.amount.trim() && form.start_date.trim() && form.end_date.trim());
 
   useEffect(() => {
     let cancelled = false;
@@ -31,47 +39,49 @@ export function LeaveRequestPage({ employeeId, refreshKey, onSubmitted }) {
 
   let stateBody;
   if (!employeeId) {
-    stateBody = <div className="live-data-state live-data-empty">Select an employee to load leave balance.</div>;
+    stateBody = <div className="live-data-state live-data-empty">구성원을 선택해주세요.</div>;
   } else if (result === null) {
-    stateBody = <div className="live-data-state live-data-loading">Loading leave balance</div>;
+    stateBody = <div className="live-data-state live-data-loading">휴가 정보를 불러오는 중입니다</div>;
+  } else if (result.kind === "empty") {
+    stateBody = <div className="live-data-state live-data-empty">구성원을 선택해주세요.</div>;
   } else if (result.kind === "error") {
-    stateBody = <div className="live-data-state live-data-error">Leave API failed. Request was not staged locally.</div>;
+    stateBody = <div className="live-data-state live-data-error">휴가 정보를 불러오지 못했습니다.</div>;
   } else {
     stateBody = (
       <>
         <div className="leave-balance-strip">
-          <strong>{result.balance?.available_balance ?? "Scoped"}</strong>
-          <span>Available PTO balance</span>
+          <strong>{result.balance ? "확인 가능" : "권한 필요"}</strong>
+          <span>사용 가능한 휴가</span>
         </div>
         <DataTable
-          columns={["Request", "Type", "Amount", "State"]}
-          rows={result.requests.map((request) => [request.request_id, request.leave_type, request.amount, request.state])}
+          columns={["요청", "유형", "기간", "상태"]}
+          rows={result.requests.map((request, index) => [`요청 ${index + 1}`, request.leave_type === "pto" ? "연차" : "휴가", request.amount ? "신청됨" : "확인 필요", leaveStateLabel(request.state)])}
         />
       </>
     );
   }
 
   return (
-    <Panel className="people-panel span-2" title="Leave Request" meta="/api/hrx/leave">
+    <Panel id="people-leave" className="people-panel span-2" title="휴가 신청" meta="휴가 현황">
       <div className="people-panel-kicker">
         <CalendarCheck size={15} />
-        Submit through API, refresh from balance ledger
+        휴가를 신청하고 잔여 휴가를 확인합니다
       </div>
       <form className="leave-request-form" onSubmit={handleSubmit}>
         <label>
-          <span>Hours</span>
+          <span>시간</span>
           <input value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
         </label>
         <label>
-          <span>Start</span>
+          <span>시작일</span>
           <input value={form.start_date} onChange={(event) => setForm({ ...form, start_date: event.target.value })} />
         </label>
         <label>
-          <span>End</span>
+          <span>종료일</span>
           <input value={form.end_date} onChange={(event) => setForm({ ...form, end_date: event.target.value })} />
         </label>
-        <button className="primary-button" disabled={!employeeId || submitting}>
-          {submitting ? "Submitting" : "Submit PTO"}
+        <button className="primary-button" disabled={!canSubmit || submitting}>
+          {submitting ? "신청 중" : "신청"}
         </button>
       </form>
       {stateBody}

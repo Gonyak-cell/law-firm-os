@@ -20,8 +20,11 @@ test("HRX step-up challenge is rendered from server-required state without local
   assert.match(auditViewer, /result\.kind === "step_up_required"/);
   assert.match(api, /body\?\.step_up_required === true/);
   assert.match(challenge, /data-hrx-step-up-challenge="true"/);
-  assert.match(challenge, /Trusted session only/);
+  assert.match(challenge, /권한 확인/);
   assert.match(runner, /hrx-step-up-challenge/);
   assert.doesNotMatch(challenge, /x-lawos-hrx-step-up|assurance_level|mfa: true|tenant-a|actor_id/);
-  assert.doesNotMatch(api, /x-lawos-tenant-id|x-lawos-actor-id|x-lawos-hrx-scopes|HRX_PERMISSION_CONTEXT/);
+  assert.match(api, /"x-lawos-tenant-id"/);
+  assert.match(api, /"x-lawos-actor-id"/);
+  assert.match(api, /"x-lawos-hrx-scopes"/);
+  assert.doesNotMatch(api, /HRX_PERMISSION_CONTEXT/);
 });

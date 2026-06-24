@@ -18,7 +18,7 @@ test("Candidate portal fetches candidate-scoped application and document metadat
   assert.match(home, /CandidatePortal/);
   assert.match(component, /fetchCandidatePortal/);
   assert.match(api, /\/api\/hrx\/candidate\/portal/);
-  assert.match(component, /Body/);
-  assert.match(component, /Omitted/);
-  assert.doesNotMatch(component, /resume_body|interview_feedback|mockData/);
+  assert.match(component, /내용/);
+  assert.match(component, /권한 필요/);
+  assert.doesNotMatch(component, /resume_body|interview_feedback|mockData|cand-001|Source Ref|Omitted/);
 });

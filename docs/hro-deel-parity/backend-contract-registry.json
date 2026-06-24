@@ -1,0 +1,258 @@
+{
+  "schema_version": "hro.deel_parity.backend_contract_registry.v1",
+  "program_id": "HRO-DEEL-PARITY",
+  "date": "2026-06-23",
+  "source_crosswalk": "docs/hro-deel-parity/crosswalk-ledger.json",
+  "policy": {
+    "fake_ui_exposure_allowed": false,
+    "backend_mutation_allowed_without_contract": false,
+    "external_provider_ready_claim_allowed": false,
+    "go_live_or_production_approval_claim_allowed": false
+  },
+  "lazyweb_reference": {
+    "query": "HR people settings integrations payroll benefits",
+    "company": "Deel",
+    "platform": "desktop",
+    "coverage_strength": "moderate",
+    "observed_surfaces": [
+      "benefits administration",
+      "global benefits",
+      "global payroll",
+      "country hiring and local compliance",
+      "payroll options and managed service boundaries"
+    ]
+  },
+  "blocked_ui_sections": [
+    "people-workforce-planning",
+    "people-bulk-operations",
+    "people-job-requests",
+    "people-referrals",
+    "people-benefits",
+    "people-equity",
+    "people-immigration",
+    "people-background-checks",
+    "people-engagement",
+    "people-learning",
+    "people-performance",
+    "people-surveys",
+    "people-it-assets",
+    "people-apps",
+    "people-notification-admin"
+  ],
+  "contracts": [
+    {
+      "feature_id": "workforce-planning-bulk-edit",
+      "lawos_status": "backend_contract_required",
+      "risk_class": "B",
+      "next_tuw": "HRO-L3-W01-T01",
+      "deel_surfaces": ["Workforce planning", "Job requests", "Referrals", "Bulk edit"],
+      "current_backend_state": {
+        "status": "missing_runtime_contract",
+        "adjacent_packages": [
+          "packages/hrx/src/assignment.js",
+          "packages/hrx/src/capacity-profile.js",
+          "packages/hrx/src/reporting-line.js",
+          "packages/hrx/src/org.js"
+        ],
+        "gap": "Adjacent HRX org and assignment primitives exist, but there is no workforce planning route contract, bulk-operation preview model, route-policy scope, or audit receipt surface."
+      },
+      "contract_required": {
+        "routes": [
+          "GET /api/hrx/workforce/plans",
+          "POST /api/hrx/workforce/plans/:plan_id/preview",
+          "POST /api/hrx/workforce/bulk-operations/preview",
+          "POST /api/hrx/workforce/bulk-operations/:operation_id/commit"
+        ],
+        "domain_objects": ["WorkforcePlan", "WorkforceChangeSet", "BulkOperationPreview", "BulkOperationAuditReceipt"],
+        "required_scopes": ["hrx.workforce.read", "hrx.workforce.write", "hrx.bulk.preview", "hrx.bulk.commit"],
+        "audit_events": [
+          "hrx.workforce.plan.previewed",
+          "hrx.workforce.plan.approved",
+          "hrx.bulk_operation.previewed",
+          "hrx.bulk_operation.committed"
+        ],
+        "required_boundaries": [
+          "bulk changes must produce a diff preview before mutation",
+          "manager/owner approval receipt is required for write commit",
+          "no cross-tenant employee or matter assignment movement",
+          "all committed changes must append durable audit events"
+        ]
+      },
+      "ui_gate": {
+        "current_ui_exposure_allowed": false,
+        "blocked_sections": ["people-workforce-planning", "people-bulk-operations", "people-job-requests", "people-referrals"],
+        "allowed_before_contract": "crosswalk ledger row and implementation plan only"
+      },
+      "verification_cases": [
+        "VC-CONTRACT-HR-WORKFORCE-001",
+        "VC-AUDIT-HR-BULK-001",
+        "VC-PERM-HR-BULK-001"
+      ],
+      "evidence_gate": [
+        "route-policy-map coverage",
+        "API tests for preview, approval and commit",
+        "People UI e2e only after route contract exists",
+        "command evidence appended under HRO-L3-W01"
+      ]
+    },
+    {
+      "feature_id": "engagement-learning-performance",
+      "lawos_status": "backend_contract_required",
+      "risk_class": "B",
+      "next_tuw": "HRO-L3-W01-T02",
+      "deel_surfaces": ["Learning", "Reviews", "Goals", "Career", "Surveys"],
+      "current_backend_state": {
+        "status": "missing_runtime_contract",
+        "adjacent_packages": ["packages/hrx/src/evaluation.js", "packages/hrx/src/ai/decision-guard.js"],
+        "gap": "Evaluation and AI guard primitives exist, but there is no mounted engagement, learning, survey, review-cycle or performance route contract."
+      },
+      "contract_required": {
+        "routes": [
+          "GET /api/hrx/performance/cycles",
+          "POST /api/hrx/performance/reviews/:review_id/preview",
+          "POST /api/hrx/learning/assignments/:assignment_id/status",
+          "POST /api/hrx/engagement/surveys/:survey_id/responses"
+        ],
+        "domain_objects": ["PerformanceCycle", "ReviewDraft", "LearningAssignment", "SurveyResponse", "HumanDecisionReceipt"],
+        "required_scopes": ["hrx.performance.read", "hrx.performance.write", "hrx.learning.write", "hrx.engagement.write"],
+        "audit_events": [
+          "hrx.performance.review.previewed",
+          "hrx.performance.review.submitted",
+          "hrx.learning.assignment.updated",
+          "hrx.engagement.survey.response_recorded"
+        ],
+        "required_boundaries": [
+          "AI output is an untrusted claim until reviewed",
+          "no payroll, evaluation, discipline, promotion or termination final decision by AI",
+          "review participants must be permission-scoped",
+          "survey responses require retention and anonymity policy metadata"
+        ]
+      },
+      "ui_gate": {
+        "current_ui_exposure_allowed": false,
+        "blocked_sections": ["people-engagement", "people-learning", "people-performance", "people-surveys"],
+        "allowed_before_contract": "contract plan and verification case only"
+      },
+      "verification_cases": [
+        "VC-CONTRACT-HR-PERFORMANCE-001",
+        "VC-AI-HR-REVIEW-001",
+        "VC-PRIV-HR-SURVEY-001"
+      ],
+      "evidence_gate": [
+        "route-policy-map coverage",
+        "AI decision boundary validator",
+        "API tests proving human-review receipt before final state",
+        "People UI e2e only after backend contract exists"
+      ]
+    },
+    {
+      "feature_id": "it-assets-apps-admin-settings",
+      "lawos_status": "backend_contract_required",
+      "risk_class": "B",
+      "next_tuw": "HRO-L3-W01-T03",
+      "deel_surfaces": ["IT assets", "Apps", "Slack", "Notifications", "Roles"],
+      "current_backend_state": {
+        "status": "missing_runtime_contract",
+        "adjacent_contracts": [
+          "contracts/external-integrations-i-contract.json",
+          "contracts/platform-extensibility-contract.json",
+          "contracts/admin-console-contract.json"
+        ],
+        "gap": "Platform integration contracts exist, but HRX-specific asset lifecycle, app assignment, notification and role-admin routes are not registered in the People runtime."
+      },
+      "contract_required": {
+        "routes": [
+          "GET /api/hrx/assets",
+          "POST /api/hrx/assets/:asset_id/assign",
+          "POST /api/hrx/apps/:app_id/assignments/preview",
+          "POST /api/hrx/notifications/preferences",
+          "POST /api/hrx/admin/roles/:role_id/preview"
+        ],
+        "domain_objects": ["PeopleAsset", "AppAssignmentPreview", "NotificationPreference", "RoleChangePreview", "IntegrationAuditReceipt"],
+        "required_scopes": ["hrx.asset.read", "hrx.asset.write", "hrx.app.write", "hrx.notification.write", "hrx.role.preview"],
+        "audit_events": [
+          "hrx.asset.assigned",
+          "hrx.app.assignment.previewed",
+          "hrx.notification.preference.updated",
+          "hrx.role.change.previewed"
+        ],
+        "required_boundaries": [
+          "asset and app assignment must resolve employee identity through HRX",
+          "admin role changes must be preview-only until authority receipt exists",
+          "external app provider payloads remain references, not raw secrets",
+          "notification preference writes must be tenant and actor scoped"
+        ]
+      },
+      "ui_gate": {
+        "current_ui_exposure_allowed": false,
+        "blocked_sections": ["people-it-assets", "people-apps", "people-notification-admin"],
+        "allowed_before_contract": "contract registry row only"
+      },
+      "verification_cases": [
+        "VC-CONTRACT-HR-IT-001",
+        "VC-INTEGRATION-HR-APP-001",
+        "VC-PERM-HR-ROLE-001"
+      ],
+      "evidence_gate": [
+        "route-policy-map coverage",
+        "secret/reference redaction test",
+        "admin authority receipt test",
+        "People UI e2e only after contract is mounted"
+      ]
+    },
+    {
+      "feature_id": "equity-benefits-immigration-background",
+      "lawos_status": "external_owner_decision_required",
+      "risk_class": "A",
+      "next_tuw": "HRO-L4-W01-T01",
+      "deel_surfaces": ["Equity", "Benefits", "Immigration", "Background checks"],
+      "current_backend_state": {
+        "status": "external_owner_decision_missing",
+        "gap": "Provider, jurisdiction, consent, retention, legal basis and owner decision receipts are required before backend implementation or UI exposure."
+      },
+      "owner_decision_required": {
+        "required": true,
+        "missing_receipts": [
+          "legal_owner_approval",
+          "provider_due_diligence",
+          "jurisdiction_matrix",
+          "employee_consent_model",
+          "retention_and_deletion_policy",
+          "data_processing_agreement"
+        ],
+        "blocked_actions": [
+          "benefit enrollment",
+          "equity grant or exercise workflow",
+          "immigration case creation",
+          "background check order",
+          "provider data transmission"
+        ]
+      },
+      "contract_required_after_owner_decision": {
+        "routes": [
+          "POST /api/hrx/external-decisions/:domain/receipt",
+          "GET /api/hrx/provider-boundaries/:domain"
+        ],
+        "domain_objects": ["OwnerDecisionReceipt", "ProviderBoundary", "ConsentRecord", "JurisdictionPolicy"],
+        "required_scopes": ["hrx.external_decision.read", "hrx.external_decision.write"],
+        "audit_events": ["hrx.external_decision.receipt_recorded", "hrx.provider_boundary.reviewed"]
+      },
+      "ui_gate": {
+        "current_ui_exposure_allowed": false,
+        "blocked_sections": ["people-benefits", "people-equity", "people-immigration", "people-background-checks"],
+        "allowed_before_contract": "owner-decision ledger only"
+      },
+      "verification_cases": [
+        "VC-LEGAL-HR-OWNER-001",
+        "VC-PROVIDER-HR-BOUNDARY-001",
+        "VC-PRIV-HR-CONSENT-001"
+      ],
+      "evidence_gate": [
+        "signed owner decision receipt",
+        "provider contract evidence",
+        "jurisdiction policy evidence",
+        "no People UI route until receipts exist"
+      ]
+    }
+  ]
+}

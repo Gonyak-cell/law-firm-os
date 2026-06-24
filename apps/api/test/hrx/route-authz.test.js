@@ -11,7 +11,7 @@ const ALLOW_HEADERS = Object.freeze({
   "x-lawos-tenant-id": "tenant-a",
   "x-lawos-actor-id": "hrx-authz-user",
   "x-lawos-actor-role": "people_ops",
-  "x-lawos-hrx-scopes": "hrx.employee.read,hrx.employee.write,hrx.document.read",
+  "x-lawos-hrx-scopes": "hrx.employee.read,hrx.employee.write,hrx.document.read,hrx.payroll.preview,hrx.payroll.export",
 });
 
 async function json(path, options = {}) {
@@ -36,6 +36,9 @@ test("HRX route policy map resolves implemented server routes and denies unknown
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/lifecycle/onboarding/onb-001/tasks/task-001" }).required_scope, "hrx.lifecycle.write");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/lifecycle/offboarding" }).required_scope, "hrx.lifecycle.read");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/lifecycle/offboarding/off-001/close" }).required_scope, "hrx.lifecycle.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/preview" }).required_scope, "hrx.payroll.preview");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/approve" }).required_scope, "hrx.payroll.export");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/export" }).required_scope, "hrx.payroll.export");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/not-mapped" }), null);
 });
 
@@ -98,4 +101,18 @@ test("HRX lifecycle write route requires lifecycle write scope before runtime", 
   assert.equal(status, 403);
   assert.equal(body.safe_error_code, "HRX_AUTHZ_DENIED");
   assert.equal(body.required_scope, "hrx.lifecycle.write");
+});
+
+test("HRX payroll export route requires payroll export scope before runtime", async () => {
+  const { status, body } = await json("/api/hrx/payroll/export", {
+    method: "POST",
+    headers: { ...ALLOW_HEADERS, "x-lawos-hrx-scopes": "hrx.payroll.preview" },
+    body: JSON.stringify({
+      preview_id: "payroll-authz-denied",
+      export_artifact_ref: "DMS:payroll-authz-denied",
+    }),
+  });
+  assert.equal(status, 403);
+  assert.equal(body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(body.required_scope, "hrx.payroll.export");
 });

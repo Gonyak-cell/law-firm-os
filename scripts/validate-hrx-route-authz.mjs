@@ -49,6 +49,9 @@ for (const route of [
   ["POST", "/api/hrx/lifecycle/onboarding/onb-001/tasks/task-001"],
   ["GET", "/api/hrx/lifecycle/offboarding"],
   ["POST", "/api/hrx/lifecycle/offboarding/off-001/close"],
+  ["POST", "/api/hrx/payroll/preview"],
+  ["POST", "/api/hrx/payroll/approve"],
+  ["POST", "/api/hrx/payroll/export"],
   ["POST", "/api/hrx/ai/assistant"],
   ["GET", "/api/hrx/audit"],
 ]) {

@@ -20,6 +20,8 @@ test("People home is routed and loads API-backed overview state", async () => {
   assert.match(app, /view === "people"/);
   assert.match(home, /fetchHrxPeopleOverview/);
   assert.match(home, /data-hrx-api-backed="true"/);
+  assert.match(home, /people-analytics/);
+  assert.match(home, /people-ai/);
   assert.match(api, /fetchHrxPeopleOverview/);
   assert.match(api, /\/api\/hrx\/employees/);
   assert.doesNotMatch(api, /mockData|profileRows|matters/);

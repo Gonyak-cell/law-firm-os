@@ -163,6 +163,8 @@
     "sf:client-matter-parity:surface-ledger": "node scripts/generate-sf-client-matter-surface-ledger.mjs",
     "sf:client-matter-parity:browser-qa": "node scripts/run-sf-client-matter-browser-qa.mjs",
     "sf:client-matter-parity:validate": "node scripts/validate-sf-client-matter-parity-crosswalk.mjs",
+    "hro:deel-parity:screenshot-inventory": "swift scripts/generate-hro-deel-screenshot-inventory.swift",
+    "hro:deel-parity:validate": "node scripts/validate-hro-deel-parity-crosswalk.mjs",
     "web:e2e": "node scripts/run-web-e2e.mjs",
     "db:migrate:test": "node --test packages/hrx/test/migration.test.js",
     "hrx:requirements:generate": "node scripts/generate-hrx-requirement-ledger.mjs",

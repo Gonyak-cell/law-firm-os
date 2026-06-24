@@ -1,0 +1,478 @@
+{
+  "schema_version": "hro.deel_parity.crosswalk.v1",
+  "program_id": "HRO-DEEL-PARITY",
+  "date": "2026-06-23",
+  "objective": "Deel web Jan 2026 screenshots drive People parity for Law Firm OS with LazyCodex/OMO repo evidence and Hermes MCP check-only gates.",
+  "claim_boundary": {
+    "runtime_or_ui_parity_claim_allowed": false,
+    "go_live_or_production_approval_claim_allowed": false,
+    "allowed_claim": "crosswalk_baseline_and_sequenced_execution_plan",
+    "blocked_claim": "Deel parity, production approval, payroll execution, or external provider readiness"
+  },
+  "screenshot_inventory": {
+    "source_dir": "Law Firm OS UI/Deel web Jan 2026",
+    "actual_file_count": 476,
+    "pattern": "Deel web Jan 2026 *.png",
+    "inventory_path": "docs/hro-deel-parity/screenshot-inventory.json",
+    "inventory_summary_path": "docs/hro-deel-parity/screenshot-inventory.md",
+    "ocr_engine": "apple_vision_vnrecognizetextrequest",
+    "people_related_count": 461,
+    "non_people_reference_count": 15,
+    "inventory_scope": "All 476 source image files are counted and classified at screenshot row level with deterministic OCR keyword matching against feature_crosswalk ids."
+  },
+  "lazyweb_reference": {
+    "query": "enterprise HRIS people navigation",
+    "latest_contract_query": "HR people settings integrations payroll benefits",
+    "platform": "desktop",
+    "coverage_strength": "strong",
+    "latest_contract_coverage_strength": "moderate",
+    "observed_patterns": [
+      "employee profiles and employee database",
+      "onboarding and lifecycle workflows",
+      "roles and permissions",
+      "people analytics and workforce insights",
+      "payroll, benefits, and compliance as high-risk gated domains"
+    ],
+    "companies": [
+      "humaans",
+      "remote",
+      "visier",
+      "enboarder",
+      "trinet"
+    ]
+  },
+  "backend_contract_registry": {
+    "path": "docs/hro-deel-parity/backend-contract-registry.json",
+    "summary_path": "docs/hro-deel-parity/backend-contract-register.md",
+    "status": "registered",
+    "fake_ui_exposure_allowed": false,
+    "covers_statuses": ["backend_contract_required", "external_owner_decision_required"]
+  },
+  "hermes_check_only_gate": {
+    "required": true,
+    "tools": [
+      "hermes.validate.core",
+      "hermes.review.packets",
+      "hermes.factory.saas_mode"
+    ],
+    "latest_observed_status": "passed",
+    "review_status": "pending_review",
+    "mutation_allowed_now": false,
+    "deployment_allowed_now": false,
+    "final_approval_allowed_now": false,
+    "enterprise_trust_claim_allowed_now": false
+  },
+  "current_people_menu": [
+    {
+      "label": "구성원",
+      "section": "people-members",
+      "status": "implemented_ui_entrypoint"
+    },
+    {
+      "label": "인사 문서",
+      "section": "people-documents",
+      "status": "implemented_ui_entrypoint"
+    },
+    {
+      "label": "휴가",
+      "section": "people-leave",
+      "status": "implemented_ui_entrypoint"
+    },
+    {
+      "label": "승인",
+      "section": "people-approvals",
+      "status": "implemented_ui_entrypoint"
+    },
+    {
+      "label": "채용",
+      "section": "people-recruiting",
+      "status": "implemented_ui_entrypoint"
+    },
+    {
+      "label": "입퇴사",
+      "section": "people-lifecycle",
+      "status": "implemented_ui_entrypoint"
+    },
+    {
+      "label": "인사 정책",
+      "section": "people-policy",
+      "status": "implemented_ui_entrypoint"
+    },
+    {
+      "label": "활동 기록",
+      "section": "people-audit",
+      "status": "implemented_ui_entrypoint"
+    },
+    {
+      "label": "인사 현황",
+      "section": "people-analytics",
+      "status": "implemented_ui_entrypoint"
+    },
+    {
+      "label": "AI 검토",
+      "section": "people-ai",
+      "status": "implemented_ui_entrypoint"
+    },
+    {
+      "label": "급여정산",
+      "section": "people-payroll",
+      "status": "implemented_ui_entrypoint"
+    }
+  ],
+  "feature_crosswalk": [
+    {
+      "id": "people-directory-profile",
+      "deel_feature": "People list, add people, employee profile, groups, bulk edit entrypoints",
+      "lawos_status": "implemented_ui_entrypoint",
+      "risk_class": "B",
+      "deel_evidence": ["People", "Add people", "Profile", "Groups"],
+      "backend_evidence": {
+        "routes": ["/api/hrx/employees", "/api/hrx/employees/:id", "/api/hrx/employee-user-links"],
+        "packages": ["packages/hrx/src/repository.js", "packages/hrx/src/service.js", "packages/hrx/src/people-graph.js"]
+      },
+      "ui_evidence": {
+        "section": "people-members",
+        "files": ["apps/web/src/people/PeopleHome.tsx", "apps/web/src/people/employees/EmployeeList.tsx", "apps/web/src/people/employees/EmployeeProfile.tsx"]
+      },
+      "next_tuw": "HRO-L1-W02-T01",
+      "verification_cases": ["VC-FUNC-HR-001", "VC-PERM-HR-001", "VC-AUDIT-HR-001"]
+    },
+    {
+      "id": "people-documents-compliance",
+      "deel_feature": "Documents, compliance documents, policy acknowledgements",
+      "lawos_status": "implemented_ui_entrypoint",
+      "risk_class": "A",
+      "deel_evidence": ["Documents", "Compliance documents", "Templates"],
+      "backend_evidence": {
+        "routes": ["/api/hrx/documents", "/api/hrx/policies"],
+        "packages": ["packages/hrx/src/documents.js", "packages/hrx/src/hr-document-vault-service.js"]
+      },
+      "ui_evidence": {
+        "section": "people-documents",
+        "files": ["apps/web/src/people/documents/HRDocumentWorkspace.tsx", "apps/web/src/admin/hrx/HRXPolicyConsole.tsx"]
+      },
+      "next_tuw": "HRO-L1-W03-T01",
+      "verification_cases": ["VC-FUNC-HR-001", "VC-DMS-HR-001", "VC-PRIV-HR-001"]
+    },
+    {
+      "id": "time-off-attendance-approvals",
+      "deel_feature": "Time off, leave balances, manager approvals, attendance and overtime adjacency",
+      "lawos_status": "implemented_ui_entrypoint",
+      "risk_class": "B",
+      "deel_evidence": ["Time off", "Approvals", "Tracker"],
+      "backend_evidence": {
+        "routes": ["/api/hrx/leave", "/api/hrx/approvals"],
+        "packages": ["packages/hrx/src/leave/request-service.js", "packages/hrx/src/attendance.js", "packages/hrx/src/overtime.js"]
+      },
+      "ui_evidence": {
+        "section": "people-leave",
+        "files": ["apps/web/src/people/leave/LeaveRequestPage.tsx", "apps/web/src/people/approvals/ManagerApprovalQueue.tsx"]
+      },
+      "next_tuw": "HRO-L1-W04-T01",
+      "verification_cases": ["VC-FUNC-HR-001", "VC-AUDIT-HR-001"]
+    },
+    {
+      "id": "recruiting-lifecycle-candidate",
+      "deel_feature": "Deel Talent, recruiting pipeline, candidate portal, onboarding and offboarding",
+      "lawos_status": "implemented_ui_entrypoint",
+      "risk_class": "B",
+      "deel_evidence": ["Deel Talent", "Jobs", "Onboarding", "Offboarding"],
+      "backend_evidence": {
+        "routes": ["/api/hrx/recruiting/pipeline", "/api/hrx/candidate/portal", "/api/hrx/lifecycle/onboarding", "/api/hrx/lifecycle/offboarding"],
+        "packages": ["packages/hrx/src/recruiting", "packages/hrx/src/onboarding.js", "packages/hrx/src/offboarding.js"]
+      },
+      "ui_evidence": {
+        "section": "people-recruiting",
+        "files": ["apps/web/src/people/recruiting/RecruitingPipeline.tsx", "apps/web/src/candidate/CandidatePortal.tsx", "apps/web/src/people/lifecycle/LifecycleBoard.tsx"]
+      },
+      "next_tuw": "HRO-L1-W05-T01",
+      "verification_cases": ["VC-FUNC-HR-001", "VC-PORTAL-HR-001", "VC-AUDIT-HR-001"]
+    },
+    {
+      "id": "people-analytics-ai",
+      "deel_feature": "Dashboards, reports, salary insights adjacency, custom AI agents and reviewed people guidance",
+      "lawos_status": "implemented_ui_entrypoint",
+      "risk_class": "A",
+      "deel_evidence": ["Dashboards", "Reports", "Custom AI agents", "Workforce insights"],
+      "backend_evidence": {
+        "routes": ["/api/hrx/analytics", "/api/hrx/ai/assistant", "/api/hrx/ai/reviews"],
+        "packages": ["packages/hrx/src/analytics.js", "packages/hrx/src/ai"]
+      },
+      "ui_evidence": {
+        "section": "people-analytics",
+        "files": ["apps/web/src/people/analytics/HRAnalytics.tsx", "apps/web/src/people/ai/HRAIAssistant.tsx", "apps/web/src/people/PeopleHome.tsx"]
+      },
+      "next_tuw": "HRO-L1-W06-T01",
+      "verification_cases": ["VC-FUNC-HR-001", "VC-AI-HR-001", "VC-PRIV-HR-001"]
+    },
+    {
+      "id": "payroll-export-boundary",
+      "deel_feature": "Global payroll, payroll exports, payslips, tax documents and payment execution",
+      "lawos_status": "implemented_ui_entrypoint",
+      "risk_class": "A",
+      "deel_evidence": ["Global payroll", "Pay your team", "Tax documents", "Action required"],
+      "backend_evidence": {
+        "routes": ["/api/hrx/payroll/preview", "/api/hrx/payroll/approve", "/api/hrx/payroll/export"],
+        "packages": ["apps/api/src/routes/hrx/payroll.js", "packages/hrx/src/payroll-boundary.js", "packages/hrx/src/payroll-export-service.js", "contracts/hrx-payroll-boundary.json"],
+        "claim_boundary": {
+          "calculation_runtime": false,
+          "disbursement_instruction_included": false,
+          "human_review_required": true
+        }
+      },
+      "ui_evidence": {
+        "section": "people-payroll",
+        "files": ["apps/web/src/people/payroll/PayrollBoundaryPanel.tsx", "apps/web/src/people/hrxApiClient.ts", "apps/web/src/people/PeopleHome.tsx"]
+      },
+      "next_tuw": "HRO-L2-W01-T03",
+      "verification_cases": ["VC-PAYROLL-HR-001", "VC-PERM-HR-001", "VC-AUDIT-HR-001"]
+    },
+    {
+      "id": "workforce-planning-bulk-edit",
+      "deel_feature": "Workforce planning, job requests, referrals and bulk edit workflows",
+      "lawos_status": "backend_contract_required",
+      "risk_class": "B",
+      "deel_evidence": ["Workforce planning", "Job requests", "Referrals", "Bulk edit"],
+      "backend_evidence": {
+        "gap": "No dedicated workforce planning or bulk operation service contract found in current HRX runtime."
+      },
+      "ui_evidence": {
+        "gap": "Do not expose fake planning or bulk-edit controls before backend contract and audit preview are available."
+      },
+      "next_tuw": "HRO-L3-W01-T01",
+      "verification_cases": ["VC-CONTRACT-HR-001", "VC-AUDIT-HR-001"]
+    },
+    {
+      "id": "equity-benefits-immigration-background",
+      "deel_feature": "Equity, benefits, immigration and background checks",
+      "lawos_status": "external_owner_decision_required",
+      "risk_class": "A",
+      "deel_evidence": ["Equity", "Benefits", "Immigration", "Background checks"],
+      "backend_evidence": {
+        "gap": "Provider, jurisdiction, consent, retention and legal decision records are required before backend implementation."
+      },
+      "ui_evidence": {
+        "gap": "No user-facing menu before owner decision and provider contract."
+      },
+      "next_tuw": "HRO-L4-W01-T01",
+      "verification_cases": ["VC-LEGAL-HR-001", "VC-PRIV-HR-001", "VC-PROVIDER-HR-001"]
+    },
+    {
+      "id": "engagement-learning-performance",
+      "deel_feature": "Learning, reviews, goals, career development, surveys and templates",
+      "lawos_status": "backend_contract_required",
+      "risk_class": "B",
+      "deel_evidence": ["Learning", "Reviews", "Goals", "Career", "Surveys", "Templates"],
+      "backend_evidence": {
+        "gap": "No complete engagement/performance domain contract is mounted in HRX runtime."
+      },
+      "ui_evidence": {
+        "gap": "Register as backend contract first; do not expose final evaluation AI or performance decisions."
+      },
+      "next_tuw": "HRO-L3-W01-T02",
+      "verification_cases": ["VC-CONTRACT-HR-001", "VC-AI-HR-001"]
+    },
+    {
+      "id": "it-assets-apps-admin-settings",
+      "deel_feature": "IT assets, device orders, shipments, app integrations, notifications, roles and org settings",
+      "lawos_status": "backend_contract_required",
+      "risk_class": "B",
+      "deel_evidence": ["IT assets", "Apps", "Slack integration", "Notifications", "Roles", "Permissions", "Custom branding"],
+      "backend_evidence": {
+        "gap": "Admin, platform and marketplace packages exist, but HRX-specific IT asset and app lifecycle contracts are not registered as People runtime routes."
+      },
+      "ui_evidence": {
+        "gap": "Expose only after contract maps People identity, admin authority and integration audit boundaries."
+      },
+      "next_tuw": "HRO-L3-W01-T03",
+      "verification_cases": ["VC-CONTRACT-HR-001", "VC-INTEGRATION-HR-001", "VC-PERM-HR-001"]
+    }
+  ],
+  "work_packages": [
+    {
+      "wp_id": "HRO-L0-W01",
+      "title": "Screenshot inventory and crosswalk baseline",
+      "lane": "crosswalk",
+      "tuw_ids": ["HRO-L0-W01-T01", "HRO-L0-W01-T02", "HRO-L0-W01-T03", "HRO-L0-W01-T04"],
+      "terminal_tuw": "HRO-L0-W01-T04"
+    },
+    {
+      "wp_id": "HRO-L1-W01",
+      "title": "Existing HRX backend functions surfaced in People UI",
+      "lane": "backend_implemented_ui_reflection",
+      "tuw_ids": ["HRO-L1-W01-T01", "HRO-L1-W01-T02", "HRO-L1-W01-T03"],
+      "terminal_tuw": "HRO-L1-W01-T03"
+    },
+    {
+      "wp_id": "HRO-L2-W01",
+      "title": "급여정산 preview route and UI no-claim gate",
+      "lane": "payroll_boundary",
+      "tuw_ids": ["HRO-L2-W01-T01", "HRO-L2-W01-T02", "HRO-L2-W01-T03"],
+      "terminal_tuw": "HRO-L2-W01-T03"
+    },
+    {
+      "wp_id": "HRO-L3-W01",
+      "title": "Backend-missing Deel features contract registration",
+      "lane": "backend_contract_required",
+      "tuw_ids": ["HRO-L3-W01-T01", "HRO-L3-W01-T02", "HRO-L3-W01-T03"],
+      "terminal_tuw": "HRO-L3-W01-T03"
+    },
+    {
+      "wp_id": "HRO-L4-W01",
+      "title": "External provider and owner-decision gated domains",
+      "lane": "external_owner_decision",
+      "tuw_ids": ["HRO-L4-W01-T01", "HRO-L4-W01-T02", "HRO-L4-W01-T03"],
+      "terminal_tuw": "HRO-L4-W01-T03"
+    }
+  ],
+  "tuws": [
+    {
+      "id": "HRO-L0-W01-T01",
+      "objective": "Count the Deel web Jan 2026 screenshot source set and bind it to the HRO crosswalk ledger.",
+      "status": "closed",
+      "work_type": "evidence",
+      "depends_on": [],
+      "entry_point": true,
+      "verification_contract": "npm run hro:deel-parity:validate"
+    },
+    {
+      "id": "HRO-L0-W01-T02",
+      "objective": "Classify Deel People feature families against current Law Firm OS People UI and HRX backend evidence.",
+      "status": "closed",
+      "work_type": "crosswalk",
+      "depends_on": ["HRO-L0-W01-T01"],
+      "verification_contract": "npm run hro:deel-parity:validate"
+    },
+    {
+      "id": "HRO-L0-W01-T03",
+      "objective": "Record LazyCodex/OMO, Lazyweb and Hermes check-only evidence boundaries without claiming approval.",
+      "status": "closed",
+      "work_type": "gate",
+      "depends_on": ["HRO-L0-W01-T02"],
+      "verification_contract": "npm run hro:deel-parity:validate"
+    },
+    {
+      "id": "HRO-L0-W01-T04",
+      "objective": "Publish the initial HRO-DEEL-PARITY evidence skeleton for later implementation TUWs.",
+      "status": "closed",
+      "work_type": "evidence",
+      "depends_on": ["HRO-L0-W01-T03"],
+      "terminal": true,
+      "verification_contract": "npm run hro:deel-parity:validate"
+    },
+    {
+      "id": "HRO-L1-W01-T01",
+      "objective": "Expose already-backed People Analytics and AI review panels in the People menu.",
+      "status": "closed",
+      "work_type": "ui",
+      "depends_on": ["WP:HRO-L0-W01"],
+      "verification_contract": "npm run hro:deel-parity:validate && npm run hrx:ui:validate && npm run hrx:ai:validate"
+    },
+    {
+      "id": "HRO-L1-W01-T02",
+      "objective": "Extend HRX UI/e2e assertions so the new Analytics and AI People entrypoints stay API-backed.",
+      "status": "closed",
+      "work_type": "test",
+      "depends_on": ["HRO-L1-W01-T01"],
+      "verification_contract": "npm run web:e2e -- hrx-analytics hrx-ai-assistant"
+    },
+    {
+      "id": "HRO-L1-W01-T03",
+      "objective": "Re-run HRO and HRX validators and attach command evidence.",
+      "status": "closed",
+      "work_type": "gate",
+      "depends_on": ["HRO-L1-W01-T02"],
+      "terminal": true,
+      "verification_contract": "docs/goal-closeout/hro-deel-parity/hro-l0-w01/command-evidence.json"
+    },
+    {
+      "id": "HRO-L2-W01-T01",
+      "objective": "Decide whether the payroll export route is mounted as preview/export-only and record the no-disbursement claim boundary.",
+      "status": "closed",
+      "work_type": "backend",
+      "depends_on": ["WP:HRO-L1-W01"],
+      "verification_contract": "npm run hro:deel-parity:validate"
+    },
+    {
+      "id": "HRO-L2-W01-T02",
+      "objective": "Add payroll UI only if the route boundary is mounted and owner-approved no-execution copy is enforced.",
+      "status": "closed",
+      "work_type": "ui",
+      "depends_on": ["HRO-L2-W01-T01"],
+      "verification_contract": "npm run hro:deel-parity:validate"
+    },
+    {
+      "id": "HRO-L2-W01-T03",
+      "objective": "Gate payroll boundary evidence and keep global payroll execution blocked.",
+      "status": "closed",
+      "work_type": "gate",
+      "depends_on": ["HRO-L2-W01-T02"],
+      "terminal": true,
+      "verification_contract": "npm run hro:deel-parity:validate"
+    },
+    {
+      "id": "HRO-L3-W01-T01",
+      "objective": "Register workforce planning and bulk operations backend contracts.",
+      "status": "closed",
+      "work_type": "contract",
+      "depends_on": ["WP:HRO-L1-W01"],
+      "verification_contract": "npm run hro:deel-parity:validate"
+    },
+    {
+      "id": "HRO-L3-W01-T02",
+      "objective": "Register engagement, learning, performance and survey backend contracts.",
+      "status": "closed",
+      "work_type": "contract",
+      "depends_on": ["HRO-L3-W01-T01"],
+      "verification_contract": "npm run hro:deel-parity:validate"
+    },
+    {
+      "id": "HRO-L3-W01-T03",
+      "objective": "Register IT assets, apps, notification and admin-settings contracts.",
+      "status": "closed",
+      "work_type": "contract",
+      "depends_on": ["HRO-L3-W01-T02"],
+      "terminal": true,
+      "verification_contract": "npm run hro:deel-parity:validate"
+    },
+    {
+      "id": "HRO-L4-W01-T01",
+      "objective": "Record owner-decision requirements for equity, benefits, immigration and background checks.",
+      "status": "closed",
+      "work_type": "human_decision",
+      "depends_on": ["WP:HRO-L3-W01"],
+      "verification_contract": "npm run hro:deel-parity:validate",
+      "closure_boundary": "Owner-decision requirements are recorded; owner approval remains missing and no UI/provider readiness is claimed."
+    },
+    {
+      "id": "HRO-L4-W01-T02",
+      "objective": "Record provider and jurisdiction evidence requirements for high-risk HR domains.",
+      "status": "closed",
+      "work_type": "provider_contract",
+      "depends_on": ["HRO-L4-W01-T01"],
+      "verification_contract": "npm run hro:deel-parity:validate",
+      "closure_boundary": "Provider and jurisdiction requirements are recorded; provider receipt remains missing and no external action is authorized."
+    },
+    {
+      "id": "HRO-L4-W01-T03",
+      "objective": "Keep high-risk domains blocked from UI until owner/provider receipts exist.",
+      "status": "closed",
+      "work_type": "gate",
+      "depends_on": ["HRO-L4-W01-T02"],
+      "terminal": true,
+      "verification_contract": "npm run hro:deel-parity:validate"
+    }
+  ],
+  "evidence_targets": [
+    "docs/hro-deel-parity/crosswalk-ledger.json",
+    "docs/hro-deel-parity/crosswalk-ledger.md",
+    "docs/hro-deel-parity/screenshot-inventory.json",
+    "docs/hro-deel-parity/screenshot-inventory.md",
+    "docs/hro-deel-parity/backend-contract-registry.json",
+    "docs/hro-deel-parity/backend-contract-register.md",
+    "docs/hro-deel-parity/completion-audit.json",
+    "docs/hro-deel-parity/completion-audit.md",
+    "docs/goal-closeout/hro-deel-parity/hro-l0-w01/command-evidence.json",
+    "scripts/validate-hro-deel-parity-crosswalk.mjs"
+  ]
+}

@@ -4,6 +4,25 @@ import { ShieldCheck } from "lucide-react";
 import { Panel, Property } from "../../components/primitives.jsx";
 import { fetchHrxEmployeeProfile } from "../hrxApiClient.ts";
 
+function roleLabel(value) {
+  const normalized = String(value ?? "").toLowerCase();
+  if (normalized.includes("partner")) return "파트너";
+  if (normalized.includes("associate")) return "어소시에이트";
+  if (normalized.includes("paralegal")) return "실무 지원";
+  if (normalized.includes("admin")) return "관리";
+  if (normalized.includes("hr")) return "인사 담당";
+  return value ? "담당자" : "미등록";
+}
+
+function employmentTypeLabel(value) {
+  const normalized = String(value ?? "").toLowerCase();
+  if (normalized.includes("full")) return "정규직";
+  if (normalized.includes("part")) return "파트타임";
+  if (normalized.includes("contract")) return "계약직";
+  if (normalized.includes("intern")) return "인턴";
+  return value ? "등록됨" : "권한 필요";
+}
+
 export function EmployeeProfile({ employeeId, refreshKey }) {
   const [result, setResult] = useState(null);
 
@@ -20,31 +39,33 @@ export function EmployeeProfile({ employeeId, refreshKey }) {
 
   let body;
   if (!employeeId) {
-    body = <div className="live-data-state live-data-empty">Select an employee to load the scoped profile.</div>;
+    body = <div className="live-data-state live-data-empty">구성원을 선택해주세요.</div>;
   } else if (result === null) {
-    body = <div className="live-data-state live-data-loading">Loading employee profile</div>;
+    body = <div className="live-data-state live-data-loading">구성원 상세 정보를 불러오는 중입니다</div>;
+  } else if (result.kind === "empty") {
+    body = <div className="live-data-state live-data-empty">구성원을 선택해주세요.</div>;
   } else if (result.kind === "error") {
-    body = <div className="live-data-state live-data-error">Profile API failed. Sensitive fields remain hidden.</div>;
+    body = <div className="live-data-state live-data-error">구성원 상세 정보를 불러오지 못했습니다.</div>;
   } else {
     const employee = result.employee;
     const profile = result.employment_profile ?? {};
     body = (
       <div className="property-grid people-profile-grid">
-        <Property label="Employee" value={employee.display_name} />
-        <Property label="Status" value={employee.status} />
-        <Property label="Profile" value={profile.profile_id ?? "Not returned"} />
-        <Property label="Employment Type" value={profile.employment_type ?? "Scoped"} />
-        <Property label="Compensation" value={result.masked_compensation_ref ?? "Masked by scope"} />
-        <Property label="Tenant" value={employee.tenant_id} />
+        <Property label="구성원" value={employee.display_name} />
+        <Property label="상태" value={employee.status === "active" ? "재직" : employee.status === "on_leave" ? "휴가" : "확인 필요"} />
+        <Property label="역할" value={roleLabel(profile.title ?? employee.role)} />
+        <Property label="고용 형태" value={employmentTypeLabel(profile.employment_type)} />
+        <Property label="보상 정보" value="권한 필요" />
+        <Property label="소속" value="현재 조직" />
       </div>
     );
   }
 
   return (
-    <Panel className="people-panel" title="Employee Profile" meta={employeeId ?? "No selection"}>
+    <Panel id="people-profile" className="people-panel" title="구성원 상세" meta={employeeId ? "선택됨" : "미선택"}>
       <div className="people-panel-kicker">
         <ShieldCheck size={15} />
-        Sensitive fields masked unless explicitly scoped
+        권한이 필요한 정보는 표시하지 않습니다.
       </div>
       {body}
     </Panel>
