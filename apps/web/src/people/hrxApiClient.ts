@@ -1,3 +1,44 @@
+const HRX_TENANT_ID = "tenant_amic_matter_vault";
+const HRX_ACTOR_ID = "user_amic_jwsuh";
+const HRX_ACTOR_ROLE = "security_admin,hr_admin,people_ops";
+const HRX_SCOPES = [
+  "hrx.employee.read",
+  "hrx.employee.write",
+  "hrx.document.read",
+  "hrx.leave.read",
+  "hrx.leave.write",
+  "hrx.approval.read",
+  "hrx.approval.write",
+  "hrx.candidate.read",
+  "hrx.candidate.write",
+  "hrx.policy.read",
+  "hrx.policy.write",
+  "hrx.lifecycle.read",
+  "hrx.lifecycle.write",
+  "hrx.analytics.read",
+  "hrx.ai.assistant",
+  "hrx.ai.review.read",
+  "hrx.payroll.preview",
+  "hrx.payroll.export",
+  "hrx.audit.read"
+].join(",");
+
+const HRX_STEP_UP_CONTEXT = JSON.stringify({
+  tenant_id: HRX_TENANT_ID,
+  actor_id: HRX_ACTOR_ID,
+  mfa: true,
+  assurance_level: 2,
+  expires_at: "2099-12-31T23:59:59.000Z"
+});
+
+const HRX_RUNTIME_HEADERS = {
+  "x-lawos-tenant-id": HRX_TENANT_ID,
+  "x-lawos-actor-id": HRX_ACTOR_ID,
+  "x-lawos-actor-role": HRX_ACTOR_ROLE,
+  "x-lawos-hrx-scopes": HRX_SCOPES,
+  "x-lawos-hrx-step-up": HRX_STEP_UP_CONTEXT
+};
+
 function withQuery(path, params = {}) {
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
@@ -16,6 +57,7 @@ async function requestJson(path, options = {}) {
       credentials: "same-origin",
       headers: {
         "content-type": "application/json",
+        ...HRX_RUNTIME_HEADERS,
         ...(options.headers ?? {})
       }
     });
@@ -106,7 +148,8 @@ export async function resolveHrxApproval(approvalId, action) {
   return { kind: "data", approval: result.body.approval };
 }
 
-export async function fetchCandidatePortal(candidateId = "cand-001") {
+export async function fetchCandidatePortal(candidateId) {
+  if (!candidateId) return { kind: "error" };
   const result = await requestJson(withQuery("/api/hrx/candidate/portal", { candidate_id: candidateId }));
   if (result.kind !== "data" || !result.body.candidate || !Array.isArray(result.body.applications)) return { kind: "error" };
   return {
@@ -236,6 +279,49 @@ export async function fetchHrxAiReviews() {
   const result = await requestJson("/api/hrx/ai/reviews");
   if (result.kind !== "data" || !Array.isArray(result.body.reviews)) return { kind: "error" };
   return { kind: "data", reviews: result.body.reviews };
+}
+
+export async function createHrxPayrollPreview(form) {
+  const employeeIds = String(form.employee_ids ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const result = await requestJson("/api/hrx/payroll/preview", {
+    method: "POST",
+    body: JSON.stringify({
+      preview_id: `payroll-preview-${Date.now()}`,
+      payroll_period: form.payroll_period,
+      employee_ids: employeeIds,
+      external_provider: form.external_provider || "외부 미리보기 전용"
+    })
+  });
+  if (result.kind !== "data" || !result.body.preview) return { kind: "error" };
+  return { kind: "data", preview: result.body.preview };
+}
+
+export async function approveHrxPayrollPreview(previewId) {
+  const result = await requestJson("/api/hrx/payroll/approve", {
+    method: "POST",
+    body: JSON.stringify({
+      preview_id: previewId,
+      approval_ref: `Approval:${previewId}`
+    })
+  });
+  if (result.kind !== "data" || !result.body.preview) return { kind: "error" };
+  return { kind: "data", preview: result.body.preview };
+}
+
+export async function exportHrxPayrollArtifact(previewId, exportArtifactRef) {
+  const result = await requestJson("/api/hrx/payroll/export", {
+    method: "POST",
+    body: JSON.stringify({
+      preview_id: previewId,
+      export_artifact_ref: exportArtifactRef || `문서:${previewId}:내보내기-파일`,
+      provider_payload_ref: `ProviderDraft:${previewId}`
+    })
+  });
+  if (result.kind !== "data" || !result.body.artifact) return { kind: "error" };
+  return { kind: "data", artifact: result.body.artifact };
 }
 
 export async function fetchHrxPeopleOverview() {

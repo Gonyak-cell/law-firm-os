@@ -6,12 +6,12 @@ let server;
 let baseUrl;
 
 const HRX_AUTH_HEADERS = Object.freeze({
-  "x-lawos-tenant-id": "tenant-a",
-  "x-lawos-actor-id": "hrx-test-user",
-  "x-lawos-actor-role": "people_ops",
+  "x-lawos-tenant-id": "tenant_amic_matter_vault",
+  "x-lawos-actor-id": "user_amic_jwsuh",
+  "x-lawos-actor-role": "security_admin,hr_admin,people_ops",
   "x-lawos-hrx-step-up": JSON.stringify({
-    tenant_id: "tenant-a",
-    actor_id: "hrx-test-user",
+    tenant_id: "tenant_amic_matter_vault",
+    actor_id: "user_amic_jwsuh",
     mfa: true,
     assurance_level: 2,
     expires_at: "2999-01-01T00:00:00.000Z",
@@ -32,6 +32,8 @@ const HRX_AUTH_HEADERS = Object.freeze({
     "hrx.policy.write",
     "hrx.analytics.read",
     "hrx.audit.read",
+    "hrx.payroll.preview",
+    "hrx.payroll.export",
   ].join(","),
 });
 
@@ -53,28 +55,29 @@ test("GET /api/hrx/employees returns synthetic API-backed employee rows", async 
   const { status, body } = await json("/api/hrx/employees");
   assert.equal(status, 200);
   assert.equal(body.outcome, "ok");
-  assert.ok(body.employees.length >= 2);
-  assert.equal(body.employees[0].tenant_id, "tenant-a");
+  assert.equal(body.employees.length, 9);
+  assert.equal(body.employees[0].tenant_id, "tenant_amic_matter_vault");
+  assert.ok(body.employees.some((employee) => employee.work_email === "jwsuh@amic.kr"));
 });
 
 test("GET /api/hrx/employees/:id returns profile with compensation masked", async () => {
-  const { status, body } = await json("/api/hrx/employees/emp-001");
+  const { status, body } = await json("/api/hrx/employees/emp_amic_ytkim");
   assert.equal(status, 200);
-  assert.equal(body.employee.employee_id, "emp-001");
-  assert.equal(body.employment_profile.employee_id, "emp-001");
+  assert.equal(body.employee.employee_id, "emp_amic_ytkim");
+  assert.equal(body.employment_profile.employee_id, "emp_amic_ytkim");
   assert.equal(body.masked_compensation_ref, null);
 });
 
 test("GET POST revoke /api/hrx/employee-user-links manages audited login mappings", async () => {
-  const before = await json("/api/hrx/employee-user-links?employee_id=emp-001");
+  const before = await json("/api/hrx/employee-user-links?employee_id=emp_amic_ytkim");
   assert.equal(before.status, 200);
-  assert.ok(before.body.links.some((link) => link.link_id === "link-emp-001"));
+  assert.ok(before.body.links.some((link) => link.link_id === "link_amic_ytkim" && link.user_id === "user_amic_ytkim"));
 
   const created = await json("/api/hrx/employee-user-links", {
     method: "POST",
     body: JSON.stringify({
       link_id: "link-api-001",
-      employee_id: "emp-002",
+      employee_id: "emp_amic_wsjo",
       user_id: "iam-user-api-001",
     }),
   });
@@ -94,7 +97,7 @@ test("GET POST revoke /api/hrx/employee-user-links manages audited login mapping
 });
 
 test("GET /api/hrx/documents returns metadata source refs only", async () => {
-  const { status, body } = await json("/api/hrx/documents?employee_id=emp-001");
+  const { status, body } = await json("/api/hrx/documents?employee_id=emp_amic_ytkim");
   assert.equal(status, 200);
   assert.equal(body.documents[0].source_ref, "DMS:hr-policy-ack-001");
   assert.equal(body.documents[0].source_status, "verified");
@@ -103,7 +106,7 @@ test("GET /api/hrx/documents returns metadata source refs only", async () => {
 });
 
 test("GET and POST /api/hrx/leave use leave request workflow state", async () => {
-  const before = await json("/api/hrx/leave?employee_id=emp-001&policy_id=pto-us");
+  const before = await json("/api/hrx/leave?employee_id=emp_amic_ytkim&policy_id=pto-us");
   assert.equal(before.status, 200);
   assert.equal(before.body.balance.available_balance, 80);
 
@@ -111,7 +114,7 @@ test("GET and POST /api/hrx/leave use leave request workflow state", async () =>
     method: "POST",
     body: JSON.stringify({
       request_id: "leave-api-001",
-      employee_id: "emp-001",
+      employee_id: "emp_amic_ytkim",
       policy_id: "pto-us",
       leave_type: "pto",
       amount: 8,
@@ -122,7 +125,7 @@ test("GET and POST /api/hrx/leave use leave request workflow state", async () =>
   assert.equal(submitted.status, 201);
   assert.equal(submitted.body.leave_request.state, "submitted");
 
-  const after = await json("/api/hrx/leave?employee_id=emp-001&policy_id=pto-us");
+  const after = await json("/api/hrx/leave?employee_id=emp_amic_ytkim&policy_id=pto-us");
   assert.ok(after.body.requests.some((request) => request.request_id === "leave-api-001"));
 });
 
@@ -218,7 +221,51 @@ test("GET /api/hrx/audit remains tenant scoped", async () => {
   const { status, body } = await json("/api/hrx/audit");
   assert.equal(status, 200);
   assert.ok(body.events.length >= 1);
-  assert.ok(body.events.every((event) => event.tenant_id === "tenant-a"));
+  assert.ok(body.events.every((event) => event.tenant_id === "tenant_amic_matter_vault"));
+});
+
+test("POST /api/hrx/payroll creates preview, approval and export artifact without payment execution", async () => {
+  const preview = await json("/api/hrx/payroll/preview", {
+    method: "POST",
+    body: JSON.stringify({
+      preview_id: "payroll-api-preview-001",
+      payroll_period: "2026-06",
+      employee_ids: ["emp_amic_ytkim", "emp_amic_wsjo"],
+      external_provider: "external-preview-only",
+    }),
+  });
+  assert.equal(preview.status, 201);
+  assert.equal(preview.body.preview.calculation_runtime, false);
+  assert.equal(preview.body.preview.disbursement_instruction_included, false);
+  assert.equal(preview.body.preview.human_review_required, true);
+
+  const approved = await json("/api/hrx/payroll/approve", {
+    method: "POST",
+    body: JSON.stringify({
+      preview_id: "payroll-api-preview-001",
+      approval_ref: "Approval:payroll-api-preview-001",
+    }),
+  });
+  assert.equal(approved.status, 200);
+  assert.equal(approved.body.preview.state, "approved");
+
+  const exported = await json("/api/hrx/payroll/export", {
+    method: "POST",
+    body: JSON.stringify({
+      preview_id: "payroll-api-preview-001",
+      export_artifact_ref: "DMS:payroll-api-preview-001",
+      provider_payload_ref: "ProviderDraft:payroll-api-preview-001",
+    }),
+  });
+  assert.equal(exported.status, 200);
+  assert.equal(exported.body.artifact.calculation_runtime, false);
+  assert.equal(exported.body.artifact.disbursement_instruction_included, false);
+  assert.equal(exported.body.artifact.human_review_required, true);
+
+  const audit = await json("/api/hrx/audit");
+  assert.ok(audit.body.events.some((event) => event.action === "hrx.payroll.preview"));
+  assert.ok(audit.body.events.some((event) => event.action === "hrx.payroll.approve"));
+  assert.ok(audit.body.events.some((event) => event.action === "hrx.payroll.export"));
 });
 
 test("GET /api/hrx/analytics returns aggregate People metrics without row-level detail", async () => {
@@ -226,5 +273,5 @@ test("GET /api/hrx/analytics returns aggregate People metrics without row-level 
   assert.equal(status, 200);
   assert.equal(body.analytics.row_level_details_included, false);
   assert.ok(body.analytics.headcount.total >= 2);
-  assert.equal(JSON.stringify(body.analytics).includes("Ari Kim"), false);
+  assert.equal(JSON.stringify(body.analytics).includes("김양태"), false);
 });

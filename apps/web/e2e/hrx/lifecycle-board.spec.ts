@@ -20,7 +20,10 @@ test("Lifecycle board reads onboarding and offboarding state through HRX APIs", 
   assert.match(component, /fetchHrxLifecycleBoard/);
   assert.match(component, /updateHrxOnboardingTask/);
   assert.match(component, /closeHrxOffboardingCase/);
-  assert.match(component, /No local lifecycle fallback is rendered/);
+  assert.match(component, /taskTitleLabel/);
+  assert.match(component, /documentSummary/);
+  assert.match(component, /입퇴사 업무를 불러오지 못했습니다/);
+  assert.doesNotMatch(component, /<strong>{task\.title}<\/strong>|plan\.employee_id|plan\.document_refs\?\.join|<strong>{caseItem\.offboarding_id}<\/strong>|caseItem\.employee_id/);
   assert.match(api, /\/api\/hrx\/lifecycle\/onboarding/);
   assert.match(api, /\/api\/hrx\/lifecycle\/offboarding/);
   assert.match(runner, /lifecycle-board/);

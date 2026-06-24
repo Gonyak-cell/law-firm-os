@@ -1,0 +1,88 @@
+{
+  "schema_version": "hro.deel_parity.completion_audit.v1",
+  "program_id": "HRO-DEEL-PARITY",
+  "date": "2026-06-23",
+  "completion_claim": "repo_local_goal_scope_complete_without_go_live_or_production_approval",
+  "go_live_or_production_approval_claim_allowed": false,
+  "requirements": [
+    {
+      "id": "REQ-1-SCREENSHOT-CROSSWALK",
+      "requirement": "Deel People related functions are fully classified as implemented, backend missing, external owner decision required, or non-People reference.",
+      "status": "proven_current",
+      "evidence": [
+        "docs/hro-deel-parity/screenshot-inventory.json",
+        "docs/hro-deel-parity/crosswalk-ledger.json",
+        "npm run hro:deel-parity:validate"
+      ],
+      "observed_counts": {
+        "screenshots": 476,
+        "people_related_rows": 461,
+        "non_people_reference_rows": 15,
+        "feature_families": 10
+      }
+    },
+    {
+      "id": "REQ-2-BACKEND-IMPLEMENTED-UI",
+      "requirement": "Existing HRX backend functions have actual People UI entrypoints and testable routes.",
+      "status": "proven_current",
+      "evidence": [
+        "apps/web/src/components/Shell.jsx",
+        "apps/web/src/people/PeopleHome.tsx",
+        "apps/api/src/hrx-runtime-context.js",
+        "apps/api/src/routes/hrx/route-policy-map.js",
+        "npm run web:e2e -- hrx",
+        "node --test apps/api/test/hrx/payroll.test.js apps/api/test/hrx/route-authz.test.js apps/api/test/hrx-runtime-api.test.js"
+      ],
+      "observed_counts": {
+        "people_menu_entrypoints": 11,
+        "hrx_web_e2e_tests": 15,
+        "hrx_api_tests": 23
+      }
+    },
+    {
+      "id": "REQ-3-MISSING-BACKEND-CONTRACTS",
+      "requirement": "Deel-visible functions without backend implementation are not exposed as fake UI and have backend contracts, TUWs, verification cases and evidence gates.",
+      "status": "proven_current",
+      "evidence": [
+        "docs/hro-deel-parity/backend-contract-registry.json",
+        "docs/hro-deel-parity/backend-contract-register.md",
+        "scripts/validate-hro-deel-parity-crosswalk.mjs"
+      ],
+      "observed_counts": {
+        "backend_contract_required_features": 3,
+        "external_owner_decision_required_features": 1,
+        "blocked_fake_ui_sections": 15
+      }
+    },
+    {
+      "id": "REQ-4-EVIDENCE-GATES",
+      "requirement": "LazyCodex/OMO repo checks, npm validators/tests, Playwright screen verification and Hermes MCP check-only results are attached as evidence.",
+      "status": "proven_current",
+      "evidence": [
+        "docs/goal-closeout/hro-deel-parity/hro-l0-w01/command-evidence.json",
+        "artifacts/hro-deel-parity/people-current-menu.png",
+        "artifacts/hro-deel-parity/people-current-analytics.png",
+        "artifacts/hro-deel-parity/people-current-ai.png",
+        "artifacts/hro-deel-parity/people-current-payroll-boundary.png"
+      ],
+      "known_tool_limit": "mcp__lsp.status returned Transport closed; npm validators, API tests, web e2e, build, OMO sparkshell and Hermes check-only were used as current evidence."
+    },
+    {
+      "id": "REQ-5-NO-GO-LIVE-CLAIM",
+      "requirement": "No go-live, production approval, payroll execution or external provider readiness is claimed without separate human approval.",
+      "status": "proven_current",
+      "evidence": [
+        "docs/hro-deel-parity/crosswalk-ledger.json",
+        "docs/hro-deel-parity/backend-contract-registry.json",
+        "docs/goal-closeout/hro-deel-parity/hro-l0-w01/command-evidence.json"
+      ],
+      "blocked_claims": [
+        "full Deel parity beyond repo-local crosswalk scope",
+        "payroll execution",
+        "external provider readiness",
+        "production approval",
+        "go-live"
+      ]
+    }
+  ]
+}

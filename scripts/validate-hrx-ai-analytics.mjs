@@ -62,10 +62,10 @@ assert(audit.includes("prompt_hash") && audit.includes("output_hash"), "AI audit
 assert(audit.includes('payload_policy: "metadata_only"'), "AI audit must keep metadata-only payload policy");
 
 const aiUi = read("apps/web/src/people/ai/HRAIAssistant.tsx");
-assert(aiUi.includes("Citations:") && aiUi.includes("Review state:"), "AI assistant UI must show citations and review state");
+assert(aiUi.includes("참고 자료") && aiUi.includes("검토 상태"), "AI assistant UI must show reviewed citation and state labels");
 
 const analyticsUi = read("apps/web/src/people/analytics/HRAnalytics.tsx");
-assert(analyticsUi.includes("Aggregate only") && analyticsUi.includes("row_level_details_included"), "Analytics UI must show aggregate-only privacy state");
+assert(analyticsUi.includes("개별 상세") && analyticsUi.includes("row_level_details_included"), "Analytics UI must show aggregate-only privacy state");
 
 try {
   const chunks = ingestHrxAiSourceChunks({

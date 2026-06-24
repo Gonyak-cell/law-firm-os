@@ -22,9 +22,62 @@ import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repositor
 import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
 import { createHrxMatterWorkloadProjection } from "../../../packages/matter/src/hrx-workload-projection.js";
 import { createHrxAiRoute } from "./routes/hrx/ai.js";
+import { createHrxPayrollRoute } from "./routes/hrx/payroll.js";
+import {
+  MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
+  MATTER_VAULT_REGISTERED_TENANT_ID,
+  listRegisteredAccounts,
+} from "./matter-vault-account-registry.js";
 
-const SYNTHETIC_TENANT = "tenant-a";
+const SYNTHETIC_TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
 export const HRX_RUNTIME_SEED_TENANT_ID = SYNTHETIC_TENANT;
+const REGISTERED_ACCOUNTS = listRegisteredAccounts();
+const SEED_SOURCE_REF = MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE;
+
+function accountEmployeeId(account) {
+  return `emp_${String(account.user_id).replace(/^user_/, "")}`;
+}
+
+function registeredEmployees(tenantId) {
+  return REGISTERED_ACCOUNTS.map((account) => ({
+    tenant_id: tenantId,
+    employee_id: accountEmployeeId(account),
+    display_name: account.display_name,
+    legal_name: account.display_name,
+    work_email: account.email,
+    status: account.status === "active" ? "active" : "inactive",
+    source_ref: SEED_SOURCE_REF,
+  }));
+}
+
+function registeredEmploymentProfiles(tenantId) {
+  return REGISTERED_ACCOUNTS.map((account) => ({
+    tenant_id: tenantId,
+    profile_id: `profile_${account.user_id.replace(/^user_/, "")}`,
+    employee_id: accountEmployeeId(account),
+    employment_type: "full_time",
+    status: account.status === "active" ? "active" : "terminated",
+    title: account.source_title ?? "구성원",
+    org_unit_id: account.group_ids?.[0] ?? "group_matter_vault_users",
+    effective_from: "2026-06-22",
+    source_ref: SEED_SOURCE_REF,
+  }));
+}
+
+function registeredEmployeeUserLinks(tenantId) {
+  return REGISTERED_ACCOUNTS.map((account) => ({
+    tenant_id: tenantId,
+    link_id: `link_${account.user_id.replace(/^user_/, "")}`,
+    employee_id: accountEmployeeId(account),
+    user_id: account.user_id,
+    purpose: "login_mapping",
+    source_ref: SEED_SOURCE_REF,
+  }));
+}
+
+function registeredEmployeeId(index) {
+  return accountEmployeeId(REGISTERED_ACCOUNTS[index] ?? REGISTERED_ACCOUNTS[0]);
+}
 
 function response(status, body) {
   return { status, body };
@@ -101,52 +154,21 @@ export function seedHrxDurableRuntimeStore(store, { tenant_id: tenantId = SYNTHE
   const leaveLedger = createSqlLeaveBalanceLedger({ store });
   const leaveStore = createSqlLeaveRequestStore({ store });
 
-  const employees = [
-    { tenant_id: tenantId, employee_id: "emp-001", display_name: "Ari Kim", status: "active", source_ref: "CMP-R4:runtime-seed" },
-    { tenant_id: tenantId, employee_id: "emp-002", display_name: "Mina Park", status: "on_leave", source_ref: "CMP-R4:runtime-seed" },
-  ];
+  const employees = registeredEmployees(tenantId);
   for (const employee of employees) {
     if (!hasRow(store, "hrx_employees", { tenant_id: employee.tenant_id, employee_id: employee.employee_id })) {
       repository.createEmployee(employee);
     }
   }
 
-  const profiles = [
-    {
-      tenant_id: tenantId,
-      profile_id: "profile-001",
-      employee_id: "emp-001",
-      employment_type: "full_time",
-      status: "active",
-      effective_from: "2026-01-01",
-      source_ref: "CMP-R4:runtime-seed",
-    },
-    {
-      tenant_id: tenantId,
-      profile_id: "profile-002",
-      employee_id: "emp-002",
-      employment_type: "full_time",
-      status: "active",
-      effective_from: "2026-01-01",
-      source_ref: "CMP-R4:runtime-seed",
-    },
-  ];
+  const profiles = registeredEmploymentProfiles(tenantId);
   for (const profile of profiles) {
     if (!hasRow(store, "hrx_employment_profiles", { tenant_id: profile.tenant_id, profile_id: profile.profile_id })) {
       repository.createEmploymentProfile(profile);
     }
   }
 
-  const links = [
-    {
-      tenant_id: tenantId,
-      link_id: "link-emp-001",
-      employee_id: "emp-001",
-      user_id: "hrx-test-user",
-      purpose: "login_mapping",
-      source_ref: "CMP-R4:runtime-seed",
-    },
-  ];
+  const links = registeredEmployeeUserLinks(tenantId);
   for (const link of links) {
     if (!hasRow(store, "hrx_employee_user_links", { tenant_id: link.tenant_id, link_id: link.link_id })) {
       repository.createEmployeeUserLink(link);
@@ -157,7 +179,7 @@ export function seedHrxDurableRuntimeStore(store, { tenant_id: tenantId = SYNTHE
     {
       tenant_id: tenantId,
       document_id: "doc-001",
-      employee_id: "emp-001",
+      employee_id: registeredEmployeeId(0),
       document_type: "policy_ack",
       source_ref: "DMS:hr-policy-ack-001",
       source_provider: "dms",
@@ -170,7 +192,7 @@ export function seedHrxDurableRuntimeStore(store, { tenant_id: tenantId = SYNTHE
     {
       tenant_id: tenantId,
       document_id: "doc-002",
-      employee_id: "emp-002",
+      employee_id: registeredEmployeeId(1),
       document_type: "leave_notice",
       source_ref: "DMS:leave-notice-002",
       source_provider: "dms",
@@ -191,7 +213,7 @@ export function seedHrxDurableRuntimeStore(store, { tenant_id: tenantId = SYNTHE
     {
       tenant_id: tenantId,
       entry_id: "pto-earned-001",
-      employee_id: "emp-001",
+      employee_id: registeredEmployeeId(0),
       policy_id: "pto-us",
       entry_type: "earned",
       amount: 80,
@@ -201,7 +223,7 @@ export function seedHrxDurableRuntimeStore(store, { tenant_id: tenantId = SYNTHE
     {
       tenant_id: tenantId,
       entry_id: "pto-used-002",
-      employee_id: "emp-002",
+      employee_id: registeredEmployeeId(1),
       policy_id: "pto-us",
       entry_type: "used",
       amount: 16,
@@ -219,7 +241,7 @@ export function seedHrxDurableRuntimeStore(store, { tenant_id: tenantId = SYNTHE
     {
       tenant_id: tenantId,
       request_id: "leave-002",
-      employee_id: "emp-002",
+      employee_id: registeredEmployeeId(1),
       policy_id: "pto-us",
       leave_type: "pto",
       amount: 16,
@@ -249,43 +271,15 @@ export function seedHrxDurableRuntimeStore(store, { tenant_id: tenantId = SYNTHE
 
 export function createHrxRuntimeContext({ repository: providedRepository, store } = {}) {
   const repository = providedRepository ?? (store ? createSqlHrxRepository({ store }) : createInMemoryHrxRepository({
-    employees: [
-      { tenant_id: SYNTHETIC_TENANT, employee_id: "emp-001", display_name: "Ari Kim", status: "active" },
-      { tenant_id: SYNTHETIC_TENANT, employee_id: "emp-002", display_name: "Mina Park", status: "on_leave" },
-    ],
-    employment_profiles: [
-      {
-        tenant_id: SYNTHETIC_TENANT,
-        profile_id: "profile-001",
-        employee_id: "emp-001",
-        employment_type: "full_time",
-        status: "active",
-        effective_from: "2026-01-01",
-      },
-      {
-        tenant_id: SYNTHETIC_TENANT,
-        profile_id: "profile-002",
-        employee_id: "emp-002",
-        employment_type: "full_time",
-        status: "active",
-        effective_from: "2026-01-01",
-      },
-    ],
-    employee_user_links: [
-      {
-        tenant_id: SYNTHETIC_TENANT,
-        link_id: "link-emp-001",
-        employee_id: "emp-001",
-        user_id: "hrx-test-user",
-        purpose: "login_mapping",
-      },
-    ],
+    employees: registeredEmployees(SYNTHETIC_TENANT),
+    employment_profiles: registeredEmploymentProfiles(SYNTHETIC_TENANT),
+    employee_user_links: registeredEmployeeUserLinks(SYNTHETIC_TENANT),
   }));
   const documents = store ? createSqlHrxDocumentStore({ store }) : createInMemoryHrxDocumentStore([
     {
       tenant_id: SYNTHETIC_TENANT,
       document_id: "doc-001",
-      employee_id: "emp-001",
+      employee_id: registeredEmployeeId(0),
       document_type: "policy_ack",
       source_ref: "DMS:hr-policy-ack-001",
       source_provider: "dms",
@@ -298,7 +292,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
     {
       tenant_id: SYNTHETIC_TENANT,
       document_id: "doc-002",
-      employee_id: "emp-002",
+      employee_id: registeredEmployeeId(1),
       document_type: "leave_notice",
       source_ref: "DMS:leave-notice-002",
       source_provider: "dms",
@@ -313,7 +307,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
     {
       tenant_id: SYNTHETIC_TENANT,
       entry_id: "pto-earned-001",
-      employee_id: "emp-001",
+      employee_id: registeredEmployeeId(0),
       policy_id: "pto-us",
       entry_type: "earned",
       amount: 80,
@@ -323,7 +317,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
     {
       tenant_id: SYNTHETIC_TENANT,
       entry_id: "pto-used-002",
-      employee_id: "emp-002",
+      employee_id: registeredEmployeeId(1),
       policy_id: "pto-us",
       entry_type: "used",
       amount: 16,
@@ -335,7 +329,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
     {
       tenant_id: SYNTHETIC_TENANT,
       request_id: "leave-002",
-      employee_id: "emp-002",
+      employee_id: registeredEmployeeId(1),
       policy_id: "pto-us",
       leave_type: "pto",
       amount: 16,
@@ -378,7 +372,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
       job_opening_id: "job-001",
       title: "Senior Litigation Associate",
       department_ref: "PracticeGroup:litigation",
-      hiring_manager_employee_id: "emp-001",
+      hiring_manager_employee_id: registeredEmployeeId(0),
       position_count: 2,
       state: "open",
       approval_ref: "Approval:job-001",
@@ -412,7 +406,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
       candidate_id: "cand-001",
       scheduled_for: "2026-07-10T15:00:00.000Z",
       schedule_source_ref: "CalendarEvent:int-001",
-      interviewer_employee_ids: ["emp-001"],
+      interviewer_employee_ids: [registeredEmployeeId(0)],
     }),
   ];
   const offers = [
@@ -431,7 +425,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
     createOnboardingPlan({
       tenant_id: SYNTHETIC_TENANT,
       onboarding_id: "onb-001",
-      employee_id: "emp-002",
+      employee_id: registeredEmployeeId(1),
       start_date: "2026-08-01",
       tasks: [
         { task_id: "policy-ack", title: "Policy acknowledgement", owner_role: "people_ops" },
@@ -445,7 +439,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
     createOffboardingCase({
       tenant_id: SYNTHETIC_TENANT,
       offboarding_id: "off-001",
-      employee_id: "emp-001",
+      employee_id: registeredEmployeeId(0),
       separation_date: "2026-12-31",
       access_revocations: [{ system_ref: "IdP:core", revoked: true }],
       document_returns: [{ document_ref: "DMS:laptop-001", returned: true }],
@@ -500,17 +494,18 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
   const aiRetriever = createHrxPermissionAwareRetriever({ registry: aiSourceRegistry, authz: createSyntheticAiAuthz() });
   const aiReviewQueue = store ? createSqlHrxAiReviewQueue({ store }) : createInMemoryHrxAiReviewQueue();
   const aiRoute = createHrxAiRoute({ retriever: aiRetriever, reviewQueue: aiReviewQueue, audit });
+  const payrollRoute = createHrxPayrollRoute({ audit });
   const matterAssignments = Object.freeze([
     Object.freeze({
       tenant_id: SYNTHETIC_TENANT,
-      employee_id: "emp-001",
+      employee_id: registeredEmployeeId(0),
       matter_id: "matter-001",
       hours: 12.5,
       capacity_pct: 35,
     }),
     Object.freeze({
       tenant_id: SYNTHETIC_TENANT,
-      employee_id: "emp-002",
+      employee_id: registeredEmployeeId(1),
       matter_id: "matter-002",
       hours: 7,
       capacity_pct: 18,
@@ -547,6 +542,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
     aiRetriever,
     aiReviewQueue,
     aiRoute,
+    payrollRoute,
     matterAssignments,
   });
 }
@@ -846,6 +842,16 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         context: actorContext,
         params: { action: "reviews" },
         query,
+        body,
+      });
+    }
+
+    const payrollMatch = pathname.match(/^\/api\/hrx\/payroll(?:\/(preview|approve|export))?$/);
+    if (payrollMatch && method === "POST") {
+      return context.payrollRoute.handle({
+        method,
+        context: actorContext,
+        params: { action: payrollMatch[1] ?? body.action ?? "preview", preview_id: body.preview_id },
         body,
       });
     }

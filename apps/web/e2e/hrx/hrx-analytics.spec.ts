@@ -10,17 +10,19 @@ async function readWebFile(path) {
   return readFile(resolve(root, path), "utf8");
 }
 
-test("HR analytics panel fetches tenant-scoped analytics API without static fallback metrics", async () => {
+test("People summary panel fetches workspace API without static fallback cards", async () => {
   const component = await readWebFile("src/people/analytics/HRAnalytics.tsx");
   const api = await readWebFile("src/people/hrxApiClient.ts");
   const home = await readWebFile("src/people/PeopleHome.tsx");
 
   assert.match(home, /HRAnalytics/);
+  assert.match(home, /people-analytics/);
   assert.match(component, /fetchHrxAnalytics/);
   assert.match(api, /\/api\/hrx\/analytics/);
-  assert.match(component, /Tenant-scoped analytics read model/);
-  assert.match(component, /Aggregate only/);
-  assert.match(component, /row_level_details_included/);
-  assert.match(component, /No static metric fallback is rendered/);
+  assert.match(component, /업무 요약/);
+  assert.match(component, /요약/);
+  assert.match(component, /개별 상세/);
+  assert.match(component, /구성원 정보를 불러올 수 없습니다/);
+  assert.doesNotMatch(component, /People 현황|People 업무 요약/);
   assert.doesNotMatch(component, /mockData|profileRows|matters/);
 });

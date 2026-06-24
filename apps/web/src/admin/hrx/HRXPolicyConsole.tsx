@@ -4,13 +4,21 @@ import { SlidersHorizontal } from "lucide-react";
 import { DataTable, Panel } from "../../components/primitives.jsx";
 import { createHrxPolicyVersion, fetchHrxPolicies } from "../../people/hrxApiClient.ts";
 
+function policyTypeLabel(policy) {
+  const value = policy.policy_type ?? policy.leave_type;
+  if (value === "pto") return "휴가";
+  if (value === "retention") return "보존";
+  if (value === "approval") return "승인";
+  return "정책";
+}
+
 export function HRXPolicyConsole() {
   const [result, setResult] = useState(null);
   const [form, setForm] = useState({
-    policy_id: "policy-console-draft",
-    policy_type: "leave",
-    policy_version: "2026.2",
-    effective_from: "2026-08-01"
+    policy_id: "",
+    policy_type: "",
+    policy_version: "",
+    effective_from: ""
   });
 
   useEffect(() => {
@@ -37,16 +45,16 @@ export function HRXPolicyConsole() {
 
   let body;
   if (result === null) {
-    body = <div className="live-data-state live-data-loading">Loading HRX policies</div>;
+    body = <div className="live-data-state live-data-loading">정책 정보를 불러오는 중입니다</div>;
   } else if (result.kind === "error") {
-    body = <div className="live-data-state live-data-error">Policy API failed. No policy fallback is rendered.</div>;
+    body = <div className="live-data-state live-data-error">정책 정보를 불러오지 못했습니다.</div>;
   } else {
     body = (
       <DataTable
-        columns={["Policy", "Type", "Version", "Effective"]}
-        rows={result.policies.map((policy) => [
-          policy.policy_id,
-          policy.policy_type ?? policy.leave_type ?? "approval",
+        columns={["정책", "유형", "버전", "시작일"]}
+        rows={result.policies.map((policy, index) => [
+          `정책 ${index + 1}`,
+          policyTypeLabel(policy),
           policy.policy_version,
           policy.effective_from
         ])}
@@ -55,25 +63,25 @@ export function HRXPolicyConsole() {
   }
 
   return (
-    <Panel className="people-panel span-2" title="HRX Policy Console" meta="/api/hrx/policies">
+    <Panel id="people-policy" className="people-panel span-2" title="인사 정책" meta="정책 관리">
       <div className="people-panel-kicker">
         <SlidersHorizontal size={15} />
-        Leave, approval, and retention policy versions
+        휴가, 승인, 보존 정책을 관리합니다
       </div>
       <form className="leave-request-form" onSubmit={submit}>
         <label>
-          <span>Policy ID</span>
+          <span>정책 이름</span>
           <input value={form.policy_id} onChange={(event) => setForm({ ...form, policy_id: event.target.value })} />
         </label>
         <label>
-          <span>Type</span>
+          <span>유형</span>
           <input value={form.policy_type} onChange={(event) => setForm({ ...form, policy_type: event.target.value })} />
         </label>
         <label>
-          <span>Version</span>
+          <span>버전</span>
           <input value={form.policy_version} onChange={(event) => setForm({ ...form, policy_version: event.target.value })} />
         </label>
-        <button className="primary-button">Create Version</button>
+        <button className="primary-button">정책 버전 생성</button>
       </form>
       {body}
     </Panel>
