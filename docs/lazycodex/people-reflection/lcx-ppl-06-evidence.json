@@ -1,0 +1,112 @@
+{
+  "schema_version": "lawos.lcx_ppl.evidence_receipt.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "generated_at": "2026-06-24T10:27:52Z",
+  "local_time": "2026-06-24T19:27:52+0900",
+  "scope": [
+    "LCX-PPL-06.01",
+    "LCX-PPL-06.02",
+    "LCX-PPL-06.03",
+    "LCX-PPL-06.04"
+  ],
+  "artifacts": [
+    "packages/hrx/src/legal-people-ethics.js",
+    "packages/hrx/test/legal-people-ethics.test.js",
+    "packages/hrx/src/index.js",
+    "apps/api/src/hrx-runtime-context.js",
+    "apps/api/src/routes/hrx/route-policy-map.js",
+    "apps/api/test/hrx/legal-people-api.test.js",
+    "apps/api/test/hrx/route-authz.test.js",
+    "scripts/validate-hrx-route-authz.mjs",
+    "apps/web/src/people/hrxApiClient.ts",
+    "apps/web/src/people/legal/LegalPeopleWorkspace.tsx",
+    "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+    "apps/web/src/styles.css",
+    "docs/lazycodex/people-reflection/legal-people-ethics-contract.json",
+    "docs/lazycodex/people-reflection/legal-people-ethics-contract.md",
+    "scripts/validate-lcx-ppl-ethics.mjs"
+  ],
+  "commands": [
+    {
+      "command": "node --test packages/hrx/test/legal-people-ethics.test.js",
+      "status": "passed",
+      "summary": "5 focused ethics model tests passed"
+    },
+    {
+      "command": "node --test apps/api/test/hrx/legal-people-api.test.js apps/api/test/hrx/route-authz.test.js",
+      "status": "passed",
+      "summary": "14 focused legal People API/authz tests passed"
+    },
+    {
+      "command": "node --test packages/hrx/test/*.test.js",
+      "status": "passed",
+      "summary": "347 HRX package tests passed"
+    },
+    {
+      "command": "node --test apps/api/test/hrx/*.test.js apps/api/test/hrx-runtime-api.test.js apps/api/test/hrx-durable-runtime.test.js apps/api/test/hrx-audit-write.test.js apps/api/test/hrx-observability.test.js apps/api/test/hrx-step-up.test.js",
+      "status": "passed",
+      "summary": "69 HRX API/runtime tests passed"
+    },
+    {
+      "command": "npm run hrx:authz:validate",
+      "status": "passed",
+      "summary": "30 HRX route policies validated, including legal People ethics"
+    },
+    {
+      "command": "npm run lcx:ppl:ethics:validate",
+      "status": "passed",
+      "summary": "LCX-PPL-06 contract, route, UI markers, read model, and claim boundaries validated"
+    },
+    {
+      "command": "npm run hrx:ui:validate",
+      "status": "passed",
+      "summary": "Existing HRX API-backed UI validator remained green"
+    },
+    {
+      "command": "npm run build",
+      "status": "passed",
+      "summary": "Web production build completed locally"
+    },
+    {
+      "command": "npm run hro:deel-parity:validate",
+      "status": "passed",
+      "summary": "HRO Deel parity validation remained green"
+    },
+    {
+      "command": "npm run sf:client-matter-parity:validate",
+      "status": "passed",
+      "summary": "SF Client/Matter parity validation remained green and production_or_trust_claim stayed false"
+    },
+    {
+      "command": "node -e JSON parse guard && git diff --check",
+      "status": "passed",
+      "summary": "package and LCX-PPL-06 JSON files parse; no whitespace errors"
+    }
+  ],
+  "coverage": {
+    "review_queue_count": 4,
+    "review_states": [
+      "pending_review",
+      "reviewed",
+      "escalated",
+      "blocked"
+    ],
+    "ethical_wall_count": 2,
+    "permission_link_count": 2,
+    "reviewer_receipt_count": 3,
+    "browser_qa_receipt_recorded": false
+  },
+  "claim_boundary": {
+    "allowed_current_claim": "LCX-PPL-06 local ethics, conflict, permission, and reviewer receipt surfaces are implemented and validator-backed.",
+    "ethical_wall_ui_complete": true,
+    "conflict_review_queue_complete": true,
+    "permission_admin_linkage_complete": true,
+    "reviewer_receipt_model_complete": true,
+    "browser_qa_complete": false,
+    "people_legal_relationship_runtime_ready_candidate_complete": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false,
+    "ai_final_decision_allowed": false
+  }
+}

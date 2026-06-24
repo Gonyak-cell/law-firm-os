@@ -1,0 +1,71 @@
+{
+  "schema_version": "lawos.lcx_ppl.evidence_receipt.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "generated_at": "2026-06-24T09:50:23Z",
+  "local_time": "2026-06-24T18:50:23+0900",
+  "scope": [
+    "LCX-PPL-00.01",
+    "LCX-PPL-00.02",
+    "LCX-PPL-00.03",
+    "LCX-PPL-01.01",
+    "LCX-PPL-01.02",
+    "LCX-PPL-01.03"
+  ],
+  "artifacts": [
+    "docs/lazycodex/people-reflection/gap-ledger.md",
+    "docs/lazycodex/people-reflection/current-evidence-baseline.md",
+    "docs/lazycodex/people-reflection/claim-boundary.md",
+    "docs/lazycodex/people-reflection/label-drift-decision.md"
+  ],
+  "changed_files": [
+    "apps/web/src/components/Shell.jsx",
+    "apps/web/src/people/PeopleHome.tsx"
+  ],
+  "commands": [
+    {
+      "command": "npm run hro:deel-parity:validate",
+      "status": "passed",
+      "summary": "HRO Deel parity crosswalk validation passed; screenshots 476; features 10"
+    },
+    {
+      "command": "npm run sf:client-matter-parity:validate",
+      "status": "passed",
+      "summary": "SF Client/Matter parity validation passed; local evidence only; production_or_trust_claim false"
+    },
+    {
+      "command": "npm run hrx:ui:validate",
+      "status": "passed",
+      "summary": "HRX UI API-backed validation passed"
+    },
+    {
+      "command": "npm run build",
+      "status": "passed",
+      "summary": "Vite build passed; 1668 modules transformed"
+    },
+    {
+      "command": "MATTER_UI_URL=http://127.0.0.1:5174 npm run web:e2e",
+      "status": "passed",
+      "summary": "15 node web e2e tests passed"
+    }
+  ],
+  "manual_qa": {
+    "base_url": "http://127.0.0.1:5174/",
+    "route": "/?locale=ko&view=people&data=live&ctx=allow",
+    "label": "AI 검토",
+    "label_count": 1,
+    "ai_panel_text_count": 1,
+    "subtitle_count": 2,
+    "current_url_after_click": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-ai",
+    "horizontal_overflow": false,
+    "console_error_count": 0
+  },
+  "claim_boundary": {
+    "allowed_current_claim": "LCX-PPL-00/01 stabilization passed locally.",
+    "full_lcx_ppl_complete": false,
+    "people_legal_relationship_runtime_ready_candidate_complete": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false,
+    "external_provider_ready": false
+  }
+}

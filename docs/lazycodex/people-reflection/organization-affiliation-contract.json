@@ -1,0 +1,161 @@
+{
+  "schema_version": "lawos.lcx_ppl.organization_affiliation_contract.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "tuw": "LCX-PPL-02.02",
+  "status": "contract_ready_not_runtime_complete",
+  "depends_on": ["LCX-PPL-02.01"],
+  "claim_boundary": {
+    "runtime_ready_candidate_complete": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false,
+    "external_provider_ready": false,
+    "organization_relationship_runtime_complete": false
+  },
+  "organization": {
+    "object_id": "Organization",
+    "required_fields": [
+      "organization_id",
+      "display_name",
+      "organization_type",
+      "status",
+      "jurisdiction",
+      "tenant_scope",
+      "created_at",
+      "updated_at",
+      "audit_ref"
+    ],
+    "organization_types": [
+      "client",
+      "client_affiliate",
+      "law_firm",
+      "opposing_firm",
+      "counterparty_entity",
+      "expert_firm",
+      "court",
+      "arbitration_institution",
+      "regulator",
+      "vendor",
+      "internal_firm_unit"
+    ],
+    "sensitive_fields": [
+      "beneficial_owner_refs",
+      "sanctions_screening_ref",
+      "conflict_flags",
+      "ethical_wall_refs",
+      "billing_profile_ref",
+      "portal_access_policy_ref"
+    ]
+  },
+  "affiliation": {
+    "object_id": "Affiliation",
+    "required_fields": [
+      "affiliation_id",
+      "person_id",
+      "organization_id",
+      "role_title",
+      "role_category",
+      "status",
+      "effective_from",
+      "effective_to",
+      "source_ref",
+      "tenant_scope",
+      "audit_ref"
+    ],
+    "role_categories": [
+      "employee",
+      "partner",
+      "client_executive",
+      "client_legal",
+      "client_billing",
+      "opposing_counsel",
+      "counterparty_representative",
+      "expert",
+      "witness",
+      "court_official",
+      "arbitrator",
+      "regulator",
+      "vendor_contact"
+    ],
+    "rules": [
+      "A person may have more than one active affiliation when source evidence supports it.",
+      "Historical affiliations must be retained for conflict and relationship review.",
+      "Affiliations must be tenant-scoped and audit-linked.",
+      "Affiliation changes touching conflict, billing, portal access, or ethical-wall state require human review evidence."
+    ]
+  },
+  "role_history": {
+    "object_id": "RoleHistory",
+    "required_fields": [
+      "role_history_id",
+      "person_id",
+      "organization_id",
+      "affiliation_id",
+      "previous_role_title",
+      "new_role_title",
+      "changed_at",
+      "changed_by",
+      "reason_code",
+      "audit_ref"
+    ],
+    "reason_codes": [
+      "new_affiliation",
+      "title_change",
+      "department_change",
+      "relationship_owner_change",
+      "billing_contact_change",
+      "portal_access_review",
+      "conflict_review_update",
+      "ethical_wall_review_update",
+      "historical_correction"
+    ]
+  },
+  "relationship_types": [
+    {
+      "type_id": "person_current_affiliation",
+      "direction": "person_to_organization",
+      "review_required": false
+    },
+    {
+      "type_id": "person_historical_affiliation",
+      "direction": "person_to_organization",
+      "review_required": false
+    },
+    {
+      "type_id": "organization_parent_subsidiary",
+      "direction": "organization_to_organization",
+      "review_required": true
+    },
+    {
+      "type_id": "organization_related_party",
+      "direction": "organization_to_organization",
+      "review_required": true
+    },
+    {
+      "type_id": "organization_beneficial_owner",
+      "direction": "organization_to_person",
+      "review_required": true
+    },
+    {
+      "type_id": "organization_conflict_subject",
+      "direction": "organization_to_matter",
+      "review_required": true
+    }
+  ],
+  "master_data_alignment": {
+    "existing_primitives": ["Party", "Entity", "Organization", "Person", "Relationship", "ContactPoint"],
+    "required_behavior": [
+      "LCX-PPL Organization must map to canonical Master Data organization/entity records.",
+      "LCX-PPL Affiliation must map to Master Data relationship semantics without exposing raw restricted values.",
+      "Runtime implementation must remain permission-aware and audit-linked."
+    ]
+  },
+  "verification_requirements": [
+    "Organization, Affiliation, and RoleHistory must each define required fields.",
+    "Organization must include client, opposing firm, counterparty, expert firm, court, arbitration, regulator, vendor, and internal unit types.",
+    "Affiliation must support multiple active and historical roles.",
+    "High-risk relationship types must require review.",
+    "Production, go-live, and enterprise trust claims must remain false."
+  ]
+}
+

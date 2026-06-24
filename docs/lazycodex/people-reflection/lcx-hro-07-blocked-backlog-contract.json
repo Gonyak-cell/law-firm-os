@@ -1,0 +1,114 @@
+{
+  "schema_version": "lawos.lcx_hro.blocked_backlog_contract.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "scope": [
+    "LCX-HRO-07.01",
+    "LCX-HRO-07.02",
+    "LCX-HRO-07.03",
+    "LCX-HRO-07.04"
+  ],
+  "status": "local_blocked_contract_backlog_ready",
+  "source_plan": "docs/lazycodex/people-reflection/lcx-ppl-tuw-plan.md",
+  "source_hro_registry": "docs/hro-deel-parity/backend-contract-registry.json",
+  "blocked_surface_registry": {
+    "blocked_ui_sections": [
+      "people-workforce-planning",
+      "people-bulk-operations",
+      "people-job-requests",
+      "people-referrals",
+      "people-benefits",
+      "people-equity",
+      "people-immigration",
+      "people-background-checks",
+      "people-engagement",
+      "people-learning",
+      "people-performance",
+      "people-surveys",
+      "people-it-assets",
+      "people-apps",
+      "people-notification-admin"
+    ],
+    "fake_working_ui_allowed": false,
+    "route_backed_runtime_claim_allowed": false
+  },
+  "contract_stubs": {
+    "workforce_bulk": {
+      "feature_id": "workforce-planning-bulk-edit",
+      "routes": [
+        "GET /api/hrx/workforce/plans",
+        "POST /api/hrx/workforce/plans/:plan_id/preview",
+        "POST /api/hrx/workforce/bulk-operations/preview",
+        "POST /api/hrx/workforce/bulk-operations/:operation_id/commit"
+      ],
+      "domain_objects": [
+        "WorkforcePlan",
+        "WorkforceChangeSet",
+        "BulkOperationPreview",
+        "BulkOperationAuditReceipt"
+      ],
+      "required_boundaries": [
+        "diff preview before mutation",
+        "owner approval before commit",
+        "cross-tenant employee movement blocked",
+        "durable audit event required"
+      ]
+    },
+    "performance_learning_engagement": {
+      "feature_id": "engagement-learning-performance",
+      "routes": [
+        "GET /api/hrx/performance/reviews",
+        "POST /api/hrx/performance/reviews/:review_id/submit",
+        "GET /api/hrx/learning/assignments",
+        "POST /api/hrx/engagement/surveys/:survey_id/responses"
+      ],
+      "domain_objects": [
+        "PerformanceReview",
+        "LearningAssignment",
+        "EngagementSurvey",
+        "SurveyResponse",
+        "HumanReviewReceipt"
+      ],
+      "required_boundaries": [
+        "AI cannot finalize performance ratings",
+        "employee consent and retention policy required for surveys",
+        "learning completion evidence must be source-referenced",
+        "manager calibration and appeal receipts required"
+      ]
+    }
+  },
+  "external_owner_gate": {
+    "required": true,
+    "domains": [
+      "benefits",
+      "equity",
+      "immigration",
+      "background_checks"
+    ],
+    "missing_receipts": [
+      "legal owner approval",
+      "provider due diligence",
+      "jurisdiction matrix",
+      "employee consent model",
+      "retention and deletion policy",
+      "DPA or equivalent processor agreement"
+    ],
+    "blocked_claims": [
+      "provider integration ready",
+      "employee benefits ready",
+      "equity administration ready",
+      "immigration workflow ready",
+      "background check workflow ready"
+    ]
+  },
+  "claim_boundary": {
+    "blocked_hro_surface_registry_complete": true,
+    "workforce_bulk_contract_stub_complete": true,
+    "performance_learning_contract_stub_complete": true,
+    "external_owner_gate_pack_complete": true,
+    "runtime_implementation_complete": false,
+    "ui_exposure_allowed": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false
+  }
+}

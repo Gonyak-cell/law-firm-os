@@ -1,0 +1,256 @@
+{
+  "schema_version": "lawos.lcx_ppl.browser_qa_receipt.v0.1",
+  "program": "LCX-PPL Full Reflection",
+  "receipt_date": "2026-06-24",
+  "scope": {
+    "lcx_qa_08_browser_qa_complete": true,
+    "local_runtime_ready_candidate_evidence": true,
+    "browser_driven_local_surface": true,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "enterprise_trust_claim": false,
+    "external_provider_ready_claim": false,
+    "legal_owner_approved_claim": false,
+    "ai_final_decision_allowed": false
+  },
+  "environment": {
+    "web_origin": "http://127.0.0.1:5178",
+    "api_origin": "http://127.0.0.1:4191",
+    "api_health": "http://127.0.0.1:4191/api/health",
+    "temp_store_dir": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-lcx-ppl-browser-qa-ZwpRwb",
+    "managed_processes_started": [
+      "api",
+      "web"
+    ]
+  },
+  "routes": [
+    {
+      "label": "People Directory",
+      "path": "/?view=people&ctx=allow#people-directory"
+    },
+    {
+      "label": "People Relationships",
+      "path": "/?view=people&ctx=allow#people-relationships"
+    },
+    {
+      "label": "People Conflicts And Walls",
+      "path": "/?view=people&ctx=allow#people-conflicts"
+    },
+    {
+      "label": "People Permission Linkage",
+      "path": "/?view=people&ctx=allow#people-admin"
+    },
+    {
+      "label": "Client People Backlinks",
+      "path": "/?view=clients&ctx=allow#client-contacts"
+    },
+    {
+      "label": "Matter People Backlinks",
+      "path": "/?view=matters&ctx=allow#matter-team"
+    }
+  ],
+  "screenshots": {
+    "peopleDirectory": "docs/lazycodex/people-reflection/artifacts/lcx-qa-08/browser-qa-people-directory.png",
+    "peopleRelationships": "docs/lazycodex/people-reflection/artifacts/lcx-qa-08/browser-qa-people-relationships.png",
+    "peopleConflicts": "docs/lazycodex/people-reflection/artifacts/lcx-qa-08/browser-qa-people-conflicts.png",
+    "peopleAdmin": "docs/lazycodex/people-reflection/artifacts/lcx-qa-08/browser-qa-people-admin.png",
+    "clientBacklinks": "docs/lazycodex/people-reflection/artifacts/lcx-qa-08/browser-qa-client-backlinks.png",
+    "matterBacklinks": "docs/lazycodex/people-reflection/artifacts/lcx-qa-08/browser-qa-matter-backlinks.png"
+  },
+  "summary": {
+    "route_count": 6,
+    "check_count": 33,
+    "passed_count": 33,
+    "failed_count": 0
+  },
+  "checks": [
+    {
+      "label": "Sidebar defaults expanded",
+      "selector": ".app-frame",
+      "attribute": "data-sidebar-state",
+      "expected": "expanded",
+      "actual": "expanded",
+      "passed": true
+    },
+    {
+      "label": "Top Client/Matter/People/Vault axis nav visible",
+      "selector": "[data-product-axis-nav=\"top-header\"]",
+      "passed": true
+    },
+    {
+      "label": "Legal People runtime workspace visible",
+      "selector": "[data-lcx-ppl-05-ui=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People directory panel visible",
+      "selector": "#people-directory",
+      "passed": true
+    },
+    {
+      "label": "People type filters visible",
+      "selector": ".legal-people-type-tabs",
+      "passed": true
+    },
+    {
+      "label": "Legal People directory rows visible",
+      "selector": ".legal-people-row",
+      "min": 5,
+      "count": 9,
+      "passed": true
+    },
+    {
+      "label": "People detail workspace visible",
+      "selector": "#people-detail-workspace",
+      "passed": true
+    },
+    {
+      "label": "People detail renders audit and relationship fields",
+      "selector": "#people-detail-workspace",
+      "expected": "/감사 요약|제한 관계/",
+      "passed": true
+    },
+    {
+      "label": "People relationship panel visible",
+      "selector": "#people-relationship-panel",
+      "passed": true
+    },
+    {
+      "label": "People relationship rows visible",
+      "selector": ".legal-relationship-row",
+      "min": 1,
+      "count": 1,
+      "passed": true
+    },
+    {
+      "label": "Relationship workspace visible",
+      "selector": "[data-lcx-ppl-05-ui=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People relationship mode title visible",
+      "selector": "#people-directory",
+      "expected": "/People 관계망|관계 피벗/",
+      "passed": true
+    },
+    {
+      "label": "Relationship mode People rows visible",
+      "selector": ".legal-people-row",
+      "min": 2,
+      "count": 9,
+      "passed": true
+    },
+    {
+      "label": "Relationship panel visible in relationship mode",
+      "selector": "#people-relationship-panel",
+      "passed": true
+    },
+    {
+      "label": "Relationship mode rows visible",
+      "selector": ".legal-relationship-row",
+      "min": 1,
+      "count": 1,
+      "passed": true
+    },
+    {
+      "label": "Conflict workspace visible",
+      "selector": "[data-lcx-ppl-05-ui=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Conflict review queue marker visible",
+      "selector": "[data-lcx-ppl-06-conflict-review-queue=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Ethical wall UI marker visible",
+      "selector": "[data-lcx-ppl-06-ethical-wall-ui=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Reviewer receipt marker visible",
+      "selector": "[data-lcx-ppl-06-reviewer-receipts=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Ethics and wall rows visible",
+      "selector": ".legal-ethics-row",
+      "min": 2,
+      "count": 3,
+      "passed": true
+    },
+    {
+      "label": "Human review boundary visible",
+      "selector": "#people-conflict-review-queue",
+      "expected": "/사람 검토|검토 대기|상향 검토/",
+      "passed": true
+    },
+    {
+      "label": "People permission admin workspace visible",
+      "selector": "[data-sf-b-w06-admin-setup=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People sensitivity permission linkage visible",
+      "selector": "[data-lcx-ppl-06-permission-linkage=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Reviewer receipt permission linkage visible",
+      "selector": "[data-lcx-ppl-06-permission-receipt-link=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Reviewer receipt count visible",
+      "selector": "[data-lcx-ppl-06-permission-receipt-link=\"true\"]",
+      "expected": "/건 연결됨/",
+      "passed": true
+    },
+    {
+      "label": "Client contacts route-backed section visible",
+      "selector": "[data-crm-contacts-read=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client People backlink surface visible",
+      "selector": "[data-lcx-ppl-client-backlink=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client backlink People rows visible",
+      "selector": ".legal-people-backlink-row",
+      "min": 1,
+      "count": 3,
+      "passed": true
+    },
+    {
+      "label": "Client backlink copy visible",
+      "selector": "[data-lcx-ppl-client-backlink=\"true\"]",
+      "expected": "/법률 People 연결|Client 연락처/",
+      "passed": true
+    },
+    {
+      "label": "Matter team section visible",
+      "selector": "#matter-team",
+      "passed": true
+    },
+    {
+      "label": "Matter People backlink surface visible",
+      "selector": "[data-lcx-ppl-matter-backlink=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter backlink People rows visible",
+      "selector": ".legal-people-backlink-row",
+      "min": 1,
+      "count": 6,
+      "passed": true
+    },
+    {
+      "label": "Matter backlink copy visible",
+      "selector": "[data-lcx-ppl-matter-backlink=\"true\"]",
+      "expected": "/Matter 참여자|외부 관계자/",
+      "passed": true
+    }
+  ]
+}

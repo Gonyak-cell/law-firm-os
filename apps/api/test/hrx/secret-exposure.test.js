@@ -15,6 +15,7 @@ const HRX_AUTH_HEADERS = Object.freeze({
     "hrx.candidate.read",
     "hrx.analytics.read",
     "hrx.audit.read",
+    "hrx.legal_people.read",
   ].join(","),
   "x-lawos-hrx-step-up": JSON.stringify({
     tenant_id: "tenant-a",
@@ -82,6 +83,8 @@ test("HRX API responses omit secret and raw sensitive payload fields", async () 
     "/api/hrx/employees/emp-001",
     "/api/hrx/documents?employee_id=emp-001",
     "/api/hrx/candidate/portal?candidate_id=cand-001",
+    "/api/hrx/legal-people/search?type_id=client_contact",
+    "/api/hrx/legal-people/person_client_contact_001",
     "/api/hrx/analytics",
     "/api/hrx/audit",
   ];

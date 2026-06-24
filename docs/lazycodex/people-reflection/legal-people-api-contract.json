@@ -1,0 +1,75 @@
+{
+  "schema_version": "lawos.lcx_ppl.legal_people_api_contract.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "scope": [
+    "LCX-PPL-04.01",
+    "LCX-PPL-04.02",
+    "LCX-PPL-04.03",
+    "LCX-PPL-04.04"
+  ],
+  "status": "local_runtime_api_ready",
+  "source": "packages/hrx/src/legal-people-api.js",
+  "runtime": "apps/api/src/hrx-runtime-context.js",
+  "route_policy": "apps/api/src/routes/hrx/route-policy-map.js",
+  "tests": [
+    "packages/hrx/test/legal-people-api.test.js",
+    "apps/api/test/hrx/legal-people-api.test.js"
+  ],
+  "endpoints": [
+    "GET /api/hrx/legal-people/search",
+    "GET /api/hrx/legal-people/:person_id",
+    "GET /api/hrx/legal-people/relationships"
+  ],
+  "filters": [
+    "query",
+    "type_id",
+    "organization_id",
+    "client_id",
+    "matter_id",
+    "status",
+    "target_type",
+    "target_id",
+    "relationship_type"
+  ],
+  "permission_model": {
+    "trusted_context_source": "x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role after HRX authz",
+    "required_scope": "hrx.legal_people.read",
+    "privileged_roles": [
+      "security_admin",
+      "legal_ops",
+      "conflicts_reviewer",
+      "matter_admin",
+      "responsible_attorney"
+    ],
+    "restricted_actor_behavior": [
+      "Sensitive person refs are omitted.",
+      "Restricted relationship target refs are redacted.",
+      "Conflict and ethical-wall details remain review markers unless privileged.",
+      "Raw contact values and provider payloads are never included."
+    ]
+  },
+  "claim_boundary": {
+    "people_search_api_complete": true,
+    "people_detail_api_complete": true,
+    "relationship_api_complete": true,
+    "permission_aware_api_response_complete": true,
+    "ui_reflection_complete": false,
+    "browser_qa_complete": false,
+    "runtime_ready_candidate_complete": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false,
+    "raw_contact_values_included": false,
+    "provider_payload_included": false,
+    "ai_final_decision_allowed": false
+  },
+  "verification_requirements": [
+    "People search supports type, organization, Client, Matter, status, and text filters.",
+    "People detail returns profile, affiliations, Client refs, Matter refs, relationships, conflict refs, ethical-wall refs, and audit summary.",
+    "Relationship API supports person, Client, Matter, Organization, and relationship-type pivots.",
+    "HRX route policy map requires hrx.legal_people.read and fails closed for missing scope.",
+    "Restricted actors cannot view sensitive refs or restricted relationship target refs.",
+    "Production, go-live, enterprise trust, UI reflection, browser QA, and full runtime-ready candidate claims remain false."
+  ]
+}
+

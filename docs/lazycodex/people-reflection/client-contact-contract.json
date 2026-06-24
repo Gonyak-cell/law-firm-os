@@ -1,0 +1,172 @@
+{
+  "schema_version": "lawos.lcx_ppl.client_contact_contract.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "tuw": "LCX-PPL-02.04",
+  "status": "contract_ready_not_runtime_complete",
+  "depends_on": ["LCX-PPL-02.01", "LCX-PPL-02.02", "LCX-PPL-02.03"],
+  "claim_boundary": {
+    "runtime_ready_candidate_complete": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false,
+    "client_contact_runtime_complete": false,
+    "portal_access_runtime_complete": false
+  },
+  "client_contact": {
+    "object_id": "ClientContact",
+    "required_fields": [
+      "client_contact_id",
+      "client_id",
+      "person_id",
+      "organization_id",
+      "affiliation_id",
+      "contact_role",
+      "decision_role",
+      "relationship_owner_person_id",
+      "status",
+      "portal_access_state",
+      "billing_contact_state",
+      "tenant_scope",
+      "audit_ref"
+    ],
+    "contact_roles": [
+      "general_contact",
+      "legal_team",
+      "decision_maker",
+      "billing_contact",
+      "business_sponsor",
+      "technical_contact",
+      "compliance_contact",
+      "portal_user",
+      "former_contact"
+    ],
+    "decision_roles": [
+      "none",
+      "influencer",
+      "recommender",
+      "approver",
+      "signatory",
+      "billing_approver",
+      "portal_admin"
+    ],
+    "statuses": [
+      "proposed",
+      "active",
+      "inactive",
+      "former",
+      "review_required",
+      "blocked"
+    ]
+  },
+  "client_contact_ledger": {
+    "object_id": "ClientContactLedger",
+    "required_fields": [
+      "ledger_id",
+      "client_id",
+      "person_id",
+      "change_type",
+      "previous_state_ref",
+      "new_state_ref",
+      "changed_by",
+      "changed_at",
+      "review_state",
+      "audit_ref"
+    ],
+    "change_types": [
+      "created",
+      "role_changed",
+      "relationship_owner_changed",
+      "billing_contact_state_changed",
+      "portal_access_requested",
+      "portal_access_reviewed",
+      "portal_access_revoked",
+      "deactivated",
+      "merged",
+      "historical_correction"
+    ],
+    "review_states": [
+      "not_required",
+      "pending_review",
+      "approved",
+      "rejected",
+      "escalated",
+      "blocked"
+    ]
+  },
+  "portal_access_boundary": {
+    "object_id": "ClientPortalAccessBoundary",
+    "required_fields": [
+      "portal_access_state",
+      "client_id",
+      "person_id",
+      "allowed_matter_ids",
+      "allowed_document_scope",
+      "reviewer_person_id",
+      "reviewed_at",
+      "audit_ref"
+    ],
+    "states": [
+      "not_requested",
+      "requested",
+      "review_required",
+      "approved_limited",
+      "revoked",
+      "blocked"
+    ],
+    "rules": [
+      "Portal access is never granted by contact creation alone.",
+      "Portal access requires explicit reviewer evidence.",
+      "Client-visible matter/document scope must be allowlisted.",
+      "Portal access changes must append audit evidence and remain tenant-scoped."
+    ]
+  },
+  "backlink_requirements": [
+    {
+      "source_surface": "Client detail",
+      "target_surface": "People detail",
+      "required_behavior": "Client detail can list related ClientContact People records and open People detail without exposing restricted fields."
+    },
+    {
+      "source_surface": "People detail",
+      "target_surface": "Client detail",
+      "required_behavior": "People detail can list related Clients, contact roles, relationship owner, portal access state, and billing contact state."
+    },
+    {
+      "source_surface": "Matter detail",
+      "target_surface": "People detail",
+      "required_behavior": "Matter participants can resolve to People records while preserving representation side and access scope."
+    }
+  ],
+  "crm_alignment": {
+    "existing_surfaces": [
+      "Client accounts",
+      "Client contacts",
+      "Account-contact relationship read",
+      "Contact create",
+      "Contact patch",
+      "Duplicate merge proposal review"
+    ],
+    "required_behavior": [
+      "CRM contact records must be resolvable to legal People person_id where source evidence exists.",
+      "ClientContact must not create portal access or billing authority without explicit review state.",
+      "Duplicate/merge activity must preserve audit and rollback references."
+    ]
+  },
+  "audit_events": [
+    "people.client_contact.created",
+    "people.client_contact.role_changed",
+    "people.client_contact.owner_changed",
+    "people.client_contact.portal_access_requested",
+    "people.client_contact.portal_access_reviewed",
+    "people.client_contact.portal_access_revoked",
+    "people.client_contact.deactivated"
+  ],
+  "verification_requirements": [
+    "ClientContact must link client_id, person_id, organization_id, affiliation_id, role, decision role, relationship owner, portal state, billing state, tenant scope, and audit ref.",
+    "Portal access must be review-gated and never implied by contact creation.",
+    "Client detail, People detail, and Matter detail backlink requirements must be recorded.",
+    "CRM alignment must preserve contact create/patch/merge audit and rollback boundaries.",
+    "Production, go-live, enterprise trust, and portal runtime claims must remain false."
+  ]
+}
+

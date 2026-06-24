@@ -1,0 +1,78 @@
+{
+  "schema_version": "lawos.lcx_ppl.relationship_ledger_contract.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "scope": [
+    "LCX-PPL-03.01",
+    "LCX-PPL-03.02",
+    "LCX-PPL-03.03",
+    "LCX-PPL-03.04"
+  ],
+  "status": "local_runtime_repository_foundation_ready",
+  "source": "packages/hrx/src/legal-people-relationship-ledger.js",
+  "test": "packages/hrx/test/legal-people-relationship-ledger.test.js",
+  "claim_boundary": {
+    "relationship_repository_local_ready": true,
+    "api_routes_complete": false,
+    "ui_reflection_complete": false,
+    "browser_qa_complete": false,
+    "runtime_ready_candidate_complete": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false,
+    "ai_final_decision_allowed": false
+  },
+  "runtime_objects": [
+    "LegalPeopleRelationship",
+    "ConflictReference",
+    "EthicalWallReference",
+    "LegalPeopleAuditEvent",
+    "LegalPeopleRelationshipRepository"
+  ],
+  "relationship_types": [
+    "person_to_organization_affiliation",
+    "person_to_client_contact",
+    "person_to_matter_participation",
+    "person_to_person_relationship",
+    "person_to_document_reference",
+    "person_to_conflict_subject",
+    "person_to_ethical_wall_membership"
+  ],
+  "seed_coverage": [
+    "internal_lawyer_to_internal_unit",
+    "client_contact_to_client",
+    "opposing_counsel_to_matter",
+    "expert_witness_to_document",
+    "court_actor_to_matter",
+    "regulator_contact_to_matter",
+    "counterparty_conflict_reference",
+    "internal_lawyer_ethical_wall_reference"
+  ],
+  "audit_actions": [
+    "people.relationship.created",
+    "people.relationship.updated",
+    "people.relationship.blocked",
+    "people.conflict_reference.created",
+    "people.ethical_wall_reference.created"
+  ],
+  "privacy_guards": [
+    "client_name",
+    "raw_contact_value",
+    "raw_email",
+    "raw_phone",
+    "raw_address",
+    "raw_document_text",
+    "storage_path",
+    "provider_payload",
+    "credential",
+    "token"
+  ],
+  "verification_requirements": [
+    "Repository can store and query relationships by tenant, person, target, and relationship type.",
+    "Repository rejects raw client/contact/document/provider/credential fields.",
+    "Conflict and ethical-wall references require human review and never allow AI-only final decisions.",
+    "Relationship, conflict, and wall writes append audit events.",
+    "Seed fixture covers internal lawyer, client contact, opposing counsel, expert/witness, court actor, regulator contact, counterparty conflict, and ethical-wall references.",
+    "Production, go-live, enterprise trust, browser QA, UI reflection, and full runtime-ready candidate claims remain false."
+  ]
+}
+

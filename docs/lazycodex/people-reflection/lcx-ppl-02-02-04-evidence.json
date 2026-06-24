@@ -1,0 +1,80 @@
+{
+  "schema_version": "lawos.lcx_ppl.evidence_receipt.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "generated_at": "2026-06-24T09:57:19Z",
+  "local_time": "2026-06-24T18:57:19+0900",
+  "scope": [
+    "LCX-PPL-02.02",
+    "LCX-PPL-02.03",
+    "LCX-PPL-02.04"
+  ],
+  "artifacts": [
+    "docs/lazycodex/people-reflection/organization-affiliation-contract.json",
+    "docs/lazycodex/people-reflection/organization-affiliation-contract.md",
+    "docs/lazycodex/people-reflection/matter-participation-contract.json",
+    "docs/lazycodex/people-reflection/matter-participation-contract.md",
+    "docs/lazycodex/people-reflection/client-contact-contract.json",
+    "docs/lazycodex/people-reflection/client-contact-contract.md",
+    "scripts/validate-lcx-ppl-legal-people-contract.mjs"
+  ],
+  "commands": [
+    {
+      "command": "npm run lcx:ppl:contract:validate",
+      "status": "passed",
+      "summary": "LCX-PPL-02.01 through LCX-PPL-02.04 contracts validated"
+    },
+    {
+      "command": "node -e JSON parse guard",
+      "status": "passed",
+      "summary": "new contract JSON files parse"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "no whitespace errors"
+    },
+    {
+      "command": "npm run hro:deel-parity:validate",
+      "status": "passed",
+      "summary": "HRO Deel parity validation remained green"
+    },
+    {
+      "command": "npm run sf:client-matter-parity:validate",
+      "status": "passed",
+      "summary": "SF Client/Matter parity validation remained green"
+    },
+    {
+      "command": "npm run hrx:ui:validate",
+      "status": "passed",
+      "summary": "HRX UI validation remained green"
+    }
+  ],
+  "coverage": {
+    "organization_type_count": 11,
+    "matter_role_count": 12,
+    "client_contact_role_count": 9,
+    "representation_sides": [
+      "firm_internal",
+      "client_side",
+      "adverse_side",
+      "neutral_expert",
+      "tribunal_or_regulator"
+    ],
+    "backlink_sources": [
+      "Client detail",
+      "People detail",
+      "Matter detail"
+    ]
+  },
+  "claim_boundary": {
+    "allowed_current_claim": "LCX-PPL-02.02 through LCX-PPL-02.04 legal People domain contracts are locally validated.",
+    "legal_people_relationship_ledger_runtime_complete": false,
+    "legal_people_apis_complete": false,
+    "legal_people_ui_reflection_complete": false,
+    "people_legal_relationship_runtime_ready_candidate_complete": false,
+    "client_portal_access_runtime_complete": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false
+  }
+}

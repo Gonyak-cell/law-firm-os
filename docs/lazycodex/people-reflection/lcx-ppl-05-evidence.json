@@ -1,0 +1,90 @@
+{
+  "schema_version": "lawos.lcx_ppl.evidence_receipt.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "generated_at": "2026-06-24T10:20:18Z",
+  "local_time": "2026-06-24T19:20:18+0900",
+  "scope": [
+    "LCX-PPL-05.01",
+    "LCX-PPL-05.02",
+    "LCX-PPL-05.03",
+    "LCX-PPL-05.04",
+    "LCX-PPL-05.05"
+  ],
+  "artifacts": [
+    "apps/web/src/components/Shell.jsx",
+    "apps/web/src/people/PeopleHome.tsx",
+    "apps/web/src/people/hrxApiClient.ts",
+    "apps/web/src/people/legal/LegalPeopleWorkspace.tsx",
+    "apps/web/src/components/ClientsSurface.jsx",
+    "apps/web/src/components/MattersSurface.jsx",
+    "apps/web/src/styles.css",
+    "docs/lazycodex/people-reflection/legal-people-ui-contract.json",
+    "docs/lazycodex/people-reflection/legal-people-ui-contract.md",
+    "scripts/validate-lcx-ppl-ui.mjs",
+    "scripts/validate-hrx-ui-api-backed.mjs"
+  ],
+  "commands": [
+    {
+      "command": "npm run lcx:ppl:ui:validate",
+      "status": "passed",
+      "summary": "People navigation, directory, detail, relationship panel, Client backlink, and Matter backlink markers validated"
+    },
+    {
+      "command": "npm run lcx:ppl:api:validate",
+      "status": "passed",
+      "summary": "LCX-PPL-04 API contract remained valid"
+    },
+    {
+      "command": "npm run hrx:ui:validate",
+      "status": "passed",
+      "summary": "Existing HRX API-backed UI validator remained green"
+    },
+    {
+      "command": "npm run hro:deel-parity:validate",
+      "status": "passed",
+      "summary": "HRO Deel parity validation remained green"
+    },
+    {
+      "command": "npm run sf:client-matter-parity:validate",
+      "status": "passed",
+      "summary": "SF Client/Matter parity validation remained green and production_or_trust_claim stayed false"
+    },
+    {
+      "command": "npm run build",
+      "status": "passed",
+      "summary": "Web production build completed locally"
+    },
+    {
+      "command": "node -e JSON parse guard && git diff --check",
+      "status": "passed",
+      "summary": "package and LCX-PPL-05 JSON files parse; no whitespace errors"
+    }
+  ],
+  "coverage": {
+    "people_nav_sections": [
+      "people-directory",
+      "people-relationships",
+      "people-conflicts",
+      "people-members"
+    ],
+    "legal_people_api_bindings": 3,
+    "client_backlink_seed_pivot": "client_lcx_001",
+    "matter_backlink_seed_pivot": "matter_lcx_001",
+    "browser_qa_receipt_recorded": false
+  },
+  "claim_boundary": {
+    "allowed_current_claim": "LCX-PPL-05 local UI reflection is implemented and validator-backed.",
+    "people_navigation_ia_complete": true,
+    "legal_people_directory_ui_complete": true,
+    "people_detail_workspace_complete": true,
+    "relationship_panel_complete": true,
+    "client_matter_backlinks_complete": true,
+    "legal_people_ui_reflection_complete": true,
+    "browser_qa_complete": false,
+    "people_legal_relationship_runtime_ready_candidate_complete": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false,
+    "ai_final_decision_allowed": false
+  }
+}

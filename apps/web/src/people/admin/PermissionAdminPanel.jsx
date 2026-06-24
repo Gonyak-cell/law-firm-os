@@ -16,6 +16,7 @@ import {
   patchPermissionSet,
   revokePermissionSetAssignment
 } from "../../data/apiClient.js";
+import { fetchLegalPeopleEthics } from "../hrxApiClient.ts";
 
 function outcomeLabel(outcome) {
   if (outcome === "owner_blocked") return "승인 대기";
@@ -72,6 +73,7 @@ export function PermissionAdminPanel() {
   const [fields, setFields] = useState([]);
   const [connectedApps, setConnectedApps] = useState([]);
   const [auditRows, setAuditRows] = useState([]);
+  const [ethicsResult, setEthicsResult] = useState(null);
   const [results, setResults] = useState({});
 
   useEffect(() => {
@@ -82,8 +84,9 @@ export function PermissionAdminPanel() {
       fetchPermissionAssignments(),
       fetchObjectManagerObjects(),
       fetchConnectedApps(),
-      fetchAdminPermissionAudit()
-    ]).then(async ([sets, assignmentResult, objectResult, appResult, auditResult]) => {
+      fetchAdminPermissionAudit(),
+      fetchLegalPeopleEthics()
+    ]).then(async ([sets, assignmentResult, objectResult, appResult, auditResult, ethics]) => {
       if (cancelled) return;
       const objectName = objectResult.kind === "data" ? objectResult.items.find((item) => item.object_name === activeObject)?.object_name ?? objectResult.items[0]?.object_name ?? "Client" : activeObject;
       const fieldResult = await fetchObjectManagerFields({ objectName });
@@ -93,6 +96,7 @@ export function PermissionAdminPanel() {
       setObjects(objectResult.kind === "data" ? objectResult.items : []);
       setConnectedApps(appResult.kind === "data" ? appResult.items : []);
       setAuditRows(auditResult.kind === "data" ? auditResult.items : []);
+      setEthicsResult(ethics);
       setFields(fieldResult.kind === "data" ? fieldResult.items : []);
       setActiveObject(objectName);
       setLoading(false);
@@ -106,6 +110,8 @@ export function PermissionAdminPanel() {
   const activeAssignmentId = assignments[0]?.assignment_id ?? "permission_assignment_reviewer_seed";
   const activeField = useMemo(() => fields.find((field) => field.field_name === "status") ?? fields[0], [fields]);
   const activeConnectedAppId = connectedApps[0]?.app_id ?? "connected_app_microsoft_graph";
+  const ethicsPermissionLinks = ethicsResult?.kind === "data" ? ethicsResult.permission_links : [];
+  const ethicsReceiptCount = ethicsResult?.kind === "data" ? ethicsResult.reviewer_receipts.length : 0;
 
   async function runAction(key, action) {
     const result = await action();
@@ -196,6 +202,26 @@ export function PermissionAdminPanel() {
         <div className={statusClass(results.revoke)} data-sf-b-w06-revoke-owner-blocked-result="true">
           <strong>회수 요청</strong>
           {resultText(results.revoke)}
+        </div>
+      </Panel>
+
+      <Panel title="People 민감도 연결" meta={`${ethicsPermissionLinks.length}개`} className="people-admin-panel">
+        <div className="people-panel-kicker" data-lcx-ppl-06-permission-linkage="true">
+          <ShieldCheck size={14} />
+          충돌/윤리벽 민감 필드와 권한 세트 연결을 확인합니다.
+        </div>
+        <DataTable
+          columns={["필드", "필요 역할", "권한 세트", "표시"]}
+          rows={ethicsPermissionLinks.map((item) => [
+            item.sensitive_field,
+            item.required_role,
+            item.permission_set_id,
+            stateLabel(item.field_visibility)
+          ])}
+        />
+        <div className="live-data-state" data-lcx-ppl-06-permission-receipt-link="true">
+          <strong>Reviewer receipt</strong>
+          {ethicsReceiptCount}건 연결됨
         </div>
       </Panel>
 
