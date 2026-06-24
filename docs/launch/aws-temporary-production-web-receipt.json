@@ -1,8 +1,8 @@
 {
   "schema_version": "law-firm-os.aws-temporary-production-web-receipt.v0.1",
-  "generated_at": "2026-06-24T09:26:03Z",
+  "generated_at": "2026-06-24T12:16:22Z",
   "deployment_target": "aws_s3_cloudfront_lambda_function_url",
-  "deployed_commit": "0d06c362c80dde3ff8ca9e68acf9af225fbb78e1",
+  "deployed_commit": "625298f6bdcd7b22f150d895286d7152e5b534b1",
   "aws_account": "770880870480",
   "region": "ap-northeast-2",
   "web_entrypoint": {
@@ -10,6 +10,8 @@
     "cloudfront_domain": "d2mthcc8vp3cr2.cloudfront.net",
     "url": "https://d2mthcc8vp3cr2.cloudfront.net",
     "s3_bucket": "matter-lawos-web-prod-770880870480-apne2",
+    "latest_invalidation_id": "IANB4MZ226ORR3LQ4QLRKJHLFI",
+    "latest_invalidation_status": "Completed",
     "custom_domain_required": false
   },
   "api_entrypoint": {
@@ -47,11 +49,18 @@
     "client_matter_api_examples": "PASS",
     "korean_saas_copy_validation": "PASS: 60 routes, 43 forbidden terms",
     "playwright_surface_smoke": "PASS: 19 checks across Client, Matter, People, Vault",
-    "apps_api_full_suite": "PASS: 179 tests, 0 failures",
+    "apps_api_full_suite": "PASS: 185 tests, 0 failures",
+    "web_build": "PASS: npm --workspace apps/web run build, chunk-size warning only",
+    "lcx_ppl_validators": "PASS: lcx:ppl contract, relationship, api, ui, ethics, qa, and hro blocked validators",
     "hrx_cloudfront_smoke": "PASS: CloudFront /api/hrx/employees returned 9 internal accounts, emp_amic_ytkim detail read, analytics headcount 9, AI assistant source_refs included Policy:leave:2026",
     "matter_cloudfront_smoke": "PASS: CloudFront /api/matters returned permission-passed matter list for tenant_rp05_synthetic",
+    "lcx_ppl_cloudfront_api_smoke": "PASS: CloudFront /api/hrx/legal-people/search returned 9 people, /relationships returned 6, /ethics returned 4",
+    "lcx_ppl_cloudfront_browser_smoke": "PASS: 5 routes, 21 checks, screenshots referenced by docs/launch/aws-production-lcx-ppl-browser-smoke-receipt.json",
+    "desktop_test_suite": "PASS: apps/desktop test:session 15, test:smoke 59, test:file-bridge 17 plus validators",
     "desktop_runtime_cloudfront_smoke": "PASS: npm run matter-desktop:aws-runtime:smoke with MATTER_VAULT_R4_PRODUCTION_BASE_URL=https://d2mthcc8vp3cr2.cloudfront.net; 9 accounts; jwsuh@amic.kr system_super_admin login allow; ytkim@amic.kr login allow; admin restriction deny",
-    "lambda_final_main_redeploy": "PASS: matter-lawos-api-prod Active/Successful with LAWOS_DEPLOYMENT_COMMIT=0d06c362c80dde3ff8ca9e68acf9af225fbb78e1"
+    "lambda_packaging_recovery": "PASS: first package exposed missing seed-file 502; redeployed package includes docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+    "lambda_final_main_redeploy": "PASS: matter-lawos-api-prod Active/Successful with LAWOS_DEPLOYMENT_COMMIT=625298f6bdcd7b22f150d895286d7152e5b534b1, Runtime=nodejs22.x, CodeSha256=PiUeELBuIV1MXbccIgRAfKQ48qsy4wu2RcPWZyvAOBY=",
+    "web_s3_cloudfront_publish": "PASS: apps/web/dist synced to s3://matter-lawos-web-prod-770880870480-apne2 with --delete and CloudFront invalidation IANB4MZ226ORR3LQ4QLRKJHLFI completed"
   },
   "boundaries": {
     "production_ready_claim": false,
