@@ -23,11 +23,11 @@ export function ProfilesSurface({
   if (!activeMatter || !activeEvent || !Array.isArray(filteredMatters)) {
     return (
       <section className="surface stack">
-        <PageHeader title={labels.profileTitle} subtitle="Profile views require live Matter context." />
-        <Panel title="Profile context" meta="Unavailable">
+        <PageHeader title={labels.profileTitle} subtitle="Matter 또는 People 화면에서 관련 기록을 확인합니다." />
+        <Panel title="프로필 정보" meta="선택 전">
           <div className="live-data-state live-data-empty">
-            <strong>No local profile context</strong>
-            Open the canonical Matter or People axis to inspect live records.
+            <strong>선택된 프로필이 없습니다</strong>
+            Matter 또는 People 화면에서 확인할 대상을 선택하세요.
           </div>
         </Panel>
       </section>
@@ -38,12 +38,12 @@ export function ProfilesSurface({
     <section className="surface stack">
       <PageHeader
         title={labels.profileTitle}
-        subtitle="Review pinned properties, live events, and raw activity detail."
+        subtitle="주요 정보, 활동 내역, Matter 연결 정보를 확인합니다."
         actions={
           <>
             <button className="secondary-button">
               <Archive size={15} />
-              Cohort
+              그룹
             </button>
             <button className="primary-button">
               <Share2 size={15} />
@@ -56,23 +56,23 @@ export function ProfilesSurface({
         <Panel className="profile-card" title={activeMatter.name} meta={activeMatter.client}>
           <div className="avatar-large">{activeMatter.name.slice(0, 1)}</div>
           <div className="property-grid">
-            <Property label="Matter ID" value={activeMatter.id} />
-            <Property label="Owner" value={activeMatter.owner} />
-            <Property label="Phase" value={activeMatter.phase} />
-            <Property label="Risk" value={activeMatter.risk} />
-            <Property label="Documents" value={activeMatter.docs} />
-            <Property label="Trust/WIP" value={activeMatter.value} />
+            <Property label="Matter 번호" value={activeMatter.id} />
+            <Property label="담당자" value={activeMatter.owner} />
+            <Property label="단계" value={activeMatter.phase} />
+            <Property label="위험" value={activeMatter.risk} />
+            <Property label="문서" value={activeMatter.docs} />
+            <Property label="청구" value={activeMatter.value} />
           </div>
           <div className="matter-list">
             {filteredMatters.map((matter) => (
               <button key={matter.id} className={matter.id === activeMatter.id ? "matter-row active" : "matter-row"} onClick={() => setActiveMatterId(matter.id)}>
-                <span>{matter.id}</span>
+                <span>Matter</span>
                 <strong>{matter.name}</strong>
               </button>
             ))}
           </div>
         </Panel>
-        <Panel className="event-stream-panel" title={labels.eventStream} meta="Live event updates">
+        <Panel className="event-stream-panel" title={labels.eventStream} meta="최근 활동">
           <div className="event-list">
             {filteredMatters.slice(0, 0).map((event, index) => (
               <button key={`${event.time}-${event.name}`} className={activeEventIndex === index ? "event-row active" : "event-row"} onClick={() => setActiveEventIndex(index)}>
@@ -84,8 +84,12 @@ export function ProfilesSurface({
             ))}
           </div>
         </Panel>
-        <Panel className="raw-panel" title={labels.rawEvent} meta={activeEvent.path}>
-          <pre>{JSON.stringify(activeEvent, null, 2)}</pre>
+        <Panel className="raw-panel" title={labels.rawEvent} meta="최근 활동">
+          <div className="property-grid">
+            <Property label="시간" value={activeEvent.time} />
+            <Property label="활동" value={activeEvent.name} />
+            <Property label="영역" value={activeEvent.module} />
+          </div>
         </Panel>
       </div>
     </section>
@@ -113,47 +117,47 @@ function UserProfilesListLiveSurface({ labels, liveCtx }) {
   if (result === null) {
     body = (
       <div className="live-data-state live-data-loading">
-        <strong>Loading live records</strong>
-        Fetching master-data records from the Law Firm OS API.
+        <strong>프로필 불러오는 중</strong>
+        표시할 기록을 확인하고 있습니다.
       </div>
     );
   } else if (result.kind === "error") {
     body = (
       <div className="live-data-state live-data-error">
-        <strong>Live data unavailable</strong>
-        The API request failed or returned an unexpected response. Start the API and reload.
+        <strong>프로필을 불러올 수 없습니다</strong>
+        잠시 후 다시 시도하세요.
       </div>
     );
   } else if (result.uiState === "denied") {
     body = (
       <div className="live-data-state live-data-denied">
-        <strong>Access denied</strong>
-        The permission gate blocked this request. No records are shown.
+        <strong>접근할 수 없습니다</strong>
+        현재 권한으로는 이 프로필을 볼 수 없습니다.
       </div>
     );
   } else if (result.uiState === "review_required") {
     body = (
       <div className="live-data-state live-data-review">
-        <strong>Review required</strong>
-        This request needs an approval review before records can be shown.
+        <strong>검토가 필요합니다</strong>
+        담당자 확인 후 프로필을 볼 수 있습니다.
       </div>
     );
   } else if (result.uiState === "empty") {
     body = (
       <div className="live-data-state live-data-empty">
-        <strong>No records</strong>
-        The query matched no master-data records for this tenant.
+        <strong>표시할 기록이 없습니다</strong>
+        조건에 맞는 프로필 기록이 없습니다.
       </div>
     );
   } else {
     body = (
       <DataTable
-        columns={["Name", "Type", "Status", "Owner", "Matter"]}
+        columns={["이름", "구분", "상태", "담당자", "Matter"]}
         rows={result.items.map((item) => [
           item.display_name ?? item.value ?? "—",
-          item.model_type === "Entity" && item.entity_kind ? `Entity (${item.entity_kind})` : item.model_type,
-          item.status,
-          item.owner_user_id,
+          item.model_type === "Entity" && item.entity_kind ? "조직" : "프로필",
+          item.status === "active" ? "사용 중" : item.status === "inactive" ? "비활성" : "확인 필요",
+          item.owner_user_id ? "담당자 지정" : "미지정",
           item.matter_core_enrichment?.matter_title ?? "—"
         ])}
       />
@@ -164,22 +168,22 @@ function UserProfilesListLiveSurface({ labels, liveCtx }) {
     <section className="surface stack">
       <PageHeader
         title={labels.profileTitle}
-        subtitle="Live master-data records from the matter API."
+        subtitle="작업공간에서 확인 가능한 프로필 기록입니다."
         actions={
           <>
             <button className="secondary-button">
               <Filter size={15} />
-              Filter
+              필터
             </button>
             <button className="primary-button">
               <Save size={15} />
-              Save Cohort
+              그룹 저장
             </button>
           </>
         }
       />
       <div className="profiles-list-layout">
-        <Panel className="span-2" title="Matching Profiles" meta="Live API data">
+        <Panel className="span-2" title="프로필 목록" meta="작업공간">
           {body}
         </Panel>
       </div>

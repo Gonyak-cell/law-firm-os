@@ -12,20 +12,20 @@ export function ThemeSurface({ labels, theme, setTheme, variant }) {
     <section className="surface stack">
       <PageHeader
         title={labels.themeTitle}
-        subtitle="Choose the theme for your workspace."
+        subtitle="작업공간에 적용할 화면 테마를 선택합니다."
         actions={
           <>
             <button className={theme === "light" ? "primary-button" : "secondary-button"} onClick={() => setTheme("light")}>
-              Light
+              라이트
             </button>
             <button className={theme === "dark" ? "primary-button" : "secondary-button"} onClick={() => setTheme("dark")}>
-              Dark
+              다크
             </button>
           </>
         }
       />
       <div className="theme-grid">
-        {["Light theme", "Dark theme", "System preference"].map((item, index) => (
+        {["라이트 테마", "다크 테마", "시스템 설정"].map((item, index) => (
           <button key={item} className={`theme-card ${index === 1 ? "dark-preview" : ""}`}>
             <div className="theme-preview">
               <span />
@@ -33,11 +33,11 @@ export function ThemeSurface({ labels, theme, setTheme, variant }) {
               <span />
             </div>
             <strong>{item}</strong>
-            <small>{index === 1 ? "Dark workspace" : "Workspace preference"}</small>
+            <small>{index === 1 ? "어두운 화면" : "작업공간 설정"}</small>
           </button>
         ))}
       </div>
-      <div className="theme-sample">
+      <div className="theme-preview-surface">
         <HomeSurface labels={labels} setView={() => {}} onSave={() => {}} />
       </div>
     </section>
@@ -46,36 +46,35 @@ export function ThemeSurface({ labels, theme, setTheme, variant }) {
 
 export function DarkTemplatesSurface() {
   const templateCards = [
-    { name: "Funnel Analysis", tone: "blue", chart: "bars" },
-    { name: "Feature Adoption", tone: "pink", chart: "bars" },
-    { name: "Getting Started KPIs (Web)", tone: "plain", chart: "rows" },
-    { name: "Product KPIs", tone: "blue", chart: "bars" },
-    { name: "Session Engagement", tone: "pink", chart: "line" },
-    { name: "Marketing Analytics", tone: "plain", chart: "rows" },
-    { name: "User Activity", tone: "purple", chart: "donut" }
+    { name: "접수 현황", tone: "blue", chart: "bars" },
+    { name: "Matter 진행", tone: "pink", chart: "bars" },
+    { name: "문서 처리", tone: "plain", chart: "rows" },
+    { name: "청구 업무", tone: "blue", chart: "bars" },
+    { name: "People 업무", tone: "pink", chart: "line" },
+    { name: "공유 포털", tone: "plain", chart: "rows" },
+    { name: "권한 관리", tone: "purple", chart: "donut" }
   ];
 
   return (
     <section className="surface dark-templates-surface">
-      <h1>Dashboard Templates</h1>
+      <h1>업무 보드 템플릿</h1>
       <div className="dark-templates-layout">
         <aside className="dark-templates-nav">
-          <button className="active" type="button">All Templates</button>
-          <button type="button">Recently Viewed</button>
-          <small>{`Created By ${PRODUCT_BRAND}`}</small>
-          <button type="button">Use Case</button>
-          <button type="button">Expert</button>
-          <button type="button">Industry</button>
+          <button className="active" type="button">전체 템플릿</button>
+          <button type="button">최근 본 항목</button>
+          <small>{`${PRODUCT_BRAND} 제공`}</small>
+          <button type="button">업무 유형</button>
+          <button type="button">담당자</button>
+          <button type="button">분야</button>
         </aside>
         <div className="dark-templates-main">
           <div className="dark-templates-banner">
-            <strong>Get up and running quickly with industry-standard KPIs and metrics</strong>
+            <strong>Matter 업무에 맞는 보드 구조를 빠르게 시작하세요</strong>
             <p>
-              Dashboard templates can be saved and fully customized, plus those charts will not count against your
-              Org&apos;s saved chart limit. For access to unlimited custom charts, <a>check out the Plus plan</a>.
+              템플릿은 저장 후 팀의 업무 방식에 맞게 수정할 수 있습니다.
             </p>
           </div>
-          <h2>Use Case (7)</h2>
+          <h2>업무 유형</h2>
           <div className="dark-templates-grid">
             {templateCards.map((card) => (
               <button key={card.name} className="dark-template-card" type="button">

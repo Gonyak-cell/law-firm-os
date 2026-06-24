@@ -1,5 +1,5 @@
 import React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { RefreshCw, ShieldCheck, Sparkles } from "lucide-react";
 import { PRODUCT_BRAND } from "../brand/brand";
 import { fetchAiReviewQueue } from "../data/apiClient.js";
@@ -7,6 +7,25 @@ import { CompactTable, Panel } from "./primitives.jsx";
 
 const AI_PERMISSION_REF = "ui_cmp_g9_ai_live";
 const AI_AUDIT_HINT_REF = "ui_cmp_g9_ai_probe";
+
+function reviewStatusLabel(value) {
+  const normalized = String(value ?? "").toLowerCase();
+  if (normalized.includes("approved")) return "승인됨";
+  if (normalized.includes("rejected")) return "반려";
+  if (normalized.includes("completed")) return "완료";
+  if (normalized.includes("pending")) return "대기";
+  if (normalized.includes("review")) return "검토 중";
+  return "확인 필요";
+}
+
+function reviewerLabel(value) {
+  const normalized = String(value ?? "").toLowerCase();
+  if (normalized.includes("partner")) return "파트너";
+  if (normalized.includes("manager")) return "관리자";
+  if (normalized.includes("admin")) return "관리 담당자";
+  if (normalized.includes("lawyer") || normalized.includes("attorney")) return "변호사";
+  return "담당자";
+}
 
 function AiRuntimePanel({ liveCtx = "allow" }) {
   const [result, setResult] = useState(null);
@@ -22,32 +41,34 @@ function AiRuntimePanel({ liveCtx = "allow" }) {
     };
   }, [liveCtx, refreshToken]);
   const items = result?.kind === "data" ? result.items : [];
-  const metrics = useMemo(() => ({ open: items.filter((item) => item.status === "open").length }), [items]);
   let body;
-  if (result === null) body = <div className="live-data-state live-data-loading"><strong>Loading AI review</strong> Reading review queue from the API.</div>;
-  else if (result.kind === "error") body = <div className="live-data-state live-data-error"><strong>AI API unavailable</strong> Start the Law Firm OS API and reload.</div>;
-  else if (result.uiState === "denied") body = <div className="live-data-state live-data-denied"><strong>Access denied</strong> The permission gate blocked this AI request.</div>;
-  else if (result.uiState === "review_required" || result.outcome === "review_required") body = <div className="live-data-state live-data-review"><strong>Review required</strong> This AI queue request needs review.</div>;
+  if (result === null) body = <div className="live-data-state live-data-loading"><strong>문의 내역 불러오는 중</strong> 검토 요청을 확인하고 있습니다.</div>;
+  else if (result.kind === "error") body = <div className="live-data-state live-data-error"><strong>문의 내역을 불러올 수 없습니다</strong> 잠시 후 다시 시도하세요.</div>;
+  else if (result.uiState === "denied") body = <div className="live-data-state live-data-denied"><strong>접근할 수 없습니다</strong> 현재 권한으로는 이 문의를 볼 수 없습니다.</div>;
+  else if (result.uiState === "review_required" || result.outcome === "review_required") body = <div className="live-data-state live-data-review"><strong>검토가 필요합니다</strong> 담당자 확인 후 답변을 볼 수 있습니다.</div>;
   else body = (
     <div className="ai-runtime-stack">
       <div className="intake-safe-strip">
         <ShieldCheck size={15} />
-        <span>Permission-before-AI is enforced; outputs stay in human review and RAG evidence omits raw payloads.</span>
+        <span>민감한 근거와 내부 메모는 승인된 담당자에게만 표시됩니다.</span>
       </div>
       <CompactTable
-        columns={["Task", "Output", "Status", "Reviewer"]}
-        rows={items.map((item) => [item.review_task_id, item.ai_output_id, item.status, item.reviewer_role])}
+        columns={["요청", "답변", "상태", "담당"]}
+        rows={items.map((item, index) => [
+          `검토 ${index + 1}`,
+          `답변 ${index + 1}`,
+          reviewStatusLabel(item.status),
+          reviewerLabel(item.reviewer_role)
+        ])}
       />
     </div>
   );
   return (
-    <Panel title="CMP-G9 AI Review Queue" meta="/api/ai/review-queue" className="ai-runtime-panel" data-cmp-g9-ai-runtime="true">
+    <Panel title="검토 요청" meta="담당자 확인" className="ai-runtime-panel" data-cmp-g9-ai-runtime="true">
       <div className="analytics-runtime-actions">
-        <strong>{metrics.open} open reviews</strong>
-        <span>raw prompt/output omitted</span>
         <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
           <RefreshCw size={15} />
-          Refresh
+          새로고침
         </button>
       </div>
       {body}
@@ -65,30 +86,30 @@ export function AskSurface({ labels, variant, liveCtx = "allow" }) {
       <div className="ask-header">
         <Sparkles size={22} />
         <h1>{labels.askTitle}</h1>
-        <p>{`Guidance, answers, cohorts, and replay context for your ${PRODUCT_BRAND} workspace.`}</p>
+        <p>{`${PRODUCT_BRAND} 업무 질문과 담당자 검토가 필요한 답변을 확인합니다.`}</p>
       </div>
       <AiRuntimePanel liveCtx={liveCtx} />
-      <Panel title="Answer" meta="Generated chart response">
+      <Panel title="답변" meta="검토 후 표시">
         <div className="live-data-state live-data-empty">
-          <strong>No generated answer</strong>
-          Server-reviewed AI output is shown only after the AI review queue returns an approved response.
+          <strong>표시할 답변이 없습니다</strong>
+          담당자 검토가 끝난 답변만 이곳에 표시됩니다.
         </div>
       </Panel>
       <label className="ask-input">
         <input placeholder={labels.search} />
         <button className="primary-button">
           <Sparkles size={15} />
-          Ask
+          문의
         </button>
       </label>
       <div className="cohort-replay-grid">
-        <Panel title="Cohorts" meta="Saved user groups">
-          <CompactTable columns={["Cohort", "Users", "Sync"]} rows={[]} />
+        <Panel title="그룹" meta="저장된 대상">
+          <CompactTable columns={["그룹", "사용자", "상태"]} rows={[]} />
         </Panel>
-        <Panel title="Session Replay" meta="Recent workspace sessions">
+        <Panel title="활동 기록" meta="최근 업무">
           <div className="live-data-state live-data-empty">
-            <strong>No local replay rows</strong>
-            Session replay requires a live, permission-checked event stream.
+            <strong>표시할 활동 기록이 없습니다</strong>
+            권한이 있는 활동 기록만 이곳에 표시됩니다.
           </div>
         </Panel>
       </div>
@@ -102,19 +123,19 @@ export function AskRetentionSurface({ labels }) {
       <div className="ask-header compact">
         <Sparkles size={22} />
         <h1>{labels.askTitle}</h1>
-        <p>Ask a question, inspect the generated chart, and continue with follow-up prompts.</p>
+        <p>업무 질문을 남기고 검토된 답변을 확인합니다.</p>
       </div>
-      <Panel title="Answer" meta="Generated retention chart">
+      <Panel title="답변" meta="검토 후 표시">
         <div className="live-data-state live-data-empty">
-          <strong>No generated retention chart</strong>
-          Retention answers require a live analytics response.
+          <strong>표시할 답변이 없습니다</strong>
+          담당자 검토가 끝난 답변만 이곳에 표시됩니다.
         </div>
       </Panel>
       <label className="ask-input">
         <input placeholder={labels.search} />
         <button className="primary-button">
           <Sparkles size={15} />
-          Ask
+          문의
         </button>
       </label>
     </section>

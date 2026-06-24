@@ -1,11 +1,28 @@
 import React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, RefreshCw, ShieldCheck } from "lucide-react";
 import { fetchUiReadinessChecks } from "../data/apiClient.js";
-import { CompactTable, MetricCard, PageHeader, Panel } from "./primitives.jsx";
+import { CompactTable, PageHeader, Panel } from "./primitives.jsx";
 
 const READINESS_PERMISSION_REF = "ui_cmp_g11_readiness_live";
 const READINESS_AUDIT_HINT_REF = "ui_cmp_g11_readiness_probe";
+
+function formatReadinessLabel(value, fallback = "화면") {
+  const normalized = String(value ?? "").toLowerCase();
+  if (!normalized) return fallback;
+  if (normalized.includes("client")) return "Client";
+  if (normalized.includes("matter")) return "Matter";
+  if (normalized.includes("people") || normalized.includes("hrx")) return "People";
+  if (normalized.includes("vault") || normalized.includes("dms")) return "Vault";
+  if (normalized.includes("portal")) return "공유";
+  if (normalized.includes("finance")) return "청구";
+  if (normalized.includes("analytics")) return "보고서";
+  if (normalized.includes("ready") || normalized.includes("complete") || normalized.includes("pass")) return "완료";
+  if (normalized.includes("review")) return "검토 필요";
+  if (normalized.includes("pending") || normalized.includes("open")) return "대기";
+  if (normalized.includes("blocked") || normalized.includes("fail")) return "확인 필요";
+  return fallback;
+}
 
 export function ReadinessSurface({ labels, liveCtx = "allow" }) {
   const [result, setResult] = useState(null);
@@ -27,60 +44,52 @@ export function ReadinessSurface({ labels, liveCtx = "allow" }) {
   }, [liveCtx, refreshToken]);
 
   const checks = result?.kind === "data" ? result.items : [];
-  const metrics = useMemo(
-    () => ({
-      checks: checks.length,
-      routes: new Set(checks.map((item) => item.route_id)).size,
-      apiBacked: checks.filter((item) => item.api_backed_surface === true).length
-    }),
-    [checks]
-  );
 
   let body;
-  if (result === null) body = <div className="live-data-state live-data-loading"><strong>Loading UI checks</strong> Reading UI readiness from the API.</div>;
-  else if (result.kind === "error") body = <div className="live-data-state live-data-error"><strong>UI readiness API unavailable</strong> Start the Law Firm OS API and reload.</div>;
-  else if (result.uiState === "denied") body = <div className="live-data-state live-data-denied"><strong>Access denied</strong> The permission gate blocked this readiness request.</div>;
-  else if (result.uiState === "review_required" || result.outcome === "review_required") body = <div className="live-data-state live-data-review"><strong>Review required</strong> This readiness request needs review.</div>;
+  if (result === null) body = <div className="live-data-state live-data-loading"><strong>화면 상태 불러오는 중</strong> 표시할 항목을 확인하고 있습니다.</div>;
+  else if (result.kind === "error") body = <div className="live-data-state live-data-error"><strong>화면 상태를 불러올 수 없습니다</strong> 잠시 후 다시 시도하세요.</div>;
+  else if (result.uiState === "denied") body = <div className="live-data-state live-data-denied"><strong>접근할 수 없습니다</strong> 현재 권한으로는 이 화면 상태를 볼 수 없습니다.</div>;
+  else if (result.uiState === "review_required" || result.outcome === "review_required") body = <div className="live-data-state live-data-review"><strong>검토가 필요합니다</strong> 담당자 확인 후 화면 상태를 볼 수 있습니다.</div>;
   else body = (
     <CompactTable
-      columns={["TUW", "Route", "Surface", "Status"]}
-      rows={checks.slice(0, 12).map((item) => [item.tuw_id, item.route_id, item.ui_surface_id, item.status])}
+      columns={["항목", "영역", "화면", "상태"]}
+      rows={checks.slice(0, 12).map((item, index) => [
+        `항목 ${index + 1}`,
+        formatReadinessLabel(item.route_id, "화면"),
+        formatReadinessLabel(item.ui_surface_id, "페이지"),
+        formatReadinessLabel(item.status, "대기")
+      ])}
     />
   );
 
   return (
     <section className="surface stack readiness-surface" data-cmp-g11-ui-readiness="true">
       <PageHeader
-        eyebrow="CMP-G11"
+        eyebrow="화면 상태"
         title={labels.readinessTitle}
-        subtitle="Runtime-backed UI readiness checks for navigation, API fetches, permission states, review states, responsive coverage, and evidence handoff."
+        subtitle="화면 이동, 접근 권한, 오류 상태, 모바일 표시 상태를 함께 확인합니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />
-            Refresh
+            새로고침
           </button>
         }
       />
-      <div className="clients-metric-grid">
-        <MetricCard label="G11 checks" value={metrics.checks} delta="TUW mapped" tone="blue" />
-        <MetricCard label="Routes" value={metrics.routes} delta="surface coverage" tone="green" />
-        <MetricCard label="API-backed" value={metrics.apiBacked} delta="no mock fallback" tone="purple" />
-      </div>
       <div className="readiness-grid">
-        <Panel className="span-2" title="UI Runtime Boundary" meta="/api/ui/readiness">
+        <Panel className="span-2" title="화면 접근" meta="권한 적용">
           <div className="portal-safe-strip">
             <ShieldCheck size={15} />
-            <span>PermissionDeniedState, ReviewRequiredState, security badges, i18n, responsive coverage, and critical paths are tracked as runtime records.</span>
+            <span>접근 제한, 검토 상태, 언어 표시, 반응형 화면을 함께 확인합니다.</span>
           </div>
         </Panel>
-        <Panel className="span-2" title="Readiness Checks" meta="first 12 of 48">
+        <Panel className="span-2" title="확인 항목" meta="화면 목록">
           {body}
         </Panel>
-        <Panel title="Adjudication" meta="owner decision pending">
+        <Panel title="담당자 확인" meta="확인 대기">
           <div className="matter-boundary-card">
             <CheckCircle2 size={20} />
-            <strong>Ready for review, not launch-approved</strong>
-            <span>Final product and go-live gates remain outside this UI claim.</span>
+            <strong>확인이 필요한 항목이 있습니다</strong>
+            <span>담당자가 확인한 뒤 실제 업무 반영 여부를 결정합니다.</span>
           </div>
         </Panel>
       </div>
