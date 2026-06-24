@@ -60,6 +60,22 @@ test("temporary desktop runtime requires operator bearer token for runtime route
 });
 
 test("temporary desktop runtime requires password reset before ledger account login", async () => {
+  const malformedLogin = await handler(
+    event({
+      method: "POST",
+      path: "/api/desktop/login",
+      headers: authHeaders(),
+      body: { email: "jwsuh@amic.kr", password: "new-jwsuh-password", actor_email: "jwsuh@amic.kr" }
+    })
+  );
+  const missingPassword = await handler(
+    event({
+      method: "POST",
+      path: "/api/desktop/login",
+      headers: authHeaders(),
+      body: { email: "jwsuh@amic.kr" }
+    })
+  );
   const loginBeforeReset = await handler(
     event({
       method: "POST",
@@ -69,6 +85,11 @@ test("temporary desktop runtime requires password reset before ledger account lo
     })
   );
 
+  assert.equal(malformedLogin.statusCode, 400);
+  assert.equal(json(malformedLogin).reason, "email_password_only");
+  assert.deepEqual(json(malformedLogin).unexpected_fields, ["actor_email"]);
+  assert.equal(missingPassword.statusCode, 400);
+  assert.equal(json(missingPassword).reason, "email_password_required");
   assert.equal(loginBeforeReset.statusCode, 403);
   assert.equal(json(loginBeforeReset).reason, "password_reset_required");
 });

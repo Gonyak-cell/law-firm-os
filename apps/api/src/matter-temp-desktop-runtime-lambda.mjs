@@ -1,16 +1,13 @@
-import { existsSync, readFileSync } from "node:fs";
 import https from "node:https";
 import { createHash, createHmac, pbkdf2Sync, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import {
+  MATTER_VAULT_USER_REGISTRATION_SEED,
+  findRegisteredAccountByEmail,
+  normalizeAccountEmail,
+  registeredAccountPublicRef,
+} from "./matter-vault-account-registry.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const packagedSeedPath = join(__dirname, "matter-vault-user-registration-seed.json");
-const repoSeedPath = resolve(
-  __dirname,
-  "../../../docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json"
-);
-const seed = JSON.parse(readFileSync(existsSync(packagedSeedPath) ? packagedSeedPath : repoSeedPath, "utf8"));
+const seed = MATTER_VAULT_USER_REGISTRATION_SEED;
 
 const JSON_HEADERS = Object.freeze({
   "content-type": "application/json; charset=utf-8",
@@ -87,7 +84,7 @@ function hashOpaqueToken(token) {
 }
 
 function normalizeEmail(email) {
-  return String(email ?? "").trim().toLowerCase();
+  return normalizeAccountEmail(email);
 }
 
 function hashPassword(password, salt = randomBytes(16).toString("base64url")) {
@@ -318,22 +315,13 @@ function parseBody(event = {}) {
 
 function users(state) {
   return seed.users.map((user) => ({
-    user_id: user.user_id,
-    email: user.email,
-    display_name: user.display_name,
-    english_name: user.english_name,
-    source_title: user.source_title,
-    highest_privilege: user.highest_privilege,
-    privilege_rank: user.privilege_rank,
-    role_ids: user.role_ids,
-    group_ids: user.group_ids,
-    scopes: user.scopes,
+    ...registeredAccountPublicRef(user),
     password_state: state.passwordCredentials.has(normalizeEmail(user.email)) ? "password_set" : "reset_required"
   }));
 }
 
 function findUser(email) {
-  return seed.users.find((user) => normalizeEmail(user.email) === normalizeEmail(email)) ?? null;
+  return findRegisteredAccountByEmail(email, seed);
 }
 
 function sessionFor(user, state) {
@@ -485,6 +473,23 @@ function confirmPasswordReset(body = {}, state) {
 }
 
 function loginWithPassword(body = {}, state) {
+  const allowedKeys = new Set(["email", "password"]);
+  const unexpectedKeys = Object.keys(body).filter((key) => !allowedKeys.has(key));
+  if (unexpectedKeys.length > 0) {
+    return response(400, {
+      ok: false,
+      reason: "email_password_only",
+      unexpected_fields: unexpectedKeys,
+      token_material_returned: false
+    });
+  }
+  if (!body.email || !body.password) {
+    return response(400, {
+      ok: false,
+      reason: "email_password_required",
+      token_material_returned: false
+    });
+  }
   const user = findUser(body.email);
   if (!user) {
     return response(401, {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { packager } from "@electron/packager";
 import { sign } from "@electron/osx-sign";
@@ -23,7 +23,8 @@ const resourcesDir = join(contentsDir, "Resources");
 const executablePath = join(macosDir, "matter");
 const appSourceDir = join(resourcesDir, "app");
 const iconPath = join(desktopRoot, "build/icon.icns");
-const packagedIconPath = join(resourcesDir, "electron.icns");
+const packagedIconFile = "matter.icns";
+const packagedIconPath = join(resourcesDir, packagedIconFile);
 const zipPath = join(distRoot, `matter-internal-${packageJson.version}-macos.zip`);
 const dmgPath = join(distRoot, `matter-internal-${packageJson.version}-macos.dmg`);
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
@@ -107,6 +108,20 @@ async function developerIdSignatureState(targetPath) {
   }
 }
 
+async function applyMatterBundleIcon(targetAppBundle) {
+  const targetContentsDir = join(targetAppBundle, "Contents");
+  const targetResourcesDir = join(targetContentsDir, "Resources");
+  const targetInfoPlist = join(targetContentsDir, "Info.plist");
+  const targetMatterIcon = join(targetResourcesDir, packagedIconFile);
+  await copyFile(iconPath, targetMatterIcon);
+  await rm(join(targetResourcesDir, "electron.icns"), { force: true });
+  await execFileAsync("/usr/libexec/PlistBuddy", [
+    "-c",
+    `Set :CFBundleIconFile ${packagedIconFile}`,
+    targetInfoPlist
+  ]);
+}
+
 if (!existsSync(join(repoRoot, "node_modules/electron/dist/Electron.app"))) {
   throw new Error("Electron runtime is missing. Run `npm install --workspace apps/desktop` first.");
 }
@@ -150,6 +165,7 @@ try {
     osxSign: false
   });
   const generatedAppBundle = join(generatedAppRoot, "matter.app");
+  await applyMatterBundleIcon(generatedAppBundle);
 
   if (osxSign) {
     await sign({
@@ -217,7 +233,7 @@ Version: \`${packageJson.version}\`
 
 - Electron runtime: \`node_modules/electron/dist/Electron.app\`
 - app icon: \`apps/desktop/build/icon.icns\`
-- packaged app icon: \`apps/desktop/dist/mac/matter.app/Contents/Resources/electron.icns\`
+- packaged app icon: \`apps/desktop/dist/mac/matter.app/Contents/Resources/${packagedIconFile}\`
 - packaged app source: \`apps/desktop/dist/mac/matter.app/Contents/Resources/app\`
 - executable: \`apps/desktop/dist/mac/matter.app/Contents/MacOS/matter\`
 - archive: \`apps/desktop/dist/mac/matter-internal-${packageJson.version}-macos.zip\`
