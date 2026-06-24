@@ -20,6 +20,11 @@ import { closeOffboardingCase, createOffboardingCase } from "../../../packages/h
 import { createOnboardingPlan, updateOnboardingTask } from "../../../packages/hrx/src/onboarding.js";
 import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repository.js";
 import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
+import {
+  createLegalPeopleApiSeed,
+  createLegalPeoplePermissionContext,
+  createLegalPeopleReadModel,
+} from "../../../packages/hrx/src/legal-people-api.js";
 import { createHrxMatterWorkloadProjection } from "../../../packages/matter/src/hrx-workload-projection.js";
 import { createHrxAiRoute } from "./routes/hrx/ai.js";
 import { createHrxPayrollRoute } from "./routes/hrx/payroll.js";
@@ -438,6 +443,21 @@ function matterAssignmentSeed(tenantId) {
   ];
 }
 
+function legalPeopleRuntimeSeed(tenantIds) {
+  const seeds = tenantIds.map((tenantId) => createLegalPeopleApiSeed(tenantId));
+  return Object.freeze({
+    people: seeds.flatMap((seed) => seed.people),
+    organizations: seeds.flatMap((seed) => seed.organizations),
+    clients: seeds.flatMap((seed) => seed.clients),
+    matters: seeds.flatMap((seed) => seed.matters),
+    relationshipSeed: Object.freeze({
+      relationships: seeds.flatMap((seed) => seed.relationshipSeed.relationships),
+      conflict_references: seeds.flatMap((seed) => seed.relationshipSeed.conflict_references),
+      ethical_wall_references: seeds.flatMap((seed) => seed.relationshipSeed.ethical_wall_references),
+    }),
+  });
+}
+
 function response(status, body) {
   return { status, body };
 }
@@ -614,6 +634,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
   const aiRoute = createHrxAiRoute({ retriever: aiRetriever, reviewQueue: aiReviewQueue, audit });
   const payrollRoute = createHrxPayrollRoute({ audit });
   const matterAssignments = Object.freeze(seedTenantIds.flatMap(matterAssignmentSeed));
+  const legalPeopleReadModel = createLegalPeopleReadModel({ seed: legalPeopleRuntimeSeed(seedTenantIds) });
 
   for (const tenantId of seedTenantIds) {
     appendRuntimeAudit(audit, {
@@ -648,6 +669,7 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
     aiRoute,
     payrollRoute,
     matterAssignments,
+    legalPeopleReadModel,
   });
 }
 
@@ -704,6 +726,60 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       });
       if (!revoked) return response(404, { outcome: "not_found", safe_error_code: "HRX_EMPLOYEE_USER_LINK_NOT_FOUND" });
       return response(200, { outcome: "revoked", revoked });
+    }
+
+    if (pathname === "/api/hrx/legal-people/search" && method === "GET") {
+      const permissionContext = createLegalPeoplePermissionContext(actorContext);
+      const result = context.legalPeopleReadModel.searchPeople({ ...query, tenant_id: tenantId }, permissionContext);
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.legal_people.search",
+        object_type: "LegalPerson",
+        object_id: "search",
+        reason: "legal_people_search_listed",
+        metadata: {
+          result_count: result.people.length,
+          sensitive_fields_visible: permissionContext.can_view_sensitive_relationship_details,
+        },
+      });
+      return response(200, result);
+    }
+
+    if (pathname === "/api/hrx/legal-people/relationships" && method === "GET") {
+      const permissionContext = createLegalPeoplePermissionContext(actorContext);
+      const result = context.legalPeopleReadModel.listRelationships({ ...query, tenant_id: tenantId }, permissionContext);
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.legal_people.relationships.read",
+        object_type: "LegalPeopleRelationship",
+        object_id: query.person_id ?? query.target_id ?? "relationships",
+        reason: "legal_people_relationships_listed",
+        metadata: {
+          result_count: result.relationships.length,
+          sensitive_fields_visible: permissionContext.can_view_sensitive_relationship_details,
+        },
+      });
+      return response(200, result);
+    }
+
+    const legalPeopleDetailMatch = pathname.match(/^\/api\/hrx\/legal-people\/([^/]+)$/);
+    if (legalPeopleDetailMatch && method === "GET") {
+      const personId = decodeURIComponent(legalPeopleDetailMatch[1]);
+      const permissionContext = createLegalPeoplePermissionContext(actorContext);
+      const result = context.legalPeopleReadModel.getPersonDetail({ tenant_id: tenantId, person_id: personId }, permissionContext);
+      if (!result) return response(404, { outcome: "not_found", safe_error_code: "HRX_LEGAL_PERSON_NOT_FOUND" });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.legal_people.detail.read",
+        object_type: "LegalPerson",
+        object_id: personId,
+        reason: "legal_people_detail_read",
+        metadata: {
+          relationship_count: result.relationships.length,
+          sensitive_fields_visible: permissionContext.can_view_sensitive_relationship_details,
+        },
+      });
+      return response(200, result);
     }
 
     const employeeMatch = pathname.match(/^\/api\/hrx\/employees\/([^/]+)$/);

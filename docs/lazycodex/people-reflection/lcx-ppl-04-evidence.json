@@ -1,0 +1,104 @@
+{
+  "schema_version": "lawos.lcx_ppl.evidence_receipt.v0.1",
+  "program_id": "LCX-PPL Full Reflection",
+  "generated_at": "2026-06-24T10:13:46Z",
+  "local_time": "2026-06-24T19:13:46+0900",
+  "scope": [
+    "LCX-PPL-04.01",
+    "LCX-PPL-04.02",
+    "LCX-PPL-04.03",
+    "LCX-PPL-04.04"
+  ],
+  "artifacts": [
+    "packages/hrx/src/legal-people-api.js",
+    "apps/api/src/hrx-runtime-context.js",
+    "apps/api/src/routes/hrx/route-policy-map.js",
+    "packages/hrx/test/legal-people-api.test.js",
+    "apps/api/test/hrx/legal-people-api.test.js",
+    "docs/lazycodex/people-reflection/legal-people-api-contract.json",
+    "docs/lazycodex/people-reflection/legal-people-api-contract.md",
+    "scripts/validate-lcx-ppl-api.mjs"
+  ],
+  "commands": [
+    {
+      "command": "node --test packages/hrx/test/legal-people-api.test.js",
+      "status": "passed",
+      "summary": "6 focused legal People read model tests passed"
+    },
+    {
+      "command": "node --test apps/api/test/hrx/legal-people-api.test.js",
+      "status": "passed",
+      "summary": "4 focused legal People API tests passed"
+    },
+    {
+      "command": "npm run hrx:authz:validate",
+      "status": "passed",
+      "summary": "29 HRX route policies validated, including legal People routes"
+    },
+    {
+      "command": "npm run lcx:ppl:api:validate",
+      "status": "passed",
+      "summary": "3 endpoints, 9 seed people, 6 relationships, and permission-aware response shaping validated"
+    },
+    {
+      "command": "node --test packages/hrx/test/*.test.js",
+      "status": "passed",
+      "summary": "342 HRX package tests passed"
+    },
+    {
+      "command": "node --test apps/api/test/hrx/*.test.js apps/api/test/hrx-runtime-api.test.js apps/api/test/hrx-durable-runtime.test.js apps/api/test/hrx-audit-write.test.js apps/api/test/hrx-observability.test.js apps/api/test/hrx-step-up.test.js",
+      "status": "passed",
+      "summary": "68 HRX API/runtime tests passed"
+    },
+    {
+      "command": "npm run lcx:ppl:contract:validate",
+      "status": "passed",
+      "summary": "LCX-PPL-02 contracts remained valid"
+    },
+    {
+      "command": "npm run lcx:ppl:relationship:validate",
+      "status": "passed",
+      "summary": "LCX-PPL-03 relationship ledger remained valid"
+    },
+    {
+      "command": "npm run hro:deel-parity:validate",
+      "status": "passed",
+      "summary": "HRO Deel parity validation remained green"
+    },
+    {
+      "command": "npm run sf:client-matter-parity:validate",
+      "status": "passed",
+      "summary": "SF Client/Matter parity validation remained green and production_or_trust_claim stayed false"
+    },
+    {
+      "command": "node -e JSON parse guard && git diff --check",
+      "status": "passed",
+      "summary": "package and LCX-PPL-04 JSON files parse; no whitespace errors"
+    }
+  ],
+  "coverage": {
+    "endpoint_count": 3,
+    "legal_people_seed_count": 9,
+    "relationship_count": 6,
+    "conflict_reference_count": 1,
+    "ethical_wall_reference_count": 1,
+    "permission_modes": [
+      "restricted_reference",
+      "privileged_reference"
+    ]
+  },
+  "claim_boundary": {
+    "allowed_current_claim": "LCX-PPL-04 local runtime API routes and permission-aware response shaping are validated.",
+    "people_search_api_complete": true,
+    "people_detail_api_complete": true,
+    "relationship_api_complete": true,
+    "permission_aware_api_response_complete": true,
+    "legal_people_ui_reflection_complete": false,
+    "browser_qa_complete": false,
+    "people_legal_relationship_runtime_ready_candidate_complete": false,
+    "production_ready": false,
+    "go_live_approved": false,
+    "enterprise_trust_approved": false,
+    "ai_final_decision_allowed": false
+  }
+}
