@@ -1,0 +1,174 @@
+{
+  "schema_version": "law-firm-os.aws-production-lcx-ppl-browser-smoke.v0.1",
+  "generated_at": "2026-06-24T12:15:01.716Z",
+  "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+  "routes": [
+    {
+      "label": "People Directory",
+      "path": "/?locale=ko&view=people&ctx=allow#people-directory",
+      "url": "https://d2mthcc8vp3cr2.cloudfront.net/?locale=ko&view=people&ctx=allow#people-directory"
+    },
+    {
+      "label": "People Relationships",
+      "path": "/?locale=ko&view=people&ctx=allow#people-relationships",
+      "url": "https://d2mthcc8vp3cr2.cloudfront.net/?locale=ko&view=people&ctx=allow#people-relationships"
+    },
+    {
+      "label": "People Conflicts",
+      "path": "/?locale=ko&view=people&ctx=allow#people-conflicts",
+      "url": "https://d2mthcc8vp3cr2.cloudfront.net/?locale=ko&view=people&ctx=allow#people-conflicts"
+    },
+    {
+      "label": "Client Backlinks",
+      "path": "/?locale=ko&view=clients&ctx=allow#client-contacts",
+      "url": "https://d2mthcc8vp3cr2.cloudfront.net/?locale=ko&view=clients&ctx=allow#client-contacts"
+    },
+    {
+      "label": "Matter Backlinks",
+      "path": "/?locale=ko&view=matters&ctx=allow#matter-team",
+      "url": "https://d2mthcc8vp3cr2.cloudfront.net/?locale=ko&view=matters&ctx=allow#matter-team"
+    }
+  ],
+  "summary": {
+    "route_count": 5,
+    "check_count": 21,
+    "passed_count": 21,
+    "failed_count": 0
+  },
+  "checks": [
+    {
+      "label": "App frame visible",
+      "selector": ".app-frame",
+      "passed": true
+    },
+    {
+      "label": "Legal People workspace visible",
+      "selector": "[data-lcx-ppl-05-ui=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People directory panel visible",
+      "selector": "#people-directory",
+      "passed": true
+    },
+    {
+      "label": "Legal People rows visible",
+      "selector": ".legal-people-row",
+      "count": 9,
+      "min": 5,
+      "passed": true
+    },
+    {
+      "label": "People relationship mode title visible",
+      "selector": "#people-directory",
+      "expected": "/People 관계망|관계 피벗/",
+      "passed": true
+    },
+    {
+      "label": "Relationship mode People rows visible",
+      "selector": ".legal-people-row",
+      "count": 9,
+      "min": 2,
+      "passed": true
+    },
+    {
+      "label": "Relationship panel visible",
+      "selector": "#people-relationship-panel",
+      "passed": true
+    },
+    {
+      "label": "Relationship rows visible",
+      "selector": ".legal-relationship-row",
+      "count": 1,
+      "min": 1,
+      "passed": true
+    },
+    {
+      "label": "Conflict review queue marker visible",
+      "selector": "[data-lcx-ppl-06-conflict-review-queue=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Ethical wall marker visible",
+      "selector": "[data-lcx-ppl-06-ethical-wall-ui=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Reviewer receipt marker visible",
+      "selector": "[data-lcx-ppl-06-reviewer-receipts=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Ethics rows visible",
+      "selector": ".legal-ethics-row",
+      "count": 3,
+      "min": 2,
+      "passed": true
+    },
+    {
+      "label": "Human review boundary visible",
+      "selector": "#people-conflict-review-queue",
+      "expected": "/사람 검토|검토 대기|상향 검토/",
+      "passed": true
+    },
+    {
+      "label": "Client contacts section visible",
+      "selector": "[data-crm-contacts-read=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client People backlink visible",
+      "selector": "[data-lcx-ppl-client-backlink=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client backlink rows visible",
+      "selector": ".legal-people-backlink-row",
+      "count": 3,
+      "min": 1,
+      "passed": true
+    },
+    {
+      "label": "Client backlink copy visible",
+      "selector": "[data-lcx-ppl-client-backlink=\"true\"]",
+      "expected": "/법률 People 연결|Client 연락처/",
+      "passed": true
+    },
+    {
+      "label": "Matter team section visible",
+      "selector": "#matter-team",
+      "passed": true
+    },
+    {
+      "label": "Matter People backlink visible",
+      "selector": "[data-lcx-ppl-matter-backlink=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter backlink rows visible",
+      "selector": ".legal-people-backlink-row",
+      "count": 6,
+      "min": 1,
+      "passed": true
+    },
+    {
+      "label": "Matter backlink copy visible",
+      "selector": "[data-lcx-ppl-matter-backlink=\"true\"]",
+      "expected": "/Matter 참여자|외부 관계자/",
+      "passed": true
+    }
+  ],
+  "screenshots": {
+    "people_directory": "docs/launch/artifacts/aws-production-lcx-ppl-2026-06-24/people-directory.png",
+    "people_relationships": "docs/launch/artifacts/aws-production-lcx-ppl-2026-06-24/people-relationships.png",
+    "people_conflicts": "docs/launch/artifacts/aws-production-lcx-ppl-2026-06-24/people-conflicts.png",
+    "client_backlinks": "docs/launch/artifacts/aws-production-lcx-ppl-2026-06-24/client-backlinks.png",
+    "matter_backlinks": "docs/launch/artifacts/aws-production-lcx-ppl-2026-06-24/matter-backlinks.png"
+  },
+  "boundaries": {
+    "production_ready_claim": false,
+    "public_release_completed": false,
+    "enterprise_trust_claim": false,
+    "real_client_data_used": false
+  }
+}
