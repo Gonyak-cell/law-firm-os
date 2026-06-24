@@ -23,10 +23,10 @@ test("Matter Vault panel is routed, API-backed, and exposes hardened state surfa
   assert.match(vaultSurface, /fetchVaultDocuments/);
   assert.match(vaultApiClient, /fetchMatterVaultSummary/);
   assert.match(vaultApiClient, /fetchMatterTimeline/);
-  assert.match(breadcrumb, /aria-label="Matter Vault breadcrumb"/);
+  assert.match(breadcrumb, /aria-label="Matter Vault 위치"/);
   assert.match(table, /data-mv-vault-document-table="true"/);
   assert.match(detail, /data-mv-vault-document-detail="true"/);
-  assert.match(detail, /Version History/);
+  assert.match(detail, /버전 기록/);
   assert.match(badges, /data-mv-vault-security-badges="true"/);
   assert.match(runner, /matter-vault/);
   assert.doesNotMatch(vaultSurface, /storage_pointer_ref\s*:|raw_path|mockData/);

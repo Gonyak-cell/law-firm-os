@@ -1,0 +1,144 @@
+{
+  "schema_version": "law-firm-os.sf-client-matter-parity.browser-qa-receipt.v0.1",
+  "program": "SF-CLIENT-MATTER-PARITY",
+  "receipt_date": "2026-06-24",
+  "scope": {
+    "browser_driven_local_surface": true,
+    "client_matter_only": true,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "enterprise_trust_claim": false
+  },
+  "environment": {
+    "web_origin": "http://127.0.0.1:5176",
+    "api_health": "http://127.0.0.1:4180/api/health",
+    "temp_store_dir": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-sf-browser-qa-jyQYUG",
+    "managed_processes_started": [
+      "web"
+    ]
+  },
+  "screenshots": {
+    "clientWorkspace": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-workspace.png",
+    "matterList": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-list.png",
+    "matterCommand": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-command.png",
+    "matterVault": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-vault.png",
+    "matterTimeline": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-timeline.png"
+  },
+  "summary": {
+    "route_count": 5,
+    "check_count": 20,
+    "passed_count": 20,
+    "failed_count": 0
+  },
+  "checks": [
+    {
+      "label": "Sidebar defaults expanded",
+      "selector": ".app-frame",
+      "attribute": "data-sidebar-state",
+      "expected": "expanded",
+      "actual": "expanded",
+      "passed": true
+    },
+    {
+      "label": "Top product axis nav visible",
+      "selector": "[data-product-axis-nav=\"top-header\"]",
+      "passed": true
+    },
+    {
+      "label": "Client list/detail/right-panel workspace visible",
+      "selector": "[data-salesforce-client-workspace=\"list-detail-right-panel\"]",
+      "passed": true
+    },
+    {
+      "label": "Client right record panel visible",
+      "selector": "[data-client-record-workspace=\"right-panel\"]",
+      "passed": true
+    },
+    {
+      "label": "Client account route-backed section visible",
+      "selector": "[data-crm-accounts-read=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client sidebar sections visible",
+      "selector": ".sidebar-item",
+      "min": 6,
+      "count": 6,
+      "passed": true
+    },
+    {
+      "label": "Matter list/detail/right-panel workspace visible",
+      "selector": "[data-salesforce-matter-workspace=\"list-detail-right-panel\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter selected record list visible",
+      "selector": "[data-matter-selected-record-list=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter right record panel visible",
+      "selector": "[data-matter-record-workspace=\"right-panel\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter sidebar sections visible",
+      "selector": ".sidebar-item",
+      "min": 8,
+      "count": 8,
+      "passed": true
+    },
+    {
+      "label": "Matter list/detail/right-panel workspace visible",
+      "selector": "[data-salesforce-matter-workspace=\"list-detail-right-panel\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter command section visible",
+      "selector": "#matter-command",
+      "passed": true
+    },
+    {
+      "label": "Matter command right record panel visible",
+      "selector": "[data-matter-record-workspace=\"right-panel\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter sidebar sections visible",
+      "selector": ".sidebar-item",
+      "min": 8,
+      "count": 8,
+      "passed": true
+    },
+    {
+      "label": "Matter Vault embedded panel visible",
+      "selector": "[data-mv-matter-vault-panel=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter Vault record workspace visible",
+      "selector": "[data-matter-vault-record-workspace=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter document facade action visible",
+      "selector": "[data-matter-document-facade-action=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter activity section visible",
+      "selector": "#matter-timeline",
+      "passed": true
+    },
+    {
+      "label": "Matter activity timeline visible",
+      "selector": "[data-matter-activity-timeline=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter activity right record panel visible",
+      "selector": "[data-matter-record-workspace=\"right-panel\"]",
+      "passed": true
+    }
+  ]
+}

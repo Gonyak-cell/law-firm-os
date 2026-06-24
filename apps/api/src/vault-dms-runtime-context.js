@@ -5,6 +5,16 @@ import { serializeFileObjectSafe } from "../../../packages/dms/src/file-object-s
 import { createSearchIndexEnvelope } from "../../../packages/dms/src/search/indexer.js";
 import { filterSearchResultsByAcl } from "../../../packages/dms/src/search/acl-filter.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
+import {
+  MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
+  MATTER_VAULT_REGISTERED_TENANT_ID,
+  findRegisteredAccountByUserId,
+  highestPrivilegeRegisteredAccount,
+  registeredAccountPublicRef,
+  resolveRegisteredAccount,
+} from "./matter-vault-account-registry.js";
+
+const DEFAULT_VAULT_ACCOUNT = registeredAccountPublicRef(highestPrivilegeRegisteredAccount());
 
 export const VAULT_DMS_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "vault-dms",
@@ -39,17 +49,19 @@ export const VAULT_DMS_RUNTIME_SEED = Object.freeze([
   Object.freeze({
     model_type: "DmsWorkspace",
     workspace_id: "workspace_rp07_synthetic",
-    tenant_id: "tenant_rp07_synthetic",
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
     matter_id: "matter_rp05_synthetic_opening",
     name: "RP07 synthetic vault",
     status: "active",
     permission_envelope_id: "perm_rp07_vault",
     audit_trace_id: "audit_rp07_vault",
+    owner_user_id: DEFAULT_VAULT_ACCOUNT.user_id,
+    registered_account: DEFAULT_VAULT_ACCOUNT,
   }),
   Object.freeze({
     model_type: "DmsDocument",
     document_id: "doc_rp07_synthetic_001",
-    tenant_id: "tenant_rp07_synthetic",
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
     matter_id: "matter_rp05_synthetic_opening",
     workspace_id: "workspace_rp07_synthetic",
     title: "Synthetic engagement letter",
@@ -59,12 +71,15 @@ export const VAULT_DMS_RUNTIME_SEED = Object.freeze([
     audit_trace_id: "audit_rp07_vault",
     privilege_label_id: "standard",
     legal_hold_id: null,
+    owner_user_id: DEFAULT_VAULT_ACCOUNT.user_id,
+    registered_account_email: DEFAULT_VAULT_ACCOUNT.email,
+    registered_account: DEFAULT_VAULT_ACCOUNT,
   }),
   Object.freeze({
     model_type: "DmsDocumentVersion",
     version_id: "version_doc_rp07_synthetic_001_1",
     document_id: "doc_rp07_synthetic_001",
-    tenant_id: "tenant_rp07_synthetic",
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
     matter_id: "matter_rp05_synthetic_opening",
     version_number: 1,
     status: "current",
@@ -72,11 +87,13 @@ export const VAULT_DMS_RUNTIME_SEED = Object.freeze([
     permission_envelope_id: "perm_rp07_vault",
     audit_trace_id: "audit_rp07_vault",
     sha256: "seed",
+    created_by: DEFAULT_VAULT_ACCOUNT.user_id,
+    registered_account: DEFAULT_VAULT_ACCOUNT,
   }),
   Object.freeze({
     model_type: "DmsFileObject",
     file_object_id: "file_version_doc_rp07_synthetic_001_1",
-    tenant_id: "tenant_rp07_synthetic",
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
     matter_id: "matter_rp05_synthetic_opening",
     storage_pointer_ref: "vault://seed/doc_rp07_synthetic_001",
     sha256: "seed",
@@ -84,6 +101,7 @@ export const VAULT_DMS_RUNTIME_SEED = Object.freeze([
     mime_type: "application/pdf",
     permission_envelope_id: "perm_rp07_vault",
     audit_trace_id: "audit_rp07_vault",
+    owner_user_id: DEFAULT_VAULT_ACCOUNT.user_id,
   }),
 ]);
 
@@ -114,6 +132,11 @@ function errorResponse(status, requestId, codes, extra = {}) {
 
 function validateCommonQuery(query, requestId) {
   if (!query.tenant_id) return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.tenant_required]);
+  if (query.tenant_id !== MATTER_VAULT_REGISTERED_TENANT_ID) {
+    return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
+      ui_state: "blocked",
+    });
+  }
   if (!query.permission_ref) return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.permission_required]);
   if (!query.audit_hint_ref) return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.audit_hint_required]);
   return null;
@@ -162,7 +185,26 @@ function routeGate({ context, query, requestId, action, resource }) {
   return gateDecisionResponse(decision, requestId, query.audit_hint_ref);
 }
 
+function accountForRecord(record) {
+  return (
+    registeredAccountPublicRef(findRegisteredAccountByUserId(record.owner_user_id)) ??
+    record.registered_account ??
+    null
+  );
+}
+
+function serializeAccountLink(record) {
+  const account = accountForRecord(record);
+  return Object.freeze({
+    status: account ? "linked" : "missing",
+    registry: MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    user_id: account?.user_id ?? record.owner_user_id ?? null,
+  });
+}
+
 function serializeDocument(record) {
+  const account = accountForRecord(record);
   return Object.freeze({
     tenant_id: record.tenant_id,
     resource_id: record.document_id,
@@ -174,6 +216,10 @@ function serializeDocument(record) {
     current_version_id: record.current_version_id,
     privilege_label_id: record.privilege_label_id ?? null,
     legal_hold_id: record.legal_hold_id ?? null,
+    owner_user_id: record.owner_user_id ?? account?.user_id ?? null,
+    registered_account_email: account?.email ?? record.registered_account_email ?? null,
+    registered_account: account,
+    account_linkage: serializeAccountLink(record),
     raw_path_exposed: false,
     document_bytes_included: false,
     storage_pointer_ref_included: false,
@@ -205,7 +251,11 @@ export function handleVaultDocumentList({ query, context, requestId, runtime = D
       request_id: requestId,
       outcome: "passed",
       items: allowed,
-      page_info: { returned_count: allowed.length, omitted_document_count: null },
+      page_info: {
+        returned_count: allowed.length,
+        omitted_document_count: null,
+        registered_account_count: allowed.filter((item) => item.account_linkage.status === "linked").length,
+      },
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,
       ui_state: allowed.length === 0 ? "empty" : null,
@@ -229,13 +279,30 @@ export function handleVaultDocumentUpload({ body, context, requestId, runtime = 
     resource: { resource_type: "vault_document", matter_id: body?.document?.matter_id },
   });
   if (gated) return gated;
+  const actorAccount = resolveRegisteredAccount({
+    user_id: body?.actor_id ?? body?.document?.owner_user_id ?? context?.principal?.user_id,
+    email: body?.actor_email ?? body?.document?.registered_account_email ?? context?.principal?.email,
+  });
+  if (!actorAccount) {
+    return errorResponse(400, requestId, [VAULT_DMS_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  const linkedAccount = registeredAccountPublicRef(actorAccount);
   try {
     const result = uploadDocument({
       repository: runtime.repository,
       storage: runtime.storage,
-      document: body.document,
+      document: {
+        ...body.document,
+        tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+        owner_user_id: linkedAccount.user_id,
+        registered_account_email: linkedAccount.email,
+        registered_account: linkedAccount,
+      },
       bytes: body.content_text ?? "",
-      actor_id: body.actor_id ?? context.principal.user_id,
+      actor_id: linkedAccount.user_id,
       idempotency_key: body.idempotency_key,
     });
     return {

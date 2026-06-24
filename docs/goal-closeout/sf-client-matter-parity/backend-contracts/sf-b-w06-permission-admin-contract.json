@@ -1,0 +1,289 @@
+{
+  "schema_version": "law-firm-os.sf-client-matter-parity.backend-contract.v0.1",
+  "program": "SF-CLIENT-MATTER-PARITY",
+  "track": "Track B",
+  "workstream": "SF-B-W06",
+  "title": "Salesforce permission set and admin setup backend-first contract",
+  "status": "permission_admin_contract_registered_owner_gate_required",
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "enterprise_trust_claim": false,
+  "ui_permission_set_exposure_allowed_before_route_tests": false,
+  "ui_role_assignment_exposure_allowed_before_route_tests": false,
+  "ui_object_manager_exposure_allowed_before_route_tests": false,
+  "ui_connected_app_exposure_allowed_before_owner_provider_gate": false,
+  "salesforce_visible_capabilities": [
+    "Salesforce permission sets and permission set assignments",
+    "Object and field permission management",
+    "Admin setup audit trail",
+    "Connected app administration",
+    "Role/profile style access review",
+    "Break-glass or elevated access review"
+  ],
+  "current_lawos_state": {
+    "mounted_routes_present": [
+      "GET /api/crm/accounts gated by x-lawos-permission-context",
+      "GET /api/crm/contacts gated by x-lawos-permission-context",
+      "GET /api/matters gated by x-lawos-permission-context",
+      "GET /api/matters/:id/command-center gated by x-lawos-permission-context",
+      "GET /api/analytics/dashboards gated by x-lawos-permission-context",
+      "GET /api/finance/time-entries gated by x-lawos-permission-context"
+    ],
+    "mounted_routes_absent": [
+      "GET /api/admin/permission-sets",
+      "POST /api/admin/permission-sets",
+      "PATCH /api/admin/permission-sets/:permissionSetId",
+      "GET /api/admin/permission-assignments",
+      "POST /api/admin/permission-assignments",
+      "DELETE /api/admin/permission-assignments/:assignmentId",
+      "GET /api/admin/object-manager/objects",
+      "GET /api/admin/object-manager/objects/:objectName/fields",
+      "PATCH /api/admin/object-manager/objects/:objectName/fields/:fieldName",
+      "GET /api/admin/connected-apps",
+      "POST /api/admin/connected-apps",
+      "POST /api/admin/connected-apps/:appId/disable",
+      "GET /api/admin/audit"
+    ],
+    "existing_domain_foundation": [
+      "apps/api/src/permission-gate.js#PERMISSION_CONTEXT_HEADER",
+      "apps/api/src/permission-gate.js#parsePermissionContext",
+      "apps/api/src/permission-gate.js#evaluateRouteDecision",
+      "apps/api/src/permission-gate.js#trimItemsByPermission",
+      "apps/api/src/routes/permission-simulator.js#simulatePermissionReadOnly",
+      "packages/authz/src/evaluate.js#evaluatePermission",
+      "packages/authz/src/permission-controls.js#evaluatePermissionControlRequest",
+      "packages/authz/src/permission-controls.js#PERMISSION_EVALUATE_ROUTE",
+      "packages/authz/src/admin-simulator.js#simulateAdminPermission",
+      "packages/authz/src/permission-context-store.js#createPermissionContextStore",
+      "packages/authz/src/policy-store.js#createPolicyStore",
+      "packages/authz/src/object-acl-store.js#createObjectAclStore"
+    ],
+    "existing_domain_foundation_properties": [
+      "PERMISSION_CONTEXT_HEADER is x-lawos-permission-context",
+      "PERMISSION_EVALUATE_ROUTE is /permissions/evaluate and is package-level control evidence, not a mounted Client/Matter admin route",
+      "simulatePermissionReadOnly returns read_only true, writes_product_state false, and production_ready_claim false",
+      "simulateAdminPermission returns simulator_only true, grant_applied false, and can_grant_access false",
+      "evaluatePermission decision order stays fail-closed with deny before allow and object ACL before allow rule"
+    ],
+    "current_ui_boundary": [
+      "Client/Matter UI may show allow, denied, review_required, and approval_required states from tested route responses",
+      "Client/Matter UI may not show permission-set creation, permission assignment, object manager editing, connected app administration, or grant/revoke controls before mounted admin route tests exist",
+      "Existing HRX policy consoles are not Salesforce Client/Matter permission-set parity",
+      "Existing permission simulator support is read-only evidence and does not apply grants"
+    ]
+  },
+  "route_policy_contract": [
+    {
+      "tuw": "SF-B-W06-T01",
+      "method": "GET",
+      "path": "/api/admin/permission-sets",
+      "action": "admin:permission_set:read",
+      "resource_type": "admin_permission_set",
+      "repository_source": "authz-admin-runtime",
+      "service_boundary": "Read tenant-scoped permission set metadata and safe rule summaries only; no principal secrets, raw policy JSON, or cross-tenant counts",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W06-API-001"
+    },
+    {
+      "tuw": "SF-B-W06-T01",
+      "method": "POST",
+      "path": "/api/admin/permission-sets",
+      "action": "admin:permission_set:write",
+      "resource_type": "admin_permission_set",
+      "repository_source": "authz-admin-runtime",
+      "service_boundary": "Create owner-approved permission set metadata with idempotency and audit evidence; deny broad wildcard actions unless owner policy allows them",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W06-API-002"
+    },
+    {
+      "tuw": "SF-B-W06-T01",
+      "method": "PATCH",
+      "path": "/api/admin/permission-sets/:permissionSetId",
+      "action": "admin:permission_set:patch",
+      "resource_type": "admin_permission_set",
+      "repository_source": "authz-admin-runtime",
+      "service_boundary": "Patch label, description, disabled state, and allowlisted rule refs only; every change requires audit and cannot silently broaden access",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W06-API-003"
+    },
+    {
+      "tuw": "SF-B-W06-T02",
+      "method": "GET",
+      "path": "/api/admin/permission-assignments",
+      "action": "admin:permission_assignment:read",
+      "resource_type": "admin_permission_assignment",
+      "repository_source": "authz-admin-runtime",
+      "service_boundary": "Read safe assignment metadata for tenant-scoped actors and groups; direct user identifiers are reduced to actor refs and labels",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W06-API-004"
+    },
+    {
+      "tuw": "SF-B-W06-T02",
+      "method": "POST",
+      "path": "/api/admin/permission-assignments",
+      "action": "admin:permission_assignment:write",
+      "resource_type": "admin_permission_assignment",
+      "repository_source": "authz-admin-runtime",
+      "service_boundary": "Assign permission set to actor/group only after admin policy, owner decision, idempotency key, and audit intent are present",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W06-API-005"
+    },
+    {
+      "tuw": "SF-B-W06-T02",
+      "method": "DELETE",
+      "path": "/api/admin/permission-assignments/:assignmentId",
+      "action": "admin:permission_assignment:revoke",
+      "resource_type": "admin_permission_assignment",
+      "repository_source": "authz-admin-runtime",
+      "service_boundary": "Revoke permission assignment with dual-control policy when required and append immutable audit evidence",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W06-API-006"
+    },
+    {
+      "tuw": "SF-B-W06-T03",
+      "method": "GET",
+      "path": "/api/admin/object-manager/objects",
+      "action": "admin:object_manager:read",
+      "resource_type": "admin_object_definition",
+      "repository_source": "authz-admin-runtime + metadata-runtime",
+      "service_boundary": "Read object metadata and permission policy refs for allowlisted Client/Matter objects only; schema mutation is out of scope",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W06-API-007"
+    },
+    {
+      "tuw": "SF-B-W06-T03",
+      "method": "PATCH",
+      "path": "/api/admin/object-manager/objects/:objectName/fields/:fieldName",
+      "action": "admin:object_manager:patch",
+      "resource_type": "admin_field_policy",
+      "repository_source": "authz-admin-runtime + metadata-runtime",
+      "service_boundary": "Patch field policy labels, visibility, and permission refs only after owner-approved metadata policy; no physical schema writes",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W06-API-008"
+    },
+    {
+      "tuw": "SF-B-W06-T04",
+      "method": "GET",
+      "path": "/api/admin/connected-apps",
+      "action": "admin:connected_app:read",
+      "resource_type": "admin_connected_app",
+      "repository_source": "authz-admin-runtime + external-provider-registry",
+      "service_boundary": "Read connected app descriptors and disabled/enabled state only; credentials, OAuth secrets, and provider tokens are omitted",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W06-API-009"
+    },
+    {
+      "tuw": "SF-B-W06-T04",
+      "method": "POST",
+      "path": "/api/admin/connected-apps/:appId/disable",
+      "action": "admin:connected_app:disable",
+      "resource_type": "admin_connected_app",
+      "repository_source": "authz-admin-runtime + external-provider-registry",
+      "service_boundary": "Disable connected app descriptor with owner-approved provider policy and audit receipt; provider revocation remains external-provider gated",
+      "status": "connected_app_provider_gate_only",
+      "verification_case": "VC-SF-B-W06-API-010"
+    }
+  ],
+  "repository_service_contract": {
+    "permission_set_model": {
+      "canonical_records": ["PermissionSet", "PermissionRule", "ObjectAclPolicy", "PermissionAuditEvent"],
+      "required_services": ["createAdminPermissionSetRepository", "createPermissionSetService", "createPermissionAuditService"],
+      "model_migration_required": [
+        "permission_set_id",
+        "tenant_id",
+        "label",
+        "description",
+        "status",
+        "rule_refs",
+        "object_acl_refs",
+        "created_by_actor_ref",
+        "last_reviewed_at"
+      ],
+      "safe_output_rules": [
+        "raw policy JSON omitted",
+        "direct principal identifiers omitted unless actor display policy allows them",
+        "wildcard actions require explicit owner-approved policy",
+        "tenant_id scoped"
+      ]
+    },
+    "assignment_model": {
+      "canonical_records": ["PermissionAssignment", "RoleBinding", "ActorGroup", "PermissionAuditEvent"],
+      "required_services": ["createPermissionAssignmentService", "createRoleBindingService", "createPermissionAuditService"],
+      "safe_output_rules": [
+        "assignment changes require idempotency key",
+        "grant and revoke write audit events",
+        "break-glass assignments require reason, approval, and audit intent",
+        "simulator output cannot be reused as grant evidence"
+      ]
+    },
+    "object_manager_model": {
+      "canonical_records": ["ObjectDefinition", "FieldDefinition", "FieldPolicy", "PermissionAuditEvent"],
+      "required_services": ["createObjectMetadataPolicyService", "createFieldPolicyService"],
+      "safe_output_rules": [
+        "object manager cannot mutate physical database schema in this contract",
+        "Client/Matter field visibility changes require owner policy",
+        "privilege labels, ethical walls, legal holds, and raw storage pointers cannot be exposed through generic field policy"
+      ]
+    },
+    "connected_app_model": {
+      "canonical_records": ["ConnectedAppDescriptor", "ConnectedAppAuditEvent", "ProviderRevocationReceipt"],
+      "required_services": ["createConnectedAppDescriptorService", "createConnectedAppProviderBoundaryService"],
+      "safe_output_rules": [
+        "OAuth client secret omitted",
+        "provider tokens omitted",
+        "new connected apps are disabled by default",
+        "provider revocation requires external receipt before trust claims"
+      ]
+    }
+  },
+  "owner_decisions_required": [
+    "admin product owner for Client/Matter permission-set setup",
+    "permission taxonomy and role/profile mapping",
+    "who may create, patch, assign, and revoke permission sets",
+    "whether assignment writes require dual control",
+    "object and field policy allowlist for Client, Contact, Matter, Billing, Analytics, and DMS objects",
+    "break-glass approval workflow and retention policy",
+    "connected app provider/OAuth owner decision",
+    "admin audit retention and review cadence"
+  ],
+  "external_provider_dependencies": [
+    "None required for first-party permission-set registry and assignment metadata",
+    "Identity provider or SSO subject source may be required for production role assignment reconciliation",
+    "OAuth or connected-app provider is required before connected-app disable/revocation can claim external effect"
+  ],
+  "verification_cases": [
+    "VC-SF-B-W06-API-001: list permission sets returns safe metadata and no raw policy JSON",
+    "VC-SF-B-W06-API-002: create permission set requires owner policy, idempotency key, and audit intent",
+    "VC-SF-B-W06-API-003: patch permission set cannot silently broaden access or add wildcard actions without owner policy",
+    "VC-SF-B-W06-API-004: list permission assignments hides direct actor identifiers where policy requires labels",
+    "VC-SF-B-W06-API-005: assign permission set requires admin permission, owner policy, idempotency, and audit evidence",
+    "VC-SF-B-W06-API-006: revoke assignment emits audit and respects dual-control policy",
+    "VC-SF-B-W06-API-007: object manager reads only allowlisted Client/Matter metadata and safe field policy refs",
+    "VC-SF-B-W06-API-008: field policy patch cannot mutate physical schema or expose restricted legal/security fields",
+    "VC-SF-B-W06-API-009: connected app list omits credentials, secrets, and provider tokens",
+    "VC-SF-B-W06-API-010: connected app disable remains provider-gated until external revocation receipt exists",
+    "VC-SF-B-W06-UI-001: Client/Matter/Admin UI exposes no permission-set admin, object manager editor, connected-app admin, grant, revoke, or disable controls before route/provider tests pass"
+  ],
+  "evidence_gate": {
+    "required_before_ui_exposure": [
+      "node --test apps/api/test/sf-b-w06-permission-admin.test.js",
+      "node --test packages/authz/test/authz.test.js",
+      "npm --workspace apps/web run test:ui",
+      "Playwright Admin permission-set route QA",
+      "OMO CodeGraph caller check for permission-set, assignment, object-manager, and connected-app handlers",
+      "Hermes MCP check-only: hermes.validate.core and hermes.desktop_authority_boundary"
+    ],
+    "forbidden_before_gate": [
+      "data-permission-set-admin",
+      "data-object-manager-admin",
+      "data-connected-apps-admin",
+      "createPermissionSet",
+      "assignPermissionSet",
+      "revokePermissionSetAssignment",
+      "patchObjectFieldPolicy",
+      "createConnectedApp",
+      "disableConnectedApp"
+    ],
+    "claim_boundary": "Passing this contract validator does not create production, deployment, final approval, or enterprise trust claims."
+  }
+}

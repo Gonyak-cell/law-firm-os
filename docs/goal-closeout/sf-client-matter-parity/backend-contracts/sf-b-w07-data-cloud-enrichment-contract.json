@@ -1,0 +1,294 @@
+{
+  "schema_version": "law-firm-os.sf-client-matter-parity.backend-contract.v0.1",
+  "program": "SF-CLIENT-MATTER-PARITY",
+  "track": "Track B",
+  "workstream": "SF-B-W07",
+  "title": "Salesforce Data Cloud and enrichment backend-first contract",
+  "status": "data_cloud_enrichment_contract_registered_provider_gate_required",
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "enterprise_trust_claim": false,
+  "ui_enrichment_exposure_allowed_before_provider_gate": false,
+  "ui_identity_resolution_exposure_allowed_before_route_tests": false,
+  "ui_unified_profile_exposure_allowed_before_route_tests": false,
+  "ui_segment_activation_exposure_allowed_before_provider_gate": false,
+  "salesforce_visible_capabilities": [
+    "Salesforce Data Cloud tab",
+    "External customer/account enrichment",
+    "Consent and data-category governance",
+    "Identity resolution and unified profile",
+    "Safe enrichment preview and confidence scoring",
+    "Segment activation or audience sync"
+  ],
+  "current_lawos_state": {
+    "mounted_routes_present": [
+      "GET /api/crm/accounts",
+      "GET /api/crm/contacts",
+      "GET /api/crm/opportunities",
+      "GET /api/matters",
+      "GET /api/analytics/dashboards",
+      "GET /api/analytics/matter-profitability"
+    ],
+    "mounted_routes_absent": [
+      "GET /api/data-cloud/providers",
+      "POST /api/data-cloud/providers",
+      "POST /api/data-cloud/consent-records",
+      "POST /api/data-cloud/enrichment-jobs",
+      "GET /api/data-cloud/enrichment-jobs/:jobId/preview",
+      "POST /api/data-cloud/enrichment-jobs/:jobId/execute",
+      "GET /api/data-cloud/enrichment-results",
+      "POST /api/data-cloud/identity-resolution",
+      "GET /api/data-cloud/unified-profiles/:profileId",
+      "POST /api/data-cloud/segment-activations",
+      "GET /api/data-cloud/audit"
+    ],
+    "existing_domain_foundation": [
+      "Law Firm OS UI/Salesforce web Mar 2026/showcase.html#Data Cloud",
+      "apps/api/src/server.js#enrichment mode synthetic_crosswalk",
+      "apps/web/src/components/ClientsSurface.jsx#matter_core_enrichment",
+      "packages/enterprise/src/client-matter-g7.js#noRuntimeBoundary",
+      "packages/enterprise/src/client-matter-g7.js#createEnterpriseG7IntegrationBaselineDescriptor",
+      "packages/integrations-core/src/service.js synthetic-only external provider descriptor boundary"
+    ],
+    "existing_domain_foundation_properties": [
+      "server enrichment mode is synthetic_crosswalk and is not a Data Cloud runtime route",
+      "matter_core_enrichment currently labels an internal Matter connection and is not external enrichment",
+      "Enterprise G7 integration baseline blocks calls_external_provider_api when true",
+      "External integration descriptors are synthetic-only until downstream packs explicitly open provider runtime"
+    ],
+    "current_ui_boundary": [
+      "Client/Matter UI may display existing CRM, Matter, Analytics, and internal Matter connection data from tested routes",
+      "Client/Matter UI may not show Data Cloud provider setup, enrichment jobs, identity resolution, unified profile, confidence scoring, segment activation, audience sync, or external enrichment controls before route/provider tests exist",
+      "No external provider payload, raw identifier, raw personal contact value, token, consent artifact, or provider match response may be exposed in Client/Matter UI",
+      "Existing Matter analytics is not Data Cloud parity"
+    ]
+  },
+  "route_policy_contract": [
+    {
+      "tuw": "SF-B-W07-T01",
+      "method": "GET",
+      "path": "/api/data-cloud/providers",
+      "action": "data_cloud:provider:read",
+      "resource_type": "data_cloud_provider",
+      "repository_source": "data-cloud-runtime + external-provider-registry",
+      "service_boundary": "Read provider descriptors, data categories, owner decision state, and disabled/enabled flags only; credentials and provider tokens omitted",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W07-API-001"
+    },
+    {
+      "tuw": "SF-B-W07-T01",
+      "method": "POST",
+      "path": "/api/data-cloud/providers",
+      "action": "data_cloud:provider:register",
+      "resource_type": "data_cloud_provider",
+      "repository_source": "data-cloud-runtime + external-provider-registry",
+      "service_boundary": "Register provider descriptor only after owner decision, DPA/privacy review, credential storage design, and disabled-by-default policy; no provider call at registration",
+      "status": "external_provider_gate_only",
+      "verification_case": "VC-SF-B-W07-API-002"
+    },
+    {
+      "tuw": "SF-B-W07-T01",
+      "method": "POST",
+      "path": "/api/data-cloud/consent-records",
+      "action": "data_cloud:consent:write",
+      "resource_type": "data_cloud_consent_record",
+      "repository_source": "data-cloud-runtime + privacy-ledger",
+      "service_boundary": "Record consent/lawful-basis metadata for enrichment categories; raw consent documents, signatures, and direct personal identifiers omitted",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W07-API-003"
+    },
+    {
+      "tuw": "SF-B-W07-T02",
+      "method": "POST",
+      "path": "/api/data-cloud/enrichment-jobs",
+      "action": "data_cloud:enrichment_job:create",
+      "resource_type": "data_cloud_enrichment_job",
+      "repository_source": "data-cloud-runtime",
+      "service_boundary": "Create metadata-only enrichment job for allowlisted CRM Account, Contact, Lead, Opportunity, and Matter refs; no provider call or product record mutation at creation",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W07-API-004"
+    },
+    {
+      "tuw": "SF-B-W07-T02",
+      "method": "GET",
+      "path": "/api/data-cloud/enrichment-jobs/:jobId/preview",
+      "action": "data_cloud:enrichment_preview:read",
+      "resource_type": "data_cloud_enrichment_preview",
+      "repository_source": "data-cloud-runtime",
+      "service_boundary": "Return safe preview counts, allowed data categories, missing consent states, and match strategy only; raw identifiers and provider payloads omitted",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W07-API-005"
+    },
+    {
+      "tuw": "SF-B-W07-T02",
+      "method": "POST",
+      "path": "/api/data-cloud/enrichment-jobs/:jobId/execute",
+      "action": "data_cloud:enrichment_job:execute",
+      "resource_type": "data_cloud_enrichment_execution",
+      "repository_source": "data-cloud-runtime + external-provider",
+      "service_boundary": "Execute only after provider receipt gate, consent coverage, owner-approved categories, idempotency key, and audit intent; output is safe counts and receipt refs only",
+      "status": "external_provider_gate_only",
+      "verification_case": "VC-SF-B-W07-API-006"
+    },
+    {
+      "tuw": "SF-B-W07-T03",
+      "method": "GET",
+      "path": "/api/data-cloud/enrichment-results",
+      "action": "data_cloud:enrichment_result:read",
+      "resource_type": "data_cloud_enrichment_result",
+      "repository_source": "data-cloud-runtime",
+      "service_boundary": "Read safe enrichment summaries with provenance, confidence band, and review state only; raw provider fields, raw contact values, and hidden identifiers omitted",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W07-API-007"
+    },
+    {
+      "tuw": "SF-B-W07-T03",
+      "method": "POST",
+      "path": "/api/data-cloud/identity-resolution",
+      "action": "data_cloud:identity_resolution:write",
+      "resource_type": "data_cloud_identity_resolution",
+      "repository_source": "data-cloud-runtime",
+      "service_boundary": "Create internal identity-resolution review candidates with safe entity refs and confidence bands; no automatic merge, no canonical Master Data write, and no direct Matter creation",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W07-API-008"
+    },
+    {
+      "tuw": "SF-B-W07-T03",
+      "method": "GET",
+      "path": "/api/data-cloud/unified-profiles/:profileId",
+      "action": "data_cloud:unified_profile:read",
+      "resource_type": "data_cloud_unified_profile",
+      "repository_source": "data-cloud-runtime",
+      "service_boundary": "Read safe unified profile labels, linked object refs, provenance, confidence band, and consent state only; raw provider graph and direct personal identifiers omitted",
+      "status": "contract_only",
+      "verification_case": "VC-SF-B-W07-API-009"
+    },
+    {
+      "tuw": "SF-B-W07-T03",
+      "method": "POST",
+      "path": "/api/data-cloud/segment-activations",
+      "action": "data_cloud:segment_activation:create",
+      "resource_type": "data_cloud_segment_activation",
+      "repository_source": "data-cloud-runtime + external-provider",
+      "service_boundary": "Create audience/segment activation request only after owner-approved destination, consent coverage, provider receipt, audit evidence, and rollback/disable plan",
+      "status": "external_provider_gate_only",
+      "verification_case": "VC-SF-B-W07-API-010"
+    }
+  ],
+  "repository_service_contract": {
+    "provider_registry": {
+      "canonical_records": ["DataCloudProviderDescriptor", "DataCloudProviderDecision", "DataCloudProviderAuditEvent"],
+      "required_services": ["createDataCloudProviderRegistry", "createDataCloudProviderDecisionService"],
+      "model_migration_required": [
+        "provider_id",
+        "provider_kind",
+        "owner_decision_ref",
+        "data_category_allowlist",
+        "credential_material_ref",
+        "disabled_by_default",
+        "dpa_review_ref",
+        "retention_policy_id"
+      ],
+      "safe_output_rules": [
+        "provider credentials omitted",
+        "OAuth tokens omitted",
+        "raw provider payload omitted",
+        "new providers disabled by default",
+        "tenant_id scoped"
+      ]
+    },
+    "consent_privacy_model": {
+      "canonical_records": ["DataCloudConsentRecord", "DataCloudDataCategoryPolicy", "DataCloudPrivacyAuditEvent"],
+      "required_services": ["createDataCloudConsentService", "createDataCategoryPolicyService"],
+      "safe_output_rules": [
+        "consent/lawful-basis metadata required before enrichment execution",
+        "raw consent document and signature payloads omitted",
+        "sensitive categories require owner decision and legal review",
+        "cross-border transfer and retention policy refs required where applicable"
+      ]
+    },
+    "enrichment_job_model": {
+      "canonical_records": ["DataCloudEnrichmentJob", "DataCloudEnrichmentPreview", "DataCloudProviderReceipt", "DataCloudAuditEvent"],
+      "required_services": ["createDataCloudEnrichmentJobService", "createDataCloudPreviewService", "createDataCloudExecutionService"],
+      "safe_output_rules": [
+        "job creation mutates no product records",
+        "execute requires provider receipt gate and idempotency key",
+        "safe output includes counts, category labels, confidence band, provenance refs, and review state only",
+        "raw provider payloads and direct personal identifiers omitted"
+      ]
+    },
+    "identity_unified_profile_model": {
+      "canonical_records": ["DataCloudIdentityCandidate", "DataCloudUnifiedProfile", "DataCloudProfileProvenance", "DataCloudAuditEvent"],
+      "required_services": ["createIdentityResolutionReviewService", "createUnifiedProfileReadModelService"],
+      "safe_output_rules": [
+        "identity resolution creates review candidates only",
+        "automatic merge is blocked",
+        "canonical Master Data writes are blocked until a separate owner-approved merge contract exists",
+        "unified profile output includes provenance and consent state"
+      ]
+    },
+    "segment_activation_model": {
+      "canonical_records": ["DataCloudSegment", "DataCloudActivationRequest", "DataCloudActivationReceipt", "DataCloudAuditEvent"],
+      "required_services": ["createSegmentActivationService", "createActivationProviderBoundaryService"],
+      "safe_output_rules": [
+        "activation requires destination allowlist",
+        "activation requires consent coverage and rollback/disable plan",
+        "external activation requires provider receipt",
+        "audience member raw identifiers omitted from UI/API response"
+      ]
+    }
+  },
+  "owner_decisions_required": [
+    "whether Salesforce Data Cloud, another enrichment provider, or no provider is allowed",
+    "data categories permitted for Client, Contact, Lead, Opportunity, Matter, Billing, Analytics, and DMS contexts",
+    "lawful basis, consent, PIPA/cross-border transfer, DPA, and retention policy",
+    "provider credential storage and rotation owner",
+    "identity resolution match threshold and human review threshold",
+    "whether enriched values may patch CRM runtime facade records or only create review candidates",
+    "whether unified profile output may appear in Client/Matter UI",
+    "segment activation destination allowlist and rollback/disable policy"
+  ],
+  "external_provider_dependencies": [
+    "Salesforce Data Cloud API, Salesforce CRM enrichment, or approved third-party provider such as FullContact, Lusha, ZoomInfo, Clearbit, or equivalent",
+    "Provider DPA/privacy review and owner decision required before runtime calls",
+    "Provider receipt required before execute or activation routes can claim external effect"
+  ],
+  "verification_cases": [
+    "VC-SF-B-W07-API-001: provider list returns descriptors and no credentials or tokens",
+    "VC-SF-B-W07-API-002: provider registration is disabled-by-default and performs no provider call",
+    "VC-SF-B-W07-API-003: consent records require data category, lawful basis, retention, and audit metadata",
+    "VC-SF-B-W07-API-004: enrichment job creation mutates no product records and allows only stable object refs",
+    "VC-SF-B-W07-API-005: enrichment preview returns safe counts, data categories, and missing consent states only",
+    "VC-SF-B-W07-API-006: enrichment execution requires provider gate, idempotency, consent coverage, owner policy, and audit receipt",
+    "VC-SF-B-W07-API-007: enrichment results omit raw provider payloads, raw contact values, tokens, and hidden identifiers",
+    "VC-SF-B-W07-API-008: identity resolution creates review candidates only and blocks automatic merge",
+    "VC-SF-B-W07-API-009: unified profile read output includes provenance, confidence band, and consent state without raw provider graph",
+    "VC-SF-B-W07-API-010: segment activation requires destination allowlist, provider receipt, and rollback/disable plan",
+    "VC-SF-B-W07-UI-001: Client/Matter UI exposes no Data Cloud provider setup, enrichment run, identity resolution, unified profile, confidence score, segment activation, or audience sync controls before route/provider tests pass"
+  ],
+  "evidence_gate": {
+    "required_before_ui_exposure": [
+      "node --test apps/api/test/sf-b-w07-data-cloud-enrichment.test.js",
+      "node --test packages/enterprise/test/client-matter-g7-qa-security-baseline.test.js",
+      "npm --workspace apps/web run test:ui",
+      "Playwright Data Cloud/enrichment QA",
+      "OMO CodeGraph caller check for Data Cloud provider, enrichment job, identity resolution, unified profile, and segment activation handlers",
+      "Hermes MCP check-only: hermes.validate.core and hermes.desktop_authority_boundary"
+    ],
+    "forbidden_before_gate": [
+      "data-data-cloud-enrichment",
+      "data-enrichment-provider-admin",
+      "data-identity-resolution",
+      "data-unified-profile",
+      "data-segment-activation",
+      "createDataCloudProvider",
+      "createEnrichmentJob",
+      "executeEnrichmentJob",
+      "fetchEnrichmentResults",
+      "runIdentityResolution",
+      "fetchUnifiedCustomerProfile",
+      "activateDataCloudSegment"
+    ],
+    "claim_boundary": "Passing this contract validator does not create provider approval, production, deployment, final approval, or enterprise trust claims."
+  }
+}

@@ -70,12 +70,18 @@ export function uploadDocument({
       sha256: receipt.sha256,
       persisted: true,
     });
+    const persistedDocument = createDmsDocument({
+      ...document,
+      status: document.status ?? "active",
+      current_version_id: version.version_id,
+    });
     const persisted = tx.create({
-      ...createDmsDocument({
-        ...document,
-        status: document.status ?? "active",
-        current_version_id: version.version_id,
-      }),
+      ...document,
+      ...persistedDocument,
+      owner_user_id: document.owner_user_id ?? actor_id,
+      registered_account_email: document.registered_account_email ?? null,
+      registered_account: document.registered_account ?? null,
+      account_linkage: document.account_linkage ?? null,
       model_type: "DmsDocument",
       latest_sha256: receipt.sha256,
     });
