@@ -11,7 +11,7 @@ Version: `0.1.0`
 
 - Electron runtime: `node_modules/electron/dist/Electron.app`
 - app icon: `apps/desktop/build/icon.icns`
-- packaged app icon: `apps/desktop/dist/mac/matter.app/Contents/Resources/electron.icns`
+- packaged app icon: `apps/desktop/dist/mac/matter.app/Contents/Resources/matter.icns`
 - packaged app source: `apps/desktop/dist/mac/matter.app/Contents/Resources/app`
 - executable: `apps/desktop/dist/mac/matter.app/Contents/MacOS/matter`
 - archive: `apps/desktop/dist/mac/matter-internal-0.1.0-macos.zip`

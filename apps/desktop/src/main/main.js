@@ -39,6 +39,10 @@ export function desktopWindowIconPath() {
   return join(moduleDir, "../../build/icon.png");
 }
 
+export function configureDesktopAppIcon(app) {
+  app.dock?.setIcon?.(desktopWindowIconPath());
+}
+
 export function rendererTargetFromEnv(env = process.env) {
   return env.MATTER_DESKTOP_RENDERER_URL ?? packagedRendererUrl();
 }
@@ -80,6 +84,7 @@ export async function startDesktopShell({
 export async function startElectronApp() {
   const { app, BrowserWindow, ipcMain } = await import("electron");
   await app.whenReady();
+  configureDesktopAppIcon(app);
   const runtimeClient = runtimeClientFromEnv();
   const coordinator = new MainProcessAuthCoordinator({ runtimeClient });
   return startDesktopShell({ BrowserWindowConstructor: BrowserWindow, ipcMain, coordinator });

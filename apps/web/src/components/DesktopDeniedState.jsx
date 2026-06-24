@@ -1,11 +1,11 @@
 import React from "react";
 
-export function DesktopDeniedState({ resource = "workspace" }) {
+export function DesktopDeniedState() {
   return (
     <div className="live-data-state live-data-denied desktop-denied-state" data-desktop-denied-state="true">
-      <strong>Access denied</strong>
+      <strong>접근 권한이 없습니다</strong>
       <span>
-        Permission recheck denied this {resource}. No row counts, snippets, citations, or document metadata are shown.
+        권한이 있는 정보만 표시됩니다.
       </span>
     </div>
   );

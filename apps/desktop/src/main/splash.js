@@ -28,7 +28,7 @@ export function splashHtml() {
 body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;color:#06102d;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .splash{display:grid;justify-items:center;gap:12px}
 .mark{position:relative;width:88px;height:72px}
-.pill{position:absolute;top:4px;width:20px;height:58px;border-radius:999px;transform:rotate(31deg)}
+.mark-stroke{position:absolute;top:4px;width:20px;height:58px;border-radius:8px;transform:rotate(31deg)}
 .red{left:10px;background:#ff2d55}.yellow{left:45px;background:#ffcc00}.dot{position:absolute;right:0;bottom:8px;width:22px;height:22px;border-radius:50%;background:#00ca72}
 .word{font-size:42px;font-weight:300}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:1ms!important;transition-duration:1ms!important;scroll-behavior:auto!important}.splash{gap:8px}}
@@ -36,7 +36,7 @@ body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;c
 </head>
 <body>
 <main class="splash" aria-label="${SPLASH_BRAND}">
-<span class="mark" aria-hidden="true"><span class="pill red"></span><span class="pill yellow"></span><span class="dot"></span></span>
+<span class="mark" aria-hidden="true"><span class="mark-stroke red"></span><span class="mark-stroke yellow"></span><span class="dot"></span></span>
 <strong class="word">matter</strong>
 </main>
 </body>
@@ -50,12 +50,11 @@ export function splashDataUrl() {
 export function fallbackHtml(reason = "startup-timeout") {
   return `<!doctype html>
 <html lang="en">
-<head><meta charset="utf-8" /><title>${SPLASH_BRAND} fallback</title></head>
+<head><meta charset="utf-8" /><title>${SPLASH_BRAND}</title></head>
 <body>
-<main aria-label="${SPLASH_BRAND} startup fallback">
+<main aria-label="${SPLASH_BRAND} 시작 화면">
 <strong>${SPLASH_BRAND}</strong>
-<p>Offline startup fallback is active.</p>
-<small>${reason}</small>
+<p>시작 화면을 준비하고 있습니다.</p>
 </main>
 </body>
 </html>`;

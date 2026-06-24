@@ -86,12 +86,13 @@ test("runtime client supports password reset and password login without exposing
   await client.requestPasswordReset({ email: "jwsuh@amic.kr" });
   const latest = await client.latestResetEmail({ email: "jwsuh@amic.kr" });
   await client.confirmPasswordReset({ token: latest.email_message.reset_token, password: "new-password" });
-  await client.login({ email: "jwsuh@amic.kr", password: "new-password" });
+  await client.login({ email: "jwsuh@amic.kr", password: "new-password", actorEmail: "ignored@amic.kr" });
 
   assert.equal(calls[0].url.endsWith("/api/desktop/password-reset/request"), true);
   assert.equal(calls[1].url.endsWith("/api/desktop/password-reset/latest-email"), true);
   assert.equal(calls[2].url.endsWith("/api/desktop/password-reset/confirm"), true);
   assert.equal(calls[3].url.endsWith("/api/desktop/login"), true);
+  assert.deepEqual(JSON.parse(calls[3].init.body), { email: "jwsuh@amic.kr", password: "new-password" });
   assert.equal(calls.every((call) => call.init.headers.authorization === "Bearer runtime-secret"), true);
   assert.equal(JSON.stringify(latest).includes("runtime-secret"), false);
 });
