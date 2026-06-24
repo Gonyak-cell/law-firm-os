@@ -10,6 +10,8 @@ Version: `0.1.0`
 ## Package Structure
 
 - Electron runtime: `node_modules/electron/dist/Electron.app`
+- app icon: `apps/desktop/build/icon.icns`
+- packaged app icon: `apps/desktop/dist/mac/matter.app/Contents/Resources/matter.icns`
 - packaged app source: `apps/desktop/dist/mac/matter.app/Contents/Resources/app`
 - executable: `apps/desktop/dist/mac/matter.app/Contents/MacOS/matter`
 - archive: `apps/desktop/dist/mac/matter-internal-0.1.0-macos.zip`
@@ -17,15 +19,23 @@ Version: `0.1.0`
 
 ## Signing
 
-- signing identity: not applied in this internal packaging step
-- codesign verify: not_distribution_ready: /Users/jws/Documents/Codex/law-firm-os-release-main-c52/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
-- strict distribution verify: not claimed
-- notarization state: not_submitted_internal_only
+- Developer ID signing: applied
+- requested signing mode: developer-id
+- resolved signing identity: Developer ID Application: Jiwon Suh (LHDXU66NX3)
+- Developer ID signature: pass
+- codesign verify: pass
+- strict codesign verify: pass
+- gatekeeper assess: pass
+- public distribution approval: not claimed
+- notarization requested: true
+- notarization credential source: present
+- notarization state: submitted_and_accepted_by_notarytool
 
 ## Install Smoke
 
 - bundle exists: true
 - executable exists: true
+- packaged app icon exists: true
 - packaged app source exists: true
 - ZIP archive exists: true
 - DMG image exists: true

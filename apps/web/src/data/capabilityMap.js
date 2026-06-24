@@ -32,7 +32,7 @@ export const backendCapabilities = Object.freeze([
       "POST /api/portal/projections"
     ],
     auditEndpoints: ["GET /api/intake/audit", "GET /api/portal/audit"],
-    boundary: "Client records, intake, and portal access fail closed without local fallback data"
+    boundary: "Client 정보와 연결된 Matter를 접근 권한에 맞게 확인합니다."
   },
   {
     id: "matter",
@@ -69,7 +69,7 @@ export const backendCapabilities = Object.freeze([
       "POST /api/ai/exports"
     ],
     auditEndpoints: ["GET /api/matters/audit", "GET /api/finance/audit", "GET /api/analytics/audit", "GET /api/ai/audit"],
-    boundary: "production_ready_claim remains false until external receipts exist"
+    boundary: "Matter 진행, 팀, 문서, 청구 업무를 관리합니다."
   },
   {
     id: "people",
@@ -104,7 +104,7 @@ export const backendCapabilities = Object.freeze([
       "POST /api/hrx/ai/assistant"
     ],
     auditEndpoints: ["GET /api/hrx/audit"],
-    boundary: "sensitive HR fields remain masked unless server scope allows them"
+    boundary: "People 구성원, 근태, 승인 업무를 관리합니다."
   },
   {
     id: "vault",
@@ -132,7 +132,7 @@ export const backendCapabilities = Object.freeze([
       "POST /api/data-room/projections"
     ],
     auditEndpoints: ["GET /api/vault/audit"],
-    boundary: "document bytes stay out of renderer-owned state"
+    boundary: "Vault 문서와 권한 정보를 관리합니다. 문서 내용은 권한이 있을 때만 표시됩니다."
   }
 ]);
 

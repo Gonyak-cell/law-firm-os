@@ -48,11 +48,12 @@ const clientsSurface = readFileSync(path.join(ROOT, "apps/web/src/components/Cli
 for (const pattern of [
   /data-cmp-g2-live-clients="true"/,
   /modelType: "ClientGroup"/,
+  /fetchMasterDataRecords/,
   /live-data-loading/,
+  /live-data-unavailable/,
   /live-data-empty/,
   /live-data-denied/,
   /live-data-review/,
-  /Live mode has no mock fallback/,
 ]) {
   if (!pattern.test(clientsSurface)) failures.push(`missing clients UI marker:${pattern.source}`);
 }

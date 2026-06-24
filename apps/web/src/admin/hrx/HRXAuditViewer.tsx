@@ -5,6 +5,23 @@ import { DataTable, Panel } from "../../components/primitives.jsx";
 import { fetchHrxAuditEvents } from "../../people/hrxApiClient.ts";
 import { HrxStepUpChallenge } from "../../people/security/HrxStepUpChallenge.tsx";
 
+function actionLabel(value) {
+  if (value === "approve") return "승인";
+  if (value === "reject") return "반려";
+  if (value === "create") return "생성";
+  if (value === "update") return "수정";
+  return "확인";
+}
+
+function objectTypeLabel(value) {
+  if (value === "leave_request") return "휴가 요청";
+  if (value === "document") return "문서";
+  if (value === "employee") return "구성원";
+  if (value === "candidate") return "지원자";
+  if (value === "approval") return "승인";
+  return "업무";
+}
+
 export function HRXAuditViewer() {
   const [result, setResult] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -22,31 +39,29 @@ export function HRXAuditViewer() {
 
   let body;
   if (result === null) {
-    body = <div className="live-data-state live-data-loading">Loading tenant-scoped HRX audit events</div>;
+    body = <div className="live-data-state live-data-loading">활동 기록을 불러오는 중입니다</div>;
   } else if (result.kind === "step_up_required") {
     body = (
       <HrxStepUpChallenge
-        action={result.action ?? "hrx.audit.read"}
-        reason={result.reason}
         onRetry={() => setRefreshKey((key) => key + 1)}
       />
     );
   } else if (result.kind === "error") {
-    body = <div className="live-data-state live-data-error">Audit API failed. No local audit fallback is rendered.</div>;
+    body = <div className="live-data-state live-data-error">활동 기록을 불러오지 못했습니다.</div>;
   } else {
     body = (
       <DataTable
-        columns={["Event", "Actor", "Action", "Object"]}
-        rows={result.events.map((event) => [event.event_id, event.actor_id, event.action, `${event.object_type}:${event.object_id}`])}
+        columns={["기록", "사용자", "작업", "대상"]}
+        rows={result.events.map((event, index) => [`기록 ${index + 1}`, event.actor_id ? "담당자" : "시스템", actionLabel(event.action), objectTypeLabel(event.object_type)])}
       />
     );
   }
 
   return (
-    <Panel className="people-panel span-2" title="HRX Audit Viewer" meta="Step-up protected">
+    <Panel id="people-audit" className="people-panel span-2" title="활동 기록" meta="추가 확인 필요">
       <div className="people-panel-kicker">
         <ClipboardList size={15} />
-        Tenant-scoped audit events only after fresh step-up
+        중요한 활동은 추가 확인 후 표시됩니다.
       </div>
       {body}
     </Panel>

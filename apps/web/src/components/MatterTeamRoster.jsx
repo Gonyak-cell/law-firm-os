@@ -4,20 +4,15 @@ import { ShieldCheck, UserPlus } from "lucide-react";
 import { addMatterTeamMember } from "../data/apiClient.js";
 import { DataTable, Panel } from "./primitives.jsx";
 
-const TENANT_ID = "matter-runtime-tenant";
-const ACTOR_ID = "matter-operator";
 const TEAM_PERMISSION_REF = "ui_cmp_g4_matter_team";
 const TEAM_AUDIT_HINT_REF = "ui_cmp_g4_matter_team_probe";
 
 function memberPayload({ matterId, memberId, employeeId, userId, role }) {
   return {
-    tenant_id: TENANT_ID,
     permission_ref: TEAM_PERMISSION_REF,
     audit_hint_ref: TEAM_AUDIT_HINT_REF,
-    actor_id: ACTOR_ID,
     member: {
       member_id: memberId,
-      tenant_id: TENANT_ID,
       matter_id: matterId,
       employee_id: employeeId,
       user_id: userId,
@@ -27,7 +22,26 @@ function memberPayload({ matterId, memberId, employeeId, userId, role }) {
   };
 }
 
-export function MatterTeamRoster({ matters = [], liveCtx = "allow" }) {
+function roleLabel(value) {
+  if (value === "responsible_attorney") return "책임 변호사";
+  if (value === "paralegal") return "패러리걸";
+  if (value === "billing_reviewer") return "청구 검토자";
+  return "담당 변호사";
+}
+
+function statusLabel(value) {
+  if (value === "inactive") return "비활성";
+  if (value === "review_required") return "검토 필요";
+  return "사용 중";
+}
+
+function ownerAssignmentLabel(value) {
+  const text = String(value ?? "").trim();
+  if (!text || /synthetic|rp0|_[a-z0-9]/i.test(text)) return "책임자";
+  return text;
+}
+
+export function MatterTeamRoster({ matters = [], liveCtx = "allow", onMatterUpdated }) {
   const activeMatter = matters[0] ?? null;
   const [form, setForm] = useState({
     memberId: "",
@@ -41,12 +55,12 @@ export function MatterTeamRoster({ matters = [], liveCtx = "allow" }) {
 
   const rows = useMemo(
     () =>
-      members.map((member) => [
-        member.member_id,
-        member.employee_id ?? "blocked",
-        member.user_id ?? "none",
-        member.role,
-        member.status ?? "active"
+      members.map((member, index) => [
+        `팀원 ${index + 1}`,
+        member.employee_id ? "연결됨" : "미연결",
+        member.user_id ? "연결됨" : "미연결",
+        roleLabel(member.role),
+        statusLabel(member.status)
       ]),
     [members]
   );
@@ -68,42 +82,52 @@ export function MatterTeamRoster({ matters = [], liveCtx = "allow" }) {
     setSubmitting(false);
     if (next.kind === "data" && next.item) {
       setMembers((current) => [...current.filter((member) => member.member_id !== next.item.member_id), next.item]);
+      if (next.matter) onMatterUpdated?.(next.matter);
+      setForm({ memberId: "", employeeId: "", userId: "", role: "associate" });
     }
   }
 
   const stateText =
     result?.kind === "data"
-      ? `${result.statusOutcome}${result.safeErrorCodes?.length ? " / blocked" : " / audited"}`
+      ? result.safeErrorCodes?.length
+        ? "검토 필요"
+        : result.ownerAssignment
+          ? "책임자가 지정되었습니다"
+          : "팀원이 추가되었습니다"
       : result?.kind === "error"
-        ? "error"
+        ? "다시 확인해주세요"
         : activeMatter
-          ? activeMatter.matter_number ?? activeMatter.matter_id
-          : "empty";
+          ? "팀원과 책임자를 지정할 수 있습니다"
+          : "Matter를 먼저 선택해주세요";
   const canSubmit = Boolean(activeMatter && form.memberId.trim() && form.role.trim() && (form.employeeId.trim() || form.userId.trim()));
 
   return (
-    <Panel className="matter-runtime-panel" title="Matter Team" meta={TEAM_AUDIT_HINT_REF}>
-      <div className="matter-team-roster" data-cmp-g4-team-roster="true">
+    <Panel id="matter-team" className="matter-runtime-panel" title="Matter 구성원" meta="권한 적용">
+      <div
+        className="matter-team-roster"
+        data-cmp-g4-team-roster="true"
+        data-matter-owner-assignment-action="true"
+      >
         <form className="matter-team-form" onSubmit={submit}>
           <label>
-            <span>Member ID</span>
+            <span>팀원 번호</span>
             <input value={form.memberId} onChange={update("memberId")} />
           </label>
           <label>
-            <span>Employee ID</span>
+            <span>구성원 계정</span>
             <input value={form.employeeId} onChange={update("employeeId")} />
           </label>
           <label>
-            <span>User ID</span>
+            <span>로그인 계정</span>
             <input value={form.userId} onChange={update("userId")} />
           </label>
           <label>
-            <span>Role</span>
+            <span>역할</span>
             <select value={form.role} onChange={update("role")}>
-              <option value="associate">associate</option>
-              <option value="responsible_attorney">responsible_attorney</option>
-              <option value="paralegal">paralegal</option>
-              <option value="billing_reviewer">billing_reviewer</option>
+              <option value="associate">담당 변호사</option>
+              <option value="responsible_attorney">책임 변호사</option>
+              <option value="paralegal">패러리걸</option>
+              <option value="billing_reviewer">청구 검토자</option>
             </select>
           </label>
           <div className="matter-form-footer">
@@ -113,11 +137,17 @@ export function MatterTeamRoster({ matters = [], liveCtx = "allow" }) {
             </div>
             <button className="primary-button" disabled={!canSubmit || submitting}>
               <UserPlus size={15} />
-              {submitting ? "Adding" : "Add"}
+              {submitting ? "저장 중" : form.role === "responsible_attorney" ? "책임자 지정" : "추가"}
             </button>
           </div>
         </form>
-        <DataTable columns={["Member", "Employee", "User", "Role", "Status"]} rows={rows} />
+        {result?.kind === "data" && result.ownerAssignment && (
+          <div className="matter-owner-assignment-result" data-matter-owner-assignment-result="true">
+            <ShieldCheck size={15} />
+            <span>{ownerAssignmentLabel(result.ownerAssignment.owner_display_name)} 지정 완료</span>
+          </div>
+        )}
+        <DataTable columns={["팀원", "구성원", "로그인 계정", "역할", "상태"]} rows={rows} />
       </div>
     </Panel>
   );

@@ -1,0 +1,220 @@
+{
+  "schema_version": "hro.goal_closeout.command_evidence.v1",
+  "program_id": "HRO-DEEL-PARITY",
+  "wp_id": "HRO-L0-W01",
+  "date": "2026-06-23",
+  "status": "screenshot_inventory_evidence_recorded",
+  "commands": [
+    {
+      "tuw_id": "HRO-L0-W01-T01",
+      "command": "find \"Law Firm OS UI/Deel web Jan 2026\" -maxdepth 1 -type f \\( -iname \"*.png\" -o -iname \"*.jpg\" -o -iname \"*.jpeg\" \\) | wc -l",
+      "result": "476 screenshots counted",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L0-W01-T02",
+      "command": "npm run hro:deel-parity:screenshot-inventory",
+      "result": "Apple Vision OCR inventory generated for 476 screenshots; 461 People-related keyword rows and 15 non-People reference rows recorded.",
+      "exit_code": 0,
+      "artifacts": [
+        "docs/hro-deel-parity/screenshot-inventory.json",
+        "docs/hro-deel-parity/screenshot-inventory.md",
+        "scripts/generate-hro-deel-screenshot-inventory.swift"
+      ]
+    },
+    {
+      "tuw_id": "HRO-L0-W01-T02",
+      "command": "npm run hro:deel-parity:validate",
+      "result": "HRO Deel parity validator passed with screenshot inventory row count, OCR feature coverage, status coverage and source-file existence checks.",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L0-W01-T03",
+      "command": "Hermes MCP check-only gates",
+      "result": "validate.core, review.packets, factory.saas_mode passed; review_status pending_review; write/deployment/final approval closed",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L0-W01-T04",
+      "command": "npm run hro:deel-parity:validate",
+      "result": "HRO Deel parity crosswalk validation passed; screenshots: 476; features: 10",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L1-W01-T01",
+      "command": "npm run hrx:ui:validate",
+      "result": "HRX UI API-backed validation passed; scope: portal_api_hardening",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L1-W01-T01",
+      "command": "npm run hrx:ai:validate",
+      "result": "HRX AI/analytics validation passed; scope: source_grounded_ai_analytics",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L1-W01-T02",
+      "command": "npm run web:e2e -- people-home hrx-analytics hrx-ai-assistant",
+      "result": "3 tests passed: People home, People analytics, People AI assistant",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L1-W01-T02",
+      "command": "npm --workspace apps/web run build",
+      "result": "Vite build completed successfully; 1664 modules transformed",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L1-W01-T03",
+      "command": "npm run web:e2e -- hrx",
+      "result": "15 HRX tests passed; 0 failed, including payroll boundary UI source/API coverage",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L1-W01-T03",
+      "command": "Playwright browser QA at http://127.0.0.1:5177/?view=people",
+      "result": "People menu labels rendered: 구성원, 문서, 휴가, 승인, 채용, 입퇴사, 정책, 감사, 현황, AI 검토. Analytics and AI panels rendered expected text.",
+      "exit_code": 0,
+      "artifacts": [
+        "artifacts/hro-deel-parity/people-menu.png",
+        "artifacts/hro-deel-parity/people-analytics.png",
+        "artifacts/hro-deel-parity/people-ai.png"
+      ]
+    },
+    {
+      "tuw_id": "HRO-L2-W01-T01",
+      "command": "POST /api/hrx/payroll/preview mounted behind HRX route authz",
+      "result": "Payroll route boundary opened for preview only; calculation runtime and disbursement remain false.",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L2-W01-T02",
+      "command": "People UI payroll boundary panel",
+      "result": "Payroll boundary panel added under people-payroll; UI exposes preview, approval record and export artifact actions only.",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L2-W01-T03",
+      "command": "npm run web:e2e -- hrx-payroll-boundary",
+      "result": "1 payroll boundary e2e passed; UI uses preview/approve/export APIs and blocks payment execution fields",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L2-W01-T03",
+      "command": "node --test apps/api/test/hrx/payroll.test.js apps/api/test/hrx/route-authz.test.js apps/api/test/hrx-runtime-api.test.js",
+      "result": "23 API tests passed; payroll preview, approval, export, authz, and runtime route coverage included",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L2-W01-T03",
+      "command": "npm run hrx:authz:validate",
+      "result": "HRX route authz validation passed; route_policy_count: 26",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L2-W01-T03",
+      "command": "npm run hrx:runtime:validate && npm run hrx:workflows:validate",
+      "result": "HRX runtime readiness and people_ops_workflows validations passed",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L2-W01-T03",
+      "command": "Playwright browser QA at http://127.0.0.1:5177/?view=people",
+      "result": "People > 급여 경계 rendered and completed preview 201, approval 200, export 200 while keeping calculation_runtime=false and disbursement_instruction_included=false",
+      "exit_code": 0,
+      "artifacts": [
+        "artifacts/hro-deel-parity/people-payroll-boundary.png"
+      ]
+    },
+    {
+      "tuw_id": "HRO-L3-W01-T01",
+      "command": "Register workforce planning and bulk-edit backend contract requirements",
+      "result": "docs/hro-deel-parity/backend-contract-registry.json records required workforce routes, scopes, domain objects, audit events, blocked sections and evidence gates; no People UI entrypoint exposed.",
+      "exit_code": 0,
+      "artifacts": [
+        "docs/hro-deel-parity/backend-contract-registry.json",
+        "docs/hro-deel-parity/backend-contract-register.md"
+      ]
+    },
+    {
+      "tuw_id": "HRO-L3-W01-T02",
+      "command": "Register engagement, learning, performance and survey backend contract requirements",
+      "result": "Contract registry records human-review, AI-decision, survey-privacy and no-final-AI-decision boundaries; no People UI entrypoint exposed.",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L3-W01-T03",
+      "command": "Register IT assets, apps, notifications and admin-settings backend contract requirements",
+      "result": "Contract registry records People identity, admin authority, external app reference, secret-redaction and integration audit boundaries; no People UI entrypoint exposed.",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L4-W01-T01",
+      "command": "Record owner-decision requirements for equity, benefits, immigration and background checks",
+      "result": "External owner decision remains required; legal owner approval, provider diligence, jurisdiction matrix, employee consent, retention/deletion policy and DPA receipts are missing and explicitly block UI/provider readiness claims.",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L4-W01-T02",
+      "command": "Record provider and jurisdiction evidence requirements",
+      "result": "External provider actions remain blocked; benefit enrollment, equity workflows, immigration cases, background checks and provider data transmission require owner/provider receipts first.",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L4-W01-T03",
+      "command": "npm run hro:deel-parity:validate",
+      "result": "HRO Deel parity crosswalk validation passed with backend contract registry coverage and fake People UI section blocking.",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L4-W01-T03",
+      "command": "Hermes MCP check-only gates after screenshot inventory and backend contract registry update",
+      "result": "hermes.validate.core, hermes.review.packets and hermes.factory.saas_mode passed; mutation, deployment, final approval, production pass and enterprise trust claims remain false.",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-L4-W01-T03",
+      "command": "mcp__lsp.status",
+      "result": "Transport closed; LSP diagnostics unavailable in this session. npm validators remained the authoritative local checks for this documentation/validator slice.",
+      "exit_code": 1
+    },
+    {
+      "tuw_id": "HRO-CURRENT-GATE",
+      "command": "npm run hro:deel-parity:validate && npm run hrx:ui:validate && npm run hrx:ai:validate && npm run hrx:authz:validate && npm run hrx:runtime:validate && npm run hrx:workflows:validate",
+      "result": "All current HRO/HRX validators passed after screenshot inventory, backend contract registry and payroll boundary work.",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-CURRENT-GATE",
+      "command": "node --test apps/api/test/hrx/payroll.test.js apps/api/test/hrx/route-authz.test.js apps/api/test/hrx-runtime-api.test.js && npm run web:e2e -- hrx && npm --workspace apps/web run build",
+      "result": "23 API tests passed; 15 HRX web e2e tests passed; Vite build completed with 1664 modules transformed.",
+      "exit_code": 0
+    },
+    {
+      "tuw_id": "HRO-CURRENT-GATE",
+      "command": "Playwright browser QA at http://127.0.0.1:5177/?view=people",
+      "result": "Current People menu rendered 11 entrypoints; Analytics privacy state, AI human-review boundary and Payroll preview/approve/export flow passed with payroll API responses 201/200/200 and no calculation or disbursement runtime.",
+      "exit_code": 0,
+      "artifacts": [
+        "artifacts/hro-deel-parity/people-current-menu.png",
+        "artifacts/hro-deel-parity/people-current-analytics.png",
+        "artifacts/hro-deel-parity/people-current-ai.png",
+        "artifacts/hro-deel-parity/people-current-payroll-boundary.png"
+      ]
+    },
+    {
+      "tuw_id": "HRO-CURRENT-GATE",
+      "command": "Completion audit recorded",
+      "result": "docs/hro-deel-parity/completion-audit.json records the five goal completion requirements as proven_current while keeping go-live and production approval claims blocked.",
+      "exit_code": 0,
+      "artifacts": [
+        "docs/hro-deel-parity/completion-audit.json",
+        "docs/hro-deel-parity/completion-audit.md"
+      ]
+    }
+  ],
+  "claim_boundary": {
+    "allowed": "crosswalk baseline evidence",
+    "blocked": "full Deel parity, payroll execution, production approval, go-live"
+  }
+}

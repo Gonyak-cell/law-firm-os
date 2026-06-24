@@ -85,7 +85,8 @@ test("splash shows bounded fallback on startup timeout", async () => {
 
   assert.equal(splashWindow.closed, false);
   assert.equal(splashWindow.shown, true);
-  assert.match(decodeURIComponent(splashWindow.loadedURL), /Offline startup fallback is active/);
+  assert.match(decodeURIComponent(splashWindow.loadedURL), /시작 화면을 준비하고 있습니다/);
+  assert.doesNotMatch(decodeURIComponent(splashWindow.loadedURL), /Offline startup fallback|startup-timeout/);
   assert.equal(handoff.state.fallbackActive, true);
 });
 
@@ -103,5 +104,6 @@ test("splash shows fallback on renderer load failure", async () => {
   await mainWindow.emitWebContents("did-fail-load", {}, -102);
 
   assert.equal(splashWindow.closed, false);
-  assert.match(decodeURIComponent(splashWindow.loadedURL), /did-fail-load:-102/);
+  assert.match(decodeURIComponent(splashWindow.loadedURL), /시작 화면을 준비하고 있습니다/);
+  assert.doesNotMatch(decodeURIComponent(splashWindow.loadedURL), /did-fail-load:-102/);
 });

@@ -10,19 +10,21 @@ async function readWebFile(path) {
   return readFile(resolve(root, path), "utf8");
 }
 
-test("HR AI assistant uses API route and human review queue without local fallback answers", async () => {
+test("People inquiry panel uses API routes and reviewed guidance without local fallback answers", async () => {
   const component = await readWebFile("src/people/ai/HRAIAssistant.tsx");
   const api = await readWebFile("src/people/hrxApiClient.ts");
   const home = await readWebFile("src/people/PeopleHome.tsx");
 
   assert.match(home, /HRAIAssistant/);
+  assert.match(home, /people-ai/);
   assert.match(component, /askHrxAiAssistant/);
   assert.match(component, /fetchHrxAiReviews/);
   assert.match(api, /\/api\/hrx\/ai\/assistant/);
   assert.match(api, /\/api\/hrx\/ai\/reviews/);
-  assert.match(component, /human review queue/);
-  assert.match(component, /Citations:/);
-  assert.match(component, /Review state:/);
-  assert.match(component, /No local assistant fallback is rendered/);
+  assert.match(component, /인사 문의/);
+  assert.doesNotMatch(component, /People 문의/);
+  assert.match(component, /참고 자료 .*건 확인|검토 대기/);
+  assert.match(component, /검토 상태:/);
+  assert.match(component, /답변을 준비할 수 없습니다/);
   assert.doesNotMatch(component, /mockData|profileRows|matters/);
 });

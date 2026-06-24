@@ -60,6 +60,22 @@ test("temporary desktop runtime requires operator bearer token for runtime route
 });
 
 test("temporary desktop runtime requires password reset before ledger account login", async () => {
+  const malformedLogin = await handler(
+    event({
+      method: "POST",
+      path: "/api/desktop/login",
+      headers: authHeaders(),
+      body: { email: "jwsuh@amic.kr", password: "new-jwsuh-password", actor_email: "jwsuh@amic.kr" }
+    })
+  );
+  const missingPassword = await handler(
+    event({
+      method: "POST",
+      path: "/api/desktop/login",
+      headers: authHeaders(),
+      body: { email: "jwsuh@amic.kr" }
+    })
+  );
   const loginBeforeReset = await handler(
     event({
       method: "POST",
@@ -69,6 +85,11 @@ test("temporary desktop runtime requires password reset before ledger account lo
     })
   );
 
+  assert.equal(malformedLogin.statusCode, 400);
+  assert.equal(json(malformedLogin).reason, "email_password_only");
+  assert.deepEqual(json(malformedLogin).unexpected_fields, ["actor_email"]);
+  assert.equal(missingPassword.statusCode, 400);
+  assert.equal(json(missingPassword).reason, "email_password_required");
   assert.equal(loginBeforeReset.statusCode, 403);
   assert.equal(json(loginBeforeReset).reason, "password_reset_required");
 });
@@ -177,6 +198,40 @@ test("temporary desktop runtime accepts unknown reset requests without account d
   assert.equal(request.statusCode, 200);
   assert.equal(json(request).accepted, true);
   assert.equal(latestEmail.statusCode, 404);
+});
+
+test("temporary desktop runtime bounds synthetic reset state for Secrets Manager", async () => {
+  for (let index = 0; index < 40; index += 1) {
+    const request = await handler(
+      event({
+        method: "POST",
+        path: "/api/desktop/password-reset/request",
+        headers: authHeaders(),
+        body: { email: "jwsuh@amic.kr" }
+      })
+    );
+    assert.equal(request.statusCode, 200);
+  }
+
+  const state = globalThis.__matterDesktopAuthState;
+  const persistedShape = JSON.stringify({
+    reset_tokens: Object.fromEntries(state.resetTokens),
+    outbox: state.outbox
+  });
+  assert(state.resetTokens.size <= 20, "reset token state must be bounded");
+  assert(state.outbox.length <= 20, "synthetic reset outbox must be bounded");
+  assert(Buffer.byteLength(persistedShape) < 65_536, "synthetic auth state must fit Secrets Manager SecretString");
+
+  const latestEmail = await handler(
+    event({
+      method: "POST",
+      path: "/api/desktop/password-reset/latest-email",
+      headers: authHeaders(),
+      body: { email: "jwsuh@amic.kr" }
+    })
+  );
+  assert.equal(latestEmail.statusCode, 200);
+  assert.match(json(latestEmail).email_message.reset_url, /^matter:\/\/password-reset\/confirm\?token=/);
 });
 
 test("temporary desktop runtime denies highest privilege feature for non-jwsuh accounts", async () => {

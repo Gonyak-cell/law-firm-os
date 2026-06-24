@@ -1,65 +1,64 @@
 import React from "react";
-import { useEffect, useMemo, useState } from "react";
-import { FolderOpen, RefreshCw, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { RefreshCw, ShieldCheck } from "lucide-react";
 import { fetchVaultDocuments } from "../data/apiClient.js";
-import { DataTable, MetricCard, PageHeader, Panel } from "./primitives.jsx";
+import { DataTable, PageHeader, Panel } from "./primitives.jsx";
 import { DesktopDeniedState } from "./DesktopDeniedState.jsx";
-import { DocumentDetail } from "./DocumentDetail.jsx";
 import { EmailFilingView } from "./EmailFilingView.jsx";
 import { VaultBreadcrumb } from "./VaultBreadcrumb.jsx";
 import { VaultDocumentDetail } from "./VaultDocumentDetail.jsx";
-import { VaultDocumentTable } from "./VaultDocumentTable.jsx";
 import { VaultSecurityBadges } from "./VaultSecurityBadges.jsx";
 
 const VAULT_PERMISSION_REF = "ui_cmp_g5_vault_live";
 const VAULT_AUDIT_HINT_REF = "ui_cmp_g5_vault_probe";
 
 function vaultRows(items) {
-  return items.map((item) => [
-    item.document_id,
+  return items.map((item, index) => [
+    `문서 ${index + 1}`,
     item.title,
-    item.status,
-    item.current_version_id,
-    item.privilege_label_id ?? "standard",
-    item.legal_hold_id ?? "none"
+    registeredAccountLabel(item),
+    vaultStatus(item.status),
+    item.current_version_id ? "현재 버전" : "확인 필요",
+    privilegeLabel(item.privilege_label_id),
+    holdLabel(item.legal_hold_id)
   ]);
 }
 
-function guardedVaultResult(liveCtx) {
-  if (liveCtx === "denied") {
-    return {
-      kind: "data",
-      items: [],
-      uiState: "denied",
-      countLeakPrevented: true
-    };
-  }
-  if (liveCtx === "review") {
-    return {
-      kind: "data",
-      items: [],
-      uiState: "review_required",
-      outcome: "review_required",
-      countLeakPrevented: true
-    };
-  }
-  return null;
+function registeredAccountLabel(item) {
+  const account = item.registered_account;
+  if (!account) return "미연동";
+  return account.display_name ?? "등록 계정";
 }
 
-export function VaultSurface({ labels, liveCtx = "allow" }) {
+function vaultStatus(value) {
+  if (value === "review_required") return "검토 필요";
+  if (value === "archived") return "보관됨";
+  if (value === "current") return "현재 버전";
+  return "사용 중";
+}
+
+function privilegeLabel(value) {
+  if (!value) return "기본";
+  if (value.includes("confidential")) return "기밀";
+  if (value.includes("privileged")) return "특권";
+  return "기본";
+}
+
+function holdLabel(value) {
+  if (!value) return "없음";
+  return value.includes("hold") ? "보존 설정" : "확인 필요";
+}
+
+const VAULT_SECTIONS = new Set(["vault-documents", "vault-detail", "vault-email"]);
+
+export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) {
   const [result, setResult] = useState(null);
   const [refreshToken, setRefreshToken] = useState(0);
+  const currentSection = VAULT_SECTIONS.has(activeSection) ? activeSection : "vault-documents";
 
   useEffect(() => {
     let cancelled = false;
     setResult(null);
-    const guarded = guardedVaultResult(liveCtx);
-    if (guarded) {
-      setResult(guarded);
-      return () => {
-        cancelled = true;
-      };
-    }
     fetchVaultDocuments({
       ctx: liveCtx,
       permissionRef: VAULT_PERMISSION_REF,
@@ -73,46 +72,34 @@ export function VaultSurface({ labels, liveCtx = "allow" }) {
   }, [liveCtx, refreshToken]);
 
   const documents = result?.kind === "data" ? result.items : [];
-  const denied = result?.uiState === "denied";
   const selected = documents[0] ?? null;
-  const metrics = useMemo(
-    () => ({
-      documents: documents.length,
-      held: documents.filter((item) => item.legal_hold_id).length,
-      safe: documents.filter((item) => item.storage_pointer_ref_included === false).length
-    }),
-    [documents]
-  );
-
   let body;
   if (result === null) {
     body = (
       <div className="live-data-state live-data-loading">
-        <strong>Loading vault</strong>
-        Reading Vault/DMS documents from the API.
+        <strong>Vault 문서를 불러오는 중입니다</strong>
       </div>
     );
   } else if (result.kind === "error") {
     body = (
       <div className="live-data-state live-data-error">
-        <strong>Vault API unavailable</strong>
-        Start the Law Firm OS API and reload this live surface.
+        <strong>Vault 문서를 불러오지 못했습니다</strong>
+        잠시 후 다시 시도해주세요.
       </div>
     );
   } else if (result.uiState === "denied") {
-    body = <DesktopDeniedState resource="document workspace" />;
+    body = <DesktopDeniedState />;
   } else if (result.uiState === "review_required" || result.outcome === "review_required") {
     body = (
       <div className="live-data-state live-data-review">
-        <strong>Review required</strong>
-        This Vault request requires review before rows can be displayed.
+        <strong>검토가 필요합니다</strong>
+        검토가 끝나면 Vault 문서를 확인할 수 있습니다.
       </div>
     );
   } else if (documents.length === 0) {
     body = (
       <div className="live-data-state live-data-empty">
-        <strong>No documents</strong>
-        The live query returned no Vault documents.
+        <strong>표시할 문서가 없습니다</strong>
       </div>
     );
   } else {
@@ -120,50 +107,35 @@ export function VaultSurface({ labels, liveCtx = "allow" }) {
       <div className="vault-live-stack">
         <div className="vault-safe-strip">
           <ShieldCheck size={15} />
-          <span>Legal hold and privilege metadata are visible; raw storage remains hidden.</span>
+          <span>문서 내용은 권한이 있을 때만 표시됩니다.</span>
         </div>
         <VaultBreadcrumb matterId={selected?.matter_id} workspaceId={selected?.workspace_id} />
         <VaultSecurityBadges document={selected} />
-        <VaultDocumentTable documents={documents} />
-        <DataTable columns={["Document", "Title", "Status", "Version", "Privilege", "Hold"]} rows={vaultRows(documents)} />
+        <DataTable columns={["문서", "제목", "등록 계정", "상태", "버전", "권한", "보존"]} rows={vaultRows(documents)} />
       </div>
     );
   }
 
   return (
-    <section className="surface stack vault-surface" data-cmp-g5-vault-surface="true">
+    <section id="vault-home" className="surface stack vault-surface" data-cmp-g5-vault-surface="true">
       <PageHeader
-        eyebrow="CMP-G5"
         title={labels.vaultTitle}
-        subtitle="Vault-backed DMS runtime with permission-gated metadata and safe document projection."
+        subtitle="Vault 문서와 권한 정보를 관리합니다. 문서 내용은 권한이 있을 때만 표시됩니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />
-            Refresh
+            새로고침
           </button>
         }
       />
-      {!denied && (
-        <div className="clients-metric-grid">
-          <MetricCard label="Documents" value={metrics.documents} delta="metadata rows" tone="blue" />
-          <MetricCard label="Legal hold" value={metrics.held} delta="guarded rows" tone="purple" />
-          <MetricCard label="Safe detail" value={metrics.safe} delta="raw path hidden" tone="green" />
-        </div>
-      )}
       <div className="vault-runtime-grid">
-        <Panel className="span-2 vault-panel" title="Matter Vault" meta="/api/vault/documents">
-          {body}
-        </Panel>
-        <DocumentDetail document={selected} />
-        <VaultDocumentDetail document={selected} />
-        <EmailFilingView />
-        <Panel className="vault-panel" title="Runtime Boundary" meta="R4 write-ready">
-          <div className="matter-boundary-card">
-            <FolderOpen size={20} />
-            <strong>Storage adapter active</strong>
-            <span>Owner approval and release gates remain outside this UI claim.</span>
-          </div>
-        </Panel>
+        {currentSection === "vault-documents" && (
+          <Panel id="vault-documents" className="span-2 vault-panel" title="Vault 문서함" meta="권한 적용">
+            {body}
+          </Panel>
+        )}
+        {currentSection === "vault-detail" && <VaultDocumentDetail document={selected} />}
+        {currentSection === "vault-email" && <EmailFilingView />}
       </div>
     </section>
   );

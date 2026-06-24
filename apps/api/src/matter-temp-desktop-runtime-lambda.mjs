@@ -1,16 +1,13 @@
-import { existsSync, readFileSync } from "node:fs";
 import https from "node:https";
 import { createHash, createHmac, pbkdf2Sync, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import {
+  MATTER_VAULT_USER_REGISTRATION_SEED,
+  findRegisteredAccountByEmail,
+  normalizeAccountEmail,
+  registeredAccountPublicRef,
+} from "./matter-vault-account-registry.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const packagedSeedPath = join(__dirname, "matter-vault-user-registration-seed.json");
-const repoSeedPath = resolve(
-  __dirname,
-  "../../../docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json"
-);
-const seed = JSON.parse(readFileSync(existsSync(packagedSeedPath) ? packagedSeedPath : repoSeedPath, "utf8"));
+const seed = MATTER_VAULT_USER_REGISTRATION_SEED;
 
 const JSON_HEADERS = Object.freeze({
   "content-type": "application/json; charset=utf-8",
@@ -56,6 +53,8 @@ const FEATURE_CATALOG = Object.freeze([
 const PASSWORD_RESET_TTL_MS = 1000 * 60 * 30;
 const PASSWORD_HASH_ITERATIONS = 120_000;
 const PASSWORD_MIN_LENGTH = 8;
+const MAX_PERSISTED_RESET_TOKENS = 20;
+const MAX_PERSISTED_OUTBOX_MESSAGES = 20;
 
 const memoryAuthState = (globalThis.__matterDesktopAuthState ??= {
   passwordCredentials: new Map(),
@@ -85,7 +84,7 @@ function hashOpaqueToken(token) {
 }
 
 function normalizeEmail(email) {
-  return String(email ?? "").trim().toLowerCase();
+  return normalizeAccountEmail(email);
 }
 
 function hashPassword(password, salt = randomBytes(16).toString("base64url")) {
@@ -128,7 +127,29 @@ function emptyAuthState() {
   };
 }
 
+function pruneAuthState(state) {
+  const now = Date.now();
+  const activeResetEntries = [...state.resetTokens.entries()]
+    .filter(([, reset]) => !reset.used_at && Date.parse(reset.expires_at) > now)
+    .sort(([, left], [, right]) => Date.parse(right.expires_at) - Date.parse(left.expires_at))
+    .slice(0, MAX_PERSISTED_RESET_TOKENS);
+  const activeResetHashes = new Set(activeResetEntries.map(([tokenHash]) => tokenHash));
+
+  state.resetTokens.clear();
+  for (const [tokenHash, reset] of activeResetEntries) state.resetTokens.set(tokenHash, reset);
+
+  state.outbox = state.outbox
+    .filter((message) => {
+      const resetToken = String(message.reset_token ?? "");
+      return Date.parse(message.expires_at) > now && activeResetHashes.has(hashOpaqueToken(resetToken));
+    })
+    .slice(-MAX_PERSISTED_OUTBOX_MESSAGES);
+
+  return state;
+}
+
 function authStateToSecretString(state) {
+  pruneAuthState(state);
   return JSON.stringify({
     schema_version: "law-firm-os.matter-desktop-auth-state.v0.1",
     updated_at: new Date().toISOString(),
@@ -294,22 +315,13 @@ function parseBody(event = {}) {
 
 function users(state) {
   return seed.users.map((user) => ({
-    user_id: user.user_id,
-    email: user.email,
-    display_name: user.display_name,
-    english_name: user.english_name,
-    source_title: user.source_title,
-    highest_privilege: user.highest_privilege,
-    privilege_rank: user.privilege_rank,
-    role_ids: user.role_ids,
-    group_ids: user.group_ids,
-    scopes: user.scopes,
+    ...registeredAccountPublicRef(user),
     password_state: state.passwordCredentials.has(normalizeEmail(user.email)) ? "password_set" : "reset_required"
   }));
 }
 
 function findUser(email) {
-  return seed.users.find((user) => normalizeEmail(user.email) === normalizeEmail(email)) ?? null;
+  return findRegisteredAccountByEmail(email, seed);
 }
 
 function sessionFor(user, state) {
@@ -389,6 +401,7 @@ function requestPasswordReset(body = {}, state) {
       expires_at: expiresAt,
       created_at: new Date().toISOString()
     });
+    pruneAuthState(state);
   }
   return response(200, {
     ok: true,
@@ -460,6 +473,23 @@ function confirmPasswordReset(body = {}, state) {
 }
 
 function loginWithPassword(body = {}, state) {
+  const allowedKeys = new Set(["email", "password"]);
+  const unexpectedKeys = Object.keys(body).filter((key) => !allowedKeys.has(key));
+  if (unexpectedKeys.length > 0) {
+    return response(400, {
+      ok: false,
+      reason: "email_password_only",
+      unexpected_fields: unexpectedKeys,
+      token_material_returned: false
+    });
+  }
+  if (!body.email || !body.password) {
+    return response(400, {
+      ok: false,
+      reason: "email_password_required",
+      token_material_returned: false
+    });
+  }
   const user = findUser(body.email);
   if (!user) {
     return response(401, {

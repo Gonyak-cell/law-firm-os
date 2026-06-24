@@ -38,92 +38,92 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
         <>
           <div className="notice">
             <ShieldCheck size={15} />
-            Saved charts inherit matter permissions and audit logging.
+            저장된 보고서는 Matter 권한을 따릅니다.
           </div>
-          <Field label="Name" value="MAT-248 Event Segmentation" />
-          <Field label="Location" value="Selected workspace" />
+          <Field label="이름" value="" />
+          <Field label="위치" value="선택한 작업공간" />
         </>
       )
     },
     share: {
-      title: "Share",
-      primaryText: "Copy Link",
-      secondaryText: "Create Public Link",
+      title: "공유",
+      primaryText: "링크 복사",
+      secondaryText: "공유 링크 만들기",
       header: false,
       body: <ShareModalState state="blank" onClose={onClose} />
     },
     shareInvite: {
-      title: "Share",
-      primaryText: "Share",
-      secondaryText: "Copy Invite Link",
+      title: "공유",
+      primaryText: "공유",
+      secondaryText: "초대 링크 복사",
       header: false,
       body: <ShareModalState state="invite" onClose={onClose} />
     },
     shareHistory: {
-      title: "Share",
+      title: "공유",
       header: false,
       footer: false,
       body: <ShareModalState state="history" onClose={onClose} />
     },
     saveChartCard: {
-      title: "Save Chart",
-      primaryText: "Save",
+      title: "보고서 저장",
+      primaryText: "저장",
       body: <SaveChartModalState state="card" />
     },
     saveChartSuggest: {
-      title: "Save Chart",
-      primaryText: "Save",
+      title: "보고서 저장",
+      primaryText: "저장",
       body: <SaveChartModalState state="suggest" />
     },
     saveChartReportDropdown: {
-      title: "Save Chart",
-      primaryText: "Save",
+      title: "보고서 저장",
+      primaryText: "저장",
       body: <SaveChartModalState state="dropdown" />
     },
     saveChartReportSelected: {
-      title: "Save Chart",
-      primaryText: "Save",
+      title: "보고서 저장",
+      primaryText: "저장",
       body: <SaveChartModalState state="selected" />
     },
     dashboardSubscribe: {
-      title: "Subscribe to Dashboard Reports",
+      title: "업무 보드 알림",
       header: false,
       footer: false,
       body: <DashboardSubscribeModalState state="draft" onClose={onClose} />
     },
     dashboardSubscribeSuccess: {
-      title: "Subscribe to Dashboard Reports",
+      title: "업무 보드 알림",
       header: false,
       footer: false,
       body: <DashboardSubscribeModalState state="success" onClose={onClose} />
     },
     visualLabelingLaunch: {
-      title: "Launch Visual Labeling",
+      title: "화면 항목 선택",
       header: false,
       footer: false,
       body: <VisualLabelingLaunchModal onClose={onClose} />
     },
     themePreferences: {
-      title: "Theme Preferences",
+      title: "테마 설정",
       header: false,
       footer: false,
       body: <ThemePreferencesModal onClose={onClose} />
     },
     newNavigationTour: {
-      title: "Experience the new workspace",
+      title: "작업공간 탐색",
       header: false,
       footer: false,
       body: <NewNavigationTourModal onClose={onClose} />
     },
     chartType: {
-      title: "Choose chart type",
+      title: "보고서 형식 선택",
       body: (
         <div className="modal-grid">
           {[
-            [LineChart, "Line"],
-            [BarChart3, "Bar"],
-            [Gauge, "Gauge"],
-            [Table2, "Data table"]
+            [LineChart, "선"],
+            [BarChart3, "막대"],
+            [Gauge, "상태"],
+            [Table2, "표"]
           ].map(([Icon, text]) => (
             <button key={text} className="modal-choice">
               <Icon size={18} />
@@ -134,35 +134,35 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
       )
     },
     metric: {
-      title: "Create metric",
+      title: "기준 만들기",
       body: (
         <>
-          <Field label="Metric name" value="Partner review conversion" />
-          <Field label="Source event" value="[Matter] Element Changed" />
-          <Field label="Aggregate" value="Unique matters" />
+          <Field label="기준 이름" value="" />
+          <Field label="업무 항목" value="항목 선택" />
+          <Field label="집계" value="Matter 기준" />
         </>
       )
     },
     metricUntitled: {
-      title: "Metric",
+      title: "기준",
       header: false,
       footer: false,
       body: <MetricDefinitionModal step="untitled" />
     },
     metricNamed: {
-      title: "Metric",
+      title: "기준",
       header: false,
       footer: false,
       body: <MetricDefinitionModal step="named" />
     },
     metricPicker: {
-      title: "Metric",
+      title: "기준",
       header: false,
       footer: false,
       body: <MetricDefinitionModal step="picker" />
     },
     metricPreview: {
-      title: "Metric",
+      title: "기준",
       header: false,
       footer: false,
       body: <MetricDefinitionModal step="preview" />
@@ -171,196 +171,196 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
       title: labels.invite,
       body: (
         <>
-          <Field label="Email" value="associate@amic.law" />
-          <Field label="Role" value="Matter analyst" />
+          <Field label="이메일" value="" />
+          <Field label="역할" value="Matter 담당자" />
           <label className="check-row">
             <input type="checkbox" defaultChecked />
-            Restrict access to Selected matter.
+            선택한 Matter로 접근 범위를 제한합니다.
           </label>
         </>
       )
     },
     feedback: {
-      title: "Send feedback",
-      primaryText: "Send",
+      title: "의견 보내기",
+      primaryText: "보내기",
       body: (
         <>
           <div className="feedback-question-row">
-            <strong>Were you satisfied with the response?</strong>
+            <strong>답변이 도움이 되었나요?</strong>
             <span>
-              <button className="secondary-button active">Yes</button>
-              <button className="secondary-button">No</button>
+              <button className="secondary-button active">예</button>
+              <button className="secondary-button">아니오</button>
             </span>
           </div>
-          <textarea className="feedback-textarea" placeholder="Tell us what you think" />
+          <textarea className="feedback-textarea" placeholder="의견을 입력하세요" />
         </>
       )
     },
     archive: {
-      title: "Archive 2 items?",
-      primaryText: "Move to Archive",
-      body: <p>Are you sure you want to archive 2 items?</p>
+      title: "항목 2개 보관",
+      primaryText: "보관",
+      body: <p>선택한 항목을 보관하시겠습니까?</p>
     },
     openingTab: {
-      title: "Opening a new tab...",
+      title: "새 화면을 여는 중",
       footer: false,
       body: (
         <div className="modal-loading">
           <span className="spinner" aria-hidden="true" />
-          <p>We're checking for the script tag needed for web experiments...</p>
+          <p>새 화면을 준비하고 있습니다.</p>
         </div>
       )
     },
     remove: {
-      title: "Remove 1 team member?",
-      primaryText: "Remove and Transfer",
+      title: "팀 구성원 삭제",
+      primaryText: "삭제 및 이전",
       primaryTone: "danger",
       body: (
         <>
-          <p>Are you sure you want to remove Selected user?</p>
+          <p>선택한 사용자를 삭제하시겠습니까?</p>
           <label className="check-row">
             <input type="checkbox" defaultChecked />
-            Transfer content edit access to other members
+            편집 권한을 다른 구성원에게 이전
           </label>
-          <p className="muted-copy">Transfer all content edit access from a removed member to another member. This includes charts, dashboards, notebooks, cohorts, and segments.</p>
-          <Field label="Transfer content from Selected user to:" value="" />
+          <p className="muted-copy">삭제되는 구성원의 편집 권한을 다른 구성원에게 이전합니다.</p>
+          <Field label="권한을 이전할 구성원" value="" />
         </>
       )
     },
     annotation: {
-      title: "New Annotation",
-      primaryText: "Save",
+      title: "새 메모",
+      primaryText: "저장",
       body: (
         <>
           <div className="annotation-project">
-            <strong>Project</strong>
-            <span>default</span>
+            <strong>작업공간</strong>
+            <span>선택한 작업공간</span>
           </div>
           <label className="field">
-            <span>Affected Date</span>
+            <span>적용일</span>
             <button className="location-select" type="button">
               <CalendarDays size={15} />
-              Dec 16, 2024
+              날짜 선택
               <ChevronDown size={14} />
             </button>
           </label>
           <label className="field">
-            <span>Annotation Name</span>
-            <input placeholder="Give your annotation a name..." />
+            <span>메모 이름</span>
+            <input placeholder="메모 이름 입력..." />
           </label>
           <label className="field">
-            <span>Description</span>
-            <textarea className="feedback-textarea" placeholder="This annotation is pointing to..." />
+            <span>설명</span>
+            <textarea className="feedback-textarea" placeholder="설명을 입력하세요..." />
           </label>
           <label className="check-row">
             <input type="checkbox" defaultChecked />
-            Annotation applies to all charts
+            모든 보고서에 메모 적용
           </label>
         </>
       )
     },
     generateChart: {
-      title: "Generate Chart with AI",
-      primaryText: "Generate",
+      title: "보고서 초안 만들기",
+      primaryText: "만들기",
       body: (
         <>
           <p>
-            Powered by Ask {PRODUCT_BRAND}. <a href="#learn">Learn more.</a>
+            {PRODUCT_BRAND} 작업공간 자료를 기준으로 보고서 초안을 만듭니다.
           </p>
           <div className="inline-form">
-            <input value="How many users are viewing the site per country?" readOnly />
+            <input value="" placeholder="보고서에 담을 업무 질문을 입력하세요" readOnly />
             <button className="primary-button" type="button">
               <Sparkles size={15} />
-              Generate
+              만들기
             </button>
           </div>
           <p className="muted-copy">
-            Language models can make mistakes. Double check your charts before making decisions.
+            중요한 결정 전에는 담당자가 자료를 확인해야 합니다.
           </p>
         </>
       )
     },
     profilePicture: {
-      title: "Profile Picture",
-      primaryText: "Save",
+      title: "프로필 사진",
+      primaryText: "저장",
       body: (
         <div className="profile-picture-modal">
-          <div className="profile-picture-preview">AS</div>
+          <div className="profile-picture-preview">--</div>
           <button className="secondary-button" type="button">
             <Plus size={15} />
-            Upload image
+            이미지 업로드
           </button>
-          <p className="muted-copy">Use a square image at least 400px by 400px.</p>
+          <p className="muted-copy">정사각형 이미지를 사용하세요.</p>
         </div>
       )
     },
     saveCohort: {
-      title: "Save",
-      primaryText: "Save",
+      title: "저장",
+      primaryText: "저장",
       body: (
         <>
           <label className="field">
-            <span>Name</span>
-            <input placeholder="Give your new cohort a title..." />
+            <span>이름</span>
+            <input placeholder="그룹 이름 입력..." />
           </label>
           <label className="field">
-            <span>Location</span>
+            <span>위치</span>
             <button className="location-select" type="button">
               <CircleHelp size={15} />
-              No Current Location
+              위치 선택
               <ChevronDown size={14} />
             </button>
-            <small>Only you have access to this space</small>
+            <small>접근 권한이 있는 위치만 표시됩니다.</small>
           </label>
         </>
       )
     },
     newExperiment: {
-      title: "New Web Experiment",
-      primaryText: "Create",
+      title: "업무 변경 만들기",
+      primaryText: "만들기",
       body: (
         <>
-          <Field label="Name" value="Matter dashboard onboarding" />
-          <Field label="Targeted Page" value="/matters/:matterId/dashboard" />
-          <Field label="Project" value="Selected matter" />
+          <Field label="이름" value="" />
+          <Field label="대상 화면" value="Matter 업무 화면" />
+          <Field label="작업공간" value="선택한 Matter" />
           <div className="notice">
             <FlaskConical size={15} />
-            Advanced settings can be configured after the experiment is created.
+            추가 설정은 생성 후 조정할 수 있습니다.
           </div>
         </>
       )
     },
     newExperimentBlank: {
-      title: "New Web Experiment",
-      primaryText: "Create",
+      title: "업무 변경 만들기",
+      primaryText: "만들기",
       body: <NewWebExperimentModalState state="blank" />
     },
     newExperimentFilled: {
-      title: "New Web Experiment",
-      primaryText: "Create",
+      title: "업무 변경 만들기",
+      primaryText: "만들기",
       body: <NewWebExperimentModalState state="filled" />
     },
     newExperimentAdvanced: {
-      title: "New Web Experiment",
-      primaryText: "Create",
+      title: "업무 변경 만들기",
+      primaryText: "만들기",
       body: <NewWebExperimentModalState state="advanced" />
     },
     createDashboard: {
-      title: "Create New Dashboard",
-      primaryText: "Save",
+      title: "새 업무 보드",
+      primaryText: "저장",
       body: (
         <>
           <div className="notice">
             <LayoutDashboard size={15} />
-            Dashboards can be shared with teams or kept private.
+            업무 보드는 팀과 공유하거나 비공개로 둘 수 있습니다.
           </div>
-          <Field label="Name" value="Matter activity dashboard" />
-          <Field label="Location" value="Selected workspace" />
+          <Field label="이름" value="" />
+          <Field label="위치" value="선택한 작업공간" />
         </>
       )
     },
     sessionReplay: {
-      title: "Session Replays",
+      title: "활동 기록",
       header: false,
       footer: false,
       body: <SessionReplayModal onClose={onClose} />
@@ -370,10 +370,10 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
       body: (
         <div className="modal-grid">
           {[
-            [BarChart3, "Analysis"],
-            [LayoutDashboard, "Dashboard"],
-            [Users, "Cohort"],
-            [Flag, "Feature flag"]
+            [BarChart3, "보고서"],
+            [LayoutDashboard, "업무 보드"],
+            [Users, "그룹"],
+            [Flag, "기능 설정"]
           ].map(([Icon, text]) => (
             <button key={text} className="modal-choice">
               <Icon size={18} />
@@ -384,14 +384,14 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
       )
     },
     confirm: {
-      title: "Approve rollout?",
+      title: "업무 변경 승인",
       body: (
         <>
           <div className="notice danger">
             <ShieldCheck size={15} />
-            This rollout changes attorney-review routing for live matters.
+            이 변경은 Matter 검토 흐름에 반영됩니다.
           </div>
-          <p>Confirm that the rollout audience, approval policy, and rollback path are ready.</p>
+          <p>대상, 승인 기준, 되돌림 방법을 확인하세요.</p>
         </>
       )
     }
@@ -399,8 +399,8 @@ export function MatterModal({ type, labels, onClose, setTheme }) {
     title: labels.theme,
     body: (
       <div className="modal-grid">
-        <button className="modal-choice" onClick={() => setTheme("light")}>Light</button>
-        <button className="modal-choice" onClick={() => setTheme("dark")}>Dark</button>
+        <button className="modal-choice" onClick={() => setTheme("light")}>라이트</button>
+        <button className="modal-choice" onClick={() => setTheme("dark")}>다크</button>
       </div>
     )
   };

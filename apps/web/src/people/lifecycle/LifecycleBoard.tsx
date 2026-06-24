@@ -8,7 +8,45 @@ function readinessLabel(caseItem) {
   const accessReady = caseItem.access_revocations?.every((item) => item.revoked === true) ?? false;
   const documentsReady = caseItem.document_returns?.every((item) => item.returned === true) ?? false;
   const holdsReady = caseItem.legal_hold_checks?.every((item) => item.clear === true) ?? false;
-  return accessReady && documentsReady && holdsReady ? "Ready" : "Blocked";
+  return accessReady && documentsReady && holdsReady ? "종료 가능" : "확인 필요";
+}
+
+function taskStatusLabel(value) {
+  if (value === "completed") return "완료";
+  if (value === "closed") return "종료";
+  if (value === "in_progress") return "진행 중";
+  return "대기";
+}
+
+function ownerRoleLabel(value) {
+  if (value === "manager") return "관리자";
+  if (value === "hr") return "인사 담당";
+  if (value === "people_ops") return "인사 담당";
+  if (value === "it") return "IT 담당";
+  if (value === "it_ops") return "IT 담당";
+  if (value === "finance") return "청구 담당";
+  return "담당자";
+}
+
+function taskTitleLabel(task) {
+  if (task.task_id === "policy-ack") return "정책 확인";
+  if (task.task_id === "access-provision") return "기본 접근 권한 설정";
+  if (task.task_id === "task-001") return "입사 서류 확인";
+  return /[가-힣]/.test(task.title ?? "") ? task.title : "업무 확인";
+}
+
+function onboardingLabel(index) {
+  return index === 0 ? "입사 준비" : `입사 준비 ${index + 1}`;
+}
+
+function offboardingLabel(index) {
+  return index === 0 ? "퇴사 정리" : `퇴사 정리 ${index + 1}`;
+}
+
+function documentSummary(refs = []) {
+  if (refs.length === 0) return "없음";
+  if (refs.length === 1) return "정책 문서";
+  return `문서 ${refs.length}건`;
 }
 
 export function LifecycleBoard() {
@@ -40,50 +78,50 @@ export function LifecycleBoard() {
 
   let body;
   if (result === null) {
-    body = <div className="live-data-state live-data-loading">Loading lifecycle board</div>;
+    body = <div className="live-data-state live-data-loading">입퇴사 업무를 불러오는 중입니다</div>;
   } else if (result.kind === "error") {
-    body = <div className="live-data-state live-data-error">Lifecycle API failed. No local lifecycle fallback is rendered.</div>;
+    body = <div className="live-data-state live-data-error">입퇴사 업무를 불러오지 못했습니다.</div>;
   } else {
     body = (
       <>
         <DataTable
-          columns={["Plan", "Employee", "Start", "Documents"]}
-          rows={result.onboarding.map((plan) => [
-            plan.onboarding_id,
-            plan.employee_id,
+          columns={["업무", "대상", "시작일", "필요 문서"]}
+          rows={result.onboarding.map((plan, index) => [
+            onboardingLabel(index),
+            "신규 구성원",
             plan.start_date,
-            plan.document_refs?.join(", ") || "None"
+            documentSummary(plan.document_refs)
           ])}
         />
         <div className="lifecycle-board-grid">
           <div className="lifecycle-task-list">
-            {result.onboarding.flatMap((plan) =>
+            {result.onboarding.flatMap((plan, planIndex) =>
               plan.tasks.map((task) => (
                 <div className="approval-row lifecycle-task-row" key={`${plan.onboarding_id}-${task.task_id}`}>
                   <div>
-                    <strong>{task.title}</strong>
-                    <span>{plan.onboarding_id} / {task.owner_role}</span>
+                    <strong>{taskTitleLabel(task)}</strong>
+                    <span>{onboardingLabel(planIndex)} / {ownerRoleLabel(task.owner_role)}</span>
                   </div>
-                  <em>{task.status}</em>
+                  <em>{taskStatusLabel(task.status)}</em>
                   <button className="secondary-button" disabled={task.status === "completed"} onClick={() => completeTask(plan, task)}>
                     <ClipboardCheck size={14} />
-                    Complete
+                    완료
                   </button>
                 </div>
               ))
             )}
           </div>
           <div className="lifecycle-task-list">
-            {result.offboarding.map((caseItem) => (
+            {result.offboarding.map((caseItem, index) => (
               <div className="approval-row lifecycle-task-row" key={caseItem.offboarding_id}>
                 <div>
-                  <strong>{caseItem.offboarding_id}</strong>
-                  <span>{caseItem.employee_id} / {caseItem.separation_date}</span>
+                  <strong>{offboardingLabel(index)}</strong>
+                  <span>퇴사 예정 구성원 / {caseItem.separation_date}</span>
                 </div>
-                <em>{caseItem.state} / {readinessLabel(caseItem)}</em>
+                <em>{taskStatusLabel(caseItem.state)} / {readinessLabel(caseItem)}</em>
                 <button className="secondary-button" disabled={caseItem.state === "closed"} onClick={() => closeCase(caseItem)}>
                   <Power size={14} />
-                  Close
+                  종료
                 </button>
               </div>
             ))}
@@ -94,10 +132,10 @@ export function LifecycleBoard() {
   }
 
   return (
-    <Panel className="people-panel span-2" title="Lifecycle Board" meta="/api/hrx/lifecycle">
+    <Panel id="people-lifecycle" className="people-panel span-2" title="입퇴사 업무" meta="구성원 변경">
       <div className="people-panel-kicker">
         <RefreshCw size={13} />
-        API-backed onboarding and offboarding actions
+        입사와 퇴사 업무를 관리합니다
       </div>
       {body}
     </Panel>

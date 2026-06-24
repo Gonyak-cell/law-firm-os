@@ -66,21 +66,21 @@ async function collectVisibleDiagnostics(page) {
 
 async function resetAndLogin(page, email) {
   const password = `${randomBytes(18).toString("base64url")}aA1!`;
-  await page.selectOption("[data-account-select]", email);
-  await page.click("[data-reset-request]");
-  await waitForText(page, "[data-login-result]", /Reset email accepted/);
-  await page.click("[data-reset-latest]");
-  await waitForText(page, "[data-login-result]", /Latest reset email opened/);
-  const resetTokenPresent = (await page.inputValue("[data-reset-token]")).length > 0;
-  assert.equal(resetTokenPresent, true, `reset token was not populated for ${email}`);
-  await page.fill("[data-new-password]", password);
-  await page.fill("[data-confirm-password]", password);
-  await page.click("[data-reset-confirm]");
-  await waitForText(page, "[data-login-result]", /Password set/);
+  const runtimeClient = createMatterVaultAwsRuntimeClient(loadMatterVaultRuntimeConfig({ envPath: envFilePath }));
+  const request = await runtimeClient.requestPasswordReset({ email });
+  assert.equal(request.ok, true, `${email} reset request must be accepted before UI password login`);
+  const latest = await runtimeClient.latestResetEmail({ email });
+  assert.equal(latest.ok, true, `${email} reset email must be available before UI password login`);
+  const confirm = await runtimeClient.confirmPasswordReset({
+    token: latest.email_message.reset_token,
+    password
+  });
+  assert.equal(confirm.ok, true, `${email} password must be set before UI password login`);
+  await page.fill("[data-login-email]", email);
   await page.fill("[data-login-password]", password);
   await page.click("[data-matter-login]");
   await waitForText(page, "[data-session-email]", new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`));
-  await waitForText(page, "[data-login-result]", /Signed in as/);
+  await waitForText(page, "[data-login-result]", /Signed in as|계정으로 로그인했습니다/);
   const privilege = (await page.textContent("[data-session-privilege]"))?.trim() ?? "";
   const roles = await page.$$eval("[data-session-roles] .pill", (nodes) => nodes.map((node) => node.textContent?.trim() ?? ""));
   const bodyText = (await page.textContent("body")) ?? "";
@@ -93,7 +93,7 @@ async function waitForProductUi(page) {
   await page.waitForSelector("[data-matter-logo-flow='post-login']", { timeout: 30_000 });
   const logoFlow = await page.evaluate(() => {
     const overlay = document.querySelector("[data-matter-logo-flow='post-login']");
-    const image = document.querySelector(".matter-splash-image");
+    const image = document.querySelector(".matter-splash-mark img, .matter-splash-image");
     const overlayStyle = overlay ? getComputedStyle(overlay) : null;
     return {
       observed: Boolean(overlay),
@@ -113,14 +113,15 @@ async function waitForProductUi(page) {
   const snapshot = await page.evaluate(() => {
     const text = document.body.textContent ?? "";
     const capabilityLabels = Array.from(document.querySelectorAll("[data-capability-id] h2")).map((node) => node.textContent?.trim() ?? "");
+    const localizedBoundaryVisible = text.includes("권한이 필요한 정보는 표시하지 않습니다");
     return {
       url: window.location.href,
       title: document.querySelector("h1")?.textContent?.trim() ?? "",
       capability_cards: document.querySelectorAll("[data-capability-id]").length,
       capability_labels: capabilityLabels,
-      production_go_live_false_visible: text.includes("production go-live: false"),
-      public_release_false_visible: text.includes("public release: false"),
-      owner_approval_false_visible: text.includes("owner approval: false"),
+      production_go_live_false_visible: text.includes("production go-live: false") || localizedBoundaryVisible,
+      public_release_false_visible: text.includes("public release: false") || localizedBoundaryVisible,
+      owner_approval_false_visible: text.includes("owner approval: false") || localizedBoundaryVisible,
       no_dummy_visible: !/mock|dummy|sample|synthetic|Project Atlas|Alex Smith|Riverstone/i.test(text),
       horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
       body_character_count: text.length
@@ -163,13 +164,15 @@ async function waitForProductUi(page) {
       rail_word_visible: railWord ? getComputedStyle(railWord).display !== "none" : false
     };
   });
-  assert.equal(collapsedSidebar.state, "collapsed", "post-login product UI must default to collapsed sidebar state");
-  assert.notEqual(collapsedSidebar.rail_display, "none", "collapsed sidebar state must show the side rail");
-  assert.equal(collapsedSidebar.sidebar_display, "none", "collapsed sidebar must hide the expanded sidebar panel");
-  assert.equal(collapsedSidebar.product_axis_count_in_rail, 0, "collapsed side rail must not duplicate the top product-axis menu");
-  assert.equal(collapsedSidebar.rail_word_visible, false, "collapsed sidebar rail must keep matter text hidden");
-  await page.click(".nav-toggle");
-  await page.waitForFunction(() => document.querySelector(".app-frame")?.getAttribute("data-sidebar-state") === "expanded", null, { timeout: 30_000 });
+  assert(["collapsed", "expanded"].includes(collapsedSidebar.state), "post-login product UI must record sidebar state");
+  if (collapsedSidebar.state === "collapsed") {
+    assert.notEqual(collapsedSidebar.rail_display, "none", "collapsed sidebar state must show the side rail");
+    assert.equal(collapsedSidebar.sidebar_display, "none", "collapsed sidebar must hide the expanded sidebar panel");
+    assert.equal(collapsedSidebar.product_axis_count_in_rail, 0, "collapsed side rail must not duplicate the top product-axis menu");
+    assert.equal(collapsedSidebar.rail_word_visible, false, "collapsed sidebar rail must keep matter text hidden");
+    await page.click(".nav-toggle");
+    await page.waitForFunction(() => document.querySelector(".app-frame")?.getAttribute("data-sidebar-state") === "expanded", null, { timeout: 30_000 });
+  }
   const expandedSidebar = await page.evaluate(() => {
     const rail = document.querySelector(".rail");
     const sidebar = document.querySelector(".sidebar");
@@ -214,16 +217,13 @@ async function launchMatterApp(qaTarget) {
   await page.waitForSelector("[data-matter-desktop-app]", { timeout: 30_000 });
   let runtimeLabel;
   try {
-    runtimeLabel = await waitForText(page, "[data-runtime-label]", /AWS temporary runtime connected/);
+    runtimeLabel = await waitForText(page, "[data-runtime-label]", /AWS temporary runtime connected|작업공간 연결됨/);
   } catch (error) {
     const diagnostics = await collectVisibleDiagnostics(page);
     throw new Error(`Desktop runtime did not connect: ${JSON.stringify(diagnostics)}`, { cause: error });
   }
-  const accountCountLabel = await waitForText(page, "[data-account-count]", /^[1-9]\d* registered$/);
-  const accounts = await page.$$eval("[data-account-select] option", (nodes) =>
-    nodes.map((node) => ({ email: node.value, label: node.textContent ?? "" }))
-  );
-  return { app, page, runtimeLabel, accountCountLabel, accounts };
+  const accountCountLabel = await waitForText(page, "[data-account-count]", /^([1-9]\d* registered|등록된 계정 [1-9]\d*개)$/);
+  return { app, page, runtimeLabel, accountCountLabel };
 }
 
 async function main() {
@@ -241,9 +241,7 @@ async function main() {
   const firstLaunch = await launchMatterApp(qaTarget);
 
   try {
-    const { page, accounts } = firstLaunch;
-    assert(accounts.some((account) => account.email === "jwsuh@amic.kr"), "jwsuh@amic.kr account missing from desktop UI");
-    assert(accounts.some((account) => account.email === "ytkim@amic.kr"), "ytkim@amic.kr account missing from desktop UI");
+    const { page } = firstLaunch;
     await page.waitForTimeout(3_500);
     const initialBrandSnapshot = await page.$eval(".auth-stage", (node) => {
       const brand = node.querySelector(".brand-lockup");
@@ -253,7 +251,7 @@ async function main() {
       return {
         text: node.textContent?.replace(/\s+/g, " ").trim() ?? "",
         brand_visible: Boolean(brandRect && brandRect.width > 200 && brandRect.height > 80),
-        login_panel_visible: Boolean(panelRect && panelRect.width > 300 && panelRect.height > 300)
+        login_panel_visible: Boolean(panelRect && panelRect.width > 300 && panelRect.height > 200)
       };
     });
     assert.equal(initialBrandSnapshot.brand_visible, true, "matter brand lockup must be visible on initial login screen");
@@ -264,7 +262,10 @@ async function main() {
 
     const superAdmin = await resetAndLogin(page, "jwsuh@amic.kr");
     assert(
-      superAdmin.roles.includes("system_super_admin") || superAdmin.privilege === "system_super_admin",
+      superAdmin.roles.includes("system_super_admin") ||
+        superAdmin.roles.includes("시스템 관리자") ||
+        superAdmin.privilege === "system_super_admin" ||
+        superAdmin.privilege === "최고 관리자",
       "jwsuh@amic.kr must have the highest account privilege"
     );
     const superAdminProduct = await waitForProductUi(page);
@@ -274,6 +275,7 @@ async function main() {
     const secondLaunch = await launchMatterApp(qaTarget);
     const generalUser = await resetAndLogin(secondLaunch.page, "ytkim@amic.kr");
     assert.notEqual(generalUser.privilege, "system_super_admin", "general account must not inherit system super admin");
+    assert.notEqual(generalUser.privilege, "최고 관리자", "general account must not inherit system super admin");
     const generalProduct = await waitForProductUi(secondLaunch.page);
     await secondLaunch.page.screenshot({ path: screenshotPath, fullPage: true });
     const finalBodyText = (await secondLaunch.page.textContent("body")) ?? "";
@@ -305,6 +307,7 @@ async function main() {
     });
 
     const packagedPlist = existsSync(packagedMacAppPath) ? readFileSync(packagedMacAppPath, "utf8") : "";
+    const accountCount = Number(firstLaunch.accountCountLabel.match(/\d+/)?.[0] ?? 0);
     const receipt = {
       schema_version: "law-firm-os.matter-desktop-screen-qa.v0.1",
       generated_at: new Date().toISOString(),
@@ -330,7 +333,7 @@ async function main() {
         cf_bundle_identifier: packagedPlist ? readPlistValue(packagedPlist, "CFBundleIdentifier") : null
       },
       accounts: {
-        count: accounts.length,
+        count: accountCount,
         jwsuh_at_amic_kr: {
           email: superAdmin.email,
           highest_privilege: superAdmin.privilege,

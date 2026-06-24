@@ -1,40 +1,15 @@
 {
   "schema_version": "matter.lcx-web.live-data-verification.v1",
-  "generated_at": "2026-06-22T07:35:34.764Z",
+  "generated_at": "2026-06-22T07:17:58.319Z",
   "base_url": "http://127.0.0.1:5173",
   "api_base": "http://127.0.0.1:4180 via vite dev proxy",
   "source_of_truth": "apps/web",
   "passed": true,
   "console_errors_recorded_not_gated": [
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
-    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)"
   ],
   "results": [
     {
@@ -45,10 +20,10 @@
         "capability_cards": 4,
         "release_boundary_visible": true,
         "status_labels": [
+          "live",
+          "live",
           "unavailable",
-          "unavailable",
-          "unavailable",
-          "unavailable"
+          "live"
         ]
       },
       "error": null
@@ -60,8 +35,8 @@
       "detail": {
         "denied": 0,
         "review": 0,
-        "unavailable": 1,
-        "empty": 0,
+        "unavailable": 0,
+        "empty": 1,
         "table_rows": 0
       },
       "error": null

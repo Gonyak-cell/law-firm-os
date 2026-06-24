@@ -7,8 +7,8 @@ export function VaultDocumentDetail({ document }) {
   return (
     <div data-mv-vault-document-detail="true">
       <DocumentDetail document={document} />
-      <Panel className="vault-panel" title="Version History" meta="immutable">
-        <DataTable columns={['Version', 'Status']} rows={versions.map((version) => [version.version_id, version.status ?? 'current'])} />
+      <Panel className="vault-panel" title="버전 기록" meta="변경 이력">
+        <DataTable columns={['버전', '상태']} rows={versions.map((version, index) => [`버전 ${index + 1}`, version.status === 'current' ? '현재 버전' : '변경 이력'])} />
       </Panel>
     </div>
   );

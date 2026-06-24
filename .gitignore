@@ -7,6 +7,8 @@ apps/desktop/src/renderer/web/
 !.env.example
 !.env.*.example
 *.png
+!apps/desktop/build/icon.png
+!apps/desktop/build/icon-source-mark.png
 !docs/ui-reference/amplitude-feb-2025/contact-sheets/*.png
 !docs/ui-reference/amplitude-feb-2025/visual-parity/*.png
 !docs/ui-reference/brand/*.png

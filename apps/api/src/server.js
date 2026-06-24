@@ -51,6 +51,7 @@ import {
 } from "./vault-dms-runtime-context.js";
 import {
   CRM_INTAKE_BOUNDED_CONTEXT,
+  CRM_MASTER_DATA_SEED,
   CRM_RUNTIME_SEED,
   INTAKE_RUNTIME_SEED,
   createCrmIntakeRuntimeContext,
@@ -92,6 +93,26 @@ import {
   createEnterpriseReadinessRuntimeContext,
   handleEnterpriseReadinessApiRequest,
 } from "./enterprise-readiness-context.js";
+import {
+  RECORD_ACTIONS_BOUNDED_CONTEXT,
+  handleRecordActionsApiRequest,
+} from "./record-actions-runtime-context.js";
+import {
+  IMPORT_DATA_MAPPING_BOUNDED_CONTEXT,
+  handleImportDataMappingApiRequest,
+} from "./import-data-mapping-runtime-context.js";
+import {
+  ADMIN_PERMISSION_BOUNDED_CONTEXT,
+  handleAdminPermissionApiRequest,
+} from "./admin-permission-runtime-context.js";
+import {
+  DATA_CLOUD_BOUNDED_CONTEXT,
+  handleDataCloudApiRequest,
+} from "./data-cloud-runtime-context.js";
+import {
+  REPORTS_BOUNDED_CONTEXT,
+  handleReportsApiRequest,
+} from "./reports-runtime-context.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
@@ -114,6 +135,10 @@ function createEphemeralDmsStorePath() {
 
 function createEphemeralCrmStorePath() {
   return join(mkdtempSync(join(tmpdir(), "lawos-crm-runtime-")), "crm-store.json");
+}
+
+function createEphemeralCrmMasterDataStorePath() {
+  return join(mkdtempSync(join(tmpdir(), "lawos-crm-master-data-runtime-")), "master-data-store.json");
 }
 
 function createEphemeralIntakeStorePath() {
@@ -198,8 +223,10 @@ export function createDefaultDmsRuntime({
 export function createDefaultCrmIntakeRuntime({
   crmRepository,
   intakeRepository,
+  crmMasterDataRepository,
   crmStorePath = process.env.LAWOS_CRM_STORE_PATH,
   intakeStorePath = process.env.LAWOS_INTAKE_STORE_PATH,
+  crmMasterDataStorePath = process.env.LAWOS_CRM_MASTER_DATA_STORE_PATH,
 } = {}) {
   const crmRepo =
     crmRepository ??
@@ -213,7 +240,17 @@ export function createDefaultCrmIntakeRuntime({
       filePath: intakeStorePath || createEphemeralIntakeStorePath(),
       seedRecords: INTAKE_RUNTIME_SEED,
     });
-  return createCrmIntakeRuntimeContext({ crmRepository: crmRepo, intakeRepository: intakeRepo });
+  const masterDataRepo =
+    crmMasterDataRepository ??
+    createMasterDataRepository({
+      filePath: crmMasterDataStorePath || createEphemeralCrmMasterDataStorePath(),
+      seedRecords: CRM_MASTER_DATA_SEED,
+    });
+  return createCrmIntakeRuntimeContext({
+    crmRepository: crmRepo,
+    intakeRepository: intakeRepo,
+    masterDataRepository: masterDataRepo,
+  });
 }
 
 export function createDefaultFinanceRuntime({
@@ -302,6 +339,11 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
     MATTER_BOUNDED_CONTEXT,
     VAULT_DMS_BOUNDED_CONTEXT,
     CRM_INTAKE_BOUNDED_CONTEXT,
+    RECORD_ACTIONS_BOUNDED_CONTEXT,
+    IMPORT_DATA_MAPPING_BOUNDED_CONTEXT,
+    ADMIN_PERMISSION_BOUNDED_CONTEXT,
+    DATA_CLOUD_BOUNDED_CONTEXT,
+    REPORTS_BOUNDED_CONTEXT,
     FINANCE_BOUNDED_CONTEXT,
     ANALYTICS_BOUNDED_CONTEXT,
     AI_BOUNDED_CONTEXT,
@@ -349,6 +391,10 @@ async function readRequestBody(req) {
   return JSON.parse(raw);
 }
 
+function hasJsonRequestBody(method) {
+  return method === "POST" || method === "PATCH" || method === "DELETE";
+}
+
 async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, enterpriseReadinessRuntime } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
@@ -360,6 +406,11 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
   const isMatterPath = pathname.startsWith("/api/matters");
   const isVaultPath = pathname.startsWith("/api/vault");
   const isCrmIntakePath = pathname.startsWith("/api/crm") || pathname.startsWith("/api/intake");
+  const isRecordActionsPath = pathname.startsWith("/api/record-actions");
+  const isImportDataMappingPath = pathname.startsWith("/api/import-jobs") || pathname.startsWith("/api/import-targets");
+  const isAdminPermissionPath = pathname.startsWith("/api/admin");
+  const isDataCloudPath = pathname.startsWith("/api/data-cloud");
+  const isReportsPath = pathname.startsWith("/api/reports");
   const isFinancePath = pathname.startsWith("/api/finance");
   const isAnalyticsPath = pathname.startsWith("/api/analytics");
   const isAiPath = pathname.startsWith("/api/ai");
@@ -375,6 +426,11 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
     isMatterPath ||
     isVaultPath ||
     isCrmIntakePath ||
+    isRecordActionsPath ||
+    isImportDataMappingPath ||
+    isAdminPermissionPath ||
+    isDataCloudPath ||
+    isReportsPath ||
     isFinancePath ||
     isAnalyticsPath ||
     isAiPath ||
@@ -386,7 +442,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
     sendJson(res, 404, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "not_found" });
     return;
   }
-  if (!isHrxPath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isUiReadinessPath && !isEnterpriseReadinessPath && req.method !== "GET") {
+  if (!isHrxPath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isUiReadinessPath && !isEnterpriseReadinessPath && req.method !== "GET") {
     sendJson(res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
@@ -415,7 +471,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
 
   if (isMatterPath) {
     const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
-    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = await handleMatterApiRequest({
       pathname,
       method: req.method,
@@ -447,7 +503,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
 
   if (isCrmIntakePath) {
     const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
-    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = await handleCrmIntakeApiRequest({
       pathname,
       method: req.method,
@@ -456,6 +512,86 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       context,
       requestId,
       runtime: crmIntakeRuntime,
+    });
+    sendJson(res, result.status, result.body);
+    return;
+  }
+
+  if (isRecordActionsPath) {
+    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const result = await handleRecordActionsApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      context,
+      requestId,
+      runtime: { matterRuntime, crmIntakeRuntime, masterDataRuntime },
+    });
+    sendJson(res, result.status, result.body);
+    return;
+  }
+
+  if (isImportDataMappingPath) {
+    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const result = await handleImportDataMappingApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      context,
+      requestId,
+      runtime: { matterRuntime, crmIntakeRuntime, masterDataRuntime, financeRuntime },
+    });
+    sendJson(res, result.status, result.body);
+    return;
+  }
+
+  if (isAdminPermissionPath) {
+    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const result = await handleAdminPermissionApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      context,
+      requestId,
+      runtime: { matterRuntime },
+    });
+    sendJson(res, result.status, result.body);
+    return;
+  }
+
+  if (isDataCloudPath) {
+    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const result = await handleDataCloudApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      context,
+      requestId,
+      runtime: { matterRuntime },
+    });
+    sendJson(res, result.status, result.body);
+    return;
+  }
+
+  if (isReportsPath) {
+    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const result = await handleReportsApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      context,
+      requestId,
+      runtime: { analyticsRuntime },
     });
     sendJson(res, result.status, result.body);
     return;
@@ -584,8 +720,10 @@ export function startApiServer({
   crmIntakeRuntime,
   crmRepository,
   intakeRepository,
+  crmMasterDataRepository,
   crmStorePath,
   intakeStorePath,
+  crmMasterDataStorePath,
   financeRuntime,
   financeRepository,
   financeStorePath,
@@ -617,7 +755,14 @@ export function startApiServer({
     createDefaultMatterRuntime({ repository: matterRepository, storePath: matterStorePath, dmsRuntime: dmsRuntimeContext });
   const crmIntakeRuntimeContext =
     crmIntakeRuntime ??
-    createDefaultCrmIntakeRuntime({ crmRepository, intakeRepository, crmStorePath, intakeStorePath });
+    createDefaultCrmIntakeRuntime({
+      crmRepository,
+      intakeRepository,
+      crmMasterDataRepository,
+      crmStorePath,
+      intakeStorePath,
+      crmMasterDataStorePath,
+    });
   const financeRuntimeContext =
     financeRuntime ??
     createDefaultFinanceRuntime({ repository: financeRepository, storePath: financeStorePath });
@@ -657,9 +802,35 @@ export function startApiServer({
   });
 }
 
+let cliApiServer = null;
+let cliKeepAlive = null;
+
+function stopCliServer(signal) {
+  if (cliKeepAlive) {
+    clearInterval(cliKeepAlive);
+    cliKeepAlive = null;
+  }
+  if (!cliApiServer) {
+    process.exit(signal ? 0 : process.exitCode ?? 0);
+  }
+  cliApiServer.close(() => {
+    process.exit(signal ? 0 : process.exitCode ?? 0);
+  });
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  startApiServer().then(({ port }) => {
+  startApiServer().then(({ server, port }) => {
+    cliApiServer = server;
+    cliKeepAlive = setInterval(() => {}, 2_147_483_647);
+    server.once("close", () => {
+      if (cliKeepAlive) {
+        clearInterval(cliKeepAlive);
+        cliKeepAlive = null;
+      }
+    });
     console.log(`law-firm-os api listening on http://${HOST}:${port}`);
     console.log(`health: http://${HOST}:${port}/api/health`);
   });
+  process.once("SIGINT", () => stopCliServer("SIGINT"));
+  process.once("SIGTERM", () => stopCliServer("SIGTERM"));
 }

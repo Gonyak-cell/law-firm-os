@@ -16,6 +16,7 @@ const hrxCases = new Map([
   ["hrx-step-up-challenge", "apps/web/e2e/hrx/hrx-step-up-challenge.spec.ts"],
   ["hrx-analytics", "apps/web/e2e/hrx/hrx-analytics.spec.ts"],
   ["hrx-ai-assistant", "apps/web/e2e/hrx/hrx-ai-assistant.spec.ts"],
+  ["hrx-payroll-boundary", "apps/web/e2e/hrx/hrx-payroll-boundary.spec.ts"],
 ]);
 
 const cases = new Map([

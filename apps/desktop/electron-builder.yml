@@ -16,11 +16,11 @@ mac:
   category: public.app-category.business
   target:
     - dmg
-  icon: build/icon.svg
+  icon: build/icon.icns
 
 win:
   target:
     - nsis
-  icon: build/icon.svg
+  icon: build/icon.ico
 
 publish: null

@@ -1,0 +1,240 @@
+{
+  "schema_version": "law-firm-os.sf-client-matter-parity.current-validation-receipt.v0.1",
+  "program": "SF-CLIENT-MATTER-PARITY",
+  "receipt_date": "2026-06-24",
+  "scope": {
+    "current_worktree_validation": true,
+    "local_runtime_evidence_only": true,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "enterprise_trust_claim": false
+  },
+  "commands": [
+    {
+      "id": "SF-CURRENT-UI-REGRESSION",
+      "command": "npm --workspace apps/web run test:ui",
+      "status": "passed",
+      "tests": {
+        "total": 15,
+        "passed": 15,
+        "failed": 0
+      },
+      "evidence_note": "Client/Matter/Vault/People source UI regression markers, API-backed surfaces, login email/password boundary, and Korean Matter-Vault accessibility labels passed."
+    },
+    {
+      "id": "SF-CURRENT-WEB-BUILD",
+      "command": "npm --workspace apps/web run build",
+      "status": "passed",
+      "evidence_note": "Vite production build completed after W08R UI exposure; latest run transformed 1668 modules."
+    },
+    {
+      "id": "SF-CURRENT-API-REGRESSION",
+      "command": "node --test apps/api/test/cmp-r4-g4-matter.test.js apps/api/test/cmp-r4-g5-vault.test.js apps/api/test/cmp-r4-g6-crm-intake.test.js apps/api/test/cmp-r4-g7-finance.test.js apps/api/test/cmp-r4-g8-analytics.test.js",
+      "status": "passed",
+      "tests": {
+        "total": 32,
+        "passed": 32,
+        "failed": 0
+      },
+      "evidence_note": "Matter, Vault, CRM/Intake including W01R canonical write and duplicate merge proposal, Finance, and Analytics route regressions passed in the current worktree; SF-B-W02R through W05R lane-specific API coverage is recorded separately."
+    },
+    {
+      "id": "SF-CURRENT-W02-RECORD-ACTIONS-API",
+      "command": "node --test apps/api/test/sf-b-w02-record-actions.test.js",
+      "status": "passed",
+      "tests": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0
+      },
+      "evidence_note": "SF-B-W02R record actions route registry, safe field update, Client/Account/Contact/Matter patch, all-or-blocked bulk status, owner-blocked bulk action, and safe audit feed tests passed."
+    },
+    {
+      "id": "SF-CURRENT-W03-ACTIVITY-CALENDAR-CHANNEL-API",
+      "command": "node --test apps/api/test/sf-b-w03-activity-calendar-channel.test.js",
+      "status": "passed",
+      "tests": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0
+      },
+      "evidence_note": "SF-B-W03R activity/calendar/channel route descriptors, activity create/patch/idempotency, timeline evidence, critical calendar approval/dual-control confirmation, internal channel message, provider-blocked sync state, and denied count-leak prevention tests passed."
+    },
+    {
+      "id": "SF-CURRENT-W04-DOCUMENT-EMAIL-BUILDER-API",
+      "command": "node --test apps/api/test/sf-b-w04-document-email-builder.test.js",
+      "status": "passed",
+      "tests": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0
+      },
+      "evidence_note": "SF-B-W04R document/email builder route descriptors, safe template read, builder draft create/patch/preview/idempotency, approval request/list, owner-blocked Vault publish, email draft create/patch, provider-blocked send, and denied count-leak prevention tests passed."
+    },
+    {
+      "id": "SF-CURRENT-W05-IMPORT-DATA-MAPPING-API",
+      "command": "node --test apps/api/test/sf-b-w05-import-data-mapping.test.js",
+      "status": "passed",
+      "tests": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0
+      },
+      "evidence_note": "SF-B-W05R import/data mapping target registry, safe import job create/list idempotency, source staging, preview, field mapping, dry-run, owner-blocked execute, receipt-blocked rollback, safe error report, blocked target validation, and denied count-leak prevention tests passed."
+    },
+    {
+      "id": "SF-CURRENT-W06-PERMISSION-ADMIN-API",
+      "command": "node --test apps/api/test/sf-b-w06-permission-admin.test.js",
+      "status": "passed",
+      "tests": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0
+      },
+      "evidence_note": "SF-B-W06R permission/admin route descriptors, permission set read/create/patch, wildcard broadening guard, permission assignment owner-blocked assign/revoke, Object Manager read/field policy owner-blocked patch, connected app provider-blocked create/disable, safe audit, and denied count-leak prevention tests passed."
+    },
+    {
+      "id": "SF-CURRENT-W07-DATA-CLOUD-ENRICHMENT-API",
+      "command": "node --test apps/api/test/sf-b-w07-data-cloud-enrichment.test.js",
+      "status": "passed",
+      "tests": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0
+      },
+      "evidence_note": "SF-B-W07R Data Cloud/enrichment route descriptors, provider list/register provider-blocked state, consent owner-blocked state, enrichment job create/preview, provider-blocked execute, safe results, identity owner-blocked review candidates, unified profile read, segment activation provider-blocked state, safe audit, idempotency, and denied count-leak prevention tests passed."
+    },
+    {
+      "id": "SF-CURRENT-W08-REPORT-BUILDER-CLIENT-PROFITABILITY-API",
+      "command": "node --test apps/api/test/sf-b-w08-report-builder-client-profitability.test.js",
+      "status": "passed",
+      "tests": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0
+      },
+      "evidence_note": "SF-B-W08R report builder/client profitability route descriptors, report definition list/create/patch idempotency, allowlisted fields/filters/chart config, safe aggregate report run, owner-blocked report share, report audit, ClientProfitability read/refresh, and denied count-leak prevention tests passed."
+    },
+    {
+      "id": "SF-CURRENT-MATTER-VAULT-E2E",
+      "command": "npm run web:e2e -- matter-vault",
+      "status": "passed",
+      "tests": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "evidence_note": "Matter Vault routed/API-backed/hardened surface e2e passed after aligning stale English aria-label expectations with the current Korean product UI."
+    },
+    {
+      "id": "SF-CURRENT-BROWSER-QA",
+      "command": "npm run sf:client-matter-parity:browser-qa",
+      "status": "passed",
+      "summary": {
+        "route_count": 13,
+        "check_count": 147,
+        "passed_count": 147,
+        "failed_count": 0
+      },
+      "screenshots": [
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-workspace.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-merge-review.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-record-actions.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-import.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-data-cloud.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-reports.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-list.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-record-actions.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-command.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-vault.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-builder-email.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-import.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-timeline.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-calendar.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-channel.png",
+        "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-people-admin.png"
+      ],
+      "evidence_note": "Chromium drove Client accounts, Client contacts merge review, Client/Matter W02R record actions, W05R Client/Matter import/data mapping wizard, W07R Client 데이터 Data Cloud/enrichment provider/owner blocked controls, W08R Client 리포트 report builder/client profitability/report run/owner-blocked share controls, Matter list, Matter command, Matter Vault, W04R Matter document builder/email composer owner/provider-blocked controls, W03R Matter activity, W03R Matter calendar/deadline approval, W03R Matter Channel provider-blocked routes, and W06R People 권한 관리 permission/admin owner/provider-blocked routes against the local API/Vite stack with local claims false."
+    },
+    {
+      "id": "SF-CURRENT-SCREENSHOT-INVENTORY",
+      "command": "npm run sf:client-matter-parity:inventory",
+      "status": "passed",
+      "summary": {
+        "source_screenshot_count": 883,
+        "derived_png_asset_count": 11,
+        "png_total_count": 894,
+        "missing_source_index_count": 0,
+        "extra_source_index_count": 0,
+        "feature_taxonomy_count": 10
+      }
+    },
+    {
+      "id": "SF-CURRENT-SURFACE-LEDGER",
+      "command": "npm run sf:client-matter-parity:surface-ledger",
+      "status": "passed",
+      "summary": {
+        "row_count": 14,
+        "connected_implemented_row_count": 14,
+        "disconnected_implemented_row_count": 0,
+        "ui_marker_count": 103,
+        "api_client_marker_count": 105,
+        "api_route_marker_count": 111,
+        "package_service_marker_count": 59,
+        "evidence_marker_count": 46
+      }
+    },
+    {
+      "id": "SF-CURRENT-OBJECTIVE-AUDIT",
+      "command": "npm run sf:client-matter-parity:objective-audit",
+      "status": "passed",
+      "summary": {
+        "requirement_count": 8,
+        "evidence_mapped_count": 8,
+        "evidence_missing_count": 0,
+        "goal_completion_claim_allowed": false
+      }
+    },
+    {
+      "id": "SF-CURRENT-PARITY-VALIDATOR",
+      "command": "npm run sf:client-matter-parity:validate",
+      "status": "passed",
+      "evidence_note": "Parity validator passed with screenshot inventory, objective audit, surface ledger, Track A UI entrypoints, Track B route-mounted or owner/provider-blocked states, and production/trust claim false."
+    },
+    {
+      "id": "SF-CURRENT-HERMES-CORE",
+      "command": "hermes.validate.core check-only",
+      "status": "passed",
+      "authority": {
+        "mutation_allowed_now": false,
+        "deployment_allowed_now": false,
+        "final_approval_allowed_now": false,
+        "production_pass_allowed_now": false,
+        "enterprise_trust_claim_allowed_now": false
+      }
+    },
+    {
+      "id": "SF-CURRENT-HERMES-DESKTOP-AUTHORITY",
+      "command": "hermes.desktop.authority_boundary check-only",
+      "status": "passed",
+      "authority": {
+        "mutation_allowed_now": false,
+        "deployment_allowed_now": false,
+        "final_approval_allowed_now": false,
+        "production_pass_allowed_now": false,
+        "enterprise_trust_claim_allowed_now": false
+      }
+    }
+  ],
+  "summary": {
+    "command_count": 18,
+    "passed_count": 18,
+    "failed_count": 0,
+    "current_ui_regression_tests": 15,
+    "current_api_regression_tests": 60,
+    "current_e2e_tests": 1,
+    "current_browser_qa_routes": 13,
+    "claim_boundary": "This receipt is current local validation evidence only. It does not create production approval, go-live approval, or enterprise trust claims.",
+    "current_browser_qa_checks": 147
+  }
+}

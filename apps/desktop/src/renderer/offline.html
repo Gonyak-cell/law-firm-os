@@ -14,9 +14,9 @@
       --soft-line: rgba(6, 16, 45, 0.07);
       --surface: #ffffff;
       --surface-soft: #fafbfc;
-      --red: #ff3158;
-      --yellow: #ffd43d;
-      --green: #5cc878;
+      --red: #ff2d55;
+      --yellow: #ffcc00;
+      --green: #00ca72;
       --green-dark: #0f3a32;
       --danger: #a23a35;
       --shadow: 0 24px 84px rgba(6, 16, 45, 0.1);
@@ -35,8 +35,13 @@
     body {
       margin: 0;
       min-height: 100vh;
-      overflow-x: hidden;
+      overflow: hidden;
       background: #ffffff;
+    }
+
+    body.is-authenticated {
+      overflow-x: hidden;
+      overflow-y: auto;
     }
 
     button,
@@ -117,7 +122,7 @@
       background: #ffffff;
     }
 
-    .runtime-pill {
+    .connection-status {
       position: fixed;
       right: 24px;
       top: 22px;
@@ -127,7 +132,7 @@
       gap: 8px;
       min-height: 34px;
       border: 1px solid rgba(6, 16, 45, 0.11);
-      border-radius: 999px;
+      border-radius: 8px;
       padding: 0 13px;
       background: rgba(255, 255, 255, 0.9);
       color: rgba(6, 16, 45, 0.7);
@@ -139,23 +144,23 @@
       transition: opacity 0.28s var(--ease), transform 0.28s var(--ease);
     }
 
-    body.is-authenticated .runtime-pill {
+    body.is-authenticated .connection-status {
       opacity: 0;
       transform: translateY(-8px);
     }
 
-    .runtime-dot {
+    .connection-dot {
       width: 8px;
       height: 8px;
       border-radius: 999px;
       background: #c38a05;
     }
 
-    .runtime-dot.ok {
+    .connection-dot.ok {
       background: var(--green);
     }
 
-    .runtime-dot.bad {
+    .connection-dot.bad {
       background: var(--danger);
     }
 
@@ -164,10 +169,10 @@
       z-index: 1;
       min-height: 100vh;
       box-sizing: border-box;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 72px 24px 48px;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      opacity: 1;
       visibility: visible;
       transition:
         opacity 0.46s var(--ease),
@@ -190,61 +195,66 @@
     }
 
     .auth-stack {
-      width: min(620px, 100%);
+      position: relative;
+      width: min(720px, calc(100vw - 32px));
+      min-height: min(720px, calc(100vh - 32px));
       display: grid;
-      justify-items: center;
-      gap: 28px;
+      place-items: center;
     }
 
     .brand-lockup {
-      --mark-size: 118px;
-      --word-size: 90px;
+      --mark-size: 150px;
+      --word-size: 136px;
+      --word-target: 0px;
       position: relative;
       display: inline-flex;
       align-items: center;
-      gap: 20px;
+      gap: 0;
       color: var(--ink);
       line-height: 1;
       overflow: visible;
-      animation: brandSettle 0.72s var(--ease) 2.35s both;
+      transform-origin: 50% 50%;
+      z-index: 2;
+      animation:
+        brandGap 0.86s var(--ease) 1.52s both,
+        brandSettle 0.72s var(--ease) 2.45s both;
     }
 
     .matter-mark {
-      display: block;
-      width: calc(var(--mark-size) * 1.68);
+      position: relative;
+      width: calc(var(--mark-size) * 1.25);
       height: var(--mark-size);
       flex: 0 0 auto;
-      overflow: visible;
     }
 
-    .matter-bar,
-    .matter-dot {
-      opacity: 0;
-      will-change: opacity;
+    .matter-mark img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      will-change: transform, opacity;
+      animation: matterMarkImageIn 1.15s var(--spring) both;
     }
 
-    .matter-bar.red {
-      animation: redBuild 1.15s var(--spring) both;
-    }
-
-    .matter-bar.yellow {
-      animation: yellowBuild 1.15s var(--spring) 0.14s both;
-    }
-
-    .matter-dot {
-      animation: dotBuild 1.1s var(--spring) 0.26s both;
+    .matter-word-wrap {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      width: 0;
+      overflow: hidden;
+      clip-path: inset(-0.18em 100% -0.18em 0);
+      animation: wordReveal 0.86s var(--ease) 1.52s both;
     }
 
     .matter-word {
       display: inline-flex;
       align-items: baseline;
       color: var(--ink);
-      font-family: "Avenir Next", "SF Pro Rounded", Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: Comfortaa, "Avenir Next", "SF Pro Rounded", Inter, -apple-system, BlinkMacSystemFont, sans-serif;
       font-size: var(--word-size);
       font-weight: 300;
-      letter-spacing: 0;
-      opacity: 0;
-      transform: translateX(-28px) scaleX(0.92);
+      letter-spacing: 0.035em;
+      transform: translateX(-0.42em) scaleX(0.9);
       transform-origin: 0 50%;
       animation: wordPop 0.82s var(--spring) 1.52s both;
     }
@@ -264,26 +274,38 @@
     .matter-word span:nth-child(6) { animation-delay: 1.79s; }
 
     .login-panel {
+      position: absolute;
+      left: 50%;
+      top: 50%;
       width: min(412px, 100%);
       border: 1px solid rgba(6, 16, 45, 0.08);
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.96);
       box-shadow: var(--shadow);
       opacity: 0;
-      transform: translateY(54px);
+      transform: translate(-50%, calc(-50% + 108px));
       filter: blur(10px);
-      animation: panelIn 0.68s var(--ease) 2.62s both;
+      z-index: 1;
+      animation: panelIn 0.68s var(--ease) 2.72s both;
     }
 
     .login-form {
       display: grid;
-      gap: 16px;
-      padding: 28px;
+      gap: 10px;
+      padding: 20px 24px 18px;
+    }
+
+    .login-form input {
+      min-height: 38px;
+    }
+
+    .login-form button {
+      min-height: 38px;
     }
 
     .field {
       display: grid;
-      gap: 7px;
+      gap: 5px;
       opacity: 0;
       transform: translateY(10px);
       animation: fieldIn 0.44s var(--ease) both;
@@ -302,11 +324,10 @@
       font-weight: 760;
     }
 
-    .reset-actions,
     .login-actions,
-    .smoke-actions {
+    .check-actions {
       display: flex;
-      gap: 9px;
+      gap: 8px;
       flex-wrap: wrap;
       opacity: 0;
       transform: translateY(10px);
@@ -317,23 +338,24 @@
       animation-delay: 3.24s;
     }
 
-    .reset-actions button,
     .login-actions button {
       flex: 1 1 0;
     }
 
     .login-result {
-      min-height: 42px;
+      min-height: 30px;
+      max-height: 30px;
       border: 1px solid rgba(6, 16, 45, 0.08);
       border-radius: 8px;
-      padding: 11px 12px;
+      padding: 6px 10px;
       background: #fafbfc;
       color: rgba(6, 16, 45, 0.7);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 650;
-      line-height: 1.45;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
+      line-height: 1.35;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       opacity: 0;
       transform: translateY(10px);
       animation: fieldIn 0.44s var(--ease) 3.3s both;
@@ -377,12 +399,11 @@
 
     .dock-brand .matter-mark {
       --mark-size: 34px;
-      width: 58px;
+      width: 44px;
       height: 34px;
     }
 
-    .dock-brand .matter-bar,
-    .dock-brand .matter-dot {
+    .dock-brand .matter-mark img {
       animation: none;
       opacity: 1;
     }
@@ -455,11 +476,11 @@
     }
 
     .account-count,
-    .pill {
+    .status-label {
       display: inline-flex;
       align-items: center;
       min-height: 24px;
-      border-radius: 999px;
+      border-radius: 6px;
       padding: 0 9px;
       background: #f1f4f5;
       color: rgba(6, 16, 45, 0.72);
@@ -468,12 +489,12 @@
       white-space: nowrap;
     }
 
-    .pill.allow {
+    .status-label.allow {
       background: rgba(0, 202, 114, 0.12);
       color: #127044;
     }
 
-    .pill.deny {
+    .status-label.deny {
       background: rgba(255, 45, 85, 0.1);
       color: #a52f42;
     }
@@ -493,7 +514,7 @@
       font-weight: 650;
     }
 
-    .pill-row {
+    .status-list {
       display: flex;
       flex-wrap: wrap;
       gap: 7px;
@@ -519,7 +540,7 @@
       font-weight: 720;
     }
 
-    .smoke-result {
+    .check-result {
       min-height: 64px;
       border: 1px solid rgba(6, 16, 45, 0.08);
       border-radius: 8px;
@@ -538,57 +559,37 @@
       overflow-wrap: anywhere;
     }
 
-    @keyframes redBuild {
+    .login-result.result {
+      white-space: nowrap;
+      overflow-wrap: normal;
+    }
+
+    @keyframes matterMarkImageIn {
       0% {
         opacity: 0;
-      }
-      38% {
-        opacity: 1;
-      }
-      70% {
-        opacity: 1;
+        transform: translateY(0.18em) scale(0.82);
       }
       100% {
         opacity: 1;
+        transform: translate(0, 0) scale(1);
       }
     }
 
-    @keyframes yellowBuild {
-      0% {
-        opacity: 0;
-      }
-      38% {
-        opacity: 1;
-      }
-      70% {
-        opacity: 1;
-      }
-      100% {
-        opacity: 1;
+    @keyframes brandGap {
+      to {
+        gap: calc(var(--mark-size) * 0.2);
       }
     }
 
-    @keyframes dotBuild {
-      0% {
-        opacity: 0;
-      }
-      34% {
-        opacity: 1;
-      }
-      62% {
-        opacity: 1;
-      }
-      82% {
-        opacity: 1;
-      }
-      100% {
-        opacity: 1;
+    @keyframes wordReveal {
+      to {
+        width: var(--word-target);
+        clip-path: inset(-0.18em -0.12em -0.18em 0);
       }
     }
 
     @keyframes wordPop {
       to {
-        opacity: 1;
         transform: translateX(0) scaleX(1);
       }
     }
@@ -601,15 +602,20 @@
     }
 
     @keyframes brandSettle {
+      0%,
+      28% {
+        transform: translateY(0) scale(1);
+      }
+
       to {
-        transform: translateY(-24px) scale(0.72);
+        transform: translateY(-236px) scale(0.64);
       }
     }
 
     @keyframes panelIn {
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translate(-50%, calc(-50% + 88px));
         filter: blur(0);
       }
     }
@@ -622,7 +628,7 @@
     }
 
     @media (max-width: 860px) {
-      .runtime-pill {
+      .connection-status {
         position: static;
         justify-self: center;
         margin: 16px auto 0;
@@ -633,9 +639,8 @@
       }
 
       .brand-lockup {
-        --mark-size: 74px;
-        --word-size: 56px;
-        gap: 12px;
+        --mark-size: 118px;
+        --word-size: 108px;
       }
 
       .login-panel {
@@ -667,8 +672,13 @@
 
     @media (max-width: 520px) {
       .brand-lockup {
-        --mark-size: 58px;
-        --word-size: 44px;
+        --mark-size: 86px;
+        --word-size: 78px;
+      }
+
+      .login-panel {
+        width: min(340px, calc(100vw - 36px));
+        transform: translate(-50%, calc(-50% + 124px));
       }
 
       .login-form {
@@ -677,8 +687,27 @@
 
       .reset-actions button,
       .login-actions button,
-      .smoke-actions button {
+      .check-actions button {
         flex-basis: 100%;
+      }
+
+      @keyframes brandSettle {
+        0%,
+        28% {
+          transform: translateY(0) scale(1);
+        }
+
+        to {
+          transform: translateY(-122px) scale(0.72);
+        }
+      }
+
+      @keyframes panelIn {
+        to {
+          opacity: 1;
+          transform: translate(-50%, calc(-50% + 108px));
+          filter: blur(0);
+        }
       }
     }
 
@@ -691,118 +720,103 @@
         transition-duration: 1ms !important;
         scroll-behavior: auto !important;
       }
+
+      .auth-stage {
+        opacity: 1;
+      }
     }
   </style>
 </head>
 <body>
   <div class="app" data-matter-desktop-app>
-    <div class="runtime-pill" data-runtime-status>
-      <span class="runtime-dot" data-runtime-dot></span>
-      <span data-runtime-label>Checking runtime</span>
+    <div class="connection-status" data-runtime-status>
+      <span class="connection-dot" data-runtime-dot></span>
+      <span data-runtime-label>연결 상태 확인 중</span>
     </div>
 
     <main class="auth-stage" data-auth-stage>
       <div class="auth-stack">
-        <div class="brand-lockup" aria-label="matter">
-          <svg class="matter-mark" viewBox="0 0 222 132" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-            <rect class="matter-bar red" x="41" y="7" width="48" height="118" rx="24" transform="rotate(31 65 66)" fill="#FF3158"></rect>
-            <rect class="matter-bar yellow" x="104" y="7" width="48" height="118" rx="24" transform="rotate(31 128 66)" fill="#FFD43D"></rect>
-            <circle class="matter-dot" cx="194" cy="94" r="25" fill="#5CC878"></circle>
-          </svg>
-          <span class="matter-word" aria-hidden="true">
-            <span>m</span><span>a</span><span>t</span><span>t</span><span>e</span><span>r</span>
+        <div class="brand-lockup" data-launch-logo-flow aria-label="matter">
+          <span class="matter-mark" aria-hidden="true">
+            <img src="../../build/icon-source-mark.png" alt="" />
+          </span>
+          <span class="matter-word-wrap" aria-hidden="true">
+            <span class="matter-word">
+              <span>m</span><span>a</span><span>t</span><span>t</span><span>e</span><span>r</span>
+            </span>
           </span>
         </div>
 
         <section class="login-panel" aria-label="matter 로그인">
           <div class="login-form">
             <label class="field">
-              <span>계정</span>
-              <select data-account-select aria-label="Registered account"></select>
-            </label>
-            <label class="field">
-              <span>재설정 토큰</span>
-              <input data-reset-token aria-label="Reset token" autocomplete="off" />
-            </label>
-            <label class="field">
-              <span>새 비밀번호</span>
-              <input data-new-password aria-label="New password" autocomplete="new-password" type="password" />
-            </label>
-            <label class="field">
-              <span>새 비밀번호 확인</span>
-              <input data-confirm-password aria-label="Confirm new password" autocomplete="new-password" type="password" />
+              <span>이메일</span>
+              <input data-login-email aria-label="Email login" autocomplete="email" inputmode="email" type="email" />
             </label>
             <label class="field">
               <span>비밀번호</span>
               <input data-login-password aria-label="Password login" autocomplete="current-password" type="password" />
             </label>
-            <div class="reset-actions">
-              <button type="button" class="secondary" data-reset-request>재설정 이메일 요청</button>
-              <button type="button" class="secondary" data-reset-latest>최신 재설정 메일 열기</button>
-              <button type="button" class="secondary" data-reset-confirm>비밀번호 설정</button>
-            </div>
             <div class="login-actions">
               <button type="button" data-matter-login>로그인</button>
             </div>
-            <div class="login-result result" data-login-result>Reset email request, password setup, then log in.</div>
+            <div class="login-result result" data-login-result>이메일과 비밀번호로 로그인하세요.</div>
           </div>
         </section>
       </div>
     </main>
 
-    <section class="app-shell" aria-label="matter desktop workspace">
+    <section class="app-shell" aria-label="matter 작업공간">
       <header class="app-header">
         <div class="dock-brand" aria-label="matter">
-          <svg class="matter-mark" viewBox="0 0 222 132" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-            <rect class="matter-bar red" x="41" y="7" width="48" height="118" rx="24" transform="rotate(31 65 66)" fill="#FF3158"></rect>
-            <rect class="matter-bar yellow" x="104" y="7" width="48" height="118" rx="24" transform="rotate(31 128 66)" fill="#FFD43D"></rect>
-            <circle class="matter-dot" cx="194" cy="94" r="25" fill="#5CC878"></circle>
-          </svg>
+          <span class="matter-mark" aria-hidden="true">
+            <img src="../../build/icon-source-mark.png" alt="" />
+          </span>
           <span class="matter-word" aria-hidden="true">
             <span>m</span><span>a</span><span>t</span><span>t</span><span>e</span><span>r</span>
           </span>
         </div>
         <div class="header-session">
-          <span data-account-count class="account-count">0 registered</span>
-          <span data-session-email>signed out</span>
+          <span data-account-count class="account-count">등록된 계정 0개</span>
+          <span data-session-email>로그아웃됨</span>
           <button type="button" class="secondary" data-matter-logout>로그아웃</button>
         </div>
       </header>
 
       <main class="app-main">
-        <section class="panel" aria-label="Session status">
+        <section class="panel" aria-label="로그인 상태">
           <div class="panel-header">
-            <h2>Session</h2>
+            <h2>로그인 상태</h2>
           </div>
           <div class="panel-body">
             <div class="meta-grid">
               <div class="meta-row">
-                <strong>Email</strong>
-                <span data-session-email-mirror>signed out</span>
+                <strong>이메일</strong>
+                <span data-session-email-mirror>로그아웃됨</span>
               </div>
               <div class="meta-row">
-                <strong>Privilege</strong>
-                <span data-session-privilege>none</span>
+                <strong>권한</strong>
+                <span data-session-privilege>로그아웃</span>
               </div>
               <div class="meta-row">
-                <strong>Roles</strong>
-                <div class="pill-row" data-session-roles></div>
+                <strong>역할</strong>
+                <div class="status-list" data-session-roles></div>
               </div>
             </div>
           </div>
         </section>
 
-        <section class="panel" aria-label="Runtime smoke">
+        <section class="panel" aria-label="기능 확인">
           <div class="panel-header">
-            <h2>Function smoke</h2>
-            <div class="smoke-actions">
-              <button type="button" class="secondary" data-smoke-dashboard>Dashboard smoke</button>
-              <button type="button" class="secondary" data-smoke-admin>Admin smoke</button>
+            <h2>기능 확인</h2>
+            <div class="check-actions">
+              <button type="button" class="secondary" data-check-dashboard>업무 보드 확인</button>
+              <button type="button" class="secondary" data-check-admin>관리 기능 확인</button>
             </div>
           </div>
           <div class="panel-body">
             <div class="feature-list" data-feature-list></div>
-            <div class="smoke-result result" data-smoke-result>Select an account, log in, then run a smoke check.</div>
+            <div class="check-result result" data-check-result>계정을 선택하고 로그인한 뒤 기능을 확인하세요.</div>
           </div>
         </section>
       </main>
@@ -821,41 +835,40 @@
       runtimeDot: document.querySelector("[data-runtime-dot]"),
       runtimeLabel: document.querySelector("[data-runtime-label]"),
       accountCount: document.querySelector("[data-account-count]"),
-      accountSelect: document.querySelector("[data-account-select]"),
-      resetRequestButton: document.querySelector("[data-reset-request]"),
-      resetLatestButton: document.querySelector("[data-reset-latest]"),
-      resetTokenInput: document.querySelector("[data-reset-token]"),
-      newPasswordInput: document.querySelector("[data-new-password]"),
-      confirmPasswordInput: document.querySelector("[data-confirm-password]"),
-      resetConfirmButton: document.querySelector("[data-reset-confirm]"),
+      loginEmailInput: document.querySelector("[data-login-email]"),
       loginPasswordInput: document.querySelector("[data-login-password]"),
       loginButton: document.querySelector("[data-matter-login]"),
       logoutButton: document.querySelector("[data-matter-logout]"),
-      dashboardSmokeButton: document.querySelector("[data-smoke-dashboard]"),
-      adminSmokeButton: document.querySelector("[data-smoke-admin]"),
+      dashboardCheckButton: document.querySelector("[data-check-dashboard]"),
+      adminCheckButton: document.querySelector("[data-check-admin]"),
       loginResult: document.querySelector("[data-login-result]"),
       sessionEmail: document.querySelector("[data-session-email]"),
       sessionEmailMirror: document.querySelector("[data-session-email-mirror]"),
       sessionPrivilege: document.querySelector("[data-session-privilege]"),
       sessionRoles: document.querySelector("[data-session-roles]"),
       featureList: document.querySelector("[data-feature-list]"),
-      smokeResult: document.querySelector("[data-smoke-result]")
+      checkResult: document.querySelector("[data-check-result]")
     };
 
-    function accountLabel(account) {
-      const role = Array.isArray(account.role_ids) && account.role_ids.includes("system_super_admin")
-        ? "system super admin"
-        : "registered";
-      return `${account.email} - ${role}`;
+    const brandLockup = document.querySelector("[data-launch-logo-flow]");
+    const brandWord = brandLockup?.querySelector(".matter-word");
+
+    function setMatterWordTarget() {
+      if (!brandLockup || !brandWord) return;
+      brandLockup.style.setProperty("--word-target", `${Math.ceil(brandWord.scrollWidth + 10)}px`);
     }
 
-    function selectedEmail() {
-      return nodes.accountSelect.value;
+    setMatterWordTarget();
+    window.addEventListener("resize", setMatterWordTarget);
+    if (document.fonts) {
+      document.fonts.ready.then(setMatterWordTarget);
+    }
+
+    function loginEmail() {
+      return nodes.loginEmailInput.value.trim();
     }
 
     function clearPasswordFields() {
-      nodes.newPasswordInput.value = "";
-      nodes.confirmPasswordInput.value = "";
       nodes.loginPasswordInput.value = "";
     }
 
@@ -865,34 +878,30 @@
 
     function renderRuntime(runtime) {
       const ok = Boolean(runtime?.configured);
-      nodes.runtimeDot.className = `runtime-dot ${ok ? "ok" : "bad"}`;
+      nodes.runtimeDot.className = `connection-dot ${ok ? "ok" : "bad"}`;
       nodes.runtimeLabel.textContent = ok
-        ? "AWS temporary runtime connected"
-        : `Runtime unavailable: ${runtime?.reason ?? "not configured"}`;
+        ? "작업공간 연결됨"
+        : "작업공간 연결이 필요합니다.";
     }
 
     function renderAccounts(accounts) {
       state.accounts = accounts;
-      nodes.accountCount.textContent = `${accounts.length} registered`;
-      nodes.accountSelect.replaceChildren(
-        ...accounts.map((account) => {
-          const option = document.createElement("option");
-          option.value = account.email;
-          option.textContent = accountLabel(account);
-          return option;
-        })
-      );
-      const preferred = accounts.find((account) => account.email === "jwsuh@amic.kr");
-      if (preferred) nodes.accountSelect.value = preferred.email;
+      nodes.accountCount.textContent = `등록된 계정 ${accounts.length}개`;
+    }
+
+    function roleLabel(role) {
+      if (role === "system_super_admin") return "시스템 관리자";
+      if (role === "matter_runtime_user") return "사용자";
+      return "사용자";
     }
 
     function renderRoles(roles = []) {
       nodes.sessionRoles.replaceChildren(
         ...roles.map((role) => {
-          const pill = document.createElement("span");
-          pill.className = "pill";
-          pill.textContent = role;
-          return pill;
+          const label = document.createElement("span");
+          label.className = "status-label";
+          label.textContent = roleLabel(role);
+          return label;
         })
       );
     }
@@ -905,15 +914,15 @@
         session.highest_privilege === "true" ||
         session.highest_privilege === "system_super_admin"
       ) {
-        return "system super admin";
+        return "최고 관리자";
       }
-      if (session.state === "signed_in" || session.email) return "standard account";
-      return "none";
+      if (session.state === "signed_in" || session.email) return "일반 계정";
+      return "로그아웃";
     }
 
     function renderSession(session = { state: "signed_out" }) {
       state.session = session;
-      const email = session.email ?? "signed out";
+      const email = session.email ?? "로그아웃됨";
       nodes.sessionEmail.textContent = email;
       nodes.sessionEmailMirror.textContent = email;
       nodes.sessionPrivilege.textContent = privilegeLabel(session);
@@ -930,18 +939,18 @@
           const name = document.createElement("span");
           name.textContent = feature.label;
           const decision = document.createElement("span");
-          decision.className = `pill ${feature.allowed ? "allow" : "deny"}`;
-          decision.textContent = feature.decision;
+          decision.className = `status-label ${feature.allowed ? "allow" : "deny"}`;
+          decision.textContent = feature.allowed ? "사용 가능" : "제한됨";
           row.append(name, decision);
           return row;
         })
       );
     }
 
-    function summarizeSmoke(response) {
-      const status = response.http_status ? `HTTP ${response.http_status}` : "local";
-      const decision = response.decision ?? response.reason ?? "unknown";
-      return `${status} ${decision}\nfeature: ${response.feature_id ?? "n/a"}\nactor: ${response.actor_email ?? selectedEmail()}`;
+    function summarizeCheck(response) {
+      if (response?.allowed === true || response?.decision === "allow") return "기능 확인 결과: 사용 가능합니다.";
+      if (response?.allowed === false || response?.decision === "deny") return "기능 확인 결과: 제한되어 있습니다.";
+      return "기능 확인 결과를 확인했습니다.";
     }
 
     function productUiTarget() {
@@ -951,7 +960,7 @@
     function handoffToProductUi(session) {
       if (!(session?.state === "signed_in" || session?.email)) return;
       document.body.dataset.productHandoff = "apps-web";
-      nodes.loginResult.textContent = `Signed in as ${session.email}. Opening matter workspace.`;
+      nodes.loginResult.textContent = `${session.email} 계정으로 로그인했습니다. matter 작업공간을 여는 중입니다.`;
       window.setTimeout(() => {
         window.location.assign(productUiTarget());
       }, 350);
@@ -965,54 +974,19 @@
       renderRuntime(await api.runtime());
       const accountsResponse = await api.accounts();
       if (accountsResponse.ok) renderAccounts(accountsResponse.users ?? []);
-      else nodes.loginResult.textContent = `Account load failed: ${accountsResponse.reason}`;
+      else nodes.loginResult.textContent = "계정 정보를 불러오지 못했습니다.";
       renderSession(await api.status());
     }
 
-    async function requestPasswordReset() {
-      const email = selectedEmail();
-      const response = await api.requestPasswordReset({ email });
-      nodes.loginResult.textContent = response.ok
-        ? `Reset email accepted for ${email}.`
-        : `Reset request failed: ${response.reason}`;
-    }
-
-    async function latestResetEmail() {
-      const email = selectedEmail();
-      const response = await api.latestResetEmail({ email });
-      if (response.ok && response.email_message?.reset_token) {
-        nodes.resetTokenInput.value = response.email_message.reset_token;
-        nodes.loginResult.textContent = `Latest reset email opened for ${response.email_message.to}. Expires at ${response.email_message.expires_at}.`;
-      } else {
-        nodes.loginResult.textContent = `Reset email unavailable: ${response.reason}`;
-      }
-    }
-
-    async function confirmPasswordReset() {
-      const token = nodes.resetTokenInput.value.trim();
-      const password = nodes.newPasswordInput.value;
-      if (password !== nodes.confirmPasswordInput.value) {
-        nodes.loginResult.textContent = "Password confirmation does not match.";
-        return;
-      }
-      const response = await api.confirmPasswordReset({ token, password });
-      if (response.ok) {
-        clearPasswordFields();
-        nodes.loginResult.textContent = "Password set. Log in with the new password.";
-      } else {
-        nodes.loginResult.textContent = `Password setup failed: ${response.reason}`;
-      }
-    }
-
     async function login() {
-      const email = selectedEmail();
+      const email = loginEmail();
       const password = nodes.loginPasswordInput.value;
       const response = await api.login({ email, password });
       renderSession(response.session);
       renderFeatures(response.features ?? []);
       nodes.loginResult.textContent = response.ok
-        ? `Signed in as ${response.session.email}.`
-        : `Login failed: ${response.reason}`;
+        ? `${response.session.email} 계정으로 로그인했습니다.`
+        : "로그인하지 못했습니다.";
       if (response.ok) handoffToProductUi(response.session);
     }
 
@@ -1020,40 +994,31 @@
       const session = await api.logout();
       renderSession(session);
       renderFeatures([]);
-      nodes.loginResult.textContent = "Signed out.";
-      nodes.smokeResult.textContent = "Select an account, log in, then run a smoke check.";
+      nodes.loginResult.textContent = "로그아웃되었습니다.";
+      nodes.checkResult.textContent = "계정을 선택하고 로그인한 뒤 기능을 확인하세요.";
     }
 
-    async function smoke(featureId) {
-      const email = state.session.email ?? selectedEmail();
+    async function checkFeature(featureId) {
+      const email = state.session.email ?? loginEmail();
       const response = await api.smoke({ email, featureId });
-      nodes.smokeResult.textContent = summarizeSmoke(response);
+      nodes.checkResult.textContent = summarizeCheck(response);
     }
 
-    nodes.resetRequestButton.addEventListener("click", () => requestPasswordReset().catch((error) => {
-      nodes.loginResult.textContent = error.message;
-    }));
-    nodes.resetLatestButton.addEventListener("click", () => latestResetEmail().catch((error) => {
-      nodes.loginResult.textContent = error.message;
-    }));
-    nodes.resetConfirmButton.addEventListener("click", () => confirmPasswordReset().catch((error) => {
-      nodes.loginResult.textContent = error.message;
-    }));
     nodes.loginButton.addEventListener("click", () => login().catch((error) => {
-      nodes.loginResult.textContent = error.message;
+      nodes.loginResult.textContent = "로그인 요청을 처리하지 못했습니다.";
     }));
     nodes.logoutButton.addEventListener("click", () => logout().catch((error) => {
-      nodes.loginResult.textContent = error.message;
+      nodes.loginResult.textContent = "로그아웃 요청을 처리하지 못했습니다.";
     }));
-    nodes.dashboardSmokeButton.addEventListener("click", () => smoke("matter_vault_dashboard").catch((error) => {
-      nodes.smokeResult.textContent = error.message;
+    nodes.dashboardCheckButton.addEventListener("click", () => checkFeature("matter_vault_dashboard").catch((error) => {
+      nodes.checkResult.textContent = "기능 확인에 실패했습니다.";
     }));
-    nodes.adminSmokeButton.addEventListener("click", () => smoke("matter_vault_admin").catch((error) => {
-      nodes.smokeResult.textContent = error.message;
+    nodes.adminCheckButton.addEventListener("click", () => checkFeature("matter_vault_admin").catch((error) => {
+      nodes.checkResult.textContent = "기능 확인에 실패했습니다.";
     }));
 
     refresh().catch((error) => {
-      renderRuntime({ configured: false, reason: error.message });
+      renderRuntime({ configured: false });
     });
   </script>
 </body>

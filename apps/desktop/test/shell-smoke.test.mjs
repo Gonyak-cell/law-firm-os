@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { APPROVED_DEV_RENDERER_URL } from "../src/main/origin-policy.js";
-import { desktopPreloadPath, isMainEntryPoint, packagedRendererUrl, startDesktopShell } from "../src/main/main.js";
+import {
+  configureDesktopAppIcon,
+  desktopPreloadPath,
+  desktopWindowIconPath,
+  isMainEntryPoint,
+  packagedRendererUrl,
+  startDesktopShell
+} from "../src/main/main.js";
 
 class FakeBrowserWindow {
   constructor(options) {
@@ -44,6 +52,7 @@ test("desktop shell starts with packaged renderer target, preload, and hardened 
   assert.equal(window.options.webPreferences.sandbox, true);
   assert.equal(window.options.webPreferences.webSecurity, true);
   assert.equal(window.options.webPreferences.preload, desktopPreloadPath());
+  assert.equal(window.options.icon, desktopWindowIconPath());
   assert.equal(window.readyEvent.eventName, "ready-to-show");
 
   window.readyEvent.handler();
@@ -58,6 +67,29 @@ test("desktop shell can still target the approved local dev renderer when explic
 
   assert.equal(target, APPROVED_DEV_RENDERER_URL);
   assert.equal(window.loadedURL, APPROVED_DEV_RENDERER_URL);
+});
+
+test("desktop app configures the macOS Dock icon from the packaged matter mark", () => {
+  const calls = [];
+  configureDesktopAppIcon({
+    dock: {
+      setIcon(iconPath) {
+        calls.push(iconPath);
+      }
+    }
+  });
+
+  assert.deepEqual(calls, [desktopWindowIconPath()]);
+});
+
+test("macOS app bundle uses matter.icns instead of inherited Electron icon metadata", () => {
+  const macBuildSource = readFileSync(new URL("../../../scripts/build-matter-desktop-mac.mjs", import.meta.url), "utf8");
+
+  assert.match(macBuildSource, /packagedIconFile\s*=\s*"matter\.icns"/);
+  assert.match(macBuildSource, /Set :CFBundleIconFile/);
+  assert.match(macBuildSource, /CFBundleIconFile \$\{packagedIconFile\}/);
+  assert.match(macBuildSource, /rm\(join\(targetResourcesDir,\s*"electron\.icns"\)/);
+  assert.doesNotMatch(macBuildSource, /packagedIconPath\s*=\s*join\(resourcesDir,\s*"electron\.icns"\)/);
 });
 
 test("desktop shell blocks unapproved renderer target and remote navigation", async () => {

@@ -1,0 +1,61 @@
+{
+  "schema_version": "law-firm-os.matter-desktop.aws-runtime-bounded-auth-state-receipt.v0.1",
+  "status": "temporary_runtime_hotfix_deployed",
+  "date": "2026-06-22",
+  "aws_account": "770880870480",
+  "region": "ap-northeast-2",
+  "lambda": {
+    "function_name": "matter-temp-desktop-runtime",
+    "function_arn": "arn:aws:lambda:ap-northeast-2:770880870480:function:matter-temp-desktop-runtime",
+    "runtime": "nodejs20.x",
+    "code_sha256": "xqOIshSmjXIwwTqUubVnPopQs0yhSzsf1t35uF2SHpc=",
+    "revision_id": "ea44a757-4505-4677-812e-62f0ab957f7f"
+  },
+  "deployment_package": {
+    "local_path": "/tmp/matter-temp-desktop-runtime.zip",
+    "sha256": "c6a388b214a68d7230c13a94b9b5673e8a50b34ca14b3b1fd6ddf9b85d921e97",
+    "files": [
+      "index.mjs",
+      "matter-vault-user-registration-seed.json"
+    ]
+  },
+  "issue": {
+    "symptom": "AWS runtime password reset smoke returned 502",
+    "root_cause": "synthetic reset token state could exceed AWS Secrets Manager SecretString 65536 byte limit",
+    "secret_value_printed": false
+  },
+  "remediation": {
+    "reset_tokens_bounded": true,
+    "outbox_bounded": true,
+    "max_persisted_reset_tokens": 20,
+    "max_persisted_outbox_messages": 20,
+    "existing_account_ledger_changed": false,
+    "dummy_data_created": false
+  },
+  "verification": {
+    "api_tests": {
+      "command": "npm --workspace apps/api run test -- matter-temp-desktop-runtime-lambda.test.js",
+      "result": "PASS",
+      "tests": 138,
+      "failures": 0
+    },
+    "aws_runtime_smoke": {
+      "command": "npm run matter-desktop:aws-runtime:smoke",
+      "result": "PASS",
+      "base_url": "https://73o8hpqpgl.execute-api.ap-northeast-2.amazonaws.com/staging",
+      "super_admin": "jwsuh@amic.kr",
+      "general_account_admin_restriction": "deny"
+    },
+    "temporary_release": {
+      "command": "npm run matter-desktop:temporary-release",
+      "result": "PASS"
+    }
+  },
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "app_store_distribution": false,
+    "external_pilot_distribution": false
+  }
+}

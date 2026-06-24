@@ -37,6 +37,70 @@ async function json(baseUrl, path, options = {}) {
   return { status: response.status, body };
 }
 
+function accountPayload(overrides = {}) {
+  return {
+    tenant_id: TENANT,
+    permission_ref: "perm_ref_cmp_g6_account_write",
+    audit_hint_ref: "audit_hint_cmp_g6_account_write",
+    actor_id: "user_cmp_g6_owner",
+    idempotency_key: "api-account-create-1",
+    reason: "account_created",
+    account: {
+      account_id: "account_cmp_g6_api_001",
+      tenant_id: TENANT,
+      display_name: "API created account",
+      status: "active",
+    },
+    ...overrides,
+  };
+}
+
+function contactPayload(overrides = {}) {
+  return {
+    tenant_id: TENANT,
+    permission_ref: "perm_ref_cmp_g6_contact_write",
+    audit_hint_ref: "audit_hint_cmp_g6_contact_write",
+    actor_id: "user_cmp_g6_owner",
+    idempotency_key: "api-contact-create-1",
+    reason: "contact_created",
+    contact: {
+      contact_id: "contact_cmp_g6_api_001",
+      tenant_id: TENANT,
+      account_id: "org_cmp_g6_account_001",
+      display_name: "API created contact",
+      status: "active",
+      primary_contact_fingerprint: "api-contact-fingerprint-001",
+    },
+    ...overrides,
+  };
+}
+
+function accountPatchPayload(overrides = {}) {
+  return {
+    tenant_id: TENANT,
+    permission_ref: "perm_ref_cmp_g6_account_patch",
+    audit_hint_ref: "audit_hint_cmp_g6_account_patch",
+    actor_id: "user_cmp_g6_owner",
+    idempotency_key: "api-account-patch-1",
+    reason: "account_patch",
+    field_updates: { status: "review_required" },
+    ...overrides,
+  };
+}
+
+function contactPatchPayload(overrides = {}) {
+  return {
+    tenant_id: TENANT,
+    permission_ref: "perm_ref_cmp_g6_contact_patch",
+    audit_hint_ref: "audit_hint_cmp_g6_contact_patch",
+    actor_id: "user_cmp_g6_owner",
+    idempotency_key: "api-contact-patch-1",
+    reason: "contact_patch",
+    field_updates: { status: "review_required" },
+    ...overrides,
+  };
+}
+
 test("G6 CRM/Intake API health descriptor exposes runtime write-ready without production claim", async () => {
   await withServer(async (baseUrl) => {
     const { status, body } = await json(baseUrl, "/api/health");
@@ -65,6 +129,456 @@ test("G6 CRM list is permission gated and omits Matter shortcut fields", async (
     assert.equal(denied.body.items.length, 0);
     assert.equal(denied.body.count_leak_prevented, true);
   });
+});
+
+test("G6 CRM Account and Contact read facades are permission gated and safe-source", async () => {
+  await withServer(async (baseUrl) => {
+    const accounts = await json(baseUrl, `/api/crm/accounts?${BASE_QUERY}`);
+    assert.equal(accounts.status, 200);
+    assert.equal(accounts.body.outcome, "passed");
+    assert.equal(accounts.body.items.length, 1);
+    assert.equal(accounts.body.items[0].account_id, "org_cmp_g6_account_001");
+    assert.equal(accounts.body.items[0].client_group_id, "client_group_cmp_g6_account_001");
+    assert.equal(accounts.body.items[0].registration_number_included, false);
+    assert.equal("registration_number" in accounts.body.items[0], false);
+    assert.equal(accounts.body.items[0].direct_matter_reference_included, false);
+    assert.equal(accounts.body.production_ready_claim, false);
+
+    const contacts = await json(baseUrl, `/api/crm/contacts?${BASE_QUERY}`);
+    assert.equal(contacts.status, 200);
+    assert.equal(contacts.body.outcome, "passed");
+    assert.equal(contacts.body.items.length, 1);
+    assert.equal(contacts.body.items[0].contact_id, "person_cmp_g6_contact_001");
+    assert.equal(contacts.body.items[0].primary_contact_type, "email");
+    assert.equal(contacts.body.items[0].email_value_included, false);
+    assert.equal(contacts.body.items[0].contact_point_value_included, false);
+    assert.equal("email" in contacts.body.items[0], false);
+
+    const relationships = await json(baseUrl, `/api/crm/accounts/org_cmp_g6_account_001/contacts?${BASE_QUERY}`);
+    assert.equal(relationships.status, 200);
+    assert.equal(relationships.body.outcome, "passed");
+    assert.equal(relationships.body.items.length, 1);
+    assert.equal(relationships.body.items[0].relationship_type, "primary_contact");
+    assert.equal(relationships.body.items[0].contact_id, "person_cmp_g6_contact_001");
+    assert.equal(relationships.body.items[0].contact_point_value_included, false);
+
+    const review = await json(baseUrl, `/api/crm/accounts?${BASE_QUERY}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("review_required") },
+    });
+    assert.equal(review.status, 200);
+    assert.equal(review.body.outcome, "review_required");
+    assert.equal(review.body.items.length, 0);
+    assert.equal(review.body.count_leak_prevented, true);
+
+    const denied = await json(baseUrl, `/api/crm/contacts?${BASE_QUERY}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: undefined },
+    });
+    assert.equal(denied.status, 403);
+    assert.equal(denied.body.items.length, 0);
+    assert.equal(denied.body.count_leak_prevented, true);
+  });
+});
+
+test("G6 CRM duplicate review uses Master Data candidates without automatic merge", async () => {
+  await withServer(async (baseUrl) => {
+    const review = await json(baseUrl, "/api/crm/duplicate-reviews", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_write",
+        audit_hint_ref: "audit_hint_cmp_g6_write",
+        actor_id: "user_cmp_g6_owner",
+        display_name: "CMP G6 synthetic",
+        identifier_type: "business_number",
+        identifier_value: "cmp-g6-001",
+      }),
+    });
+    assert.equal(review.status, 200);
+    assert.equal(review.body.outcome, "review_required");
+    assert.equal(review.body.item.review_required, true);
+    assert.equal(review.body.item.automatic_merge_executed, false);
+    assert.ok(review.body.item.name_candidates.some((candidate) => candidate.model_type === "Organization"));
+    assert.ok(review.body.item.identifier_candidates.some((candidate) => candidate.model_type === "PartyIdentifier"));
+    assert.equal(review.body.item.identifier_candidates[0].identifier_value_included, false);
+    assert.equal(review.body.audit_event.action, "crm.duplicate_review.requested");
+    assert.equal(review.body.production_ready_claim, false);
+  });
+});
+
+test("G6 W01R Account and Contact canonical writes plus duplicate merge proposal gates execution", async () => {
+  const crmStorePath = join(mkdtempSync(join(tmpdir(), "crm-w01r-api-")), "crm.json");
+  const crmMasterDataStorePath = join(mkdtempSync(join(tmpdir(), "crm-w01r-master-data-")), "master-data.json");
+  const accountId = "account_cmp_g6_w01r_001";
+  const contactId = "contact_cmp_g6_w01r_001";
+  const sourcePartyId = `party_${contactId}`;
+  const targetPartyId = `party_${accountId}`;
+
+  await withServer(async (baseUrl) => {
+    const account = await json(baseUrl, "/api/crm/accounts", {
+      method: "POST",
+      body: JSON.stringify(accountPayload({
+        idempotency_key: "api-w01r-account-create-1",
+        account: {
+          account_id: accountId,
+          tenant_id: TENANT,
+          display_name: "W01R canonical account",
+          status: "active",
+        },
+      })),
+    });
+    assert.equal(account.status, 201);
+    assert.equal(account.body.canonical_write_status, "created");
+    assert.equal(account.body.item.account_id, accountId);
+    assert.equal(account.body.item.organization_id, accountId);
+    assert.equal(account.body.item.client_group_id, `client_group_${accountId}`);
+    assert.equal(account.body.item.canonical_sync_state, "synced");
+    assert.equal(account.body.item.registration_number_included, false);
+    assert.equal("registration_number" in account.body.item, false);
+    assert.equal(account.body.audit_event.metadata.canonical_write_status, "created");
+
+    const contact = await json(baseUrl, "/api/crm/contacts", {
+      method: "POST",
+      body: JSON.stringify(contactPayload({
+        idempotency_key: "api-w01r-contact-create-1",
+        contact: {
+          contact_id: contactId,
+          tenant_id: TENANT,
+          account_id: accountId,
+          display_name: "W01R canonical contact",
+          status: "active",
+          primary_contact_fingerprint: "w01r-contact-fingerprint-001",
+        },
+      })),
+    });
+    assert.equal(contact.status, 201);
+    assert.equal(contact.body.canonical_write_status, "created");
+    assert.equal(contact.body.item.contact_id, contactId);
+    assert.equal(contact.body.item.person_id, contactId);
+    assert.equal(contact.body.item.primary_contact_point_id, `contact_point_${contactId}`);
+    assert.equal(contact.body.item.canonical_sync_state, "synced");
+    assert.equal(contact.body.item.contact_point_value_included, false);
+    assert.equal("email" in contact.body.item, false);
+
+    const listedAccounts = await json(baseUrl, `/api/crm/accounts?${BASE_QUERY}`);
+    assert.equal(listedAccounts.body.items.filter((item) => item.account_id === accountId).length, 1);
+    assert.equal(listedAccounts.body.items.find((item) => item.account_id === accountId).canonical_sync_state, "synced");
+
+    const listedContacts = await json(baseUrl, `/api/crm/contacts?${BASE_QUERY}`);
+    assert.equal(listedContacts.body.items.filter((item) => item.contact_id === contactId).length, 1);
+    assert.equal(listedContacts.body.items.find((item) => item.contact_id === contactId).canonical_sync_state, "synced");
+
+    const relationships = await json(baseUrl, `/api/crm/accounts/${accountId}/contacts?${BASE_QUERY}`);
+    assert.equal(relationships.body.items.filter((item) => item.contact_id === contactId).length, 1);
+
+    const blockedProposal = await json(baseUrl, "/api/crm/duplicate-merge-proposals", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_merge_write",
+        audit_hint_ref: "audit_hint_cmp_g6_merge_write",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-w01r-merge-proposal-blocked",
+        proposal: {
+          proposal_id: "dup_merge_w01r_blocked",
+          tenant_id: TENANT,
+          display_name: "W01R canonical",
+          source_party_id: sourcePartyId,
+          target_party_id: targetPartyId,
+        },
+      }),
+    });
+    assert.equal(blockedProposal.status, 201);
+    assert.equal(blockedProposal.body.item.proposal_state, "owner_decision_required");
+    assert.equal(blockedProposal.body.item.executable, false);
+    assert.equal(blockedProposal.body.item.candidate_values_included, false);
+    assert.equal(blockedProposal.body.merge_candidates.every((candidate) => candidate.identifier_value_included === false), true);
+
+    const blockedExecute = await json(baseUrl, "/api/crm/duplicate-merge-proposals/dup_merge_w01r_blocked/execute", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_merge_execute",
+        audit_hint_ref: "audit_hint_cmp_g6_merge_execute",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-w01r-merge-execute-blocked",
+      }),
+    });
+    assert.equal(blockedExecute.status, 200);
+    assert.equal(blockedExecute.body.outcome, "approval_required");
+    assert.deepEqual(blockedExecute.body.safe_error_codes, ["CRM_INTAKE_APPROVAL_REQUIRED"]);
+    assert.equal(blockedExecute.body.item.automatic_merge_executed, false);
+
+    const approvedProposal = await json(baseUrl, "/api/crm/duplicate-merge-proposals", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_merge_write",
+        audit_hint_ref: "audit_hint_cmp_g6_merge_write",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-w01r-merge-proposal-approved",
+        proposal: {
+          proposal_id: "dup_merge_w01r_approved",
+          tenant_id: TENANT,
+          display_name: "W01R canonical",
+          source_party_id: sourcePartyId,
+          target_party_id: targetPartyId,
+          owner_decision: "approved",
+          owner_approval_ref: "owner-approval-w01r-001",
+          dual_control_approver_id: "user_cmp_g6_second_approver",
+        },
+      }),
+    });
+    assert.equal(approvedProposal.status, 201);
+    assert.equal(approvedProposal.body.item.proposal_state, "approved");
+    assert.equal(approvedProposal.body.item.executable, true);
+
+    const executed = await json(baseUrl, "/api/crm/duplicate-merge-proposals/dup_merge_w01r_approved/execute", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_merge_execute",
+        audit_hint_ref: "audit_hint_cmp_g6_merge_execute",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-w01r-merge-execute-approved",
+      }),
+    });
+    assert.equal(executed.status, 200);
+    assert.equal(executed.body.outcome, "executed");
+    assert.equal(executed.body.item.automatic_merge_executed, true);
+    assert.equal(executed.body.item.rollback_metadata_present, true);
+    assert.match(executed.body.rollback_metadata_ref, /^rollback:dup_merge_w01r_approved:/);
+
+    const proposals = await json(baseUrl, `/api/crm/duplicate-merge-proposals?${BASE_QUERY}`);
+    assert.equal(proposals.status, 200);
+    assert.ok(proposals.body.items.some((item) => item.proposal_id === "dup_merge_w01r_blocked"));
+    assert.ok(proposals.body.items.some((item) => item.proposal_id === "dup_merge_w01r_approved"));
+  }, { crmStorePath, crmMasterDataStorePath });
+
+  await withServer(async (baseUrl) => {
+    const accounts = await json(baseUrl, `/api/crm/accounts?${BASE_QUERY}`);
+    const contacts = await json(baseUrl, `/api/crm/contacts?${BASE_QUERY}`);
+    assert.ok(accounts.body.items.some((item) => item.account_id === accountId && item.canonical_sync_state === "synced"));
+    assert.ok(contacts.body.items.some((item) => item.contact_id === contactId && item.canonical_sync_state === "synced"));
+  }, { crmStorePath, crmMasterDataStorePath });
+});
+
+test("G6 CRM Account create is route-backed, audited, idempotent, and safe-source", async () => {
+  const crmStorePath = join(mkdtempSync(join(tmpdir(), "crm-account-api-g6-")), "crm.json");
+  await withServer(async (baseUrl) => {
+    const created = await json(baseUrl, "/api/crm/accounts", {
+      method: "POST",
+      body: JSON.stringify(accountPayload()),
+    });
+    assert.equal(created.status, 201);
+    assert.equal(created.body.outcome, "created");
+    assert.equal(created.body.item.account_id, "account_cmp_g6_api_001");
+    assert.equal(created.body.item.display_name, "API created account");
+    assert.equal(created.body.item.registration_number_included, false);
+    assert.equal(created.body.item.direct_matter_reference_included, false);
+    assert.equal("registration_number" in created.body.item, false);
+    assert.equal("matter_id" in created.body.item, false);
+    assert.equal(created.body.audit_event.action, "crm.account.created");
+    assert.equal(created.body.state_idempotent, true);
+    assert.equal(created.body.production_ready_claim, false);
+
+    const replay = await json(baseUrl, "/api/crm/accounts", {
+      method: "POST",
+      body: JSON.stringify(accountPayload()),
+    });
+    assert.equal(replay.status, 200);
+    assert.equal(replay.body.outcome, "idempotent_replay");
+    assert.equal(replay.body.idempotent_replay, true);
+
+    const blocked = await json(baseUrl, "/api/crm/accounts", {
+      method: "POST",
+      body: JSON.stringify(accountPayload({
+        idempotency_key: "api-account-create-blocked-1",
+        account: {
+          account_id: "account_cmp_g6_api_blocked",
+          tenant_id: TENANT,
+          display_name: "Blocked account",
+          matter_id: "matter_forbidden",
+        },
+      })),
+    });
+    assert.equal(blocked.status, 400);
+    assert.deepEqual(blocked.body.safe_error_codes, ["CRM_INTAKE_API_VALIDATION_ERROR"]);
+
+    const listed = await json(baseUrl, `/api/crm/accounts?${BASE_QUERY}`);
+    assert.equal(listed.status, 200);
+    assert.ok(listed.body.items.some((item) => item.account_id === "account_cmp_g6_api_001"));
+
+    const patched = await json(baseUrl, "/api/crm/accounts/account_cmp_g6_api_001", {
+      method: "PATCH",
+      body: JSON.stringify(accountPatchPayload()),
+    });
+    assert.equal(patched.status, 200);
+    assert.equal(patched.body.outcome, "updated");
+    assert.equal(patched.body.item.account_id, "account_cmp_g6_api_001");
+    assert.equal(patched.body.item.status, "review_required");
+    assert.equal(patched.body.item.registration_number_included, false);
+    assert.equal("registration_number" in patched.body.item, false);
+    assert.equal("matter_id" in patched.body.item, false);
+    assert.equal(patched.body.audit_event.action, "crm.account.patched");
+    assert.equal(patched.body.state_idempotent, true);
+
+    const patchReplay = await json(baseUrl, "/api/crm/accounts/account_cmp_g6_api_001", {
+      method: "PATCH",
+      body: JSON.stringify(accountPatchPayload()),
+    });
+    assert.equal(patchReplay.status, 200);
+    assert.equal(patchReplay.body.outcome, "idempotent_replay");
+
+    const canonicalBlocked = await json(baseUrl, "/api/crm/accounts/org_cmp_g6_account_001", {
+      method: "PATCH",
+      body: JSON.stringify(accountPatchPayload({ idempotency_key: "api-account-patch-master-blocked" })),
+    });
+    assert.equal(canonicalBlocked.status, 404);
+
+    const unsafeBlocked = await json(baseUrl, "/api/crm/accounts/account_cmp_g6_api_001", {
+      method: "PATCH",
+      body: JSON.stringify(accountPatchPayload({
+        idempotency_key: "api-account-patch-unsafe-blocked",
+        field_updates: { registration_number: "unsafe", status: "active" },
+      })),
+    });
+    assert.equal(unsafeBlocked.status, 400);
+  }, { crmStorePath });
+
+  await withServer(async (baseUrl) => {
+    const listed = await json(baseUrl, `/api/crm/accounts?${BASE_QUERY}`);
+    assert.ok(listed.body.items.some((item) => item.account_id === "account_cmp_g6_api_001"));
+  }, { crmStorePath });
+});
+
+test("G6 CRM Contact create is route-backed, duplicate-reviewed, audited, idempotent, and safe-source", async () => {
+  const crmStorePath = join(mkdtempSync(join(tmpdir(), "crm-contact-api-g6-")), "crm.json");
+  await withServer(async (baseUrl) => {
+    const created = await json(baseUrl, "/api/crm/contacts", {
+      method: "POST",
+      body: JSON.stringify(contactPayload()),
+    });
+    assert.equal(created.status, 201);
+    assert.equal(created.body.outcome, "created");
+    assert.equal(created.body.item.contact_id, "contact_cmp_g6_api_001");
+    assert.equal(created.body.item.account_id, "org_cmp_g6_account_001");
+    assert.equal(created.body.item.display_name, "API created contact");
+    assert.equal(created.body.item.email_value_included, false);
+    assert.equal(created.body.item.contact_point_value_included, false);
+    assert.equal("email" in created.body.item, false);
+    assert.equal("contact_point_value" in created.body.item, false);
+    assert.equal("matter_id" in created.body.item, false);
+    assert.equal(created.body.audit_event.action, "crm.contact.created");
+    assert.equal(created.body.state_idempotent, true);
+    assert.equal(created.body.production_ready_claim, false);
+
+    const replay = await json(baseUrl, "/api/crm/contacts", {
+      method: "POST",
+      body: JSON.stringify(contactPayload()),
+    });
+    assert.equal(replay.status, 200);
+    assert.equal(replay.body.outcome, "idempotent_replay");
+    assert.equal(replay.body.idempotent_replay, true);
+
+    const duplicate = await json(baseUrl, "/api/crm/contacts", {
+      method: "POST",
+      body: JSON.stringify(contactPayload({
+        idempotency_key: "api-contact-create-duplicate-1",
+        contact: {
+          contact_id: "contact_cmp_g6_api_duplicate",
+          tenant_id: TENANT,
+          account_id: "org_cmp_g6_account_001",
+          display_name: "Duplicate contact",
+          primary_contact_fingerprint: "api-contact-fingerprint-001",
+        },
+      })),
+    });
+    assert.equal(duplicate.status, 200);
+    assert.equal(duplicate.body.outcome, "review_required");
+    assert.equal(duplicate.body.item.automatic_merge_executed, false);
+    assert.equal(duplicate.body.item.primary_contact_uniqueness_enforced, true);
+    assert.equal(duplicate.body.item.email_value_included, false);
+    assert.equal(duplicate.body.audit_event.action, "crm.contact.duplicate_review_required");
+
+    const rawEmailBlocked = await json(baseUrl, "/api/crm/contacts", {
+      method: "POST",
+      body: JSON.stringify(contactPayload({
+        idempotency_key: "api-contact-create-raw-email-blocked-1",
+        contact: {
+          contact_id: "contact_cmp_g6_api_raw_email",
+          tenant_id: TENANT,
+          display_name: "Raw email blocked",
+          email: "raw@example.invalid",
+        },
+      })),
+    });
+    assert.equal(rawEmailBlocked.status, 400);
+    assert.deepEqual(rawEmailBlocked.body.safe_error_codes, ["CRM_INTAKE_API_VALIDATION_ERROR"]);
+
+    const matterShortcutBlocked = await json(baseUrl, "/api/crm/contacts", {
+      method: "POST",
+      body: JSON.stringify(contactPayload({
+        idempotency_key: "api-contact-create-matter-blocked-1",
+        contact: {
+          contact_id: "contact_cmp_g6_api_matter_blocked",
+          tenant_id: TENANT,
+          display_name: "Matter shortcut blocked",
+          matter_id: "matter_forbidden",
+        },
+      })),
+    });
+    assert.equal(matterShortcutBlocked.status, 400);
+
+    const listed = await json(baseUrl, `/api/crm/contacts?${BASE_QUERY}`);
+    assert.equal(listed.status, 200);
+    assert.ok(listed.body.items.some((item) => item.contact_id === "contact_cmp_g6_api_001"));
+
+    const relationships = await json(baseUrl, `/api/crm/accounts/org_cmp_g6_account_001/contacts?${BASE_QUERY}`);
+    assert.equal(relationships.status, 200);
+    assert.ok(relationships.body.items.some((item) => item.contact_id === "contact_cmp_g6_api_001"));
+
+    const patched = await json(baseUrl, "/api/crm/contacts/contact_cmp_g6_api_001", {
+      method: "PATCH",
+      body: JSON.stringify(contactPatchPayload()),
+    });
+    assert.equal(patched.status, 200);
+    assert.equal(patched.body.outcome, "updated");
+    assert.equal(patched.body.item.contact_id, "contact_cmp_g6_api_001");
+    assert.equal(patched.body.item.status, "review_required");
+    assert.equal(patched.body.item.email_value_included, false);
+    assert.equal(patched.body.item.contact_point_value_included, false);
+    assert.equal("email" in patched.body.item, false);
+    assert.equal("contact_point_value" in patched.body.item, false);
+    assert.equal(patched.body.audit_event.action, "crm.contact.patched");
+    assert.equal(patched.body.state_idempotent, true);
+
+    const patchReplay = await json(baseUrl, "/api/crm/contacts/contact_cmp_g6_api_001", {
+      method: "PATCH",
+      body: JSON.stringify(contactPatchPayload()),
+    });
+    assert.equal(patchReplay.status, 200);
+    assert.equal(patchReplay.body.outcome, "idempotent_replay");
+
+    const canonicalBlocked = await json(baseUrl, "/api/crm/contacts/person_cmp_g6_contact_001", {
+      method: "PATCH",
+      body: JSON.stringify(contactPatchPayload({ idempotency_key: "api-contact-patch-master-blocked" })),
+    });
+    assert.equal(canonicalBlocked.status, 404);
+
+    const unsafeBlocked = await json(baseUrl, "/api/crm/contacts/contact_cmp_g6_api_001", {
+      method: "PATCH",
+      body: JSON.stringify(contactPatchPayload({
+        idempotency_key: "api-contact-patch-unsafe-blocked",
+        field_updates: { email: "unsafe@example.invalid", status: "active" },
+      })),
+    });
+    assert.equal(unsafeBlocked.status, 400);
+  }, { crmStorePath });
+
+  await withServer(async (baseUrl) => {
+    const listed = await json(baseUrl, `/api/crm/contacts?${BASE_QUERY}`);
+    assert.ok(listed.body.items.some((item) => item.contact_id === "contact_cmp_g6_api_001"));
+  }, { crmStorePath });
 });
 
 test("G6 opportunity create blocks direct Matter and handoff persists Intake across restart", async () => {
@@ -107,6 +621,9 @@ test("G6 opportunity create blocks direct Matter and handoff persists Intake acr
     assert.equal(handoff.status, 201);
     assert.equal(handoff.body.item.intake_request_id, "intake_cmp_g6_api_handoff_001");
     assert.equal(handoff.body.item.creates_matter, false);
+    assert.equal(handoff.body.opportunity.stage, "intake_requested");
+    assert.equal(handoff.body.opportunity.intake_request_id, "intake_cmp_g6_api_handoff_001");
+    assert.equal(handoff.body.opportunity.direct_matter_reference_included, false);
 
     const replay = await json(baseUrl, "/api/crm/opportunities/opp_cmp_g6_synthetic_001/handoff", {
       method: "POST",

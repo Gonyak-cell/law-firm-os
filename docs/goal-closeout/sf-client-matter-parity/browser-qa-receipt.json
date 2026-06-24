@@ -1,0 +1,803 @@
+{
+  "schema_version": "law-firm-os.sf-client-matter-parity.browser-qa-receipt.v0.1",
+  "program": "SF-CLIENT-MATTER-PARITY",
+  "receipt_date": "2026-06-24",
+  "scope": {
+    "browser_driven_local_surface": true,
+    "client_matter_only": true,
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "enterprise_trust_claim": false
+  },
+  "environment": {
+    "web_origin": "http://127.0.0.1:5176",
+    "api_health": "http://127.0.0.1:4180/api/health",
+    "temp_store_dir": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-sf-browser-qa-KKVGIV",
+    "managed_processes_started": [
+      "web"
+    ]
+  },
+  "screenshots": {
+    "clientWorkspace": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-workspace.png",
+    "clientMergeReview": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-merge-review.png",
+    "clientRecordActions": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-record-actions.png",
+    "clientImport": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-import.png",
+    "clientDataCloud": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-data-cloud.png",
+    "clientReports": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-client-reports.png",
+    "matterList": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-list.png",
+    "matterRecordActions": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-record-actions.png",
+    "matterCommand": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-command.png",
+    "matterVault": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-vault.png",
+    "matterBuilderEmail": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-builder-email.png",
+    "matterImport": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-import.png",
+    "matterTimeline": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-timeline.png",
+    "matterCalendar": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-calendar.png",
+    "matterChannel": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-matter-channel.png",
+    "peopleAdmin": "docs/goal-closeout/sf-client-matter-parity/artifacts/browser-qa-people-admin.png"
+  },
+  "summary": {
+    "route_count": 13,
+    "check_count": 147,
+    "passed_count": 147,
+    "failed_count": 0
+  },
+  "checks": [
+    {
+      "label": "Sidebar defaults expanded",
+      "selector": ".app-frame",
+      "attribute": "data-sidebar-state",
+      "expected": "expanded",
+      "actual": "expanded",
+      "passed": true
+    },
+    {
+      "label": "Top product axis nav visible",
+      "selector": "[data-product-axis-nav=\"top-header\"]",
+      "passed": true
+    },
+    {
+      "label": "Client list/detail/right-panel workspace visible",
+      "selector": "[data-salesforce-client-workspace=\"list-detail-right-panel\"]",
+      "passed": true
+    },
+    {
+      "label": "Client right record panel visible",
+      "selector": "[data-client-record-workspace=\"right-panel\"]",
+      "passed": true
+    },
+    {
+      "label": "Client account route-backed section visible",
+      "selector": "[data-crm-accounts-read=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client sidebar sections visible",
+      "selector": ".sidebar-item",
+      "min": 6,
+      "count": 9,
+      "passed": true
+    },
+    {
+      "label": "Client Account canonical sync marker visible",
+      "selector": "[data-sf-b-w01r-account-canonical-sync=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W02R record actions panel visible",
+      "selector": "[data-sf-b-w02-record-actions-panel=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W02R field registry visible",
+      "selector": "[data-sf-b-w02-field-registry=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W02R field update result visible",
+      "selector": "[data-sf-b-w02-field-update-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W02R owner gate blocked result visible",
+      "selector": "[data-sf-b-w02-owner-blocked-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client Account W02R record action result visible",
+      "selector": "[data-sf-b-w02-account-record-action-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client contact route-backed section visible",
+      "selector": "[data-crm-contacts-read=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client Contact canonical sync marker visible",
+      "selector": "[data-sf-b-w01r-contact-canonical-sync=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client Contact W02R record action result visible",
+      "selector": "[data-sf-b-w02-contact-record-action-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client merge review panel visible",
+      "selector": "[data-sf-b-w01r-merge-review=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client guarded merge execute panel visible",
+      "selector": "[data-sf-b-w01r-merge-execute-guarded=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client merge execute remains approval gated",
+      "selector": "[data-sf-b-w01r-merge-execute-guarded=\"true\"] button",
+      "disabled": true,
+      "passed": true
+    },
+    {
+      "label": "Client right panel merge review marker visible",
+      "selector": "[data-sf-b-w01r-right-panel-merge-review=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W05R import wizard visible",
+      "selector": "[data-sf-b-w05-import-wizard=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W05R target selector visible",
+      "selector": "[data-sf-b-w05-target-selector=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W05R import job list visible",
+      "selector": "[data-sf-b-w05-job-list=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W05R import job created",
+      "selector": "[data-sf-b-w05-job-create-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W05R source staged safely",
+      "selector": "[data-sf-b-w05-source-stage-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W05R field mapping saved",
+      "selector": "[data-sf-b-w05-field-mapping-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W05R safe preview visible",
+      "selector": "[data-sf-b-w05-preview-safe-sample=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W05R dry-run result visible",
+      "selector": "[data-sf-b-w05-dry-run-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W05R execute owner-blocked result visible",
+      "selector": "[data-sf-b-w05-execute-owner-blocked-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W05R rollback blocked result visible",
+      "selector": "[data-sf-b-w05-rollback-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W05R safe error report visible",
+      "selector": "[data-sf-b-w05-error-report=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R data enrichment workspace visible",
+      "selector": "[data-data-cloud-enrichment=\"route-backed\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R provider admin visible",
+      "selector": "[data-enrichment-provider-admin=\"provider-blocked\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R provider list visible",
+      "selector": "[data-sf-b-w07-provider-list=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R provider register result visible",
+      "selector": "[data-sf-b-w07-provider-register-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R provider registration remains provider-blocked",
+      "selector": "[data-sf-b-w07-provider-register-result=\"true\"]",
+      "expected": "/외부 확인 대기/",
+      "passed": true
+    },
+    {
+      "label": "Client W07R consent owner-blocked result visible",
+      "selector": "[data-sf-b-w07-consent-record-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R consent remains owner-blocked",
+      "selector": "[data-sf-b-w07-consent-record-result=\"true\"]",
+      "expected": "/승인 대기/",
+      "passed": true
+    },
+    {
+      "label": "Client W07R enrichment job action visible",
+      "selector": "[data-sf-b-w07-enrichment-job-action=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R enrichment job result visible",
+      "selector": "[data-sf-b-w07-enrichment-job-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R safe enrichment preview visible",
+      "selector": "[data-sf-b-w07-enrichment-preview=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R enrichment execute action visible",
+      "selector": "[data-sf-b-w07-enrichment-execute-provider-blocked-action=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R enrichment execute provider-blocked result visible",
+      "selector": "[data-sf-b-w07-enrichment-execute-provider-blocked-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R enrichment execute remains provider-blocked",
+      "selector": "[data-sf-b-w07-enrichment-execute-provider-blocked-result=\"true\"]",
+      "expected": "/외부 확인 대기/",
+      "passed": true
+    },
+    {
+      "label": "Client W07R enrichment result list marker visible",
+      "selector": "[data-sf-b-w07-results-list=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R identity resolution visible",
+      "selector": "[data-identity-resolution=\"route-backed\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R identity resolution result visible",
+      "selector": "[data-sf-b-w07-identity-resolution-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R identity resolution remains owner-blocked",
+      "selector": "[data-sf-b-w07-identity-resolution-result=\"true\"]",
+      "expected": "/승인 대기/",
+      "passed": true
+    },
+    {
+      "label": "Client W07R unified profile visible",
+      "selector": "[data-unified-profile=\"route-backed\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R unified profile marker visible",
+      "selector": "[data-sf-b-w07-unified-profile=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R segment activation visible",
+      "selector": "[data-segment-activation=\"provider-blocked\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R segment activation provider-blocked result visible",
+      "selector": "[data-sf-b-w07-segment-activation-provider-blocked-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W07R segment activation remains provider-blocked",
+      "selector": "[data-sf-b-w07-segment-activation-provider-blocked-result=\"true\"]",
+      "expected": "/외부 확인 대기/",
+      "passed": true
+    },
+    {
+      "label": "Client W07R data cloud audit visible",
+      "selector": "[data-sf-b-w07-audit=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W08R report builder workspace visible",
+      "selector": "[data-report-builder=\"route-backed\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W08R saved report list visible",
+      "selector": "[data-sf-b-w08-report-list=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W08R query builder visible",
+      "selector": "[data-report-query-builder=\"route-backed\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W08R report create result visible",
+      "selector": "[data-sf-b-w08-report-create-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W08R report patch result visible",
+      "selector": "[data-sf-b-w08-report-patch-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W08R client profitability visible",
+      "selector": "[data-client-profitability=\"route-backed\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W08R client profitability refresh result visible",
+      "selector": "[data-sf-b-w08-client-profitability-refresh-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W08R report run result visible",
+      "selector": "[data-sf-b-w08-report-run-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W08R report chart summary visible",
+      "selector": "[data-sf-b-w08-report-chart=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W08R bounded report result visible",
+      "selector": "[data-sf-b-w08-report-result-table=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W08R report share owner gate visible",
+      "selector": "[data-report-share-action=\"owner-blocked\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W08R report share owner-blocked result visible",
+      "selector": "[data-sf-b-w08-report-share-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client W08R report share remains owner-blocked",
+      "selector": "[data-sf-b-w08-report-share-result=\"true\"]",
+      "expected": "/승인 대기/",
+      "passed": true
+    },
+    {
+      "label": "Client W08R report audit visible",
+      "selector": "[data-sf-b-w08-report-audit=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Client right panel W08R report marker visible",
+      "selector": "[data-sf-b-w08-right-panel-report-summary=\"route-backed\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter list/detail/right-panel workspace visible",
+      "selector": "[data-salesforce-matter-workspace=\"list-detail-right-panel\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter selected record list visible",
+      "selector": "[data-matter-selected-record-list=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter right record panel visible",
+      "selector": "[data-matter-record-workspace=\"right-panel\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W02R record actions panel visible",
+      "selector": "[data-sf-b-w02-matter-record-actions=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W02R field update result visible",
+      "selector": "[data-sf-b-w02-matter-record-action-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W02R owner gate blocked result visible",
+      "selector": "[data-sf-b-w02-matter-owner-blocked-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W02R record action audit feed visible",
+      "selector": "[data-sf-b-w02-matter-action-audit-feed=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter sidebar sections visible",
+      "selector": ".sidebar-item",
+      "min": 8,
+      "count": 11,
+      "passed": true
+    },
+    {
+      "label": "Matter list/detail/right-panel workspace visible",
+      "selector": "[data-salesforce-matter-workspace=\"list-detail-right-panel\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter command section visible",
+      "selector": "#matter-command",
+      "passed": true
+    },
+    {
+      "label": "Matter command right record panel visible",
+      "selector": "[data-matter-record-workspace=\"right-panel\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter sidebar sections visible",
+      "selector": ".sidebar-item",
+      "min": 8,
+      "count": 11,
+      "passed": true
+    },
+    {
+      "label": "Matter Vault embedded panel visible",
+      "selector": "[data-mv-matter-vault-panel=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter Vault record workspace visible",
+      "selector": "[data-matter-vault-record-workspace=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter document facade action visible",
+      "selector": "[data-matter-document-facade-action=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W04R document builder visible",
+      "selector": "[data-sf-b-w04-document-builder=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W04R template picker visible",
+      "selector": "[data-sf-b-w04-template-picker=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W04R email composer visible",
+      "selector": "[data-sf-b-w04-email-composer=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W04R builder draft result visible",
+      "selector": "[data-sf-b-w04-builder-draft-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W04R builder preview visible",
+      "selector": "[data-sf-b-w04-builder-preview=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W04R builder approval result visible",
+      "selector": "[data-sf-b-w04-builder-approval-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W04R builder publish owner-blocked result visible",
+      "selector": "[data-sf-b-w04-builder-publish-blocked-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W04R email draft result visible",
+      "selector": "[data-sf-b-w04-email-draft-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W04R email provider-blocked result visible",
+      "selector": "[data-sf-b-w04-email-send-provider-blocked=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W05R import wizard visible",
+      "selector": "[data-sf-b-w05-import-wizard=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W05R target selector visible",
+      "selector": "[data-sf-b-w05-target-selector=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W05R import job list visible",
+      "selector": "[data-sf-b-w05-job-list=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W05R import job created",
+      "selector": "[data-sf-b-w05-job-create-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W05R source staged safely",
+      "selector": "[data-sf-b-w05-source-stage-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W05R field mapping saved",
+      "selector": "[data-sf-b-w05-field-mapping-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W05R safe preview visible",
+      "selector": "[data-sf-b-w05-preview-safe-sample=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W05R dry-run result visible",
+      "selector": "[data-sf-b-w05-dry-run-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W05R execute owner-blocked result visible",
+      "selector": "[data-sf-b-w05-execute-owner-blocked-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W05R rollback blocked result visible",
+      "selector": "[data-sf-b-w05-rollback-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W05R safe error report visible",
+      "selector": "[data-sf-b-w05-error-report=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter activity section visible",
+      "selector": "#matter-timeline",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R activity workspace visible",
+      "selector": "[data-sf-b-w03-activity-workspace=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R activity composer visible",
+      "selector": "[data-sf-b-w03-activity-composer=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R activity create result visible",
+      "selector": "[data-sf-b-w03-activity-create-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R activity patch result visible",
+      "selector": "[data-sf-b-w03-activity-patch-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter activity timeline visible",
+      "selector": "[data-matter-activity-timeline=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter activity right record panel visible",
+      "selector": "[data-matter-record-workspace=\"right-panel\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R deadline right-panel marker visible",
+      "selector": "[data-sf-b-w03-right-panel-deadline-highlight=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R channel right-panel marker visible",
+      "selector": "[data-sf-b-w03-right-panel-channel-tab=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter calendar section visible",
+      "selector": "#matter-calendar",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R calendar workspace visible",
+      "selector": "[data-sf-b-w03-calendar-workspace=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R calendar create action visible",
+      "selector": "[data-sf-b-w03-calendar-create-action=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R calendar create result visible",
+      "selector": "[data-sf-b-w03-calendar-create-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R deadline board visible",
+      "selector": "[data-sf-b-w03-deadline-board=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R deadline approval result visible",
+      "selector": "[data-sf-b-w03-deadline-approval-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R deadline confirm result visible",
+      "selector": "[data-sf-b-w03-deadline-confirm-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter channel section visible",
+      "selector": "#matter-channel",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R channel workspace visible",
+      "selector": "[data-sf-b-w03-channel-workspace=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R channel composer visible",
+      "selector": "[data-sf-b-w03-channel-composer=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R channel message result visible",
+      "selector": "[data-sf-b-w03-channel-message-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R channel provider blocked result visible",
+      "selector": "[data-sf-b-w03-provider-blocked-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "Matter W03R channel provider state right-panel marker visible",
+      "selector": "[data-sf-b-w03-channel-provider-state=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R admin setup workspace visible",
+      "selector": "[data-sf-b-w06-admin-setup=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R permission set panel visible",
+      "selector": "[data-permission-set-admin=\"route-backed\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R permission set list visible",
+      "selector": "[data-sf-b-w06-permission-set-list=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R permission set create owner-blocked result visible",
+      "selector": "[data-sf-b-w06-permission-set-create-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R permission set create remains owner-blocked",
+      "selector": "[data-sf-b-w06-permission-set-create-result=\"true\"]",
+      "expected": "/승인 대기/",
+      "passed": true
+    },
+    {
+      "label": "People W06R permission set patch owner-blocked result visible",
+      "selector": "[data-sf-b-w06-permission-set-patch-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R permission set patch remains owner-blocked",
+      "selector": "[data-sf-b-w06-permission-set-patch-result=\"true\"]",
+      "expected": "/승인 대기/",
+      "passed": true
+    },
+    {
+      "label": "People W06R permission assignment panel visible",
+      "selector": "[data-permission-assignment-admin=\"route-backed\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R permission assignment list visible",
+      "selector": "[data-sf-b-w06-assignment-list=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R assignment owner-blocked result visible",
+      "selector": "[data-sf-b-w06-assignment-owner-blocked-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R assignment remains owner-blocked",
+      "selector": "[data-sf-b-w06-assignment-owner-blocked-result=\"true\"]",
+      "expected": "/승인 대기/",
+      "passed": true
+    },
+    {
+      "label": "People W06R revoke owner-blocked result visible",
+      "selector": "[data-sf-b-w06-revoke-owner-blocked-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R revoke remains owner-blocked",
+      "selector": "[data-sf-b-w06-revoke-owner-blocked-result=\"true\"]",
+      "expected": "/승인 대기/",
+      "passed": true
+    },
+    {
+      "label": "People W06R Object Manager visible",
+      "selector": "[data-object-manager-admin=\"route-backed\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R Object Manager marker visible",
+      "selector": "[data-sf-b-w06-object-manager=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R field policy owner-blocked result visible",
+      "selector": "[data-sf-b-w06-field-policy-owner-blocked-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R field policy remains owner-blocked",
+      "selector": "[data-sf-b-w06-field-policy-owner-blocked-result=\"true\"]",
+      "expected": "/승인 대기/",
+      "passed": true
+    },
+    {
+      "label": "People W06R connected apps visible",
+      "selector": "[data-connected-apps-admin=\"provider-blocked\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R connected app list visible",
+      "selector": "[data-sf-b-w06-connected-app-list=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R connected app provider-blocked result visible",
+      "selector": "[data-sf-b-w06-connected-app-provider-blocked-result=\"true\"]",
+      "passed": true
+    },
+    {
+      "label": "People W06R connected app remains provider-blocked",
+      "selector": "[data-sf-b-w06-connected-app-provider-blocked-result=\"true\"]",
+      "expected": "/외부 확인 대기/",
+      "passed": true
+    },
+    {
+      "label": "People W06R admin audit visible",
+      "selector": "[data-sf-b-w06-admin-audit=\"true\"]",
+      "passed": true
+    }
+  ]
+}

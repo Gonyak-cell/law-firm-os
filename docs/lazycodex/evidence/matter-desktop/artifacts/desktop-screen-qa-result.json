@@ -1,14 +1,14 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-06-22T07:45:24.203Z",
+  "generated_at": "2026-06-24T01:04:30.314Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
-  "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
-  "launch_target": "packaged_mac_app",
+  "qa_mode": "source_electron_app_screen_with_aws_temporary_runtime",
+  "launch_target": "source_main_entrypoint",
   "app_name": "matter",
   "runtime": {
-    "label": "AWS temporary runtime connected",
-    "account_count_label": "9 registered",
+    "label": "작업공간 연결됨",
+    "account_count_label": "등록된 계정 9개",
     "base_url_material_printed": false,
     "operator_token_material_printed": false,
     "password_material_printed": false,
@@ -24,20 +24,13 @@
     "count": 9,
     "jwsuh_at_amic_kr": {
       "email": "jwsuh@amic.kr",
-      "highest_privilege": "system super admin",
-      "roles": [
-        "system_super_admin",
-        "tenant_owner",
-        "managing_partner",
-        "security_admin",
-        "matter_vault_admin",
-        "matter_vault_user"
-      ],
+      "highest_privilege": "최고 관리자",
+      "roles": [],
       "reset_email_request": "passed",
       "password_reset_confirm": "passed",
       "password_login": "passed",
       "product_handoff": {
-        "url": "file:///Users/jws/Documents/Codex/law-firm-os-release-main-c52/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
+        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
         "title": "Client Matter People Vault",
         "capability_cards": 4,
         "capability_labels": [
@@ -51,11 +44,11 @@
         "owner_approval_false_visible": true,
         "no_dummy_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 2046,
+        "body_character_count": 434,
         "logo_flow": {
           "observed": true,
           "image_alt": "matter",
-          "image_width": 346,
+          "image_width": 100,
           "overlay_background": "rgb(247, 249, 252)",
           "overlay_z_index": "3000",
           "by_amic_visible_in_logo": false
@@ -78,9 +71,9 @@
         },
         "sidebar": {
           "collapsed": {
-            "state": "collapsed",
-            "rail_display": "grid",
-            "sidebar_display": "none",
+            "state": "expanded",
+            "rail_display": "none",
+            "sidebar_display": "block",
             "product_axis_count_in_rail": 0,
             "rail_word_visible": false
           },
@@ -110,18 +103,13 @@
     },
     "ytkim_at_amic_kr": {
       "email": "ytkim@amic.kr",
-      "highest_privilege": "standard account",
-      "roles": [
-        "tenant_owner",
-        "managing_partner",
-        "matter_vault_admin",
-        "matter_vault_user"
-      ],
+      "highest_privilege": "일반 계정",
+      "roles": [],
       "reset_email_request": "passed",
       "password_reset_confirm": "passed",
       "password_login": "passed",
       "product_handoff": {
-        "url": "file:///Users/jws/Documents/Codex/law-firm-os-release-main-c52/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
+        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
         "title": "Client Matter People Vault",
         "capability_cards": 4,
         "capability_labels": [
@@ -135,11 +123,11 @@
         "owner_approval_false_visible": true,
         "no_dummy_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 2046,
+        "body_character_count": 434,
         "logo_flow": {
           "observed": true,
           "image_alt": "matter",
-          "image_width": 346,
+          "image_width": 99,
           "overlay_background": "rgb(247, 249, 252)",
           "overlay_z_index": "3000",
           "by_amic_visible_in_logo": false
@@ -162,9 +150,9 @@
         },
         "sidebar": {
           "collapsed": {
-            "state": "collapsed",
-            "rail_display": "grid",
-            "sidebar_display": "none",
+            "state": "expanded",
+            "rail_display": "none",
+            "sidebar_display": "block",
             "product_axis_count_in_rail": 0,
             "rail_word_visible": false
           },
@@ -209,7 +197,7 @@
     "token_or_password_visible_in_final_dom": false,
     "reset_token_input_cleared_before_screenshot": true,
     "generated_password_visible_in_final_dom": false,
-    "final_dom_character_count": 2046
+    "final_dom_character_count": 434
   },
   "release_claims": {
     "production_go_live": false,

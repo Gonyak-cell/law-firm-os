@@ -37,6 +37,23 @@ assert.equal(manifest.owner_approval_claim, false);
 assert.equal(manifest.app_store_distribution_claim, false);
 assert.equal(manifest.microsoft_store_distribution_claim, false);
 assert.equal(manifest.external_pilot_distribution_claim, false);
+assert.deepEqual(
+  manifest.macos_signing,
+  {
+    developer_id_signing: "applied",
+    requested_signing_mode: "developer-id",
+    resolved_signing_identity: manifest.macos_signing?.resolved_signing_identity,
+    codesign_verify: "pass",
+    strict_codesign_verify: "pass",
+    gatekeeper_assess: "pass",
+    public_distribution_approval: "not claimed",
+    notarization_requested: "true",
+    notarization_credential_source: "present",
+    notarization_state: "submitted_and_accepted_by_notarytool",
+  },
+  "manifest must record current Developer ID signed and notarized release boundary",
+);
+assert.match(manifest.macos_signing.resolved_signing_identity, /^Developer ID Application:/);
 assert.equal(manifest.artifacts.length, 7);
 
 for (const artifact of manifest.artifacts) {
@@ -54,6 +71,10 @@ const requiredReceiptPhrases = [
   "macOS app bundle | `apps/desktop/dist/mac/matter.app`",
   "macOS ZIP archive",
   "macOS DMG image",
+  "Developer ID signing | applied",
+  "notarization requested | true",
+  "notarization credential source | present",
+  "notarization state | submitted_and_accepted_by_notarytool",
   "Windows internal manifest",
   "Public release: false",
   "Production go-live: false",

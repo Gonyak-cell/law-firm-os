@@ -3,15 +3,17 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { MATTER_VAULT_REGISTERED_TENANT_ID } from "../src/matter-vault-account-registry.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
 
-const TENANT = "tenant_rp07_synthetic";
+const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
+const ACTOR_ID = "user_amic_jwsuh";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_rp07_read&audit_hint_ref=audit_hint_rp07_read`;
 
 function permissionContext(effect = "allow") {
   return JSON.stringify({
-    principal: { user_id: "user_rp07_dms", tenant_id: TENANT, role_ids: ["dms_reader"] },
+    principal: { user_id: ACTOR_ID, tenant_id: TENANT, role_ids: ["matter_vault_admin", "matter_vault_user", "dms_reader"] },
     rules: [{ id: `rule_vault_${effect}`, effect, action: "*" }],
     object_acl: [],
   });
@@ -42,7 +44,7 @@ function uploadPayload(overrides = {}) {
     tenant_id: TENANT,
     permission_ref: "perm_ref_rp07_write",
     audit_hint_ref: "audit_hint_rp07_write",
-    actor_id: "user_rp07_dms",
+    actor_id: ACTOR_ID,
     idempotency_key: "vault-api-upload-001",
     content_text: "Vault API upload",
     document: {
@@ -78,6 +80,9 @@ test("G5 Vault document list is permission gated and never leaks raw storage fie
     assert.equal(status, 200);
     assert.equal(body.outcome, "passed");
     assert.equal(body.items.length, 1);
+    assert.equal(body.items[0].owner_user_id, ACTOR_ID);
+    assert.equal(body.items[0].registered_account.email, "jwsuh@amic.kr");
+    assert.equal(body.items[0].account_linkage.status, "linked");
     assert.equal(body.items[0].storage_pointer_ref_included, false);
     assert.equal(body.items[0].document_bytes_included, false);
     assert.equal(body.page_info.omitted_document_count, null);
@@ -101,6 +106,9 @@ test("G5 Vault upload persists metadata, replays idempotently, and survives rest
     assert.equal(created.status, 201);
     assert.equal(created.body.outcome, "created");
     assert.equal(created.body.item.document_id, "doc_api_upload_001");
+    assert.equal(created.body.item.owner_user_id, ACTOR_ID);
+    assert.equal(created.body.item.registered_account.email, "jwsuh@amic.kr");
+    assert.equal(created.body.item.account_linkage.status, "linked");
     assert.equal(created.body.file_object.storage_pointer_ref_included, false);
     assert.equal(created.body.audit_event.action, "dms.document.upload");
 

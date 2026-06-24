@@ -29,7 +29,7 @@ If a backend URL is needed before a custom domain exists, use an AWS-generated H
 | App naming | `productName: matter` |
 | Internal app ID | `com.amic.matter.desktop.internal` |
 | Public publish channel | disabled with `publish: null` |
-| macOS internal build script | `npm --workspace apps/desktop run build:mac` |
+| macOS Developer ID notarized internal build script | `MATTER_NOTARY_KEYCHAIN_PROFILE=matter-notary MATTER_DESKTOP_SIGN=developer-id MATTER_DESKTOP_NOTARIZE=1 npm --workspace apps/desktop run build:mac` |
 | Windows internal build manifest script | `npm --workspace apps/desktop run build:win` |
 | AWS temporary runtime smoke | `npm run matter-desktop:aws-runtime:smoke` |
 | File bridge security | `npm --workspace apps/desktop run test:file-bridge` |
@@ -47,13 +47,14 @@ Temporary internal release can be called started when:
 | Desktop tests | `npm --workspace apps/desktop run test:smoke` passes |
 | File bridge tests | `npm --workspace apps/desktop run test:file-bridge` passes |
 | AWS runtime password-login smoke | `npm run matter-desktop:aws-runtime:smoke` passes with password reset confirmed for `jwsuh@amic.kr`, password login allowed, and a general account denied for admin smoke |
-| macOS internal artifact | `npm --workspace apps/desktop run build:mac` passes |
+| macOS Developer ID notarized internal artifact | `MATTER_NOTARY_KEYCHAIN_PROFILE=matter-notary MATTER_DESKTOP_SIGN=developer-id MATTER_DESKTOP_NOTARIZE=1 npm --workspace apps/desktop run build:mac` passes |
 | Windows internal manifest | `npm --workspace apps/desktop run build:win` passes |
 | No public release claim | `node scripts/validate-matter-desktop-no-public-release-claim.mjs` passes |
 | Temporary release plan | `node scripts/validate-matter-desktop-temporary-release-plan.mjs` passes |
 | Temporary release receipt | `docs/desktop/matter-desktop-temporary-release-receipt.md` records current command results and non-claims |
 | Release bundle | `node scripts/release-matter-desktop-temporary.mjs` creates `apps/desktop/dist/release/matter-desktop-internal-0.1.0/release-manifest.json` |
 | Release bundle validation | `node scripts/validate-matter-desktop-temporary-release-bundle.mjs` passes |
+| Release boundary validation | `node scripts/validate-matter-desktop-release-boundary.mjs` passes |
 
 ## Non-Claims
 
