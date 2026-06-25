@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx8.post-closeout-remediation-status.v1",
-  "generated_at": "2026-06-25T15:57:36.772Z",
+  "generated_at": "2026-06-25T16:05:58.570Z",
   "status": "POST_CLOSEOUT_REMEDIATION_RECORDED",
   "resolved_rows": [
     {
@@ -139,6 +139,37 @@
         "review_write_outcome": "200/review_required",
         "production_ready_claim": false
       }
+    },
+    {
+      "id": "LCX8-ACTION-0061",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "matter",
+      "section": "matter-right-panel-actions",
+      "label": "필드 작업",
+      "evidence": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0061-matter-record-field-update-proof.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0061-matter-record-field-update-proof.md",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0061-matter-record-field-update-proof.png"
+      ],
+      "proof_summary": {
+        "write_http_status": 200,
+        "write_outcome": "updated",
+        "matter_id": "matter_rp05_synthetic_opening",
+        "before_risk_level": "standard",
+        "after_risk_level": "elevated",
+        "changed_fields": [
+          "risk_level"
+        ],
+        "state_idempotent": true,
+        "read_back_found": true,
+        "audit_event_action": "record_action.field_updated",
+        "audit_field_update_events": 1,
+        "denied_write_outcome": "403/denied",
+        "review_write_outcome": "200/review_required",
+        "invalid_field_outcome": "400/blocked",
+        "production_ready_claim": false
+      }
     }
   ],
   "status_counts_before": {
@@ -154,11 +185,11 @@
   "status_counts_after": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 12,
+    "pass": 13,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 120,
+    "blocked": 119,
     "fail": 42
   },
   "commands": [
@@ -227,6 +258,15 @@
       "command": "Playwright LCX8-ACTION-0055 Matter bulk status UI/API/read-back/audit/fail-closed proof",
       "result": "PASS 200/updated",
       "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0055-matter-bulk-status-proof.json"
+    },
+    {
+      "command": "Playwright LCX8-ACTION-0061 Matter record field-update UI/API/read-back/audit/fail-closed proof",
+      "result": "PASS 200/updated",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0061-matter-record-field-update-proof.json"
+    },
+    {
+      "command": "JSON parse and LCX8 ledger count invariant",
+      "result": "PASS 324 rows; PASS 13; BLOCKED 119; UNKNOWN 0; LCX8-ACTION-0061 PASS"
     }
   ],
   "non_claims": {
@@ -239,7 +279,9 @@
     "matter_list_view_write_status_promoted_to_pass": true,
     "matter_list_view_write_production_ready_claim": false,
     "matter_bulk_status_promoted_to_pass": true,
-    "matter_bulk_status_production_ready_claim": false
+    "matter_bulk_status_production_ready_claim": false,
+    "matter_record_field_update_promoted_to_pass": true,
+    "matter_record_field_update_production_ready_claim": false
   },
-  "latest_verification_summary": "Post-closeout LCX8-ACTION-0055 verification: node --test apps/api/test/cmp-r4-g4-matter.test.js PASS 11/11; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0061 verification: node --test apps/api/test/sf-b-w02-record-actions.test.js PASS 4/4; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
 }

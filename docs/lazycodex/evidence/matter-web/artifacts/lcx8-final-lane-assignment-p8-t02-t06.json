@@ -420,7 +420,38 @@
       "tuw": "P8-T03",
       "source_file": "apps/web/src/components/MattersSurface.jsx; apps/web/src/data/apiClient.js",
       "handler": "handleRecordActionFieldUpdate -> updateRecordActionField({ objectName: \"matter\", recordId: activeMatterId })",
-      "api_route": "POST /api/record-actions/matter/:record_id/field-update"
+      "api_route": "POST /api/record-actions/matter/:record_id/field-update",
+      "post_closeout_resolution": {
+        "status_before": "BLOCKED",
+        "status_after": "PASS",
+        "resolved_at": "2026-06-25T16:05:58.570Z",
+        "evidence_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0061-matter-record-field-update-proof.json",
+        "status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-record-field-update-status-2026-06-26.json",
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0061-matter-record-field-update-proof.png",
+        "proof_summary": {
+          "write_http_status": 200,
+          "write_outcome": "updated",
+          "matter_id": "matter_rp05_synthetic_opening",
+          "before_risk_level": "standard",
+          "after_risk_level": "elevated",
+          "changed_fields": [
+            "risk_level"
+          ],
+          "state_idempotent": true,
+          "read_back_found": true,
+          "audit_event_action": "record_action.field_updated",
+          "audit_field_update_events": 1,
+          "denied_write_outcome": "403/denied",
+          "review_write_outcome": "200/review_required",
+          "invalid_field_outcome": "400/blocked",
+          "production_ready_claim": false
+        },
+        "non_claims": [
+          "local synthetic runtime proof only",
+          "no production readiness or go-live approval claimed",
+          "no external receipt claimed"
+        ]
+      }
     },
     {
       "id": "LCX8-ACTION-0062",
@@ -3025,5 +3056,16 @@
     "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-bulk-status-2026-06-26.json",
     "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0055-matter-bulk-status-proof.json",
     "note": "Historical P8 ranking/assignment remains a closeout snapshot; current product ledger marks LCX8-ACTION-0055 PASS after UI bulk write/read-back/audit/fail-closed proof."
+  },
+  "post_closeout_resolution_lcx8_action_0061": {
+    "resolved_rows": [
+      "LCX8-ACTION-0061"
+    ],
+    "status_before": "BLOCKED",
+    "status_after": "PASS",
+    "resolved_at": "2026-06-25T16:05:58.570Z",
+    "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-record-field-update-status-2026-06-26.json",
+    "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0061-matter-record-field-update-proof.json",
+    "note": "Historical P8 ranking/assignment remains a closeout snapshot; current product ledger marks LCX8-ACTION-0061 PASS after Matter record field-update write/read-back/audit/fail-closed proof."
   }
 }

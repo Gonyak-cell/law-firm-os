@@ -25,7 +25,7 @@
     {
       "id": "P0-T04",
       "command": "npm --workspace apps/web run test:ui",
-      "result": "PASS",
+      "result": "PASS 17/17",
       "summary": "17 tests, 17 pass, 0 fail."
     },
     {
@@ -1144,7 +1144,7 @@
     {
       "id": "P7-T05",
       "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
-      "result": "PASS",
+      "result": "PASS no auto-detectable AI slop signals",
       "summary": "sloplint --changed reported no auto-detectable AI slop signals; status changes 0.",
       "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-ai-slop-lint-p7-t05.json"
     },
@@ -1193,7 +1193,7 @@
     {
       "id": "P9-T00",
       "command": "npm --workspace apps/web run test:ui",
-      "result": "PASS",
+      "result": "PASS 17/17",
       "summary": "node --test test/*.test.mjs: 17 tests, 17 pass, 0 fail.",
       "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-web-ui-tests-p9-t00.json"
     },
@@ -1287,6 +1287,13 @@
       "result": "PASS_BLOCKED_TO_PASS",
       "summary": "Resolved LCX8-ACTION-0055 by proving 선택 완료 updates one selected Matter to closed/completed, detail read-back returns it, aggregate audit matter.bulk.status_transition:tenant_rp05_synthetic:ui_bulk_status_closed_1782403056104 and per-item audit matter.status.bulk_transitioned:tenant_rp05_synthetic:matter_lcx8_0055_owner_1782402998336:ui_bulk_status_closed_1782403056104 are present, and denied/review writes fail closed. Focused Matter API, web UI tests, build, live verifier, flow verifier, sloplint, and ledger count invariant passed; git diff --check PASS.",
       "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-bulk-status-2026-06-26.json"
+    },
+    {
+      "id": "POST-CLOSEOUT-LCX8-ACTION-0061",
+      "command": "Playwright Matter record field-update UI write/read-back/audit/fail-closed proof for LCX8-ACTION-0061",
+      "result": "PASS_BLOCKED_TO_PASS",
+      "summary": "Resolved LCX8-ACTION-0061 by proving 필드 작업 updates Matter risk_level to elevated, read-back returns the persisted value, redacted record_action.field_updated audit is present, and denied/review/invalid-field writes fail closed. Final focused API/UI/build/live/flow/sloplint validation pending rerun.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-record-field-update-status-2026-06-26.json"
     }
   ],
   "baseline_blockers": [
@@ -1415,11 +1422,11 @@
   "status_counts": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 12,
+    "pass": 13,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 120,
+    "blocked": 119,
     "fail": 42
   },
   "post_closeout_remediation": {
@@ -1428,19 +1435,20 @@
       "LCX8-ACTION-0272",
       "LCX8-ACTION-0273",
       "LCX8-ACTION-0054",
-      "LCX8-ACTION-0055"
+      "LCX8-ACTION-0055",
+      "LCX8-ACTION-0061"
     ],
     "status_counts_after": {
       "inventory_rows": 324,
       "unknown": 0,
-      "pass": 12,
+      "pass": 13,
       "guarded": 20,
       "ui_only": 128,
       "descriptor_only": 2,
-      "blocked": 120,
+      "blocked": 119,
       "fail": 42
     },
-    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-bulk-status-2026-06-26.json",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-record-field-update-status-2026-06-26.json",
     "artifacts": [
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
@@ -1454,9 +1462,13 @@
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-bulk-status-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0055-matter-bulk-status-proof.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0055-matter-bulk-status-proof.md",
-      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0055-matter-bulk-status-proof.png"
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0055-matter-bulk-status-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-record-field-update-status-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0061-matter-record-field-update-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0061-matter-record-field-update-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0061-matter-record-field-update-proof.png"
     ],
-    "latest_note": "LCX8-ACTION-0055 is promoted from BLOCKED to PASS by Matter bulk status UI write, detail read-back, aggregate/per-item audit, reload, and denied/review fail-closed proof. LCX8-ACTION-0272/0273 remain GUARDED.",
-    "latest_verification_summary": "Post-closeout LCX8-ACTION-0055 verification: node --test apps/api/test/cmp-r4-g4-matter.test.js PASS 11/11; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+    "latest_note": "LCX8-ACTION-0061 is promoted from BLOCKED to PASS by Matter record field-update UI write, read-back, redacted audit event, reload visibility, and denied/review/invalid-field fail-closed proof. LCX8-ACTION-0272/0273 remain GUARDED.",
+    "latest_verification_summary": "Post-closeout LCX8-ACTION-0061 verification: node --test apps/api/test/sf-b-w02-record-actions.test.js PASS 4/4; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
   }
 }
