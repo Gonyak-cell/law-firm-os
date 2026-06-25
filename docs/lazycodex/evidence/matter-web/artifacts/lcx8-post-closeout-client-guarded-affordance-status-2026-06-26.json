@@ -1,15 +1,13 @@
 {
   "schema_version": "matter.lcx8.post-closeout-client-guarded-affordance-status.v1",
-  "generated_at": "2026-06-25T15:29:35.840801Z",
+  "generated_at": "2026-06-25T15:37:28.085930Z",
   "status": "POST_CLOSEOUT_CLIENT_GUARDED_AFFORDANCE_REMEDIATION_RECORDED",
   "action_ids": [
     "LCX8-ACTION-0272",
     "LCX8-ACTION-0273"
   ],
   "finding_resolved": "P7-AFF-001",
-  "remaining_findings": [
-    "P7-COPY-002"
-  ],
+  "remaining_findings": [],
   "status_before": {
     "LCX8-ACTION-0272": "GUARDED",
     "LCX8-ACTION-0273": "GUARDED"
@@ -93,7 +91,12 @@
     "status_promoted_to_pass": false,
     "go_live_approved": false,
     "production_ready": false,
-    "copy_issue_resolved": false,
+    "copy_issue_resolved": true,
     "historical_p7_p8_artifacts_are_closeout_snapshots": true
+  },
+  "follow_up_resolution": {
+    "finding_resolved": "P7-COPY-002",
+    "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json",
+    "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json"
   }
 }

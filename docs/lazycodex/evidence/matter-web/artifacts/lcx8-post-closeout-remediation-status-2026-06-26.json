@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx8.post-closeout-remediation-status.v1",
-  "generated_at": "2026-06-25T15:29:35.840801Z",
+  "generated_at": "2026-06-25T15:37:28.085930Z",
   "status": "POST_CLOSEOUT_REMEDIATION_RECORDED",
   "resolved_rows": [
     {
@@ -20,13 +20,13 @@
       "status_after": "GUARDED",
       "surface": "client-guarded-state",
       "label": "Client list denied state",
-      "finding_resolved": "P7-AFF-001",
-      "remaining_findings": [
-        "P7-COPY-002"
-      ],
+      "finding_resolved": "P7-AFF-001,P7-COPY-002",
+      "remaining_findings": [],
       "evidence": [
         "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
-        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json"
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json"
       ],
       "qa_summary": {
         "record_action_panel_count": 0,
@@ -34,7 +34,12 @@
         "record_action_fetch_count": 0,
         "protected_token_hits": [],
         "api_5xx_count": 0
-      }
+      },
+      "findings_resolved": [
+        "P7-AFF-001",
+        "P7-COPY-002"
+      ],
+      "copy_summary": "접근 권한이 없습니다 권한이 있는 의뢰인만 표시합니다."
     },
     {
       "id": "LCX8-ACTION-0273",
@@ -42,13 +47,13 @@
       "status_after": "GUARDED",
       "surface": "client-guarded-state",
       "label": "Client list review-required state",
-      "finding_resolved": "P7-AFF-001",
-      "remaining_findings": [
-        "P7-COPY-002"
-      ],
+      "finding_resolved": "P7-AFF-001,P7-COPY-002",
+      "remaining_findings": [],
       "evidence": [
         "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
-        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json"
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json"
       ],
       "qa_summary": {
         "record_action_panel_count": 0,
@@ -56,7 +61,12 @@
         "record_action_fetch_count": 0,
         "protected_token_hits": [],
         "api_5xx_count": 0
-      }
+      },
+      "findings_resolved": [
+        "P7-AFF-001",
+        "P7-COPY-002"
+      ],
+      "copy_summary": "검토가 필요합니다 검토가 끝나면 의뢰인 정보를 확인할 수 있습니다."
     }
   ],
   "status_counts_before": {
@@ -119,6 +129,10 @@
     {
       "command": "npm run ui:flows:verify",
       "result": "PASS 9/9"
+    },
+    {
+      "command": "Playwright Client denied/review guarded copy remediation QA",
+      "result": "PASS forbidden_copy_hits=0 enabled_mutation_button_count=0 record_action_fetch_count=0"
     }
   ],
   "non_claims": {
@@ -126,6 +140,7 @@
     "production_ready": false,
     "historical_p8_artifacts_are_closeout_snapshots": true,
     "client_guarded_affordance_status_promoted_to_pass": false,
-    "client_guarded_copy_issue_resolved": false
+    "client_guarded_copy_issue_resolved": true,
+    "client_guarded_rows_promoted_to_pass": false
   }
 }

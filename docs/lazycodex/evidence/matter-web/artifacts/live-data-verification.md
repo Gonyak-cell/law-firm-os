@@ -1,6 +1,6 @@
 # LCX-WEB Live Data Verification
 
-Generated at: 2026-06-25T15:31:36.228Z
+Generated at: 2026-06-25T15:36:09.392Z
 
 Overall result: PASS
 
@@ -13,8 +13,8 @@ Any HTTP 5xx response from `/api` or `/master-data` fails its check.
 | --- | --- | --- | --- |
 | home-command-center-cards | `/?locale=en&view=home&desktop=1&data=live&ctx=allow` | PASS | {"capability_cards":4,"work_area_labels":["Client","Matter","구성원","Vault"],"open_buttons":4,"api_5xx_count":0,"api_5xx":[]} |
 | clients-live-or-unavailable | `/?locale=en&view=clients&data=live&ctx=allow` | PASS | {"denied":0,"review":0,"unavailable":0,"empty":0,"table_rows":1,"api_5xx_count":0,"api_5xx":[]} |
-| clients-denied-visible | `/?locale=en&view=clients&data=live&ctx=denied` | PASS | {"state_text":"접근 권한이 없습니다 권한이 있는 Client만 표시합니다.","api_5xx_count":0,"api_5xx":[]} |
-| clients-review-visible | `/?locale=en&view=clients&data=live&ctx=review` | PASS | {"state_text":"검토가 필요합니다 검토가 끝나면 Client 정보를 확인할 수 있습니다.","api_5xx_count":0,"api_5xx":[]} |
+| clients-denied-visible | `/?locale=en&view=clients&data=live&ctx=denied` | PASS | {"state_text":"접근 권한이 없습니다 권한이 있는 의뢰인만 표시합니다.","api_5xx_count":0,"api_5xx":[]} |
+| clients-review-visible | `/?locale=en&view=clients&data=live&ctx=review` | PASS | {"state_text":"검토가 필요합니다 검토가 끝나면 의뢰인 정보를 확인할 수 있습니다.","api_5xx_count":0,"api_5xx":[]} |
 | vault-denied-visible | `/?locale=en&view=vault&data=live&ctx=denied` | PASS | {"state_text":"접근 권한이 없습니다 권한이 있는 정보만 표시됩니다.","api_5xx_count":0,"api_5xx":[]} |
 | home-product-axis-state-visible | `/?locale=en&view=home&data=live&ctx=allow` | PASS | {"capability_cards":4,"work_area_labels":["Client","Matter","구성원","Vault"],"open_buttons":4,"api_5xx_count":0,"api_5xx":[]} |
 | matters-live-surface-no-5xx | `/?locale=ko&view=matters&data=live&ctx=allow` | PASS | {"selector":"[data-cmp-g4-live-matters='true']","state_text":"Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 목록 권한 기준 적용 새 Matter 개시는 승인 후 반영됩니다. 전체 Matter 개시 중 종료 개시 저장 0개 선택 선택 완료 Matter 제목 진행 상태 청구 상태 Matter 1 Matter 1 개시 중 청구 준비 가능 개인 작업 기록 최근 본 항목 제목 상태 일시 Matter 1 Matter","api_5xx_count":0,"api_5xx":[]} |

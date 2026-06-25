@@ -1,0 +1,97 @@
+{
+  "schema_version": "matter.lcx8.post-closeout-client-guarded-copy-status.v1",
+  "generated_at": "2026-06-25T15:37:28.085930Z",
+  "status": "POST_CLOSEOUT_CLIENT_GUARDED_COPY_REMEDIATION_RECORDED",
+  "action_ids": [
+    "LCX8-ACTION-0272",
+    "LCX8-ACTION-0273"
+  ],
+  "finding_resolved": "P7-COPY-002",
+  "status_before": {
+    "LCX8-ACTION-0272": "GUARDED",
+    "LCX8-ACTION-0273": "GUARDED"
+  },
+  "status_after": {
+    "LCX8-ACTION-0272": "GUARDED",
+    "LCX8-ACTION-0273": "GUARDED"
+  },
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 42
+  },
+  "copy_before": {
+    "LCX8-ACTION-0272": "권한이 있는 Client만 표시합니다.",
+    "LCX8-ACTION-0273": "검토가 끝나면 Client 정보를 확인할 수 있습니다."
+  },
+  "copy_after": {
+    "LCX8-ACTION-0272": "접근 권한이 없습니다 권한이 있는 의뢰인만 표시합니다.",
+    "LCX8-ACTION-0273": "검토가 필요합니다 검토가 끝나면 의뢰인 정보를 확인할 수 있습니다."
+  },
+  "browser_qa": {
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json",
+    "passed": true,
+    "checks": [
+      {
+        "action_id": "LCX8-ACTION-0272",
+        "name": "client-denied-copy",
+        "passed": true,
+        "state_text": "접근 권한이 없습니다 권한이 있는 의뢰인만 표시합니다.",
+        "expected_text": "권한이 있는 의뢰인만 표시합니다.",
+        "forbidden_copy_hits": [],
+        "record_action_panel_count": 0,
+        "enabled_mutation_button_count": 0,
+        "record_action_fetch_count": 0,
+        "api_5xx_count": 0
+      },
+      {
+        "action_id": "LCX8-ACTION-0273",
+        "name": "client-review-copy",
+        "passed": true,
+        "state_text": "검토가 필요합니다 검토가 끝나면 의뢰인 정보를 확인할 수 있습니다.",
+        "expected_text": "검토가 끝나면 의뢰인 정보를 확인할 수 있습니다.",
+        "forbidden_copy_hits": [],
+        "record_action_panel_count": 0,
+        "enabled_mutation_button_count": 0,
+        "record_action_fetch_count": 0,
+        "api_5xx_count": 0
+      }
+    ]
+  },
+  "verification_commands": [
+    {
+      "command": "Playwright Client denied/review guarded copy remediation QA",
+      "result": "PASS forbidden_copy_hits=0 enabled_mutation_button_count=0 record_action_fetch_count=0"
+    },
+    {
+      "command": "npm --workspace apps/web run test:ui",
+      "result": "PASS 17/17"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS"
+    },
+    {
+      "command": "npm run ui:live:verify",
+      "result": "PASS 13/13"
+    },
+    {
+      "command": "npm run ui:flows:verify",
+      "result": "PASS 9/9"
+    },
+    {
+      "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+      "result": "PASS"
+    }
+  ],
+  "non_claims": {
+    "status_promoted_to_pass": false,
+    "go_live_approved": false,
+    "production_ready": false
+  }
+}

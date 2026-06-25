@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.lcx8.client_guarded_affordance_remediation.v1",
-  "generated_at": "2026-06-25T15:24:56.858Z",
+  "generated_at": "2026-06-25T15:35:52.597Z",
   "action_ids": [
     "LCX8-ACTION-0272",
     "LCX8-ACTION-0273"
@@ -48,7 +48,7 @@
       "url": "/?locale=ko&view=clients&data=live&ctx=denied#clients-list",
       "passed": true,
       "detail": {
-        "state_text": "접근 권한이 없습니다 권한이 있는 Client만 표시합니다.",
+        "state_text": "접근 권한이 없습니다 권한이 있는 의뢰인만 표시합니다.",
         "record_action_panel_count": 0,
         "record_action_strip_count": 0,
         "client_mutation_button_count": 0,
@@ -56,7 +56,7 @@
         "record_action_fetch_count": 0,
         "protected_token_hits": [],
         "api_5xx_count": 0,
-        "network_response_count": 9
+        "network_response_count": 72
       }
     },
     {
@@ -65,7 +65,7 @@
       "url": "/?locale=ko&view=clients&data=live&ctx=review#clients-list",
       "passed": true,
       "detail": {
-        "state_text": "검토가 필요합니다 검토가 끝나면 Client 정보를 확인할 수 있습니다.",
+        "state_text": "검토가 필요합니다 검토가 끝나면 의뢰인 정보를 확인할 수 있습니다.",
         "record_action_panel_count": 0,
         "record_action_strip_count": 0,
         "client_mutation_button_count": 0,
@@ -73,7 +73,7 @@
         "record_action_fetch_count": 0,
         "protected_token_hits": [],
         "api_5xx_count": 0,
-        "network_response_count": 9
+        "network_response_count": 72
       }
     }
   ]

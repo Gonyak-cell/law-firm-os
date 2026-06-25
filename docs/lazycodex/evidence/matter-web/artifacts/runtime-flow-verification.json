@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx-web.runtime-verification.v1",
-  "generated_at": "2026-06-25T15:31:45.794Z",
+  "generated_at": "2026-06-25T15:36:05.886Z",
   "base_url": "http://127.0.0.1:5173",
   "source_of_truth": "apps/web",
   "passed": true,
@@ -173,10 +173,10 @@
     {
       "name": "clients-denied",
       "url": "/?locale=en&view=clients&data=live&ctx=denied",
-      "expectText": "접근 권한이 없습니다, 권한이 있는 Client만 표시합니다",
+      "expectText": "접근 권한이 없습니다, 권한이 있는 의뢰인만 표시합니다",
       "expectedTexts": [
         "접근 권한이 없습니다",
-        "권한이 있는 Client만 표시합니다"
+        "권한이 있는 의뢰인만 표시합니다"
       ],
       "passed": true,
       "textFound": 2,
@@ -186,7 +186,7 @@
           "count": 1
         },
         {
-          "expectedText": "권한이 있는 Client만 표시합니다",
+          "expectedText": "권한이 있는 의뢰인만 표시합니다",
           "count": 1
         }
       ],
@@ -198,7 +198,7 @@
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
         "visibleLiveStates": [
-          "접근 권한이 없습니다권한이 있는 Client만 표시합니다."
+          "접근 권한이 없습니다권한이 있는 의뢰인만 표시합니다."
         ]
       },
       "error": null
@@ -206,10 +206,10 @@
     {
       "name": "clients-review",
       "url": "/?locale=en&view=clients&data=live&ctx=review",
-      "expectText": "검토가 필요합니다, 검토가 끝나면 Client 정보를 확인할 수 있습니다",
+      "expectText": "검토가 필요합니다, 검토가 끝나면 의뢰인 정보를 확인할 수 있습니다",
       "expectedTexts": [
         "검토가 필요합니다",
-        "검토가 끝나면 Client 정보를 확인할 수 있습니다"
+        "검토가 끝나면 의뢰인 정보를 확인할 수 있습니다"
       ],
       "passed": true,
       "textFound": 2,
@@ -219,7 +219,7 @@
           "count": 1
         },
         {
-          "expectedText": "검토가 끝나면 Client 정보를 확인할 수 있습니다",
+          "expectedText": "검토가 끝나면 의뢰인 정보를 확인할 수 있습니다",
           "count": 1
         }
       ],
@@ -231,7 +231,7 @@
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
         "visibleLiveStates": [
-          "검토가 필요합니다검토가 끝나면 Client 정보를 확인할 수 있습니다."
+          "검토가 필요합니다검토가 끝나면 의뢰인 정보를 확인할 수 있습니다."
         ]
       },
       "error": null

@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx-web.live-data-verification.v1",
-  "generated_at": "2026-06-25T15:31:36.228Z",
+  "generated_at": "2026-06-25T15:36:09.392Z",
   "base_url": "http://127.0.0.1:5173",
   "api_base": "http://127.0.0.1:4180 via vite dev proxy",
   "source_of_truth": "apps/web",
@@ -58,7 +58,7 @@
       "url": "/?locale=en&view=clients&data=live&ctx=denied",
       "passed": true,
       "detail": {
-        "state_text": "접근 권한이 없습니다 권한이 있는 Client만 표시합니다.",
+        "state_text": "접근 권한이 없습니다 권한이 있는 의뢰인만 표시합니다.",
         "api_5xx_count": 0,
         "api_5xx": []
       },
@@ -69,7 +69,7 @@
       "url": "/?locale=en&view=clients&data=live&ctx=review",
       "passed": true,
       "detail": {
-        "state_text": "검토가 필요합니다 검토가 끝나면 Client 정보를 확인할 수 있습니다.",
+        "state_text": "검토가 필요합니다 검토가 끝나면 의뢰인 정보를 확인할 수 있습니다.",
         "api_5xx_count": 0,
         "api_5xx": []
       },

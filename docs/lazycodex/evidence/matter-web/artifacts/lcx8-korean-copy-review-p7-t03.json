@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx8.korean-copy-review.p7-t03.v1",
-  "generated_at": "2026-06-25T14:22:19.924Z",
+  "generated_at": "2026-06-25T15:37:28.085930Z",
   "status": "KOREAN_COPY_REVIEW_COMPLETE_WITH_LANE_E_FINDINGS",
   "tuw": "P7-T03",
   "source_artifacts": [
@@ -75,7 +75,26 @@
         "LCX8-ACTION-0272",
         "LCX8-ACTION-0273"
       ],
-      "evidence": "P3-T10 and live-data verification render \"접근 권한이 없습니다 권한이 있는 Client만 표시합니다\" and \"검토가 필요합니다 검토가 끝나면 Client 정보를 확인할 수 있습니다.\" The guarded behavior is proven, but copy should match the decided Korean/domain naming policy."
+      "evidence": "P3-T10 and live-data verification render \"접근 권한이 없습니다 권한이 있는 Client만 표시합니다\" and \"검토가 필요합니다 검토가 끝나면 Client 정보를 확인할 수 있습니다.\" The guarded behavior is proven, but copy should match the decided Korean/domain naming policy.",
+      "primary_lane": "Lane E",
+      "post_closeout_resolution": {
+        "resolved_rows": [
+          "LCX8-ACTION-0272",
+          "LCX8-ACTION-0273"
+        ],
+        "finding_resolved": "P7-COPY-002",
+        "status_before": "GUARDED",
+        "status_after": "GUARDED",
+        "resolved_at": "2026-06-25T15:37:28.085930Z",
+        "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json",
+        "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json",
+        "remaining_findings": [],
+        "note": "Historical P7/P8 artifacts remain closeout snapshots; current product uses Korean guarded copy for 의뢰인 in Client denied/review states."
+      },
+      "post_closeout_status": {
+        "status": "resolved",
+        "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json"
+      }
     },
     {
       "id": "P7-COPY-003",
@@ -126,5 +145,19 @@
     "owner_approval": false,
     "external_receipt_completion": false,
     "real_client_data_migration": false
+  },
+  "post_closeout_resolution_client_guarded_copy": {
+    "resolved_rows": [
+      "LCX8-ACTION-0272",
+      "LCX8-ACTION-0273"
+    ],
+    "finding_resolved": "P7-COPY-002",
+    "status_before": "GUARDED",
+    "status_after": "GUARDED",
+    "resolved_at": "2026-06-25T15:37:28.085930Z",
+    "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json",
+    "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json",
+    "remaining_findings": [],
+    "note": "Historical P7/P8 artifacts remain closeout snapshots; current product uses Korean guarded copy for 의뢰인 in Client denied/review states."
   }
 }

@@ -286,7 +286,7 @@ function RecordActionSummary({ fieldsResult, auditResult, updateResult, ownerRes
 }
 
 function ClientsTable({ result }) {
-  const state = renderLiveState(result, "Client");
+  const state = renderLiveState(result, "의뢰인");
   if (state) return state;
   const items = resultItems(result);
   const reviewCount = items.filter((item) => item.status === "review_required").length;

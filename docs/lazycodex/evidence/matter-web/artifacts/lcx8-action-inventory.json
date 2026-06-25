@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx8.action-inventory.v1",
-  "generated_at": "2026-06-25T15:29:35.840801Z",
+  "generated_at": "2026-06-25T15:37:28.085930Z",
   "status": "lcx8_closed_current_product_flow_pass_pending_go_live_decision",
   "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
   "first_execution_slice": "P1-T05: Client visible action inventory",
@@ -1307,8 +1307,10 @@
     "artifacts": [
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
-      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json"
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json"
     ],
-    "latest_note": "LCX8-ACTION-0272/0273 remain GUARDED; P7-AFF-001 Client guarded mutation affordance is resolved; P7-COPY-002 remains Lane E."
+    "latest_note": "LCX8-ACTION-0272/0273 remain GUARDED; P7-AFF-001 Client guarded mutation affordance and P7-COPY-002 guarded copy are resolved."
   }
 }

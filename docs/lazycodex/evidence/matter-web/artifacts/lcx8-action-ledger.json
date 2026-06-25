@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx8.action-ledger.v1",
-  "generated_at": "2026-06-25T15:29:35.840801Z",
+  "generated_at": "2026-06-25T15:37:28.085930Z",
   "status": "lcx8_closed_current_product_flow_pass_pending_go_live_decision",
   "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
   "coverage": {
@@ -69,7 +69,9 @@
     "post_closeout_remediation_artifacts": [
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
-      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json"
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json"
     ]
   },
   "status_counts": {
@@ -9487,20 +9489,29 @@
         "P8-T07 blocker risk ranking: tier=high; score=90; reason=Client guarded panels fail closed but expose enabled mutation affordance.; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-blocker-risk-ranking-p8-t07.json",
         "P8-T08 remediation-ready issue text: rank=2; tier=high; title=Remove enabled Client mutation affordance from guarded state; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-ready-issues-p8-t08.json",
         "Post-closeout Client guarded affordance remediation: P7-AFF-001 resolved; record_action_panel_count=0; enabled_mutation_button_count=0; record_action_fetch_count=0; protected_token_hits=0; api_5xx_count=0; status_remains=GUARDED; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
-        "Post-closeout verification: npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; npm run lcx:ppl:ui:validate PASS."
+        "Post-closeout verification: npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; npm run lcx:ppl:ui:validate PASS.",
+        "Post-closeout Client guarded copy remediation: P7-COPY-002 resolved; state_text=\"접근 권한이 없습니다 권한이 있는 의뢰인만 표시합니다.\"; forbidden_copy_hits=0; status_remains=GUARDED; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json",
+        "Post-closeout copy verification: npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS."
       ],
-      "notes": "P2-T03 confirms denied uiState maps to guarded panel; P4 must still verify API denial and trimming. P3-T10 guarded browser state behavior recorded. P4-T06 stabilizes the expected blocked/failure/guarded reason for remediation ranking. P7-T01 affordance finding P7-AFF-001: Client denied/review guarded panels still expose enabled mutation affordance. Status remains GUARDED; route to Lane E/Lane B review. P7-T03 adds copy drift evidence for Korean guarded text; API fail-closed evidence remains the operational basis for GUARDED. P7-T06 links this row to remediation backlog findings P7-AFF-001, P7-COPY-002 without status change. P8 assigns remediation lane Lane E (p7_copy_ux_a11y_backlog). P8-T07 ranks this remediation as high risk (score 90). P8-T08 issue text ready: Remove enabled Client mutation affordance from guarded state. Post-closeout remediation resolves P7-AFF-001 for the Client denied/review mutation affordance; RecordActionSummary is hidden and record-action fetches are skipped in guarded state. P7-COPY-002 remains a Lane E copy issue; status remains GUARDED.",
+      "notes": "P2-T03 confirms denied uiState maps to guarded panel; P4 must still verify API denial and trimming. P3-T10 guarded browser state behavior recorded. P4-T06 stabilizes the expected blocked/failure/guarded reason for remediation ranking. P7-T01 affordance finding P7-AFF-001: Client denied/review guarded panels still expose enabled mutation affordance. Status remains GUARDED; route to Lane E/Lane B review. P7-T03 adds copy drift evidence for Korean guarded text; API fail-closed evidence remains the operational basis for GUARDED. P7-T06 links this row to remediation backlog findings P7-AFF-001, P7-COPY-002 without status change. P8 assigns remediation lane Lane E (p7_copy_ux_a11y_backlog). P8-T07 ranks this remediation as high risk (score 90). P8-T08 issue text ready: Remove enabled Client mutation affordance from guarded state. Post-closeout remediation resolves P7-AFF-001 for the Client denied/review mutation affordance; RecordActionSummary is hidden and record-action fetches are skipped in guarded state. P7-COPY-002 remains a Lane E copy issue; status remains GUARDED. Post-closeout remediation resolves P7-COPY-002 by using Korean guarded copy for 의뢰인 in Client denied/review states. P7-AFF-001 remains resolved; status remains GUARDED.",
       "p2_t09_classification": "guarded_denied_state_not_descriptor_only",
       "post_closeout_remediation": {
-        "finding_resolved": "P7-AFF-001",
+        "findings_resolved": [
+          "P7-AFF-001",
+          "P7-COPY-002"
+        ],
         "status_before": "GUARDED",
         "status_after": "GUARDED",
-        "resolved_at": "2026-06-25T15:29:35.840801Z",
-        "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
-        "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
-        "remaining_findings": [
-          "P7-COPY-002"
-        ]
+        "resolved_at": "2026-06-25T15:37:28.085930Z",
+        "current_status_artifacts": [
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json"
+        ],
+        "qa_artifacts": [
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json"
+        ],
+        "remaining_findings": []
       }
     },
     {
@@ -9537,20 +9548,29 @@
         "P8-T07 blocker risk ranking: tier=high; score=90; reason=Client guarded panels fail closed but expose enabled mutation affordance.; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-blocker-risk-ranking-p8-t07.json",
         "P8-T08 remediation-ready issue text: rank=3; tier=high; title=Remove enabled Client mutation affordance from guarded state; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-ready-issues-p8-t08.json",
         "Post-closeout Client guarded affordance remediation: P7-AFF-001 resolved; record_action_panel_count=0; enabled_mutation_button_count=0; record_action_fetch_count=0; protected_token_hits=0; api_5xx_count=0; status_remains=GUARDED; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
-        "Post-closeout verification: npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; npm run lcx:ppl:ui:validate PASS."
+        "Post-closeout verification: npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; npm run lcx:ppl:ui:validate PASS.",
+        "Post-closeout Client guarded copy remediation: P7-COPY-002 resolved; state_text=\"검토가 필요합니다 검토가 끝나면 의뢰인 정보를 확인할 수 있습니다.\"; forbidden_copy_hits=0; status_remains=GUARDED; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json",
+        "Post-closeout copy verification: npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS."
       ],
-      "notes": "P2-T03 confirms review_required uiState maps to guarded panel; P4 must still verify API review gate and trimming. P3-T10 guarded browser state behavior recorded. P4-T06 stabilizes the expected blocked/failure/guarded reason for remediation ranking. P7-T01 affordance finding P7-AFF-001: Client denied/review guarded panels still expose enabled mutation affordance. Status remains GUARDED; route to Lane E/Lane B review. P7-T03 adds copy drift evidence for Korean guarded text; API fail-closed evidence remains the operational basis for GUARDED. P7-T06 links this row to remediation backlog findings P7-AFF-001, P7-COPY-002 without status change. P8 assigns remediation lane Lane E (p7_copy_ux_a11y_backlog). P8-T07 ranks this remediation as high risk (score 90). P8-T08 issue text ready: Remove enabled Client mutation affordance from guarded state. Post-closeout remediation resolves P7-AFF-001 for the Client denied/review mutation affordance; RecordActionSummary is hidden and record-action fetches are skipped in guarded state. P7-COPY-002 remains a Lane E copy issue; status remains GUARDED.",
+      "notes": "P2-T03 confirms review_required uiState maps to guarded panel; P4 must still verify API review gate and trimming. P3-T10 guarded browser state behavior recorded. P4-T06 stabilizes the expected blocked/failure/guarded reason for remediation ranking. P7-T01 affordance finding P7-AFF-001: Client denied/review guarded panels still expose enabled mutation affordance. Status remains GUARDED; route to Lane E/Lane B review. P7-T03 adds copy drift evidence for Korean guarded text; API fail-closed evidence remains the operational basis for GUARDED. P7-T06 links this row to remediation backlog findings P7-AFF-001, P7-COPY-002 without status change. P8 assigns remediation lane Lane E (p7_copy_ux_a11y_backlog). P8-T07 ranks this remediation as high risk (score 90). P8-T08 issue text ready: Remove enabled Client mutation affordance from guarded state. Post-closeout remediation resolves P7-AFF-001 for the Client denied/review mutation affordance; RecordActionSummary is hidden and record-action fetches are skipped in guarded state. P7-COPY-002 remains a Lane E copy issue; status remains GUARDED. Post-closeout remediation resolves P7-COPY-002 by using Korean guarded copy for 의뢰인 in Client denied/review states. P7-AFF-001 remains resolved; status remains GUARDED.",
       "p2_t09_classification": "guarded_review_state_not_descriptor_only",
       "post_closeout_remediation": {
-        "finding_resolved": "P7-AFF-001",
+        "findings_resolved": [
+          "P7-AFF-001",
+          "P7-COPY-002"
+        ],
         "status_before": "GUARDED",
         "status_after": "GUARDED",
-        "resolved_at": "2026-06-25T15:29:35.840801Z",
-        "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
-        "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
-        "remaining_findings": [
-          "P7-COPY-002"
-        ]
+        "resolved_at": "2026-06-25T15:37:28.085930Z",
+        "current_status_artifacts": [
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json"
+        ],
+        "qa_artifacts": [
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json"
+        ],
+        "remaining_findings": []
       }
     },
     {

@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx8.remediation-ready-issues.p8-t08.v1",
-  "generated_at": "2026-06-25T15:29:35.840801Z",
+  "generated_at": "2026-06-25T15:37:28.085930Z",
   "status": "REMEDIATION_READY_ISSUES_PUBLISHED",
   "tuw": "P8-T08",
   "issue_count": 184,
@@ -66,10 +66,36 @@
         "resolved_at": "2026-06-25T15:29:35.840801Z",
         "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
         "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
-        "remaining_findings": [
-          "P7-COPY-002"
+        "remaining_findings": [],
+        "note": "Historical P7/P8 artifacts remain closeout snapshots; current product hides Client guarded-state mutation affordances and skips guarded record-action fetches. Copy-policy cleanup remains open under P7-COPY-002.",
+        "copy_follow_up_resolved": {
+          "resolved_rows": [
+            "LCX8-ACTION-0272",
+            "LCX8-ACTION-0273"
+          ],
+          "finding_resolved": "P7-COPY-002",
+          "status_before": "GUARDED",
+          "status_after": "GUARDED",
+          "resolved_at": "2026-06-25T15:37:28.085930Z",
+          "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json",
+          "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json",
+          "remaining_findings": [],
+          "note": "Historical P7/P8 artifacts remain closeout snapshots; current product uses Korean guarded copy for 의뢰인 in Client denied/review states."
+        }
+      },
+      "post_closeout_resolution_client_guarded_copy": {
+        "resolved_rows": [
+          "LCX8-ACTION-0272",
+          "LCX8-ACTION-0273"
         ],
-        "note": "Historical P7/P8 artifacts remain closeout snapshots; current product hides Client guarded-state mutation affordances and skips guarded record-action fetches. Copy-policy cleanup remains open under P7-COPY-002."
+        "finding_resolved": "P7-COPY-002",
+        "status_before": "GUARDED",
+        "status_after": "GUARDED",
+        "resolved_at": "2026-06-25T15:37:28.085930Z",
+        "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json",
+        "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json",
+        "remaining_findings": [],
+        "note": "Historical P7/P8 artifacts remain closeout snapshots; current product uses Korean guarded copy for 의뢰인 in Client denied/review states."
       }
     },
     {
@@ -100,10 +126,36 @@
         "resolved_at": "2026-06-25T15:29:35.840801Z",
         "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
         "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
-        "remaining_findings": [
-          "P7-COPY-002"
+        "remaining_findings": [],
+        "note": "Historical P7/P8 artifacts remain closeout snapshots; current product hides Client guarded-state mutation affordances and skips guarded record-action fetches. Copy-policy cleanup remains open under P7-COPY-002.",
+        "copy_follow_up_resolved": {
+          "resolved_rows": [
+            "LCX8-ACTION-0272",
+            "LCX8-ACTION-0273"
+          ],
+          "finding_resolved": "P7-COPY-002",
+          "status_before": "GUARDED",
+          "status_after": "GUARDED",
+          "resolved_at": "2026-06-25T15:37:28.085930Z",
+          "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json",
+          "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json",
+          "remaining_findings": [],
+          "note": "Historical P7/P8 artifacts remain closeout snapshots; current product uses Korean guarded copy for 의뢰인 in Client denied/review states."
+        }
+      },
+      "post_closeout_resolution_client_guarded_copy": {
+        "resolved_rows": [
+          "LCX8-ACTION-0272",
+          "LCX8-ACTION-0273"
         ],
-        "note": "Historical P7/P8 artifacts remain closeout snapshots; current product hides Client guarded-state mutation affordances and skips guarded record-action fetches. Copy-policy cleanup remains open under P7-COPY-002."
+        "finding_resolved": "P7-COPY-002",
+        "status_before": "GUARDED",
+        "status_after": "GUARDED",
+        "resolved_at": "2026-06-25T15:37:28.085930Z",
+        "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json",
+        "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json",
+        "remaining_findings": [],
+        "note": "Historical P7/P8 artifacts remain closeout snapshots; current product uses Korean guarded copy for 의뢰인 in Client denied/review states."
       }
     },
     {
@@ -3402,5 +3454,19 @@
       "P7-COPY-002"
     ],
     "note": "Historical P7/P8 artifacts remain closeout snapshots; current product hides Client guarded-state mutation affordances and skips guarded record-action fetches. Copy-policy cleanup remains open under P7-COPY-002."
+  },
+  "post_closeout_resolution_client_guarded_copy": {
+    "resolved_rows": [
+      "LCX8-ACTION-0272",
+      "LCX8-ACTION-0273"
+    ],
+    "finding_resolved": "P7-COPY-002",
+    "status_before": "GUARDED",
+    "status_after": "GUARDED",
+    "resolved_at": "2026-06-25T15:37:28.085930Z",
+    "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json",
+    "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json",
+    "remaining_findings": [],
+    "note": "Historical P7/P8 artifacts remain closeout snapshots; current product uses Korean guarded copy for 의뢰인 in Client denied/review states."
   }
 }

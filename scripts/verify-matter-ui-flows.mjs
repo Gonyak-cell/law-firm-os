@@ -41,13 +41,13 @@ const viewChecks = [
   {
     name: "clients-denied",
     url: "/?locale=en&view=clients&data=live&ctx=denied",
-    expectTexts: ["접근 권한이 없습니다", "권한이 있는 Client만 표시합니다"],
+    expectTexts: ["접근 권한이 없습니다", "권한이 있는 의뢰인만 표시합니다"],
     selector: "[data-cmp-g2-live-clients='true']"
   },
   {
     name: "clients-review",
     url: "/?locale=en&view=clients&data=live&ctx=review",
-    expectTexts: ["검토가 필요합니다", "검토가 끝나면 Client 정보를 확인할 수 있습니다"],
+    expectTexts: ["검토가 필요합니다", "검토가 끝나면 의뢰인 정보를 확인할 수 있습니다"],
     selector: "[data-cmp-g2-live-clients='true']"
   },
   {
