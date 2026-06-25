@@ -1,8 +1,13 @@
+import { createHash } from "node:crypto";
+
 const CLIENT_LEGAL_SUFFIXES = Object.freeze([
   "주식회사",
   "회계법인",
   "법무법인",
   "유한회사",
+  "유한책임회사",
+  "사단법인",
+  "재단법인",
   "(주)",
   "㈜",
   "Inc.",
@@ -11,6 +16,7 @@ const CLIENT_LEGAL_SUFFIXES = Object.freeze([
   "LLP",
 ]);
 const CLIENT_LEGAL_PREFIXES = Object.freeze(["(주)", "㈜"]);
+const VAULT_APPROVED_MATTER_TYPE_ENGLISH = Object.freeze(["Criminal", "Civil", "Advisory", "M&A"]);
 
 function freeze(value) {
   return Object.freeze(value);
@@ -28,6 +34,29 @@ function requiredString(input, field) {
   const value = compact(input?.[field]);
   if (!value) throw new TypeError(`${field} is required`);
   return value;
+}
+
+function requiredArray(input, field) {
+  const value = input?.[field];
+  if (!Array.isArray(value) || value.length === 0) throw new TypeError(`${field} is required`);
+  return freeze(value.map((item) => requiredString({ item }, "item")));
+}
+
+function stableId(prefix, values) {
+  const hash = createHash("sha256")
+    .update(values.map((value) => compact(value)).join("\u001f"))
+    .digest("hex")
+    .slice(0, 24);
+  return `${prefix}_${hash}`;
+}
+
+function sourceRevisionOrApprovalRef(request) {
+  const sourceRevision = compact(request?.sourceRevision);
+  const migrationApprovalRef = compact(request?.migrationApprovalRef);
+  if (!sourceRevision && !migrationApprovalRef) {
+    throw new TypeError("sourceRevision or migrationApprovalRef is required");
+  }
+  return sourceRevision || migrationApprovalRef;
 }
 
 function stripLegalSuffixes(value) {
@@ -52,6 +81,84 @@ function stripLegalSuffixes(value) {
     }
   }
   return freeze({ value: next, stripped_suffixes: freeze(stripped) });
+}
+
+export function mapVaultMatterAppClientUpsertRequest(request = {}, { actor_id } = {}) {
+  const tenantId = requiredString(request, "tenantRef");
+  const clientShortName = requiredString(request, "clientShortName");
+  const sourceRevision = sourceRevisionOrApprovalRef(request);
+  const approvalRef = requiredString(request, "approvalRef");
+  const supportingEvidenceRefs = requiredArray(request, "supportingEvidenceRefs");
+  const clientId = compact(request.clientId) || stableId("client", [tenantId, clientShortName, approvalRef]);
+  return freeze({
+    tenant_id: tenantId,
+    idempotency_key: requiredString(request, "idempotencyKeyHash"),
+    client: freeze({
+      model_type: "MatterClient",
+      tenant_id: tenantId,
+      client_id: clientId,
+      client_display_name: requiredString(request, "clientDisplayName"),
+      client_short_name: clientShortName,
+      status: request.status ?? "active",
+      source_revision: sourceRevision,
+      approval_ref: approvalRef,
+      migration_approval_ref: request.migrationApprovalRef ?? null,
+      supporting_evidence_refs: supportingEvidenceRefs,
+      created_by: actor_id ?? request.migrationOperatorRef ?? "vault-approved-mapping",
+      created_at: request.createdAt ?? new Date().toISOString(),
+      updated_by: actor_id ?? request.migrationOperatorRef ?? "vault-approved-mapping",
+      updated_at: request.updatedAt ?? new Date().toISOString(),
+    }),
+  });
+}
+
+export function mapVaultMatterAppMatterUpsertRequest(request = {}, { actor_id, client } = {}) {
+  const tenantId = requiredString(request, "tenantRef");
+  const clientId = requiredString(request, "clientId");
+  const matterCode = requiredString(request, "matterCode");
+  const matterTypeEnglish = requiredString(request, "matterTypeEnglish");
+  if (!VAULT_APPROVED_MATTER_TYPE_ENGLISH.includes(matterTypeEnglish)) {
+    throw new Error(`matterTypeEnglish must be one of ${VAULT_APPROVED_MATTER_TYPE_ENGLISH.join(", ")}`);
+  }
+  const matterDetailTypeKorean = requiredString(request, "matterDetailTypeKorean");
+  const clientShortName = client?.client_short_name ?? request.clientShortName;
+  const expectedCode = deriveMatterCode({
+    client_short_name: clientShortName,
+    matter_type_english: matterTypeEnglish,
+    matter_detail_type_korean: matterDetailTypeKorean,
+  });
+  if (matterCode !== expectedCode) throw new Error("matterCode must match clientShortName/matterTypeEnglish/matterDetailTypeKorean");
+  const sourceRevision = sourceRevisionOrApprovalRef(request);
+  const matterId = compact(request.matterAppMatterId) || stableId("matter", [tenantId, matterCode]);
+  return freeze({
+    tenant_id: tenantId,
+    idempotency_key: requiredString(request, "idempotencyKeyHash"),
+    matter: freeze({
+      model_type: "Matter",
+      tenant_id: tenantId,
+      matter_id: matterId,
+      client_id: clientId,
+      client_display_name: requiredString(request, "clientDisplayName"),
+      matter_code: matterCode,
+      matter_name: requiredString(request, "matterName"),
+      title: requiredString(request, "matterName"),
+      matter_type_english: matterTypeEnglish,
+      matter_detail_type_korean: matterDetailTypeKorean,
+      practice_group: request.practiceGroup ?? null,
+      responsible_lawyer: request.responsibleLawyer ?? null,
+      opened_at: request.openedAt ?? null,
+      closed_at: request.closedAt ?? null,
+      status: request.status ?? "opening",
+      source_revision: sourceRevision,
+      source_updated_at: request.sourceUpdatedAt ?? null,
+      approval_ref: request.approvalRef ?? null,
+      migration_approval_ref: request.migrationApprovalRef ?? null,
+      created_by: actor_id ?? request.migrationOperatorRef ?? "vault-approved-mapping",
+      created_at: request.createdAt ?? new Date().toISOString(),
+      permission_envelope_id: request.permissionEnvelopeId ?? `perm:${tenantId}:${matterId}`,
+      audit_trace_id: request.auditTraceId ?? `audit:${tenantId}:${matterId}`,
+    }),
+  });
 }
 
 function normalizeMatterCodeSegment(value, field) {
@@ -265,6 +372,98 @@ export function upsertCanonicalMatterIdentity({
     tenant_id: tenantId,
     idempotency_key,
     operation: "canonical_matter_identity_upsert",
+    response,
+  });
+  return response;
+}
+
+export function upsertMatterAppClientFromVaultContract({ repository, request, actor_id } = {}) {
+  const mapped = mapVaultMatterAppClientUpsertRequest(request, { actor_id });
+  const replay = repository?.getIdempotency?.({
+    tenant_id: mapped.tenant_id,
+    idempotency_key: mapped.idempotency_key,
+  });
+  if (replay) return freeze({ ...replay.response, idempotent_replay: true, action: "skipped_idempotent" });
+
+  const existingById = repository.get({
+    tenant_id: mapped.tenant_id,
+    model_type: "MatterClient",
+    client_id: mapped.client.client_id,
+  });
+  const existingByShortName = repository
+    .list({ tenant_id: mapped.tenant_id, model_type: "MatterClient" })
+    .find((client) => client.client_short_name === mapped.client.client_short_name);
+  const existing = existingById ?? existingByShortName;
+  const clientRecord = existingByShortName && !compact(request.clientId)
+    ? freeze({
+        ...mapped.client,
+        client_id: existingByShortName.client_id,
+        created_by: existingByShortName.created_by,
+        created_at: existingByShortName.created_at,
+      })
+    : mapped.client;
+  const clientResult = upsertMatterClient({
+    repository,
+    client: clientRecord,
+    idempotency_key: `${mapped.idempotency_key}:record`,
+  });
+  const response = freeze({
+    clientId: clientResult.client.client_id,
+    clientDisplayName: clientResult.client.client_display_name,
+    clientShortName: clientResult.client.client_short_name,
+    sourceRevision: clientResult.client.source_revision,
+    action: existing ? "reused" : "created",
+    client: clientResult.client,
+    idempotent_replay: false,
+  });
+  repository.recordIdempotency({
+    tenant_id: mapped.tenant_id,
+    idempotency_key: mapped.idempotency_key,
+    operation: "matter_app_client_upsert_contract",
+    response,
+  });
+  return response;
+}
+
+export function upsertMatterAppMatterFromVaultContract({ repository, request, actor_id } = {}) {
+  const tenantId = requiredString(request, "tenantRef");
+  const clientId = requiredString(request, "clientId");
+  const client = repository.get({ tenant_id: tenantId, model_type: "MatterClient", client_id: clientId });
+  if (!client) throw new Error("Matter app client must exist before matter upsert");
+
+  const mapped = mapVaultMatterAppMatterUpsertRequest(request, { actor_id, client });
+  const replay = repository?.getIdempotency?.({
+    tenant_id: mapped.tenant_id,
+    idempotency_key: mapped.idempotency_key,
+  });
+  if (replay) return freeze({ ...replay.response, idempotent_replay: true, action: "skipped_idempotent" });
+
+  const existing = repository.get({
+    tenant_id: mapped.tenant_id,
+    model_type: "Matter",
+    matter_id: mapped.matter.matter_id,
+  });
+  const identityResult = upsertCanonicalMatterIdentity({
+    repository,
+    client,
+    matter: mapped.matter,
+    idempotency_key: `${mapped.idempotency_key}:identity`,
+    actor_id,
+  });
+  const response = freeze({
+    matterAppMatterId: identityResult.matter.matter_id,
+    matterCode: identityResult.matter.matter_code,
+    clientId: identityResult.matter.client_id,
+    sourceRevision: identityResult.matter.source_revision,
+    action: existing ? "reused" : "created",
+    matter: identityResult.matter,
+    client: identityResult.client,
+    idempotent_replay: false,
+  });
+  repository.recordIdempotency({
+    tenant_id: mapped.tenant_id,
+    idempotency_key: mapped.idempotency_key,
+    operation: "matter_app_matter_upsert_contract",
     response,
   });
   return response;

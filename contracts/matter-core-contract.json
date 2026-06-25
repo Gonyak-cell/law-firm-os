@@ -83,9 +83,23 @@
     "matter_code_field": "matter_code",
     "matter_code_format": "[client_short_name]/[matter_type_english]/[matter_detail_type_korean]",
     "matter_code_max_length": 120,
+    "vault_write_contract_entrypoints": [
+      "upsertMatterAppClientFromVaultContract",
+      "upsertMatterAppMatterFromVaultContract"
+    ],
+    "vault_write_request_style": "camelCase per docs/release/onedrive-migration-write-schemas.json",
     "tenant_unique_fields": [
       "Matter.matter_code",
       "MatterClient.client_short_name"
+    ],
+    "optional_vault_projection_fields": [
+      "practiceGroup",
+      "responsibleLawyer",
+      "openedAt",
+      "closedAt",
+      "sourceUpdatedAt",
+      "approvalRef",
+      "migrationApprovalRef"
     ],
     "matter_number_policy": "legacy_internal_reference_not_canonical_code",
     "vault_policy": "Vault stores Matter app matter_code as projection/reference and does not create a separate namespace"
