@@ -65,6 +65,13 @@ const MATTER_SECTIONS = new Set([
   "matter-analytics",
   "matter-import"
 ]);
+const MATTER_WORK_TABS = [
+  { section: "matter-command", label: "현황" },
+  { section: "matter-vault", label: "문서" },
+  { section: "matter-timeline", label: "활동" },
+  { section: "matter-calendar", label: "일정" },
+  { section: "matter-channel", label: "대화" }
+];
 const MATTER_PATH_STEPS = ["신규", "충돌검토", "계약", "수행", "청구"];
 const TIMELINE_FILTERS = Object.freeze([
   Object.freeze({ id: "all", label: "전체", icon: ListChecks }),
@@ -127,17 +134,17 @@ function legalPeopleItems(result) {
 function LegalMatterPeopleBacklinkPanel({ result }) {
   const people = legalPeopleItems(result);
   return (
-    <Panel id="matter-people-backlinks" className="record-list-panel" title="People 연결" meta="Client-Matter-People">
+    <Panel id="matter-people-backlinks" className="record-list-panel" title="법률 인물 연결" meta="Client-Matter-People">
       <div className="legal-people-backlink-panel" data-lcx-ppl-matter-backlink="true">
         <div className="people-panel-kicker">
           <Link2 size={15} />
-          Matter 참여자와 외부 관계자를 법률 People 런타임에서 함께 봅니다.
+          Matter 참여자와 외부 관계자를 법률 인물 기록과 함께 확인합니다.
         </div>
-        {result === null && <div className="live-data-state live-data-loading">Matter People 연결을 불러오는 중입니다</div>}
-        {result?.kind === "error" && <div className="live-data-state live-data-error">Matter People 연결을 불러오지 못했습니다.</div>}
-        {result?.kind === "data" && people.length === 0 && <div className="live-data-state live-data-empty">연결된 People 기록이 없습니다.</div>}
+        {result === null && <div className="live-data-state live-data-loading">Matter 연결 인물을 불러오는 중입니다</div>}
+        {result?.kind === "error" && <div className="live-data-state live-data-error">Matter 연결 인물을 불러오지 못했습니다.</div>}
+        {result?.kind === "data" && people.length === 0 && <div className="live-data-state live-data-empty">연결된 인물 기록이 없습니다.</div>}
         {people.length > 0 && (
-          <div className="legal-people-backlink-list" aria-label="Matter 연결 People">
+          <div className="legal-people-backlink-list" aria-label="Matter 연결 인물">
             {people.slice(0, 6).map((person) => (
               <span key={person.person_id} className="legal-people-backlink-row">
                 <Link2 size={13} />
@@ -251,7 +258,7 @@ function clientReportSectionLabel(section, index = 0) {
 
 function clientReportBodyLabel(section) {
   if (section?.section_id === "status") return matterStatus(section.body);
-  return section?.body ?? "권한 적용";
+  return section?.body ?? "권한 기준 적용";
 }
 
 function moneyLabel(value, currency = "KRW") {
@@ -329,15 +336,15 @@ function renderCollectionState(result, noun) {
   if (result === null) {
     return (
       <div className="live-data-state live-data-loading">
-        <strong>{noun} 정보를 불러오는 중입니다</strong>
+        <strong>{noun} 목록을 불러오는 중입니다</strong>
       </div>
     );
   }
   if (result.kind === "error") {
     return (
       <div className="live-data-state live-data-error">
-        <strong>{noun} 정보를 불러오지 못했습니다</strong>
-        잠시 후 다시 시도해주세요.
+        <strong>{noun} 목록을 불러오지 못했습니다</strong>
+        새로고침하거나 연결 상태를 확인하세요.
       </div>
     );
   }
@@ -346,14 +353,14 @@ function renderCollectionState(result, noun) {
     return (
       <div className="live-data-state live-data-review">
         <strong>검토가 필요합니다</strong>
-        검토가 끝나면 {noun} 정보를 확인할 수 있습니다.
+        검토가 끝나면 {noun} 목록을 확인할 수 있습니다.
       </div>
     );
   }
   if (result.uiState === "empty" || resultItems(result).length === 0) {
     return (
       <div className="live-data-state live-data-empty">
-        <strong>표시할 {noun} 정보가 없습니다</strong>
+        <strong>표시할 {noun}이 없습니다</strong>
       </div>
     );
   }
@@ -372,7 +379,7 @@ function renderCommandState(result, matter) {
     return (
       <div className="live-data-state live-data-error">
         <strong>Matter 현황을 불러오지 못했습니다</strong>
-        잠시 후 다시 시도해주세요.
+        새로고침하거나 Matter 연결 상태를 확인하세요.
       </div>
     );
   }
@@ -866,7 +873,7 @@ function TimelinePanel({ result }) {
     return (
       <div className="live-data-state live-data-error" data-matter-activity-timeline="true">
         <strong>활동을 불러오지 못했습니다</strong>
-        잠시 후 다시 시도해주세요.
+        새로고침하거나 연결 상태를 확인하세요.
       </div>
     );
   }
@@ -893,7 +900,7 @@ function TimelinePanel({ result }) {
     <div className="activity-timeline-panel" data-matter-activity-timeline="true">
       <div className="matter-review-strip" data-matter-activity-read-boundary="true">
         <ShieldCheck size={15} />
-        <span>권한 적용 활동 기록</span>
+        <span>권한 기준 활동 기록</span>
       </div>
       <div className="activity-filter-tabs" data-matter-activity-filters="true">
         {TIMELINE_FILTERS.map((filter) => {
@@ -1212,7 +1219,7 @@ function AuditTrailPanel({ result, events = [], marker = "matter-audit-trail" })
     return (
       <div className="live-data-state live-data-error" data-audit-trail={marker}>
         <strong>감사 이력을 불러오지 못했습니다</strong>
-        잠시 후 다시 시도해주세요.
+        새로고침하거나 연결 상태를 확인하세요.
       </div>
     );
   }
@@ -1333,7 +1340,7 @@ function BillingPanel({
     return (
       <div className="live-data-state live-data-error">
         <strong>청구 정보를 불러오지 못했습니다</strong>
-        잠시 후 다시 시도해주세요.
+        새로고침하거나 연결 상태를 확인하세요.
       </div>
     );
   }
@@ -1530,7 +1537,7 @@ function AnalyticsPanel({
   );
 }
 
-export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }) {
+export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", onNavigateSection = () => {} }) {
   const [result, setResult] = useState(null);
   const [commandResult, setCommandResult] = useState(null);
   const [timelineResult, setTimelineResult] = useState(null);
@@ -2181,7 +2188,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
     <section id="matters-home" className="surface stack matters-surface" data-cmp-g4-live-matters="true">
       <PageHeader
         title={labels.mattersTitle}
-        subtitle="Matter 진행, 구성원, 문서, 활동, 청구, 분석 업무를 관리합니다."
+        subtitle="Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />
@@ -2189,9 +2196,21 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "" }
           </button>
         }
       />
+      <nav className="matter-section-tabs" aria-label="Matter 업무 탭">
+        {MATTER_WORK_TABS.map((tab) => (
+          <button
+            key={tab.section}
+            type="button"
+            className={currentSection === tab.section ? "active" : ""}
+            onClick={() => onNavigateSection(tab.section)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
       <div className="matter-runtime-grid record-workspace" data-salesforce-matter-workspace="list-detail-right-panel">
         {currentSection === "matters-list" && (
-          <Panel id="matters-list" className="record-list-panel" title="Matter 목록" meta="권한 적용">
+          <Panel id="matters-list" className="record-list-panel" title="Matter 목록" meta="권한 기준 적용">
             <MattersTable
               result={result}
               matters={visibleMatters}

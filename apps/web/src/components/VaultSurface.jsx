@@ -77,14 +77,14 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
   if (result === null) {
     body = (
       <div className="live-data-state live-data-loading">
-        <strong>Vault 문서를 불러오는 중입니다</strong>
+        <strong>Vault 문서 목록을 불러오는 중입니다</strong>
       </div>
     );
   } else if (result.kind === "error") {
     body = (
       <div className="live-data-state live-data-error">
-        <strong>Vault 문서를 불러오지 못했습니다</strong>
-        잠시 후 다시 시도해주세요.
+        <strong>Vault 문서 목록을 불러오지 못했습니다</strong>
+        새로고침하거나 연결 상태를 확인하세요.
       </div>
     );
   } else if (result.uiState === "denied") {
@@ -107,7 +107,7 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
       <div className="vault-live-stack">
         <div className="vault-safe-strip">
           <ShieldCheck size={15} />
-          <span>문서 내용은 권한이 있을 때만 표시됩니다.</span>
+          <span>문서 본문은 권한이 있을 때만 표시합니다.</span>
         </div>
         <VaultBreadcrumb matterId={selected?.matter_id} workspaceId={selected?.workspace_id} />
         <VaultSecurityBadges document={selected} />
@@ -120,7 +120,7 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
     <section id="vault-home" className="surface stack vault-surface" data-cmp-g5-vault-surface="true">
       <PageHeader
         title={labels.vaultTitle}
-        subtitle="Vault 문서와 권한 정보를 관리합니다. 문서 내용은 권한이 있을 때만 표시됩니다."
+        subtitle="Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />
@@ -130,7 +130,7 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
       />
       <div className="vault-runtime-grid">
         {currentSection === "vault-documents" && (
-          <Panel id="vault-documents" className="span-2 vault-panel" title="Vault 문서함" meta="권한 적용">
+          <Panel id="vault-documents" className="span-2 vault-panel" title="Vault 문서함" meta="권한 기준 적용">
             {body}
           </Panel>
         )}

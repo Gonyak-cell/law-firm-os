@@ -1,5 +1,5 @@
 import React from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Bell,
   ChevronDown,
@@ -7,13 +7,13 @@ import {
   ClipboardList,
   FileText,
   Globe2,
+  LayoutDashboard,
   Mail,
   Moon,
   Plus,
   Search,
   Settings,
   ShieldCheck,
-  Sparkles,
   Tags,
   UserPlus,
   UserRound,
@@ -173,7 +173,7 @@ export function NotificationDrawer({ open, onClose }) {
         <header className="notification-drawer-header">
           <div>
             <h2 id="notification-drawer-title">알림 <span>3</span></h2>
-            <p>Client, Matter, People, Vault 작업 신호</p>
+            <p>작업 알림과 검토 신호</p>
           </div>
           <button type="button" className="icon-button" aria-label="알림 닫기" onClick={onClose}>
             <X size={18} />
@@ -213,7 +213,7 @@ const sidebarMeta = {
     title: "Home",
     actions: [
       { label: "최근 작업", view: "home", section: "home-recent", icon: ClipboardList, count: "8" },
-      { label: "대시보드", view: "home", section: "home-dashboard", icon: Sparkles },
+      { label: "대시보드", view: "home", section: "home-dashboard", icon: LayoutDashboard },
       { label: "검토함", view: "home", section: "home-review", icon: ShieldCheck, count: "3" }
     ],
     utilities: [
@@ -259,6 +259,7 @@ const sidebarMeta = {
 };
 
 export function Sidebar({ labels, view, setView, activeSection = "" }) {
+  const [openGroups, setOpenGroups] = useState({});
   const subnav = {
     auth: [
       { label: "로그인", view: "auth" },
@@ -267,9 +268,9 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
     home: sidebarMeta.home.actions,
     clients: [
       { label: "Client 목록", view: "clients", section: "clients-list", icon: ClipboardList, count: "12" },
-      { label: "잠재 Client", view: "clients", section: "client-leads", icon: Sparkles },
-      { label: "기회", view: "clients", section: "client-opportunities", icon: ClipboardList },
-      { label: "접수", view: "clients", section: "client-intake", icon: FileText, count: "4" },
+      { label: "잠재 고객", view: "clients", section: "client-leads", icon: UserPlus },
+      { label: "영업 기회", view: "clients", section: "client-opportunities", icon: ClipboardList },
+      { label: "상담 접수", view: "clients", section: "client-intake", icon: FileText, count: "4" },
       { label: "계정", view: "clients", section: "client-accounts", icon: ShieldCheck },
       { label: "연락처", view: "clients", section: "client-contacts", icon: UserPlus },
       { label: "데이터 관리", view: "clients", section: "client-data", icon: Settings },
@@ -277,50 +278,113 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
       { label: "가져오기", view: "clients", section: "client-import", icon: Plus }
     ],
     matters: [
-      { label: "Matter 목록", view: "matters", section: "matters-list", icon: ClipboardList, count: "18" },
-      { label: "현황", view: "matters", section: "matter-command", icon: Sparkles },
-      { label: "문서", view: "matters", section: "matter-vault", icon: FileText },
-      { label: "활동", view: "matters", section: "matter-timeline", icon: ClipboardList },
-      { label: "일정", view: "matters", section: "matter-calendar", icon: ClipboardList },
-      { label: "대화", view: "matters", section: "matter-channel", icon: FileText, count: "2" },
-      { label: "개시", view: "matters", section: "matter-opening", icon: Plus },
-      { label: "구성원", view: "matters", section: "matter-team", icon: UserPlus },
-      { label: "청구", view: "matters", section: "matter-billing", icon: FileText },
-      { label: "분석", view: "matters", section: "matter-analytics", icon: Sparkles },
-      { label: "가져오기", view: "matters", section: "matter-import", icon: Plus }
+      {
+        label: "Matter 운영",
+        icon: ClipboardList,
+        children: [
+          { label: "Matter 목록", view: "matters", section: "matters-list", icon: ClipboardList, count: "18", active: true },
+          { label: "진행 현황", view: "matters", section: "matter-command", icon: ShieldCheck },
+          { label: "Matter 개시", view: "matters", section: "matter-opening", icon: Plus }
+        ]
+      },
+      {
+        label: "업무 진행",
+        icon: FileText,
+        children: [
+          { label: "문서", view: "matters", section: "matter-vault", icon: FileText },
+          { label: "활동", view: "matters", section: "matter-timeline", icon: ClipboardList },
+          { label: "일정", view: "matters", section: "matter-calendar", icon: ClipboardList },
+          { label: "대화", view: "matters", section: "matter-channel", icon: FileText, count: "2" },
+          { label: "구성원", view: "matters", section: "matter-team", icon: UserPlus }
+        ]
+      },
+      {
+        label: "청구·분석",
+        icon: FileText,
+        children: [
+          { label: "청구", view: "matters", section: "matter-billing", icon: FileText },
+          { label: "분석", view: "matters", section: "matter-analytics", icon: ClipboardList },
+          { label: "자료 가져오기", view: "matters", section: "matter-import", icon: Plus }
+        ]
+      }
     ],
     people: [
-      { label: "디렉터리", view: "people", section: "people-directory", icon: ClipboardList },
-      { label: "관계망", view: "people", section: "people-relationships", icon: UserPlus },
-      { label: "충돌/벽", view: "people", section: "people-conflicts", icon: ShieldCheck },
-      { label: "구성원", view: "people", section: "people-members", icon: UserPlus, count: "9" },
-      { label: "인사 문서", view: "people", section: "people-documents", icon: FileText },
-      { label: "휴가", view: "people", section: "people-leave", icon: ClipboardList },
-      { label: "승인", view: "people", section: "people-approvals", icon: ShieldCheck, count: "5" },
-      { label: "채용", view: "people", section: "people-recruiting", icon: Sparkles },
-      { label: "입퇴사", view: "people", section: "people-lifecycle", icon: ClipboardList },
-      { label: "인사 정책", view: "people", section: "people-policy", icon: FileText },
-      { label: "활동 기록", view: "people", section: "people-audit", icon: ClipboardList },
-      { label: "인사 현황", view: "people", section: "people-analytics", icon: Sparkles },
-      { label: "AI 검토", view: "people", section: "people-ai", icon: Sparkles },
-      { label: "급여정산", view: "people", section: "people-payroll", icon: FileText },
-      { label: "권한 관리", view: "people", section: "people-admin", icon: ShieldCheck }
+      {
+        label: "법률 People",
+        icon: ShieldCheck,
+        children: [
+          { label: "디렉터리", view: "people", section: "people-directory", icon: ClipboardList },
+          { label: "관계망", view: "people", section: "people-relationships", icon: UserPlus },
+          { label: "충돌·윤리벽", view: "people", section: "people-conflicts", icon: ShieldCheck }
+        ]
+      },
+      {
+        label: "구성원 운영",
+        icon: UserPlus,
+        children: [
+          { label: "구성원", view: "people", section: "people-members", icon: UserPlus, count: "9", active: true },
+          { label: "조직도", view: "people", section: "people-org-chart", icon: ClipboardList },
+          { label: "휴가", view: "people", section: "people-leave", icon: ClipboardList },
+          { label: "승인", view: "people", section: "people-approvals", icon: ShieldCheck, count: "5" },
+          { label: "입사·퇴사", view: "people", section: "people-lifecycle", icon: ClipboardList },
+          { label: "채용", view: "people", section: "people-recruiting", icon: UserPlus }
+        ]
+      },
+      {
+        label: "관리",
+        icon: Settings,
+        children: [
+          { label: "인사 문서", view: "people", section: "people-documents", icon: FileText },
+          { label: "인사 정책", view: "people", section: "people-policy", icon: FileText },
+          { label: "활동 기록", view: "people", section: "people-audit", icon: ClipboardList },
+          { label: "권한 관리", view: "people", section: "people-admin", icon: ShieldCheck },
+          { label: "급여 정산", view: "people", section: "people-payroll", icon: FileText },
+          { label: "인사 현황", view: "people", section: "people-analytics", icon: ClipboardList }
+        ]
+      }
     ],
     vault: [
       { label: "문서함", view: "vault", section: "vault-documents", icon: FileText, count: "24" },
-      { label: "상세", view: "vault", section: "vault-detail", icon: ClipboardList },
-      { label: "메일 보관", view: "vault", section: "vault-email", icon: FileText }
+      { label: "문서 상세", view: "vault", section: "vault-detail", icon: ClipboardList },
+      { label: "메일 보관함", view: "vault", section: "vault-email", icon: FileText }
     ],
     profile: profileSidebarItems
   }[view] ?? [];
-  const meta = sidebarMeta[view] ?? { title: labels.workspace, utilities: [] };
-  const hasPreferredActiveItem = subnav.some((item) => item.active);
+  const meta = sidebarMeta[view] ?? { title: "matter", utilities: [] };
+  const flatSubnav = subnav.flatMap((item) => item.children ?? [item]);
+  const hasPreferredActiveItem = flatSubnav.some((item) => item.active);
+
+  function isItemActive(item, index = 0) {
+    if (item.section) {
+      return activeSection === item.section || (!activeSection && item.active === true);
+    }
+    if (item.active) return !activeSection;
+    return index === 0 && !hasPreferredActiveItem && !activeSection;
+  }
+
+  function isGroupActive(item) {
+    return item.children?.some((child) => isItemActive(child)) ?? false;
+  }
+
+  function groupOpen(item, index) {
+    const key = `${view}:${item.label}`;
+    if (Object.prototype.hasOwnProperty.call(openGroups, key)) return openGroups[key];
+    return isGroupActive(item) || index === 0;
+  }
+
+  function toggleGroup(item, index) {
+    const key = `${view}:${item.label}`;
+    setOpenGroups((current) => {
+      const currentOpen = Object.prototype.hasOwnProperty.call(current, key) ? current[key] : isGroupActive(item) || index === 0;
+      return { ...current, [key]: !currentOpen };
+    });
+  }
 
   return (
     <aside className="sidebar" data-context-sidebar={view} aria-label={`${meta.title} 메뉴`}>
       <div className="workspace-card">
         <div>
-          <span className="eyebrow">{labels.workspace}</span>
+          {labels.workspace && <span className="eyebrow">{labels.workspace}</span>}
           <strong>{meta.title}</strong>
         </div>
         <ChevronDown size={15} />
@@ -328,12 +392,47 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
       {subnav.length > 0 && (
         <nav className="sidebar-nav">
           {subnav.map((item, index) => {
-            const active = item.section
-              ? activeSection === item.section || (!activeSection && index === 0 && !hasPreferredActiveItem)
-              : item.active
-                ? !activeSection
-                : index === 0 && !hasPreferredActiveItem;
             const Icon = item.icon ?? ClipboardList;
+            if (item.children) {
+              const active = isGroupActive(item);
+              const open = groupOpen(item, index);
+              return (
+                <div key={item.label} className={active ? "sidebar-group active" : "sidebar-group"}>
+                  <button
+                    type="button"
+                    className={active ? "sidebar-item sidebar-group-toggle active" : "sidebar-item sidebar-group-toggle"}
+                    aria-expanded={open}
+                    onClick={() => toggleGroup(item, index)}
+                  >
+                    <span className="sidebar-icon"><Icon size={16} /></span>
+                    <span>{item.label}</span>
+                    <ChevronDown size={15} className={open ? "sidebar-chevron open" : "sidebar-chevron"} />
+                  </button>
+                  {open && (
+                    <div className="sidebar-subnav">
+                      {item.children.map((child, childIndex) => {
+                        const ChildIcon = child.icon ?? ClipboardList;
+                        const childActive = isItemActive(child, childIndex);
+                        return (
+                          <button
+                            key={child.label}
+                            type="button"
+                            className={childActive ? "sidebar-item sidebar-child active" : "sidebar-item sidebar-child"}
+                            aria-current={childActive ? "location" : undefined}
+                            onClick={() => setView(child.view, child.section ?? "")}
+                          >
+                            <span className="sidebar-icon"><ChildIcon size={15} /></span>
+                            <span>{child.label}</span>
+                            {child.count && <span className="sidebar-count">{child.count}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+            const active = isItemActive(item, index);
             return (
             <button
               key={item.label}

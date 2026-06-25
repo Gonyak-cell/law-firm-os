@@ -291,7 +291,7 @@ export function ReportBuilderPanel({ ctx = "allow", selectedClient }) {
         />
         <div className="record-boundary-note" data-sf-b-w08-report-result-table="true">
           <ShieldCheck size={15} />
-          <span>임의 쿼리, 원본 청구 행, 요청 원문은 표시하지 않습니다.</span>
+          <span>임의 쿼리, 원본 청구 행, 요청 원문은 숨깁니다.</span>
         </div>
       </Panel>
 

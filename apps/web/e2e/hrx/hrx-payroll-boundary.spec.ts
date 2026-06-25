@@ -16,7 +16,7 @@ test("People payroll boundary uses API preview/export routes without payment exe
   const home = await readWebFile("src/people/PeopleHome.tsx");
   const shell = await readWebFile("src/components/Shell.jsx");
 
-  assert.match(shell, /급여정산/);
+  assert.match(shell, /급여 정산/);
   assert.match(home, /PayrollBoundaryPanel/);
   assert.match(home, /people-payroll/);
   assert.match(component, /createHrxPayrollPreview/);
@@ -24,9 +24,9 @@ test("People payroll boundary uses API preview/export routes without payment exe
   assert.match(component, /exportHrxPayrollArtifact/);
   assert.match(component, /calculation_runtime/);
   assert.match(component, /disbursement_instruction_included/);
-  assert.match(component, /급여정산/);
-  assert.match(component, /미리보기와 내보내기만 구현됨/);
-  assert.match(component, /계산·세금·지급 실행은 아직 구현되지 않았습니다/);
+  assert.match(component, /급여 정산/);
+  assert.match(component, /미리보기·내보내기만 제공/);
+  assert.match(component, /계산·세금·지급 실행은 아직 제공하지 않습니다/);
   assert.match(component, /정산 처리/);
   assert.match(component, /송금·지급 지시는 아직 구현되지 않았습니다/);
   assert.match(api, /\/api\/hrx\/payroll\/preview/);

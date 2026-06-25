@@ -43,7 +43,7 @@ export function CandidatePortal({ candidateId }) {
 
   let body;
   if (!candidateId) {
-    body = <div className="live-data-state live-data-empty">지원자를 선택해주세요.</div>;
+    body = <div className="live-data-state live-data-empty">지원자를 선택하세요.</div>;
   } else if (result === null) {
     body = <div className="live-data-state live-data-loading">지원자 정보를 불러오는 중입니다</div>;
   } else if (result.kind === "error") {

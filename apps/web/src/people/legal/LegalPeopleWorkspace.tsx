@@ -15,14 +15,14 @@ const TYPE_FILTERS = [
 
 const MODE_META = {
   directory: {
-    title: "법률 People 디렉터리",
+    title: "법률 인물 디렉터리",
     meta: "Client-Matter-People",
-    kicker: "Client, Matter, 조직, 충돌 관계를 함께 탐색합니다."
+    kicker: "Client, Matter, 조직, 충돌 관계를 함께 확인합니다."
   },
   relationships: {
-    title: "People 관계망",
+    title: "인물 관계망",
     meta: "관계 피벗",
-    kicker: "선택한 사람의 Client, Matter, 조직 연결을 권한 경계와 함께 봅니다."
+    kicker: "선택한 사람의 Client, Matter, 조직 연결을 권한 범위 안에서 봅니다."
   },
   conflicts: {
     title: "충돌/윤리벽",
@@ -183,9 +183,9 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
             </button>
           ))}
         </div>
-        {searchResult === null && <div className="live-data-state live-data-loading">법률 People 디렉터리를 불러오는 중입니다</div>}
-        {searchResult?.kind === "error" && <div className="live-data-state live-data-error">법률 People 디렉터리를 불러오지 못했습니다.</div>}
-        {searchResult?.kind === "data" && people.length === 0 && <div className="live-data-state live-data-empty">조건에 맞는 People 기록이 없습니다.</div>}
+        {searchResult === null && <div className="live-data-state live-data-loading">법률 인물 목록을 불러오는 중입니다</div>}
+        {searchResult?.kind === "error" && <div className="live-data-state live-data-error">법률 인물 목록을 불러오지 못했습니다.</div>}
+        {searchResult?.kind === "data" && people.length === 0 && <div className="live-data-state live-data-empty">조건에 맞는 인물 기록이 없습니다.</div>}
         {people.length > 0 && (
           <div className="people-row-list legal-people-row-list">
             {people.map((person) => (
@@ -207,14 +207,14 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
         )}
       </Panel>
 
-      <Panel id="people-detail-workspace" className="people-panel legal-people-detail" title="People 상세" meta={selectedPersonId ? "선택됨" : "미선택"}>
+      <Panel id="people-detail-workspace" className="people-panel legal-people-detail" title="인물 상세" meta={selectedPersonId ? "선택됨" : "미선택"}>
         <div className="people-panel-kicker">
           <LockKeyhole size={15} />
           민감한 관계 정보는 권한에 따라 축약됩니다.
         </div>
-        {!selectedPersonId && <div className="live-data-state live-data-empty">People 기록을 선택해주세요.</div>}
-        {selectedPersonId && detailResult === null && <div className="live-data-state live-data-loading">People 상세를 불러오는 중입니다</div>}
-        {detailResult?.kind === "error" && <div className="live-data-state live-data-error">People 상세를 불러오지 못했습니다.</div>}
+        {!selectedPersonId && <div className="live-data-state live-data-empty">인물 기록을 선택하세요.</div>}
+        {selectedPersonId && detailResult === null && <div className="live-data-state live-data-loading">인물 상세를 불러오는 중입니다</div>}
+        {detailResult?.kind === "error" && <div className="live-data-state live-data-error">인물 상세를 불러오지 못했습니다.</div>}
         {detail && (
           <div className="legal-people-detail-stack">
             <div className="legal-people-identity">
@@ -256,7 +256,7 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
       <Panel id="people-relationship-panel" className="people-panel legal-people-relationships" title="관계 패널" meta={`${relationships.length}개`}>
         <div className="people-panel-kicker">
           <Link2 size={15} />
-          Client, Matter, 조직 연결과 권한 상태를 함께 표시합니다.
+          Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.
         </div>
         {relationshipResult === null && <div className="live-data-state live-data-loading">관계 정보를 불러오는 중입니다</div>}
         {relationshipResult?.kind === "error" && <div className="live-data-state live-data-error">관계 정보를 불러오지 못했습니다.</div>}

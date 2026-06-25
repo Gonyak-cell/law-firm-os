@@ -39,11 +39,11 @@ export function LeaveRequestPage({ employeeId, refreshKey, onSubmitted }) {
 
   let stateBody;
   if (!employeeId) {
-    stateBody = <div className="live-data-state live-data-empty">구성원을 선택해주세요.</div>;
+    stateBody = <div className="live-data-state live-data-empty">구성원을 선택하세요.</div>;
   } else if (result === null) {
     stateBody = <div className="live-data-state live-data-loading">휴가 정보를 불러오는 중입니다</div>;
   } else if (result.kind === "empty") {
-    stateBody = <div className="live-data-state live-data-empty">구성원을 선택해주세요.</div>;
+    stateBody = <div className="live-data-state live-data-empty">구성원을 선택하세요.</div>;
   } else if (result.kind === "error") {
     stateBody = <div className="live-data-state live-data-error">휴가 정보를 불러오지 못했습니다.</div>;
   } else {

@@ -39,11 +39,11 @@ export function EmployeeProfile({ employeeId, refreshKey }) {
 
   let body;
   if (!employeeId) {
-    body = <div className="live-data-state live-data-empty">구성원을 선택해주세요.</div>;
+    body = <div className="live-data-state live-data-empty">구성원을 선택하세요.</div>;
   } else if (result === null) {
     body = <div className="live-data-state live-data-loading">구성원 상세 정보를 불러오는 중입니다</div>;
   } else if (result.kind === "empty") {
-    body = <div className="live-data-state live-data-empty">구성원을 선택해주세요.</div>;
+    body = <div className="live-data-state live-data-empty">구성원을 선택하세요.</div>;
   } else if (result.kind === "error") {
     body = <div className="live-data-state live-data-error">구성원 상세 정보를 불러오지 못했습니다.</div>;
   } else {
@@ -65,7 +65,7 @@ export function EmployeeProfile({ employeeId, refreshKey }) {
     <Panel id="people-profile" className="people-panel" title="구성원 상세" meta={employeeId ? "선택됨" : "미선택"}>
       <div className="people-panel-kicker">
         <ShieldCheck size={15} />
-        권한이 필요한 정보는 표시하지 않습니다.
+        권한이 없는 정보는 숨깁니다.
       </div>
       {body}
     </Panel>

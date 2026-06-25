@@ -5,6 +5,7 @@ import { PageHeader } from "../components/primitives.jsx";
 import { fetchHrxPeopleOverview } from "./hrxApiClient.ts";
 import { EmployeeList } from "./employees/EmployeeList.tsx";
 import { EmployeeProfile } from "./employees/EmployeeProfile.tsx";
+import { PeopleWorkforceDirectory } from "./employees/PeopleWorkforceDirectory.tsx";
 import { HRDocumentWorkspace } from "./documents/HRDocumentWorkspace.tsx";
 import { LeaveRequestPage } from "./leave/LeaveRequestPage.tsx";
 import { ManagerApprovalQueue } from "./approvals/ManagerApprovalQueue.tsx";
@@ -24,6 +25,7 @@ const PEOPLE_SECTIONS = new Set([
   "people-relationships",
   "people-conflicts",
   "people-members",
+  "people-org-chart",
   "people-documents",
   "people-leave",
   "people-approvals",
@@ -37,11 +39,13 @@ const PEOPLE_SECTIONS = new Set([
   "people-admin"
 ]);
 
+const WORKFORCE_SECTIONS = new Set(["people-members", "people-org-chart", "people-lifecycle"]);
+
 export function PeopleHome({ labels, activeSection = "" }) {
   const [overview, setOverview] = useState(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const currentSection = PEOPLE_SECTIONS.has(activeSection) ? activeSection : "people-directory";
+  const currentSection = PEOPLE_SECTIONS.has(activeSection) ? activeSection : "people-members";
 
   useEffect(() => {
     let cancelled = false;
@@ -58,7 +62,7 @@ export function PeopleHome({ labels, activeSection = "" }) {
     <section id="people-home" className="surface stack people-surface" data-hrx-api-backed="true">
       <PageHeader
         title={labels.peopleTitle}
-        subtitle="Client, Matter, 조직, 외부 참여자, 충돌/윤리벽 관계망을 중심으로 People을 운영하고 HRX 직원 관리는 하위 영역으로 유지합니다."
+        subtitle="Client, Matter, 조직, 외부 참여자 관계와 충돌·윤리벽 검토를 확인합니다. 직원 관리는 별도 영역에서 다룹니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshKey((key) => key + 1)}>
             <RefreshCw size={15} />
@@ -67,10 +71,10 @@ export function PeopleHome({ labels, activeSection = "" }) {
         }
       />
 
-      {overview?.kind === "error" && (
+      {overview?.kind === "error" && !WORKFORCE_SECTIONS.has(currentSection) && (
         <div className="live-data-state live-data-error">
-          <strong>구성원 정보를 불러오지 못했습니다</strong>
-          잠시 후 다시 시도해주세요.
+          <strong>구성원 현황을 불러오지 못했습니다</strong>
+          새로고침하거나 연결 상태를 확인하세요.
         </div>
       )}
 
@@ -81,10 +85,11 @@ export function PeopleHome({ labels, activeSection = "" }) {
       {currentSection === "people-conflicts" && <LegalPeopleWorkspace mode="conflicts" refreshKey={refreshKey} />}
 
       {currentSection === "people-members" && (
-        <div className="people-runtime-grid">
-          <EmployeeList selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} refreshKey={refreshKey} />
-          <EmployeeProfile employeeId={selectedEmployeeId} refreshKey={refreshKey} />
-        </div>
+        <PeopleWorkforceDirectory initialTab="active" refreshKey={refreshKey} onSelectEmployee={setSelectedEmployeeId} />
+      )}
+
+      {currentSection === "people-org-chart" && (
+        <PeopleWorkforceDirectory initialTab="active" initialView="org" refreshKey={refreshKey} onSelectEmployee={setSelectedEmployeeId} />
       )}
 
       {currentSection === "people-documents" && (
@@ -115,9 +120,7 @@ export function PeopleHome({ labels, activeSection = "" }) {
       )}
 
       {currentSection === "people-lifecycle" && (
-        <div className="people-runtime-grid">
-          <LifecycleBoard />
-        </div>
+        <PeopleWorkforceDirectory initialTab="onboarding" refreshKey={refreshKey} onSelectEmployee={setSelectedEmployeeId} />
       )}
 
       {currentSection === "people-policy" && (
