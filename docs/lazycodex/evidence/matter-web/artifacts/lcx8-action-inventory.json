@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx8.action-inventory.v1",
-  "generated_at": "2026-06-25T14:39:12.598Z",
+  "generated_at": "2026-06-25T15:19:55.545851Z",
   "status": "lcx8_closed_current_product_flow_pass_pending_go_live_decision",
   "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
   "first_execution_slice": "P1-T05: Client visible action inventory",
@@ -83,11 +83,11 @@
     "inventory_rows": 324,
     "unknown": 0,
     "pass": 10,
-    "guarded": 19,
+    "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
     "blocked": 122,
-    "fail": 43
+    "fail": 42
   },
   "completed_tuws": [
     "P1-T01",
@@ -1286,5 +1286,21 @@
     "next_tuw": null,
     "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-matter-web-index-update-p9-t09.json",
     "no_remaining_closeout_blocker": true
+  },
+  "post_closeout_remediation": {
+    "resolved_rows": [
+      "LCX8-ACTION-0280"
+    ],
+    "status_counts_after": {
+      "inventory_rows": 324,
+      "unknown": 0,
+      "pass": 10,
+      "guarded": 20,
+      "ui_only": 128,
+      "descriptor_only": 2,
+      "blocked": 122,
+      "fail": 42
+    },
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json"
   }
 }

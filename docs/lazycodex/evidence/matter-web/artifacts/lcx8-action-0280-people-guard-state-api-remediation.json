@@ -1,0 +1,74 @@
+{
+  "schema_version": "lawos.lcx8.people_guard_state_api_remediation.v1",
+  "generated_at": "2026-06-25T15:19:08.335Z",
+  "action_id": "LCX8-ACTION-0280",
+  "base_url": "http://127.0.0.1:4180",
+  "passed": true,
+  "results": [
+    {
+      "name": "search-denied",
+      "path": "/api/hrx/legal-people/search?type_id=client_contact",
+      "status": 403,
+      "expected_status": 403,
+      "ui_state": "denied",
+      "expected_ui_state": "denied",
+      "outcome": "denied",
+      "count_leak_prevented": true,
+      "fail_closed": true,
+      "leaked_tokens": [],
+      "passed": true
+    },
+    {
+      "name": "search-review",
+      "path": "/api/hrx/legal-people/search?type_id=client_contact",
+      "status": 200,
+      "expected_status": 200,
+      "ui_state": "review_required",
+      "expected_ui_state": "review_required",
+      "outcome": "review_required",
+      "count_leak_prevented": true,
+      "fail_closed": false,
+      "leaked_tokens": [],
+      "passed": true
+    },
+    {
+      "name": "detail-denied",
+      "path": "/api/hrx/legal-people/person_client_contact_001",
+      "status": 403,
+      "expected_status": 403,
+      "ui_state": "denied",
+      "expected_ui_state": "denied",
+      "outcome": "denied",
+      "count_leak_prevented": true,
+      "fail_closed": true,
+      "leaked_tokens": [],
+      "passed": true
+    },
+    {
+      "name": "relationships-denied",
+      "path": "/api/hrx/legal-people/relationships?person_id=person_client_contact_001",
+      "status": 403,
+      "expected_status": 403,
+      "ui_state": "denied",
+      "expected_ui_state": "denied",
+      "outcome": "denied",
+      "count_leak_prevented": true,
+      "fail_closed": true,
+      "leaked_tokens": [],
+      "passed": true
+    },
+    {
+      "name": "ethics-review",
+      "path": "/api/hrx/legal-people/ethics?person_id=person_client_contact_001",
+      "status": 200,
+      "expected_status": 200,
+      "ui_state": "review_required",
+      "expected_ui_state": "review_required",
+      "outcome": "review_required",
+      "count_leak_prevented": true,
+      "fail_closed": false,
+      "leaked_tokens": [],
+      "passed": true
+    }
+  ]
+}

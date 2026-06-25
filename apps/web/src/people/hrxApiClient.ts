@@ -1,6 +1,7 @@
 const HRX_TENANT_ID = "tenant_amic_matter_vault";
 const HRX_ACTOR_ID = "user_amic_jwsuh";
 const HRX_ACTOR_ROLE = "security_admin,hr_admin,people_ops";
+const PERMISSION_CONTEXT_HEADER = "x-lawos-permission-context";
 const HRX_SCOPES = [
   "hrx.employee.read",
   "hrx.employee.write",
@@ -40,6 +41,39 @@ const HRX_RUNTIME_HEADERS = {
   "x-lawos-hrx-step-up": HRX_STEP_UP_CONTEXT
 };
 
+function roleIds() {
+  return HRX_ACTOR_ROLE.split(",").map((role) => role.trim()).filter(Boolean);
+}
+
+const HRX_ROUTE_PRINCIPAL = {
+  user_id: HRX_ACTOR_ID,
+  actor_id: HRX_ACTOR_ID,
+  tenant_id: HRX_TENANT_ID,
+  role_ids: roleIds()
+};
+
+const HRX_ROUTE_CONTEXTS = {
+  allow: {
+    principal: HRX_ROUTE_PRINCIPAL,
+    rules: [{ id: "rule_hrx_allow", effect: "allow", action: "*" }],
+    object_acl: []
+  },
+  denied: {
+    principal: HRX_ROUTE_PRINCIPAL,
+    rules: [],
+    object_acl: []
+  },
+  review: {
+    principal: HRX_ROUTE_PRINCIPAL,
+    rules: [{ id: "rule_hrx_review", effect: "review_required", action: "*" }],
+    object_acl: []
+  }
+};
+
+function routeContext(ctx = "allow") {
+  return HRX_ROUTE_CONTEXTS[ctx] ?? HRX_ROUTE_CONTEXTS.allow;
+}
+
 function withQuery(path, params = {}) {
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
@@ -50,17 +84,22 @@ function withQuery(path, params = {}) {
 }
 
 async function requestJson(path, options = {}) {
+  const { ctx = null, headers = {}, ...fetchOptions } = options;
   let response;
   let body;
+  const requestHeaders = {
+    "content-type": "application/json",
+    ...HRX_RUNTIME_HEADERS,
+    ...headers
+  };
+  if (ctx) {
+    requestHeaders[PERMISSION_CONTEXT_HEADER] = JSON.stringify(routeContext(ctx));
+  }
   try {
     response = await fetch(path, {
-      ...options,
+      ...fetchOptions,
       credentials: "same-origin",
-      headers: {
-        "content-type": "application/json",
-        ...HRX_RUNTIME_HEADERS,
-        ...(options.headers ?? {})
-      }
+      headers: requestHeaders
     });
     body = await response.json();
   } catch {
@@ -74,6 +113,9 @@ async function requestJson(path, options = {}) {
         reason: body.safe_error_code ?? body.reason ?? "HRX_STEP_UP_REQUIRED",
         action: body.action ?? null
       };
+    }
+    if (body?.ui_state === "denied" || body?.ui_state === "review_required") {
+      return { kind: "guarded", status: response.status, body };
     }
     return { kind: "error", status: response.status, reason: body?.safe_error_code ?? body?.error ?? "unexpected_response" };
   }
@@ -98,11 +140,29 @@ export async function fetchHrxEmployeeProfile(employeeId) {
   };
 }
 
-export async function fetchLegalPeopleSearch(filters = {}) {
-  const result = await requestJson(withQuery("/api/hrx/legal-people/search", filters));
+function guardedLegalPeopleResult(result, collectionKey) {
+  if (result.kind !== "guarded") return null;
+  const body = result.body;
+  return {
+    kind: "data",
+    uiState: body.ui_state,
+    outcome: body.outcome,
+    safeErrorCodes: body.safe_error_codes ?? [],
+    [collectionKey]: Array.isArray(body[collectionKey]) ? body[collectionKey] : [],
+    permission_summary: body.permission_summary ?? null,
+    claim_boundary: body.claim_boundary ?? null
+  };
+}
+
+export async function fetchLegalPeopleSearch({ ctx = "allow", ...filters } = {}) {
+  const result = await requestJson(withQuery("/api/hrx/legal-people/search", filters), { ctx });
+  const guarded = guardedLegalPeopleResult(result, "people");
+  if (guarded) return { ...guarded, facets: result.body.facets ?? {} };
   if (result.kind !== "data" || !Array.isArray(result.body.people)) return { kind: "error" };
   return {
     kind: "data",
+    uiState: result.body.ui_state ?? null,
+    outcome: result.body.outcome ?? "ok",
     people: result.body.people,
     facets: result.body.facets ?? {},
     permission_summary: result.body.permission_summary ?? null,
@@ -110,12 +170,32 @@ export async function fetchLegalPeopleSearch(filters = {}) {
   };
 }
 
-export async function fetchLegalPersonDetail(personId) {
+export async function fetchLegalPersonDetail(personId, { ctx = "allow" } = {}) {
   if (!personId) return { kind: "empty" };
-  const result = await requestJson(`/api/hrx/legal-people/${encodeURIComponent(personId)}`);
+  const result = await requestJson(`/api/hrx/legal-people/${encodeURIComponent(personId)}`, { ctx });
+  if (result.kind === "guarded") {
+    return {
+      kind: "data",
+      uiState: result.body.ui_state,
+      outcome: result.body.outcome,
+      person: null,
+      affiliations: [],
+      clients: [],
+      matters: [],
+      relationships: [],
+      relationships_grouped: {},
+      conflict_references: [],
+      ethical_wall_references: [],
+      audit_summary: null,
+      permission_summary: result.body.permission_summary ?? null,
+      claim_boundary: result.body.claim_boundary ?? null
+    };
+  }
   if (result.kind !== "data" || !result.body.person) return { kind: "error" };
   return {
     kind: "data",
+    uiState: result.body.ui_state ?? null,
+    outcome: result.body.outcome ?? "ok",
     person: result.body.person,
     affiliations: Array.isArray(result.body.affiliations) ? result.body.affiliations : [],
     clients: Array.isArray(result.body.clients) ? result.body.clients : [],
@@ -130,11 +210,15 @@ export async function fetchLegalPersonDetail(personId) {
   };
 }
 
-export async function fetchLegalPeopleRelationships(filters = {}) {
-  const result = await requestJson(withQuery("/api/hrx/legal-people/relationships", filters));
+export async function fetchLegalPeopleRelationships({ ctx = "allow", ...filters } = {}) {
+  const result = await requestJson(withQuery("/api/hrx/legal-people/relationships", filters), { ctx });
+  const guarded = guardedLegalPeopleResult(result, "relationships");
+  if (guarded) return { ...guarded, pivot: result.body.pivot ?? {}, relationships_grouped: result.body.relationships_grouped ?? {} };
   if (result.kind !== "data" || !Array.isArray(result.body.relationships)) return { kind: "error" };
   return {
     kind: "data",
+    uiState: result.body.ui_state ?? null,
+    outcome: result.body.outcome ?? "ok",
     pivot: result.body.pivot ?? {},
     relationships: result.body.relationships,
     relationships_grouped: result.body.relationships_grouped ?? {},
@@ -143,11 +227,27 @@ export async function fetchLegalPeopleRelationships(filters = {}) {
   };
 }
 
-export async function fetchLegalPeopleEthics(filters = {}) {
-  const result = await requestJson(withQuery("/api/hrx/legal-people/ethics", filters));
+export async function fetchLegalPeopleEthics({ ctx = "allow", ...filters } = {}) {
+  const result = await requestJson(withQuery("/api/hrx/legal-people/ethics", filters), { ctx });
+  if (result.kind === "guarded") {
+    return {
+      kind: "data",
+      uiState: result.body.ui_state,
+      outcome: result.body.outcome,
+      review_queue: [],
+      ethical_walls: [],
+      permission_links: [],
+      reviewer_receipts: [],
+      state_counts: {},
+      permission_summary: result.body.permission_summary ?? null,
+      claim_boundary: result.body.claim_boundary ?? null
+    };
+  }
   if (result.kind !== "data" || !Array.isArray(result.body.review_queue)) return { kind: "error" };
   return {
     kind: "data",
+    uiState: result.body.ui_state ?? null,
+    outcome: result.body.outcome ?? "ok",
     review_queue: result.body.review_queue,
     ethical_walls: Array.isArray(result.body.ethical_walls) ? result.body.ethical_walls : [],
     permission_links: Array.isArray(result.body.permission_links) ? result.body.permission_links : [],

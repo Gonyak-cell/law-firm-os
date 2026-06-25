@@ -89,7 +89,7 @@ function modeFilters(mode) {
   return null;
 }
 
-export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
+export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveCtx = "allow" }) {
   const [query, setQuery] = useState("");
   const [typeId, setTypeId] = useState("");
   const [searchResult, setSearchResult] = useState(null);
@@ -104,7 +104,7 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
   useEffect(() => {
     let cancelled = false;
     setSearchResult(null);
-    fetchLegalPeopleSearch(filters).then((next) => {
+    fetchLegalPeopleSearch({ ...filters, ctx: liveCtx }).then((next) => {
       if (cancelled) return;
       const allowedTypes = modeFilters(mode);
       const people = next.kind === "data" && allowedTypes
@@ -120,40 +120,40 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
     return () => {
       cancelled = true;
     };
-  }, [filters, mode, refreshKey]);
+  }, [filters, liveCtx, mode, refreshKey]);
 
   useEffect(() => {
     let cancelled = false;
     setDetailResult(null);
-    fetchLegalPersonDetail(selectedPersonId).then((next) => {
+    fetchLegalPersonDetail(selectedPersonId, { ctx: liveCtx }).then((next) => {
       if (!cancelled) setDetailResult(next);
     });
     return () => {
       cancelled = true;
     };
-  }, [selectedPersonId, refreshKey]);
+  }, [liveCtx, selectedPersonId, refreshKey]);
 
   useEffect(() => {
     let cancelled = false;
     setRelationshipResult(null);
-    fetchLegalPeopleRelationships(selectedPersonId ? { person_id: selectedPersonId } : {}).then((next) => {
+    fetchLegalPeopleRelationships({ ...(selectedPersonId ? { person_id: selectedPersonId } : {}), ctx: liveCtx }).then((next) => {
       if (!cancelled) setRelationshipResult(next);
     });
     return () => {
       cancelled = true;
     };
-  }, [selectedPersonId, refreshKey]);
+  }, [liveCtx, selectedPersonId, refreshKey]);
 
   useEffect(() => {
     let cancelled = false;
     setEthicsResult(null);
-    fetchLegalPeopleEthics(selectedPersonId ? { person_id: selectedPersonId } : {}).then((next) => {
+    fetchLegalPeopleEthics({ ...(selectedPersonId ? { person_id: selectedPersonId } : {}), ctx: liveCtx }).then((next) => {
       if (!cancelled) setEthicsResult(next);
     });
     return () => {
       cancelled = true;
     };
-  }, [selectedPersonId, refreshKey]);
+  }, [liveCtx, selectedPersonId, refreshKey]);
 
   const people = searchResult?.kind === "data" ? searchResult.people : [];
   const detail = detailResult?.kind === "data" ? detailResult : null;

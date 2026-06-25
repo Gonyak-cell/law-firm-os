@@ -3353,5 +3353,15 @@
     "descriptor_only": 2,
     "blocked": 122,
     "fail": 43
+  },
+  "post_closeout_resolution": {
+    "resolved_rows": [
+      "LCX8-ACTION-0280"
+    ],
+    "status_before": "FAIL",
+    "status_after": "GUARDED",
+    "resolved_at": "2026-06-25T15:19:55.545851Z",
+    "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
+    "note": "Historical P8 ranking/assignment remains a closeout snapshot; current product ledger marks LCX8-ACTION-0280 resolved."
   }
 }

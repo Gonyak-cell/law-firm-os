@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx8.action-run.v1",
-  "generated_at": "2026-06-25T14:39:12.598Z",
+  "generated_at": "2026-06-25T15:19:55.545851Z",
   "status": "lcx8_closed_current_product_flow_pass_pending_go_live_decision",
   "goal": "LCX8 UI action operational audit breakdown and startup",
   "baseline": {
@@ -1388,10 +1388,26 @@
     "inventory_rows": 324,
     "unknown": 0,
     "pass": 10,
-    "guarded": 19,
+    "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
     "blocked": 122,
-    "fail": 43
+    "fail": 42
+  },
+  "post_closeout_remediation": {
+    "resolved_rows": [
+      "LCX8-ACTION-0280"
+    ],
+    "status_counts_after": {
+      "inventory_rows": 324,
+      "unknown": 0,
+      "pass": 10,
+      "guarded": 20,
+      "ui_only": 128,
+      "descriptor_only": 2,
+      "blocked": 122,
+      "fail": 42
+    },
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json"
   }
 }

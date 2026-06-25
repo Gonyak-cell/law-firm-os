@@ -1,0 +1,73 @@
+{
+  "schema_version": "matter.lcx8.post-closeout-remediation-status.v1",
+  "generated_at": "2026-06-25T15:19:55.545851Z",
+  "status": "POST_CLOSEOUT_REMEDIATION_RECORDED",
+  "resolved_rows": [
+    {
+      "id": "LCX8-ACTION-0280",
+      "status_before": "FAIL",
+      "status_after": "GUARDED",
+      "surface": "people-guarded-state",
+      "label": "People directory denied/review state",
+      "evidence": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0280-people-guard-state-remediation.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0280-people-guard-state-api-remediation.json"
+      ]
+    }
+  ],
+  "status_counts_before": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  },
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 42
+  },
+  "commands": [
+    {
+      "command": "npm run lcx:ppl:ui:validate",
+      "result": "PASS"
+    },
+    {
+      "command": "node --test apps/api/test/hrx/legal-people-api.test.js",
+      "result": "PASS 8/8"
+    },
+    {
+      "command": "node scripts/verify-matter-live-data.mjs",
+      "result": "PASS 13/13"
+    },
+    {
+      "command": "npm --workspace apps/web run test:ui",
+      "result": "PASS 17/17"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS"
+    },
+    {
+      "command": "npm run ui:flows:verify",
+      "result": "PASS"
+    },
+    {
+      "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+      "result": "PASS"
+    }
+  ],
+  "non_claims": {
+    "go_live_approved": false,
+    "production_ready": false,
+    "historical_p8_artifacts_are_closeout_snapshots": true
+  }
+}

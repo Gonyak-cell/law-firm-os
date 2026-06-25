@@ -286,10 +286,11 @@ Latest completed slice:
   is promoted to `PASS` without P6 shell click, OS integration, runtime,
   packaging, owner, or external receipt evidence.
 - P1-T11 Playwright DOM sweep added disabled/unavailable evidence across 53
-  rendered web routes. Client/Matter/Vault denied/review states are now
-  represented as `GUARDED`; People directory denied/review state is a `FAIL`
-  because the route shows an empty relationship panel instead of a guarded
-  denied/review panel.
+  rendered web routes. Client/Matter/Vault denied/review states are represented
+  as `GUARDED`. At closeout, People directory denied/review was a `FAIL`; the
+  post-closeout remediation now records `LCX8-ACTION-0280` as `GUARDED` with
+  browser/API evidence in
+  `docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json`.
 - P1-T12 coverage count created
   `docs/lazycodex/evidence/matter-web/artifacts/lcx8-coverage-count-p1-t12.json`.
   The audited route count and ledger route count both equal 65. No row is

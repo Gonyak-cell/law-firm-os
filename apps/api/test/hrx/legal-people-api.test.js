@@ -17,6 +17,32 @@ const PRIVILEGED_HEADERS = Object.freeze({
   "x-lawos-actor-role": "security_admin,legal_ops,conflicts_reviewer",
 });
 
+const PERMISSION_CONTEXT_HEADER = "x-lawos-permission-context";
+
+function permissionContext(ctx) {
+  const principal = {
+    tenant_id: "tenant-a",
+    user_id: "legal-people-api-user",
+    actor_id: "legal-people-api-user",
+    role_ids: ["people_ops"],
+  };
+  if (ctx === "review") {
+    return JSON.stringify({
+      principal,
+      rules: [{ id: "rule_hrx_legal_people_review", effect: "review_required", action: "*" }],
+      object_acl: [],
+    });
+  }
+  if (ctx === "denied") {
+    return JSON.stringify({ principal, rules: [], object_acl: [] });
+  }
+  return JSON.stringify({
+    principal,
+    rules: [{ id: "rule_hrx_legal_people_allow", effect: "allow", action: "*" }],
+    object_acl: [],
+  });
+}
+
 async function json(path, headers = BASE_HEADERS) {
   const response = await fetch(`${baseUrl}${path}`, { headers });
   return { status: response.status, body: await response.json() };
@@ -38,6 +64,47 @@ test("GET /api/hrx/legal-people/search returns unified legal People directory ro
   assert.equal(body.people[0].person_id, "person_client_contact_001");
   assert.equal(body.people[0].permission_summary.sensitive_fields_visible, false);
   assert.equal(Object.hasOwn(body.people[0], "sensitive_refs"), false);
+});
+
+test("GET /api/hrx/legal-people/search fails closed for UI denied context", async () => {
+  const { status, body } = await json("/api/hrx/legal-people/search", {
+    ...BASE_HEADERS,
+    [PERMISSION_CONTEXT_HEADER]: permissionContext("denied"),
+  });
+  assert.equal(status, 403);
+  assert.equal(body.outcome, "denied");
+  assert.equal(body.ui_state, "denied");
+  assert.deepEqual(body.people, []);
+  assert.equal(body.count_leak_prevented, true);
+  assert.equal(JSON.stringify(body).includes("Ari Kim"), false);
+  assert.equal(JSON.stringify(body).includes("person_client_contact_001"), false);
+});
+
+test("GET /api/hrx/legal-people/search returns review state without People tokens for UI review context", async () => {
+  const { status, body } = await json("/api/hrx/legal-people/search", {
+    ...BASE_HEADERS,
+    [PERMISSION_CONTEXT_HEADER]: permissionContext("review"),
+  });
+  assert.equal(status, 200);
+  assert.equal(body.outcome, "review_required");
+  assert.equal(body.ui_state, "review_required");
+  assert.deepEqual(body.people, []);
+  assert.equal(body.review_required, true);
+  assert.equal(JSON.stringify(body).includes("Ari Kim"), false);
+  assert.equal(JSON.stringify(body).includes("person_client_contact_001"), false);
+});
+
+test("GET /api/hrx/legal-people/:person_id fails closed without detail payload for UI denied context", async () => {
+  const { status, body } = await json("/api/hrx/legal-people/person_client_contact_001", {
+    ...BASE_HEADERS,
+    [PERMISSION_CONTEXT_HEADER]: permissionContext("denied"),
+  });
+  assert.equal(status, 403);
+  assert.equal(body.outcome, "denied");
+  assert.equal(body.ui_state, "denied");
+  assert.equal(body.person, null);
+  assert.deepEqual(body.relationships, []);
+  assert.equal(JSON.stringify(body).includes("client_lcx_001"), false);
 });
 
 test("GET /api/hrx/legal-people/:person_id returns permission-aware detail payload", async () => {

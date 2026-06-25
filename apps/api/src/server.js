@@ -464,7 +464,16 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       return;
     }
     const body = req.method === "POST" ? await readRequestBody(req) : {};
-    const result = await handleHrxApiRequest({ pathname, method: req.method, query, body, context: hrxRuntime, requestContext: hrxAuthz.context });
+    const permissionContext = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const result = await handleHrxApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      context: hrxRuntime,
+      requestContext: hrxAuthz.context,
+      permissionContext,
+    });
     sendJson(res, result.status, { request_id: requestId, ...result.body });
     return;
   }
