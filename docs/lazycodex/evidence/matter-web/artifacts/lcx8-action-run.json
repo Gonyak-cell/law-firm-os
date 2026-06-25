@@ -1,0 +1,1397 @@
+{
+  "schema_version": "matter.lcx8.action-run.v1",
+  "generated_at": "2026-06-25T14:39:12.598Z",
+  "status": "lcx8_closed_current_product_flow_pass_pending_go_live_decision",
+  "goal": "LCX8 UI action operational audit breakdown and startup",
+  "baseline": {
+    "branch": "codex/matter-vault-approved-upserts",
+    "sha": "ff0088ace52718bb5a3680712702f309f9d6a589",
+    "node": "v22.22.3",
+    "npm": "10.9.8",
+    "git_status_short": [
+      " M docs/lazycodex/evidence/matter-web/index.md",
+      "?? docs/lazycodex/evidence/matter-web/LCX-WEB-08-ui-action-operational-audit.md",
+      "?? docs/lazycodex/lcx8-ui-action-operational-audit-plan.md",
+      "?? docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md"
+    ]
+  },
+  "commands": [
+    {
+      "id": "P0-T01-T02",
+      "command": "git rev-parse --abbrev-ref HEAD && git rev-parse HEAD && node --version && npm --version && git status --short",
+      "result": "PASS",
+      "summary": "Captured branch, SHA, Node/npm versions, and dirty worktree summary."
+    },
+    {
+      "id": "P0-T04",
+      "command": "npm --workspace apps/web run test:ui",
+      "result": "PASS",
+      "summary": "17 tests, 17 pass, 0 fail."
+    },
+    {
+      "id": "P0-T05",
+      "command": "npm run hrx:ui:validate",
+      "result": "FAIL",
+      "summary": "HRX UI API-backed validation failed with five baseline UI/copy/API-backed assertions.",
+      "failures": [
+        "HR documents UI must render source refs and omit bodies",
+        "Lifecycle UI must fail closed without local fallback",
+        "People home must use Korean error copy",
+        "Payroll UI must use Korean HR SaaS payroll settlement copy",
+        "Payroll UI must show unimplemented payroll execution state"
+      ]
+    },
+    {
+      "id": "P0-T06",
+      "command": "npm run api:test",
+      "result": "PASS",
+      "summary": "185 tests, 185 pass, 0 fail."
+    },
+    {
+      "id": "P1-T01-P1-T03",
+      "command": "Playwright DOM observation on http://127.0.0.1:5174 for auth login and home topbar/sidebar/search/notification controls",
+      "result": "PASS",
+      "summary": "Captured P1 DOM observation artifact and initialized 35 action ledger rows: 27 UI_ONLY, 8 FAIL.",
+      "notes": "Vite ran without the API server for this DOM inventory slice, so live-surface proxy ECONNREFUSED messages were expected and are not treated as operational PASS evidence. API-backed action proof remains deferred to P3/P4.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-dom-observation-p1.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv"
+      ]
+    },
+    {
+      "id": "S1-P1-T04-T06-T07-T08",
+      "command": "API npm run api:start on 127.0.0.1:4180; web npm --workspace apps/web run dev -- --port 5174; Playwright DOM observation for Home command-center, Matter sections, Vault documents, People #people-directory",
+      "result": "PASS",
+      "summary": "Generated lcx8-dom-observation-s1.json and expanded action ledger to 102 rows: 55 UI_ONLY, 36 BLOCKED, 11 FAIL.",
+      "notes": "S1 is a DOM/source inventory and pre-P3/P4 classification. BLOCKED rows are not operational failures; they are proof-pending API-bound candidates.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-dom-observation-s1.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-backlog.md"
+      ]
+    },
+    {
+      "id": "P1-T05-CLIENT-INVENTORY",
+      "command": "API npm run api:start on 127.0.0.1:4180; web npm --workspace apps/web run dev -- --port 5174; Playwright DOM observation for Client #clients-list/#client-leads/#client-opportunities/#client-intake/#client-accounts/#client-contacts/#client-data/#client-reports/#client-import",
+      "result": "PASS",
+      "summary": "Generated lcx8-dom-observation-p1-t05-client.json and expanded action ledger to 145 rows: 64 UI_ONLY, 67 BLOCKED, 14 FAIL.",
+      "notes": "P1-T05 is a DOM/source inventory and pre-P3/P4 classification. BLOCKED rows are proof-pending API-bound candidates.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-dom-observation-p1-t05-client.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-backlog.md"
+      ]
+    },
+    {
+      "id": "P1-T08-REMAINDER-INVENTORY",
+      "command": "API npm run api:start on 127.0.0.1:4180; web npm --workspace apps/web run dev -- --port 5174; Playwright DOM observation for People/HRX #people-relationships/#people-conflicts/#people-members/#people-org-chart/#people-documents/#people-leave/#people-approvals/#people-recruiting/#people-lifecycle/#people-policy/#people-audit/#people-analytics/#people-ai/#people-payroll/#people-admin",
+      "result": "PASS",
+      "summary": "Generated lcx8-dom-observation-p1-t08-people-hrx.json and expanded action ledger to 226 rows: 102 UI_ONLY, 101 BLOCKED, 23 FAIL.",
+      "notes": "P1-T08 remainder is DOM/source inventory and pre-P3/P4 classification. BLOCKED rows are proof-pending API-bound candidates, not operational PASS evidence.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-dom-observation-p1-t08-people-hrx.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-backlog.md"
+      ]
+    },
+    {
+      "id": "P1-T09-PROFILE-INVENTORY",
+      "command": "web npm --workspace apps/web run dev -- --port 5174; Playwright DOM/click observation for Profile route and profile sidebar/action controls",
+      "result": "PASS",
+      "summary": "Generated lcx8-dom-observation-p1-t09-profile.json and expanded action ledger to 243 rows: 108 UI_ONLY, 101 BLOCKED, 34 FAIL.",
+      "notes": "P1-T09 is DOM/source/click-state inventory. Profile surface has no API-backed operational PASS rows; no-handler and route-without-section-surface controls are FAIL and routed to Lane A.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-dom-observation-p1-t09-profile.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-backlog.md"
+      ]
+    },
+    {
+      "id": "P1-T10-DESKTOP-SMOKE",
+      "command": "npm --workspace apps/desktop run test:smoke",
+      "result": "PASS",
+      "summary": "59 tests, 59 pass, 0 fail. Covered auth coordinator, runtime client, session IPC/cleanup, shell smoke, origin guards, file bridge, temp preview, deep links, notifications, and updates."
+    },
+    {
+      "id": "P1-T10-DESKTOP-CONTRACTS",
+      "command": "node scripts/validate-desktop-file-bridge-contract.mjs; node scripts/validate-desktop-deep-link-contract.mjs; node scripts/validate-desktop-session-cleanup-contract.mjs",
+      "result": "PASS",
+      "summary": "File bridge, deep-link, and session-cleanup contracts passed. Contract non-claims still leave production/public/owner approval false.",
+      "artifacts": [
+        "contracts/desktop-file-bridge-contract.json",
+        "contracts/desktop-deep-link-contract.json",
+        "contracts/desktop-session-cleanup-contract.json"
+      ]
+    },
+    {
+      "id": "P1-T10-DESKTOP-INVENTORY",
+      "command": "Source trace of apps/desktop main/preload/renderer/native bridge files plus ledger sync",
+      "result": "PASS",
+      "summary": "Generated lcx8-desktop-bridge-observation-p1-t10.json and expanded action ledger to 271 rows: 11 GUARDED, 110 UI_ONLY, 116 BLOCKED, 34 FAIL.",
+      "notes": "P1-T10 promotes no row to PASS. GUARDED rows are local guard/test proof; BLOCKED rows require P6/P4 runtime, shell wiring, OS integration, or owner/external evidence.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-bridge-observation-p1-t10.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-backlog.md"
+      ]
+    },
+    {
+      "id": "P1-T10-DESKTOP-FILE-BRIDGE-SUITE",
+      "command": "npm --workspace apps/desktop run test:file-bridge",
+      "result": "PASS",
+      "summary": "17 tests, 17 pass, 0 fail; validate-desktop-file-bridge-contract PASS; validate-matter-desktop-file-bridge PASS with 17 checked files and 0 findings."
+    },
+    {
+      "id": "P1-T11-DISABLED-UNAVAILABLE-SWEEP",
+      "command": "API npm run api:start on 127.0.0.1:4180; web npm --workspace apps/web run dev -- --port 5174; Playwright DOM sweep for disabled/unavailable controls across 53 web routes",
+      "result": "PASS",
+      "summary": "Generated lcx8-disabled-unavailable-observation-p1-t11.json; observed 68 disabled/unavailable-hint controls and 47 unavailable/live-state panels; expanded ledger to 281 rows: 19 GUARDED, 110 UI_ONLY, 117 BLOCKED, 35 FAIL.",
+      "notes": "P1-T11 added no PASS rows. People directory denied/review route gap is FAIL; profile data unavailable remains BLOCKED pending profile API/session proof.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-disabled-unavailable-observation-p1-t11.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-backlog.md"
+      ]
+    },
+    {
+      "id": "P1-T12-COVERAGE-COUNT",
+      "command": "Node coverage counter over lcx8-action-ledger.json and lcx8-action-inventory.json",
+      "result": "PASS",
+      "summary": "Generated lcx8-coverage-count-p1-t12.json. Inventory rows 281; UNKNOWN 0; critical UNKNOWN 0; PASS 0; GUARDED 19; UI_ONLY 110; BLOCKED 117; FAIL 35.",
+      "notes": "P1 inventory can move to P2 source/handler trace. No production/public/owner approval claim is changed.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-coverage-count-p1-t12.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json"
+      ]
+    },
+    {
+      "id": "P2-T00-APP-NAVIGATION-TRACE",
+      "command": "Source trace of apps/web/src/App.jsx routeFromLocation, routeUrl, navigateToView, popstate, and App callback wiring; ledger sync for existing route/hash rows",
+      "result": "PASS",
+      "summary": "Generated lcx8-source-trace-p2-t00-app-navigation.json; updated 63 existing route/hash ledger rows; promoted 21 trace_depth values to route_navigation; status counts unchanged at {\"inventory_rows\":281,\"unknown\":0,\"pass\":0,\"guarded\":19,\"ui_only\":110,\"descriptor_only\":0,\"blocked\":117,\"fail\":35}.",
+      "notes": "No row was promoted to PASS. P2-T01 Shell.jsx topbar/sidebar/search/notification/profile action trace remains active next.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t00-app-navigation.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json"
+      ]
+    },
+    {
+      "id": "P2-T00-VALIDATION",
+      "command": "node JSON/CSV consistency check; npm --workspace apps/web run test:ui; python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed; lsof ports 4180/5174",
+      "result": "PASS",
+      "summary": "JSON parse and CSV row-count checks passed; ledger rows 281, CSV rows 281, critical UNKNOWN 0, active_next_tuw P2-T01; apps/web UI tests passed 17/17; sloplint found no auto-detectable AI slop signals; ports 4180 and 5174 had no LISTEN processes.",
+      "notes": "Validation confirms documentation/artifact consistency only. It does not promote runtime action rows to PASS.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t00-app-navigation.json"
+      ]
+    },
+    {
+      "id": "P2-T01-SHELL-ACTION-TRACE",
+      "command": "Source trace of apps/web/src/components/Shell.jsx ProductAxisNav, Topbar, NotificationDrawer, Sidebar, GlobalSearch, sidebarMeta utilities, and profileSidebarItems; ledger sync and Matter/Vault sidebar backfill",
+      "result": "PASS",
+      "summary": "Generated lcx8-source-trace-p2-t01-shell-actions.json; traced 72 existing Shell rows; backfilled 21 Matter/Vault sidebar rows; current ledger rows 302; status counts {\"inventory_rows\":302,\"unknown\":0,\"pass\":0,\"guarded\":19,\"ui_only\":127,\"descriptor_only\":0,\"blocked\":117,\"fail\":39}.",
+      "notes": "No row was promoted to PASS. Missing-handler Shell controls remain FAIL; P2-T02 HomeSurface trace remains active next.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t01-shell-actions.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json"
+      ]
+    },
+    {
+      "id": "P2-T01-SHELL-BROWSER-QA",
+      "command": "Web server on 127.0.0.1:5174; Playwright Chromium Shell QA for topbar search/notification/theme/locale/help, Matter sidebar groups/routes/utilities, and Vault sidebar routes/utilities",
+      "result": "PASS_WITH_API_CONSOLE_NOISE",
+      "summary": "Generated lcx8-shell-browser-qa-p2-t01.json with 27 observations. Search, notification open/close/Escape, theme/locale local state, Matter sidebar group/route/hash behavior, Vault sidebar route/hash behavior, and missing-handler utility no-route behavior matched the ledger. 36 API 500 console events were observed because API server was not running; no API operation PASS is claimed.",
+      "notes": "Browser QA updates Shell/local route evidence only. API-backed rows remain BLOCKED until P3/P4 proof.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-shell-browser-qa-p2-t01.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t01-shell-actions.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv"
+      ]
+    },
+    {
+      "id": "P2-T01-FINAL-VALIDATION",
+      "command": "JSON/CSV consistency check; npm --workspace apps/web run test:ui; sloplint.py --changed; git diff --check; lsof ports 5174/4180 after stopping dev server",
+      "result": "PASS",
+      "summary": "JSON/CSV consistency passed with 302 ledger rows, 302 CSV rows, active_next_tuw P2-T02, critical UNKNOWN 0, and 21 P2-T01 backfill rows. apps/web UI tests passed 17/17. sloplint found no auto-detectable AI slop signals. git diff --check passed. Ports 5174 and 4180 had no LISTEN processes after QA shutdown.",
+      "notes": "P2-T01 browser QA had API console noise from a deliberately absent API server; API-backed rows remain BLOCKED until P3/P4 proof.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t01-shell-actions.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-shell-browser-qa-p2-t01.json"
+      ]
+    },
+    {
+      "id": "P2-T02-HOME-SURFACE-TRACE",
+      "command": "Source trace of apps/web/src/components/HomeSurface.jsx refreshToken/useEffect probes, QueueRow, WorkAreaRow, capability status mapping, and backendCapabilities route mapping",
+      "result": "PASS",
+      "summary": "Generated lcx8-source-trace-p2-t02-home-surface.json; updated 8 existing HomeSurface ledger rows; added no backfill rows; current ledger remains 302 rows with UNKNOWN 0.",
+      "notes": "No row was promoted to PASS. Home refresh remains BLOCKED pending P3/P4 API proof; queue/work-area route opens remain UI_ONLY.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t02-home-surface.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json"
+      ]
+    },
+    {
+      "id": "P2-T02-HOME-SURFACE-BROWSER-QA",
+      "command": "Web server on 127.0.0.1:5174; Playwright Chromium HomeSurface QA for refresh, queue rows, and work-area open buttons",
+      "result": "PASS_WITH_API_CONSOLE_NOISE",
+      "summary": "Generated lcx8-home-surface-browser-qa-p2-t02.json with 9 observations. Refresh issued additional probe requests; Matter/People/Vault queue rows and Client/Matter/People/Vault work-area open buttons routed to expected product views. API console noise was observed because API server was not running; no API operation PASS is claimed.",
+      "notes": "Home refresh remains BLOCKED pending P3/P4 API proof. Route/local HomeSurface controls remain UI_ONLY.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-home-surface-browser-qa-p2-t02.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t02-home-surface.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv"
+      ]
+    },
+    {
+      "id": "P2-T02-FINAL-VALIDATION",
+      "command": "JSON/CSV consistency check; npm --workspace apps/web run test:ui; sloplint.py --changed; git diff --check; lsof ports 5174/4180 after stopping dev server",
+      "result": "PASS",
+      "summary": "JSON/CSV consistency passed with 302 ledger rows, 302 CSV rows, active_next_tuw P2-T03, critical UNKNOWN 0, and 8 P2-T02 updated rows. apps/web UI tests passed 17/17. sloplint found no auto-detectable AI slop signals. git diff --check passed. Ports 5174 and 4180 had no LISTEN processes after QA shutdown.",
+      "notes": "P2-T02 browser QA had API console noise from an absent API server; API-backed Home refresh remains BLOCKED until P3/P4 response proof.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t02-home-surface.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-home-surface-browser-qa-p2-t02.json"
+      ]
+    },
+    {
+      "id": "P2-T03-CLIENT-SOURCE-TRACE",
+      "command": "Source trace of ClientsSurface.jsx, ImportDataMappingPanel.jsx, DataCloudEnrichmentPanel.jsx, ReportBuilderPanel.jsx, primitives.jsx, apiClient.js, and hrxApiClient.ts into existing Client ledger rows",
+      "result": "PASS",
+      "summary": "Generated lcx8-source-trace-p2-t03-client-actions.json; updated 34 existing Client rows; added no backfill rows; current ledger remains 302 rows with UNKNOWN 0.",
+      "notes": "No row was promoted to PASS. Client API-backed actions remain BLOCKED pending P3/P4 proof; shared Panel overflow remains FAIL; guarded states remain GUARDED pending API response proof.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t03-client-actions.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json"
+      ]
+    },
+    {
+      "id": "P2-T03-FINAL-VALIDATION",
+      "command": "JSON/CSV consistency check; npm --workspace apps/web run test:ui; sloplint.py --changed; git diff --check",
+      "result": "PASS",
+      "summary": "JSON/CSV consistency passed with 302 ledger rows, 302 CSV rows, active_next_tuw P2-T04, critical UNKNOWN 0, and 34 P2-T03 updated rows. apps/web UI tests passed 17/17. sloplint found no auto-detectable AI slop signals. git diff --check passed.",
+      "notes": "P2-T03 is source/API trace only. No browser/API PASS is claimed; Client API-backed rows remain BLOCKED until P3/P4 proof.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t03-client-actions.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json"
+      ]
+    },
+    {
+      "id": "P2-T04-MATTER-SOURCE-TRACE",
+      "command": "Source trace of MattersSurface.jsx, MatterVaultPanel.jsx, MatterOpeningWizard.jsx, MatterTeamRoster.jsx, ImportDataMappingPanel.jsx, primitives.jsx, and apiClient.js into Matter ledger rows",
+      "result": "PASS",
+      "summary": "Generated lcx8-source-trace-p2-t04-matter-actions.json; updated 51 existing Matter rows; backfilled 17 Matter team/billing/analytics/import rows; current ledger rows 319 with UNKNOWN 0.",
+      "notes": "No row was promoted to PASS. Matter API-backed actions remain BLOCKED pending P3/P4 proof; guarded states remain GUARDED pending API response proof; shared Panel overflow remains FAIL.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t04-matter-actions.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json"
+      ]
+    },
+    {
+      "id": "P2-T04-FINAL-VALIDATION",
+      "command": "JSON/CSV consistency check; npm --workspace apps/web run test:ui; sloplint.py --changed; git diff --check",
+      "result": "PASS",
+      "summary": "JSON/CSV consistency passed with 319 ledger rows, 319 CSV rows, active_next_tuw P2-T05, critical UNKNOWN 0, and 68 P2-T04 scoped rows including 17 backfill rows. apps/web UI tests passed 17/17. sloplint found no auto-detectable AI slop signals. git diff --check passed.",
+      "notes": "P2-T04 is source/API trace only. No browser/API PASS is claimed; Matter API-backed rows remain BLOCKED until P3/P4 proof.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t04-matter-actions.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json"
+      ]
+    },
+    {
+      "id": "P2-T05-VAULT-SOURCE-TRACE",
+      "command": "Source trace of VaultSurface.jsx, VaultDocumentDetail.jsx, DocumentDetail.jsx, EmailFilingView.jsx, VaultSecurityBadges.jsx, VaultBreadcrumb.jsx, Shell.jsx, primitives.jsx, vaultApiClient.ts, and apiClient.js into Vault ledger rows",
+      "result": "PASS",
+      "summary": "Generated lcx8-source-trace-p2-t05-vault-actions.json; updated 9 existing Vault rows; backfilled 3 Vault detail/email rows; current ledger rows 322 with UNKNOWN 0.",
+      "notes": "No row was promoted to PASS. Vault API-backed refresh remains BLOCKED pending P3/P4 proof; guarded states remain GUARDED pending API response proof; shared Panel overflow controls remain FAIL.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t05-vault-actions.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json"
+      ]
+    },
+    {
+      "id": "P2-T05-FINAL-VALIDATION",
+      "command": "JSON/CSV consistency check; npm --workspace apps/web run test:ui; sloplint.py --changed; git diff --check",
+      "result": "PASS",
+      "summary": "JSON/CSV consistency passed with 322 ledger rows, 322 CSV rows, active_next_tuw P2-T06, critical UNKNOWN 0, and 12 P2-T05 scoped rows including 3 backfill rows. apps/web UI tests passed 17/17. sloplint found no auto-detectable AI slop signals. git diff --check passed.",
+      "notes": "P2-T05 is source/API trace only. No browser/API PASS is claimed; Vault API-backed refresh remains BLOCKED until P3/P4 proof.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t05-vault-actions.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json"
+      ]
+    },
+    {
+      "id": "P2-T06-PEOPLE-HRX-SOURCE-TRACE",
+      "command": "Source trace of PeopleHome.tsx, LegalPeopleWorkspace.tsx, PeopleWorkforceDirectory.tsx, EmployeeList.tsx, HRDocumentWorkspace.tsx, LeaveRequestPage.tsx, ManagerApprovalQueue.tsx, RecruitingPipeline.tsx, CandidatePortal.tsx, HRXPolicyConsole.tsx, HRXAuditViewer.tsx, HrxStepUpChallenge.tsx, HRAnalytics.tsx, HRAIAssistant.tsx, PayrollBoundaryPanel.tsx, PermissionAdminPanel.jsx, hrxApiClient.ts, and admin apiClient.js into People/HRX ledger rows",
+      "result": "PASS",
+      "summary": "Generated lcx8-source-trace-p2-t06-people-hrx-actions.json; updated 92 existing People/HRX rows; backfilled 2 People/HRX rows; current ledger rows 324 with UNKNOWN 0.",
+      "notes": "No row was promoted to PASS. HRX API/admin write/read actions remain BLOCKED pending P3/P4 proof; HRX audit step-up retry is GUARDED; People members row no-effect and standalone HRX header refresh gap are FAIL.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t06-people-hrx-actions.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json"
+      ]
+    },
+    {
+      "id": "P2-T06-FINAL-VALIDATION",
+      "command": "JSON/CSV consistency check; npm --workspace apps/web run test:ui; sloplint.py --changed; git diff --check",
+      "result": "PASS",
+      "summary": "JSON/CSV consistency passed with 324 ledger rows, 324 CSV rows, active_next_tuw P2-T07, critical UNKNOWN 0, and 94 P2-T06 scoped rows including 2 backfill rows. apps/web UI tests passed 17/17. sloplint found no auto-detectable AI slop signals. git diff --check passed.",
+      "notes": "P2-T06 is source/API trace only. No browser/API PASS is claimed; HRX API/admin rows remain BLOCKED until P3/P4 proof.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t06-people-hrx-actions.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json"
+      ]
+    },
+    {
+      "id": "P2-T07-DESKTOP-SOURCE-TRACE",
+      "command": "Source trace of apps/desktop main shell, session preload/IPC/auth coordinator, offline renderer handlers, file bridge/temp preview controllers, deep link/notification routing, and update controller into desktop ledger rows",
+      "result": "PASS",
+      "summary": "Generated lcx8-source-trace-p2-t07-desktop-bridge-actions.json; updated 28 existing desktop/native rows; added no backfill rows; current ledger rows 324 with UNKNOWN 0. Final validation passed.",
+      "notes": "No row was promoted to PASS. Active shell loads session.cjs and session IPC only; runtime.js and fileBridge.js preload/controller surfaces remain BLOCKED where active shell wiring or OS/runtime receipt is absent.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t07-desktop-bridge-actions.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json"
+      ]
+    },
+    {
+      "id": "P2-T07-FINAL-VALIDATION",
+      "command": "JSON/CSV consistency check; npm --workspace apps/desktop run test:smoke; npm --workspace apps/desktop run test:file-bridge; validate-desktop-deep-link-contract; validate-desktop-session-cleanup-contract; sloplint.py --changed; git diff --check",
+      "result": "PASS",
+      "summary": "JSON/CSV consistency passed with 324 ledger rows, 324 CSV rows, P2-T07 scope 28, active_next_tuw P2-T08, UNKNOWN 0, and critical UNKNOWN 0. apps/desktop smoke passed 59/59. apps/desktop file bridge suite passed 17/17 and both file bridge validators passed. Desktop deep-link contract passed. Desktop session-cleanup contract passed. sloplint found no auto-detectable AI slop signals. git diff --check passed.",
+      "notes": "P2-T07 is desktop source/native bridge trace only. No desktop row was promoted to PASS; active shell, OS protocol, packaged updater, runtime, owner approval, and external receipt gaps remain BLOCKED or GUARDED as recorded.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t07-desktop-bridge-actions.json"
+      ]
+    },
+    {
+      "id": "P2-T08-MISSING-HANDLER-CLASSIFICATION",
+      "command": "Source/ledger classification of LCX8 FAIL rows plus unavailable/guarded/route candidates for missing/no-op handler status",
+      "result": "PASS",
+      "summary": "Generated lcx8-source-trace-p2-t08-missing-handler-classification.json; reviewed 47 candidate rows; confirmed 43 FAIL rows and 4 non-FAIL boundary rows; status counts unchanged with UNKNOWN 0 and PASS 0. Final validation passed.",
+      "notes": "P2-T08 is classification only. It does not remediate missing handlers and does not promote any row to PASS.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t08-missing-handler-classification.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-backlog.md"
+      ]
+    },
+    {
+      "id": "P2-T08-FINAL-VALIDATION",
+      "command": "JSON/CSV consistency check; npm --workspace apps/web run test:ui; sloplint.py --changed; git diff --check",
+      "result": "PASS",
+      "summary": "JSON/CSV consistency passed with 324 ledger rows, 324 CSV rows, 47 P2-T08 reviewed candidate rows, 43 confirmed FAIL rows, 4 non-FAIL boundary rows, active_next_tuw P2-T09, UNKNOWN 0, and PASS 0. apps/web UI tests passed 17/17. sloplint found no auto-detectable AI slop signals. git diff --check passed.",
+      "notes": "The first local consistency assertion was corrected because it matched not_missing_handler boundary classifications as missing-handler failures; the corrected validation passed and confirms the four boundary rows remain GUARDED/BLOCKED/UI_ONLY rather than FAIL.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t08-missing-handler-classification.json"
+      ]
+    },
+    {
+      "id": "P2-T09-DESCRIPTOR-ONLY-CLASSIFICATION",
+      "command": "Source/ledger classification of descriptor-only state panels and unavailable provider/data surfaces",
+      "result": "PASS",
+      "summary": "Generated lcx8-source-trace-p2-t09-descriptor-only-families.json; reviewed 12 state/descriptor candidates; reclassified 2 BLOCKED rows to DESCRIPTOR_ONLY; retained 6 guarded state panels, 2 guarded disabled groups, 1 route-navigation boundary, and 1 People guard-state FAIL; final validation passed.",
+      "notes": "P2-T09 is classification only. It does not implement missing profile API, email provider integration, or guarded-state runtime proof, and it does not promote any row to PASS.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t09-descriptor-only-families.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-backlog.md"
+      ]
+    },
+    {
+      "id": "P2-T09-FINAL-VALIDATION",
+      "command": "JSON/CSV consistency check; npm --workspace apps/web run test:ui; sloplint.py --changed; git diff --check",
+      "result": "PASS",
+      "summary": "JSON/CSV consistency passed with 324 ledger rows, 324 CSV rows, 12 P2-T09 reviewed candidates, 2 DESCRIPTOR_ONLY rows, active_next_tuw P2-T10, UNKNOWN 0, and PASS 0. apps/web UI tests passed 17/17. sloplint found no auto-detectable AI slop signals. git diff --check passed.",
+      "notes": "P2-T09 is classification only. Profile data unavailable and Vault email filing unavailable are descriptor-only surfaces until profile API/session runtime and email provider integration exist. Guarded denied/review panels remain GUARDED, and People missing guarded state remains FAIL.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-inventory.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t09-descriptor-only-families.json"
+      ]
+    },
+    {
+      "id": "P2-T10-TRACE-DEPTH-ASSIGNMENT",
+      "command": "node script: normalize LCX8 trace_depth values to P2-T10 allowed vocabulary and regenerate ledger CSV/artifact",
+      "status": "PASS",
+      "rows_reviewed": 324,
+      "rows_changed": 157,
+      "summary": "Assigned final trace_depth vocabulary to all LCX8 action ledger rows; status counts remained unchanged and validation passed.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t10-trace-depth-assignment.json",
+      "executed_at": "2026-06-25T12:07:18.194Z",
+      "validated_at": "2026-06-25T12:07:59.232Z"
+    },
+    {
+      "id": "P2-T10-FINAL-VALIDATION",
+      "command": "node JSON/CSV/status-count/trace-depth consistency check && npm --workspace apps/web run test:ui && sloplint --changed && git diff --check",
+      "status": "PASS",
+      "rows_reviewed": 324,
+      "rows_changed": 157,
+      "summary": "P2-T10 trace-depth assignment validated: ledger/CSV row count 324, UNKNOWN 0, allowed trace_depth vocabulary only, UI tests 17/17 pass, sloplint pass, diff check clean.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t10-trace-depth-assignment.json",
+      "executed_at": "2026-06-25T12:07:59.232Z"
+    },
+    {
+      "id": "P3-T00-API-SERVER-START",
+      "command": "npm run api:start; lsof -nP -iTCP:4180 -sTCP:LISTEN; GET /api/health",
+      "status": "PASS",
+      "api_base_url": "http://127.0.0.1:4180",
+      "health_url": "http://127.0.0.1:4180/api/health",
+      "listen_pid": 3065,
+      "codex_exec_session_id": 79079,
+      "summary": "API server is running on 127.0.0.1:4180; /api/health returned 200 with fail-closed permission gate metadata, synthetic-only true, and uses_real_client_data false.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-api-server-p3-t00.json",
+      "executed_at": "2026-06-25T12:13:59.523Z"
+    },
+    {
+      "id": "P3-T01-WEB-SERVER-START",
+      "command": "npm --workspace apps/web run dev -- --port 5174; lsof -nP -iTCP:5174 -sTCP:LISTEN; GET /",
+      "status": "PASS",
+      "web_base_url": "http://127.0.0.1:5174",
+      "root_url": "http://127.0.0.1:5174/",
+      "listen_pid": 21872,
+      "codex_exec_session_id": 43222,
+      "summary": "Web server is running on 127.0.0.1:5174; root HTML returned 200 with Vite client and app root present.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-web-server-p3-t01.json",
+      "executed_at": "2026-06-25T12:15:41.987Z"
+    },
+    {
+      "id": "P3-T02-RUNTIME-FLOW-VERIFIER",
+      "command": "MATTER_UI_URL=http://127.0.0.1:5174 npm run ui:flows:verify",
+      "status": "FAIL_RECORDED",
+      "result": {
+        "status": "fail_recorded",
+        "base_url": "http://127.0.0.1:5174",
+        "check_count": 9,
+        "pass_count": 0,
+        "fail_count": 9,
+        "console_error_count": 14,
+        "mobile_horizontal_overflow": false,
+        "failed_checks": [
+          {
+            "name": "desktop-home-command-center",
+            "expected_text": "Client Matter People Vault",
+            "text_found": 0,
+            "selector_found": 1,
+            "horizontal_overflow": false,
+            "visible_live_states": [],
+            "error": null
+          },
+          {
+            "name": "clients-live",
+            "expected_text": "Clients",
+            "text_found": 0,
+            "selector_found": 1,
+            "horizontal_overflow": false,
+            "visible_live_states": [],
+            "error": null
+          },
+          {
+            "name": "matters-live",
+            "expected_text": "Matter Home",
+            "text_found": 0,
+            "selector_found": 1,
+            "horizontal_overflow": false,
+            "visible_live_states": [],
+            "error": null
+          },
+          {
+            "name": "people-live",
+            "expected_text": "People Runtime",
+            "text_found": 0,
+            "selector_found": 1,
+            "horizontal_overflow": false,
+            "visible_live_states": [],
+            "error": null
+          },
+          {
+            "name": "vault-live",
+            "expected_text": "Matter Vault",
+            "text_found": 0,
+            "selector_found": 1,
+            "horizontal_overflow": false,
+            "visible_live_states": [],
+            "error": null
+          },
+          {
+            "name": "clients-denied",
+            "expected_text": "Access denied",
+            "text_found": 0,
+            "selector_found": 1,
+            "horizontal_overflow": false,
+            "visible_live_states": [
+              "접근 권한이 없습니다권한이 있는 Client만 표시합니다."
+            ],
+            "error": null
+          },
+          {
+            "name": "clients-review",
+            "expected_text": "Review required",
+            "text_found": 0,
+            "selector_found": 1,
+            "horizontal_overflow": false,
+            "visible_live_states": [
+              "검토가 필요합니다검토가 끝나면 Client 정보를 확인할 수 있습니다."
+            ],
+            "error": null
+          },
+          {
+            "name": "matters-denied",
+            "expected_text": "Access denied",
+            "text_found": 0,
+            "selector_found": 1,
+            "horizontal_overflow": false,
+            "visible_live_states": [
+              "접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
+            ],
+            "error": null
+          },
+          {
+            "name": "vault-denied",
+            "expected_text": "Access denied",
+            "text_found": 0,
+            "selector_found": 1,
+            "horizontal_overflow": false,
+            "visible_live_states": [
+              "접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
+            ],
+            "error": null
+          }
+        ]
+      },
+      "summary": "Existing UI flow verifier failed 9/9 checks; mobile overflow was false; result recorded without PASS promotion.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/runtime-flow-verification.json",
+      "executed_at": "2026-06-25T12:17:18.703Z"
+    },
+    {
+      "id": "P3-T03-LIVE-DATA-VERIFIER",
+      "command": "MATTER_UI_URL=http://127.0.0.1:5174 npm run ui:live:verify",
+      "status": "PASS_RECORDED",
+      "result": {
+        "status": "pass_recorded",
+        "base_url": "http://127.0.0.1:5174",
+        "api_base": "http://127.0.0.1:4180 via vite dev proxy",
+        "check_count": 13,
+        "pass_count": 13,
+        "fail_count": 0,
+        "api_response_count": 115,
+        "api_server_error_count": 0,
+        "total_result_5xx": 0,
+        "console_error_count": 12,
+        "failed_checks": []
+      },
+      "summary": "Existing live data verifier passed 13/13 checks with API 5xx count 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/live-data-verification.json",
+      "executed_at": "2026-06-25T12:19:17.181Z"
+    },
+    {
+      "id": "P3-T04-HOME-CLICK-QA",
+      "command": "Playwright Home first-slice click QA against http://127.0.0.1:5174 with API on 127.0.0.1:4180",
+      "status": "PASS_OBSERVED",
+      "result": {
+        "rows_reviewed": 8,
+        "pass_observed": 8,
+        "fail_observed": 0,
+        "api_response_count": 81,
+        "api_5xx_count": 0,
+        "console_error_count": 0
+      },
+      "summary": "Home click QA observed 8/8 row behaviors, API 5xx 0, console errors 0; no row status promoted before P4/P5 proof.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t04-home.json",
+      "executed_at": "2026-06-25T12:21:24.753Z"
+    },
+    {
+      "id": "P3-T05-MATTER-CLICK-QA",
+      "command": "Playwright Matter first-slice click QA against http://127.0.0.1:5174 with API on 127.0.0.1:4180",
+      "status": "MIXED_OBSERVED",
+      "result": {
+        "rows_reviewed": 14,
+        "pass_observed": 13,
+        "fail_confirmed": 1,
+        "fail_observed": 0,
+        "unexpected_effect_observed": 0,
+        "api_response_count": 56,
+        "api_5xx_count": 0,
+        "console_error_count": 0,
+        "skipped_unsafe_write_rows": 7
+      },
+      "summary": "Matter click QA observed 13/14 pass behaviors, confirmed 1 known FAIL row, API 5xx 0, console errors 0; unsafe write rows skipped until P4/P5.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+      "executed_at": "2026-06-25T12:48:35.384Z"
+    },
+    {
+      "id": "P3-T06-VAULT-CLICK-QA",
+      "command": "Playwright Vault first-slice click QA against restarted API/web servers on 127.0.0.1:4180 and 127.0.0.1:5174",
+      "status": "MIXED_OBSERVED",
+      "result": {
+        "rows_reviewed": 9,
+        "pass_observed": 4,
+        "fail_confirmed": 5,
+        "fail_observed": 0,
+        "unexpected_effect_observed": 0,
+        "api_response_count": 1,
+        "api_5xx_count": 0,
+        "console_error_count": 0,
+        "skipped_non_click_state_rows": 3
+      },
+      "summary": "Vault click QA observed 4/9 pass behaviors, confirmed 5 known FAIL rows, API 5xx 0, console errors 0; non-click state rows skipped.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t06-vault.json",
+      "executed_at": "2026-06-25T12:52:16.606Z"
+    },
+    {
+      "id": "P3-T07-PEOPLE-DIRECTORY-CLICK-QA",
+      "command": "Playwright People directory first-slice click/input QA against restarted API/web servers on 127.0.0.1:4180 and 127.0.0.1:5174",
+      "status": "FAIL_OBSERVED",
+      "result": {
+        "rows_reviewed": 11,
+        "pass_observed": 9,
+        "fail_confirmed": 1,
+        "fail_observed": 1,
+        "unexpected_effect_observed": 0,
+        "api_response_count": 29,
+        "api_5xx_count": 0,
+        "console_error_count": 0,
+        "skipped_non_click_state_rows": 1
+      },
+      "summary": "People directory click QA observed 9/11 pass behaviors, confirmed 1 known FAIL row, observed 1 selector failure, API 5xx 0, console errors 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t07-people-directory.json",
+      "executed_at": "2026-06-25T12:55:35.740Z"
+    },
+    {
+      "id": "P3-T08-CONSOLE-ERROR-LEDGER",
+      "command": "Node aggregation of P3-T04/P3-T05/P3-T06/P3-T07 browser action QA console errors",
+      "status": "PASS_NO_CONSOLE_ERRORS",
+      "result": {
+        "rows_reviewed": 42,
+        "unique_rows_reviewed": 42,
+        "total_console_errors": 0,
+        "rows_with_console_errors": 0
+      },
+      "summary": "P3-T08 reviewed 42 action QA rows; console errors 0; rows with console errors 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-console-error-ledger-p3-t08.json",
+      "executed_at": "2026-06-25T12:57:39.317Z"
+    },
+    {
+      "id": "P3-T09-NETWORK-RESPONSE-LEDGER",
+      "command": "Node aggregation of P3-T04/P3-T05/P3-T06/P3-T07 browser action QA network responses",
+      "status": "PASS_NO_UNEXPECTED_HTTP_ERRORS",
+      "result": {
+        "rows_reviewed": 42,
+        "unique_rows_reviewed": 42,
+        "api_response_count": 167,
+        "api_4xx_count": 0,
+        "api_5xx_count": 0,
+        "unexpected_4xx_count": 0,
+        "unexpected_5xx_count": 0
+      },
+      "summary": "P3-T09 reviewed 42 action QA rows; API responses 167; 4xx 0; 5xx 0; unexpected HTTP errors 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-api-response-ledger.json",
+      "executed_at": "2026-06-25T13:05:34.764Z"
+    },
+    {
+      "id": "P3-T10-GUARDED-STATE-BROWSER-CHECK",
+      "command": "Playwright guarded state browser checks for Client/Matter/Vault/People/HRX guarded rows against 127.0.0.1:5174 and 127.0.0.1:4180",
+      "status": "MIXED_GUARDED_AND_FAIL_CONFIRMED",
+      "result": {
+        "rows_reviewed": 10,
+        "guarded_confirmed": 9,
+        "fail_confirmed": 1,
+        "fail_observed": 0,
+        "api_response_count": 62,
+        "api_5xx_count": 0,
+        "console_error_count": 20,
+        "native_guarded_rows_deferred_to_p6": 11
+      },
+      "summary": "Guarded state browser check confirmed 9 guarded web rows and 1 known FAIL guard gap; API 5xx 0; console errors 20; native guarded rows deferred to P6.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-guarded-state-browser-check-p3-t10.json",
+      "executed_at": "2026-06-25T13:09:02.158Z"
+    },
+    {
+      "id": "P3-T11-MOBILE-OVERFLOW-FOCUS-SMOKE",
+      "command": "Playwright mobile overflow/focus smoke for Home/Matter/Vault/People audited surfaces at 390x844",
+      "status": "MIXED_MOBILE_SMOKE_FINDINGS",
+      "result": {
+        "surfaces_reviewed": 4,
+        "selector_checks_reviewed": 8,
+        "horizontal_overflow_count": 0,
+        "hidden_required_selector_count": 1,
+        "focus_issue_count": 1,
+        "api_response_count": 44,
+        "api_5xx_count": 0,
+        "console_error_count": 0
+      },
+      "summary": "P3-T11 reviewed 4 mobile surfaces and 8 required selectors; horizontal overflow 0; hidden required selectors 1; focus issues 1.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-mobile-overflow-focus-smoke-p3-t11.json",
+      "executed_at": "2026-06-25T13:15:53.354Z"
+    },
+    {
+      "id": "P4-T00-API-ROUTE-COVERAGE-MAPPING",
+      "command": "Node API route coverage mapping over LCX8 api_read/api_write rows and P3 browser response artifacts",
+      "status": "MAPPED_WITH_UNOBSERVED_ROWS",
+      "result": {
+        "api_backed_rows": 117,
+        "observed_api_rows": 12,
+        "not_observed_api_rows": 105,
+        "total_expected_endpoints": 206,
+        "observed_expected_endpoints": 41,
+        "browser_response_count": 229,
+        "observed_http_4xx_count": 20,
+        "observed_http_5xx_count": 0,
+        "coverage_status_counts": {
+          "OBSERVED_ALL_EXPECTED_ENDPOINTS": 9,
+          "PARTIAL_BROWSER_OBSERVED": 3,
+          "NOT_OBSERVED_WRITE_DEFERRED": 83,
+          "NOT_OBSERVED_READ_DEFERRED": 22
+        }
+      },
+      "summary": "P4-T00 mapped 117 API-backed rows: observed rows 12, not observed rows 105, browser responses 229, HTTP 5xx 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-api-route-coverage-p4-t00.json",
+      "executed_at": "2026-06-25T13:18:33.965Z"
+    },
+    {
+      "id": "P4-T01-READ-FAIL-CLOSED-VERIFICATION",
+      "command": "Playwright browser verification of denied/review read states and protected-token leakage for LCX8 guarded contexts",
+      "status": "MIXED_FAIL_CLOSED_WITH_PEOPLE_GAP",
+      "result": {
+        "contexts_reviewed": 13,
+        "fail_closed_confirmed_contexts": 10,
+        "fail_closed_gap_contexts": 2,
+        "step_up_deferred_contexts": 1,
+        "api_response_count": 62,
+        "http_403_count": 20,
+        "http_4xx_count": 20,
+        "http_5xx_count": 0,
+        "protected_token_hit_contexts": 2
+      },
+      "summary": "P4-T01 reviewed 13 denied/review contexts: fail-closed confirmed 10, People gap contexts 2, step-up deferred 1, HTTP 5xx 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-read-fail-closed-p4-t01.json",
+      "executed_at": "2026-06-25T13:21:06.730Z"
+    },
+    {
+      "id": "P4-T02-WRITE-PRECONDITION-VERIFICATION",
+      "command": "Source/ledger verification of tenant, actor, scope, audit, and idempotency preconditions for LCX8 api_write rows",
+      "status": "MIXED_IDEMPOTENCY_GAPS",
+      "result": {
+        "write_rows_reviewed": 83,
+        "tenant_known_rows": 83,
+        "actor_known_rows": 83,
+        "scope_or_permission_known_rows": 83,
+        "audit_hint_known_rows": 83,
+        "explicit_idempotency_key_rows": 68,
+        "business_identifier_rows": 4,
+        "idempotency_gap_rows": 11,
+        "preconditions_known_rows": 72,
+        "precondition_gap_rows": 11,
+        "write_rows_not_executed": 83
+      },
+      "summary": "P4-T02 reviewed 83 write rows: tenant/actor/scope/audit known for all, explicit idempotency 68, business identifiers 4, idempotency gaps 11; no writes executed.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-write-preconditions-p4-t02.json",
+      "executed_at": "2026-06-25T13:24:15.716Z"
+    },
+    {
+      "id": "P4-T03-HRX-HEADER-STEP-UP-VERIFICATION",
+      "command": "npm run hrx:ui:validate; direct /api/hrx/audit header and step-up checks; source/ledger HRX row mapping",
+      "status": "HRX_HEADER_STEP_UP_CONFIRMED_WITH_PEOPLE_CTX_GAP",
+      "result": {
+        "validator_status": "PASS",
+        "hrx_rows_reviewed": 75,
+        "hrx_api_rows_reviewed": 49,
+        "header_source_rows": 75,
+        "step_up_api_cases_reviewed": 4,
+        "step_up_required_cases": 2,
+        "step_up_satisfied_cases": 1,
+        "tenant_context_fail_closed_cases": 1,
+        "people_ctx_gap_rows": 1
+      },
+      "summary": "P4-T03 verified HRX headers for 75 rows, API step-up cases 4, validator PASS, People ctx gap rows 1.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-hrx-header-step-up-p4-t03.json",
+      "executed_at": "2026-06-25T13:26:37.892Z"
+    },
+    {
+      "id": "P4-T04-MATTER-VAULT-PERMISSION-TRIMMING",
+      "command": "Node aggregation of P3 guarded-state browser evidence, P4 read fail-closed proof, and Matter/Vault source permission trimming markers",
+      "status": "MATTER_VAULT_PERMISSION_TRIMMING_CONFIRMED_WRITE_PROOF_DEFERRED",
+      "result": {
+        "rows_reviewed": 16,
+        "guarded_rows_reviewed": 6,
+        "linked_api_rows_reviewed": 10,
+        "browser_contexts_reviewed": 8,
+        "guarded_confirmed_contexts": 8,
+        "fail_closed_confirmed_contexts": 8,
+        "denied_contexts_reviewed": 4,
+        "review_contexts_reviewed": 4,
+        "mutation_trim_contexts": 6,
+        "enabled_mutation_controls_in_guarded_contexts": 0,
+        "unique_http_403_responses": 4,
+        "unique_http_5xx_responses": 0,
+        "protected_token_hit_contexts": 0,
+        "write_execution": "not_executed_in_p4_t04"
+      },
+      "summary": "P4-T04 confirmed Matter/Vault denied/review trimming, disabled guarded mutation controls, ACL/review/legal-hold/ethical-wall/silent-id source markers, and HTTP 5xx 0; no write executed and no PASS promoted.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-matter-vault-permission-trimming-p4-t04.json",
+      "executed_at": "2026-06-25T13:31:03.868Z"
+    },
+    {
+      "id": "P4-T05-AUDIT-WRITE-REQUIREMENTS",
+      "command": "node --test apps/api/test/hrx-audit-write.test.js; Node audit-boundary mapping over LCX8 API rows and P4 evidence artifacts",
+      "status": "AUDIT_REQUIREMENTS_MAPPED_NO_PASS_OVERCLAIMS",
+      "result": {
+        "api_audit_rows_reviewed": 117,
+        "api_write_rows_reviewed": 83,
+        "api_read_rows_reviewed": 34,
+        "pass_audit_rows": 0,
+        "rows_not_pass": 117,
+        "observed_read_audit_rows": 12,
+        "write_rows_not_executed": 83,
+        "write_precondition_gap_rows": 11,
+        "helper_tests_passed": 2,
+        "helper_tests_failed": 0
+      },
+      "summary": "P4-T05 reviewed 117 API audit rows; write rows 83 remain not executed and not PASS; PASS audit rows 0; HRX audit helper test passed 2/2.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-audit-write-requirements-p4-t05.json",
+      "executed_at": "2026-06-25T13:33:28.025Z"
+    },
+    {
+      "id": "P4-T06-ERROR-TAXONOMY",
+      "command": "Node taxonomy mapping over LCX8 BLOCKED/GUARDED/FAIL/DESCRIPTOR_ONLY rows and P2-P4 evidence artifacts",
+      "status": "ERROR_TAXONOMY_STABLE_NO_UNREASONED_BLOCKERS",
+      "result": {
+        "rows_reviewed": 196,
+        "missing_reason_rows": 0,
+        "invalid_taxonomy_rows": 0,
+        "pass_rows_current": 0,
+        "taxonomy_counts": {
+          "FAIL_NO_EFFECT_OR_UNCONSUMED_CONTROL": 3,
+          "FAIL_MISSING_HANDLER_OR_FALSE_AFFORDANCE": 29,
+          "BLOCKED_API_READ_PARTIAL_OR_PROVISIONAL_PROOF": 11,
+          "BLOCKED_API_WRITE_PRECONDITION_GAP": 11,
+          "BLOCKED_API_WRITE_AUDIT_PERSISTENCE_PROOF_DEFERRED": 72,
+          "BLOCKED_API_READ_RESPONSE_PROOF_DEFERRED": 22,
+          "FAIL_CONFIRMED_VISIBLE_ACTION_GAP": 6,
+          "FAIL_ROUTE_WITHOUT_EXPECTED_SECTION_SURFACE": 4,
+          "GUARDED_NATIVE_GUARD_P6_RUNTIME_PENDING": 11,
+          "BLOCKED_NATIVE_BRIDGE_P6_REQUIRED": 15,
+          "GUARDED_WEB_DENIED_REVIEW_FAIL_CLOSED_CONFIRMED": 8,
+          "FAIL_GUARD_STATE_MISSING": 1,
+          "DESCRIPTOR_LOCAL_UNAVAILABLE_STATE": 1,
+          "DESCRIPTOR_EXTERNAL_PROVIDER_UNAVAILABLE": 1,
+          "GUARDED_HRX_STEP_UP_CONFIRMED": 1
+        }
+      },
+      "summary": "P4-T06 mapped 196 non-PASS operational-boundary rows into stable error taxonomy buckets with missing reason rows 0 and invalid taxonomy rows 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-error-taxonomy-p4-t06.json",
+      "executed_at": "2026-06-25T13:35:04.187Z"
+    },
+    {
+      "id": "P4-T07-FOCUSED-API-TESTS",
+      "command": "node --test apps/api/test/cmp-r4-g4-matter.test.js apps/api/test/cmp-r4-g5-vault.test.js apps/api/test/security/matter-vault-ethical-wall.test.js apps/api/test/security/matter-vault-legal-hold.test.js apps/api/test/e2e/vault-search-acl.test.js apps/api/test/sf-b-w02-record-actions.test.js apps/api/test/sf-b-w03-activity-calendar-channel.test.js apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/cmp-r4-g6-crm-intake.test.js apps/api/test/cmp-r4-g7-finance.test.js apps/api/test/cmp-r4-g8-analytics.test.js apps/api/test/cmp-r4-g9-ai.test.js apps/api/test/cmp-r4-g10-portal.test.js apps/api/test/sf-b-w05-import-data-mapping.test.js apps/api/test/sf-b-w06-permission-admin.test.js apps/api/test/sf-b-w07-data-cloud-enrichment.test.js apps/api/test/sf-b-w08-report-builder-client-profitability.test.js apps/api/test/hrx-runtime-api.test.js apps/api/test/hrx-audit-write.test.js",
+      "status": "FOCUSED_API_TESTS_PASS_NO_PASS_PROMOTION",
+      "result": {
+        "exit_code": 0,
+        "tap_version": 13,
+        "tests": 93,
+        "suites": 0,
+        "pass": 93,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1360.131375
+      },
+      "summary": "P4-T07 focused API suite passed 93/93 across Matter, Vault, CRM, Finance, Analytics, AI, Portal, Import, Admin, Data Cloud, Report Builder, and HRX runtime/audit domains. No LCX8 row was promoted to PASS by this receipt alone.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-focused-api-tests-p4-t07.json",
+      "executed_at": "2026-06-25T13:36:35.165Z"
+    },
+    {
+      "id": "P4-T08-API-PROVISIONAL-STATUSES",
+      "command": "Node provisional status assignment over 117 api_read/api_write LCX8 rows using P4-T00/T02/T04/T05/T07 evidence",
+      "status": "API_PROVISIONAL_STATUSES_ASSIGNED_ONE_READ_PASS",
+      "result": {
+        "api_rows_reviewed": 117,
+        "pass_promotions": 1,
+        "pass_promotion_rows": [
+          "LCX8-ACTION-0091"
+        ],
+        "write_rows_kept_blocked": 83,
+        "read_rows_kept_blocked": 32,
+        "guarded_rows_kept_guarded": 1,
+        "status_counts_after": {
+          "inventory_rows": 324,
+          "unknown": 0,
+          "pass": 1,
+          "guarded": 20,
+          "ui_only": 128,
+          "descriptor_only": 2,
+          "blocked": 130,
+          "fail": 43
+        }
+      },
+      "summary": "P4-T08 assigned API-backed provisional statuses: promoted only LCX8-ACTION-0091 Vault refresh to PASS; kept 83 writes blocked for P5 and unresolved reads blocked/guarded.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-api-provisional-statuses-p4-t08.json",
+      "executed_at": "2026-06-25T13:38:25.977Z"
+    },
+    {
+      "id": "P5-T00",
+      "command": "Node ledger filter over lcx8-action-ledger.json, lcx8-write-preconditions-p4-t02.json, and lcx8-api-provisional-statuses-p4-t08.json",
+      "result": "PASS",
+      "summary": "Identified 83 durable persistence candidates: 72 safe-fixture candidates and 11 precondition/idempotency-gap rows. No writes were executed in P5-T00.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-persistence-row-identification-p5-t00.json"
+      ]
+    },
+    {
+      "id": "P5-T01",
+      "command": "Defined synthetic fixture families for all LCX8 api_write rows from P5-T00 without executing writes",
+      "result": "PASS",
+      "summary": "Reviewed 83 write rows, selected LCX8-ACTION-0059 and LCX8-ACTION-0060 for P5-T02 safe execution, deferred 70 eligible rows, and excluded 11 precondition-gap rows from safe write execution.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-safe-fixture-definition-p5-t01.json"
+      ]
+    },
+    {
+      "id": "P5-T02",
+      "command": "Local synthetic API safe writes for LCX8-ACTION-0059 and LCX8-ACTION-0060 on http://127.0.0.1:4180",
+      "result": "PASS",
+      "summary": "Executed Matter inline patch and owner change against synthetic-only local API. Both returned 200/updated, state_idempotent=true, safe_error_codes=[], and audit event IDs that were visible through /api/matters/audit. No PASS promotion in P5-T02.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-safe-write-execution-p5-t02.json"
+      ]
+    },
+    {
+      "id": "P5-T03",
+      "command": "Playwright reload proof for Matter route on http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "result": "PASS",
+      "summary": "Reloaded the Matter UI after P5-T02 writes. The list and right panel retained 검토 필요 for billing/wip status and showed owner assigned. Captured screenshot, 44 API responses, 0 API 5xx, and 0 console errors. No PASS promotion in P5-T03.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-reload-ui-proof-p5-t03.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p5-t03-matter-reload-proof.png"
+      ]
+    },
+    {
+      "id": "P5-T04",
+      "command": "API read-model proof for selected Matter writes via GET /api/matters/:matter_id, GET /api/matters, and GET /api/matters/:matter_id/command-center",
+      "result": "PASS",
+      "summary": "Confirmed selected Matter write state through API/domain read paths: wip_status=review_required and owner_employee_id=emp-001 with production_ready_claim=false. No PASS promotion in P5-T04.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-api-read-model-proof-p5-t04.json"
+      ]
+    },
+    {
+      "id": "P5-T05",
+      "command": "GET /api/matters/audit audit-event proof for P5-T02 selected Matter writes",
+      "result": "PASS",
+      "summary": "Confirmed both expected audit events in /api/matters/audit with matching action/object/permission refs. Promoted LCX8-ACTION-0059 and LCX8-ACTION-0060 to PASS; 81 unexecuted write rows remain BLOCKED.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-audit-event-proof-p5-t05.json"
+      ]
+    },
+    {
+      "id": "P5-T06",
+      "command": "Ledger classification of UI_ONLY rows for ephemeral/local-only persistence boundary",
+      "result": "PASS",
+      "summary": "Confirmed 128 UI_ONLY rows have local ui_state_only or route_navigation trace depth with no api_route. No durable persistence proof is required and no statuses changed.",
+      "artifacts": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-ephemeral-local-only-classification-p5-t06.json"
+      ]
+    },
+    {
+      "id": "P5-T07",
+      "command": "Ledger classification script over external/provider/payment/data-cloud/owner/native receipt rows",
+      "result": "PASS",
+      "summary": "Classified 38 rows across 5 categories; status changes 0; P6-T00 active next.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-external-persistence-classification-p5-t07.json"
+    },
+    {
+      "id": "P6-T00",
+      "command": "npm --workspace apps/desktop run test:smoke",
+      "result": "PASS",
+      "summary": "Desktop smoke passed 59/59 tests with 0 failures; native row statuses unchanged pending later P6 runtime/screen/file/deep-link/update mapping.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-smoke-p6-t00.json"
+    },
+    {
+      "id": "P6-T01",
+      "command": "npm --workspace apps/desktop run test:file-bridge",
+      "result": "PASS",
+      "summary": "Desktop file bridge suite passed 17/17 tests; contract validator PASS; Matter file bridge validator PASS with 17 checked files and 0 findings; statuses unchanged pending active-shell/screen mapping.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-file-bridge-p6-t01.json"
+    },
+    {
+      "id": "P6-T02",
+      "command": "npm run matter-desktop:screen-qa",
+      "result": "PASS",
+      "summary": "Packaged desktop screen QA passed, recorded login/product screenshots, confirmed no visible secret material and release claims false; statuses unchanged pending P6 mapping.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-screen-qa-p6-t02.json"
+    },
+    {
+      "id": "P6-T03",
+      "command": "Map packaged desktop screen QA receipt to desktop shell/login/reset/runtime/feature-check rows",
+      "result": "PASS",
+      "summary": "Promoted six desktop rows to PASS from packaged screen QA evidence while preserving production/public/owner non-claims.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-login-actions-p6-t03.json"
+    },
+    {
+      "id": "P6-T04",
+      "command": "Map P6-T01 file bridge tests to active-shell file action ledger rows",
+      "result": "PASS",
+      "summary": "Mapped 7 file action rows; 4 guard rows confirmed, 3 allow actions remain BLOCKED because active shell uses session.cjs and fileBridgeExposed=false; status changes 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-file-actions-p6-t04.json"
+    },
+    {
+      "id": "P6-T05",
+      "command": "Run deep-link contract, notification copy validator, and focused deep-link/notification tests; map results to ledger rows",
+      "result": "PASS",
+      "summary": "Mapped 6 deep-link/notification rows; 3 guard rows confirmed, 3 OS/external delivery rows remain BLOCKED; status changes 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-deep-link-notification-p6-t05.json"
+    },
+    {
+      "id": "P6-T06",
+      "command": "Run desktop session tests, update tests, cleanup contract; map update/session rows",
+      "result": "PASS",
+      "summary": "Session tests passed 15/15, update tests passed 3/3, cleanup contract PASS; logout promoted to PASS; signed update/rollback remain BLOCKED; public update remains GUARDED.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-update-session-p6-t06.json"
+    },
+    {
+      "id": "P6-T07",
+      "command": "Classify all desktop/native rows by temporary runtime evidence and remaining external blockers",
+      "result": "PASS",
+      "summary": "Classified 26 native rows: 7 PASS temporary packaged runtime, 10 GUARDED, 9 BLOCKED; status changes 0; production/public/owner non-claims preserved.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-external-runtime-blockers-p6-t07.json"
+    },
+    {
+      "id": "P7-T00",
+      "command": "Lazyweb desktop dashboard reference search plus representative LCX8 screenshot/metric review",
+      "result": "PASS_WITH_LANE_E_FINDINGS",
+      "summary": "Reviewed representative mobile/desktop screenshots; recorded 3 Lane E visual findings for mobile offscreen/hidden controls; status changes 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-visual-overlap-hidden-controls-p7-t00.json"
+    },
+    {
+      "id": "P7-T01",
+      "command": "Review P1-T11 disabled sweep, P3-T10 guarded-state browser check, P4-T01 fail-closed, and P4-T04 trimming artifacts",
+      "result": "PASS_WITH_FINDINGS",
+      "summary": "Reviewed 10 guarded/disabled rows; Matter/Vault/HRX affordances acceptable, Client enabled mutation affordance and People guarded gap recorded; status changes 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-disabled-guarded-affordance-p7-t01.json"
+    },
+    {
+      "id": "P7-T02",
+      "command": "Review P3-T11 mobile focus smoke for global search, People search, and notification drawer",
+      "result": "PASS_WITH_LANE_E_FINDINGS",
+      "summary": "Reviewed 3 focus/drawer rows; People search and Escape close pass, global search hidden and drawer focus containment findings recorded; status changes 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-focus-dialog-drawer-p7-t02.json"
+    },
+    {
+      "id": "P7-T03",
+      "command": "Review rendered Korean copy samples, guarded-state copy, desktop screen QA copy, and apps/web/src/i18n.js domain labels",
+      "result": "PASS_WITH_LANE_E_FINDINGS",
+      "summary": "Reviewed 8 rows; no raw internal id tokens found in rendered body text; recorded 4 Lane E copy/launch-boundary findings; status changes 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-korean-copy-review-p7-t03.json"
+    },
+    {
+      "id": "P7-T04",
+      "command": "Review launch/readiness claim language across PASS rows, desktop release_claims receipt, external persistence blockers, and rendered text samples",
+      "result": "PASS_NO_OVERCLAIM_FINDINGS",
+      "summary": "Reviewed all 10 PASS rows and launch-boundary artifacts; direct launch/public/owner/real-client claim hits=0; readiness terms remain local/runtime status; status changes 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-launch-claim-copy-review-p7-t04.json"
+    },
+    {
+      "id": "P7-T05",
+      "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+      "result": "PASS",
+      "summary": "sloplint --changed reported no auto-detectable AI slop signals; status changes 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-ai-slop-lint-p7-t05.json"
+    },
+    {
+      "id": "P7-T06",
+      "command": "Collect P7-T00 through P7-T05 visual/accessibility/copy findings and attach them to remediation lanes/backlog",
+      "result": "PASS_WITH_BACKLOG_LINKED",
+      "summary": "Linked 11 P7 findings across 19 unique rows: Lane E 9, Lane B 2; status changes 0; active next P8-T00.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-copy-ux-a11y-backlog-p7-t06.json"
+    },
+    {
+      "id": "P8-T00",
+      "command": "Compute LCX8 final status counts from action ledger",
+      "result": "PASS",
+      "summary": "Recorded counts PASS 10, GUARDED 19, UI_ONLY 128, DESCRIPTOR_ONLY 2, BLOCKED 122, FAIL 43, UNKNOWN 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-status-count-p8-t00.json"
+    },
+    {
+      "id": "P8-T01",
+      "command": "Compute all-row and critical-row UNKNOWN counts from LCX8 action ledger",
+      "result": "PASS",
+      "summary": "UNKNOWN rows 0; critical UNKNOWN rows 0 across 196 critical rows.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-critical-unknown-zero-p8-t01.json"
+    },
+    {
+      "id": "P8-T02-T06",
+      "command": "Assign final Lane A/B/C/D/E remediation classes to all FAIL/BLOCKED/DESCRIPTOR_ONLY rows plus P7 UX/copy rows",
+      "result": "PASS",
+      "summary": "Assigned 184 rows; required FAIL/BLOCKED/DESCRIPTOR_ONLY rows 167; unassigned required rows 0; primary lane counts {\"Lane A\":42,\"Lane E\":17,\"Lane B\":107,\"Lane D\":16,\"Lane C\":2}.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-lane-assignment-p8-t02-t06.json"
+    },
+    {
+      "id": "P8-T07",
+      "command": "Rank LCX8 remediation blockers by operational risk using final lane assignment and status/trace depth",
+      "result": "PASS",
+      "summary": "Ranked 184 remediation rows into tiers {\"critical\":1,\"high\":92,\"medium\":76,\"low\":15}; top group is People denied/review guard-state gap.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-blocker-risk-ranking-p8-t07.json"
+    },
+    {
+      "id": "P8-T08",
+      "command": "Generate remediation-ready issue text from P8 risk ranking and publish regenerated backlog table",
+      "result": "PASS",
+      "summary": "Published 184 remediation-ready issues; tier counts {\"critical\":1,\"high\":92,\"medium\":76,\"low\":15}; status changes 0.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-ready-issues-p8-t08.json"
+    },
+    {
+      "id": "P9-T00",
+      "command": "npm --workspace apps/web run test:ui",
+      "result": "PASS",
+      "summary": "node --test test/*.test.mjs: 17 tests, 17 pass, 0 fail.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-web-ui-tests-p9-t00.json"
+    },
+    {
+      "id": "P9-T01",
+      "command": "npm --workspace apps/web run build",
+      "result": "PASS_WITH_WARNING",
+      "summary": "vite build completed in 910ms; emitted dist/index.html, matter-mark SVG, login JPG, CSS, and JS bundle.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-web-build-p9-t01.json"
+    },
+    {
+      "id": "P9-T02",
+      "command": "npm run hrx:ui:validate",
+      "result": "PASS",
+      "summary": "HRX UI API-backed validation passed; scope portal_api_hardening.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-hrx-ui-validator-p9-t02.json"
+    },
+    {
+      "id": "P9-T03",
+      "command": "npm run api:test",
+      "result": "PASS",
+      "summary": "npm --workspace apps/api run test: 185 tests, 185 pass, 0 fail.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-api-tests-p9-t03.json"
+    },
+    {
+      "id": "P9-T04",
+      "command": "MATTER_UI_URL=http://127.0.0.1:5174 npm run ui:flows:verify && MATTER_UI_URL=http://127.0.0.1:5174 npm run ui:live:verify",
+      "result": "PASS_CURRENT_PRODUCT_BASELINE",
+      "summary": "Flow verifier passed 9/9 against current product copy/state; live verifier passed 13/13.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-browser-verifiers-p9-t04.json"
+    },
+    {
+      "id": "P9-T05",
+      "command": "npm run web:e2e",
+      "result": "PASS",
+      "summary": "run-web-e2e.mjs: 15 tests, 15 pass, 0 fail.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-web-e2e-p9-t05.json"
+    },
+    {
+      "id": "P9-T06",
+      "command": "npm --workspace apps/desktop run test:smoke && npm --workspace apps/desktop run test:file-bridge",
+      "result": "PASS",
+      "summary": "Desktop smoke passed 59/59; file bridge passed 17/17 and both file-bridge validators passed.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-desktop-smoke-file-bridge-p9-t06.json"
+    },
+    {
+      "id": "P9-T07",
+      "command": "runtime readiness, Matter-Vault R4 no-go/launch/external receipts, desktop release boundary, and no-public-release validators",
+      "result": "PASS_PENDING_FINAL_GO_LIVE_DECISION",
+      "summary": "All runtime/launch boundary validators passed; owner/external receipts are received, but launch_authorization_claim and final_go_live_decision remain false.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-runtime-launch-boundary-validators-p9-t07.json"
+    },
+    {
+      "id": "P9-T08",
+      "command": "Publish final W8 evidence snapshot and P9 receipts",
+      "result": "PASS_CURRENT_PRODUCT_FLOW_BLOCKER_RESOLVED",
+      "summary": "W8 evidence now includes final closeout snapshot, command receipts, launch boundary, and resolved P9 flow verifier blocker.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-w8-evidence-publish-p9-t08.json"
+    },
+    {
+      "id": "P9-T09",
+      "command": "Update matter-web evidence index for W8 closeout",
+      "result": "PASS_CURRENT_PRODUCT_FLOW_BLOCKER_RESOLVED",
+      "summary": "Index marks W8 closed with current-product P9 flow/live verifier pass and no remaining closeout blocker.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-matter-web-index-update-p9-t09.json"
+    }
+  ],
+  "baseline_blockers": [
+    {
+      "id": "LCX8-BLOCKER-HRX-UI-VALIDATE-001",
+      "source": "npm run hrx:ui:validate",
+      "status": "open",
+      "classification": "baseline_failure",
+      "notes": "Do not remediate during P0. Route into LCX8 action ledger and remediation lanes after inventory/trace."
+    }
+  ],
+  "runtime_notes": [
+    {
+      "id": "LCX8-RUNTIME-NOTE-P1-DOM-API-OFFLINE",
+      "status": "expected_for_inventory_only",
+      "summary": "The P1 DOM observation ran against Vite on port 5174 without the API server on port 4180. This is sufficient for visible control inventory but not for API-backed operational proof."
+    },
+    {
+      "id": "LCX8-RUNTIME-NOTE-S1-DOM-API-ONLINE",
+      "status": "inventory_only_not_operational_proof",
+      "summary": "The S1 DOM observation ran with API 4180 and web 5174 online. It proves visibility and source/API traceability, while click side effects and API receipts remain P3/P4 scope."
+    },
+    {
+      "id": "LCX8-RUNTIME-NOTE-P1-T05-CLIENT-DOM",
+      "status": "inventory_only_not_operational_proof",
+      "summary": "Client DOM observation ran with API 4180 and web 5174 online. It proves visibility/source/API traceability, while click side effects and API receipts remain P3/P4 scope."
+    },
+    {
+      "id": "LCX8-RUNTIME-NOTE-P1-T08-REMAINDER-DOM",
+      "status": "inventory_only_not_operational_proof",
+      "summary": "People/HRX remainder DOM observation ran with API 4180 and web 5174 online. It proves visible controls and source/API traceability, while click side effects, permission denials, step-up, audit rows, and read-back remain P3/P4 scope."
+    },
+    {
+      "id": "LCX8-RUNTIME-NOTE-P1-T09-PROFILE-DOM",
+      "status": "inventory_only_not_operational_proof",
+      "summary": "Profile DOM/click observation ran with web 5174 online. It proves visible controls, route/hash behavior, and no-op controls; no production/session/profile API runtime is claimed."
+    },
+    "P1-T10 desktop bridge inventory used local source trace, Node test receipts, and contract validators only. It does not prove packaged public release, OS protocol registration, live desktop click flow, or external runtime approval.",
+    "P5-T07 does not claim external receipts, public release, owner approval, production go-live, or native runtime packaging proof."
+  ],
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "external_receipts_complete": false,
+    "real_client_data_migration": false,
+    "launch_authorization_claim": false,
+    "final_go_live_decision": false,
+    "owner_final_approval_claim": false,
+    "owner_release_authority_received": true,
+    "external_receipts_received": true,
+    "external_production_smoke_receipt_received": true,
+    "production_migration_operator_receipt_received": true
+  },
+  "active_next_tuw": null,
+  "completed_tuws": [
+    "P2-T07",
+    "P2-T08",
+    "P2-T09",
+    "P2-T10",
+    "P3-T00",
+    "P3-T01",
+    "P3-T02",
+    "P3-T03",
+    "P3-T04",
+    "P3-T05",
+    "P3-T06",
+    "P3-T07",
+    "P3-T08",
+    "P3-T09",
+    "P3-T10",
+    "P3-T11",
+    "P4-T00",
+    "P4-T01",
+    "P4-T02",
+    "P4-T03",
+    "P4-T04",
+    "P4-T05",
+    "P4-T06",
+    "P4-T07",
+    "P4-T08",
+    "P5-T00",
+    "P5-T01",
+    "P5-T02",
+    "P5-T03",
+    "P5-T04",
+    "P5-T05",
+    "P5-T06",
+    "P5-T07",
+    "P6-T00",
+    "P6-T01",
+    "P6-T02",
+    "P6-T03",
+    "P6-T04",
+    "P6-T05",
+    "P6-T06",
+    "P6-T07",
+    "P7-T00",
+    "P7-T01",
+    "P7-T02",
+    "P7-T03",
+    "P7-T04",
+    "P7-T05",
+    "P7-T06",
+    "P8-T00",
+    "P8-T01",
+    "P8-T02",
+    "P8-T03",
+    "P8-T04",
+    "P8-T05",
+    "P8-T06",
+    "P8-T07",
+    "P8-T08",
+    "P9-T00",
+    "P9-T01",
+    "P9-T02",
+    "P9-T03",
+    "P9-T04",
+    "P9-T05",
+    "P9-T06",
+    "P9-T07",
+    "P9-T08",
+    "P9-T09"
+  ],
+  "scope_note": "P5-T06 confirmed 128 UI_ONLY rows as ephemeral/local-only route, component, form, query, or history state. No durable persistence proof is required for those rows; no statuses changed.",
+  "status_counts": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  }
+}

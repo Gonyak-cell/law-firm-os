@@ -1,0 +1,100 @@
+{
+  "schema_version": "matter.lcx8.desktop-update-session.p6-t06.v1",
+  "generated_at": "2026-06-25T14:09:58.680Z",
+  "status": "DESKTOP_UPDATE_SESSION_MAPPED_WITH_SESSION_PASS_AND_UPDATE_BLOCKERS",
+  "tuw": "P6-T06",
+  "command_receipts": [
+    {
+      "command": "npm --workspace apps/desktop run test:session",
+      "result": "PASS",
+      "tests_total": 15,
+      "tests_passed": 15,
+      "tests_failed": 0
+    },
+    {
+      "command": "npm --workspace apps/desktop run test:update",
+      "result": "PASS",
+      "tests_total": 3,
+      "tests_passed": 3,
+      "tests_failed": 0
+    },
+    {
+      "command": "node scripts/validate-desktop-session-cleanup-contract.mjs",
+      "result": "PASS",
+      "required_cache_class_count": 9,
+      "logout_wipes_all_required_cache_classes": true,
+      "tenant_switch_wipes_all_required_cache_classes": true,
+      "renderer_token_storage_allowed": false
+    }
+  ],
+  "reviewed_rows": 4,
+  "promoted_to_pass": 1,
+  "status_changes": 1,
+  "update_blocker_rows": [
+    "LCX8-ACTION-0269",
+    "LCX8-ACTION-0270"
+  ],
+  "update_guard_rows": [
+    "LCX8-ACTION-0271"
+  ],
+  "non_claims": {
+    "packaged_updater_receipt": false,
+    "notarization_receipt": false,
+    "owner_approval_recorded": false,
+    "public_release": false,
+    "production_go_live": false
+  },
+  "next_tuw": "P6-T07",
+  "rows": [
+    {
+      "id": "LCX8-ACTION-0251",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "desktop-renderer",
+      "label": "Desktop logout",
+      "category": "session_cleanup_pass",
+      "reason": "active session IPC cleanup path is loaded by session.cjs and tests/contract prove logout clears secure store plus required cache classes",
+      "remediation_lane_after": null
+    },
+    {
+      "id": "LCX8-ACTION-0269",
+      "status_before": "BLOCKED",
+      "status_after": "BLOCKED",
+      "surface": "desktop-updates",
+      "label": "Signed internal update apply",
+      "category": "signed_update_controller_proven_packaged_receipt_blocked",
+      "reason": "signature-gated update controller test passes, but packaged updater receipt, owner approval, and notarization receipt are absent",
+      "remediation_lane_after": "P6/Lane D"
+    },
+    {
+      "id": "LCX8-ACTION-0270",
+      "status_before": "BLOCKED",
+      "status_after": "BLOCKED",
+      "surface": "desktop-updates",
+      "label": "Signed internal rollback",
+      "category": "signed_rollback_controller_proven_packaged_receipt_blocked",
+      "reason": "rollback controller test passes, but packaged updater rollback receipt and owner approval are absent",
+      "remediation_lane_after": "P6/Lane D"
+    },
+    {
+      "id": "LCX8-ACTION-0271",
+      "status_before": "GUARDED",
+      "status_after": "GUARDED",
+      "surface": "desktop-updates",
+      "label": "Public update channel",
+      "category": "public_update_channel_guard_confirmed",
+      "reason": "public update channel remains disabled by update tests and no public release claim is made",
+      "remediation_lane_after": null
+    }
+  ],
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  }
+}

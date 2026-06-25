@@ -1,0 +1,129 @@
+{
+  "schema_version": "matter.lcx8.desktop-login-actions.p6-t03.v1",
+  "generated_at": "2026-06-25T14:05:14.516Z",
+  "status": "DESKTOP_LOGIN_ACTIONS_MAPPED_WITH_PASS_PROMOTIONS",
+  "tuw": "P6-T03",
+  "source_receipt": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa-result.json",
+  "source_screen_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-screen-qa-p6-t02.json",
+  "screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa.png",
+  "reviewed_rows": 6,
+  "promoted_to_pass": 6,
+  "status_before_counts_for_reviewed_rows": {
+    "GUARDED": 1,
+    "BLOCKED": 5
+  },
+  "status_after_counts_for_reviewed_rows": {
+    "PASS": 6
+  },
+  "release_claims_preserved_false": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_final_approval": false
+  },
+  "forbidden_material_checks": {
+    "token_or_password_visible_in_final_dom": false,
+    "reset_token_input_cleared_before_screenshot": true,
+    "generated_password_visible_in_final_dom": false,
+    "final_dom_character_count": 435
+  },
+  "desktop_web_login_separation": {
+    "desktop_rows_mapped": true,
+    "web_auth_rows_unchanged": true,
+    "desktop_login_receipt_source": "packaged Electron app screen QA, not web AuthSurface flow"
+  },
+  "next_tuw": "P6-T04",
+  "rows": [
+    {
+      "id": "LCX8-ACTION-0244",
+      "status_before": "GUARDED",
+      "status_after": "PASS",
+      "surface": "desktop-shell",
+      "label": "Desktop shell launch",
+      "reason": "packaged Mac app launched and rendered product shell screenshot",
+      "receipt_fields": [
+        "launch_target=packaged_mac_app",
+        "packaged_bundle_present=true",
+        "screenshot recorded"
+      ],
+      "remediation_lane_after": null
+    },
+    {
+      "id": "LCX8-ACTION-0250",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "desktop-renderer",
+      "label": "Desktop login submit",
+      "reason": "packaged desktop password login completed and handed off to product UI",
+      "receipt_fields": [
+        "password_login=passed",
+        "product_handoff capability_cards=4",
+        "title=Client Matter People Vault"
+      ],
+      "remediation_lane_after": null
+    },
+    {
+      "id": "LCX8-ACTION-0252",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "desktop-renderer",
+      "label": "Dashboard feature check",
+      "reason": "dashboard feature smoke returned expected allow decisions through desktop runtime",
+      "receipt_fields": [
+        "dashboard_smoke super_admin HTTP 200 allow",
+        "dashboard_smoke general account HTTP 200 allow"
+      ],
+      "remediation_lane_after": null
+    },
+    {
+      "id": "LCX8-ACTION-0253",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "desktop-renderer",
+      "label": "Admin feature check",
+      "reason": "admin feature smoke returned expected allow/deny decisions through desktop runtime",
+      "receipt_fields": [
+        "admin_smoke super_admin HTTP 200 allow",
+        "admin_smoke general account HTTP 403 deny"
+      ],
+      "remediation_lane_after": null
+    },
+    {
+      "id": "LCX8-ACTION-0254",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "desktop-session",
+      "label": "Password reset bridge methods",
+      "reason": "desktop password reset bridge methods completed without visible reset token/password material",
+      "receipt_fields": [
+        "reset_email_request=passed",
+        "password_reset_confirm=passed",
+        "reset_token_input_cleared_before_screenshot=true"
+      ],
+      "remediation_lane_after": null
+    },
+    {
+      "id": "LCX8-ACTION-0255",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "desktop-session",
+      "label": "Session status/runtime/accounts load",
+      "reason": "desktop runtime status and accounts loaded through packaged app without token material exposure",
+      "receipt_fields": [
+        "runtime visible_label=작업공간 연결됨",
+        "account_count=9",
+        "operator_token_material_printed=false"
+      ],
+      "remediation_lane_after": null
+    }
+  ],
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 9,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 123,
+    "fail": 43
+  }
+}

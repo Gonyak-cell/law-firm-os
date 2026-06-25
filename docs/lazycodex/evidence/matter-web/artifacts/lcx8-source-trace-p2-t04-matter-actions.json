@@ -1,0 +1,970 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-25T11:01:56.595Z",
+  "tuw": "P2-T04",
+  "status": "complete_validated",
+  "title": "LCX8 P2-T04 Matter component/API action source trace",
+  "scope": "Trace MattersSurface, MatterVaultPanel, MatterOpeningWizard, MatterTeamRoster, ImportDataMappingPanel, shared Panel, and apiClient boundaries into Matter rows. Backfill sidebar-reachable Matter team/billing/analytics/import visible actions that were absent from the S1 Matter ledger. Statuses remain pre-P3/P4 classifications.",
+  "lazyweb_reference": {
+    "query": "legal matter management dashboard",
+    "platform": "desktop",
+    "coverage_strength": "light",
+    "use": "Reference only; local Matter source/API trace drives classifications."
+  },
+  "source_files": [
+    {
+      "path": "apps/web/src/components/MattersSurface.jsx",
+      "anchors": [
+        {
+          "lines": "55-74",
+          "description": "MATTER_SECTIONS and MATTER_WORK_TABS define Matter sections and top tabs"
+        },
+        {
+          "lines": "335-388",
+          "description": "renderCollectionState/renderCommandState map denied/review/error/empty states"
+        },
+        {
+          "lines": "403-572",
+          "description": "MatterRecordPanel inline edit, owner change, record-action field update, and owner-blocked actions"
+        },
+        {
+          "lines": "616-765",
+          "description": "Matter list views, bulk action bar, selectable rows, and local list state"
+        },
+        {
+          "lines": "954-1208",
+          "description": "Activity, calendar/deadline, and channel workspaces with write handlers"
+        },
+        {
+          "lines": "1263-1474",
+          "description": "Matter billing and analytics action panels"
+        },
+        {
+          "lines": "1607-1774",
+          "description": "Matter read effects for records/list views/record-actions/legal people/active matter/finance/analytics"
+        },
+        {
+          "lines": "1783-2185",
+          "description": "Matter write handlers for finance, status, inline edits, owner change, record-actions, activity, calendar, channel, list view, analytics"
+        },
+        {
+          "lines": "2187-2380",
+          "description": "Current section rendering for Matter list, command, vault, timeline, calendar, channel, opening, team, billing, analytics, import, and right panel"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/MatterVaultPanel.jsx",
+      "anchors": [
+        {
+          "lines": "197-229",
+          "description": "Vault summary/timeline/documents/search/audit/templates/approvals read effect"
+        },
+        {
+          "lines": "253-331",
+          "description": "Document facade, builder draft, approval, publish, email draft, and send-boundary handlers"
+        },
+        {
+          "lines": "396-483",
+          "description": "Visible document builder and email composer action buttons"
+        },
+        {
+          "lines": "508-540",
+          "description": "Matter Vault refresh and document connection buttons"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/MatterOpeningWizard.jsx",
+      "anchors": [
+        {
+          "lines": "12-55",
+          "description": "Matter opening payload and permission/audit refs"
+        },
+        {
+          "lines": "74-85",
+          "description": "form submit calls createMatterOpening"
+        },
+        {
+          "lines": "101-149",
+          "description": "visible Matter opening inputs and submit button"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/MatterTeamRoster.jsx",
+      "anchors": [
+        {
+          "lines": "10-22",
+          "description": "Matter team member payload and permission/audit refs"
+        },
+        {
+          "lines": "72-88",
+          "description": "team form submit calls addMatterTeamMember and updates Matter owner assignment"
+        },
+        {
+          "lines": "111-141",
+          "description": "visible team inputs, role select, and submit button"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/ImportDataMappingPanel.jsx",
+      "anchors": [
+        {
+          "lines": "61-64",
+          "description": "surface=\"matter\" targets matter_runtime_patch import jobs"
+        },
+        {
+          "lines": "76-159",
+          "description": "import read effects and job/source/mapping/dry-run/execute/rollback handlers"
+        },
+        {
+          "lines": "161-224",
+          "description": "visible import action buttons"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/primitives.jsx",
+      "anchors": [
+        {
+          "lines": "17-28",
+          "description": "Panel renders shared overflow icon-button without handler"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/data/apiClient.js",
+      "anchors": [
+        {
+          "lines": "421-691",
+          "description": "Matter list/read helpers and generic Matter runtime write/read helpers"
+        },
+        {
+          "lines": "1120-1264",
+          "description": "Import data targets/jobs/source/preview/mapping/dry-run/execute/rollback/error-report API clients"
+        },
+        {
+          "lines": "1276-1420",
+          "description": "Record-action runtime, fields/audit reads, field-update and bulk-update writes"
+        },
+        {
+          "lines": "1456-1550",
+          "description": "Matter opening/team/list-view/status/owner/inline/document API clients"
+        },
+        {
+          "lines": "1570-1777",
+          "description": "Matter document-builder, email draft, status, and recently-viewed API clients"
+        },
+        {
+          "lines": "1779-2155",
+          "description": "Matter activity/calendar/deadline/channel/command-center/vault summary/audit/timeline API clients"
+        },
+        {
+          "lines": "2202-2276",
+          "description": "Matter-filtered Vault documents/search/audit read helpers"
+        },
+        {
+          "lines": "2675-2838",
+          "description": "Finance read/write API clients used by Matter billing"
+        },
+        {
+          "lines": "2840-3077",
+          "description": "Analytics dashboard/profitability/export API clients used by Matter analytics"
+        }
+      ]
+    }
+  ],
+  "updated_row_count": 51,
+  "added_backfill_rows": 17,
+  "row_scope": [
+    "LCX8-ACTION-0044",
+    "LCX8-ACTION-0045",
+    "LCX8-ACTION-0046",
+    "LCX8-ACTION-0047",
+    "LCX8-ACTION-0048",
+    "LCX8-ACTION-0049",
+    "LCX8-ACTION-0050",
+    "LCX8-ACTION-0051",
+    "LCX8-ACTION-0052",
+    "LCX8-ACTION-0053",
+    "LCX8-ACTION-0054",
+    "LCX8-ACTION-0055",
+    "LCX8-ACTION-0056",
+    "LCX8-ACTION-0057",
+    "LCX8-ACTION-0058",
+    "LCX8-ACTION-0059",
+    "LCX8-ACTION-0060",
+    "LCX8-ACTION-0061",
+    "LCX8-ACTION-0062",
+    "LCX8-ACTION-0063",
+    "LCX8-ACTION-0064",
+    "LCX8-ACTION-0065",
+    "LCX8-ACTION-0066",
+    "LCX8-ACTION-0067",
+    "LCX8-ACTION-0068",
+    "LCX8-ACTION-0069",
+    "LCX8-ACTION-0070",
+    "LCX8-ACTION-0071",
+    "LCX8-ACTION-0072",
+    "LCX8-ACTION-0073",
+    "LCX8-ACTION-0074",
+    "LCX8-ACTION-0075",
+    "LCX8-ACTION-0076",
+    "LCX8-ACTION-0077",
+    "LCX8-ACTION-0078",
+    "LCX8-ACTION-0079",
+    "LCX8-ACTION-0080",
+    "LCX8-ACTION-0081",
+    "LCX8-ACTION-0082",
+    "LCX8-ACTION-0083",
+    "LCX8-ACTION-0084",
+    "LCX8-ACTION-0085",
+    "LCX8-ACTION-0086",
+    "LCX8-ACTION-0087",
+    "LCX8-ACTION-0088",
+    "LCX8-ACTION-0089",
+    "LCX8-ACTION-0090",
+    "LCX8-ACTION-0274",
+    "LCX8-ACTION-0275",
+    "LCX8-ACTION-0278",
+    "LCX8-ACTION-0279",
+    "LCX8-ACTION-0303",
+    "LCX8-ACTION-0304",
+    "LCX8-ACTION-0305",
+    "LCX8-ACTION-0306",
+    "LCX8-ACTION-0307",
+    "LCX8-ACTION-0308",
+    "LCX8-ACTION-0309",
+    "LCX8-ACTION-0310",
+    "LCX8-ACTION-0311",
+    "LCX8-ACTION-0312",
+    "LCX8-ACTION-0313",
+    "LCX8-ACTION-0314",
+    "LCX8-ACTION-0315",
+    "LCX8-ACTION-0316",
+    "LCX8-ACTION-0317",
+    "LCX8-ACTION-0318",
+    "LCX8-ACTION-0319"
+  ],
+  "backfill_rows": [
+    "LCX8-ACTION-0303",
+    "LCX8-ACTION-0304",
+    "LCX8-ACTION-0305",
+    "LCX8-ACTION-0306",
+    "LCX8-ACTION-0307",
+    "LCX8-ACTION-0308",
+    "LCX8-ACTION-0309",
+    "LCX8-ACTION-0310",
+    "LCX8-ACTION-0311",
+    "LCX8-ACTION-0312",
+    "LCX8-ACTION-0313",
+    "LCX8-ACTION-0314",
+    "LCX8-ACTION-0315",
+    "LCX8-ACTION-0316",
+    "LCX8-ACTION-0317",
+    "LCX8-ACTION-0318",
+    "LCX8-ACTION-0319"
+  ],
+  "row_updates": [
+    {
+      "id": "LCX8-ACTION-0044",
+      "label": "새로고침",
+      "section": "matters-header",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "PageHeader onClick -> setRefreshToken(value + 1); MattersSurface effects re-run Matter list/list-view/record-action/legal-people/active-matter/finance/analytics reads",
+      "api_route": "GET /api/matters; GET /api/matters/list-views; GET /api/record-actions/matter/fields; GET /api/record-actions/matter/:record_id/audit; GET /api/hrx/legal-people/search?matter_id=:matter_id; GET /api/matters/:matter_id/command-center; GET /api/matters/:matter_id/timeline; GET /api/matters/audit; GET /api/matters/recently-viewed; GET /api/finance/time-entries; GET /api/finance/invoices; GET /api/finance/ar-aging; GET /api/finance/audit; GET /api/analytics/dashboards; GET /api/analytics/matter-profitability",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0045",
+      "label": "현황",
+      "section": "matter-section-tabs",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "onClick -> onNavigateSection(tab.section) -> navigateToView(\"matters\", section)",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0046",
+      "label": "문서",
+      "section": "matter-section-tabs",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "onClick -> onNavigateSection(tab.section) -> navigateToView(\"matters\", section)",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0047",
+      "label": "활동",
+      "section": "matter-section-tabs",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "onClick -> onNavigateSection(tab.section) -> navigateToView(\"matters\", section)",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0048",
+      "label": "일정",
+      "section": "matter-section-tabs",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "onClick -> onNavigateSection(tab.section) -> navigateToView(\"matters\", section)",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0049",
+      "label": "대화",
+      "section": "matter-section-tabs",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "onClick -> onNavigateSection(tab.section) -> navigateToView(\"matters\", section)",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0050",
+      "label": "Matter panel overflow menu",
+      "section": "panel-header",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "Panel renders .icon-button with MoreHorizontal icon and no onClick/type/aria-label",
+      "api_route": null,
+      "outcome": "missing handler remains FAIL"
+    },
+    {
+      "id": "LCX8-ACTION-0051",
+      "label": "전체 Matter",
+      "section": "saved-list-views",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onClick -> onSelectListView(view.list_view_id) -> setActiveListViewId",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0052",
+      "label": "개시 중",
+      "section": "saved-list-views",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onClick -> onSelectListView(view.list_view_id) -> setActiveListViewId",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0053",
+      "label": "종료",
+      "section": "saved-list-views",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onClick -> onSelectListView(view.list_view_id) -> setActiveListViewId",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0054",
+      "label": "개시 저장",
+      "section": "saved-list-views",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleSaveOpeningListView -> saveMatterListView({ label: \"개시 Matter\", status: \"opening\" })",
+      "api_route": "POST /api/matters/list-views",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0055",
+      "label": "선택 완료",
+      "section": "bulk-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleBulkCompleteStatus -> bulkCompleteMatterStatus({ matterIds: selectedMatterIds })",
+      "api_route": "POST /api/matters/bulk/status-transitions",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0056",
+      "label": "표시된 Matter 전체 선택",
+      "section": "matter-record-list",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> handleToggleAllVisible",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0057",
+      "label": "Matter row 선택 체크박스",
+      "section": "matter-record-list",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> handleToggleMatter",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0058",
+      "label": "Matter record row",
+      "section": "matter-record-list",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onClick -> setSelectedMatterId",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0059",
+      "label": "저장",
+      "section": "matter-right-panel-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleInlineEdit -> updateMatterInlineFields({ matterId, fieldUpdates })",
+      "api_route": "PATCH /api/matters/:matter_id",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0060",
+      "label": "변경",
+      "section": "matter-right-panel-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleOwnerChange -> changeMatterOwner({ matterId })",
+      "api_route": "POST /api/matters/:matter_id/owner-change",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0061",
+      "label": "필드 작업",
+      "section": "matter-right-panel-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleRecordActionFieldUpdate -> updateRecordActionField({ objectName: \"matter\", recordId: activeMatterId })",
+      "api_route": "POST /api/record-actions/matter/:record_id/field-update",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0062",
+      "label": "승인 확인",
+      "section": "matter-right-panel-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleRecordActionOwnerBlocked -> bulkUpdateRecordActions({ objectName: \"matter\", actionType: \"owner_change\" })",
+      "api_route": "POST /api/record-actions/matter/bulk-updates",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0063",
+      "label": "완료",
+      "section": "matter-command",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleCompleteStatus -> completeMatterStatus({ matterId })",
+      "api_route": "POST /api/matters/:matter_id/status-transitions",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0064",
+      "label": "새로고침",
+      "section": "matter-vault",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "MatterVaultPanel refresh button -> setRefreshToken(value + 1); useEffect fetches Vault summary, timeline, Vault documents/search/audit, templates, and builder approvals",
+      "api_route": "GET /api/matters/:matter_id/vault-summary; GET /api/matters/:matter_id/timeline; GET /api/vault/documents; GET /api/vault/search; GET /api/vault/audit; GET /api/matters/:matter_id/document-templates; GET /api/matters/:matter_id/builder-approval-requests",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0065",
+      "label": "문서 연결",
+      "section": "matter-vault",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleCreateDocument -> createMatterDocumentFacade({ matterId, title, contentText })",
+      "api_route": "POST /api/matters/:matter_id/documents",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0066",
+      "label": "초안 생성",
+      "section": "matter-vault",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleCreateBuilderDraft -> createMatterBuilderDraft; then fetchMatterBuilderDraftPreview when draft_id exists",
+      "api_route": "POST /api/matters/:matter_id/builder-drafts; GET /api/matters/:matter_id/builder-drafts/:draft_id/preview",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0067",
+      "label": "검토 준비",
+      "section": "matter-vault",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handlePatchBuilderDraft -> patchMatterBuilderDraft",
+      "api_route": "PATCH /api/matters/:matter_id/builder-drafts/:draft_id",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0068",
+      "label": "승인 요청",
+      "section": "matter-vault",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleRequestBuilderApproval -> requestMatterBuilderApproval",
+      "api_route": "POST /api/matters/:matter_id/builder-drafts/:draft_id/approval-requests",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0069",
+      "label": "Vault 등록 요청",
+      "section": "matter-vault",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handlePublishBuilderDraft -> publishMatterBuilderDraftToVault",
+      "api_route": "POST /api/matters/:matter_id/builder-drafts/:draft_id/publish-to-vault",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0070",
+      "label": "이메일 초안 생성",
+      "section": "matter-vault",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleCreateEmailDraft -> createMatterEmailDraft",
+      "api_route": "POST /api/matters/:matter_id/email-drafts",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0071",
+      "label": "내용 정리",
+      "section": "matter-vault",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handlePatchEmailDraft -> patchMatterEmailDraft",
+      "api_route": "PATCH /api/matters/:matter_id/email-drafts/:draft_id",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0072",
+      "label": "발송 요청",
+      "section": "matter-vault",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleEmailSendBoundary -> requestMatterEmailDraftSendBoundary",
+      "api_route": "POST /api/matters/:matter_id/email-drafts/:draft_id/send",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0073",
+      "label": "작업 추가",
+      "section": "matter-timeline",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleCreateActivity -> createMatterActivity({ matterId, title, status })",
+      "api_route": "POST /api/matters/:matter_id/activities",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0074",
+      "label": "상태 저장",
+      "section": "matter-timeline",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handlePatchActivity -> patchMatterActivity",
+      "api_route": "PATCH /api/matters/:matter_id/activities/:activity_id",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0075",
+      "label": "일정 추가",
+      "section": "matter-calendar",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleCreateCalendarEvent -> createMatterCalendarEvent({ matterId, title, criticality, legalConsequence })",
+      "api_route": "POST /api/matters/:matter_id/calendar-events",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0076",
+      "label": "변경 요청",
+      "section": "matter-calendar",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleRequestDeadlineChange -> patchMatterCalendarEvent",
+      "api_route": "PATCH /api/matters/:matter_id/calendar-events/:event_id",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0077",
+      "label": "확인",
+      "section": "matter-calendar",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleConfirmDeadlineChange -> confirmMatterDeadlineChange",
+      "api_route": "POST /api/matters/:matter_id/deadlines/:deadline_id/confirm-change",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0078",
+      "label": "메시지 기록",
+      "section": "matter-channel",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleCreateChannelMessage -> createMatterChannelMessage",
+      "api_route": "POST /api/matters/:matter_id/channel/messages",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0079",
+      "label": "상태 확인",
+      "section": "matter-channel",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleChannelProviderSync -> syncMatterChannelProvider",
+      "api_route": "POST /api/matters/:matter_id/channel/provider-sync",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0080",
+      "label": "Matter 등록번호",
+      "section": "matter-opening-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> update(\"matterId\") -> setForm",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0081",
+      "label": "제목",
+      "section": "matter-opening-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> update(\"title\") -> setForm",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0082",
+      "label": "Matter 번호",
+      "section": "matter-opening-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> update(\"matterNumberSeed\") -> setForm",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0083",
+      "label": "법률 Client",
+      "section": "matter-opening-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> update(\"legalClientPartyId\") -> setForm",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0084",
+      "label": "청구 Client",
+      "section": "matter-opening-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> update(\"billingClientPartyId\") -> setForm",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0085",
+      "label": "이해상충 확인 번호",
+      "section": "matter-opening-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> update(\"clearanceTokenId\") -> setForm",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0086",
+      "label": "접수 번호",
+      "section": "matter-opening-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> update(\"intakeRequestId\") -> setForm",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0087",
+      "label": "검토 번호",
+      "section": "matter-opening-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> update(\"conflictCheckId\") -> setForm",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0088",
+      "label": "위임 계약 번호",
+      "section": "matter-opening-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> update(\"engagementId\") -> setForm",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0089",
+      "label": "확인 번호",
+      "section": "matter-opening-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> update(\"snapshotHash\") -> setForm",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0090",
+      "label": "개시",
+      "section": "matter-opening-form",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "MatterOpeningWizard form onSubmit -> submit -> createMatterOpening({ payload: openingPayload(form) })",
+      "api_route": "POST /api/matters/openings",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0274",
+      "label": "Matter list denied state",
+      "section": "matter-list-denied-state",
+      "status": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "handler": "renderCollectionState(result, \"Matter\") maps result.uiState === \"denied\" to DesktopDeniedState",
+      "api_route": null,
+      "outcome": "guarded state remains GUARDED pending P4 response proof"
+    },
+    {
+      "id": "LCX8-ACTION-0275",
+      "label": "Matter list review-required state",
+      "section": "matter-list-review-state",
+      "status": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "handler": "renderCollectionState(result, \"Matter\") maps result.uiState === \"review_required\" to live-data-review state panel",
+      "api_route": null,
+      "outcome": "guarded state remains GUARDED pending P4 response proof"
+    },
+    {
+      "id": "LCX8-ACTION-0278",
+      "label": "Matter record action strip disabled under denied/review",
+      "section": "matter-record-action-strip-disabled",
+      "status": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "handler": "MatterRecordPanel disables mutation buttons when selected matter or required record-action state is unavailable under guarded contexts",
+      "api_route": null,
+      "outcome": "guarded state remains GUARDED pending P4 response proof"
+    },
+    {
+      "id": "LCX8-ACTION-0279",
+      "label": "Matter Vault action strip disabled under denied/review",
+      "section": "matter-vault-action-strip-disabled",
+      "status": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "handler": "MatterVaultPanel and MatterRecordPanel disable document/record controls while guarded context prevents a usable item/draft",
+      "api_route": null,
+      "outcome": "guarded state remains GUARDED pending P4 response proof"
+    },
+    {
+      "id": "LCX8-ACTION-0303",
+      "label": "팀원 번호",
+      "section": "matter-team-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> update(\"memberId\") -> setForm",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0304",
+      "label": "구성원 계정",
+      "section": "matter-team-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> update(\"employeeId\") -> setForm",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0305",
+      "label": "로그인 계정",
+      "section": "matter-team-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> update(\"userId\") -> setForm",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0306",
+      "label": "역할",
+      "section": "matter-team-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> update(\"role\") -> setForm",
+      "api_route": null,
+      "outcome": "local UI/route-only action remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0307",
+      "label": "추가 / 책임자 지정",
+      "section": "matter-team-form",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "form onSubmit -> submit -> addMatterTeamMember({ matterId, payload: memberPayload(form) })",
+      "api_route": "POST /api/matters/:matter_id/team-members",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0308",
+      "label": "시간 기록",
+      "section": "matter-billing",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleCreateTimeEntry -> createFinanceTimeEntry({ matterId })",
+      "api_route": "POST /api/finance/time-entries",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0309",
+      "label": "청구 준비",
+      "section": "matter-billing",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleGenerateWip -> generateFinanceWip({ matterId })",
+      "api_route": "POST /api/finance/wip",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0310",
+      "label": "수납 기록",
+      "section": "matter-billing",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleImportPayment -> importFinancePayment({ matterId, amount, currency })",
+      "api_route": "POST /api/finance/payments",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0311",
+      "label": "새로고침",
+      "section": "matter-analytics",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleAnalyticsRefresh -> refreshAnalyticsDashboards({ ctx })",
+      "api_route": "POST /api/analytics/refresh",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0312",
+      "label": "내보내기",
+      "section": "matter-analytics",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleAnalyticsExport -> createAnalyticsExport({ dashboardId })",
+      "api_route": "POST /api/analytics/exports",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0313",
+      "label": "손익 갱신",
+      "section": "matter-analytics",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleProfitabilityRefresh -> refreshMatterProfitability({ matterId, wipItems, invoices, payments })",
+      "api_route": "POST /api/analytics/matter-profitability",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0314",
+      "label": "작업 생성",
+      "section": "matter-import",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleCreateJob -> createClientMatterImportJob({ jobId, targetObject: \"matter_runtime_patch\" })",
+      "api_route": "POST /api/import-jobs",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0315",
+      "label": "원본 준비",
+      "section": "matter-import",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleStageSource -> stageImportSourceFile({ jobId, targetObject: \"matter_runtime_patch\" })",
+      "api_route": "POST /api/import-jobs/:job_id/source-files",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0316",
+      "label": "매핑 저장",
+      "section": "matter-import",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleMapping -> saveImportFieldMapping({ jobId, targetObject: \"matter_runtime_patch\" })",
+      "api_route": "POST /api/import-jobs/:job_id/field-mappings",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0317",
+      "label": "검증 실행",
+      "section": "matter-import",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleDryRun -> dryRunClientMatterImport({ jobId }) + fetchClientMatterImportPreview({ jobId })",
+      "api_route": "POST /api/import-jobs/:job_id/dry-run; GET /api/import-jobs/:job_id/preview",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0318",
+      "label": "실행 요청",
+      "section": "matter-import",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleExecute -> executeClientMatterImport({ jobId })",
+      "api_route": "POST /api/import-jobs/:job_id/execute",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0319",
+      "label": "확인",
+      "section": "matter-import",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleRollbackAndReport -> rollbackClientMatterImport({ jobId }) + fetchClientMatterImportErrorReport({ jobId })",
+      "api_route": "POST /api/import-jobs/:job_id/rollback; GET /api/import-jobs/:job_id/error-report",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    }
+  ],
+  "status_counts_after_trace": {
+    "inventory_rows": 319,
+    "unknown": 0,
+    "pass": 0,
+    "guarded": 19,
+    "ui_only": 131,
+    "descriptor_only": 0,
+    "blocked": 130,
+    "fail": 39
+  },
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "external_receipts_complete": false,
+    "api_pass_claimed": false
+  },
+  "next_tuw": "P2-T05"
+}

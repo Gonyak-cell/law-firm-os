@@ -1,0 +1,833 @@
+{
+  "schema_version": "matter.lcx8.guarded-state-browser-check.p3-t10.v1",
+  "generated_at": "2026-06-25T13:08:33.640Z",
+  "status": "complete_mixed_guarded_and_fail_confirmed",
+  "tuw": "P3-T10",
+  "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
+  "web_base_url": "http://127.0.0.1:5174",
+  "api_base_url": "http://127.0.0.1:4180 via Vite proxy",
+  "rows_reviewed": 10,
+  "guarded_confirmed": 9,
+  "fail_confirmed": 1,
+  "fail_observed": 0,
+  "api_response_count": 62,
+  "api_5xx_count": 0,
+  "console_error_count": 20,
+  "native_guarded_rows_deferred_to_p6": [
+    "LCX8-ACTION-0244",
+    "LCX8-ACTION-0245",
+    "LCX8-ACTION-0246",
+    "LCX8-ACTION-0258",
+    "LCX8-ACTION-0259",
+    "LCX8-ACTION-0260",
+    "LCX8-ACTION-0262",
+    "LCX8-ACTION-0265",
+    "LCX8-ACTION-0266",
+    "LCX8-ACTION-0268",
+    "LCX8-ACTION-0271"
+  ],
+  "results": [
+    {
+      "id": "LCX8-ACTION-0272",
+      "label": "Client list denied state",
+      "status_before_check": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "row_result": "GUARDED_CONFIRMED",
+      "contexts": [
+        {
+          "name": "client-denied",
+          "path": "/?locale=ko&view=clients&data=live&ctx=denied#clients-list",
+          "expected": "guard_visible",
+          "observed_result": "GUARDED_CONFIRMED",
+          "reason": "guard_state_visible",
+          "metrics": {
+            "url": "http://127.0.0.1:5174/?locale=ko&view=clients&data=live&ctx=denied#clients-list",
+            "view": "clients",
+            "hash": "#clients-list",
+            "guardText": [
+              "접근 권한이 없습니다권한이 있는 Client만 표시합니다."
+            ],
+            "liveDataStateCount": 1,
+            "mutationButtonCount": 1,
+            "enabledMutationButtonCount": 1,
+            "stepUpChallengeCount": 0,
+            "bodyTextSample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어ClientClient 목록12잠재 고객영업 기회상담 접수4계정연락처데이터 관리보고서가져오기Client 설정태그 관리ClientClient와 상담 접수, 영업 기회를 한 화면에서 확인합니다.새로고침Client 목록권한 기준 적용접근 권한이 없습니다권한이 있는 Client만 표시합니다.레코드Client상태대기대표 당사자미지정구성원0연결 Matter미지정잠재 Client0기회0접수0계정0연락처0권한 기준에 맞춰 표시됩니다.병합 검토 0건 / 실행 가능 0건데이터 보강 상태는 Client 데이터 관리에서 확인합니다.보고서와 손익은 Client 보고서에서 확인합니다.레코드 작업허용 필드 확인 중필드 업데이트담당자 일괄 변경승인 조",
+            "horizontalOverflow": false
+          },
+          "network_response_count": 10,
+          "api_5xx_count": 0,
+          "network": [
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/search?client_id=client_lcx_001"
+            },
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+            },
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+            },
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+            },
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+            },
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+            },
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+            },
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe"
+            },
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe"
+            }
+          ],
+          "console_error_count": 9,
+          "console_errors": [
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          ],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0272-client-denied.png",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0273",
+      "label": "Client list review-required state",
+      "status_before_check": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "row_result": "GUARDED_CONFIRMED",
+      "contexts": [
+        {
+          "name": "client-review",
+          "path": "/?locale=ko&view=clients&data=live&ctx=review#clients-list",
+          "expected": "guard_visible",
+          "observed_result": "GUARDED_CONFIRMED",
+          "reason": "guard_state_visible",
+          "metrics": {
+            "url": "http://127.0.0.1:5174/?locale=ko&view=clients&data=live&ctx=review#clients-list",
+            "view": "clients",
+            "hash": "#clients-list",
+            "guardText": [
+              "검토가 필요합니다검토가 끝나면 Client 정보를 확인할 수 있습니다."
+            ],
+            "liveDataStateCount": 1,
+            "mutationButtonCount": 1,
+            "enabledMutationButtonCount": 1,
+            "stepUpChallengeCount": 0,
+            "bodyTextSample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어ClientClient 목록12잠재 고객영업 기회상담 접수4계정연락처데이터 관리보고서가져오기Client 설정태그 관리ClientClient와 상담 접수, 영업 기회를 한 화면에서 확인합니다.새로고침Client 목록권한 기준 적용검토가 필요합니다검토가 끝나면 Client 정보를 확인할 수 있습니다.레코드Client상태대기대표 당사자미지정구성원0연결 Matter미지정잠재 Client0기회0접수0계정0연락처0권한 기준에 맞춰 표시됩니다.병합 검토 0건 / 실행 가능 0건데이터 보강 상태는 Client 데이터 관리에서 확인합니다.보고서와 손익은 Client 보고서에서 확인합니다.레코드 작업허용 필드 확인 중필드 업데이트담당자 일괄",
+            "horizontalOverflow": false
+          },
+          "network_response_count": 10,
+          "api_5xx_count": 0,
+          "network": [
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/search?client_id=client_lcx_001"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe"
+            },
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe"
+            }
+          ],
+          "console_error_count": 1,
+          "console_errors": [
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          ],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0273-client-review.png",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0274",
+      "label": "Matter list denied state",
+      "status_before_check": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "row_result": "GUARDED_CONFIRMED",
+      "contexts": [
+        {
+          "name": "matter-denied",
+          "path": "/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+          "expected": "guard_visible",
+          "observed_result": "GUARDED_CONFIRMED",
+          "reason": "guard_state_visible",
+          "metrics": {
+            "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+            "view": "matters",
+            "hash": "#matters-list",
+            "guardText": [
+              "접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
+            ],
+            "liveDataStateCount": 1,
+            "mutationButtonCount": 4,
+            "enabledMutationButtonCount": 0,
+            "stepUpChallengeCount": 0,
+            "bodyTextSample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어MatterMatter 운영Matter 목록18진행 현황Matter 개시업무 진행청구·분석Matter 설정태그 관리MatterMatter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다.새로고침현황문서활동일정대화Matter 목록권한 기준 적용접근 권한이 없습니다권한이 있는 정보만 표시됩니다.레코드Matter 1상태대기청구대기책임자미지정팀0문서0활동0기한0대화0청구0분석0청구 상태대기저장책임자미지정변경레코드 필드허용 필드 확인 중필드 작업책임자 일괄 변경승인 조건 확인승인 확인최근 작업 0건내부 대화 준비권한 기준에 맞춰 표시됩니다.",
+            "horizontalOverflow": false
+          },
+          "network_response_count": 4,
+          "api_5xx_count": 0,
+          "network": [
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+            },
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+            },
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+            }
+          ],
+          "console_error_count": 3,
+          "console_errors": [
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          ],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0274-matter-denied.png",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0275",
+      "label": "Matter list review-required state",
+      "status_before_check": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "row_result": "GUARDED_CONFIRMED",
+      "contexts": [
+        {
+          "name": "matter-review",
+          "path": "/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+          "expected": "guard_visible",
+          "observed_result": "GUARDED_CONFIRMED",
+          "reason": "guard_state_visible",
+          "metrics": {
+            "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+            "view": "matters",
+            "hash": "#matters-list",
+            "guardText": [
+              "검토가 필요합니다검토가 끝나면 Matter 목록을 확인할 수 있습니다."
+            ],
+            "liveDataStateCount": 1,
+            "mutationButtonCount": 4,
+            "enabledMutationButtonCount": 0,
+            "stepUpChallengeCount": 0,
+            "bodyTextSample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어MatterMatter 운영Matter 목록18진행 현황Matter 개시업무 진행청구·분석Matter 설정태그 관리MatterMatter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다.새로고침현황문서활동일정대화Matter 목록권한 기준 적용검토가 필요합니다검토가 끝나면 Matter 목록을 확인할 수 있습니다.레코드Matter 1상태대기청구대기책임자미지정팀0문서0활동0기한0대화0청구0분석0청구 상태대기저장책임자미지정변경레코드 필드허용 필드 확인 중필드 작업책임자 일괄 변경승인 조건 확인승인 확인최근 작업 0건내부 대화 준비권한 기준에 맞춰 표시됩니다.",
+            "horizontalOverflow": false
+          },
+          "network_response_count": 4,
+          "api_5xx_count": 0,
+          "network": [
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+            }
+          ],
+          "console_error_count": 0,
+          "console_errors": [],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0275-matter-review.png",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0276",
+      "label": "Vault documents denied state",
+      "status_before_check": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "row_result": "GUARDED_CONFIRMED",
+      "contexts": [
+        {
+          "name": "vault-denied",
+          "path": "/?locale=ko&view=vault&data=live&ctx=denied#vault-documents",
+          "expected": "guard_visible",
+          "observed_result": "GUARDED_CONFIRMED",
+          "reason": "guard_state_visible",
+          "metrics": {
+            "url": "http://127.0.0.1:5174/?locale=ko&view=vault&data=live&ctx=denied#vault-documents",
+            "view": "vault",
+            "hash": "#vault-documents",
+            "guardText": [
+              "접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
+            ],
+            "liveDataStateCount": 1,
+            "mutationButtonCount": 0,
+            "enabledMutationButtonCount": 0,
+            "stepUpChallengeCount": 0,
+            "bodyTextSample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어Vault문서함24문서 상세메일 보관함Vault 설정문서 태그VaultVault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다.새로고침Vault 문서함권한 기준 적용접근 권한이 없습니다권한이 있는 정보만 표시됩니다.",
+            "horizontalOverflow": false
+          },
+          "network_response_count": 1,
+          "api_5xx_count": 0,
+          "network": [
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+            }
+          ],
+          "console_error_count": 1,
+          "console_errors": [
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          ],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0276-vault-denied.png",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0277",
+      "label": "Vault documents review-required state",
+      "status_before_check": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "row_result": "GUARDED_CONFIRMED",
+      "contexts": [
+        {
+          "name": "vault-review",
+          "path": "/?locale=ko&view=vault&data=live&ctx=review#vault-documents",
+          "expected": "guard_visible",
+          "observed_result": "GUARDED_CONFIRMED",
+          "reason": "guard_state_visible",
+          "metrics": {
+            "url": "http://127.0.0.1:5174/?locale=ko&view=vault&data=live&ctx=review#vault-documents",
+            "view": "vault",
+            "hash": "#vault-documents",
+            "guardText": [
+              "검토가 필요합니다검토가 끝나면 Vault 문서를 확인할 수 있습니다."
+            ],
+            "liveDataStateCount": 1,
+            "mutationButtonCount": 0,
+            "enabledMutationButtonCount": 0,
+            "stepUpChallengeCount": 0,
+            "bodyTextSample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어Vault문서함24문서 상세메일 보관함Vault 설정문서 태그VaultVault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다.새로고침Vault 문서함권한 기준 적용검토가 필요합니다검토가 끝나면 Vault 문서를 확인할 수 있습니다.",
+            "horizontalOverflow": false
+          },
+          "network_response_count": 1,
+          "api_5xx_count": 0,
+          "network": [
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+            }
+          ],
+          "console_error_count": 0,
+          "console_errors": [],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0277-vault-review.png",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0278",
+      "label": "Matter record action strip disabled under denied/review",
+      "status_before_check": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "row_result": "GUARDED_CONFIRMED",
+      "contexts": [
+        {
+          "name": "matter-record-actions-denied",
+          "path": "/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+          "expected": "controls_hidden_or_disabled",
+          "observed_result": "GUARDED_CONFIRMED",
+          "reason": "mutation_controls_hidden_or_disabled(count=4)",
+          "metrics": {
+            "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+            "view": "matters",
+            "hash": "#matters-list",
+            "guardText": [
+              "접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
+            ],
+            "liveDataStateCount": 1,
+            "mutationButtonCount": 4,
+            "enabledMutationButtonCount": 0,
+            "stepUpChallengeCount": 0,
+            "bodyTextSample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어MatterMatter 운영Matter 목록18진행 현황Matter 개시업무 진행청구·분석Matter 설정태그 관리MatterMatter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다.새로고침현황문서활동일정대화Matter 목록권한 기준 적용접근 권한이 없습니다권한이 있는 정보만 표시됩니다.레코드Matter 1상태대기청구대기책임자미지정팀0문서0활동0기한0대화0청구0분석0청구 상태대기저장책임자미지정변경레코드 필드허용 필드 확인 중필드 작업책임자 일괄 변경승인 조건 확인승인 확인최근 작업 0건내부 대화 준비권한 기준에 맞춰 표시됩니다.",
+            "horizontalOverflow": false
+          },
+          "network_response_count": 4,
+          "api_5xx_count": 0,
+          "network": [
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+            },
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+            },
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+            }
+          ],
+          "console_error_count": 3,
+          "console_errors": [
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          ],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0278-matter-record-actions-denied.png",
+          "error": null
+        },
+        {
+          "name": "matter-record-actions-review",
+          "path": "/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+          "expected": "controls_hidden_or_disabled",
+          "observed_result": "GUARDED_CONFIRMED",
+          "reason": "mutation_controls_hidden_or_disabled(count=4)",
+          "metrics": {
+            "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+            "view": "matters",
+            "hash": "#matters-list",
+            "guardText": [
+              "검토가 필요합니다검토가 끝나면 Matter 목록을 확인할 수 있습니다."
+            ],
+            "liveDataStateCount": 1,
+            "mutationButtonCount": 4,
+            "enabledMutationButtonCount": 0,
+            "stepUpChallengeCount": 0,
+            "bodyTextSample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어MatterMatter 운영Matter 목록18진행 현황Matter 개시업무 진행청구·분석Matter 설정태그 관리MatterMatter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다.새로고침현황문서활동일정대화Matter 목록권한 기준 적용검토가 필요합니다검토가 끝나면 Matter 목록을 확인할 수 있습니다.레코드Matter 1상태대기청구대기책임자미지정팀0문서0활동0기한0대화0청구0분석0청구 상태대기저장책임자미지정변경레코드 필드허용 필드 확인 중필드 작업책임자 일괄 변경승인 조건 확인승인 확인최근 작업 0건내부 대화 준비권한 기준에 맞춰 표시됩니다.",
+            "horizontalOverflow": false
+          },
+          "network_response_count": 4,
+          "api_5xx_count": 0,
+          "network": [
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+            }
+          ],
+          "console_error_count": 0,
+          "console_errors": [],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0278-matter-record-actions-review.png",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0279",
+      "label": "Matter Vault action strip disabled under denied/review",
+      "status_before_check": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "row_result": "GUARDED_CONFIRMED",
+      "contexts": [
+        {
+          "name": "matter-vault-actions-denied",
+          "path": "/?locale=ko&view=matters&data=live&ctx=denied#matter-vault",
+          "expected": "controls_hidden_or_disabled",
+          "observed_result": "GUARDED_CONFIRMED",
+          "reason": "mutation_controls_hidden_or_disabled(count=5)",
+          "metrics": {
+            "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=denied#matter-vault",
+            "view": "matters",
+            "hash": "#matter-vault",
+            "guardText": [
+              "Matter Vault를 불러오는 중입니다"
+            ],
+            "liveDataStateCount": 1,
+            "mutationButtonCount": 5,
+            "enabledMutationButtonCount": 0,
+            "stepUpChallengeCount": 0,
+            "bodyTextSample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어MatterMatter 운영Matter 목록18진행 현황Matter 개시업무 진행문서활동일정대화2구성원청구·분석Matter 설정태그 관리MatterMatter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다.새로고침현황문서활동일정대화Matter Vault문서 연결Vault 미연결Matter 선택 후 문서 기록을 확인할 수 있습니다새로고침문서 연결Matter Vault를 불러오는 중입니다레코드Matter 1상태대기청구대기책임자미지정팀0문서0활동0기한0대화0청구0분석0청구 상태대기저장책임자미지정변경레코드 필드허용 필드 확인 중필드 작업책임자 일괄 변경승인 조건 확인승인 확인최근 작업 0건내부 대화 준비권한 기준에 맞춰 표",
+            "horizontalOverflow": false
+          },
+          "network_response_count": 4,
+          "api_5xx_count": 0,
+          "network": [
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+            },
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+            },
+            {
+              "method": "GET",
+              "status": 403,
+              "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+            }
+          ],
+          "console_error_count": 3,
+          "console_errors": [
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+            "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          ],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0279-matter-vault-actions-denied.png",
+          "error": null
+        },
+        {
+          "name": "matter-vault-actions-review",
+          "path": "/?locale=ko&view=matters&data=live&ctx=review#matter-vault",
+          "expected": "controls_hidden_or_disabled",
+          "observed_result": "GUARDED_CONFIRMED",
+          "reason": "mutation_controls_hidden_or_disabled(count=5)",
+          "metrics": {
+            "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=review#matter-vault",
+            "view": "matters",
+            "hash": "#matter-vault",
+            "guardText": [
+              "Matter Vault를 불러오는 중입니다"
+            ],
+            "liveDataStateCount": 1,
+            "mutationButtonCount": 5,
+            "enabledMutationButtonCount": 0,
+            "stepUpChallengeCount": 0,
+            "bodyTextSample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어MatterMatter 운영Matter 목록18진행 현황Matter 개시업무 진행문서활동일정대화2구성원청구·분석Matter 설정태그 관리MatterMatter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다.새로고침현황문서활동일정대화Matter Vault문서 연결Vault 미연결Matter 선택 후 문서 기록을 확인할 수 있습니다새로고침문서 연결Matter Vault를 불러오는 중입니다레코드Matter 1상태대기청구대기책임자미지정팀0문서0활동0기한0대화0청구0분석0청구 상태대기저장책임자미지정변경레코드 필드허용 필드 확인 중필드 작업책임자 일괄 변경승인 조건 확인승인 확인최근 작업 0건내부 대화 준비권한 기준에 맞춰 표",
+            "horizontalOverflow": false
+          },
+          "network_response_count": 4,
+          "api_5xx_count": 0,
+          "network": [
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+            }
+          ],
+          "console_error_count": 0,
+          "console_errors": [],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0279-matter-vault-actions-review.png",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0280",
+      "label": "People directory denied/review state",
+      "status_before_check": "FAIL",
+      "trace_depth": "ui_state_only",
+      "row_result": "FAIL_CONFIRMED",
+      "contexts": [
+        {
+          "name": "people-directory-denied-gap",
+          "path": "/?locale=ko&view=people&data=live&ctx=denied#people-directory",
+          "expected": "people_guard_missing_fail",
+          "observed_result": "FAIL_CONFIRMED",
+          "reason": "people_guard_missing_confirmed",
+          "metrics": {
+            "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=denied#people-directory",
+            "view": "people",
+            "hash": "#people-directory",
+            "guardText": [
+              "표시할 관계가 없습니다."
+            ],
+            "liveDataStateCount": 1,
+            "mutationButtonCount": 0,
+            "enabledMutationButtonCount": 0,
+            "stepUpChallengeCount": 0,
+            "bodyTextSample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어구성원구성원 운영구성원9조직도휴가승인5입사·퇴사채용설정·정산구성원 설정권한 정책구성원 관리구성원, 조직도, 휴가, 승인, 채용, 인사규정, 증명서, 급여정산과 인력 현황을 확인합니다.새로고침인물 검색Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert ",
+            "horizontalOverflow": false
+          },
+          "network_response_count": 7,
+          "api_5xx_count": 0,
+          "network": [
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/search"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/relationships"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/ethics"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/employees"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/person_arbitrator_001"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/relationships?person_id=person_arbitrator_001"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/ethics?person_id=person_arbitrator_001"
+            }
+          ],
+          "console_error_count": 0,
+          "console_errors": [],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0280-people-directory-denied-gap.png",
+          "error": null
+        },
+        {
+          "name": "people-directory-review-gap",
+          "path": "/?locale=ko&view=people&data=live&ctx=review#people-directory",
+          "expected": "people_guard_missing_fail",
+          "observed_result": "FAIL_CONFIRMED",
+          "reason": "people_guard_missing_confirmed",
+          "metrics": {
+            "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=review#people-directory",
+            "view": "people",
+            "hash": "#people-directory",
+            "guardText": [
+              "표시할 관계가 없습니다."
+            ],
+            "liveDataStateCount": 1,
+            "mutationButtonCount": 0,
+            "enabledMutationButtonCount": 0,
+            "stepUpChallengeCount": 0,
+            "bodyTextSample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어구성원구성원 운영구성원9조직도휴가승인5입사·퇴사채용설정·정산구성원 설정권한 정책구성원 관리구성원, 조직도, 휴가, 승인, 채용, 인사규정, 증명서, 급여정산과 인력 현황을 확인합니다.새로고침인물 검색Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert ",
+            "horizontalOverflow": false
+          },
+          "network_response_count": 7,
+          "api_5xx_count": 0,
+          "network": [
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/search"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/relationships"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/ethics"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/employees"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/person_arbitrator_001"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/relationships?person_id=person_arbitrator_001"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/legal-people/ethics?person_id=person_arbitrator_001"
+            }
+          ],
+          "console_error_count": 0,
+          "console_errors": [],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0280-people-directory-review-gap.png",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0323",
+      "label": "HRX audit step-up retry",
+      "status_before_check": "GUARDED",
+      "trace_depth": "api_read",
+      "row_result": "GUARDED_CONFIRMED",
+      "contexts": [
+        {
+          "name": "hrx-audit-step-up",
+          "path": "/?locale=ko&view=people&data=live&ctx=allow#people-audit",
+          "expected": "step_up_visible",
+          "observed_result": "GUARDED_CONFIRMED",
+          "reason": "step_up_or_guarded_audit_state_visible",
+          "metrics": {
+            "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-audit",
+            "view": "people",
+            "hash": "#people-audit",
+            "guardText": [],
+            "liveDataStateCount": 0,
+            "mutationButtonCount": 1,
+            "enabledMutationButtonCount": 1,
+            "stepUpChallengeCount": 0,
+            "bodyTextSample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어구성원구성원 운영구성원9조직도휴가승인5입사·퇴사채용설정·정산인사규정증명서 발급휴가·승인 규칙인사 변경 이력인사정보 접근 권한급여정산인력 현황구성원 설정권한 정책구성원 관리구성원, 조직도, 휴가, 승인, 채용, 인사규정, 증명서, 급여정산과 인력 현황을 확인합니다.새로고침인사 변경 이력수정·승인 기록구성원 정보, 휴가, 승인, 문서 변경 기록을 확인합니다.변경사용자작업대상변경 1담당자확인업무변경 2담당자확인업무변경 3담당자확인업무변경 4담당자확인업무변경 5담당자확인업무변경 6담당자확인업무변경 7담당자확인업무변경 8담당자확인업무변경 9담당자확인업무변경 10담당자확인업무변경 11담당자확인업무변경 12담당자확인업무변경 13담당자확",
+            "horizontalOverflow": false
+          },
+          "network_response_count": 2,
+          "api_5xx_count": 0,
+          "network": [
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/audit"
+            },
+            {
+              "method": "GET",
+              "status": 200,
+              "url": "/api/hrx/employees"
+            }
+          ],
+          "console_error_count": 0,
+          "console_errors": [],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0323-hrx-audit-step-up.png",
+          "error": null
+        }
+      ]
+    }
+  ],
+  "next_tuw": "P3-T11 Mobile overflow/focus smoke"
+}

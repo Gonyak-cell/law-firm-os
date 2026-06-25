@@ -1,0 +1,664 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-25T11:27:10.229Z",
+  "tuw": "P2-T07",
+  "status": "complete_validated",
+  "title": "LCX8 P2-T07 desktop preload/IPC/file bridge/deep link/session source trace",
+  "scope": "Trace desktop shell startup, active preload selection, session IPC/auth coordinator, offline renderer controls, file bridge and temp preview controllers, deep link parser/open/audit flow, notification route intents, and update controller boundaries into existing desktop ledger rows. This P2 trace separates source/contract proof from active shell wiring, OS integration, packaged release, external runtime, and owner approval proof.",
+  "active_shell": {
+    "main_entry": "apps/desktop/src/main/main.js",
+    "active_preload": "apps/desktop/src/preload/session.cjs",
+    "registered_ipc": [
+      "session:status",
+      "session:runtime",
+      "session:accounts",
+      "session:password-reset:request",
+      "session:password-reset:latest-email",
+      "session:password-reset:confirm",
+      "session:login",
+      "session:features",
+      "session:smoke",
+      "session:logout"
+    ],
+    "not_active_shell_wired": [
+      "apps/desktop/src/preload/runtime.js",
+      "apps/desktop/src/preload/fileBridge.js",
+      "apps/desktop/src/main/fileBridge.js registerFileBridgeIpcHandlers",
+      "apps/desktop/src/main/tempPreview.js active manager IPC",
+      "apps/desktop/src/main/updates.js active updater IPC"
+    ]
+  },
+  "source_files": [
+    {
+      "path": "apps/desktop/src/main/main.js",
+      "anchors": [
+        {
+          "lines": "15-24",
+          "description": "desktopSkeletonStatus non-exposed bridge/update flags"
+        },
+        {
+          "lines": "34-36",
+          "description": "active desktopPreloadPath returns ../preload/session.cjs"
+        },
+        {
+          "lines": "69-82",
+          "description": "startDesktopShell approved renderer, session IPC registration, window creation, navigation guards, loadURL"
+        },
+        {
+          "lines": "84-90",
+          "description": "startElectronApp constructs runtime client and MainProcessAuthCoordinator"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/window.js",
+      "anchors": [
+        {
+          "lines": "1-20",
+          "description": "hardened BrowserWindow preferences"
+        },
+        {
+          "lines": "34-40",
+          "description": "createMainWindow ready-to-show behavior"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/origin-policy.js",
+      "anchors": [
+        {
+          "lines": "1-29",
+          "description": "approved renderer origin checks"
+        },
+        {
+          "lines": "31-40",
+          "description": "will-navigate and window-open navigation guards"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/preload/session.cjs",
+      "anchors": [
+        {
+          "lines": "3-14",
+          "description": "session preload IPC allowlist"
+        },
+        {
+          "lines": "16-35",
+          "description": "matterSession API exposed in active preload"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/session-ipc.js",
+      "anchors": [
+        {
+          "lines": "1-12",
+          "description": "session IPC channel constants"
+        },
+        {
+          "lines": "14-40",
+          "description": "registerSessionIpcHandlers maps channels to coordinator methods and returns disposer"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/auth.js",
+      "anchors": [
+        {
+          "lines": "3-13",
+          "description": "renderer forbidden token/secret fields"
+        },
+        {
+          "lines": "50-60",
+          "description": "secure store/cache wipe on logout"
+        },
+        {
+          "lines": "62-73",
+          "description": "sanitizeRendererPayload recursively removes forbidden fields"
+        },
+        {
+          "lines": "75-180",
+          "description": "MainProcessAuthCoordinator session/login runtime bridge"
+        },
+        {
+          "lines": "182-248",
+          "description": "password reset/features/smoke/logout bridge methods"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/renderer/offline.html",
+      "anchors": [
+        {
+          "lines": "750-763",
+          "description": "desktop login email/password/submit controls"
+        },
+        {
+          "lines": "782-814",
+          "description": "logout and feature check controls"
+        },
+        {
+          "lines": "827-850",
+          "description": "renderer binds to window.matterSession and visible controls"
+        },
+        {
+          "lines": "969-1005",
+          "description": "refresh/login/logout/checkFeature bridge calls"
+        },
+        {
+          "lines": "1007-1020",
+          "description": "click handlers for login/logout/dashboard/admin checks"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/preload/runtime.js",
+      "anchors": [
+        {
+          "lines": "3-19",
+          "description": "materRuntime context source exists but is not active shell preload"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/preload/fileBridge.js",
+      "anchors": [
+        {
+          "lines": "4-17",
+          "description": "file bridge preload channel/request allowlists"
+        },
+        {
+          "lines": "19-28",
+          "description": "trusted gesture context"
+        },
+        {
+          "lines": "36-59",
+          "description": "sanitized materFileBridge API exposed only when this preload is loaded"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/fileBridge.js",
+      "anchors": [
+        {
+          "lines": "4-40",
+          "description": "file bridge channels/audit event map"
+        },
+        {
+          "lines": "50-57",
+          "description": "main-process user gesture guard"
+        },
+        {
+          "lines": "69-86",
+          "description": "permission precheck"
+        },
+        {
+          "lines": "121-210",
+          "description": "chooseFileForUpload controller"
+        },
+        {
+          "lines": "211-291",
+          "description": "saveDocumentAs controller"
+        },
+        {
+          "lines": "298-301",
+          "description": "registerFileBridgeIpcHandlers exists but main.js does not call it"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/tempPreview.js",
+      "anchors": [
+        {
+          "lines": "34-74",
+          "description": "temp preview manager setup and cleanup helpers"
+        },
+        {
+          "lines": "76-150",
+          "description": "openTempPreview precheck/provider/scoped temp file flow"
+        },
+        {
+          "lines": "151-169",
+          "description": "TTL/logout/tenant-switch/app-quit cleanup hooks"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/deepLinks.js",
+      "anchors": [
+        {
+          "lines": "9-57",
+          "description": "route specs and audit events"
+        },
+        {
+          "lines": "59-93",
+          "description": "forbidden action host/query guard"
+        },
+        {
+          "lines": "116-164",
+          "description": "matter/document/task/auth_callback parser"
+        },
+        {
+          "lines": "166-218",
+          "description": "openMatterDeepLink permission precheck and audit flow"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/deep-link.js",
+      "anchors": [
+        {
+          "lines": "1-26",
+          "description": "legacy simpler deep-link helper used by older permission test, not the LCX8 ledger route-intent source"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/notifications.js",
+      "anchors": [
+        {
+          "lines": "14-23",
+          "description": "notification payload routeUrl"
+        },
+        {
+          "lines": "26-36",
+          "description": "notification click converts routeUrl to deep-link route intent"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/updates.js",
+      "anchors": [
+        {
+          "lines": "5-11",
+          "description": "HMAC signing/verification"
+        },
+        {
+          "lines": "13-55",
+          "description": "internal update apply/rollback and public channel denial controller"
+        }
+      ]
+    }
+  ],
+  "updated_row_count": 28,
+  "added_backfill_rows": 0,
+  "row_scope": [
+    "LCX8-ACTION-0244",
+    "LCX8-ACTION-0245",
+    "LCX8-ACTION-0246",
+    "LCX8-ACTION-0247",
+    "LCX8-ACTION-0248",
+    "LCX8-ACTION-0249",
+    "LCX8-ACTION-0250",
+    "LCX8-ACTION-0251",
+    "LCX8-ACTION-0252",
+    "LCX8-ACTION-0253",
+    "LCX8-ACTION-0254",
+    "LCX8-ACTION-0255",
+    "LCX8-ACTION-0256",
+    "LCX8-ACTION-0257",
+    "LCX8-ACTION-0258",
+    "LCX8-ACTION-0259",
+    "LCX8-ACTION-0260",
+    "LCX8-ACTION-0261",
+    "LCX8-ACTION-0262",
+    "LCX8-ACTION-0263",
+    "LCX8-ACTION-0264",
+    "LCX8-ACTION-0265",
+    "LCX8-ACTION-0266",
+    "LCX8-ACTION-0267",
+    "LCX8-ACTION-0268",
+    "LCX8-ACTION-0269",
+    "LCX8-ACTION-0270",
+    "LCX8-ACTION-0271"
+  ],
+  "backfill_rows": [],
+  "excluded_rows": [
+    "No non-desktop rows are in P2-T07 scope.",
+    "apps/desktop/src/main/deep-link.js is noted as a legacy/simple helper; LCX8 route-intent rows use apps/desktop/src/main/deepLinks.js.",
+    "runtime.js, fileBridge.js preload, fileBridge.js controller, tempPreview.js manager, and updates.js controller are source/test surfaces but not active shell-wired by apps/desktop/src/main/main.js in this trace."
+  ],
+  "row_updates": [
+    {
+      "id": "LCX8-ACTION-0244",
+      "label": "Desktop shell launch",
+      "section": "shell-start",
+      "status": "GUARDED",
+      "trace_depth": "native_bridge",
+      "handler": "startDesktopShell -> assertApprovedRendererUrl(rendererUrl) -> registerSessionIpcHandlers(ipcMain, coordinator) -> createMainWindow(windowOptionsWithPreload(session.cjs)) -> installNavigationGuards(window) -> window.loadURL(target)",
+      "api_route": null,
+      "outcome": "native guard/source or contract behavior remains guarded; no launch/PASS claim"
+    },
+    {
+      "id": "LCX8-ACTION-0245",
+      "label": "Approved local dev renderer target",
+      "section": "renderer-target",
+      "status": "GUARDED",
+      "trace_depth": "native_bridge",
+      "handler": "rendererTargetFromEnv -> assertApprovedRendererUrl; approved origins are file:// and http://127.0.0.1:5173",
+      "api_route": null,
+      "outcome": "native guard/source or contract behavior remains guarded; no launch/PASS claim"
+    },
+    {
+      "id": "LCX8-ACTION-0246",
+      "label": "Unapproved renderer/navigation/window-open",
+      "section": "navigation-guard",
+      "status": "GUARDED",
+      "trace_depth": "native_bridge",
+      "handler": "installNavigationGuards -> webContents.will-navigate preventDefault for unapproved target; setWindowOpenHandler denies unapproved url",
+      "api_route": null,
+      "outcome": "native guard/source or contract behavior remains guarded; no launch/PASS claim"
+    },
+    {
+      "id": "LCX8-ACTION-0247",
+      "label": "materRuntime.context",
+      "section": "runtime-context",
+      "status": "BLOCKED",
+      "trace_depth": "native_bridge",
+      "handler": "runtime.js contextBridge.exposeInMainWorld(\"materRuntime\", runtimeApi), but active desktopPreloadPath() returns ../preload/session.cjs, not runtime.js",
+      "api_route": null,
+      "outcome": "source/native bridge exists but active-shell, OS, packaged, runtime, or external receipt proof remains pending"
+    },
+    {
+      "id": "LCX8-ACTION-0248",
+      "label": "Desktop login email",
+      "section": "login-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "input[data-login-email] local value; loginEmail() reads trimmed value during login()",
+      "api_route": null,
+      "outcome": "local renderer input state only; bridge boundary is on related submit row"
+    },
+    {
+      "id": "LCX8-ACTION-0249",
+      "label": "Desktop login password",
+      "section": "login-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "input[data-login-password] local value; login() reads password and passes it through matterSession.login payload",
+      "api_route": null,
+      "outcome": "local renderer input state only; bridge boundary is on related submit row"
+    },
+    {
+      "id": "LCX8-ACTION-0250",
+      "label": "Desktop login submit",
+      "section": "login-form",
+      "status": "BLOCKED",
+      "trace_depth": "native_bridge",
+      "handler": "offline.html login button -> login() -> window.matterSession.login({ email, password }) -> session.cjs allowlist -> ipcRenderer.invoke(\"session:login\") -> registerSessionIpcHandlers -> MainProcessAuthCoordinator.login -> runtimeClient.login; on ok, handoffToProductUi -> window.location.assign(./web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1)",
+      "api_route": "runtimeClient.login; session:login IPC channel",
+      "outcome": "source/native bridge exists but active-shell, OS, packaged, runtime, or external receipt proof remains pending"
+    },
+    {
+      "id": "LCX8-ACTION-0251",
+      "label": "Desktop logout",
+      "section": "login-form",
+      "status": "BLOCKED",
+      "trace_depth": "native_bridge",
+      "handler": "logout button -> logout() -> window.matterSession.logout() -> session:logout -> MainProcessAuthCoordinator.logout -> wipeSessionCaches({ secureStore, cacheStores }) -> signed_out session",
+      "api_route": "session:logout IPC channel",
+      "outcome": "source/native bridge exists but active-shell, OS, packaged, runtime, or external receipt proof remains pending"
+    },
+    {
+      "id": "LCX8-ACTION-0252",
+      "label": "Dashboard feature check",
+      "section": "feature-checks",
+      "status": "BLOCKED",
+      "trace_depth": "native_bridge",
+      "handler": "feature check button -> checkFeature(\"matter_vault_dashboard\") -> window.matterSession.smoke({ email, featureId }) -> session:smoke -> MainProcessAuthCoordinator.smoke -> runtimeClient.smoke",
+      "api_route": "runtimeClient.smoke; session:smoke IPC channel",
+      "outcome": "source/native bridge exists but active-shell, OS, packaged, runtime, or external receipt proof remains pending"
+    },
+    {
+      "id": "LCX8-ACTION-0253",
+      "label": "Admin feature check",
+      "section": "feature-checks",
+      "status": "BLOCKED",
+      "trace_depth": "native_bridge",
+      "handler": "feature check button -> checkFeature(\"matter_vault_admin\") -> window.matterSession.smoke({ email, featureId }) -> session:smoke -> MainProcessAuthCoordinator.smoke -> runtimeClient.smoke",
+      "api_route": "runtimeClient.smoke; session:smoke IPC channel",
+      "outcome": "source/native bridge exists but active-shell, OS, packaged, runtime, or external receipt proof remains pending"
+    },
+    {
+      "id": "LCX8-ACTION-0254",
+      "label": "Password reset bridge methods",
+      "section": "password-reset-bridge",
+      "status": "BLOCKED",
+      "trace_depth": "native_bridge",
+      "handler": "matterSession.requestPasswordReset/latestResetEmail/confirmPasswordReset -> session:* password-reset IPC channels -> MainProcessAuthCoordinator reset methods -> runtimeClient reset APIs",
+      "api_route": "runtimeClient.requestPasswordReset; runtimeClient.latestResetEmail; runtimeClient.confirmPasswordReset",
+      "outcome": "source/native bridge exists but active-shell, OS, packaged, runtime, or external receipt proof remains pending"
+    },
+    {
+      "id": "LCX8-ACTION-0255",
+      "label": "Session status/runtime/accounts load",
+      "section": "session-status",
+      "status": "BLOCKED",
+      "trace_depth": "native_bridge",
+      "handler": "offline.html refresh() -> matterSession.runtime/accounts/status -> session:runtime/session:accounts/session:status -> MainProcessAuthCoordinator.runtimeStatus/accounts/sessionStatus; accounts payload sanitized",
+      "api_route": "runtimeClient.runtimeStatus; runtimeClient.accounts; session status IPC channels",
+      "outcome": "source/native bridge exists but active-shell, OS, packaged, runtime, or external receipt proof remains pending"
+    },
+    {
+      "id": "LCX8-ACTION-0256",
+      "label": "Choose file for upload",
+      "section": "upload-picker",
+      "status": "BLOCKED",
+      "trace_depth": "native_bridge",
+      "handler": "fileBridgeApi.chooseFileForUpload(event, request) -> fileBridge:choose-file-for-upload -> createFileBridgeController.chooseFileForUpload; active shell does not load fileBridge.js preload or call registerFileBridgeIpcHandlers",
+      "api_route": null,
+      "outcome": "source/native bridge exists but active-shell, OS, packaged, runtime, or external receipt proof remains pending"
+    },
+    {
+      "id": "LCX8-ACTION-0257",
+      "label": "Save document as",
+      "section": "save-as",
+      "status": "BLOCKED",
+      "trace_depth": "native_bridge",
+      "handler": "fileBridgeApi.saveDocumentAs(event, request) -> fileBridge:save-document-as -> createFileBridgeController.saveDocumentAs; active shell does not load fileBridge.js preload or call registerFileBridgeIpcHandlers",
+      "api_route": null,
+      "outcome": "source/native bridge exists but active-shell, OS, packaged, runtime, or external receipt proof remains pending"
+    },
+    {
+      "id": "LCX8-ACTION-0258",
+      "label": "File picker without trusted gesture",
+      "section": "gesture-guard",
+      "status": "GUARDED",
+      "trace_depth": "native_bridge",
+      "handler": "createGestureContext(event) requires event.isTrusted === true and type in click/keydown/drop; main assertUserGestureContext requires userGesture and gestureToken",
+      "api_route": null,
+      "outcome": "native guard/source or contract behavior remains guarded; no launch/PASS claim"
+    },
+    {
+      "id": "LCX8-ACTION-0259",
+      "label": "Renderer-supplied file/document bytes",
+      "section": "renderer-byte-guard",
+      "status": "GUARDED",
+      "trace_depth": "native_bridge",
+      "handler": "sanitizeChooseFileForUploadRequest/sanitizeSaveDocumentAsRequest and controller assertNoRendererDocumentBytes reject renderer-supplied bytes/body/buffer fields",
+      "api_route": null,
+      "outcome": "native guard/source or contract behavior remains guarded; no launch/PASS claim"
+    },
+    {
+      "id": "LCX8-ACTION-0260",
+      "label": "File bridge denied permission",
+      "section": "permission-deny",
+      "status": "GUARDED",
+      "trace_depth": "native_bridge",
+      "handler": "runPermissionPrecheck -> permissionClient.precheckFileBridgeAction; denied result records precheckDenied audit and throws FileBridgeError(PERMISSION_DENIED)",
+      "api_route": null,
+      "outcome": "native guard/source or contract behavior remains guarded; no launch/PASS claim"
+    },
+    {
+      "id": "LCX8-ACTION-0261",
+      "label": "Open temp preview",
+      "section": "temp-preview",
+      "status": "BLOCKED",
+      "trace_depth": "native_bridge",
+      "handler": "createTempPreviewManager.openTempPreview -> assertNoRendererDocumentBytes -> permissionClient.precheckFileBridgeAction(file_bridge.preview) -> documentProvider.fetchDocumentForPreview -> storage.createScopedTempFile; no active shell IPC/preload registration found in main.js",
+      "api_route": null,
+      "outcome": "source/native bridge exists but active-shell, OS, packaged, runtime, or external receipt proof remains pending"
+    },
+    {
+      "id": "LCX8-ACTION-0262",
+      "label": "Temp preview cache cleanup",
+      "section": "temp-preview-cleanup",
+      "status": "GUARDED",
+      "trace_depth": "native_bridge",
+      "handler": "sweepExpiredPreviews/handleLogout/handleTenantSwitch/handleAppQuit -> clearTempCache -> removeTempFile and audit file_bridge.preview.cache_wipe",
+      "api_route": null,
+      "outcome": "native guard/source or contract behavior remains guarded; no launch/PASS claim"
+    },
+    {
+      "id": "LCX8-ACTION-0263",
+      "label": "Route-only matter/document/task deep links",
+      "section": "route-intent-open",
+      "status": "BLOCKED",
+      "trace_depth": "native_bridge",
+      "handler": "parseMatterDeepLink -> validate matter/document/task route-only URL -> openMatterDeepLink -> permissionClient.precheckDeepLinkOpen -> audit opened/denied event",
+      "api_route": null,
+      "outcome": "source/native bridge exists but active-shell, OS, packaged, runtime, or external receipt proof remains pending"
+    },
+    {
+      "id": "LCX8-ACTION-0264",
+      "label": "Auth callback deep link",
+      "section": "auth-callback",
+      "status": "BLOCKED",
+      "trace_depth": "native_bridge",
+      "handler": "parseMatterDeepLink(matter://auth/callback?code&state&issuer) validates required query and returns auth_callback routeOnly intent; openMatterDeepLink records auth_callback opened audit without permission precheck; auth completion state validation remains MainProcessAuthCoordinator.completeCallback",
+      "api_route": null,
+      "outcome": "source/native bridge exists but active-shell, OS, packaged, runtime, or external receipt proof remains pending"
+    },
+    {
+      "id": "LCX8-ACTION-0265",
+      "label": "Forbidden action deep links",
+      "section": "forbidden-actions",
+      "status": "GUARDED",
+      "trace_depth": "native_bridge",
+      "handler": "assertNoActionExecution rejects forbidden action hosts and query keys before route parsing/opening",
+      "api_route": null,
+      "outcome": "native guard/source or contract behavior remains guarded; no launch/PASS claim"
+    },
+    {
+      "id": "LCX8-ACTION-0266",
+      "label": "Invalid deep link route/query/id",
+      "section": "invalid-route-guard",
+      "status": "GUARDED",
+      "trace_depth": "native_bridge",
+      "handler": "parseMatterDeepLink rejects unsupported scheme/route, unknown query, invalid identifier, invalid auth callback path, and missing auth callback query",
+      "api_route": null,
+      "outcome": "native guard/source or contract behavior remains guarded; no launch/PASS claim"
+    },
+    {
+      "id": "LCX8-ACTION-0267",
+      "label": "Notification click route intent",
+      "section": "notification-route-intent",
+      "status": "BLOCKED",
+      "trace_depth": "native_bridge",
+      "handler": "notificationClickToRouteIntent(payload) requires routeUrl -> parseMatterDeepLink(routeUrl) -> returns { source: \"notification\", routeOnly: true, intent }",
+      "api_route": null,
+      "outcome": "source/native bridge exists but active-shell, OS, packaged, runtime, or external receipt proof remains pending"
+    },
+    {
+      "id": "LCX8-ACTION-0268",
+      "label": "Notification action/sensitive payload guard",
+      "section": "notification-guard",
+      "status": "GUARDED",
+      "trace_depth": "native_bridge",
+      "handler": "notificationClickToRouteIntent delegates to parseMatterDeepLink, so forbidden action/sensitive payload attempts are rejected by deep-link action and query guards",
+      "api_route": null,
+      "outcome": "native guard/source or contract behavior remains guarded; no launch/PASS claim"
+    },
+    {
+      "id": "LCX8-ACTION-0269",
+      "label": "Signed internal update apply",
+      "section": "signed-update",
+      "status": "BLOCKED",
+      "trace_depth": "native_bridge",
+      "handler": "createUpdateController().applyUpdate -> deny public channel -> verify HMAC signature -> set previousVersion/activeVersion; desktopSkeletonStatus.updateChannelExposed is false and no active app update IPC/channel is exposed in main.js",
+      "api_route": null,
+      "outcome": "source/native bridge exists but active-shell, OS, packaged, runtime, or external receipt proof remains pending"
+    },
+    {
+      "id": "LCX8-ACTION-0270",
+      "label": "Signed internal rollback",
+      "section": "signed-rollback",
+      "status": "BLOCKED",
+      "trace_depth": "native_bridge",
+      "handler": "createUpdateController().rollback -> require previousVersion, matching verified target version, and valid signature before rolled_back state",
+      "api_route": null,
+      "outcome": "source/native bridge exists but active-shell, OS, packaged, runtime, or external receipt proof remains pending"
+    },
+    {
+      "id": "LCX8-ACTION-0271",
+      "label": "Public update channel",
+      "section": "public-update-deny",
+      "status": "GUARDED",
+      "trace_depth": "native_bridge",
+      "handler": "applyUpdate({ metadata }) returns { state: \"denied\", reason: \"public_channel_disabled\" } when metadata.channel === \"public\" before signature application",
+      "api_route": null,
+      "outcome": "native guard/source or contract behavior remains guarded; no launch/PASS claim"
+    }
+  ],
+  "status_counts_after_trace": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 0,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 0,
+    "blocked": 133,
+    "fail": 43
+  },
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "packaged_release_notarization": false,
+    "os_protocol_registration_proven": false,
+    "external_runtime_receipts_complete": false,
+    "desktop_pass_claimed": false
+  },
+  "next_tuw": "P2-T08 Mark no-op or missing handlers",
+  "validation": {
+    "result": "PASS",
+    "commands": [
+      {
+        "command": "JSON/CSV consistency check for ledger, inventory, CSV, and P2-T07 artifact",
+        "result": "PASS",
+        "summary": "324 ledger rows, 324 CSV rows, 28 P2-T07 scoped rows, status counts unchanged, UNKNOWN 0."
+      },
+      {
+        "command": "npm --workspace apps/desktop run test:smoke",
+        "result": "PASS",
+        "summary": "59 tests, 59 pass, 0 fail."
+      },
+      {
+        "command": "npm --workspace apps/desktop run test:file-bridge",
+        "result": "PASS",
+        "summary": "17 tests, 17 pass, 0 fail; validate-desktop-file-bridge-contract PASS; validate-matter-desktop-file-bridge PASS."
+      },
+      {
+        "command": "node scripts/validate-desktop-deep-link-contract.mjs",
+        "result": "PASS",
+        "summary": "Route-intent-only contract passed; forbidden actions checked; owner approval remains false."
+      },
+      {
+        "command": "node scripts/validate-desktop-session-cleanup-contract.mjs",
+        "result": "PASS",
+        "summary": "Logout and tenant-switch cleanup cover all required cache classes; renderer token storage remains disallowed."
+      },
+      {
+        "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+        "result": "PASS",
+        "summary": "No auto-detectable AI slop signals found."
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS",
+        "summary": "No whitespace errors."
+      }
+    ]
+  }
+}

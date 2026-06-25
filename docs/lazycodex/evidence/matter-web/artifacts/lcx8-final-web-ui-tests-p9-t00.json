@@ -1,0 +1,24 @@
+{
+  "schema_version": "matter.lcx8.final-web-ui-tests.p9-t00.v1",
+  "generated_at": "2026-06-25T14:34:53.745Z",
+  "status": "FINAL_WEB_UI_TESTS_PASS",
+  "tuw": "P9-T00",
+  "command": "npm --workspace apps/web run test:ui",
+  "exit_code": 0,
+  "tests": 17,
+  "pass": 17,
+  "fail": 0,
+  "output_summary": "node --test test/*.test.mjs: 17 tests, 17 pass, 0 fail.",
+  "status_changes": 0,
+  "next_tuw": "P9-T01",
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  }
+}

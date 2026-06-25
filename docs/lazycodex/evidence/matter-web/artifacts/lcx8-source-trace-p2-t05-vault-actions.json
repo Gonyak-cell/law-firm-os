@@ -1,0 +1,296 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-25T11:06:41.459Z",
+  "tuw": "P2-T05",
+  "status": "complete_validated",
+  "title": "LCX8 P2-T05 Vault component/API action source trace",
+  "scope": "Trace VaultSurface, document detail, email filing, sidebar, shared Panel, vault API re-export, and apiClient boundaries into Vault rows. Backfill sidebar-reachable Vault detail/email visible missing-handler/unavailable feature rows absent from earlier inventory. MatterVaultPanel rows are covered by P2-T04 and remain out of this P2-T05 row scope.",
+  "lazyweb_reference": {
+    "query": "document vault management dashboard",
+    "platform": "desktop",
+    "coverage_strength": "strong",
+    "use": "Reference only; local Vault source/API trace drives classifications."
+  },
+  "source_files": [
+    {
+      "path": "apps/web/src/components/VaultSurface.jsx",
+      "anchors": [
+        {
+          "lines": "12-13",
+          "description": "Vault permission and audit refs"
+        },
+        {
+          "lines": "52-57",
+          "description": "VAULT_SECTIONS maps vault-documents/detail/email routes"
+        },
+        {
+          "lines": "59-72",
+          "description": "fetchVaultDocuments refresh effect"
+        },
+        {
+          "lines": "77-117",
+          "description": "loading/error/denied/review/empty/data render states plus breadcrumb/security/table"
+        },
+        {
+          "lines": "119-138",
+          "description": "PageHeader refresh button and section rendering for documents/detail/email"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/VaultDocumentDetail.jsx",
+      "anchors": [
+        {
+          "lines": "5-12",
+          "description": "Vault detail renders DocumentDetail and version-record Panel"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/DocumentDetail.jsx",
+      "anchors": [
+        {
+          "lines": "24-64",
+          "description": "read-only document detail panel hides storage pointer and document bytes"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/EmailFilingView.jsx",
+      "anchors": [
+        {
+          "lines": "5-21",
+          "description": "email filing provider-unavailable surface"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/VaultSecurityBadges.jsx",
+      "anchors": [
+        {
+          "lines": "4-10",
+          "description": "Vault legal-hold and privilege badge strip"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/VaultBreadcrumb.jsx",
+      "anchors": [
+        {
+          "lines": "4-12",
+          "description": "Matter/workspace breadcrumb for Vault location"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/Shell.jsx",
+      "anchors": [
+        {
+          "lines": "346-350",
+          "description": "Vault sidebar items for documents/detail/email"
+        },
+        {
+          "lines": "452-459",
+          "description": "Vault utilities render buttons without handlers"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/primitives.jsx",
+      "anchors": [
+        {
+          "lines": "17-28",
+          "description": "Panel renders shared overflow icon-button without handler"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/data/vaultApiClient.ts",
+      "anchors": [
+        {
+          "lines": "1-1",
+          "description": "Vault API client re-exports fetchVaultDocuments and Matter Vault helpers from apiClient.js"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/data/apiClient.js",
+      "anchors": [
+        {
+          "lines": "2157-2200",
+          "description": "fetchVaultDocuments GET /api/vault/documents shape validation and permission context"
+        },
+        {
+          "lines": "2202-2276",
+          "description": "Matter-filtered Vault documents/search/audit helpers, covered by P2-T04 MatterVault rows"
+        }
+      ]
+    }
+  ],
+  "updated_row_count": 9,
+  "added_backfill_rows": 3,
+  "row_scope": [
+    "LCX8-ACTION-0091",
+    "LCX8-ACTION-0092",
+    "LCX8-ACTION-0276",
+    "LCX8-ACTION-0277",
+    "LCX8-ACTION-0298",
+    "LCX8-ACTION-0299",
+    "LCX8-ACTION-0300",
+    "LCX8-ACTION-0301",
+    "LCX8-ACTION-0302",
+    "LCX8-ACTION-0320",
+    "LCX8-ACTION-0321",
+    "LCX8-ACTION-0322"
+  ],
+  "backfill_rows": [
+    "LCX8-ACTION-0320",
+    "LCX8-ACTION-0321",
+    "LCX8-ACTION-0322"
+  ],
+  "excluded_rows": [
+    "LCX8-ACTION-0064 through LCX8-ACTION-0072",
+    "LCX8-ACTION-0279",
+    "LCX8-ACTION-0231"
+  ],
+  "row_updates": [
+    {
+      "id": "LCX8-ACTION-0091",
+      "label": "새로고침",
+      "section": "vault-header",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "PageHeader onClick -> setRefreshToken(value + 1); VaultSurface useEffect -> fetchVaultDocuments({ ctx: liveCtx, permissionRef: ui_cmp_g5_vault_live, auditHintRef: ui_cmp_g5_vault_probe })",
+      "api_route": "GET /api/vault/documents?tenant_id=:tenant_id&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe",
+      "outcome": "API/external-runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0092",
+      "label": "Vault panel overflow menu",
+      "section": "vault-documents-panel",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "Panel renders .icon-button with MoreHorizontal icon and no onClick/type/aria-label for Vault documents panel",
+      "api_route": null,
+      "outcome": "missing handler remains FAIL"
+    },
+    {
+      "id": "LCX8-ACTION-0276",
+      "label": "Vault documents denied state",
+      "section": "vault-documents-denied-state",
+      "status": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "handler": "VaultSurface maps result.uiState === \"denied\" to DesktopDeniedState",
+      "api_route": null,
+      "outcome": "guarded state remains GUARDED pending P4 response proof"
+    },
+    {
+      "id": "LCX8-ACTION-0277",
+      "label": "Vault documents review-required state",
+      "section": "vault-documents-review-state",
+      "status": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "handler": "VaultSurface maps result.uiState === \"review_required\" or outcome === \"review_required\" to live-data-review state panel",
+      "api_route": null,
+      "outcome": "guarded state remains GUARDED pending P4 response proof"
+    },
+    {
+      "id": "LCX8-ACTION-0298",
+      "label": "문서함",
+      "section": "vault-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "Sidebar item onClick -> setView(\"vault\", \"vault-documents\") -> VaultSurface currentSection=\"vault-documents\"",
+      "api_route": null,
+      "outcome": "local route/read-only behavior remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0299",
+      "label": "문서 상세",
+      "section": "vault-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "Sidebar item onClick -> setView(\"vault\", \"vault-detail\") -> VaultSurface renders VaultDocumentDetail for first fetched document",
+      "api_route": null,
+      "outcome": "local route/read-only behavior remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0300",
+      "label": "메일 보관함",
+      "section": "vault-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "Sidebar item onClick -> setView(\"vault\", \"vault-email\") -> VaultSurface renders EmailFilingView unavailable integration state",
+      "api_route": null,
+      "outcome": "local route/read-only behavior remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0301",
+      "label": "Vault 설정",
+      "section": "vault-sidebar-utilities",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "none; sidebarMeta.vault.utilities renders button without onClick",
+      "api_route": null,
+      "outcome": "missing handler remains FAIL"
+    },
+    {
+      "id": "LCX8-ACTION-0302",
+      "label": "문서 태그",
+      "section": "vault-sidebar-utilities",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "none; sidebarMeta.vault.utilities renders button without onClick",
+      "api_route": null,
+      "outcome": "missing handler remains FAIL"
+    },
+    {
+      "id": "LCX8-ACTION-0320",
+      "label": "Vault detail panel overflow menus",
+      "section": "vault-detail-panel",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "Panel renders .icon-button with MoreHorizontal icon and no onClick/type/aria-label for document detail and version panels",
+      "api_route": null,
+      "outcome": "missing handler remains FAIL"
+    },
+    {
+      "id": "LCX8-ACTION-0321",
+      "label": "Vault email panel overflow menu",
+      "section": "vault-email-panel",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "Panel renders .icon-button with MoreHorizontal icon and no onClick/type/aria-label for email filing panel",
+      "api_route": null,
+      "outcome": "missing handler remains FAIL"
+    },
+    {
+      "id": "LCX8-ACTION-0322",
+      "label": "Vault email filing unavailable state",
+      "section": "vault-email-unavailable-state",
+      "status": "BLOCKED",
+      "trace_depth": "external_receipt_required",
+      "handler": "EmailFilingView renders static provider-unavailable state; no submit or provider API handler exists",
+      "api_route": null,
+      "outcome": "API/external-runtime-backed action remains BLOCKED pending P3/P4 proof"
+    }
+  ],
+  "status_counts_after_trace": {
+    "inventory_rows": 322,
+    "unknown": 0,
+    "pass": 0,
+    "guarded": 19,
+    "ui_only": 131,
+    "descriptor_only": 0,
+    "blocked": 131,
+    "fail": 41
+  },
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "external_receipts_complete": false,
+    "api_pass_claimed": false
+  },
+  "next_tuw": "P2-T06"
+}

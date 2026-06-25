@@ -1,0 +1,173 @@
+{
+  "schema_version": "matter.lcx8.final-status-count.p8-t00.v1",
+  "generated_at": "2026-06-25T14:28:15.085Z",
+  "status": "FINAL_STATUS_COUNTS_RECORDED",
+  "tuw": "P8-T00",
+  "ledger_rows": 324,
+  "csv_lines_expected": 325,
+  "status_counts": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  },
+  "by_status": {
+    "UI_ONLY": 128,
+    "FAIL": 43,
+    "BLOCKED": 122,
+    "PASS": 10,
+    "GUARDED": 19,
+    "DESCRIPTOR_ONLY": 2
+  },
+  "by_trace_depth": {
+    "ui_state_only": 103,
+    "route_navigation": 77,
+    "api_read": 34,
+    "api_write": 83,
+    "native_bridge": 26,
+    "external_receipt_required": 1
+  },
+  "by_surface_status": {
+    "auth": {
+      "UI_ONLY": 4,
+      "FAIL": 2
+    },
+    "home": {
+      "UI_ONLY": 30,
+      "FAIL": 6,
+      "BLOCKED": 1
+    },
+    "matter": {
+      "BLOCKED": 36,
+      "UI_ONLY": 39,
+      "FAIL": 3,
+      "PASS": 2
+    },
+    "vault": {
+      "PASS": 1,
+      "FAIL": 5,
+      "UI_ONLY": 3,
+      "DESCRIPTOR_ONLY": 1
+    },
+    "people-directory": {
+      "BLOCKED": 9,
+      "FAIL": 1
+    },
+    "client": {
+      "UI_ONLY": 9,
+      "FAIL": 3,
+      "BLOCKED": 31
+    },
+    "people-sidebar": {
+      "UI_ONLY": 18,
+      "FAIL": 2
+    },
+    "people-relationships": {
+      "BLOCKED": 8
+    },
+    "people-conflicts": {
+      "BLOCKED": 8
+    },
+    "people-hrx": {
+      "FAIL": 2
+    },
+    "people-workforce": {
+      "FAIL": 7,
+      "UI_ONLY": 7
+    },
+    "people-documents-leave": {
+      "BLOCKED": 1
+    },
+    "people-leave": {
+      "UI_ONLY": 3,
+      "BLOCKED": 1
+    },
+    "people-approvals": {
+      "BLOCKED": 2
+    },
+    "people-recruiting": {
+      "BLOCKED": 1
+    },
+    "people-policy": {
+      "UI_ONLY": 3,
+      "BLOCKED": 1
+    },
+    "people-ai": {
+      "BLOCKED": 2
+    },
+    "people-payroll": {
+      "UI_ONLY": 4,
+      "BLOCKED": 3
+    },
+    "people-admin": {
+      "BLOCKED": 9
+    },
+    "profile-sidebar": {
+      "UI_ONLY": 6,
+      "FAIL": 6
+    },
+    "profile-surface": {
+      "FAIL": 5
+    },
+    "desktop-shell": {
+      "PASS": 1,
+      "GUARDED": 2
+    },
+    "desktop-runtime": {
+      "BLOCKED": 1
+    },
+    "desktop-renderer": {
+      "UI_ONLY": 2,
+      "PASS": 4
+    },
+    "desktop-session": {
+      "PASS": 2
+    },
+    "desktop-file-bridge": {
+      "BLOCKED": 3,
+      "GUARDED": 4
+    },
+    "desktop-deep-links": {
+      "BLOCKED": 2,
+      "GUARDED": 2
+    },
+    "desktop-notifications": {
+      "BLOCKED": 1,
+      "GUARDED": 1
+    },
+    "desktop-updates": {
+      "BLOCKED": 2,
+      "GUARDED": 1
+    },
+    "client-guarded-state": {
+      "GUARDED": 2
+    },
+    "matter-guarded-state": {
+      "GUARDED": 4
+    },
+    "vault-guarded-state": {
+      "GUARDED": 2
+    },
+    "people-guarded-state": {
+      "FAIL": 1
+    },
+    "profile-unavailable-state": {
+      "DESCRIPTOR_ONLY": 1
+    },
+    "people-audit": {
+      "GUARDED": 1
+    }
+  },
+  "status_changes": 0,
+  "next_tuw": "P8-T01",
+  "non_claims_preserved": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "external_receipts_complete": false
+  }
+}

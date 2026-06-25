@@ -1,0 +1,206 @@
+{
+  "schema_version": "matter.lcx8.copy-ux-a11y-backlog.p7-t06.v1",
+  "generated_at": "2026-06-25T14:26:49.605Z",
+  "status": "P7_FINDINGS_ATTACHED_TO_REMEDIATION_BACKLOG",
+  "tuw": "P7-T06",
+  "source_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-visual-overlap-hidden-controls-p7-t00.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-disabled-guarded-affordance-p7-t01.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-focus-dialog-drawer-p7-t02.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-korean-copy-review-p7-t03.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-launch-claim-copy-review-p7-t04.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-ai-slop-lint-p7-t05.json"
+  ],
+  "backlog_file": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-backlog.md",
+  "findings_reviewed": 11,
+  "affected_rows": [
+    "LCX8-ACTION-0008",
+    "LCX8-ACTION-0009",
+    "LCX8-ACTION-0010",
+    "LCX8-ACTION-0011",
+    "LCX8-ACTION-0012",
+    "LCX8-ACTION-0016",
+    "LCX8-ACTION-0045",
+    "LCX8-ACTION-0091",
+    "LCX8-ACTION-0148",
+    "LCX8-ACTION-0155",
+    "LCX8-ACTION-0156",
+    "LCX8-ACTION-0164",
+    "LCX8-ACTION-0272",
+    "LCX8-ACTION-0273",
+    "LCX8-ACTION-0280",
+    "LCX8-ACTION-0282",
+    "LCX8-ACTION-0284",
+    "LCX8-ACTION-0292",
+    "LCX8-ACTION-0300"
+  ],
+  "affected_row_count": 19,
+  "lane_counts": {
+    "Lane E": 9,
+    "Lane B": 2
+  },
+  "severity_counts": {
+    "medium": 7,
+    "high": 3,
+    "low": 1
+  },
+  "status_changes": 0,
+  "findings": [
+    {
+      "id": "P7-VIS-001",
+      "source_tuw": "P7-T00",
+      "severity": "medium",
+      "primary_lane": "Lane E",
+      "secondary_lane": null,
+      "title": "Mobile product axis has partially offscreen Vault action",
+      "row_ids": [
+        "LCX8-ACTION-0011"
+      ],
+      "issue_text": "Make product-axis navigation horizontally scrollable with visible affordance, wrap at mobile, or collapse into a menu so Vault is not clipped at 390px."
+    },
+    {
+      "id": "P7-VIS-002",
+      "source_tuw": "P7-T00",
+      "severity": "medium",
+      "primary_lane": "Lane E",
+      "secondary_lane": null,
+      "title": "Global search is hidden at mobile width",
+      "row_ids": [
+        "LCX8-ACTION-0012"
+      ],
+      "issue_text": "Provide a visible mobile search trigger or move global search into the topbar overflow/drawer with keyboard focus support."
+    },
+    {
+      "id": "P7-VIS-003",
+      "source_tuw": "P7-T00",
+      "severity": "medium",
+      "primary_lane": "Lane E",
+      "secondary_lane": null,
+      "title": "Mobile secondary navigation exposes offscreen focusable action buttons",
+      "row_ids": [
+        "LCX8-ACTION-0045",
+        "LCX8-ACTION-0282",
+        "LCX8-ACTION-0284",
+        "LCX8-ACTION-0292",
+        "LCX8-ACTION-0148",
+        "LCX8-ACTION-0155",
+        "LCX8-ACTION-0156",
+        "LCX8-ACTION-0164",
+        "LCX8-ACTION-0300"
+      ],
+      "issue_text": "Constrain mobile secondary nav with scroll indicators, roving tabindex, or a drawer/tab pattern so offscreen actions are discoverable and focus order is coherent."
+    },
+    {
+      "id": "P7-AFF-001",
+      "source_tuw": "P7-T01",
+      "severity": "high",
+      "primary_lane": "Lane E",
+      "secondary_lane": "Lane B review",
+      "title": "Client denied/review guarded panels still expose enabled mutation affordance",
+      "row_ids": [
+        "LCX8-ACTION-0272",
+        "LCX8-ACTION-0273"
+      ],
+      "issue_text": "Disable or hide mutation controls in Client denied/review panels and add explicit reason copy; keep API fail-closed tests as the security acceptance target."
+    },
+    {
+      "id": "P7-AFF-002",
+      "source_tuw": "P7-T01",
+      "severity": "high",
+      "primary_lane": "Lane B",
+      "secondary_lane": "Lane E copy",
+      "title": "People directory denied/review guarded state remains a known gap",
+      "row_ids": [
+        "LCX8-ACTION-0280"
+      ],
+      "issue_text": "Forward ctx through PeopleHome/LegalPeopleWorkspace, render denied/review live-data state, and prove no protected People tokens are visible in denied/review contexts."
+    },
+    {
+      "id": "P7-FOCUS-001",
+      "source_tuw": "P7-T02",
+      "severity": "medium",
+      "primary_lane": "Lane E",
+      "secondary_lane": null,
+      "title": "Global search is hidden and not focusable at mobile width",
+      "row_ids": [
+        "LCX8-ACTION-0012"
+      ],
+      "issue_text": "Add a mobile-visible search affordance and focus target; verify with P3-T11 mobile focus smoke."
+    },
+    {
+      "id": "P7-FOCUS-002",
+      "source_tuw": "P7-T02",
+      "severity": "medium",
+      "primary_lane": "Lane E",
+      "secondary_lane": null,
+      "title": "Notification drawer does not keep focus within drawer during Tab smoke",
+      "row_ids": [
+        "LCX8-ACTION-0016"
+      ],
+      "issue_text": "Trap focus inside the notification drawer or close/return focus predictably; verify tab order and Escape close behavior."
+    },
+    {
+      "id": "P7-COPY-001",
+      "source_tuw": "P7-T03",
+      "severity": "medium",
+      "primary_lane": "Lane E",
+      "secondary_lane": null,
+      "title": "Korean locale mixes product-domain English labels with Korean navigation labels",
+      "row_ids": [
+        "LCX8-ACTION-0008",
+        "LCX8-ACTION-0009",
+        "LCX8-ACTION-0010",
+        "LCX8-ACTION-0011"
+      ],
+      "issue_text": "Decide whether Client/Matter/Vault/People are protected product terms or Korean domain nouns, then make i18n/product-axis/sidebar labels consistent."
+    },
+    {
+      "id": "P7-COPY-002",
+      "source_tuw": "P7-T03",
+      "severity": "medium",
+      "primary_lane": "Lane E",
+      "secondary_lane": null,
+      "title": "Client guarded-state Korean copy embeds English product label in the sentence body",
+      "row_ids": [
+        "LCX8-ACTION-0272",
+        "LCX8-ACTION-0273"
+      ],
+      "issue_text": "Align Client guarded-state copy with the decided domain naming policy and keep the denial/review reason readable in Korean."
+    },
+    {
+      "id": "P7-COPY-003",
+      "source_tuw": "P7-T03",
+      "severity": "high",
+      "primary_lane": "Lane B",
+      "secondary_lane": "Lane E copy",
+      "title": "People denied/review copy cannot be reviewed because the guarded state is missing",
+      "row_ids": [
+        "LCX8-ACTION-0280"
+      ],
+      "issue_text": "After fixing the People guard-state runtime gap, add Korean denied/review copy and rerun guarded-state browser checks."
+    },
+    {
+      "id": "P7-COPY-004",
+      "source_tuw": "P7-T03",
+      "severity": "low",
+      "primary_lane": "Lane E",
+      "secondary_lane": "launch-boundary",
+      "title": "Local synthetic fixture title is visible in Vault document samples",
+      "row_ids": [
+        "LCX8-ACTION-0091"
+      ],
+      "issue_text": "Keep synthetic fixture labels out of launch/customer-data claims or replace with clearly labeled demo data before any public or owner-ready screen capture."
+    }
+  ],
+  "next_tuw": "P8-T00",
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  }
+}

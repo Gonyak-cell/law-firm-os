@@ -1,0 +1,800 @@
+{
+  "schema_version": "matter.lcx8.browser-action-qa.p3-t04.home.v1",
+  "generated_at": "2026-06-25T12:21:00.954Z",
+  "status": "complete_pass_observed",
+  "tuw": "P3-T04",
+  "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
+  "web_base_url": "http://127.0.0.1:5174",
+  "api_base_url": "http://127.0.0.1:4180 via Vite proxy",
+  "start_url": "http://127.0.0.1:5174/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+  "rows_reviewed": 8,
+  "pass_observed": 8,
+  "fail_observed": 0,
+  "api_response_count": 81,
+  "api_5xx_count": 0,
+  "console_error_count": 0,
+  "note": "Browser click QA records observed Home action behavior only; individual action rows are not promoted to PASS until later API/permission/audit/persistence proof where required.",
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "external_receipts_complete": false
+  },
+  "results": [
+    {
+      "id": "LCX8-ACTION-0036",
+      "label": "새로고침",
+      "selector": ".lcx-web-command-center .page-header .secondary-button",
+      "status_before_qa": "BLOCKED",
+      "trace_depth": "api_read",
+      "expected_kind": "api_refresh",
+      "expected_view": null,
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "after_url": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "before_metrics": {
+        "view": "home",
+        "hash": "",
+        "commandCenter": 1,
+        "capabilityCards": 4
+      },
+      "after_metrics": {
+        "view": "home",
+        "hash": "",
+        "title": "matter",
+        "commandCenter": 1,
+        "capabilityCards": 4,
+        "liveStates": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 14,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0036",
+          "method": "GET",
+          "status": 200,
+          "url": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_r4_master_data_live&audit_hint_ref=ui_cmp_r4_master_data_probe&limit=10&model_type=ClientGroup"
+        },
+        {
+          "action_id": "LCX8-ACTION-0036",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0036",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0036",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/portal/dashboard?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0036",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/portal/rfi?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0036",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "action_id": "LCX8-ACTION-0036",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0036",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0036",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0036",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0036",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/ai/review-queue?tenant_id=matter-runtime-tenant&permission_ref=ui_cmp_g9_ai_live&audit_hint_ref=ui_cmp_g9_ai_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0036",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/employees"
+        },
+        {
+          "action_id": "LCX8-ACTION-0036",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0036",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/data-room/projections?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0036.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED"
+    },
+    {
+      "id": "LCX8-ACTION-0037",
+      "label": "Matter 목록",
+      "selector": "button.home-queue-row.live:nth-of-type(1)",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route",
+      "expected_view": "matters",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "after_url": "/?locale=ko&view=matters&desktop=1&data=live&ctx=allow",
+      "before_metrics": {
+        "view": "home",
+        "hash": "",
+        "commandCenter": 1,
+        "capabilityCards": 4
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "",
+        "title": "matter",
+        "commandCenter": 0,
+        "capabilityCards": 0,
+        "liveStates": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 22,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "POST",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        },
+        {
+          "action_id": "LCX8-ACTION-0037",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0037.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED"
+    },
+    {
+      "id": "LCX8-ACTION-0038",
+      "label": "승인·구성원 확인",
+      "selector": "button.home-queue-row.live:nth-of-type(2)",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route",
+      "expected_view": "people",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "after_url": "/?locale=ko&view=people&desktop=1&data=live&ctx=allow",
+      "before_metrics": {
+        "view": "home",
+        "hash": "",
+        "commandCenter": 1,
+        "capabilityCards": 4
+      },
+      "after_metrics": {
+        "view": "people",
+        "hash": "",
+        "title": "matter",
+        "commandCenter": 0,
+        "capabilityCards": 0,
+        "liveStates": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 4,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0038",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/employees"
+        },
+        {
+          "action_id": "LCX8-ACTION-0038",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/lifecycle/onboarding"
+        },
+        {
+          "action_id": "LCX8-ACTION-0038",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/lifecycle/offboarding"
+        },
+        {
+          "action_id": "LCX8-ACTION-0038",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/employees"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0038.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED"
+    },
+    {
+      "id": "LCX8-ACTION-0039",
+      "label": "최근 문서 확인",
+      "selector": "button.home-queue-row.live:nth-of-type(3)",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route",
+      "expected_view": "vault",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "after_url": "/?locale=ko&view=vault&desktop=1&data=live&ctx=allow",
+      "before_metrics": {
+        "view": "home",
+        "hash": "",
+        "commandCenter": 1,
+        "capabilityCards": 4
+      },
+      "after_metrics": {
+        "view": "vault",
+        "hash": "",
+        "title": "matter",
+        "commandCenter": 0,
+        "capabilityCards": 0,
+        "liveStates": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 1,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0039",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0039.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED"
+    },
+    {
+      "id": "LCX8-ACTION-0040",
+      "label": "Client 열기",
+      "selector": "article[data-capability-id=\"client\"] .work-area-open",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route",
+      "expected_view": "clients",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "after_url": "/?locale=ko&view=clients&desktop=1&data=live&ctx=allow",
+      "before_metrics": {
+        "view": "home",
+        "hash": "",
+        "commandCenter": 1,
+        "capabilityCards": 4
+      },
+      "after_metrics": {
+        "view": "clients",
+        "hash": "",
+        "title": "matter",
+        "commandCenter": 0,
+        "capabilityCards": 0,
+        "liveStates": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 13,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0040",
+          "method": "GET",
+          "status": 200,
+          "url": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup"
+        },
+        {
+          "action_id": "LCX8-ACTION-0040",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?client_id=client_lcx_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0040",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0040",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0040",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0040",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0040",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0040",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0040",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0040",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0040",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0040",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0040",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0040.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED"
+    },
+    {
+      "id": "LCX8-ACTION-0041",
+      "label": "Matter 열기",
+      "selector": "article[data-capability-id=\"matter\"] .work-area-open",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route",
+      "expected_view": "matters",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "after_url": "/?locale=ko&view=matters&desktop=1&data=live&ctx=allow",
+      "before_metrics": {
+        "view": "home",
+        "hash": "",
+        "commandCenter": 1,
+        "capabilityCards": 4
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "",
+        "title": "matter",
+        "commandCenter": 0,
+        "capabilityCards": 0,
+        "liveStates": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 22,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "POST",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        },
+        {
+          "action_id": "LCX8-ACTION-0041",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0041.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED"
+    },
+    {
+      "id": "LCX8-ACTION-0042",
+      "label": "People 열기",
+      "selector": "article[data-capability-id=\"people\"] .work-area-open",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route",
+      "expected_view": "people",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "after_url": "/?locale=ko&view=people&desktop=1&data=live&ctx=allow",
+      "before_metrics": {
+        "view": "home",
+        "hash": "",
+        "commandCenter": 1,
+        "capabilityCards": 4
+      },
+      "after_metrics": {
+        "view": "people",
+        "hash": "",
+        "title": "matter",
+        "commandCenter": 0,
+        "capabilityCards": 0,
+        "liveStates": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 4,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0042",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/employees"
+        },
+        {
+          "action_id": "LCX8-ACTION-0042",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/lifecycle/onboarding"
+        },
+        {
+          "action_id": "LCX8-ACTION-0042",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/lifecycle/offboarding"
+        },
+        {
+          "action_id": "LCX8-ACTION-0042",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/employees"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0042.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED"
+    },
+    {
+      "id": "LCX8-ACTION-0043",
+      "label": "Vault 열기",
+      "selector": "article[data-capability-id=\"vault\"] .work-area-open",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route",
+      "expected_view": "vault",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "after_url": "/?locale=ko&view=vault&desktop=1&data=live&ctx=allow",
+      "before_metrics": {
+        "view": "home",
+        "hash": "",
+        "commandCenter": 1,
+        "capabilityCards": 4
+      },
+      "after_metrics": {
+        "view": "vault",
+        "hash": "",
+        "title": "matter",
+        "commandCenter": 0,
+        "capabilityCards": 0,
+        "liveStates": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 1,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0043",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0043.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED"
+    }
+  ],
+  "next_tuw": "P3-T05 Click first-slice matter actions"
+}

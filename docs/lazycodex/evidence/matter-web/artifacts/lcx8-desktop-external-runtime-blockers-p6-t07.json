@@ -1,0 +1,256 @@
+{
+  "schema_version": "matter.lcx8.desktop-external-runtime-blockers.p6-t07.v1",
+  "generated_at": "2026-06-25T14:11:32.828Z",
+  "status": "DESKTOP_EXTERNAL_RUNTIME_BLOCKERS_CLASSIFIED_NO_OVERCLAIM",
+  "tuw": "P6-T07",
+  "reviewed_native_rows": 26,
+  "category_counts": {
+    "pass_temporary_packaged_desktop_runtime_not_go_live": 7,
+    "guarded_source_or_contract_guard_no_external_runtime_needed": 10,
+    "blocked_active_shell_file_bridge_not_loaded": 3,
+    "blocked_os_protocol_notification_or_auth_receipt_required": 3,
+    "blocked_packaged_updater_notarization_owner_receipt_required": 2,
+    "blocked_runtime_context_preload_not_loaded": 1
+  },
+  "native_status_counts": {
+    "inventory_rows": 26,
+    "unknown": 0,
+    "pass": 7,
+    "guarded": 10,
+    "ui_only": 0,
+    "descriptor_only": 0,
+    "blocked": 9,
+    "fail": 0
+  },
+  "ledger_status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  },
+  "status_changes": 0,
+  "non_claims": {
+    "temporary_aws_runtime_is_production_go_live": false,
+    "packaged_screen_qa_is_public_release": false,
+    "owner_final_approval_recorded": false,
+    "os_protocol_registration_receipt": false,
+    "native_notification_delivery_receipt": false,
+    "packaged_updater_notarization_receipt": false,
+    "active_shell_file_bridge_loaded": false
+  },
+  "next_tuw": "P7-T00",
+  "rows": [
+    {
+      "id": "LCX8-ACTION-0244",
+      "category": "pass_temporary_packaged_desktop_runtime_not_go_live",
+      "status": "PASS",
+      "surface": "desktop-shell",
+      "label": "Desktop shell launch",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0250",
+      "category": "pass_temporary_packaged_desktop_runtime_not_go_live",
+      "status": "PASS",
+      "surface": "desktop-renderer",
+      "label": "Desktop login submit",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0251",
+      "category": "pass_temporary_packaged_desktop_runtime_not_go_live",
+      "status": "PASS",
+      "surface": "desktop-renderer",
+      "label": "Desktop logout",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0252",
+      "category": "pass_temporary_packaged_desktop_runtime_not_go_live",
+      "status": "PASS",
+      "surface": "desktop-renderer",
+      "label": "Dashboard feature check",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0253",
+      "category": "pass_temporary_packaged_desktop_runtime_not_go_live",
+      "status": "PASS",
+      "surface": "desktop-renderer",
+      "label": "Admin feature check",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0254",
+      "category": "pass_temporary_packaged_desktop_runtime_not_go_live",
+      "status": "PASS",
+      "surface": "desktop-session",
+      "label": "Password reset bridge methods",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0255",
+      "category": "pass_temporary_packaged_desktop_runtime_not_go_live",
+      "status": "PASS",
+      "surface": "desktop-session",
+      "label": "Session status/runtime/accounts load",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0245",
+      "category": "guarded_source_or_contract_guard_no_external_runtime_needed",
+      "status": "GUARDED",
+      "surface": "desktop-shell",
+      "label": "Approved local dev renderer target",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0246",
+      "category": "guarded_source_or_contract_guard_no_external_runtime_needed",
+      "status": "GUARDED",
+      "surface": "desktop-shell",
+      "label": "Unapproved renderer/navigation/window-open",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0258",
+      "category": "guarded_source_or_contract_guard_no_external_runtime_needed",
+      "status": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "File picker without trusted gesture",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0259",
+      "category": "guarded_source_or_contract_guard_no_external_runtime_needed",
+      "status": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "Renderer-supplied file/document bytes",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0260",
+      "category": "guarded_source_or_contract_guard_no_external_runtime_needed",
+      "status": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "File bridge denied permission",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0262",
+      "category": "guarded_source_or_contract_guard_no_external_runtime_needed",
+      "status": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "Temp preview cache cleanup",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0265",
+      "category": "guarded_source_or_contract_guard_no_external_runtime_needed",
+      "status": "GUARDED",
+      "surface": "desktop-deep-links",
+      "label": "Forbidden action deep links",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0266",
+      "category": "guarded_source_or_contract_guard_no_external_runtime_needed",
+      "status": "GUARDED",
+      "surface": "desktop-deep-links",
+      "label": "Invalid deep link route/query/id",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0268",
+      "category": "guarded_source_or_contract_guard_no_external_runtime_needed",
+      "status": "GUARDED",
+      "surface": "desktop-notifications",
+      "label": "Notification action/sensitive payload guard",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0271",
+      "category": "guarded_source_or_contract_guard_no_external_runtime_needed",
+      "status": "GUARDED",
+      "surface": "desktop-updates",
+      "label": "Public update channel",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0256",
+      "category": "blocked_active_shell_file_bridge_not_loaded",
+      "status": "BLOCKED",
+      "surface": "desktop-file-bridge",
+      "label": "Choose file for upload",
+      "remediation_lane": "P6/Lane B"
+    },
+    {
+      "id": "LCX8-ACTION-0257",
+      "category": "blocked_active_shell_file_bridge_not_loaded",
+      "status": "BLOCKED",
+      "surface": "desktop-file-bridge",
+      "label": "Save document as",
+      "remediation_lane": "P6/Lane B"
+    },
+    {
+      "id": "LCX8-ACTION-0261",
+      "category": "blocked_active_shell_file_bridge_not_loaded",
+      "status": "BLOCKED",
+      "surface": "desktop-file-bridge",
+      "label": "Open temp preview",
+      "remediation_lane": "P6/Lane B"
+    },
+    {
+      "id": "LCX8-ACTION-0263",
+      "category": "blocked_os_protocol_notification_or_auth_receipt_required",
+      "status": "BLOCKED",
+      "surface": "desktop-deep-links",
+      "label": "Route-only matter/document/task deep links",
+      "remediation_lane": "P6/P4"
+    },
+    {
+      "id": "LCX8-ACTION-0264",
+      "category": "blocked_os_protocol_notification_or_auth_receipt_required",
+      "status": "BLOCKED",
+      "surface": "desktop-deep-links",
+      "label": "Auth callback deep link",
+      "remediation_lane": "P6/P4"
+    },
+    {
+      "id": "LCX8-ACTION-0267",
+      "category": "blocked_os_protocol_notification_or_auth_receipt_required",
+      "status": "BLOCKED",
+      "surface": "desktop-notifications",
+      "label": "Notification click route intent",
+      "remediation_lane": "P6/P4"
+    },
+    {
+      "id": "LCX8-ACTION-0269",
+      "category": "blocked_packaged_updater_notarization_owner_receipt_required",
+      "status": "BLOCKED",
+      "surface": "desktop-updates",
+      "label": "Signed internal update apply",
+      "remediation_lane": "P6/Lane D"
+    },
+    {
+      "id": "LCX8-ACTION-0270",
+      "category": "blocked_packaged_updater_notarization_owner_receipt_required",
+      "status": "BLOCKED",
+      "surface": "desktop-updates",
+      "label": "Signed internal rollback",
+      "remediation_lane": "P6/Lane D"
+    },
+    {
+      "id": "LCX8-ACTION-0247",
+      "category": "blocked_runtime_context_preload_not_loaded",
+      "status": "BLOCKED",
+      "surface": "desktop-runtime",
+      "label": "materRuntime.context",
+      "remediation_lane": "P6"
+    }
+  ]
+}

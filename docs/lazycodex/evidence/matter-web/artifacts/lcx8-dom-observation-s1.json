@@ -1,0 +1,2995 @@
+{
+  "schema_version": "lcx8.dom_observation.v1",
+  "generated_at": "2026-06-25T08:47:21.537Z",
+  "browser": "playwright.chromium.headless",
+  "viewport": {
+    "width": 1440,
+    "height": 1100
+  },
+  "source_scope": "S1 DOM observation for Home command-center, Matter sections, Vault documents, People directory",
+  "observations": [
+    {
+      "id": "home-command-center",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "scope": ".page-canvas",
+      "observed_at": "2026-06-25T08:47:06.285Z",
+      "summary": {
+        "total": 8,
+        "byTag": {
+          "button": 8
+        },
+        "byDisabled": {
+          "enabled": 8,
+          "disabled": 0
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": null,
+            "className": "surface stack lcx-web-command-center",
+            "label": "오늘의 운영 대기열"
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Matter 목록 6개 항목을 확인했습니다. 정상",
+          "text": "Matter 목록 6개 항목을 확인했습니다. 정상",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.home-queue-row.live",
+          "className": "home-queue-row live",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": null,
+            "className": "home-queue-panel",
+            "label": "Matter 작업 큐"
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인·구성원 확인 1개 항목을 확인했습니다. 정상",
+          "text": "승인·구성원 확인 1개 항목을 확인했습니다. 정상",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.home-queue-row.live",
+          "className": "home-queue-row live",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": null,
+            "className": "home-queue-panel",
+            "label": "Matter 작업 큐"
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "최근 문서 확인 1개 항목을 확인했습니다. 정상",
+          "text": "최근 문서 확인 1개 항목을 확인했습니다. 정상",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.home-queue-row.live",
+          "className": "home-queue-row live",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": null,
+            "className": "home-queue-panel",
+            "label": "Matter 작업 큐"
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "열기",
+          "text": "열기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button.work-area-open",
+          "className": "secondary-button work-area-open",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "article",
+            "id": null,
+            "className": "work-area-row",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 5,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "열기",
+          "text": "열기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button.work-area-open",
+          "className": "secondary-button work-area-open",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "article",
+            "id": null,
+            "className": "work-area-row",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "열기",
+          "text": "열기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button.work-area-open",
+          "className": "secondary-button work-area-open",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "article",
+            "id": null,
+            "className": "work-area-row",
+            "label": "People"
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "열기",
+          "text": "열기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button.work-area-open",
+          "className": "secondary-button work-area-open",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "article",
+            "id": null,
+            "className": "work-area-row",
+            "label": "Vault"
+          }
+        }
+      ]
+    },
+    {
+      "id": "matter-list",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "scope": ".page-canvas",
+      "observed_at": "2026-06-25T08:47:08.367Z",
+      "summary": {
+        "total": 19,
+        "byTag": {
+          "button": 17,
+          "input": 2
+        },
+        "byDisabled": {
+          "enabled": 18,
+          "disabled": 1
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "현황",
+          "text": "현황",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "문서",
+          "text": "문서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "활동",
+          "text": "활동",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "일정",
+          "text": "일정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "대화",
+          "text": "대화",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "Matter 목록"
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": "button",
+          "role": "tab",
+          "label": "전체 Matter",
+          "text": "전체 Matter",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-matter-list-view-option=\"true\"]",
+          "className": "matter-list-view-option active",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-list",
+            "className": "panel record-list-panel",
+            "label": "Matter 목록"
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": "button",
+          "role": "tab",
+          "label": "개시 중",
+          "text": "개시 중",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-matter-list-view-option=\"true\"]",
+          "className": "matter-list-view-option",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-list",
+            "className": "panel record-list-panel",
+            "label": "Matter 목록"
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": "button",
+          "role": "tab",
+          "label": "종료",
+          "text": "종료",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-matter-list-view-option=\"true\"]",
+          "className": "matter-list-view-option",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-list",
+            "className": "panel record-list-panel",
+            "label": "Matter 목록"
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "개시 저장",
+          "text": "개시 저장",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-matter-save-list-view-action=\"true\"]",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-list",
+            "className": "panel record-list-panel",
+            "label": "Matter 목록"
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "선택 완료",
+          "text": "선택 완료",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button[data-matter-bulk-status-action=\"true\"]",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-list",
+            "className": "panel record-list-panel",
+            "label": "Matter 목록"
+          }
+        },
+        {
+          "index": 12,
+          "kind": "input",
+          "type": "checkbox",
+          "role": null,
+          "label": "표시된 Matter 전체 선택",
+          "text": "표시된 Matter 전체 선택",
+          "ariaLabel": "표시된 Matter 전체 선택",
+          "disabled": false,
+          "selectorHint": "input[data-matter-bulk-select-all=\"true\"]",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "checked": false,
+          "panel": {
+            "tag": "section",
+            "id": "matters-list",
+            "className": "panel record-list-panel",
+            "label": "Matter 목록"
+          }
+        },
+        {
+          "index": 13,
+          "kind": "input",
+          "type": "checkbox",
+          "role": null,
+          "label": "Matter 1 선택",
+          "text": "Matter 1 선택",
+          "ariaLabel": "Matter 1 선택",
+          "disabled": false,
+          "selectorHint": "input[data-matter-bulk-select-row=\"true\"]",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "checked": false,
+          "panel": {
+            "tag": "section",
+            "id": "matters-list",
+            "className": "panel record-list-panel",
+            "label": "Matter 목록"
+          }
+        },
+        {
+          "index": 14,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Matter 1 Matter 1 개시 중 청구 준비 가능",
+          "text": "Matter 1 Matter 1 개시 중 청구 준비 가능",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.matter-selectable-record-button",
+          "className": "matter-selectable-record-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-list",
+            "className": "panel record-list-panel",
+            "label": "Matter 목록"
+          }
+        },
+        {
+          "index": 15,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "저장",
+          "text": "저장",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 16,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "변경",
+          "text": "변경",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 17,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "필드 작업",
+          "text": "필드 작업",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 18,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        }
+      ]
+    },
+    {
+      "id": "matter-command",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-command",
+      "scope": ".page-canvas",
+      "observed_at": "2026-06-25T08:47:09.877Z",
+      "summary": {
+        "total": 12,
+        "byTag": {
+          "button": 12
+        },
+        "byDisabled": {
+          "enabled": 12,
+          "disabled": 0
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "현황",
+          "text": "현황",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.active",
+          "className": "active",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "문서",
+          "text": "문서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "활동",
+          "text": "활동",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "일정",
+          "text": "일정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "대화",
+          "text": "대화",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "Matter 현황"
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "완료",
+          "text": "완료",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-command",
+            "className": "panel record-list-panel",
+            "label": "Matter 현황"
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "저장",
+          "text": "저장",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "변경",
+          "text": "변경",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "필드 작업",
+          "text": "필드 작업",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        }
+      ]
+    },
+    {
+      "id": "matter-vault",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-vault",
+      "scope": ".page-canvas",
+      "observed_at": "2026-06-25T08:47:11.385Z",
+      "summary": {
+        "total": 20,
+        "byTag": {
+          "button": 20
+        },
+        "byDisabled": {
+          "enabled": 14,
+          "disabled": 6
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "현황",
+          "text": "현황",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "문서",
+          "text": "문서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.active",
+          "className": "active",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "활동",
+          "text": "활동",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "일정",
+          "text": "일정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "대화",
+          "text": "대화",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "Matter Vault"
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-vault",
+            "className": "panel record-list-panel matter-runtime-panel",
+            "label": "Matter Vault"
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "문서 연결",
+          "text": "문서 연결",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button[data-matter-document-facade-action=\"true\"]",
+          "className": "primary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-vault",
+            "className": "panel record-list-panel matter-runtime-panel",
+            "label": "Matter Vault"
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "초안 생성",
+          "text": "초안 생성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-sf-b-w04-builder-draft-action=\"true\"]",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-vault",
+            "className": "panel record-list-panel matter-runtime-panel",
+            "label": "Matter Vault"
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "검토 준비",
+          "text": "검토 준비",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-vault",
+            "className": "panel record-list-panel matter-runtime-panel",
+            "label": "Matter Vault"
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "승인 요청",
+          "text": "승인 요청",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button[data-sf-b-w04-builder-approval-action=\"true\"]",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-vault",
+            "className": "panel record-list-panel matter-runtime-panel",
+            "label": "Matter Vault"
+          }
+        },
+        {
+          "index": 12,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "Vault 등록 요청",
+          "text": "Vault 등록 요청",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button[data-sf-b-w04-builder-publish-action=\"true\"]",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-vault",
+            "className": "panel record-list-panel matter-runtime-panel",
+            "label": "Matter Vault"
+          }
+        },
+        {
+          "index": 13,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "초안 생성",
+          "text": "초안 생성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-sf-b-w04-email-draft-action=\"true\"]",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-vault",
+            "className": "panel record-list-panel matter-runtime-panel",
+            "label": "Matter Vault"
+          }
+        },
+        {
+          "index": 14,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "내용 정리",
+          "text": "내용 정리",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-vault",
+            "className": "panel record-list-panel matter-runtime-panel",
+            "label": "Matter Vault"
+          }
+        },
+        {
+          "index": 15,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "발송 요청",
+          "text": "발송 요청",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button[data-sf-b-w04-email-send-boundary-action=\"true\"]",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-vault",
+            "className": "panel record-list-panel matter-runtime-panel",
+            "label": "Matter Vault"
+          }
+        },
+        {
+          "index": 16,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "저장",
+          "text": "저장",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 17,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "변경",
+          "text": "변경",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 18,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "필드 작업",
+          "text": "필드 작업",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 19,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        }
+      ]
+    },
+    {
+      "id": "matter-timeline",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline",
+      "scope": ".page-canvas",
+      "observed_at": "2026-06-25T08:47:12.891Z",
+      "summary": {
+        "total": 13,
+        "byTag": {
+          "button": 13
+        },
+        "byDisabled": {
+          "enabled": 13,
+          "disabled": 0
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "현황",
+          "text": "현황",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "문서",
+          "text": "문서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "활동",
+          "text": "활동",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.active",
+          "className": "active",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "일정",
+          "text": "일정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "대화",
+          "text": "대화",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "활동"
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "작업 추가",
+          "text": "작업 추가",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-timeline",
+            "className": "panel record-list-panel",
+            "label": "활동"
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "상태 저장",
+          "text": "상태 저장",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-timeline",
+            "className": "panel record-list-panel",
+            "label": "활동"
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "저장",
+          "text": "저장",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "변경",
+          "text": "변경",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "필드 작업",
+          "text": "필드 작업",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 12,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        }
+      ]
+    },
+    {
+      "id": "matter-calendar",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-calendar",
+      "scope": ".page-canvas",
+      "observed_at": "2026-06-25T08:47:14.396Z",
+      "summary": {
+        "total": 14,
+        "byTag": {
+          "button": 14
+        },
+        "byDisabled": {
+          "enabled": 12,
+          "disabled": 2
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "현황",
+          "text": "현황",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "문서",
+          "text": "문서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "활동",
+          "text": "활동",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "일정",
+          "text": "일정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.active",
+          "className": "active",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "대화",
+          "text": "대화",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "일정"
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "일정 추가",
+          "text": "일정 추가",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-calendar",
+            "className": "panel record-list-panel",
+            "label": "일정"
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "변경 요청",
+          "text": "변경 요청",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-calendar",
+            "className": "panel record-list-panel",
+            "label": "일정"
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "확인",
+          "text": "확인",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-calendar",
+            "className": "panel record-list-panel",
+            "label": "일정"
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "저장",
+          "text": "저장",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "변경",
+          "text": "변경",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 12,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "필드 작업",
+          "text": "필드 작업",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 13,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        }
+      ]
+    },
+    {
+      "id": "matter-channel",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-channel",
+      "scope": ".page-canvas",
+      "observed_at": "2026-06-25T08:47:15.902Z",
+      "summary": {
+        "total": 13,
+        "byTag": {
+          "button": 13
+        },
+        "byDisabled": {
+          "enabled": 13,
+          "disabled": 0
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "현황",
+          "text": "현황",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "문서",
+          "text": "문서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "활동",
+          "text": "활동",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "일정",
+          "text": "일정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "대화",
+          "text": "대화",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.active",
+          "className": "active",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "대화"
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "메시지 기록",
+          "text": "메시지 기록",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-channel",
+            "className": "panel record-list-panel",
+            "label": "대화"
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "상태 확인",
+          "text": "상태 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matter-channel",
+            "className": "panel record-list-panel",
+            "label": "대화"
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "저장",
+          "text": "저장",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "변경",
+          "text": "변경",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "필드 작업",
+          "text": "필드 작업",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 12,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        }
+      ]
+    },
+    {
+      "id": "matter-opening",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-opening",
+      "scope": ".page-canvas",
+      "observed_at": "2026-06-25T08:47:17.410Z",
+      "summary": {
+        "total": 18,
+        "byTag": {
+          "button": 8,
+          "input": 10
+        },
+        "byDisabled": {
+          "enabled": 17,
+          "disabled": 1
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "matters-home",
+            "className": "surface stack matters-surface",
+            "label": "Matter"
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "현황",
+          "text": "현황",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "문서",
+          "text": "문서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "활동",
+          "text": "활동",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "일정",
+          "text": "일정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "대화",
+          "text": "대화",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "matter-section-tabs",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "Matter 개시"
+          }
+        },
+        {
+          "index": 7,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "MATTER 등록번호",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "form",
+            "id": null,
+            "className": "matter-opening-form",
+            "label": null
+          }
+        },
+        {
+          "index": 8,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "제목",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "form",
+            "id": null,
+            "className": "matter-opening-form",
+            "label": null
+          }
+        },
+        {
+          "index": 9,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "MATTER 번호",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "form",
+            "id": null,
+            "className": "matter-opening-form",
+            "label": null
+          }
+        },
+        {
+          "index": 10,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "법률 CLIENT",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "form",
+            "id": null,
+            "className": "matter-opening-form",
+            "label": null
+          }
+        },
+        {
+          "index": 11,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "청구 CLIENT",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "form",
+            "id": null,
+            "className": "matter-opening-form",
+            "label": null
+          }
+        },
+        {
+          "index": 12,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "이해상충 확인 번호",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "form",
+            "id": null,
+            "className": "matter-opening-form",
+            "label": null
+          }
+        },
+        {
+          "index": 13,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "접수 번호",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "form",
+            "id": null,
+            "className": "matter-opening-form",
+            "label": null
+          }
+        },
+        {
+          "index": 14,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "검토 번호",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "form",
+            "id": null,
+            "className": "matter-opening-form",
+            "label": null
+          }
+        },
+        {
+          "index": 15,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "위임 계약 번호",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "form",
+            "id": null,
+            "className": "matter-opening-form",
+            "label": null
+          }
+        },
+        {
+          "index": 16,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "확인 번호",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "form",
+            "id": null,
+            "className": "matter-opening-form",
+            "label": null
+          }
+        },
+        {
+          "index": 17,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "개시",
+          "text": "개시",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button.primary-button",
+          "className": "primary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "form",
+            "id": null,
+            "className": "matter-opening-form",
+            "label": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "vault-documents",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "scope": ".page-canvas",
+      "observed_at": "2026-06-25T08:47:19.459Z",
+      "summary": {
+        "total": 2,
+        "byTag": {
+          "button": 2
+        },
+        "byDisabled": {
+          "enabled": 2,
+          "disabled": 0
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "vault-home",
+            "className": "surface stack vault-surface",
+            "label": "Vault"
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "Vault 문서함"
+          }
+        }
+      ]
+    },
+    {
+      "id": "people-directory",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "scope": ".page-canvas",
+      "observed_at": "2026-06-25T08:47:21.519Z",
+      "summary": {
+        "total": 20,
+        "byTag": {
+          "button": 19,
+          "input": 1
+        },
+        "byDisabled": {
+          "enabled": 20,
+          "disabled": 0
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-home",
+            "className": "surface stack people-surface",
+            "label": "구성원 관리"
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 2,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "이름, 역할, 조직 검색",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "name": null,
+          "placeholder": "이름, 역할, 조직 검색",
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "전체",
+          "text": "전체",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.active",
+          "className": "active",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "내부 변호사",
+          "text": "내부 변호사",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 5,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client",
+          "text": "Client",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "상대 대리인",
+          "text": "상대 대리인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "전문가",
+          "text": "전문가",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "규제기관",
+          "text": "규제기관",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button",
+          "className": null,
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "A Arbitrator Han 중재인 · Arbitration Institution 활성",
+          "text": "A Arbitrator Han 중재인 · Arbitration Institution 활성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.people-row.legal-people-row.active",
+          "className": "people-row legal-people-row active",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "A Ari Kim 내부 변호사 · LCX Litigation Group 활성",
+          "text": "A Ari Kim 내부 변호사 · LCX Litigation Group 활성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.people-row.legal-people-row",
+          "className": "people-row legal-people-row",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "C Counterparty A 상대방 · Counterparty Organization 활성",
+          "text": "C Counterparty A 상대방 · Counterparty Organization 활성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.people-row.legal-people-row",
+          "className": "people-row legal-people-row",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 12,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "D Dr. Seo 전문가/증인 · Expert Witness Group 활성",
+          "text": "D Dr. Seo 전문가/증인 · Expert Witness Group 활성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.people-row.legal-people-row",
+          "className": "people-row legal-people-row",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 13,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "F FSC Reviewer 규제기관 담당자 · Financial Services Commission 활성",
+          "text": "F FSC Reviewer 규제기관 담당자 · Financial Services Commission 활성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.people-row.legal-people-row",
+          "className": "people-row legal-people-row",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 14,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "J Jin Lee 고객 담당자 · LCX Client Organization 활성",
+          "text": "J Jin Lee 고객 담당자 · LCX Client Organization 활성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.people-row.legal-people-row",
+          "className": "people-row legal-people-row",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 15,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "M Mina Park 스태프/패러리걸 · LCX Litigation Group 활성",
+          "text": "M Mina Park 스태프/패러리걸 · LCX Litigation Group 활성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.people-row.legal-people-row",
+          "className": "people-row legal-people-row",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 16,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "N Noah Choi 상대방 대리인 · Opposing Counsel Firm 활성",
+          "text": "N Noah Choi 상대방 대리인 · Opposing Counsel Firm 활성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.people-row.legal-people-row",
+          "className": "people-row legal-people-row",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 17,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "S Seoul Central Court Clerk 재판부/법원 관계자 · Seoul Central Court 활성",
+          "text": "S Seoul Central Court Clerk 재판부/법원 관계자 · Seoul Central Court 활성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.people-row.legal-people-row",
+          "className": "people-row legal-people-row",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "people-directory",
+            "className": "panel people-panel legal-people-directory",
+            "label": "법률 인물 디렉터리"
+          }
+        },
+        {
+          "index": 18,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "인물 상세"
+          }
+        },
+        {
+          "index": 19,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "name": null,
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "관계 패널"
+          }
+        }
+      ]
+    }
+  ],
+  "console_messages": [
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    }
+  ]
+}

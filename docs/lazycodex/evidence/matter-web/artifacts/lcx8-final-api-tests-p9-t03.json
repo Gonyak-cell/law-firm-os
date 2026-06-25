@@ -1,0 +1,24 @@
+{
+  "schema_version": "matter.lcx8.final-api-tests.p9-t03.v1",
+  "generated_at": "2026-06-25T14:35:46.608Z",
+  "status": "FINAL_API_TESTS_PASS",
+  "tuw": "P9-T03",
+  "command": "npm run api:test",
+  "exit_code": 0,
+  "tests": 185,
+  "pass": 185,
+  "fail": 0,
+  "output_summary": "npm --workspace apps/api run test: 185 tests, 185 pass, 0 fail.",
+  "status_changes": 0,
+  "next_tuw": "P9-T04",
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  }
+}

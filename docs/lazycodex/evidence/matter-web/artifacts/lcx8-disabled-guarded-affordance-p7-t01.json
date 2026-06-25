@@ -1,0 +1,88 @@
+{
+  "schema_version": "matter.lcx8.disabled-guarded-affordance.p7-t01.v1",
+  "generated_at": "2026-06-25T14:16:35.987Z",
+  "status": "DISABLED_GUARDED_AFFORDANCE_REVIEW_COMPLETE_WITH_FINDINGS",
+  "tuw": "P7-T01",
+  "source_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-disabled-unavailable-observation-p1-t11.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-guarded-state-browser-check-p3-t10.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-read-fail-closed-p4-t01.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-matter-vault-permission-trimming-p4-t04.json"
+  ],
+  "reviewed_rows": 10,
+  "guarded_confirmed_from_p3_t10": 9,
+  "fail_confirmed_from_p3_t10": 1,
+  "disabled_sweep_summary": {
+    "route_count": 53,
+    "routes_with_disabled_controls": 33,
+    "disabled_control_count": 68,
+    "routes_with_unavailable_states": 23,
+    "unavailable_state_count": 47
+  },
+  "positive_observations": [
+    {
+      "id": "P7-AFF-PASS-001",
+      "row_ids": [
+        "LCX8-ACTION-0274",
+        "LCX8-ACTION-0275",
+        "LCX8-ACTION-0276",
+        "LCX8-ACTION-0277",
+        "LCX8-ACTION-0278",
+        "LCX8-ACTION-0279"
+      ],
+      "evidence": "Matter/Vault denied/review screens show explicit guard copy, no horizontal overflow, and P4-T04 confirms enabled guarded mutation controls=0 for Matter/Vault action strips."
+    },
+    {
+      "id": "P7-AFF-PASS-002",
+      "row_ids": [
+        "LCX8-ACTION-0323"
+      ],
+      "evidence": "HRX audit step-up retry remains guarded with step-up copy/API proof from P4-T03/P4-T08; no PASS claim is inferred."
+    },
+    {
+      "id": "P7-AFF-PASS-003",
+      "row_ids": [],
+      "evidence": "P1-T11 found 68 disabled/unavailable-hint controls and 47 unavailable states across 53 routes; these are inventory evidence, not operational PASS claims."
+    }
+  ],
+  "findings": [
+    {
+      "id": "P7-AFF-001",
+      "severity": "high",
+      "lane": "Lane E/Lane B review",
+      "title": "Client denied/review guarded panels still expose enabled mutation affordance",
+      "row_ids": [
+        "LCX8-ACTION-0272",
+        "LCX8-ACTION-0273"
+      ],
+      "evidence": "P3-T10 metrics for client-denied and client-review show guardText visible but enabledMutationButtonCount=1. The API still denies where required, but the affordance does not visually communicate unavailability as cleanly as Matter/Vault guarded strips."
+    },
+    {
+      "id": "P7-AFF-002",
+      "severity": "high",
+      "lane": "Lane B/P4",
+      "title": "People directory denied/review guarded state remains a known gap",
+      "row_ids": [
+        "LCX8-ACTION-0280"
+      ],
+      "evidence": "P3-T10 and P4-T01 preserve the People directory denied/review gap as FAIL because the guarded state is not shown and protected People tokens can appear in the gap contexts."
+    }
+  ],
+  "affected_rows": [
+    "LCX8-ACTION-0272",
+    "LCX8-ACTION-0273",
+    "LCX8-ACTION-0280"
+  ],
+  "status_changes": 0,
+  "next_tuw": "P7-T02",
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "schema_version": "matter.lcx8.focus-dialog-drawer.p7-t02.v1",
+  "generated_at": "2026-06-25T14:18:02.042Z",
+  "status": "FOCUS_DIALOG_DRAWER_REVIEW_COMPLETE_WITH_LANE_E_FINDINGS",
+  "tuw": "P7-T02",
+  "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-mobile-overflow-focus-smoke-p3-t11.json",
+  "reviewed_rows": 3,
+  "focus_issue_count": 1,
+  "focus_failures": [
+    "global_search_hidden_or_not_focusable"
+  ],
+  "findings": [
+    {
+      "id": "P7-FOCUS-001",
+      "severity": "medium",
+      "lane": "Lane E",
+      "title": "Global search is hidden and not focusable at mobile width",
+      "row_ids": [
+        "LCX8-ACTION-0012"
+      ],
+      "evidence": "P3-T11 focus_smoke.global_search has visible=false, focused=false, popover_count=0, and focus failure global_search_hidden_or_not_focusable."
+    },
+    {
+      "id": "P7-FOCUS-002",
+      "severity": "medium",
+      "lane": "Lane E",
+      "title": "Notification drawer does not keep focus within drawer during Tab smoke",
+      "row_ids": [
+        "LCX8-ACTION-0016"
+      ],
+      "evidence": "P3-T11 notification drawer opens and Escape closes it, but active_after_two_tabs is outside drawer on the dashboard button."
+    }
+  ],
+  "positive_observations": [
+    {
+      "id": "P7-FOCUS-PASS-001",
+      "row_ids": [
+        "LCX8-ACTION-0095"
+      ],
+      "evidence": "People directory search is visible and focused at mobile width in P3-T11."
+    },
+    {
+      "id": "P7-FOCUS-PASS-002",
+      "row_ids": [
+        "LCX8-ACTION-0016"
+      ],
+      "evidence": "Notification drawer trigger is visible, drawer opens, no horizontal overflow is detected, and Escape closes the drawer."
+    }
+  ],
+  "status_changes": 0,
+  "next_tuw": "P7-T03",
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  }
+}

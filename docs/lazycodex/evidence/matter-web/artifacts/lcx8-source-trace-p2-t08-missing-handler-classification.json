@@ -1,0 +1,1042 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-06-25T11:37:36.406Z",
+  "tuw": "P2-T08",
+  "status": "complete_validated",
+  "title": "LCX8 P2-T08 missing/no-op handler classification",
+  "scope": "Review all existing FAIL rows plus unavailable/guarded/route candidates that can be mistaken for missing handlers; keep statuses explicit and avoid guessing operational behavior.",
+  "reviewed_candidate_count": 47,
+  "fail_rows_confirmed": 43,
+  "non_fail_boundary_rows_reviewed": 4,
+  "status_counts_after_classification": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 0,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 0,
+    "blocked": 133,
+    "fail": 43
+  },
+  "classification_counts": {
+    "visible_control_not_consumed_fail": 1,
+    "auth_forgot_password_missing_handler_fail": 1,
+    "shell_utility_missing_handler_fail": 15,
+    "false_affordance_fail": 1,
+    "shared_panel_overflow_missing_handler_fail": 7,
+    "workforce_control_missing_handler_fail": 5,
+    "no_effect_visible_row_fail": 1,
+    "no_effect_lifecycle_row_fail": 1,
+    "route_without_section_surface_fail": 4,
+    "profile_action_missing_handler_fail": 5,
+    "guarded_disabled_state_not_missing_handler": 1,
+    "guard_state_missing_fail": 1,
+    "blocked_unavailable_state_not_missing_handler": 1,
+    "route_navigation_to_unavailable_surface_not_missing_handler": 1,
+    "blocked_external_unavailable_state_not_missing_handler": 1,
+    "no_effect_refresh_propagation_fail": 1
+  },
+  "reviewed_status_counts": {
+    "FAIL": 43,
+    "GUARDED": 1,
+    "BLOCKED": 2,
+    "UI_ONLY": 1
+  },
+  "fail_by_surface": {
+    "auth": 2,
+    "home": 6,
+    "matter": 3,
+    "vault": 5,
+    "people-directory": 1,
+    "client": 3,
+    "people-sidebar": 2,
+    "people-hrx": 2,
+    "people-workforce": 7,
+    "profile-sidebar": 6,
+    "profile-surface": 5,
+    "people-guarded-state": 1
+  },
+  "reviewed_rows": [
+    {
+      "id": "LCX8-ACTION-0004",
+      "surface": "auth",
+      "route": "/?locale=ko&view=auth&authStep=login",
+      "section": "login-form",
+      "label": "Remember me",
+      "status": "FAIL",
+      "trace_depth": "ui_state_only",
+      "classification": "visible_control_not_consumed_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/AuthSurface.jsx",
+      "handler": "uncontrolled input; not read by submit handler",
+      "evidence_refs": [
+        "apps/web/src/components/AuthSurface.jsx:226-238 shows Remember me checkbox and Forgot password button; submit payload only uses email/password."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0005",
+      "surface": "auth",
+      "route": "/?locale=ko&view=auth&authStep=login",
+      "section": "login-form",
+      "label": "Forgot password?",
+      "status": "FAIL",
+      "trace_depth": "ui_state_only",
+      "classification": "auth_forgot_password_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/AuthSurface.jsx",
+      "handler": "none",
+      "evidence_refs": []
+    },
+    {
+      "id": "LCX8-ACTION-0017",
+      "surface": "home",
+      "route": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "section": "topbar",
+      "label": "도움말",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shell_utility_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0027",
+      "surface": "home",
+      "route": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "section": "notification-drawer",
+      "label": "모두 읽음 처리",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shell_utility_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0028",
+      "surface": "home",
+      "route": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "section": "notification-drawer",
+      "label": "알림 설정",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shell_utility_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0032",
+      "surface": "home",
+      "route": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "section": "sidebar-utilities",
+      "label": "작업공간 설정",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shell_utility_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0033",
+      "surface": "home",
+      "route": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "section": "sidebar-utilities",
+      "label": "태그 관리",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shell_utility_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0034",
+      "surface": "home",
+      "route": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "section": "workspace-card",
+      "label": "Home workspace menu",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "false_affordance_fail",
+      "remediation_lane": "Lane E",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0050",
+      "surface": "matter",
+      "route": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "section": "panel-header",
+      "label": "Matter panel overflow menu",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shared_panel_overflow_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/primitives.jsx",
+      "handler": "Panel renders .icon-button with MoreHorizontal icon and no onClick/type/aria-label",
+      "evidence_refs": [
+        "apps/web/src/components/primitives.jsx:17-28 renders shared Panel MoreHorizontal icon button without onClick/type/aria-label."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0092",
+      "surface": "vault",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "section": "vault-documents-panel",
+      "label": "Vault panel overflow menu",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shared_panel_overflow_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/primitives.jsx; apps/web/src/components/VaultSurface.jsx",
+      "handler": "Panel renders .icon-button with MoreHorizontal icon and no onClick/type/aria-label for Vault documents panel",
+      "evidence_refs": [
+        "apps/web/src/components/primitives.jsx:17-28 renders shared Panel MoreHorizontal icon button without onClick/type/aria-label."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0094",
+      "surface": "people-directory",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "section": "legal-people-panels",
+      "label": "Legal People panel overflow menu",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shared_panel_overflow_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/primitives.jsx",
+      "handler": "Panel overflow icon button is visible but has no onClick handler or menu wiring",
+      "evidence_refs": [
+        "apps/web/src/components/primitives.jsx:17-28 renders shared Panel MoreHorizontal icon button without onClick/type/aria-label."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0112",
+      "surface": "client",
+      "route": "/?locale=ko&view=clients&data=live&ctx=allow#clients-list",
+      "section": "client-sidebar-utilities",
+      "label": "Client 설정",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shell_utility_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0113",
+      "surface": "client",
+      "route": "/?locale=ko&view=clients&data=live&ctx=allow#clients-list",
+      "section": "client-sidebar-utilities",
+      "label": "태그 관리",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shell_utility_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0115",
+      "surface": "client",
+      "route": "/?locale=ko&view=clients&data=live&ctx=allow#clients-list",
+      "section": "client-panels",
+      "label": "Client panel overflow menu",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shared_panel_overflow_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/primitives.jsx",
+      "handler": "Panel renders .icon-button with MoreHorizontal icon and no onClick/type/aria-label",
+      "evidence_refs": [
+        "apps/web/src/components/primitives.jsx:17-28 renders shared Panel MoreHorizontal icon button without onClick/type/aria-label."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0164",
+      "surface": "people-sidebar",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-relationships",
+      "section": "people-sidebar-utilities",
+      "label": "People 설정",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shell_utility_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0165",
+      "surface": "people-sidebar",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-relationships",
+      "section": "people-sidebar-utilities",
+      "label": "권한 정책",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shell_utility_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0182",
+      "surface": "people-hrx",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-admin",
+      "section": "people-hrx-panels",
+      "label": "HRX panel overflow menu",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shared_panel_overflow_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/primitives.jsx",
+      "handler": "Panel overflow icon button is visible but has no onClick handler or menu wiring",
+      "evidence_refs": [
+        "apps/web/src/components/primitives.jsx:17-28 renders shared Panel MoreHorizontal icon button without onClick/type/aria-label."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0183",
+      "surface": "people-workforce",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-members",
+      "section": "people-members-roster-actions",
+      "label": "더보기",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "workforce_control_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "handler": "visible button renders without onClick handler",
+      "evidence_refs": [
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:271-287 renders More/Add/Menu controls; only org toggle has onClick.",
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:306-316 renders table tool icon buttons without onClick.",
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:349-353 sends row.employeeId to onSelectEmployee, but people-members route has no rendered selected-row detail."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0185",
+      "surface": "people-workforce",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-members",
+      "section": "people-members-roster-actions",
+      "label": "구성원 추가",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "workforce_control_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "handler": "visible button renders without onClick handler",
+      "evidence_refs": [
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:271-287 renders More/Add/Menu controls; only org toggle has onClick.",
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:306-316 renders table tool icon buttons without onClick.",
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:349-353 sends row.employeeId to onSelectEmployee, but people-members route has no rendered selected-row detail."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0186",
+      "surface": "people-workforce",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-members",
+      "section": "people-members-roster-actions",
+      "label": "추가 메뉴",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "workforce_control_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "handler": "visible button renders without onClick handler",
+      "evidence_refs": [
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:271-287 renders More/Add/Menu controls; only org toggle has onClick.",
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:306-316 renders table tool icon buttons without onClick.",
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:349-353 sends row.employeeId to onSelectEmployee, but people-members route has no rendered selected-row detail."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0192",
+      "surface": "people-workforce",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-members",
+      "section": "people-members-roster-tools",
+      "label": "표 보기 옵션",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "workforce_control_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "handler": "visible icon button renders without onClick handler",
+      "evidence_refs": [
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:271-287 renders More/Add/Menu controls; only org toggle has onClick.",
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:306-316 renders table tool icon buttons without onClick.",
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:349-353 sends row.employeeId to onSelectEmployee, but people-members route has no rendered selected-row detail."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0194",
+      "surface": "people-workforce",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-members",
+      "section": "people-members-roster-tools",
+      "label": "속성 조정",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "workforce_control_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "handler": "visible icon button renders without onClick handler",
+      "evidence_refs": [
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:271-287 renders More/Add/Menu controls; only org toggle has onClick.",
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:306-316 renders table tool icon buttons without onClick.",
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:349-353 sends row.employeeId to onSelectEmployee, but people-members route has no rendered selected-row detail."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0195",
+      "surface": "people-workforce",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-members",
+      "section": "people-members-roster-tools",
+      "label": "Workforce employee row",
+      "status": "FAIL",
+      "trace_depth": "no_effect_visible_row",
+      "classification": "no_effect_visible_row_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx; apps/web/src/people/PeopleHome.tsx",
+      "handler": "onClick -> row.employeeId && onSelectEmployee(row.employeeId); PeopleHome stores selectedEmployeeId but people-members route does not render EmployeeProfile or another selected-row detail state",
+      "evidence_refs": [
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:271-287 renders More/Add/Menu controls; only org toggle has onClick.",
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:306-316 renders table tool icon buttons without onClick.",
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:349-353 sends row.employeeId to onSelectEmployee, but people-members route has no rendered selected-row detail."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0196",
+      "surface": "people-workforce",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-lifecycle",
+      "section": "people-lifecycle",
+      "label": "Lifecycle onboarding row",
+      "status": "FAIL",
+      "trace_depth": "no_effect_visible_row",
+      "classification": "no_effect_lifecycle_row_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx; apps/web/src/people/PeopleHome.tsx; apps/web/src/people/lifecycle/LifecycleBoard.tsx",
+      "handler": "people-lifecycle route renders PeopleWorkforceDirectory initialTab=\"onboarding\"; onboarding rows do not carry employeeId, so row.employeeId && onSelectEmployee short-circuits; LifecycleBoard complete/close handlers are imported but not rendered on the route",
+      "evidence_refs": [
+        "apps/web/src/people/PeopleHome.tsx:122-124 renders PeopleWorkforceDirectory initialTab=\"onboarding\" for people-lifecycle instead of LifecycleBoard.",
+        "apps/web/src/people/lifecycle/LifecycleBoard.tsx:67-77 has complete/close handlers, but that component is not rendered by the active people-lifecycle route."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0233",
+      "surface": "profile-sidebar",
+      "route": "/?locale=ko&view=profile&data=live&ctx=allow#expenses",
+      "section": "profile-sidebar-unavailable-sections",
+      "label": "비용 관리",
+      "status": "FAIL",
+      "trace_depth": "route_without_section_surface",
+      "classification": "route_without_section_surface_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/App.jsx; apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "handler": "profileSidebarItems -> setView('profile', 'expenses'); UserProfileSurface ignores activeSection",
+      "evidence_refs": [
+        "apps/web/src/components/UserProfileSurface.jsx:28-36 renders profile top action buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:86-94 renders profile action cards as buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:115-126 defines profile sidebar section items, while UserProfileSurface does not consume activeSection."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0234",
+      "surface": "profile-sidebar",
+      "route": "/?locale=ko&view=profile&data=live&ctx=allow#transactions",
+      "section": "profile-sidebar-unavailable-sections",
+      "label": "정산 내역",
+      "status": "FAIL",
+      "trace_depth": "route_without_section_surface",
+      "classification": "route_without_section_surface_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/App.jsx; apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "handler": "profileSidebarItems -> setView('profile', 'transactions'); UserProfileSurface ignores activeSection",
+      "evidence_refs": [
+        "apps/web/src/components/UserProfileSurface.jsx:28-36 renders profile top action buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:86-94 renders profile action cards as buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:115-126 defines profile sidebar section items, while UserProfileSurface does not consume activeSection."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0235",
+      "surface": "profile-sidebar",
+      "route": "/?locale=ko&view=profile&data=live&ctx=allow#payments",
+      "section": "profile-sidebar-unavailable-sections",
+      "label": "지급 설정",
+      "status": "FAIL",
+      "trace_depth": "route_without_section_surface",
+      "classification": "route_without_section_surface_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/App.jsx; apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "handler": "profileSidebarItems -> setView('profile', 'payments'); UserProfileSurface ignores activeSection",
+      "evidence_refs": [
+        "apps/web/src/components/UserProfileSurface.jsx:28-36 renders profile top action buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:86-94 renders profile action cards as buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:115-126 defines profile sidebar section items, while UserProfileSurface does not consume activeSection."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0236",
+      "surface": "profile-sidebar",
+      "route": "/?locale=ko&view=profile&data=live&ctx=allow#withdrawal",
+      "section": "profile-sidebar-unavailable-sections",
+      "label": "입금 계좌",
+      "status": "FAIL",
+      "trace_depth": "route_without_section_surface",
+      "classification": "route_without_section_surface_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/App.jsx; apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "handler": "profileSidebarItems -> setView('profile', 'withdrawal'); UserProfileSurface ignores activeSection",
+      "evidence_refs": [
+        "apps/web/src/components/UserProfileSurface.jsx:28-36 renders profile top action buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:86-94 renders profile action cards as buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:115-126 defines profile sidebar section items, while UserProfileSurface does not consume activeSection."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0237",
+      "surface": "profile-sidebar",
+      "route": "/?locale=ko&view=profile&data=live&ctx=allow",
+      "section": "profile-sidebar-utilities",
+      "label": "초대 관리",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shell_utility_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0238",
+      "surface": "profile-sidebar",
+      "route": "/?locale=ko&view=profile&data=live&ctx=allow",
+      "section": "profile-sidebar-utilities",
+      "label": "커뮤니티",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shell_utility_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0239",
+      "surface": "profile-surface",
+      "route": "/?locale=ko&view=profile&data=live&ctx=allow",
+      "section": "profile-top-actions",
+      "label": "도움말 및 피드백",
+      "status": "FAIL",
+      "trace_depth": "no_handler",
+      "classification": "profile_action_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/UserProfileSurface.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/UserProfileSurface.jsx:28-36 renders profile top action buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:86-94 renders profile action cards as buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:115-126 defines profile sidebar section items, while UserProfileSurface does not consume activeSection."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0240",
+      "surface": "profile-surface",
+      "route": "/?locale=ko&view=profile&data=live&ctx=allow",
+      "section": "profile-top-actions",
+      "label": "계약 생성",
+      "status": "FAIL",
+      "trace_depth": "no_handler",
+      "classification": "profile_action_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/UserProfileSurface.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/UserProfileSurface.jsx:28-36 renders profile top action buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:86-94 renders profile action cards as buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:115-126 defines profile sidebar section items, while UserProfileSurface does not consume activeSection."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0241",
+      "surface": "profile-surface",
+      "route": "/?locale=ko&view=profile&data=live&ctx=allow",
+      "section": "profile-action-cards",
+      "label": "비용·정산 내역",
+      "status": "FAIL",
+      "trace_depth": "no_handler",
+      "classification": "profile_action_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/UserProfileSurface.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/UserProfileSurface.jsx:28-36 renders profile top action buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:86-94 renders profile action cards as buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:115-126 defines profile sidebar section items, while UserProfileSurface does not consume activeSection."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0242",
+      "surface": "profile-surface",
+      "route": "/?locale=ko&view=profile&data=live&ctx=allow",
+      "section": "profile-action-cards",
+      "label": "개인정보 관리",
+      "status": "FAIL",
+      "trace_depth": "no_handler",
+      "classification": "profile_action_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/UserProfileSurface.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/UserProfileSurface.jsx:28-36 renders profile top action buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:86-94 renders profile action cards as buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:115-126 defines profile sidebar section items, while UserProfileSurface does not consume activeSection."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0243",
+      "surface": "profile-surface",
+      "route": "/?locale=ko&view=profile&data=live&ctx=allow",
+      "section": "profile-action-cards",
+      "label": "부재 일정",
+      "status": "FAIL",
+      "trace_depth": "no_handler",
+      "classification": "profile_action_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/UserProfileSurface.jsx",
+      "handler": "none",
+      "evidence_refs": [
+        "apps/web/src/components/UserProfileSurface.jsx:28-36 renders profile top action buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:86-94 renders profile action cards as buttons without onClick.",
+        "apps/web/src/components/UserProfileSurface.jsx:115-126 defines profile sidebar section items, while UserProfileSurface does not consume activeSection."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0278",
+      "surface": "matter-guarded-state",
+      "route": "/?locale=ko&view=matters&data=live&ctx=denied#matters-list; /?locale=ko&view=matters&data=live&ctx=review#matters-list",
+      "section": "matter-record-action-strip-disabled",
+      "label": "Matter record action strip disabled under denied/review",
+      "status": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "classification": "guarded_disabled_state_not_missing_handler",
+      "remediation_lane": null,
+      "source_file": "apps/web/src/components/MattersSurface.jsx",
+      "handler": "MatterRecordPanel disables mutation buttons when selected matter or required record-action state is unavailable under guarded contexts",
+      "evidence_refs": [
+        "apps/web source trace keeps Matter denied/review mutation strip disabled; P4 proof is still required before stronger guarded claims."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0280",
+      "surface": "people-guarded-state",
+      "route": "/?locale=ko&view=people&data=live&ctx=denied#people-directory; /?locale=ko&view=people&data=live&ctx=review#people-directory",
+      "section": "people-directory-guard-missing",
+      "label": "People directory denied/review state",
+      "status": "FAIL",
+      "trace_depth": "ui_state_only",
+      "classification": "guard_state_missing_fail",
+      "remediation_lane": "Lane B/P4",
+      "source_file": "apps/web/src/people/PeopleHome.tsx; apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "handler": "PeopleHome does not accept or forward liveCtx/ctx to LegalPeopleWorkspace; hrxApiClient uses fixed allow-style HRX runtime headers and cannot render ctx=denied/review People directory state from route params",
+      "evidence_refs": [
+        "apps/web/src/people/PeopleHome.tsx:44-48 accepts labels/activeSection only and does not accept route ctx/liveCtx.",
+        "apps/web/src/people/PeopleHome.tsx:81-85 renders LegalPeopleWorkspace without passing ctx/liveCtx.",
+        "apps/web/src/people/legal/LegalPeopleWorkspace.tsx:92-123 fetches legal people data from local filters/refreshKey and has no denied/review route-state input."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0281",
+      "surface": "profile-unavailable-state",
+      "route": "/?locale=ko&view=profile&data=live&ctx=allow",
+      "section": "profile-data-unavailable",
+      "label": "Profile data unavailable state",
+      "status": "BLOCKED",
+      "trace_depth": "ui_state_only",
+      "classification": "blocked_unavailable_state_not_missing_handler",
+      "remediation_lane": "P4/Lane B",
+      "source_file": "apps/web/src/components/UserProfileSurface.jsx",
+      "handler": "static live-data-empty profile panels",
+      "evidence_refs": [
+        "apps/web/src/components/UserProfileSurface.jsx:40-108 renders static profile live-data-empty states; this is a blocked unavailable state, not a no-op button.",
+        "apps/web/src/components/EmailFilingView.jsx:5-21 renders provider-unavailable email filing state; this is an external integration blocker, not a missing click handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0296",
+      "surface": "matter",
+      "route": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "section": "matter-sidebar-utilities",
+      "label": "Matter 설정",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shell_utility_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none; sidebarMeta.matters.utilities renders button without onClick",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0297",
+      "surface": "matter",
+      "route": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "section": "matter-sidebar-utilities",
+      "label": "태그 관리",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shell_utility_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none; sidebarMeta.matters.utilities renders button without onClick",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0300",
+      "surface": "vault",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-email",
+      "section": "vault-sidebar",
+      "label": "메일 보관함",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "classification": "route_navigation_to_unavailable_surface_not_missing_handler",
+      "remediation_lane": null,
+      "source_file": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx; apps/web/src/components/VaultSurface.jsx; apps/web/src/components/EmailFilingView.jsx",
+      "handler": "Sidebar item onClick -> setView(\"vault\", \"vault-email\") -> VaultSurface renders EmailFilingView unavailable integration state",
+      "evidence_refs": [
+        "apps/web/src/components/UserProfileSurface.jsx:40-108 renders static profile live-data-empty states; this is a blocked unavailable state, not a no-op button.",
+        "apps/web/src/components/EmailFilingView.jsx:5-21 renders provider-unavailable email filing state; this is an external integration blocker, not a missing click handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0301",
+      "surface": "vault",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "section": "vault-sidebar-utilities",
+      "label": "Vault 설정",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shell_utility_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none; sidebarMeta.vault.utilities renders button without onClick",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0302",
+      "surface": "vault",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "section": "vault-sidebar-utilities",
+      "label": "문서 태그",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shell_utility_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/Shell.jsx",
+      "handler": "none; sidebarMeta.vault.utilities renders button without onClick",
+      "evidence_refs": [
+        "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+        "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+        "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0320",
+      "surface": "vault",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-detail",
+      "section": "vault-detail-panel",
+      "label": "Vault detail panel overflow menus",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shared_panel_overflow_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/VaultDocumentDetail.jsx; apps/web/src/components/DocumentDetail.jsx; apps/web/src/components/primitives.jsx",
+      "handler": "Panel renders .icon-button with MoreHorizontal icon and no onClick/type/aria-label for document detail and version panels",
+      "evidence_refs": [
+        "apps/web/src/components/primitives.jsx:17-28 renders shared Panel MoreHorizontal icon button without onClick/type/aria-label."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0321",
+      "surface": "vault",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-email",
+      "section": "vault-email-panel",
+      "label": "Vault email panel overflow menu",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "classification": "shared_panel_overflow_missing_handler_fail",
+      "remediation_lane": "Lane A",
+      "source_file": "apps/web/src/components/EmailFilingView.jsx; apps/web/src/components/primitives.jsx",
+      "handler": "Panel renders .icon-button with MoreHorizontal icon and no onClick/type/aria-label for email filing panel",
+      "evidence_refs": [
+        "apps/web/src/components/primitives.jsx:17-28 renders shared Panel MoreHorizontal icon button without onClick/type/aria-label."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0322",
+      "surface": "vault",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-email",
+      "section": "vault-email-unavailable-state",
+      "label": "Vault email filing unavailable state",
+      "status": "BLOCKED",
+      "trace_depth": "external_receipt_required",
+      "classification": "blocked_external_unavailable_state_not_missing_handler",
+      "remediation_lane": "P4/Lane D",
+      "source_file": "apps/web/src/components/EmailFilingView.jsx",
+      "handler": "EmailFilingView renders static provider-unavailable state; no submit or provider API handler exists",
+      "evidence_refs": [
+        "apps/web/src/components/UserProfileSurface.jsx:40-108 renders static profile live-data-empty states; this is a blocked unavailable state, not a no-op button.",
+        "apps/web/src/components/EmailFilingView.jsx:5-21 renders provider-unavailable email filing state; this is an external integration blocker, not a missing click handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0324",
+      "surface": "people-hrx",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-approvals; /?locale=ko&view=people&data=live&ctx=allow#people-recruiting; /?locale=ko&view=people&data=live&ctx=allow#people-policy; /?locale=ko&view=people&data=live&ctx=allow#people-audit; /?locale=ko&view=people&data=live&ctx=allow#people-analytics; /?locale=ko&view=people&data=live&ctx=allow#people-ai; /?locale=ko&view=people&data=live&ctx=allow#people-payroll; /?locale=ko&view=people&data=live&ctx=allow#people-admin",
+      "section": "people-header-refresh-unwired-hrx-panels",
+      "label": "People header refresh on standalone HRX panels",
+      "status": "FAIL",
+      "trace_depth": "no_effect_visible_row",
+      "classification": "no_effect_refresh_propagation_fail",
+      "remediation_lane": "Lane A/P3",
+      "source_file": "apps/web/src/people/PeopleHome.tsx; apps/web/src/people/approvals/ManagerApprovalQueue.tsx; apps/web/src/people/recruiting/RecruitingPipeline.tsx; apps/web/src/admin/hrx/HRXPolicyConsole.tsx; apps/web/src/admin/hrx/HRXAuditViewer.tsx; apps/web/src/people/analytics/HRAnalytics.tsx; apps/web/src/people/ai/HRAIAssistant.tsx; apps/web/src/people/payroll/PayrollBoundaryPanel.tsx; apps/web/src/people/admin/PermissionAdminPanel.jsx",
+      "handler": "PageHeader onClick -> setRefreshKey(key + 1), but standalone HRX panels are rendered without refreshKey/onRefresh props, so active panel data does not re-fetch; only PeopleHome overview fetchHrxEmployees runs",
+      "evidence_refs": [
+        "apps/web/src/people/PeopleHome.tsx:63-71 refresh button only increments PeopleHome refreshKey; standalone HRX panels do not receive refreshKey/onRefresh props."
+      ]
+    }
+  ],
+  "non_fail_boundary_rows": [
+    {
+      "id": "LCX8-ACTION-0278",
+      "surface": "matter-guarded-state",
+      "route": "/?locale=ko&view=matters&data=live&ctx=denied#matters-list; /?locale=ko&view=matters&data=live&ctx=review#matters-list",
+      "section": "matter-record-action-strip-disabled",
+      "label": "Matter record action strip disabled under denied/review",
+      "status": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "classification": "guarded_disabled_state_not_missing_handler",
+      "remediation_lane": null,
+      "source_file": "apps/web/src/components/MattersSurface.jsx",
+      "handler": "MatterRecordPanel disables mutation buttons when selected matter or required record-action state is unavailable under guarded contexts",
+      "evidence_refs": [
+        "apps/web source trace keeps Matter denied/review mutation strip disabled; P4 proof is still required before stronger guarded claims."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0281",
+      "surface": "profile-unavailable-state",
+      "route": "/?locale=ko&view=profile&data=live&ctx=allow",
+      "section": "profile-data-unavailable",
+      "label": "Profile data unavailable state",
+      "status": "BLOCKED",
+      "trace_depth": "ui_state_only",
+      "classification": "blocked_unavailable_state_not_missing_handler",
+      "remediation_lane": "P4/Lane B",
+      "source_file": "apps/web/src/components/UserProfileSurface.jsx",
+      "handler": "static live-data-empty profile panels",
+      "evidence_refs": [
+        "apps/web/src/components/UserProfileSurface.jsx:40-108 renders static profile live-data-empty states; this is a blocked unavailable state, not a no-op button.",
+        "apps/web/src/components/EmailFilingView.jsx:5-21 renders provider-unavailable email filing state; this is an external integration blocker, not a missing click handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0300",
+      "surface": "vault",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-email",
+      "section": "vault-sidebar",
+      "label": "메일 보관함",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "classification": "route_navigation_to_unavailable_surface_not_missing_handler",
+      "remediation_lane": null,
+      "source_file": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx; apps/web/src/components/VaultSurface.jsx; apps/web/src/components/EmailFilingView.jsx",
+      "handler": "Sidebar item onClick -> setView(\"vault\", \"vault-email\") -> VaultSurface renders EmailFilingView unavailable integration state",
+      "evidence_refs": [
+        "apps/web/src/components/UserProfileSurface.jsx:40-108 renders static profile live-data-empty states; this is a blocked unavailable state, not a no-op button.",
+        "apps/web/src/components/EmailFilingView.jsx:5-21 renders provider-unavailable email filing state; this is an external integration blocker, not a missing click handler."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0322",
+      "surface": "vault",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-email",
+      "section": "vault-email-unavailable-state",
+      "label": "Vault email filing unavailable state",
+      "status": "BLOCKED",
+      "trace_depth": "external_receipt_required",
+      "classification": "blocked_external_unavailable_state_not_missing_handler",
+      "remediation_lane": "P4/Lane D",
+      "source_file": "apps/web/src/components/EmailFilingView.jsx",
+      "handler": "EmailFilingView renders static provider-unavailable state; no submit or provider API handler exists",
+      "evidence_refs": [
+        "apps/web/src/components/UserProfileSurface.jsx:40-108 renders static profile live-data-empty states; this is a blocked unavailable state, not a no-op button.",
+        "apps/web/src/components/EmailFilingView.jsx:5-21 renders provider-unavailable email filing state; this is an external integration blocker, not a missing click handler."
+      ]
+    }
+  ],
+  "source_evidence": {
+    "auth": [
+      "apps/web/src/components/AuthSurface.jsx:226-238 shows Remember me checkbox and Forgot password button; submit payload only uses email/password."
+    ],
+    "shell": [
+      "apps/web/src/components/Shell.jsx:202-205 renders notification footer buttons without onClick.",
+      "apps/web/src/components/Shell.jsx:219-258 defines sidebar utilities as label/icon metadata only.",
+      "apps/web/src/components/Shell.jsx:452-459 renders sidebar utilities as buttons without onClick.",
+      "apps/web/src/components/Shell.jsx:385-390 renders workspace-card as a visual ChevronDown affordance without a button handler."
+    ],
+    "panel": [
+      "apps/web/src/components/primitives.jsx:17-28 renders shared Panel MoreHorizontal icon button without onClick/type/aria-label."
+    ],
+    "profile": [
+      "apps/web/src/components/UserProfileSurface.jsx:28-36 renders profile top action buttons without onClick.",
+      "apps/web/src/components/UserProfileSurface.jsx:86-94 renders profile action cards as buttons without onClick.",
+      "apps/web/src/components/UserProfileSurface.jsx:115-126 defines profile sidebar section items, while UserProfileSurface does not consume activeSection."
+    ],
+    "peopleWorkforce": [
+      "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:271-287 renders More/Add/Menu controls; only org toggle has onClick.",
+      "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:306-316 renders table tool icon buttons without onClick.",
+      "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx:349-353 sends row.employeeId to onSelectEmployee, but people-members route has no rendered selected-row detail."
+    ],
+    "peopleLifecycle": [
+      "apps/web/src/people/PeopleHome.tsx:122-124 renders PeopleWorkforceDirectory initialTab=\"onboarding\" for people-lifecycle instead of LifecycleBoard.",
+      "apps/web/src/people/lifecycle/LifecycleBoard.tsx:67-77 has complete/close handlers, but that component is not rendered by the active people-lifecycle route."
+    ],
+    "peopleGuard": [
+      "apps/web/src/people/PeopleHome.tsx:44-48 accepts labels/activeSection only and does not accept route ctx/liveCtx.",
+      "apps/web/src/people/PeopleHome.tsx:81-85 renders LegalPeopleWorkspace without passing ctx/liveCtx.",
+      "apps/web/src/people/legal/LegalPeopleWorkspace.tsx:92-123 fetches legal people data from local filters/refreshKey and has no denied/review route-state input."
+    ],
+    "unavailableStates": [
+      "apps/web/src/components/UserProfileSurface.jsx:40-108 renders static profile live-data-empty states; this is a blocked unavailable state, not a no-op button.",
+      "apps/web/src/components/EmailFilingView.jsx:5-21 renders provider-unavailable email filing state; this is an external integration blocker, not a missing click handler."
+    ]
+  },
+  "status_policy": {
+    "missing_handlers": "FAIL when a visible action affordance has no handler, no consumed state, or no visible result after local state change.",
+    "unavailable_states": "BLOCKED when the UI explicitly communicates an unavailable integration/data/runtime boundary and does not expose a misleading action.",
+    "guarded_states": "GUARDED only for explicit denial/review/disabled guard behavior; missing guard-state rendering remains FAIL.",
+    "route_navigation": "UI_ONLY when route navigation works and lands on a non-operational unavailable surface without claiming runtime execution."
+  },
+  "row_update_note": "P2-T08 missing/no-op classification: source and prior DOM evidence reviewed; row remains FAIL/BLOCKED/GUARDED/UI_ONLY as classified, with no operational PASS inferred.",
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "api_operation_pass_claimed": false,
+    "desktop_pass_claimed": false,
+    "missing_handlers_remediated": false
+  },
+  "next_tuw": "P2-T09 Mark descriptor-only families",
+  "validation": {
+    "result": "PASS",
+    "commands": [
+      {
+        "command": "JSON/CSV consistency check for ledger, inventory, CSV, and P2-T08 artifact",
+        "result": "PASS",
+        "summary": "324 ledger rows, 324 CSV rows, 47 reviewed candidate rows, 43 confirmed FAIL rows, 4 non-FAIL boundary rows, status counts unchanged, UNKNOWN 0."
+      },
+      {
+        "command": "npm --workspace apps/web run test:ui",
+        "result": "PASS",
+        "summary": "17 tests, 17 pass, 0 fail."
+      },
+      {
+        "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+        "result": "PASS",
+        "summary": "No auto-detectable AI slop signals found."
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS",
+        "summary": "No whitespace errors."
+      }
+    ]
+  }
+}

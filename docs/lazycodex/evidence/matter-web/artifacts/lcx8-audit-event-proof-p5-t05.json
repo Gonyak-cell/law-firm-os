@@ -1,0 +1,87 @@
+{
+  "schema_version": "matter.lcx8.audit-event-proof.p5-t05.v1",
+  "generated_at": "2026-06-25T13:52:50.450Z",
+  "status": "AUDIT_EVENTS_CONFIRMED_SELECTED_ROWS_PASS_READY",
+  "tuw": "P5-T05",
+  "source_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-safe-write-execution-p5-t02.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-reload-ui-proof-p5-t03.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-api-read-model-proof-p5-t04.json"
+  ],
+  "runtime": {
+    "base_url": "http://127.0.0.1:4180",
+    "synthetic_only": true,
+    "uses_real_client_data": false,
+    "production_ready_claim": false
+  },
+  "audit_route": {
+    "path": "GET /api/matters/audit",
+    "http_status": 200,
+    "total_events_returned": 12,
+    "expected_event_count": 2,
+    "matched_event_count": 2
+  },
+  "matched_events": [
+    {
+      "row_id": "LCX8-ACTION-0059",
+      "event_id": "matter.inline.patch:tenant_rp05_synthetic:matter_rp05_synthetic_opening:wip_status",
+      "action": "matter.inline.patch",
+      "object_id": "matter_rp05_synthetic_opening",
+      "permission_ref": "ui_sf_b_w02_matter_inline_patch",
+      "found": true,
+      "observed_action": "matter.inline.patch",
+      "observed_object_id": "matter_rp05_synthetic_opening",
+      "observed_reason": "inline_field_edit",
+      "observed_permission_ref": "ui_sf_b_w02_matter_inline_patch",
+      "observed_actor_id": "matter_matter_operator",
+      "observed_occurred_at": "2026-06-25T13:47:32.359Z",
+      "action_matches": true,
+      "object_id_matches": true,
+      "permission_ref_matches": true
+    },
+    {
+      "row_id": "LCX8-ACTION-0060",
+      "event_id": "matter.owner.change:tenant_rp05_synthetic:matter_rp05_synthetic_opening:emp-001",
+      "action": "matter.owner.change",
+      "object_id": "matter_rp05_synthetic_opening",
+      "permission_ref": "ui_sf_b_w02_matter_owner_change",
+      "found": true,
+      "observed_action": "matter.owner.change",
+      "observed_object_id": "matter_rp05_synthetic_opening",
+      "observed_reason": "record_owner_changed",
+      "observed_permission_ref": "ui_sf_b_w02_matter_owner_change",
+      "observed_actor_id": "matter_matter_operator",
+      "observed_occurred_at": "2026-06-25T13:47:32.359Z",
+      "action_matches": true,
+      "object_id_matches": true,
+      "permission_ref_matches": true
+    }
+  ],
+  "prerequisite_checks": {
+    "p5_t02_safe_writes": "SAFE_WRITES_EXECUTED_AUDIT_HINTS_CAPTURED_NO_PASS_PROMOTION",
+    "p5_t03_reload_ui": "RELOAD_UI_STATE_CONFIRMED_NO_PASS_PROMOTION",
+    "p5_t04_api_read_model": "API_READ_MODEL_CONFIRMED_NO_PASS_PROMOTION",
+    "p5_t04_all_readback_confirmed": true
+  },
+  "selected_row_status_decision": [
+    {
+      "row_id": "LCX8-ACTION-0059",
+      "from": "BLOCKED",
+      "to": "PASS",
+      "reason": "safe write, browser reload, API read-back, and audit event proof all confirmed"
+    },
+    {
+      "row_id": "LCX8-ACTION-0060",
+      "from": "BLOCKED",
+      "to": "PASS",
+      "reason": "safe write, browser reload, API read-back, and audit event proof all confirmed"
+    }
+  ],
+  "remaining_write_rows_policy": {
+    "selected_rows_promoted": 2,
+    "unexecuted_write_rows_remain_blocked": 81,
+    "reason": "Only the two selected Matter rows received full P5 write/reload/read-back/audit proof. Other write rows remain BLOCKED or precondition-gap until separately executed and proven."
+  },
+  "failures": [],
+  "next_tuw": "P5-T06"
+}

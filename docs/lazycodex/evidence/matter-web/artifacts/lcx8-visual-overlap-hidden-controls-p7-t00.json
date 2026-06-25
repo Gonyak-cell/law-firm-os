@@ -1,0 +1,146 @@
+{
+  "schema_version": "matter.lcx8.visual-overlap-hidden-controls.p7-t00.v1",
+  "generated_at": "2026-06-25T14:14:45.861Z",
+  "status": "VISUAL_OVERLAP_HIDDEN_CONTROL_REVIEW_COMPLETE_WITH_LANE_E_FINDINGS",
+  "tuw": "P7-T00",
+  "lazyweb_reference": {
+    "query": "enterprise SaaS dashboard actions",
+    "platform": "desktop",
+    "result_companies": [
+      "auvik",
+      "cashboard",
+      "mixpanel",
+      "commandbar",
+      "geckoboard",
+      "zoho"
+    ],
+    "takeaway": "Enterprise dashboard references keep primary navigation, action buttons, and unavailable states visibly bounded; mobile overflow should have explicit affordance rather than clipped controls."
+  },
+  "source_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-mobile-overflow-focus-smoke-p3-t11.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-screen-qa-p6-t02.json"
+  ],
+  "screenshots_reviewed_representative": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-home-command-center.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-matter-list.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-vault-documents.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-people-directory.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-focus-global-search.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-focus-notification-drawer.png",
+    "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-initial-login-ui.png",
+    "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-super-admin-product-ui.png",
+    "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa.png"
+  ],
+  "metrics_from_p3_t11": {
+    "surfaces_reviewed": 4,
+    "selector_checks_reviewed": 8,
+    "horizontal_overflow_count": 0,
+    "hidden_required_selector_count": 1,
+    "focus_issue_count": 1,
+    "focus_failures": [
+      "global_search_hidden_or_not_focusable"
+    ]
+  },
+  "positive_observations": [
+    {
+      "id": "P7-VIS-PASS-001",
+      "title": "Desktop packaged login/product screenshots show no critical hidden control or overlap",
+      "screenshots": [
+        "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-initial-login-ui.png",
+        "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-super-admin-product-ui.png",
+        "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa.png"
+      ],
+      "evidence": "P6-T02 desktop screen QA passed, screenshot files exist, no secret material visible, and desktop product shell critical actions are visible without occlusion."
+    },
+    {
+      "id": "P7-VIS-PASS-002",
+      "title": "Primary mobile content panels do not produce page-level horizontal overflow",
+      "screenshots": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-home-command-center.png",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-matter-list.png",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-vault-documents.png",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-people-directory.png"
+      ],
+      "evidence": "P3-T11 reports horizontal_overflow_count=0 across four mobile surfaces; core refresh/search/list controls reviewed in selector_checks are visible except global search."
+    }
+  ],
+  "findings": [
+    {
+      "id": "P7-VIS-001",
+      "severity": "medium",
+      "lane": "Lane E",
+      "title": "Mobile product axis has partially offscreen Vault action",
+      "row_ids": [
+        "LCX8-ACTION-0011"
+      ],
+      "evidence": "P3-T11 mobile Home/Matter/Vault/People screenshots show the top product axis right edge clipping Vault at 390px; document horizontal overflow remains false, but the focusable button is partially outside viewport.",
+      "screenshots": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-home-command-center.png",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-matter-list.png",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-vault-documents.png",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-people-directory.png"
+      ]
+    },
+    {
+      "id": "P7-VIS-002",
+      "severity": "medium",
+      "lane": "Lane E",
+      "title": "Global search is hidden at mobile width",
+      "row_ids": [
+        "LCX8-ACTION-0012"
+      ],
+      "evidence": "P3-T11 focus smoke reports global_search.visible=false and global_search_hidden_or_not_focusable at 390px; screenshot captured the hidden search state.",
+      "screenshots": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-focus-global-search.png"
+      ]
+    },
+    {
+      "id": "P7-VIS-003",
+      "severity": "medium",
+      "lane": "Lane E",
+      "title": "Mobile secondary navigation exposes offscreen focusable action buttons",
+      "row_ids": [
+        "LCX8-ACTION-0045",
+        "LCX8-ACTION-0282",
+        "LCX8-ACTION-0284",
+        "LCX8-ACTION-0292",
+        "LCX8-ACTION-0148",
+        "LCX8-ACTION-0155",
+        "LCX8-ACTION-0156",
+        "LCX8-ACTION-0164",
+        "LCX8-ACTION-0300"
+      ],
+      "evidence": "P3-T11 mobile metrics list offscreen focusables in Matter, People, and Vault secondary navigation. The content does not create page-level horizontal overflow, but individual controls are reachable outside the viewport without a clear overflow affordance.",
+      "screenshots": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-matter-list.png",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-people-directory.png",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-vault-documents.png"
+      ]
+    }
+  ],
+  "affected_rows": [
+    "LCX8-ACTION-0011",
+    "LCX8-ACTION-0012",
+    "LCX8-ACTION-0045",
+    "LCX8-ACTION-0282",
+    "LCX8-ACTION-0284",
+    "LCX8-ACTION-0292",
+    "LCX8-ACTION-0148",
+    "LCX8-ACTION-0155",
+    "LCX8-ACTION-0156",
+    "LCX8-ACTION-0164",
+    "LCX8-ACTION-0300"
+  ],
+  "status_changes": 0,
+  "next_tuw": "P7-T01",
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  }
+}

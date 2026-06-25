@@ -1,0 +1,837 @@
+{
+  "artifact": "lcx8-dom-observation-p1-t09-profile",
+  "created_at": "2026-06-25T09:23:28.287Z",
+  "scope": "LCX8 P1-T09 profile action inventory, DOM observation and click-state checks, pre P3/P4 execution validation",
+  "base": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+  "initial": {
+    "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+    "mainH1": "내 프로필",
+    "activeSidebar": [
+      "내 프로필"
+    ],
+    "liveStates": [
+      "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+      "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+      "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+    ],
+    "surfacePresent": 1
+  },
+  "sidebarControls": [
+    {
+      "index": 0,
+      "tag": "button",
+      "selector": "button.sidebar-item:nth-of-type(1)",
+      "text": "홈",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "sidebar-item",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 1,
+      "tag": "button",
+      "selector": "button.sidebar-item:nth-of-type(2)",
+      "text": "새 계약 만들기",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "sidebar-item",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 2,
+      "tag": "button",
+      "selector": "button.sidebar-item:nth-of-type(3)",
+      "text": "계약 관리",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "sidebar-item",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 3,
+      "tag": "button",
+      "selector": "button.sidebar-item.active:nth-of-type(4)",
+      "text": "내 프로필",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "sidebar-item active",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 4,
+      "tag": "button",
+      "selector": "button.sidebar-item:nth-of-type(5)",
+      "text": "문서",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "sidebar-item",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 5,
+      "tag": "button",
+      "selector": "button.sidebar-item:nth-of-type(6)",
+      "text": "청구 관리",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "sidebar-item",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 6,
+      "tag": "button",
+      "selector": "button.sidebar-item:nth-of-type(7)",
+      "text": "비용 관리",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "sidebar-item",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 7,
+      "tag": "button",
+      "selector": "button.sidebar-item:nth-of-type(8)",
+      "text": "정산 내역",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "sidebar-item",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 8,
+      "tag": "button",
+      "selector": "button.sidebar-item:nth-of-type(9)",
+      "text": "지급 설정",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "sidebar-item",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 9,
+      "tag": "button",
+      "selector": "button.sidebar-item:nth-of-type(10)",
+      "text": "입금 계좌",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "sidebar-item",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 10,
+      "tag": "button",
+      "selector": "button.sidebar-utility:nth-of-type(1)",
+      "text": "초대 관리",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "sidebar-utility",
+      "panelTitle": "내 프로필",
+      "dataAttrs": {}
+    },
+    {
+      "index": 11,
+      "tag": "button",
+      "selector": "button.sidebar-utility:nth-of-type(2)",
+      "text": "커뮤니티",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "sidebar-utility",
+      "panelTitle": "내 프로필",
+      "dataAttrs": {}
+    }
+  ],
+  "profileControls": [
+    {
+      "index": 0,
+      "tag": "button",
+      "selector": "button.ghost-button.matter-profile-help-link:nth-of-type(1)",
+      "text": "도움말 및 피드백",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "ghost-button matter-profile-help-link",
+      "panelTitle": "내 프로필",
+      "dataAttrs": {}
+    },
+    {
+      "index": 1,
+      "tag": "button",
+      "selector": "button.secondary-button.matter-profile-contract-button:nth-of-type(2)",
+      "text": "계약 생성",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "secondary-button matter-profile-contract-button",
+      "panelTitle": "내 프로필",
+      "dataAttrs": {}
+    },
+    {
+      "index": 2,
+      "tag": "button",
+      "selector": "button.matter-profile-action-card:nth-of-type(1)",
+      "text": "비용·정산 내역",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "matter-profile-action-card",
+      "panelTitle": "비용·정산 내역",
+      "dataAttrs": {}
+    },
+    {
+      "index": 3,
+      "tag": "button",
+      "selector": "button.matter-profile-action-card:nth-of-type(2)",
+      "text": "개인정보 관리",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "matter-profile-action-card",
+      "panelTitle": "비용·정산 내역",
+      "dataAttrs": {}
+    },
+    {
+      "index": 4,
+      "tag": "button",
+      "selector": "button.matter-profile-action-card:nth-of-type(3)",
+      "text": "부재 일정",
+      "ariaLabel": "",
+      "disabled": false,
+      "className": "matter-profile-action-card",
+      "panelTitle": "비용·정산 내역",
+      "dataAttrs": {}
+    }
+  ],
+  "topbarProfileControls": [
+    {
+      "index": 8,
+      "tag": "button",
+      "selector": "[data-profile-trigger=\"true\"]",
+      "text": "서",
+      "ariaLabel": "내 프로필",
+      "disabled": false,
+      "className": "profile-trigger active",
+      "panelTitle": "matter",
+      "dataAttrs": {
+        "data-profile-trigger": "true"
+      }
+    }
+  ],
+  "clicks": [
+    {
+      "type": "no-handler-candidate",
+      "label": "도움말 및 피드백",
+      "selector": ".matter-profile-help-link",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "changed": false
+    },
+    {
+      "type": "no-handler-candidate",
+      "label": "계약 생성",
+      "selector": ".matter-profile-contract-button",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "changed": false
+    },
+    {
+      "type": "no-handler-candidate",
+      "label": "비용·정산 내역",
+      "selector": ".matter-profile-action-card:has-text(\"비용·정산 내역\")",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "changed": false
+    },
+    {
+      "type": "no-handler-candidate",
+      "label": "개인정보 관리",
+      "selector": ".matter-profile-action-card:has-text(\"개인정보 관리\")",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "changed": false
+    },
+    {
+      "type": "no-handler-candidate",
+      "label": "부재 일정",
+      "selector": ".matter-profile-action-card:has-text(\"부재 일정\")",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "changed": false
+    },
+    {
+      "type": "no-handler-candidate",
+      "label": "초대 관리",
+      "selector": ".sidebar-utility:has-text(\"초대 관리\")",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "changed": false
+    },
+    {
+      "type": "no-handler-candidate",
+      "label": "커뮤니티",
+      "selector": ".sidebar-utility:has-text(\"커뮤니티\")",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "changed": false
+    },
+    {
+      "type": "sidebar-link",
+      "label": "홈",
+      "selector": ".sidebar .sidebar-item:has-text(\"홈\")",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=home&data=live&ctx=allow",
+        "mainH1": "오늘의 운영 대기열",
+        "activeSidebar": [],
+        "liveStates": [],
+        "surfacePresent": 0
+      },
+      "changed": true
+    },
+    {
+      "type": "sidebar-link",
+      "label": "새 계약 만들기",
+      "selector": ".sidebar .sidebar-item:has-text(\"새 계약 만들기\")",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-opening",
+        "mainH1": "Matter",
+        "activeSidebar": [
+          "Matter 운영",
+          "Matter 개시"
+        ],
+        "liveStates": [],
+        "surfacePresent": 0
+      },
+      "changed": true
+    },
+    {
+      "type": "sidebar-link",
+      "label": "계약 관리",
+      "selector": ".sidebar .sidebar-item:has-text(\"계약 관리\")",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+        "mainH1": "Matter",
+        "activeSidebar": [
+          "Matter 운영",
+          "Matter 목록18"
+        ],
+        "liveStates": [
+          "Matter 목록을 불러오지 못했습니다새로고침하거나 연결 상태를 확인하세요."
+        ],
+        "surfacePresent": 0
+      },
+      "changed": true
+    },
+    {
+      "type": "sidebar-link",
+      "label": "내 프로필",
+      "selector": ".sidebar .sidebar-item:has-text(\"내 프로필\")",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "changed": false
+    },
+    {
+      "type": "sidebar-link",
+      "label": "문서",
+      "selector": ".sidebar .sidebar-item:has-text(\"문서\")",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+        "mainH1": "Vault",
+        "activeSidebar": [
+          "문서함24"
+        ],
+        "liveStates": [
+          "Vault 문서 목록을 불러오지 못했습니다새로고침하거나 연결 상태를 확인하세요."
+        ],
+        "surfacePresent": 0
+      },
+      "changed": true
+    },
+    {
+      "type": "sidebar-link",
+      "label": "청구 관리",
+      "selector": ".sidebar .sidebar-item:has-text(\"청구 관리\")",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-billing",
+        "mainH1": "Matter",
+        "activeSidebar": [
+          "청구·분석",
+          "청구"
+        ],
+        "liveStates": [
+          "청구 정보를 불러오는 중입니다"
+        ],
+        "surfacePresent": 0
+      },
+      "changed": true
+    },
+    {
+      "type": "sidebar-link",
+      "label": "비용 관리",
+      "selector": ".sidebar .sidebar-item:has-text(\"비용 관리\")",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow#expenses",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "비용 관리"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "changed": true
+    },
+    {
+      "type": "sidebar-link",
+      "label": "정산 내역",
+      "selector": ".sidebar .sidebar-item:has-text(\"정산 내역\")",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow#transactions",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "정산 내역"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "changed": true
+    },
+    {
+      "type": "sidebar-link",
+      "label": "지급 설정",
+      "selector": ".sidebar .sidebar-item:has-text(\"지급 설정\")",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow#payments",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "지급 설정"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "changed": true
+    },
+    {
+      "type": "sidebar-link",
+      "label": "입금 계좌",
+      "selector": ".sidebar .sidebar-item:has-text(\"입금 계좌\")",
+      "before": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "내 프로필"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "after": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow#withdrawal",
+        "mainH1": "내 프로필",
+        "activeSidebar": [
+          "입금 계좌"
+        ],
+        "liveStates": [
+          "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+          "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+          "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+        ],
+        "surfacePresent": 1
+      },
+      "changed": true
+    }
+  ],
+  "summary": {
+    "sidebarControlCount": 12,
+    "profileControlCount": 5,
+    "noOpCandidates": [
+      "도움말 및 피드백",
+      "계약 생성",
+      "비용·정산 내역",
+      "개인정보 관리",
+      "부재 일정",
+      "초대 관리",
+      "커뮤니티"
+    ],
+    "profileSectionLinksWithoutSectionSurface": [
+      {
+        "label": "비용 관리",
+        "after": {
+          "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow#expenses",
+          "mainH1": "내 프로필",
+          "activeSidebar": [
+            "비용 관리"
+          ],
+          "liveStates": [
+            "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+            "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+            "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+          ],
+          "surfacePresent": 1
+        }
+      },
+      {
+        "label": "정산 내역",
+        "after": {
+          "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow#transactions",
+          "mainH1": "내 프로필",
+          "activeSidebar": [
+            "정산 내역"
+          ],
+          "liveStates": [
+            "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+            "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+            "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+          ],
+          "surfacePresent": 1
+        }
+      },
+      {
+        "label": "지급 설정",
+        "after": {
+          "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow#payments",
+          "mainH1": "내 프로필",
+          "activeSidebar": [
+            "지급 설정"
+          ],
+          "liveStates": [
+            "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+            "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+            "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+          ],
+          "surfacePresent": 1
+        }
+      },
+      {
+        "label": "입금 계좌",
+        "after": {
+          "url": "http://127.0.0.1:5174/?locale=ko&view=profile&data=live&ctx=allow#withdrawal",
+          "mainH1": "내 프로필",
+          "activeSidebar": [
+            "입금 계좌"
+          ],
+          "liveStates": [
+            "계약 정보를 표시할 수 없습니다.실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.",
+            "계정 정보를 표시할 수 없습니다.사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.",
+            "연결된 프로필 데이터가 없습니다.임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다."
+          ],
+          "surfacePresent": 1
+        }
+      }
+    ]
+  }
+}

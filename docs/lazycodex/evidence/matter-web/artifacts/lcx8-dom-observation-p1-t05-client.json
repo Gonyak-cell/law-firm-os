@@ -1,0 +1,5646 @@
+{
+  "schema_version": "lcx8.dom_observation.v1",
+  "generated_at": "2026-06-25T08:56:38.106Z",
+  "browser": "playwright.chromium.headless",
+  "viewport": {
+    "width": 1440,
+    "height": 1200
+  },
+  "source_scope": "P1-T05 DOM observation for Client sections",
+  "observations": [
+    {
+      "id": "clients-list",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=clients&data=live&ctx=allow#clients-list",
+      "scope": ".matter-app",
+      "observed_at": "2026-06-25T08:56:25.993Z",
+      "summary": {
+        "total": 28,
+        "byTag": {
+          "button": 27,
+          "input": 1
+        },
+        "byDisabled": {
+          "enabled": 28,
+          "disabled": 0
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Home",
+          "text": "Home",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"home\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client",
+          "text": "Client",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"clients\"]",
+          "className": "top-axis-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Matter",
+          "text": "Matter",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"matters\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "People",
+          "text": "People",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"people\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Vault",
+          "text": "Vault",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"vault\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "/",
+          "text": "검색",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "placeholder": "검색",
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로 만들기",
+          "text": "새로 만들기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.primary-button",
+          "className": "primary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "구성원 초대",
+          "text": "구성원 초대",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.ghost-button.success",
+          "className": "ghost-button success",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "내 프로필",
+          "text": "서",
+          "ariaLabel": "내 프로필",
+          "disabled": false,
+          "selectorHint": "button[data-profile-trigger=\"true\"]",
+          "className": "profile-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "알림",
+          "text": "3",
+          "ariaLabel": "알림",
+          "disabled": false,
+          "selectorHint": "button[data-notification-trigger=\"true\"]",
+          "className": "icon-button notification-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "도움말",
+          "text": "도움말",
+          "ariaLabel": "도움말",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "테마",
+          "text": "테마",
+          "ariaLabel": "테마",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 12,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "한국어",
+          "text": "한국어",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.top-link.locale-toggle",
+          "className": "top-link locale-toggle",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 13,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 목록 12",
+          "text": "Client 목록 12",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item.active",
+          "className": "sidebar-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 14,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "잠재 고객",
+          "text": "잠재 고객",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 15,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "영업 기회",
+          "text": "영업 기회",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 16,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "상담 접수 4",
+          "text": "상담 접수 4",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 17,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "계정",
+          "text": "계정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 18,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "연락처",
+          "text": "연락처",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 19,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "데이터 관리",
+          "text": "데이터 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 20,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "보고서",
+          "text": "보고서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 21,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "가져오기",
+          "text": "가져오기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 22,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 설정",
+          "text": "Client 설정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 23,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "태그 관리",
+          "text": "태그 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 24,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 25,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "Client 목록"
+          }
+        },
+        {
+          "index": 26,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "필드 업데이트",
+          "text": "필드 업데이트",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 27,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-leads",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=clients&data=live&ctx=allow#client-leads",
+      "scope": ".matter-app",
+      "observed_at": "2026-06-25T08:56:27.504Z",
+      "summary": {
+        "total": 28,
+        "byTag": {
+          "button": 27,
+          "input": 1
+        },
+        "byDisabled": {
+          "enabled": 28,
+          "disabled": 0
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Home",
+          "text": "Home",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"home\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client",
+          "text": "Client",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"clients\"]",
+          "className": "top-axis-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Matter",
+          "text": "Matter",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"matters\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "People",
+          "text": "People",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"people\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Vault",
+          "text": "Vault",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"vault\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "/",
+          "text": "검색",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "placeholder": "검색",
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로 만들기",
+          "text": "새로 만들기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.primary-button",
+          "className": "primary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "구성원 초대",
+          "text": "구성원 초대",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.ghost-button.success",
+          "className": "ghost-button success",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "내 프로필",
+          "text": "서",
+          "ariaLabel": "내 프로필",
+          "disabled": false,
+          "selectorHint": "button[data-profile-trigger=\"true\"]",
+          "className": "profile-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "알림",
+          "text": "3",
+          "ariaLabel": "알림",
+          "disabled": false,
+          "selectorHint": "button[data-notification-trigger=\"true\"]",
+          "className": "icon-button notification-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "도움말",
+          "text": "도움말",
+          "ariaLabel": "도움말",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "테마",
+          "text": "테마",
+          "ariaLabel": "테마",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 12,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "한국어",
+          "text": "한국어",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.top-link.locale-toggle",
+          "className": "top-link locale-toggle",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 13,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 목록 12",
+          "text": "Client 목록 12",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 14,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "잠재 고객",
+          "text": "잠재 고객",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item.active",
+          "className": "sidebar-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 15,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "영업 기회",
+          "text": "영업 기회",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 16,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "상담 접수 4",
+          "text": "상담 접수 4",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 17,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "계정",
+          "text": "계정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 18,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "연락처",
+          "text": "연락처",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 19,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "데이터 관리",
+          "text": "데이터 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 20,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "보고서",
+          "text": "보고서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 21,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "가져오기",
+          "text": "가져오기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 22,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 설정",
+          "text": "Client 설정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 23,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "태그 관리",
+          "text": "태그 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 24,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 25,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "잠재 Client"
+          }
+        },
+        {
+          "index": 26,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "필드 업데이트",
+          "text": "필드 업데이트",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 27,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-opportunities",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=clients&data=live&ctx=allow#client-opportunities",
+      "scope": ".matter-app",
+      "observed_at": "2026-06-25T08:56:29.016Z",
+      "summary": {
+        "total": 29,
+        "byTag": {
+          "button": 28,
+          "input": 1
+        },
+        "byDisabled": {
+          "enabled": 29,
+          "disabled": 0
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Home",
+          "text": "Home",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"home\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client",
+          "text": "Client",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"clients\"]",
+          "className": "top-axis-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Matter",
+          "text": "Matter",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"matters\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "People",
+          "text": "People",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"people\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Vault",
+          "text": "Vault",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"vault\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "/",
+          "text": "검색",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "placeholder": "검색",
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로 만들기",
+          "text": "새로 만들기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.primary-button",
+          "className": "primary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "구성원 초대",
+          "text": "구성원 초대",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.ghost-button.success",
+          "className": "ghost-button success",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "내 프로필",
+          "text": "서",
+          "ariaLabel": "내 프로필",
+          "disabled": false,
+          "selectorHint": "button[data-profile-trigger=\"true\"]",
+          "className": "profile-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "알림",
+          "text": "3",
+          "ariaLabel": "알림",
+          "disabled": false,
+          "selectorHint": "button[data-notification-trigger=\"true\"]",
+          "className": "icon-button notification-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "도움말",
+          "text": "도움말",
+          "ariaLabel": "도움말",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "테마",
+          "text": "테마",
+          "ariaLabel": "테마",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 12,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "한국어",
+          "text": "한국어",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.top-link.locale-toggle",
+          "className": "top-link locale-toggle",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 13,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 목록 12",
+          "text": "Client 목록 12",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 14,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "잠재 고객",
+          "text": "잠재 고객",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 15,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "영업 기회",
+          "text": "영업 기회",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item.active",
+          "className": "sidebar-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 16,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "상담 접수 4",
+          "text": "상담 접수 4",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 17,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "계정",
+          "text": "계정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 18,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "연락처",
+          "text": "연락처",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 19,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "데이터 관리",
+          "text": "데이터 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 20,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "보고서",
+          "text": "보고서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 21,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "가져오기",
+          "text": "가져오기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 22,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 설정",
+          "text": "Client 설정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 23,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "태그 관리",
+          "text": "태그 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 24,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 25,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "기회"
+          }
+        },
+        {
+          "index": 26,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "전환",
+          "text": "전환",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-opportunities",
+            "className": "panel record-list-panel",
+            "label": "기회"
+          }
+        },
+        {
+          "index": 27,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "필드 업데이트",
+          "text": "필드 업데이트",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 28,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-intake",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=clients&data=live&ctx=allow#client-intake",
+      "scope": ".matter-app",
+      "observed_at": "2026-06-25T08:56:30.530Z",
+      "summary": {
+        "total": 30,
+        "byTag": {
+          "button": 29,
+          "input": 1
+        },
+        "byDisabled": {
+          "enabled": 29,
+          "disabled": 1
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Home",
+          "text": "Home",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"home\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client",
+          "text": "Client",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"clients\"]",
+          "className": "top-axis-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Matter",
+          "text": "Matter",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"matters\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "People",
+          "text": "People",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"people\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Vault",
+          "text": "Vault",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"vault\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "/",
+          "text": "검색",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "placeholder": "검색",
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로 만들기",
+          "text": "새로 만들기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.primary-button",
+          "className": "primary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "구성원 초대",
+          "text": "구성원 초대",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.ghost-button.success",
+          "className": "ghost-button success",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "내 프로필",
+          "text": "서",
+          "ariaLabel": "내 프로필",
+          "disabled": false,
+          "selectorHint": "button[data-profile-trigger=\"true\"]",
+          "className": "profile-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "알림",
+          "text": "3",
+          "ariaLabel": "알림",
+          "disabled": false,
+          "selectorHint": "button[data-notification-trigger=\"true\"]",
+          "className": "icon-button notification-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "도움말",
+          "text": "도움말",
+          "ariaLabel": "도움말",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "테마",
+          "text": "테마",
+          "ariaLabel": "테마",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 12,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "한국어",
+          "text": "한국어",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.top-link.locale-toggle",
+          "className": "top-link locale-toggle",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 13,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 목록 12",
+          "text": "Client 목록 12",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 14,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "잠재 고객",
+          "text": "잠재 고객",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 15,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "영업 기회",
+          "text": "영업 기회",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 16,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "상담 접수 4",
+          "text": "상담 접수 4",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item.active",
+          "className": "sidebar-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 17,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "계정",
+          "text": "계정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 18,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "연락처",
+          "text": "연락처",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 19,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "데이터 관리",
+          "text": "데이터 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 20,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "보고서",
+          "text": "보고서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 21,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "가져오기",
+          "text": "가져오기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 22,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 설정",
+          "text": "Client 설정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 23,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "태그 관리",
+          "text": "태그 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 24,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 25,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "접수"
+          }
+        },
+        {
+          "index": 26,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "충돌 검토",
+          "text": "충돌 검토",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-intake",
+            "className": "panel record-list-panel",
+            "label": "접수"
+          }
+        },
+        {
+          "index": 27,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "통과 처리",
+          "text": "통과 처리",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-intake",
+            "className": "panel record-list-panel",
+            "label": "접수"
+          }
+        },
+        {
+          "index": 28,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "필드 업데이트",
+          "text": "필드 업데이트",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 29,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-accounts",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=clients&data=live&ctx=allow#client-accounts",
+      "scope": ".matter-app",
+      "observed_at": "2026-06-25T08:56:32.041Z",
+      "summary": {
+        "total": 31,
+        "byTag": {
+          "button": 30,
+          "input": 1
+        },
+        "byDisabled": {
+          "enabled": 29,
+          "disabled": 2
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Home",
+          "text": "Home",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"home\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client",
+          "text": "Client",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"clients\"]",
+          "className": "top-axis-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Matter",
+          "text": "Matter",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"matters\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "People",
+          "text": "People",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"people\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Vault",
+          "text": "Vault",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"vault\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "/",
+          "text": "검색",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "placeholder": "검색",
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로 만들기",
+          "text": "새로 만들기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.primary-button",
+          "className": "primary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "구성원 초대",
+          "text": "구성원 초대",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.ghost-button.success",
+          "className": "ghost-button success",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "내 프로필",
+          "text": "서",
+          "ariaLabel": "내 프로필",
+          "disabled": false,
+          "selectorHint": "button[data-profile-trigger=\"true\"]",
+          "className": "profile-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "알림",
+          "text": "3",
+          "ariaLabel": "알림",
+          "disabled": false,
+          "selectorHint": "button[data-notification-trigger=\"true\"]",
+          "className": "icon-button notification-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "도움말",
+          "text": "도움말",
+          "ariaLabel": "도움말",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "테마",
+          "text": "테마",
+          "ariaLabel": "테마",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 12,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "한국어",
+          "text": "한국어",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.top-link.locale-toggle",
+          "className": "top-link locale-toggle",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 13,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 목록 12",
+          "text": "Client 목록 12",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 14,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "잠재 고객",
+          "text": "잠재 고객",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 15,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "영업 기회",
+          "text": "영업 기회",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 16,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "상담 접수 4",
+          "text": "상담 접수 4",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 17,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "계정",
+          "text": "계정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item.active",
+          "className": "sidebar-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 18,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "연락처",
+          "text": "연락처",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 19,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "데이터 관리",
+          "text": "데이터 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 20,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "보고서",
+          "text": "보고서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 21,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "가져오기",
+          "text": "가져오기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 22,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 설정",
+          "text": "Client 설정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 23,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "태그 관리",
+          "text": "태그 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 24,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 25,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "계정"
+          }
+        },
+        {
+          "index": 26,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "생성",
+          "text": "생성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-accounts",
+            "className": "panel record-list-panel",
+            "label": "계정"
+          }
+        },
+        {
+          "index": 27,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "검토 표시",
+          "text": "검토 표시",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-accounts",
+            "className": "panel record-list-panel",
+            "label": "계정"
+          }
+        },
+        {
+          "index": 28,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "레코드 작업",
+          "text": "레코드 작업",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-accounts",
+            "className": "panel record-list-panel",
+            "label": "계정"
+          }
+        },
+        {
+          "index": 29,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "필드 업데이트",
+          "text": "필드 업데이트",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 30,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-contacts",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=clients&data=live&ctx=allow#client-contacts",
+      "scope": ".matter-app",
+      "observed_at": "2026-06-25T08:56:33.551Z",
+      "summary": {
+        "total": 33,
+        "byTag": {
+          "button": 32,
+          "input": 1
+        },
+        "byDisabled": {
+          "enabled": 30,
+          "disabled": 3
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Home",
+          "text": "Home",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"home\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client",
+          "text": "Client",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"clients\"]",
+          "className": "top-axis-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Matter",
+          "text": "Matter",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"matters\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "People",
+          "text": "People",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"people\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Vault",
+          "text": "Vault",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"vault\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "/",
+          "text": "검색",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "placeholder": "검색",
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로 만들기",
+          "text": "새로 만들기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.primary-button",
+          "className": "primary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "구성원 초대",
+          "text": "구성원 초대",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.ghost-button.success",
+          "className": "ghost-button success",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "내 프로필",
+          "text": "서",
+          "ariaLabel": "내 프로필",
+          "disabled": false,
+          "selectorHint": "button[data-profile-trigger=\"true\"]",
+          "className": "profile-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "알림",
+          "text": "3",
+          "ariaLabel": "알림",
+          "disabled": false,
+          "selectorHint": "button[data-notification-trigger=\"true\"]",
+          "className": "icon-button notification-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "도움말",
+          "text": "도움말",
+          "ariaLabel": "도움말",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "테마",
+          "text": "테마",
+          "ariaLabel": "테마",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 12,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "한국어",
+          "text": "한국어",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.top-link.locale-toggle",
+          "className": "top-link locale-toggle",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 13,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 목록 12",
+          "text": "Client 목록 12",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 14,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "잠재 고객",
+          "text": "잠재 고객",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 15,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "영업 기회",
+          "text": "영업 기회",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 16,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "상담 접수 4",
+          "text": "상담 접수 4",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 17,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "계정",
+          "text": "계정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 18,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "연락처",
+          "text": "연락처",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item.active",
+          "className": "sidebar-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 19,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "데이터 관리",
+          "text": "데이터 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 20,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "보고서",
+          "text": "보고서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 21,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "가져오기",
+          "text": "가져오기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 22,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 설정",
+          "text": "Client 설정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 23,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "태그 관리",
+          "text": "태그 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 24,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 25,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "연락처"
+          }
+        },
+        {
+          "index": 26,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "생성",
+          "text": "생성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-contacts",
+            "className": "panel record-list-panel",
+            "label": "연락처"
+          }
+        },
+        {
+          "index": 27,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "검토 표시",
+          "text": "검토 표시",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-contacts",
+            "className": "panel record-list-panel",
+            "label": "연락처"
+          }
+        },
+        {
+          "index": 28,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "레코드 작업",
+          "text": "레코드 작업",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-contacts",
+            "className": "panel record-list-panel",
+            "label": "연락처"
+          }
+        },
+        {
+          "index": 29,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "검토 생성",
+          "text": "검토 생성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-contacts",
+            "className": "panel record-list-panel",
+            "label": "연락처"
+          }
+        },
+        {
+          "index": 30,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "병합 실행",
+          "text": "병합 실행",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-contacts",
+            "className": "panel record-list-panel",
+            "label": "연락처"
+          }
+        },
+        {
+          "index": 31,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "필드 업데이트",
+          "text": "필드 업데이트",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 32,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-data",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=clients&data=live&ctx=allow#client-data",
+      "scope": ".matter-app",
+      "observed_at": "2026-06-25T08:56:35.060Z",
+      "summary": {
+        "total": 38,
+        "byTag": {
+          "button": 37,
+          "input": 1
+        },
+        "byDisabled": {
+          "enabled": 37,
+          "disabled": 1
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Home",
+          "text": "Home",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"home\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client",
+          "text": "Client",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"clients\"]",
+          "className": "top-axis-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Matter",
+          "text": "Matter",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"matters\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "People",
+          "text": "People",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"people\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Vault",
+          "text": "Vault",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"vault\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "/",
+          "text": "검색",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "placeholder": "검색",
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로 만들기",
+          "text": "새로 만들기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.primary-button",
+          "className": "primary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "구성원 초대",
+          "text": "구성원 초대",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.ghost-button.success",
+          "className": "ghost-button success",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "내 프로필",
+          "text": "서",
+          "ariaLabel": "내 프로필",
+          "disabled": false,
+          "selectorHint": "button[data-profile-trigger=\"true\"]",
+          "className": "profile-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "알림",
+          "text": "3",
+          "ariaLabel": "알림",
+          "disabled": false,
+          "selectorHint": "button[data-notification-trigger=\"true\"]",
+          "className": "icon-button notification-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "도움말",
+          "text": "도움말",
+          "ariaLabel": "도움말",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "테마",
+          "text": "테마",
+          "ariaLabel": "테마",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 12,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "한국어",
+          "text": "한국어",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.top-link.locale-toggle",
+          "className": "top-link locale-toggle",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 13,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 목록 12",
+          "text": "Client 목록 12",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 14,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "잠재 고객",
+          "text": "잠재 고객",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 15,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "영업 기회",
+          "text": "영업 기회",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 16,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "상담 접수 4",
+          "text": "상담 접수 4",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 17,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "계정",
+          "text": "계정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 18,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "연락처",
+          "text": "연락처",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 19,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "데이터 관리",
+          "text": "데이터 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item.active",
+          "className": "sidebar-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 20,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "보고서",
+          "text": "보고서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 21,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "가져오기",
+          "text": "가져오기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 22,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 설정",
+          "text": "Client 설정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 23,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "태그 관리",
+          "text": "태그 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 24,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 25,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "데이터 보강"
+          }
+        },
+        {
+          "index": 26,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "연동 요청",
+          "text": "연동 요청",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-sf-b-w07-provider-register-action=\"true\"]",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-data-cloud",
+            "className": "panel record-list-panel span-2",
+            "label": "데이터 보강"
+          }
+        },
+        {
+          "index": 27,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-data-cloud",
+            "className": "panel record-list-panel span-2",
+            "label": "데이터 보강"
+          }
+        },
+        {
+          "index": 28,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "보강 미리보기"
+          }
+        },
+        {
+          "index": 29,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "미리보기",
+          "text": "미리보기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-enrichment-job",
+            "className": "panel record-list-panel",
+            "label": "보강 미리보기"
+          }
+        },
+        {
+          "index": 30,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "실행 확인",
+          "text": "실행 확인",
+          "ariaLabel": null,
+          "disabled": true,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-enrichment-job",
+            "className": "panel record-list-panel",
+            "label": "보강 미리보기"
+          }
+        },
+        {
+          "index": 31,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "결과와 통합 프로필"
+          }
+        },
+        {
+          "index": 32,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "매칭과 대상 그룹"
+          }
+        },
+        {
+          "index": 33,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "후보 생성",
+          "text": "후보 생성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-identity-segment",
+            "className": "panel record-list-panel",
+            "label": "매칭과 대상 그룹"
+          }
+        },
+        {
+          "index": 34,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "활성화 확인",
+          "text": "활성화 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-identity-segment",
+            "className": "panel record-list-panel",
+            "label": "매칭과 대상 그룹"
+          }
+        },
+        {
+          "index": 35,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "감사 경계"
+          }
+        },
+        {
+          "index": 36,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "필드 업데이트",
+          "text": "필드 업데이트",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 37,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-reports",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=clients&data=live&ctx=allow#client-reports",
+      "scope": ".matter-app",
+      "observed_at": "2026-06-25T08:56:36.570Z",
+      "summary": {
+        "total": 36,
+        "byTag": {
+          "button": 35,
+          "input": 1
+        },
+        "byDisabled": {
+          "enabled": 36,
+          "disabled": 0
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Home",
+          "text": "Home",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"home\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client",
+          "text": "Client",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"clients\"]",
+          "className": "top-axis-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Matter",
+          "text": "Matter",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"matters\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "People",
+          "text": "People",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"people\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Vault",
+          "text": "Vault",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"vault\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "/",
+          "text": "검색",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "placeholder": "검색",
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로 만들기",
+          "text": "새로 만들기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.primary-button",
+          "className": "primary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "구성원 초대",
+          "text": "구성원 초대",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.ghost-button.success",
+          "className": "ghost-button success",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "내 프로필",
+          "text": "서",
+          "ariaLabel": "내 프로필",
+          "disabled": false,
+          "selectorHint": "button[data-profile-trigger=\"true\"]",
+          "className": "profile-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "알림",
+          "text": "3",
+          "ariaLabel": "알림",
+          "disabled": false,
+          "selectorHint": "button[data-notification-trigger=\"true\"]",
+          "className": "icon-button notification-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "도움말",
+          "text": "도움말",
+          "ariaLabel": "도움말",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "테마",
+          "text": "테마",
+          "ariaLabel": "테마",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 12,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "한국어",
+          "text": "한국어",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.top-link.locale-toggle",
+          "className": "top-link locale-toggle",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 13,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 목록 12",
+          "text": "Client 목록 12",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 14,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "잠재 고객",
+          "text": "잠재 고객",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 15,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "영업 기회",
+          "text": "영업 기회",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 16,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "상담 접수 4",
+          "text": "상담 접수 4",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 17,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "계정",
+          "text": "계정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 18,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "연락처",
+          "text": "연락처",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 19,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "데이터 관리",
+          "text": "데이터 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 20,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "보고서",
+          "text": "보고서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item.active",
+          "className": "sidebar-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 21,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "가져오기",
+          "text": "가져오기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 22,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 설정",
+          "text": "Client 설정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 23,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "태그 관리",
+          "text": "태그 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 24,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 25,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "보고서"
+          }
+        },
+        {
+          "index": 26,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "생성",
+          "text": "생성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-sf-b-w08-report-create-action=\"true\"]",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-report-builder",
+            "className": "panel record-list-panel span-2",
+            "label": "보고서"
+          }
+        },
+        {
+          "index": 27,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "조정",
+          "text": "조정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-sf-b-w08-report-patch-action=\"true\"]",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-report-builder",
+            "className": "panel record-list-panel span-2",
+            "label": "보고서"
+          }
+        },
+        {
+          "index": 28,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "Client 손익"
+          }
+        },
+        {
+          "index": 29,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-sf-b-w08-client-profitability-refresh-action=\"true\"]",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-profitability",
+            "className": "panel record-list-panel",
+            "label": "Client 손익"
+          }
+        },
+        {
+          "index": 30,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "실행 결과"
+          }
+        },
+        {
+          "index": 31,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "실행",
+          "text": "실행",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-report-run",
+            "className": "panel record-list-panel",
+            "label": "실행 결과"
+          }
+        },
+        {
+          "index": 32,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "공유와 감사"
+          }
+        },
+        {
+          "index": 33,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "공유 요청",
+          "text": "공유 요청",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-report-share",
+            "className": "panel record-list-panel span-2",
+            "label": "공유와 감사"
+          }
+        },
+        {
+          "index": 34,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "필드 업데이트",
+          "text": "필드 업데이트",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 35,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-import",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=clients&data=live&ctx=allow#client-import",
+      "scope": ".matter-app",
+      "observed_at": "2026-06-25T08:56:38.083Z",
+      "summary": {
+        "total": 34,
+        "byTag": {
+          "button": 33,
+          "input": 1
+        },
+        "byDisabled": {
+          "enabled": 34,
+          "disabled": 0
+        }
+      },
+      "controls": [
+        {
+          "index": 0,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Home",
+          "text": "Home",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"home\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 1,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client",
+          "text": "Client",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"clients\"]",
+          "className": "top-axis-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 2,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Matter",
+          "text": "Matter",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"matters\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 3,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "People",
+          "text": "People",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"people\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 4,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Vault",
+          "text": "Vault",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button[data-product-axis=\"vault\"]",
+          "className": "top-axis-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "top-axis-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 5,
+          "kind": "input",
+          "type": null,
+          "role": null,
+          "label": "/",
+          "text": "검색",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "input",
+          "className": null,
+          "placeholder": "검색",
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 6,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로 만들기",
+          "text": "새로 만들기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.primary-button",
+          "className": "primary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 7,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "구성원 초대",
+          "text": "구성원 초대",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.ghost-button.success",
+          "className": "ghost-button success",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 8,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "내 프로필",
+          "text": "서",
+          "ariaLabel": "내 프로필",
+          "disabled": false,
+          "selectorHint": "button[data-profile-trigger=\"true\"]",
+          "className": "profile-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 9,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "알림",
+          "text": "3",
+          "ariaLabel": "알림",
+          "disabled": false,
+          "selectorHint": "button[data-notification-trigger=\"true\"]",
+          "className": "icon-button notification-trigger",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 10,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "도움말",
+          "text": "도움말",
+          "ariaLabel": "도움말",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 11,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "테마",
+          "text": "테마",
+          "ariaLabel": "테마",
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 12,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "한국어",
+          "text": "한국어",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.top-link.locale-toggle",
+          "className": "top-link locale-toggle",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "topbar",
+            "label": null
+          }
+        },
+        {
+          "index": 13,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 목록 12",
+          "text": "Client 목록 12",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 14,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "잠재 고객",
+          "text": "잠재 고객",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 15,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "영업 기회",
+          "text": "영업 기회",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 16,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "상담 접수 4",
+          "text": "상담 접수 4",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 17,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "계정",
+          "text": "계정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 18,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "연락처",
+          "text": "연락처",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 19,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "데이터 관리",
+          "text": "데이터 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 20,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "보고서",
+          "text": "보고서",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item",
+          "className": "sidebar-item",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 21,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "가져오기",
+          "text": "가져오기",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-item.active",
+          "className": "sidebar-item active",
+          "placeholder": null,
+          "panel": {
+            "tag": "nav",
+            "id": null,
+            "className": "sidebar-nav",
+            "label": null
+          }
+        },
+        {
+          "index": 22,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "Client 설정",
+          "text": "Client 설정",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 23,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "태그 관리",
+          "text": "태그 관리",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.sidebar-utility",
+          "className": "sidebar-utility",
+          "placeholder": null,
+          "panel": {
+            "tag": "aside",
+            "id": null,
+            "className": "sidebar",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 24,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "새로고침",
+          "text": "새로고침",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 25,
+          "kind": "button",
+          "type": null,
+          "role": null,
+          "label": "",
+          "text": "",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.icon-button",
+          "className": "icon-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "header",
+            "id": null,
+            "className": "panel-head",
+            "label": "가져오기"
+          }
+        },
+        {
+          "index": 26,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "작업 생성",
+          "text": "작업 생성",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-import",
+            "className": "panel record-list-panel",
+            "label": "가져오기"
+          }
+        },
+        {
+          "index": 27,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "원본 준비",
+          "text": "원본 준비",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-import",
+            "className": "panel record-list-panel",
+            "label": "가져오기"
+          }
+        },
+        {
+          "index": 28,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "매핑 저장",
+          "text": "매핑 저장",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-import",
+            "className": "panel record-list-panel",
+            "label": "가져오기"
+          }
+        },
+        {
+          "index": 29,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "검증 실행",
+          "text": "검증 실행",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-import",
+            "className": "panel record-list-panel",
+            "label": "가져오기"
+          }
+        },
+        {
+          "index": 30,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "실행 요청",
+          "text": "실행 요청",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-import",
+            "className": "panel record-list-panel",
+            "label": "가져오기"
+          }
+        },
+        {
+          "index": 31,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "확인",
+          "text": "확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "client-import",
+            "className": "panel record-list-panel",
+            "label": "가져오기"
+          }
+        },
+        {
+          "index": 32,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "필드 업데이트",
+          "text": "필드 업데이트",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        },
+        {
+          "index": 33,
+          "kind": "button",
+          "type": "button",
+          "role": null,
+          "label": "승인 확인",
+          "text": "승인 확인",
+          "ariaLabel": null,
+          "disabled": false,
+          "selectorHint": "button.secondary-button",
+          "className": "secondary-button",
+          "placeholder": null,
+          "panel": {
+            "tag": "section",
+            "id": "clients-home",
+            "className": "surface stack clients-surface",
+            "label": "Client"
+          }
+        }
+      ]
+    }
+  ],
+  "console_messages": [
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+    }
+  ]
+}

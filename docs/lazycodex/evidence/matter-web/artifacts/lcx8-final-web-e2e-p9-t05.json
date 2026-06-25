@@ -1,0 +1,24 @@
+{
+  "schema_version": "matter.lcx8.final-web-e2e.p9-t05.v1",
+  "generated_at": "2026-06-25T14:36:47.205Z",
+  "status": "FINAL_WEB_E2E_PASS",
+  "tuw": "P9-T05",
+  "command": "npm run web:e2e",
+  "exit_code": 0,
+  "tests": 15,
+  "pass": 15,
+  "fail": 0,
+  "output_summary": "run-web-e2e.mjs: 15 tests, 15 pass, 0 fail.",
+  "status_changes": 0,
+  "next_tuw": "P9-T06",
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "matter.lcx8.final-hrx-ui-validator.p9-t02.v1",
+  "generated_at": "2026-06-25T14:35:26.380Z",
+  "status": "FINAL_HRX_UI_VALIDATOR_PASS",
+  "tuw": "P9-T02",
+  "command": "npm run hrx:ui:validate",
+  "exit_code": 0,
+  "output_summary": "HRX UI API-backed validation passed; scope portal_api_hardening.",
+  "baseline_note": "Earlier P0 baseline HRX UI validation failures are superseded for this closeout command by this PASS receipt, while functional row statuses remain unchanged.",
+  "status_changes": 0,
+  "next_tuw": "P9-T03",
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  }
+}

@@ -1,27 +1,24 @@
 {
   "schema_version": "matter.lcx-web.runtime-verification.v1",
-  "generated_at": "2026-06-22T07:17:42.671Z",
-  "base_url": "http://127.0.0.1:5173",
+  "generated_at": "2026-06-25T14:51:22.420Z",
+  "base_url": "http://127.0.0.1:5174",
   "source_of_truth": "apps/web",
   "passed": true,
   "console_errors_recorded_not_gated": [
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
     "Failed to load resource: the server responded with a status of 403 (Forbidden)",
     "Failed to load resource: the server responded with a status of 403 (Forbidden)",
     "Failed to load resource: the server responded with a status of 403 (Forbidden)",
-    "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)"
   ],
   "mobile_metrics": {
     "scrollWidth": 390,
@@ -33,9 +30,33 @@
     {
       "name": "desktop-home-command-center",
       "url": "/?locale=en&view=home&desktop=1&data=live&ctx=allow",
-      "expectText": "Client Matter People Vault",
+      "expectText": "Client, Matter, 구성원, Vault",
+      "expectedTexts": [
+        "Client",
+        "Matter",
+        "구성원",
+        "Vault"
+      ],
       "passed": true,
-      "textFound": 2,
+      "textFound": 23,
+      "textMatches": [
+        {
+          "expectedText": "Client",
+          "count": 4
+        },
+        {
+          "expectedText": "Matter",
+          "count": 10
+        },
+        {
+          "expectedText": "구성원",
+          "count": 5
+        },
+        {
+          "expectedText": "Vault",
+          "count": 4
+        }
+      ],
       "selectorFound": 1,
       "metrics": {
         "title": "matter",
@@ -43,21 +64,25 @@
         "theme": "light",
         "horizontalOverflow": false,
         "visibleCapabilityCards": 4,
-        "visibleLiveStates": [
-          "live",
-          "live",
-          "unavailable",
-          "live"
-        ]
+        "visibleLiveStates": []
       },
       "error": null
     },
     {
       "name": "clients-live",
       "url": "/?locale=en&view=clients&data=live&ctx=allow",
-      "expectText": "Clients",
+      "expectText": "Client와 상담 접수",
+      "expectedTexts": [
+        "Client와 상담 접수"
+      ],
       "passed": true,
-      "textFound": 3,
+      "textFound": 1,
+      "textMatches": [
+        {
+          "expectedText": "Client와 상담 접수",
+          "count": 1
+        }
+      ],
       "selectorFound": 1,
       "metrics": {
         "title": "matter",
@@ -65,18 +90,25 @@
         "theme": "light",
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
-        "visibleLiveStates": [
-          "No client groupsThe live query returned no ClientGroup records for this tenant."
-        ]
+        "visibleLiveStates": []
       },
       "error": null
     },
     {
       "name": "matters-live",
       "url": "/?locale=en&view=matters&data=live&ctx=allow",
-      "expectText": "Matter Home",
+      "expectText": "Matter 상태, 구성원, 문서, 활동, 청구 흐름",
+      "expectedTexts": [
+        "Matter 상태, 구성원, 문서, 활동, 청구 흐름"
+      ],
       "passed": true,
-      "textFound": 2,
+      "textFound": 1,
+      "textMatches": [
+        {
+          "expectedText": "Matter 상태, 구성원, 문서, 활동, 청구 흐름",
+          "count": 1
+        }
+      ],
       "selectorFound": 1,
       "metrics": {
         "title": "matter",
@@ -84,19 +116,25 @@
         "theme": "light",
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
-        "visibleLiveStates": [
-          "No mattersThe live query returned no Matter records for this tenant.",
-          "Loading Matter VaultReading linked workspace metadata."
-        ]
+        "visibleLiveStates": []
       },
       "error": null
     },
     {
       "name": "people-live",
       "url": "/?locale=en&view=people&data=live&ctx=allow",
-      "expectText": "People Runtime",
+      "expectText": "구성원 관리",
+      "expectedTexts": [
+        "구성원 관리"
+      ],
       "passed": true,
-      "textFound": 2,
+      "textFound": 1,
+      "textMatches": [
+        {
+          "expectedText": "구성원 관리",
+          "count": 1
+        }
+      ],
       "selectorFound": 1,
       "metrics": {
         "title": "matter",
@@ -104,30 +142,25 @@
         "theme": "light",
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
-        "visibleLiveStates": [
-          "People API unavailableStart the Law Firm OS API or check the HRX route contract. This surface has no static fallback.",
-          "Employee API failed. No mock employee list is rendered.",
-          "Select an employee to load the scoped profile.",
-          "Select an employee to load HR document metadata.",
-          "Select an employee to load leave balance.",
-          "Approval API failed. No local queue fallback is rendered.",
-          "Candidate portal API failed. No candidate mock fallback is rendered.",
-          "Recruiting API failed. Pipeline updates are not staged locally.",
-          "Lifecycle API failed. No local lifecycle fallback is rendered.",
-          "Policy API failed. No policy fallback is rendered.",
-          "Audit API failed. No local audit fallback is rendered.",
-          "Analytics API failed. No static metric fallback is rendered.",
-          "AI route is ready; no static response is rendered."
-        ]
+        "visibleLiveStates": []
       },
       "error": null
     },
     {
       "name": "vault-live",
       "url": "/?locale=en&view=vault&data=live&ctx=allow",
-      "expectText": "Matter Vault",
+      "expectText": "Vault 문서와 권한 상태",
+      "expectedTexts": [
+        "Vault 문서와 권한 상태"
+      ],
       "passed": true,
       "textFound": 1,
+      "textMatches": [
+        {
+          "expectedText": "Vault 문서와 권한 상태",
+          "count": 1
+        }
+      ],
       "selectorFound": 1,
       "metrics": {
         "title": "matter",
@@ -135,18 +168,30 @@
         "theme": "light",
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
-        "visibleLiveStates": [
-          "No documentsThe live query returned no Vault documents."
-        ]
+        "visibleLiveStates": []
       },
       "error": null
     },
     {
       "name": "clients-denied",
       "url": "/?locale=en&view=clients&data=live&ctx=denied",
-      "expectText": "Access denied",
+      "expectText": "접근 권한이 없습니다, 권한이 있는 Client만 표시합니다",
+      "expectedTexts": [
+        "접근 권한이 없습니다",
+        "권한이 있는 Client만 표시합니다"
+      ],
       "passed": true,
-      "textFound": 1,
+      "textFound": 2,
+      "textMatches": [
+        {
+          "expectedText": "접근 권한이 없습니다",
+          "count": 1
+        },
+        {
+          "expectedText": "권한이 있는 Client만 표시합니다",
+          "count": 1
+        }
+      ],
       "selectorFound": 1,
       "metrics": {
         "title": "matter",
@@ -155,7 +200,7 @@
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
         "visibleLiveStates": [
-          "Access deniedThe permission gate blocked this ClientGroup request. No client rows are shown."
+          "접근 권한이 없습니다권한이 있는 Client만 표시합니다."
         ]
       },
       "error": null
@@ -163,9 +208,23 @@
     {
       "name": "clients-review",
       "url": "/?locale=en&view=clients&data=live&ctx=review",
-      "expectText": "Review required",
+      "expectText": "검토가 필요합니다, 검토가 끝나면 Client 정보를 확인할 수 있습니다",
+      "expectedTexts": [
+        "검토가 필요합니다",
+        "검토가 끝나면 Client 정보를 확인할 수 있습니다"
+      ],
       "passed": true,
-      "textFound": 1,
+      "textFound": 2,
+      "textMatches": [
+        {
+          "expectedText": "검토가 필요합니다",
+          "count": 1
+        },
+        {
+          "expectedText": "검토가 끝나면 Client 정보를 확인할 수 있습니다",
+          "count": 1
+        }
+      ],
       "selectorFound": 1,
       "metrics": {
         "title": "matter",
@@ -174,7 +233,7 @@
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
         "visibleLiveStates": [
-          "Review requiredThis ClientGroup request requires review before the client rows can be displayed."
+          "검토가 필요합니다검토가 끝나면 Client 정보를 확인할 수 있습니다."
         ]
       },
       "error": null
@@ -182,9 +241,23 @@
     {
       "name": "matters-denied",
       "url": "/?locale=en&view=matters&data=live&ctx=denied",
-      "expectText": "Access denied",
+      "expectText": "접근 권한이 없습니다, 권한이 있는 정보만 표시됩니다",
+      "expectedTexts": [
+        "접근 권한이 없습니다",
+        "권한이 있는 정보만 표시됩니다"
+      ],
       "passed": true,
-      "textFound": 1,
+      "textFound": 2,
+      "textMatches": [
+        {
+          "expectedText": "접근 권한이 없습니다",
+          "count": 1
+        },
+        {
+          "expectedText": "권한이 있는 정보만 표시됩니다",
+          "count": 1
+        }
+      ],
       "selectorFound": 1,
       "metrics": {
         "title": "matter",
@@ -193,8 +266,7 @@
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
         "visibleLiveStates": [
-          "Access deniedPermission recheck denied this matter workspace. No row counts, snippets, citations, or document metadata are shown.",
-          "Loading Matter VaultReading linked workspace metadata."
+          "접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
         ]
       },
       "error": null
@@ -202,9 +274,23 @@
     {
       "name": "vault-denied",
       "url": "/?locale=en&view=vault&data=live&ctx=denied",
-      "expectText": "Access denied",
+      "expectText": "접근 권한이 없습니다, 권한이 있는 정보만 표시됩니다",
+      "expectedTexts": [
+        "접근 권한이 없습니다",
+        "권한이 있는 정보만 표시됩니다"
+      ],
       "passed": true,
-      "textFound": 1,
+      "textFound": 2,
+      "textMatches": [
+        {
+          "expectedText": "접근 권한이 없습니다",
+          "count": 1
+        },
+        {
+          "expectedText": "권한이 있는 정보만 표시됩니다",
+          "count": 1
+        }
+      ],
       "selectorFound": 1,
       "metrics": {
         "title": "matter",
@@ -213,7 +299,7 @@
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
         "visibleLiveStates": [
-          "Access deniedPermission recheck denied this document workspace. No row counts, snippets, citations, or document metadata are shown."
+          "접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
         ]
       },
       "error": null

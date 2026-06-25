@@ -1,0 +1,143 @@
+{
+  "schema_version": "matter.lcx8.desktop-bridge-observation.v1",
+  "generated_at": "2026-06-25T09:44:12.000Z",
+  "tuw": "P1-T10",
+  "status": "complete_pre_p3_p4",
+  "scope": "Desktop bridge action inventory: shell/session renderer controls, session IPC, file bridge, temp preview, deep links, notifications, updates, and guard paths.",
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "packaged_release_notarization": false,
+    "external_runtime_receipt_complete": false
+  },
+  "source_files": [
+    "apps/desktop/src/main/main.js",
+    "apps/desktop/src/main/window.js",
+    "apps/desktop/src/preload/session.cjs",
+    "apps/desktop/src/preload/session.js",
+    "apps/desktop/src/preload/runtime.js",
+    "apps/desktop/src/renderer/offline.html",
+    "apps/desktop/src/main/session-ipc.js",
+    "apps/desktop/src/main/auth.js",
+    "apps/desktop/src/preload/fileBridge.js",
+    "apps/desktop/src/main/fileBridge.js",
+    "apps/desktop/src/main/tempPreview.js",
+    "apps/desktop/src/main/deepLinks.js",
+    "apps/desktop/src/main/deep-link.js",
+    "apps/desktop/src/main/notifications.js",
+    "apps/desktop/src/main/updates.js"
+  ],
+  "contract_files": [
+    "contracts/desktop-file-bridge-contract.json",
+    "contracts/desktop-deep-link-contract.json",
+    "contracts/desktop-session-cleanup-contract.json"
+  ],
+  "command_receipts": [
+    {
+      "command": "npm --workspace apps/desktop run test:smoke",
+      "result": "PASS",
+      "summary": "59 tests, 59 pass, 0 fail."
+    },
+    {
+      "command": "node scripts/validate-desktop-file-bridge-contract.mjs",
+      "result": "PASS",
+      "summary": "allowed_actions choose_file_for_upload/save_document_as/open_temp_preview/clear_temp_cache; implementation_complete_claim false."
+    },
+    {
+      "command": "node scripts/validate-desktop-deep-link-contract.mjs",
+      "result": "PASS",
+      "summary": "allowed_routes matter/document/task/auth_callback; route_intent_only true; parser_implemented_claim false; owner_approval_recorded false."
+    },
+    {
+      "command": "node scripts/validate-desktop-session-cleanup-contract.mjs",
+      "result": "PASS",
+      "summary": "logout and tenant-switch cleanup requirements true; renderer token storage not allowed."
+    },
+    {
+      "command": "npm --workspace apps/desktop run test:file-bridge",
+      "result": "PASS",
+      "summary": "17 tests, 17 pass, 0 fail; validate-desktop-file-bridge-contract PASS; validate-matter-desktop-file-bridge PASS with 17 checked files and 0 findings."
+    }
+  ],
+  "exposed_runtime_surfaces": {
+    "active_shell_preload": "apps/desktop/src/preload/session.cjs",
+    "shell_preload_note": "startDesktopShell uses session.cjs. fileBridge.js and runtime.js are source/tested bridge surfaces but not the active shell preload in main.js.",
+    "matterSession_commands": [
+      "status",
+      "runtime",
+      "accounts",
+      "requestPasswordReset",
+      "latestResetEmail",
+      "confirmPasswordReset",
+      "login",
+      "features",
+      "smoke",
+      "logout"
+    ],
+    "offline_renderer_visible_controls": [
+      "[data-login-email]",
+      "[data-login-password]",
+      "[data-matter-login]",
+      "[data-matter-logout]",
+      "[data-check-dashboard]",
+      "[data-check-admin]"
+    ],
+    "file_bridge_commands": [
+      "chooseFileForUpload",
+      "saveDocumentAs"
+    ],
+    "temp_preview_commands": [
+      "openTempPreview",
+      "sweepExpiredPreviews",
+      "clearTempCache",
+      "handleLogout",
+      "handleTenantSwitch",
+      "handleAppQuit"
+    ],
+    "deep_link_routes": [
+      "matter",
+      "document",
+      "task",
+      "auth_callback"
+    ],
+    "notification_route_intent": true,
+    "update_controller_actions": [
+      "applyUpdate",
+      "rollback",
+      "public channel denial"
+    ]
+  },
+  "classification_summary": {
+    "added_rows": 28,
+    "first_row_id": "LCX8-ACTION-0244",
+    "last_row_id": "LCX8-ACTION-0271",
+    "status_delta": {
+      "inventory_rows": 28,
+      "unknown": 0,
+      "pass": 0,
+      "guarded": 11,
+      "ui_only": 2,
+      "descriptor_only": 0,
+      "blocked": 15,
+      "fail": 0
+    },
+    "total_status_counts_after_p1_t10": {
+      "inventory_rows": 271,
+      "unknown": 0,
+      "pass": 0,
+      "guarded": 11,
+      "ui_only": 110,
+      "descriptor_only": 0,
+      "blocked": 116,
+      "fail": 34
+    }
+  },
+  "scoped_out_or_blocked": [
+    "File bridge source/contracts/tests pass, but active shell preload is session.cjs and main.js does not register file bridge IPC.",
+    "Temp preview manager is source/tested, but no visible shell trigger or active IPC/preload integration is proven.",
+    "Deep link parser/open logic and notification route-intent helper are tested, but OS protocol/notification click wiring was not driven end-to-end.",
+    "Update apply/rollback controller is tested for signed internal updates, but public update channel remains disabled and no owner/public release approval exists.",
+    "Password reset bridge methods exist, but current visible packaged renderer intentionally omits reset UI."
+  ]
+}

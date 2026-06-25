@@ -1,0 +1,34 @@
+{
+  "schema_version": "matter.lcx8.matter-web-index-update.p9-t09.v1",
+  "generated_at": "2026-06-25T14:52:23.835Z",
+  "status": "MATTER_WEB_INDEX_UPDATED_CLOSEOUT_CURRENT_PRODUCT_FLOW_PASS",
+  "tuw": "P9-T09",
+  "index_file": "docs/lazycodex/evidence/matter-web/index.md",
+  "checks": {
+    "mentions_w8_closed": true,
+    "mentions_unknown_zero": true,
+    "mentions_resolved_flow_blocker": true,
+    "no_remaining_closeout_blocker": true,
+    "final_boundary_present": true
+  },
+  "status_changes": 0,
+  "next_tuw": null,
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  },
+  "resolved_closeout_blocker": {
+    "id": "LCX8-P9-BLOCKER-FLOW-VERIFY-001",
+    "severity": "high",
+    "status": "resolved",
+    "resolved_at": "2026-06-25T14:52:23.835Z",
+    "resolution": "Updated ui:flows:verify expected copy/state to the current product UI baseline and reran P9-T04; flow verifier passed 9/9 and live verifier passed 13/13.",
+    "boundary": "This resolves the P9 flow verifier blocker only; production go-live, public release, final go-live decision, launch authorization claim, and real client data migration remain false."
+  }
+}

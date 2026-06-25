@@ -1,0 +1,184 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-25T11:18:00.000Z",
+  "tuw": "P2-T02",
+  "status": "complete_validated",
+  "title": "LCX8 P2-T02 HomeSurface command-center action/source trace",
+  "scope": "Trace HomeSurface command-center refresh, queue rows, work-area open buttons, probe status mapping, and backendCapabilities route mapping into existing LCX8 rows. No new visible action rows were added.",
+  "lazyweb_reference": {
+    "query": "enterprise command center quick actions dashboard",
+    "platform": "desktop",
+    "coverage_strength": "strong",
+    "use": "Light reference only; local HomeSurface source and browser QA drive classifications."
+  },
+  "source_files": [
+    {
+      "path": "apps/web/src/components/HomeSurface.jsx",
+      "anchors": [
+        {
+          "lines": "23-31",
+          "description": "normalizeStatus maps API result states to loading/unavailable/denied/review/guarded/live"
+        },
+        {
+          "lines": "42-55",
+          "description": "capabilityCount and capabilityStatusMessage drive visible queue/card messages"
+        },
+        {
+          "lines": "66-73",
+          "description": "buildProbeMap merges backendCapabilities with probe results and normalized status"
+        },
+        {
+          "lines": "83-99",
+          "description": "combinePillarResults collapses multiple domain probe results per pillar"
+        },
+        {
+          "lines": "102-117",
+          "description": "WorkAreaRow open button calls onOpen(capability.route)"
+        },
+        {
+          "lines": "120-130",
+          "description": "QueueRow button calls onOpen(capability.route)"
+        },
+        {
+          "lines": "133-168",
+          "description": "HomeSurface refreshToken/useEffect drives Client/Matter/People/Vault probe fetchers"
+        },
+        {
+          "lines": "178-239",
+          "description": "PageHeader refresh, queue rows, audit summary, and work-area quick links render the visible command center actions"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/data/capabilityMap.js",
+      "anchors": [
+        {
+          "lines": "1-148",
+          "description": "backendCapabilities define Client/Matter/People/Vault labels, routes, endpoints, and boundaries consumed by HomeSurface"
+        }
+      ]
+    }
+  ],
+  "updated_row_count": 8,
+  "added_backfill_rows": 0,
+  "row_updates": [
+    {
+      "id": "LCX8-ACTION-0036",
+      "label": "새로고침",
+      "section": "command-center-header",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "onClick -> setRefreshToken(value + 1); useEffect fetches Client/Matter/People/Vault probes",
+      "api_route": "GET /master-data/records; GET /api/crm/opportunities; GET /api/intake/requests; GET /api/portal/dashboard; GET /api/portal/rfi; GET /api/matters; GET /api/finance/time-entries; GET /api/finance/invoices; GET /api/finance/ar-aging; GET /api/analytics/dashboards; GET /api/ai/review-queue; GET /api/hrx/employees; GET /api/vault/documents; GET /api/data-room/projections",
+      "outcome": "refresh remains BLOCKED pending API/browser response proof"
+    },
+    {
+      "id": "LCX8-ACTION-0037",
+      "label": "Matter 목록",
+      "section": "home-ops-queue",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "QueueRow onClick -> onOpen(capability.route) -> setView('matters')",
+      "api_route": null,
+      "outcome": "route/local product-axis navigation remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0038",
+      "label": "승인·구성원 확인",
+      "section": "home-ops-queue",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "QueueRow onClick -> onOpen(capability.route) -> setView('people')",
+      "api_route": null,
+      "outcome": "route/local product-axis navigation remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0039",
+      "label": "최근 문서 확인",
+      "section": "home-ops-queue",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "QueueRow onClick -> onOpen(capability.route) -> setView('vault')",
+      "api_route": null,
+      "outcome": "route/local product-axis navigation remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0040",
+      "label": "Client 열기",
+      "section": "home-quick-links",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "WorkAreaRow onClick -> onOpen(capability.route) -> setView('clients')",
+      "api_route": null,
+      "outcome": "route/local product-axis navigation remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0041",
+      "label": "Matter 열기",
+      "section": "home-quick-links",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "WorkAreaRow onClick -> onOpen(capability.route) -> setView('matters')",
+      "api_route": null,
+      "outcome": "route/local product-axis navigation remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0042",
+      "label": "People 열기",
+      "section": "home-quick-links",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "WorkAreaRow onClick -> onOpen(capability.route) -> setView('people')",
+      "api_route": null,
+      "outcome": "route/local product-axis navigation remains UI_ONLY"
+    },
+    {
+      "id": "LCX8-ACTION-0043",
+      "label": "Vault 열기",
+      "section": "home-quick-links",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "WorkAreaRow onClick -> onOpen(capability.route) -> setView('vault')",
+      "api_route": null,
+      "outcome": "route/local product-axis navigation remains UI_ONLY"
+    }
+  ],
+  "api_probe_contract": {
+    "refresh_row": "LCX8-ACTION-0036",
+    "fetch_families": [
+      "Client master/CRM/intake/portal",
+      "Matter records/finance/analytics/AI",
+      "People HRX overview",
+      "Vault documents/data-room"
+    ],
+    "live_ctx_note": "HomeSurface forwards ctx to Client/Matter/Vault fetchers; fetchHrxPeopleOverview currently has no ctx argument."
+  },
+  "known_gaps_preserved": [
+    {
+      "row_id": "LCX8-ACTION-0036",
+      "status": "BLOCKED",
+      "reason": "Refresh requires P3/P4 API response proof before PASS."
+    },
+    {
+      "row_id": "LCX8-ACTION-0280",
+      "status": "FAIL",
+      "reason": "PeopleHome denied/review state gap remains outside HomeSurface P2-T02 but is relevant because HomeSurface People overview also lacks ctx forwarding."
+    }
+  ],
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "api_read_operational": false,
+    "api_write_operational": false
+  },
+  "next_tuw": "P2-T03 Trace Client components and API clients.",
+  "browser_qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-home-surface-browser-qa-p2-t02.json",
+  "browser_qa_summary": {
+    "status": "pass_with_api_console_noise",
+    "observation_count": 9,
+    "api_request_count": 154,
+    "console_event_count": 154,
+    "console_event_note": "API 500/connection errors are expected because HomeSurface browser QA ran only the web server. This verifies UI handler behavior, not API operation."
+  }
+}

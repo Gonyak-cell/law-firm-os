@@ -1,0 +1,279 @@
+{
+  "schema_version": "matter.lcx8.desktop-smoke.p6-t00.v1",
+  "generated_at": "2026-06-25T14:00:22.113Z",
+  "status": "DESKTOP_SMOKE_PASS_NO_STATUS_PROMOTION",
+  "tuw": "P6-T00",
+  "command": "npm --workspace apps/desktop run test:smoke",
+  "result": "PASS",
+  "exit_code": 0,
+  "test_runner": "node --test test/*.test.mjs",
+  "tests": {
+    "total": 59,
+    "pass": 59,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "duration_ms": 151.649875
+  },
+  "reviewed_native_rows": 26,
+  "status_changes": 0,
+  "covered_domains": [
+    "auth coordinator and secure-store token boundary",
+    "runtime client credential sanitization",
+    "deep-link parser and permission recheck",
+    "file bridge picker/upload/save-as guards",
+    "notification route intent parser",
+    "renderer origin/navigation guards",
+    "packaged renderer shell config and splash fallback",
+    "temp preview scoped cache cleanup",
+    "signed internal update/rollback controller guards",
+    "public update channel denial"
+  ],
+  "non_claims": {
+    "packaged_release_runtime_clicked": false,
+    "os_protocol_registration_clicked": false,
+    "native_notification_delivery_clicked": false,
+    "public_update_channel_enabled": false,
+    "production_go_live": false,
+    "owner_approval": false,
+    "public_release": false
+  },
+  "next_tuw": "P6-T01",
+  "rows": [
+    {
+      "id": "LCX8-ACTION-0244",
+      "status": "GUARDED",
+      "surface": "desktop-shell",
+      "label": "Desktop shell launch",
+      "remediation_lane": null,
+      "persistence_boundary": "not required",
+      "audit_boundary": "not required for shell startup; no packaged release claim"
+    },
+    {
+      "id": "LCX8-ACTION-0245",
+      "status": "GUARDED",
+      "surface": "desktop-shell",
+      "label": "Approved local dev renderer target",
+      "remediation_lane": null,
+      "persistence_boundary": "not required",
+      "audit_boundary": "not required for renderer target selection"
+    },
+    {
+      "id": "LCX8-ACTION-0246",
+      "status": "GUARDED",
+      "surface": "desktop-shell",
+      "label": "Unapproved renderer/navigation/window-open",
+      "remediation_lane": null,
+      "persistence_boundary": "no mutation or persistence",
+      "audit_boundary": "not required for navigation denial; source/test guard evidence only"
+    },
+    {
+      "id": "LCX8-ACTION-0247",
+      "status": "BLOCKED",
+      "surface": "desktop-runtime",
+      "label": "materRuntime.context",
+      "remediation_lane": "P6",
+      "persistence_boundary": "not required; active-shell wiring proof missing",
+      "audit_boundary": "not reached in active shell because runtime.js is not loaded by main.js"
+    },
+    {
+      "id": "LCX8-ACTION-0250",
+      "status": "BLOCKED",
+      "surface": "desktop-renderer",
+      "label": "Desktop login submit",
+      "remediation_lane": "P6/P4",
+      "persistence_boundary": "secure store/session cache proof remains P6/P4",
+      "audit_boundary": "external runtime/API audit proof remains P4/P6"
+    },
+    {
+      "id": "LCX8-ACTION-0251",
+      "status": "BLOCKED",
+      "surface": "desktop-renderer",
+      "label": "Desktop logout",
+      "remediation_lane": "P6",
+      "persistence_boundary": "secure store and registered cache stores cleared by wipeSessionCaches",
+      "audit_boundary": "session cleanup proof covered by contract tests; no real Electron click proof in P2-T07"
+    },
+    {
+      "id": "LCX8-ACTION-0252",
+      "status": "BLOCKED",
+      "surface": "desktop-renderer",
+      "label": "Dashboard feature check",
+      "remediation_lane": "P6/P4",
+      "persistence_boundary": "not required for smoke read; runtime proof pending",
+      "audit_boundary": "runtime smoke/audit receipt remains P4/P6"
+    },
+    {
+      "id": "LCX8-ACTION-0253",
+      "status": "BLOCKED",
+      "surface": "desktop-renderer",
+      "label": "Admin feature check",
+      "remediation_lane": "P6/P4",
+      "persistence_boundary": "not required for smoke read; runtime proof pending",
+      "audit_boundary": "runtime smoke/audit receipt remains P4/P6"
+    },
+    {
+      "id": "LCX8-ACTION-0254",
+      "status": "BLOCKED",
+      "surface": "desktop-session",
+      "label": "Password reset bridge methods",
+      "remediation_lane": "P6/P4/Lane A",
+      "persistence_boundary": "runtime reset token/email flow proof pending; no visible offline.html controls currently trigger it",
+      "audit_boundary": "runtime reset receipt proof pending"
+    },
+    {
+      "id": "LCX8-ACTION-0255",
+      "status": "BLOCKED",
+      "surface": "desktop-session",
+      "label": "Session status/runtime/accounts load",
+      "remediation_lane": "P6",
+      "persistence_boundary": "read-only status/accounts load",
+      "audit_boundary": "runtime/account read proof remains P4/P6"
+    },
+    {
+      "id": "LCX8-ACTION-0256",
+      "status": "BLOCKED",
+      "surface": "desktop-file-bridge",
+      "label": "Choose file for upload",
+      "remediation_lane": "P6/Lane B",
+      "persistence_boundary": "backend ingest proof pending; renderer never receives file bytes/path",
+      "audit_boundary": "file_bridge.upload permission/picker events exist in controller; active shell receipt missing"
+    },
+    {
+      "id": "LCX8-ACTION-0257",
+      "status": "BLOCKED",
+      "surface": "desktop-file-bridge",
+      "label": "Save document as",
+      "remediation_lane": "P6/Lane B",
+      "persistence_boundary": "user-selected file write proof pending; renderer never supplies document bytes",
+      "audit_boundary": "file_bridge.download precheck/save events exist in controller; active shell receipt missing"
+    },
+    {
+      "id": "LCX8-ACTION-0258",
+      "status": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "File picker without trusted gesture",
+      "remediation_lane": null,
+      "persistence_boundary": "no file action without gesture",
+      "audit_boundary": "guard proof is local unit/contract evidence"
+    },
+    {
+      "id": "LCX8-ACTION-0259",
+      "status": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "Renderer-supplied file/document bytes",
+      "remediation_lane": null,
+      "persistence_boundary": "no renderer-supplied file/document bytes accepted",
+      "audit_boundary": "guard proof is local unit/contract evidence"
+    },
+    {
+      "id": "LCX8-ACTION-0260",
+      "status": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "File bridge denied permission",
+      "remediation_lane": null,
+      "persistence_boundary": "no dialog/write when permission precheck denies",
+      "audit_boundary": "precheckDenied audit event recorded in controller"
+    },
+    {
+      "id": "LCX8-ACTION-0261",
+      "status": "BLOCKED",
+      "surface": "desktop-file-bridge",
+      "label": "Open temp preview",
+      "remediation_lane": "P6/Lane B",
+      "persistence_boundary": "scoped temp file with TTL; active shell open proof pending",
+      "audit_boundary": "file_bridge.preview.opened event exists in manager; active shell receipt missing"
+    },
+    {
+      "id": "LCX8-ACTION-0262",
+      "status": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "Temp preview cache cleanup",
+      "remediation_lane": null,
+      "persistence_boundary": "removes scoped temp files on TTL/logout/tenant switch/app quit hooks when manager is wired",
+      "audit_boundary": "cache_wipe audit event recorded by temp preview manager"
+    },
+    {
+      "id": "LCX8-ACTION-0263",
+      "status": "BLOCKED",
+      "surface": "desktop-deep-links",
+      "label": "Route-only matter/document/task deep links",
+      "remediation_lane": "P6/P4",
+      "persistence_boundary": "route intent only; no mutation persistence",
+      "audit_boundary": "deep_link.*.opened or deep_link.*.denied audit event per route type"
+    },
+    {
+      "id": "LCX8-ACTION-0264",
+      "status": "BLOCKED",
+      "surface": "desktop-deep-links",
+      "label": "Auth callback deep link",
+      "remediation_lane": "P6/P4",
+      "persistence_boundary": "token_set secure-store persistence only after callback state/code validation; external auth receipt proof pending",
+      "audit_boundary": "deep_link.auth_callback.opened/denied event path exists"
+    },
+    {
+      "id": "LCX8-ACTION-0265",
+      "status": "GUARDED",
+      "surface": "desktop-deep-links",
+      "label": "Forbidden action deep links",
+      "remediation_lane": null,
+      "persistence_boundary": "no mutation from deep link",
+      "audit_boundary": "parser rejects before mutation; no write audit expected"
+    },
+    {
+      "id": "LCX8-ACTION-0266",
+      "status": "GUARDED",
+      "surface": "desktop-deep-links",
+      "label": "Invalid deep link route/query/id",
+      "remediation_lane": null,
+      "persistence_boundary": "no mutation or route open for invalid deep link",
+      "audit_boundary": "invalid route guard is parser-level evidence"
+    },
+    {
+      "id": "LCX8-ACTION-0267",
+      "status": "BLOCKED",
+      "surface": "desktop-notifications",
+      "label": "Notification click route intent",
+      "remediation_lane": "P6/P4",
+      "persistence_boundary": "not required for route intent; no mutation",
+      "audit_boundary": "notification click shell routing/runtime receipt remains P6/P4"
+    },
+    {
+      "id": "LCX8-ACTION-0268",
+      "status": "GUARDED",
+      "surface": "desktop-notifications",
+      "label": "Notification action/sensitive payload guard",
+      "remediation_lane": null,
+      "persistence_boundary": "no mutation from notification click",
+      "audit_boundary": "guard proof is parser/unit evidence"
+    },
+    {
+      "id": "LCX8-ACTION-0269",
+      "status": "BLOCKED",
+      "surface": "desktop-updates",
+      "label": "Signed internal update apply",
+      "remediation_lane": "P6/Lane D",
+      "persistence_boundary": "controller version state only in test double; packaged updater persistence proof missing",
+      "audit_boundary": "update receipt/owner approval/notarization absent"
+    },
+    {
+      "id": "LCX8-ACTION-0270",
+      "status": "BLOCKED",
+      "surface": "desktop-updates",
+      "label": "Signed internal rollback",
+      "remediation_lane": "P6/Lane D",
+      "persistence_boundary": "controller version state only in test double; packaged rollback proof missing",
+      "audit_boundary": "rollback receipt/owner approval absent"
+    },
+    {
+      "id": "LCX8-ACTION-0271",
+      "status": "GUARDED",
+      "surface": "desktop-updates",
+      "label": "Public update channel",
+      "remediation_lane": null,
+      "persistence_boundary": "no update state change on public channel denial",
+      "audit_boundary": "guard proof is controller/unit evidence; no public release claim"
+    }
+  ]
+}

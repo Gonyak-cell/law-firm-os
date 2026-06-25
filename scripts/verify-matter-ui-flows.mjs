@@ -10,17 +10,58 @@ const viewChecks = [
   {
     name: "desktop-home-command-center",
     url: "/?locale=en&view=home&desktop=1&data=live&ctx=allow",
-    expectText: "Client Matter People Vault",
-    selector: "[data-lcx-web-command-center='true']"
+    expectTexts: ["Client", "Matter", "구성원", "Vault"],
+    selector: "[data-lcx-web-command-center='true']",
+    minCapabilityCards: 4
   },
-  { name: "clients-live", url: "/?locale=en&view=clients&data=live&ctx=allow", expectText: "Clients" },
-  { name: "matters-live", url: "/?locale=en&view=matters&data=live&ctx=allow", expectText: "Matter Home" },
-  { name: "people-live", url: "/?locale=en&view=people&data=live&ctx=allow", expectText: "People Runtime" },
-  { name: "vault-live", url: "/?locale=en&view=vault&data=live&ctx=allow", expectText: "Matter Vault" },
-  { name: "clients-denied", url: "/?locale=en&view=clients&data=live&ctx=denied", expectText: "Access denied" },
-  { name: "clients-review", url: "/?locale=en&view=clients&data=live&ctx=review", expectText: "Review required" },
-  { name: "matters-denied", url: "/?locale=en&view=matters&data=live&ctx=denied", expectText: "Access denied" },
-  { name: "vault-denied", url: "/?locale=en&view=vault&data=live&ctx=denied", expectText: "Access denied" }
+  {
+    name: "clients-live",
+    url: "/?locale=en&view=clients&data=live&ctx=allow",
+    expectTexts: ["Client와 상담 접수"],
+    selector: "[data-cmp-g2-live-clients='true']"
+  },
+  {
+    name: "matters-live",
+    url: "/?locale=en&view=matters&data=live&ctx=allow",
+    expectTexts: ["Matter 상태, 구성원, 문서, 활동, 청구 흐름"],
+    selector: "[data-cmp-g4-live-matters='true']"
+  },
+  {
+    name: "people-live",
+    url: "/?locale=en&view=people&data=live&ctx=allow",
+    expectTexts: ["구성원 관리"],
+    selector: "[data-hrx-api-backed='true']"
+  },
+  {
+    name: "vault-live",
+    url: "/?locale=en&view=vault&data=live&ctx=allow",
+    expectTexts: ["Vault 문서와 권한 상태"],
+    selector: "[data-cmp-g5-vault-surface='true']"
+  },
+  {
+    name: "clients-denied",
+    url: "/?locale=en&view=clients&data=live&ctx=denied",
+    expectTexts: ["접근 권한이 없습니다", "권한이 있는 Client만 표시합니다"],
+    selector: "[data-cmp-g2-live-clients='true']"
+  },
+  {
+    name: "clients-review",
+    url: "/?locale=en&view=clients&data=live&ctx=review",
+    expectTexts: ["검토가 필요합니다", "검토가 끝나면 Client 정보를 확인할 수 있습니다"],
+    selector: "[data-cmp-g2-live-clients='true']"
+  },
+  {
+    name: "matters-denied",
+    url: "/?locale=en&view=matters&data=live&ctx=denied",
+    expectTexts: ["접근 권한이 없습니다", "권한이 있는 정보만 표시됩니다"],
+    selector: "[data-cmp-g4-live-matters='true']"
+  },
+  {
+    name: "vault-denied",
+    url: "/?locale=en&view=vault&data=live&ctx=denied",
+    expectTexts: ["접근 권한이 없습니다", "권한이 있는 정보만 표시됩니다"],
+    selector: "[data-cmp-g5-vault-surface='true']"
+  }
 ];
 
 fs.mkdirSync(outDir, { recursive: true });
@@ -36,6 +77,7 @@ const results = [];
 
 for (const check of viewChecks) {
   let textFound = 0;
+  let textMatches = [];
   let selectorFound = 0;
   let metrics = null;
   let error = null;
@@ -45,7 +87,14 @@ for (const check of viewChecks) {
     await page.evaluate(async () => {
       if (document.fonts?.ready) await document.fonts.ready;
     });
-    textFound = await page.getByText(check.expectText, { exact: false }).count();
+    const expectedTexts = check.expectTexts ?? [check.expectText];
+    textMatches = await Promise.all(
+      expectedTexts.map(async (expectedText) => ({
+        expectedText,
+        count: await page.getByText(expectedText, { exact: false }).count()
+      }))
+    );
+    textFound = textMatches.reduce((total, item) => total + item.count, 0);
     selectorFound = check.selector ? await page.locator(check.selector).count() : 1;
     metrics = await page.evaluate(() => ({
       title: document.title,
@@ -64,9 +113,17 @@ for (const check of viewChecks) {
   results.push({
     name: check.name,
     url: check.url,
-    expectText: check.expectText,
-    passed: !error && textFound > 0 && selectorFound > 0 && metrics && !metrics.horizontalOverflow,
+    expectText: (check.expectTexts ?? [check.expectText]).join(", "),
+    expectedTexts: check.expectTexts ?? [check.expectText],
+    passed:
+      !error &&
+      textMatches.every((item) => item.count > 0) &&
+      selectorFound > 0 &&
+      metrics &&
+      !metrics.horizontalOverflow &&
+      (!check.minCapabilityCards || metrics.visibleCapabilityCards >= check.minCapabilityCards),
     textFound,
+    textMatches,
     selectorFound,
     metrics,
     error

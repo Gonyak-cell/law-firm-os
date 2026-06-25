@@ -1,0 +1,2718 @@
+{
+  "artifact": "lcx8-dom-observation-p1-t08-people-hrx",
+  "created_at": "2026-06-25T09:09:05.587Z",
+  "scope": "LCX8 P1-T08-remainder People/HRX visible action inventory, DOM observation only, pre P3/P4 execution validation",
+  "base": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow",
+  "sections": [
+    "people-relationships",
+    "people-conflicts",
+    "people-members",
+    "people-org-chart",
+    "people-documents",
+    "people-leave",
+    "people-approvals",
+    "people-recruiting",
+    "people-lifecycle",
+    "people-policy",
+    "people-audit",
+    "people-analytics",
+    "people-ai",
+    "people-payroll",
+    "people-admin"
+  ],
+  "sidebarControls": [
+    {
+      "index": 0,
+      "tag": "button",
+      "selector": "button.sidebar-item.sidebar-group-toggle.active:nth-of-type(1)",
+      "text": "법률 People",
+      "ariaLabel": "",
+      "placeholder": "",
+      "type": "button",
+      "disabled": false,
+      "className": "sidebar-item sidebar-group-toggle active",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 1,
+      "tag": "button",
+      "selector": "button.sidebar-item.sidebar-child:nth-of-type(1)",
+      "text": "디렉터리",
+      "ariaLabel": "",
+      "placeholder": "",
+      "type": "button",
+      "disabled": false,
+      "className": "sidebar-item sidebar-child",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 2,
+      "tag": "button",
+      "selector": "button.sidebar-item.sidebar-child.active:nth-of-type(2)",
+      "text": "관계망",
+      "ariaLabel": "",
+      "placeholder": "",
+      "type": "button",
+      "disabled": false,
+      "className": "sidebar-item sidebar-child active",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 3,
+      "tag": "button",
+      "selector": "button.sidebar-item.sidebar-child:nth-of-type(3)",
+      "text": "충돌·윤리벽",
+      "ariaLabel": "",
+      "placeholder": "",
+      "type": "button",
+      "disabled": false,
+      "className": "sidebar-item sidebar-child",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 4,
+      "tag": "button",
+      "selector": "button.sidebar-item.sidebar-group-toggle:nth-of-type(1)",
+      "text": "구성원 운영",
+      "ariaLabel": "",
+      "placeholder": "",
+      "type": "button",
+      "disabled": false,
+      "className": "sidebar-item sidebar-group-toggle",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 5,
+      "tag": "button",
+      "selector": "button.sidebar-item.sidebar-group-toggle:nth-of-type(1)",
+      "text": "관리",
+      "ariaLabel": "",
+      "placeholder": "",
+      "type": "button",
+      "disabled": false,
+      "className": "sidebar-item sidebar-group-toggle",
+      "panelTitle": "",
+      "dataAttrs": {}
+    },
+    {
+      "index": 6,
+      "tag": "button",
+      "selector": "button.sidebar-utility:nth-of-type(1)",
+      "text": "People 설정",
+      "ariaLabel": "",
+      "placeholder": "",
+      "type": "button",
+      "disabled": false,
+      "className": "sidebar-utility",
+      "panelTitle": "People",
+      "dataAttrs": {}
+    },
+    {
+      "index": 7,
+      "tag": "button",
+      "selector": "button.sidebar-utility:nth-of-type(2)",
+      "text": "권한 정책",
+      "ariaLabel": "",
+      "placeholder": "",
+      "type": "button",
+      "disabled": false,
+      "className": "sidebar-utility",
+      "panelTitle": "People",
+      "dataAttrs": {}
+    }
+  ],
+  "observations": [
+    {
+      "section": "people-relationships",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-relationships",
+      "heading": "구성원 관리",
+      "activeSidebar": [
+        "법률 People",
+        "관계망"
+      ],
+      "contentControls": [
+        {
+          "index": 0,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "새로고침",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "구성원 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 1,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 2,
+          "tag": "input",
+          "selector": "input[placeholder=\"이름, 역할, 조직 검색\"]",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "이름, 역할, 조직 검색",
+          "type": "",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 3,
+          "tag": "button",
+          "selector": "button.active:nth-of-type(1)",
+          "text": "전체",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "active",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 4,
+          "tag": "button",
+          "selector": "button:nth-of-type(2)",
+          "text": "내부 변호사",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 5,
+          "tag": "button",
+          "selector": "button:nth-of-type(3)",
+          "text": "Client",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 6,
+          "tag": "button",
+          "selector": "button:nth-of-type(4)",
+          "text": "상대 대리인",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 7,
+          "tag": "button",
+          "selector": "button:nth-of-type(5)",
+          "text": "전문가",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 8,
+          "tag": "button",
+          "selector": "button:nth-of-type(6)",
+          "text": "규제기관",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 9,
+          "tag": "button",
+          "selector": "button.people-row.legal-people-row.active:nth-of-type(1)",
+          "text": "A Arbitrator Han 중재인 · Arbitration Institution 활성",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "people-row legal-people-row active",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 10,
+          "tag": "button",
+          "selector": "button.people-row.legal-people-row:nth-of-type(2)",
+          "text": "A Ari Kim 내부 변호사 · LCX Litigation Group 활성",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "people-row legal-people-row",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 11,
+          "tag": "button",
+          "selector": "button.people-row.legal-people-row:nth-of-type(3)",
+          "text": "C Counterparty A 상대방 · Counterparty Organization 활성",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "people-row legal-people-row",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 12,
+          "tag": "button",
+          "selector": "button.people-row.legal-people-row:nth-of-type(4)",
+          "text": "D Dr. Seo 전문가/증인 · Expert Witness Group 활성",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "people-row legal-people-row",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 13,
+          "tag": "button",
+          "selector": "button.people-row.legal-people-row:nth-of-type(5)",
+          "text": "F FSC Reviewer 규제기관 담당자 · Financial Services Commission 활성",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "people-row legal-people-row",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 14,
+          "tag": "button",
+          "selector": "button.people-row.legal-people-row:nth-of-type(6)",
+          "text": "J Jin Lee 고객 담당자 · LCX Client Organization 활성",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "people-row legal-people-row",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 15,
+          "tag": "button",
+          "selector": "button.people-row.legal-people-row:nth-of-type(7)",
+          "text": "M Mina Park 스태프/패러리걸 · LCX Litigation Group 활성",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "people-row legal-people-row",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 16,
+          "tag": "button",
+          "selector": "button.people-row.legal-people-row:nth-of-type(8)",
+          "text": "N Noah Choi 상대방 대리인 · Opposing Counsel Firm 활성",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "people-row legal-people-row",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 17,
+          "tag": "button",
+          "selector": "button.people-row.legal-people-row:nth-of-type(9)",
+          "text": "S Seoul Central Court Clerk 재판부/법원 관계자 · Seoul Central Court 활성",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "people-row legal-people-row",
+          "panelTitle": "인물 관계망",
+          "dataAttrs": {}
+        },
+        {
+          "index": 18,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "인물 상세",
+          "dataAttrs": {}
+        },
+        {
+          "index": 19,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "관계 패널",
+          "dataAttrs": {}
+        }
+      ],
+      "liveStates": [
+        "표시할 관계가 없습니다."
+      ]
+    },
+    {
+      "section": "people-conflicts",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-conflicts",
+      "heading": "구성원 관리",
+      "activeSidebar": [
+        "법률 People",
+        "충돌·윤리벽"
+      ],
+      "contentControls": [
+        {
+          "index": 0,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "새로고침",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "구성원 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 1,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "충돌/윤리벽",
+          "dataAttrs": {}
+        },
+        {
+          "index": 2,
+          "tag": "input",
+          "selector": "input[placeholder=\"이름, 역할, 조직 검색\"]",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "이름, 역할, 조직 검색",
+          "type": "",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "충돌/윤리벽",
+          "dataAttrs": {}
+        },
+        {
+          "index": 3,
+          "tag": "button",
+          "selector": "button.active:nth-of-type(1)",
+          "text": "전체",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "active",
+          "panelTitle": "충돌/윤리벽",
+          "dataAttrs": {}
+        },
+        {
+          "index": 4,
+          "tag": "button",
+          "selector": "button:nth-of-type(2)",
+          "text": "내부 변호사",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "충돌/윤리벽",
+          "dataAttrs": {}
+        },
+        {
+          "index": 5,
+          "tag": "button",
+          "selector": "button:nth-of-type(3)",
+          "text": "Client",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "충돌/윤리벽",
+          "dataAttrs": {}
+        },
+        {
+          "index": 6,
+          "tag": "button",
+          "selector": "button:nth-of-type(4)",
+          "text": "상대 대리인",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "충돌/윤리벽",
+          "dataAttrs": {}
+        },
+        {
+          "index": 7,
+          "tag": "button",
+          "selector": "button:nth-of-type(5)",
+          "text": "전문가",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "충돌/윤리벽",
+          "dataAttrs": {}
+        },
+        {
+          "index": 8,
+          "tag": "button",
+          "selector": "button:nth-of-type(6)",
+          "text": "규제기관",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "충돌/윤리벽",
+          "dataAttrs": {}
+        },
+        {
+          "index": 9,
+          "tag": "button",
+          "selector": "button.people-row.legal-people-row.active:nth-of-type(1)",
+          "text": "A Ari Kim 내부 변호사 · LCX Litigation Group 활성",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "people-row legal-people-row active",
+          "panelTitle": "충돌/윤리벽",
+          "dataAttrs": {}
+        },
+        {
+          "index": 10,
+          "tag": "button",
+          "selector": "button.people-row.legal-people-row:nth-of-type(2)",
+          "text": "C Counterparty A 상대방 · Counterparty Organization 활성",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "people-row legal-people-row",
+          "panelTitle": "충돌/윤리벽",
+          "dataAttrs": {}
+        },
+        {
+          "index": 11,
+          "tag": "button",
+          "selector": "button.people-row.legal-people-row:nth-of-type(3)",
+          "text": "N Noah Choi 상대방 대리인 · Opposing Counsel Firm 활성",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "people-row legal-people-row",
+          "panelTitle": "충돌/윤리벽",
+          "dataAttrs": {}
+        },
+        {
+          "index": 12,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "인물 상세",
+          "dataAttrs": {}
+        },
+        {
+          "index": 13,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "관계 패널",
+          "dataAttrs": {}
+        },
+        {
+          "index": 14,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "충돌 검토 큐",
+          "dataAttrs": {}
+        },
+        {
+          "index": 15,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "윤리벽",
+          "dataAttrs": {}
+        },
+        {
+          "index": 16,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "Reviewer Receipts",
+          "dataAttrs": {}
+        }
+      ],
+      "liveStates": []
+    },
+    {
+      "section": "people-members",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-members",
+      "heading": "구성원 관리",
+      "activeSidebar": [
+        "구성원 운영",
+        "구성원9"
+      ],
+      "contentControls": [
+        {
+          "index": 0,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "새로고침",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "구성원 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 1,
+          "tag": "button",
+          "selector": "button.text-button:nth-of-type(1)",
+          "text": "더보기",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "text-button",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 2,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(2)",
+          "text": "조직도",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 3,
+          "tag": "button",
+          "selector": "button.primary-button:nth-of-type(3)",
+          "text": "구성원 추가",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "primary-button",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 4,
+          "tag": "button",
+          "selector": "button[aria-label=\"추가 메뉴\"]",
+          "text": "",
+          "ariaLabel": "추가 메뉴",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "primary-button icon-only",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 5,
+          "tag": "button",
+          "selector": "button.active:nth-of-type(1)",
+          "text": "재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "active",
+          "panelTitle": "",
+          "dataAttrs": {}
+        },
+        {
+          "index": 6,
+          "tag": "button",
+          "selector": "button:nth-of-type(2)",
+          "text": "입사 예정",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "",
+          "dataAttrs": {}
+        },
+        {
+          "index": 7,
+          "tag": "button",
+          "selector": "button:nth-of-type(3)",
+          "text": "퇴사 예정",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "",
+          "dataAttrs": {}
+        },
+        {
+          "index": 8,
+          "tag": "button",
+          "selector": "button:nth-of-type(4)",
+          "text": "종료",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "",
+          "dataAttrs": {}
+        },
+        {
+          "index": 9,
+          "tag": "button",
+          "selector": "button:nth-of-type(5)",
+          "text": "외부 협업",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "",
+          "dataAttrs": {}
+        },
+        {
+          "index": 10,
+          "tag": "button",
+          "selector": "button[aria-label=\"표 보기 옵션\"]",
+          "text": "",
+          "ariaLabel": "표 보기 옵션",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 11,
+          "tag": "input",
+          "selector": "input[aria-label=\"구성원 검색\"]",
+          "text": "",
+          "ariaLabel": "구성원 검색",
+          "placeholder": "검색",
+          "type": "",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 12,
+          "tag": "button",
+          "selector": "button[aria-label=\"속성 조정\"]",
+          "text": "",
+          "ariaLabel": "속성 조정",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 13,
+          "tag": "button",
+          "selector": "button.hr-roster-person:nth-of-type(1)",
+          "text": "박병준 미등록",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "hr-roster-person",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 14,
+          "tag": "button",
+          "selector": "button.hr-roster-person:nth-of-type(1)",
+          "text": "서지원 미등록",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "hr-roster-person",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 15,
+          "tag": "button",
+          "selector": "button.hr-roster-person:nth-of-type(1)",
+          "text": "조성민 미등록",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "hr-roster-person",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 16,
+          "tag": "button",
+          "selector": "button.hr-roster-person:nth-of-type(1)",
+          "text": "박서영 미등록",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "hr-roster-person",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 17,
+          "tag": "button",
+          "selector": "button.hr-roster-person:nth-of-type(1)",
+          "text": "윤태리 미등록",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "hr-roster-person",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 18,
+          "tag": "button",
+          "selector": "button.hr-roster-person:nth-of-type(1)",
+          "text": "조우상 미등록",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "hr-roster-person",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 19,
+          "tag": "button",
+          "selector": "button.hr-roster-person:nth-of-type(1)",
+          "text": "임영훈 미등록",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "hr-roster-person",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 20,
+          "tag": "button",
+          "selector": "button.hr-roster-person:nth-of-type(1)",
+          "text": "이예진 미등록",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "hr-roster-person",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 21,
+          "tag": "button",
+          "selector": "button.hr-roster-person:nth-of-type(1)",
+          "text": "김양태 미등록",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "hr-roster-person",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        }
+      ],
+      "liveStates": []
+    },
+    {
+      "section": "people-org-chart",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-org-chart",
+      "heading": "구성원 관리",
+      "activeSidebar": [
+        "구성원 운영",
+        "조직도"
+      ],
+      "contentControls": [
+        {
+          "index": 0,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "새로고침",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "구성원 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 1,
+          "tag": "button",
+          "selector": "button.text-button:nth-of-type(1)",
+          "text": "더보기",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "text-button",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 2,
+          "tag": "button",
+          "selector": "button.secondary-button.active:nth-of-type(2)",
+          "text": "조직도",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "secondary-button active",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 3,
+          "tag": "button",
+          "selector": "button.primary-button:nth-of-type(3)",
+          "text": "구성원 추가",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "primary-button",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 4,
+          "tag": "button",
+          "selector": "button[aria-label=\"추가 메뉴\"]",
+          "text": "",
+          "ariaLabel": "추가 메뉴",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "primary-button icon-only",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 5,
+          "tag": "button",
+          "selector": "button.active:nth-of-type(1)",
+          "text": "재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "active",
+          "panelTitle": "",
+          "dataAttrs": {}
+        },
+        {
+          "index": 6,
+          "tag": "button",
+          "selector": "button:nth-of-type(2)",
+          "text": "입사 예정",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "",
+          "dataAttrs": {}
+        },
+        {
+          "index": 7,
+          "tag": "button",
+          "selector": "button:nth-of-type(3)",
+          "text": "퇴사 예정",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "",
+          "dataAttrs": {}
+        },
+        {
+          "index": 8,
+          "tag": "button",
+          "selector": "button:nth-of-type(4)",
+          "text": "종료",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "",
+          "dataAttrs": {}
+        },
+        {
+          "index": 9,
+          "tag": "button",
+          "selector": "button:nth-of-type(5)",
+          "text": "외부 협업",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "",
+          "dataAttrs": {}
+        },
+        {
+          "index": 10,
+          "tag": "button",
+          "selector": "button[aria-label=\"표 보기 옵션\"]",
+          "text": "",
+          "ariaLabel": "표 보기 옵션",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 11,
+          "tag": "input",
+          "selector": "input[aria-label=\"구성원 검색\"]",
+          "text": "",
+          "ariaLabel": "구성원 검색",
+          "placeholder": "검색",
+          "type": "",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 12,
+          "tag": "button",
+          "selector": "button[aria-label=\"속성 조정\"]",
+          "text": "",
+          "ariaLabel": "속성 조정",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        }
+      ],
+      "liveStates": []
+    },
+    {
+      "section": "people-documents",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-documents",
+      "heading": "구성원 관리",
+      "activeSidebar": [
+        "관리",
+        "인사 문서"
+      ],
+      "contentControls": [
+        {
+          "index": 0,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "새로고침",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "구성원 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 1,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 2,
+          "tag": "button",
+          "selector": "button.people-row.active:nth-of-type(1)",
+          "text": "박 박병준 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row active",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 3,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(2)",
+          "text": "서 서지원 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 4,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(3)",
+          "text": "조 조성민 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 5,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(4)",
+          "text": "박 박서영 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 6,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(5)",
+          "text": "윤 윤태리 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 7,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(6)",
+          "text": "조 조우상 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 8,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(7)",
+          "text": "임 임영훈 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 9,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(8)",
+          "text": "이 이예진 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 10,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(9)",
+          "text": "김 김양태 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 11,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "인사 문서",
+          "dataAttrs": {}
+        }
+      ],
+      "liveStates": [
+        "표시할 문서가 없습니다."
+      ]
+    },
+    {
+      "section": "people-leave",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-leave",
+      "heading": "구성원 관리",
+      "activeSidebar": [
+        "구성원 운영",
+        "휴가"
+      ],
+      "contentControls": [
+        {
+          "index": 0,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "새로고침",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "구성원 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 1,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 2,
+          "tag": "button",
+          "selector": "button.people-row.active:nth-of-type(1)",
+          "text": "박 박병준 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row active",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 3,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(2)",
+          "text": "서 서지원 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 4,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(3)",
+          "text": "조 조성민 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 5,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(4)",
+          "text": "박 박서영 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 6,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(5)",
+          "text": "윤 윤태리 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 7,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(6)",
+          "text": "조 조우상 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 8,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(7)",
+          "text": "임 임영훈 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 9,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(8)",
+          "text": "이 이예진 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 10,
+          "tag": "button",
+          "selector": "button.people-row:nth-of-type(9)",
+          "text": "김 김양태 등록 계정 재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "people-row",
+          "panelTitle": "구성원 목록",
+          "dataAttrs": {}
+        },
+        {
+          "index": 11,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "휴가 신청",
+          "dataAttrs": {}
+        },
+        {
+          "index": 12,
+          "tag": "input",
+          "selector": "input:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "휴가 신청",
+          "dataAttrs": {}
+        },
+        {
+          "index": 13,
+          "tag": "input",
+          "selector": "input:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "휴가 신청",
+          "dataAttrs": {}
+        },
+        {
+          "index": 14,
+          "tag": "input",
+          "selector": "input:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "휴가 신청",
+          "dataAttrs": {}
+        },
+        {
+          "index": 15,
+          "tag": "button",
+          "selector": "button.primary-button:nth-of-type(1)",
+          "text": "신청",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": true,
+          "className": "primary-button",
+          "panelTitle": "휴가 신청",
+          "dataAttrs": {}
+        }
+      ],
+      "liveStates": []
+    },
+    {
+      "section": "people-approvals",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-approvals",
+      "heading": "구성원 관리",
+      "activeSidebar": [
+        "구성원 운영",
+        "승인5"
+      ],
+      "contentControls": [
+        {
+          "index": 0,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "새로고침",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "구성원 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 1,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "승인 요청",
+          "dataAttrs": {}
+        },
+        {
+          "index": 2,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "반려",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "승인 요청",
+          "dataAttrs": {}
+        },
+        {
+          "index": 3,
+          "tag": "button",
+          "selector": "button.primary-button:nth-of-type(2)",
+          "text": "승인",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "primary-button",
+          "panelTitle": "승인 요청",
+          "dataAttrs": {}
+        },
+        {
+          "index": 4,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "반려",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "승인 요청",
+          "dataAttrs": {}
+        },
+        {
+          "index": 5,
+          "tag": "button",
+          "selector": "button.primary-button:nth-of-type(2)",
+          "text": "승인",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "primary-button",
+          "panelTitle": "승인 요청",
+          "dataAttrs": {}
+        }
+      ],
+      "liveStates": []
+    },
+    {
+      "section": "people-recruiting",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-recruiting",
+      "heading": "구성원 관리",
+      "activeSidebar": [
+        "구성원 운영",
+        "채용"
+      ],
+      "contentControls": [
+        {
+          "index": 0,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "새로고침",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "구성원 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 1,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "채용 진행",
+          "dataAttrs": {}
+        },
+        {
+          "index": 2,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "다음 단계",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "채용 진행",
+          "dataAttrs": {}
+        },
+        {
+          "index": 3,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "지원자 정보",
+          "dataAttrs": {}
+        }
+      ],
+      "liveStates": [
+        "지원자를 선택하세요."
+      ]
+    },
+    {
+      "section": "people-lifecycle",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-lifecycle",
+      "heading": "구성원 관리",
+      "activeSidebar": [
+        "구성원 운영",
+        "입사·퇴사"
+      ],
+      "contentControls": [
+        {
+          "index": 0,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "새로고침",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "구성원 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 1,
+          "tag": "button",
+          "selector": "button.text-button:nth-of-type(1)",
+          "text": "더보기",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "text-button",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 2,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(2)",
+          "text": "조직도",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 3,
+          "tag": "button",
+          "selector": "button.primary-button:nth-of-type(3)",
+          "text": "구성원 추가",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "primary-button",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 4,
+          "tag": "button",
+          "selector": "button[aria-label=\"추가 메뉴\"]",
+          "text": "",
+          "ariaLabel": "추가 메뉴",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "primary-button icon-only",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 5,
+          "tag": "button",
+          "selector": "button:nth-of-type(1)",
+          "text": "재직",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "",
+          "dataAttrs": {}
+        },
+        {
+          "index": 6,
+          "tag": "button",
+          "selector": "button.active:nth-of-type(2)",
+          "text": "입사 예정",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "active",
+          "panelTitle": "",
+          "dataAttrs": {}
+        },
+        {
+          "index": 7,
+          "tag": "button",
+          "selector": "button:nth-of-type(3)",
+          "text": "퇴사 예정",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "",
+          "dataAttrs": {}
+        },
+        {
+          "index": 8,
+          "tag": "button",
+          "selector": "button:nth-of-type(4)",
+          "text": "종료",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "",
+          "dataAttrs": {}
+        },
+        {
+          "index": 9,
+          "tag": "button",
+          "selector": "button:nth-of-type(5)",
+          "text": "외부 협업",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "",
+          "dataAttrs": {}
+        },
+        {
+          "index": 10,
+          "tag": "button",
+          "selector": "button[aria-label=\"표 보기 옵션\"]",
+          "text": "",
+          "ariaLabel": "표 보기 옵션",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 11,
+          "tag": "input",
+          "selector": "input[aria-label=\"구성원 검색\"]",
+          "text": "",
+          "ariaLabel": "구성원 검색",
+          "placeholder": "검색",
+          "type": "",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 12,
+          "tag": "button",
+          "selector": "button[aria-label=\"속성 조정\"]",
+          "text": "",
+          "ariaLabel": "속성 조정",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        },
+        {
+          "index": 13,
+          "tag": "button",
+          "selector": "button.hr-roster-person:nth-of-type(1)",
+          "text": "입사 준비 입사 준비",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "hr-roster-person",
+          "panelTitle": "People",
+          "dataAttrs": {}
+        }
+      ],
+      "liveStates": []
+    },
+    {
+      "section": "people-policy",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-policy",
+      "heading": "구성원 관리",
+      "activeSidebar": [
+        "관리",
+        "인사 정책"
+      ],
+      "contentControls": [
+        {
+          "index": 0,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "새로고침",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "구성원 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 1,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "인사 정책",
+          "dataAttrs": {}
+        },
+        {
+          "index": 2,
+          "tag": "input",
+          "selector": "input:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "인사 정책",
+          "dataAttrs": {}
+        },
+        {
+          "index": 3,
+          "tag": "input",
+          "selector": "input:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "인사 정책",
+          "dataAttrs": {}
+        },
+        {
+          "index": 4,
+          "tag": "input",
+          "selector": "input:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "인사 정책",
+          "dataAttrs": {}
+        },
+        {
+          "index": 5,
+          "tag": "button",
+          "selector": "button.primary-button:nth-of-type(1)",
+          "text": "정책 버전 생성",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "primary-button",
+          "panelTitle": "인사 정책",
+          "dataAttrs": {}
+        }
+      ],
+      "liveStates": []
+    },
+    {
+      "section": "people-audit",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-audit",
+      "heading": "구성원 관리",
+      "activeSidebar": [
+        "관리",
+        "활동 기록"
+      ],
+      "contentControls": [
+        {
+          "index": 0,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "새로고침",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "구성원 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 1,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "활동 기록",
+          "dataAttrs": {}
+        }
+      ],
+      "liveStates": []
+    },
+    {
+      "section": "people-analytics",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-analytics",
+      "heading": "구성원 관리",
+      "activeSidebar": [
+        "관리",
+        "인사 현황"
+      ],
+      "contentControls": [
+        {
+          "index": 0,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "새로고침",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "구성원 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 1,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "구성원 현황",
+          "dataAttrs": {}
+        }
+      ],
+      "liveStates": []
+    },
+    {
+      "section": "people-ai",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-ai",
+      "heading": "구성원 관리",
+      "activeSidebar": [],
+      "contentControls": [
+        {
+          "index": 0,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "새로고침",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "구성원 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 1,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "인사 문의",
+          "dataAttrs": {}
+        },
+        {
+          "index": 2,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "문의",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "인사 문의",
+          "dataAttrs": {}
+        },
+        {
+          "index": 3,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(2)",
+          "text": "검토",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "인사 문의",
+          "dataAttrs": {}
+        }
+      ],
+      "liveStates": [
+        "검토된 답변을 준비할 수 있습니다."
+      ]
+    },
+    {
+      "section": "people-payroll",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-payroll",
+      "heading": "구성원 관리",
+      "activeSidebar": [
+        "관리",
+        "급여 정산"
+      ],
+      "contentControls": [
+        {
+          "index": 0,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "새로고침",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "구성원 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 1,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "급여 정산",
+          "dataAttrs": {}
+        },
+        {
+          "index": 2,
+          "tag": "input",
+          "selector": "input:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "급여 정산",
+          "dataAttrs": {}
+        },
+        {
+          "index": 3,
+          "tag": "input",
+          "selector": "input:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "급여 정산",
+          "dataAttrs": {}
+        },
+        {
+          "index": 4,
+          "tag": "input",
+          "selector": "input:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "급여 정산",
+          "dataAttrs": {}
+        },
+        {
+          "index": 5,
+          "tag": "input",
+          "selector": "input:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "",
+          "panelTitle": "급여 정산",
+          "dataAttrs": {}
+        },
+        {
+          "index": 6,
+          "tag": "button",
+          "selector": "button.primary-button:nth-of-type(1)",
+          "text": "미리보기 생성",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "primary-button",
+          "panelTitle": "급여 정산",
+          "dataAttrs": {}
+        },
+        {
+          "index": 7,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "검토 승인 기록",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": true,
+          "className": "secondary-button",
+          "panelTitle": "급여 정산",
+          "dataAttrs": {}
+        },
+        {
+          "index": 8,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(2)",
+          "text": "내보내기 파일 생성",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": true,
+          "className": "secondary-button",
+          "panelTitle": "급여 정산",
+          "dataAttrs": {}
+        }
+      ],
+      "liveStates": [
+        "급여 정산 미리보기를 준비할 수 있습니다."
+      ]
+    },
+    {
+      "section": "people-admin",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-admin",
+      "heading": "구성원 관리",
+      "activeSidebar": [
+        "관리",
+        "권한 관리"
+      ],
+      "contentControls": [
+        {
+          "index": 0,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "새로고침",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "구성원 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 1,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "권한 세트",
+          "dataAttrs": {}
+        },
+        {
+          "index": 2,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "세트 요청",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "권한 세트",
+          "dataAttrs": {
+            "data-sf-b-w06-permission-set-create-action": "true"
+          }
+        },
+        {
+          "index": 3,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(2)",
+          "text": "변경 요청",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "권한 세트",
+          "dataAttrs": {
+            "data-sf-b-w06-permission-set-patch-action": "true"
+          }
+        },
+        {
+          "index": 4,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "권한 배정",
+          "dataAttrs": {}
+        },
+        {
+          "index": 5,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "배정 요청",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "권한 배정",
+          "dataAttrs": {
+            "data-sf-b-w06-assignment-owner-blocked-action": "true"
+          }
+        },
+        {
+          "index": 6,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(2)",
+          "text": "회수 요청",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "권한 배정",
+          "dataAttrs": {
+            "data-sf-b-w06-revoke-owner-blocked-action": "true"
+          }
+        },
+        {
+          "index": 7,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "People 민감도 연결",
+          "dataAttrs": {}
+        },
+        {
+          "index": 8,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "객체 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 9,
+          "tag": "button",
+          "selector": "button.sidebar-item.active:nth-of-type(1)",
+          "text": "Client",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "sidebar-item active",
+          "panelTitle": "객체 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 10,
+          "tag": "button",
+          "selector": "button.sidebar-item:nth-of-type(2)",
+          "text": "Matter",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "sidebar-item",
+          "panelTitle": "객체 관리",
+          "dataAttrs": {}
+        },
+        {
+          "index": 11,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "정책 변경",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "객체 관리",
+          "dataAttrs": {
+            "data-sf-b-w06-field-policy-owner-blocked-action": "true"
+          }
+        },
+        {
+          "index": 12,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "연결 앱",
+          "dataAttrs": {}
+        },
+        {
+          "index": 13,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(1)",
+          "text": "연결 요청",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "연결 앱",
+          "dataAttrs": {
+            "data-sf-b-w06-connected-app-provider-blocked-action": "true"
+          }
+        },
+        {
+          "index": 14,
+          "tag": "button",
+          "selector": "button.secondary-button:nth-of-type(2)",
+          "text": "중지 요청",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "button",
+          "disabled": false,
+          "className": "secondary-button",
+          "panelTitle": "연결 앱",
+          "dataAttrs": {}
+        },
+        {
+          "index": 15,
+          "tag": "button",
+          "selector": "button.icon-button:nth-of-type(1)",
+          "text": "",
+          "ariaLabel": "",
+          "placeholder": "",
+          "type": "",
+          "disabled": false,
+          "className": "icon-button",
+          "panelTitle": "감사 기록",
+          "dataAttrs": {}
+        }
+      ],
+      "liveStates": [
+        "세트 요청아직 실행 전",
+        "변경 요청아직 실행 전",
+        "배정 요청아직 실행 전",
+        "회수 요청아직 실행 전",
+        "Reviewer receipt3건 연결됨",
+        "필드 정책아직 실행 전",
+        "연결 상태아직 실행 전",
+        "감사 경계직접 식별자, 토큰, 원문 정책은 숨깁니다."
+      ]
+    }
+  ],
+  "summary": {
+    "people-relationships": {
+      "contentControlCount": 20,
+      "activeSidebar": [
+        "법률 People",
+        "관계망"
+      ],
+      "controlLabels": [
+        "새로고침",
+        "이름, 역할, 조직 검색",
+        "전체",
+        "내부 변호사",
+        "Client",
+        "상대 대리인",
+        "전문가",
+        "규제기관",
+        "A Arbitrator Han 중재인 · Arbitration Institution 활성",
+        "A Ari Kim 내부 변호사 · LCX Litigation Group 활성",
+        "C Counterparty A 상대방 · Counterparty Organization 활성",
+        "D Dr. Seo 전문가/증인 · Expert Witness Group 활성",
+        "F FSC Reviewer 규제기관 담당자 · Financial Services Commission 활성",
+        "J Jin Lee 고객 담당자 · LCX Client Organization 활성",
+        "M Mina Park 스태프/패러리걸 · LCX Litigation Group 활성",
+        "N Noah Choi 상대방 대리인 · Opposing Counsel Firm 활성",
+        "S Seoul Central Court Clerk 재판부/법원 관계자 · Seoul Central Court 활성"
+      ]
+    },
+    "people-conflicts": {
+      "contentControlCount": 17,
+      "activeSidebar": [
+        "법률 People",
+        "충돌·윤리벽"
+      ],
+      "controlLabels": [
+        "새로고침",
+        "이름, 역할, 조직 검색",
+        "전체",
+        "내부 변호사",
+        "Client",
+        "상대 대리인",
+        "전문가",
+        "규제기관",
+        "A Ari Kim 내부 변호사 · LCX Litigation Group 활성",
+        "C Counterparty A 상대방 · Counterparty Organization 활성",
+        "N Noah Choi 상대방 대리인 · Opposing Counsel Firm 활성"
+      ]
+    },
+    "people-members": {
+      "contentControlCount": 22,
+      "activeSidebar": [
+        "구성원 운영",
+        "구성원9"
+      ],
+      "controlLabels": [
+        "새로고침",
+        "더보기",
+        "조직도",
+        "구성원 추가",
+        "추가 메뉴",
+        "재직",
+        "입사 예정",
+        "퇴사 예정",
+        "종료",
+        "외부 협업",
+        "표 보기 옵션",
+        "구성원 검색",
+        "속성 조정",
+        "박병준 미등록",
+        "서지원 미등록",
+        "조성민 미등록",
+        "박서영 미등록",
+        "윤태리 미등록",
+        "조우상 미등록",
+        "임영훈 미등록",
+        "이예진 미등록",
+        "김양태 미등록"
+      ]
+    },
+    "people-org-chart": {
+      "contentControlCount": 13,
+      "activeSidebar": [
+        "구성원 운영",
+        "조직도"
+      ],
+      "controlLabels": [
+        "새로고침",
+        "더보기",
+        "조직도",
+        "구성원 추가",
+        "추가 메뉴",
+        "재직",
+        "입사 예정",
+        "퇴사 예정",
+        "종료",
+        "외부 협업",
+        "표 보기 옵션",
+        "구성원 검색",
+        "속성 조정"
+      ]
+    },
+    "people-documents": {
+      "contentControlCount": 12,
+      "activeSidebar": [
+        "관리",
+        "인사 문서"
+      ],
+      "controlLabels": [
+        "새로고침",
+        "박 박병준 등록 계정 재직",
+        "서 서지원 등록 계정 재직",
+        "조 조성민 등록 계정 재직",
+        "박 박서영 등록 계정 재직",
+        "윤 윤태리 등록 계정 재직",
+        "조 조우상 등록 계정 재직",
+        "임 임영훈 등록 계정 재직",
+        "이 이예진 등록 계정 재직",
+        "김 김양태 등록 계정 재직"
+      ]
+    },
+    "people-leave": {
+      "contentControlCount": 16,
+      "activeSidebar": [
+        "구성원 운영",
+        "휴가"
+      ],
+      "controlLabels": [
+        "새로고침",
+        "박 박병준 등록 계정 재직",
+        "서 서지원 등록 계정 재직",
+        "조 조성민 등록 계정 재직",
+        "박 박서영 등록 계정 재직",
+        "윤 윤태리 등록 계정 재직",
+        "조 조우상 등록 계정 재직",
+        "임 임영훈 등록 계정 재직",
+        "이 이예진 등록 계정 재직",
+        "김 김양태 등록 계정 재직",
+        "신청"
+      ]
+    },
+    "people-approvals": {
+      "contentControlCount": 6,
+      "activeSidebar": [
+        "구성원 운영",
+        "승인5"
+      ],
+      "controlLabels": [
+        "새로고침",
+        "반려",
+        "승인",
+        "반려",
+        "승인"
+      ]
+    },
+    "people-recruiting": {
+      "contentControlCount": 4,
+      "activeSidebar": [
+        "구성원 운영",
+        "채용"
+      ],
+      "controlLabels": [
+        "새로고침",
+        "다음 단계"
+      ]
+    },
+    "people-lifecycle": {
+      "contentControlCount": 14,
+      "activeSidebar": [
+        "구성원 운영",
+        "입사·퇴사"
+      ],
+      "controlLabels": [
+        "새로고침",
+        "더보기",
+        "조직도",
+        "구성원 추가",
+        "추가 메뉴",
+        "재직",
+        "입사 예정",
+        "퇴사 예정",
+        "종료",
+        "외부 협업",
+        "표 보기 옵션",
+        "구성원 검색",
+        "속성 조정",
+        "입사 준비 입사 준비"
+      ]
+    },
+    "people-policy": {
+      "contentControlCount": 6,
+      "activeSidebar": [
+        "관리",
+        "인사 정책"
+      ],
+      "controlLabels": [
+        "새로고침",
+        "정책 버전 생성"
+      ]
+    },
+    "people-audit": {
+      "contentControlCount": 2,
+      "activeSidebar": [
+        "관리",
+        "활동 기록"
+      ],
+      "controlLabels": [
+        "새로고침"
+      ]
+    },
+    "people-analytics": {
+      "contentControlCount": 2,
+      "activeSidebar": [
+        "관리",
+        "인사 현황"
+      ],
+      "controlLabels": [
+        "새로고침"
+      ]
+    },
+    "people-ai": {
+      "contentControlCount": 4,
+      "activeSidebar": [],
+      "controlLabels": [
+        "새로고침",
+        "문의",
+        "검토"
+      ]
+    },
+    "people-payroll": {
+      "contentControlCount": 9,
+      "activeSidebar": [
+        "관리",
+        "급여 정산"
+      ],
+      "controlLabels": [
+        "새로고침",
+        "미리보기 생성",
+        "검토 승인 기록",
+        "내보내기 파일 생성"
+      ]
+    },
+    "people-admin": {
+      "contentControlCount": 16,
+      "activeSidebar": [
+        "관리",
+        "권한 관리"
+      ],
+      "controlLabels": [
+        "새로고침",
+        "세트 요청",
+        "변경 요청",
+        "배정 요청",
+        "회수 요청",
+        "Client",
+        "Matter",
+        "정책 변경",
+        "연결 요청",
+        "중지 요청"
+      ]
+    }
+  }
+}

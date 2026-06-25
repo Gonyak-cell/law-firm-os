@@ -1,0 +1,292 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-25T10:45:00.000Z",
+  "tuw": "P2-T01",
+  "status": "pass_with_api_console_noise",
+  "base_url": "http://127.0.0.1:5174",
+  "browser": "chromium-headless",
+  "observations": [
+    {
+      "family": "topbar-search",
+      "result": "PASS",
+      "detail": "Search input opened GlobalSearch with 5 navItems results."
+    },
+    {
+      "family": "global-search-close",
+      "result": "PASS",
+      "detail": "Search close button cleared query and hid popover."
+    },
+    {
+      "family": "global-search-route",
+      "result": "PASS",
+      "detail": "GlobalSearch result routed to view=vault and cleared query."
+    },
+    {
+      "family": "notification-open",
+      "result": "PASS",
+      "detail": "Notification trigger opened drawer."
+    },
+    {
+      "family": "notification-escape-close",
+      "result": "PASS",
+      "detail": "Escape closed notification drawer."
+    },
+    {
+      "family": "notification-footer-missing-handlers",
+      "result": "PASS",
+      "detail": "Read-all and settings footer buttons were clickable but produced no route/state effect beyond existing drawer."
+    },
+    {
+      "family": "topbar-help-missing-handler",
+      "result": "PASS",
+      "detail": "Help button click caused no URL change, matching missing handler trace."
+    },
+    {
+      "family": "topbar-local-state",
+      "result": "PASS",
+      "detail": "Theme and locale controls toggled document-level state."
+    },
+    {
+      "family": "matter-sidebar-groups",
+      "result": "PASS",
+      "detail": "Matter sidebar group toggles opened through aria-expanded state."
+    },
+    {
+      "family": "matter-sidebar-route",
+      "label": "Matter 목록",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matters-list"
+    },
+    {
+      "family": "matter-sidebar-route",
+      "label": "진행 현황",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-command"
+    },
+    {
+      "family": "matter-sidebar-route",
+      "label": "Matter 개시",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-opening"
+    },
+    {
+      "family": "matter-sidebar-route",
+      "label": "문서",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-vault"
+    },
+    {
+      "family": "matter-sidebar-route",
+      "label": "활동",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline"
+    },
+    {
+      "family": "matter-sidebar-route",
+      "label": "일정",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-calendar"
+    },
+    {
+      "family": "matter-sidebar-route",
+      "label": "대화",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-channel"
+    },
+    {
+      "family": "matter-sidebar-route",
+      "label": "구성원",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-team"
+    },
+    {
+      "family": "matter-sidebar-route",
+      "label": "청구",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-billing"
+    },
+    {
+      "family": "matter-sidebar-route",
+      "label": "분석",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-analytics"
+    },
+    {
+      "family": "matter-sidebar-route",
+      "label": "자료 가져오기",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matter-import"
+    },
+    {
+      "family": "matter-sidebar-utility-missing-handler",
+      "label": "Matter 설정",
+      "result": "PASS",
+      "detail": "Utility click caused no route change."
+    },
+    {
+      "family": "matter-sidebar-utility-missing-handler",
+      "label": "태그 관리",
+      "result": "PASS",
+      "detail": "Utility click caused no route change."
+    },
+    {
+      "family": "vault-sidebar-route",
+      "label": "문서함",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=vault&data=live&ctx=allow#vault-documents"
+    },
+    {
+      "family": "vault-sidebar-route",
+      "label": "문서 상세",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=vault&data=live&ctx=allow#vault-detail"
+    },
+    {
+      "family": "vault-sidebar-route",
+      "label": "메일 보관함",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=vault&data=live&ctx=allow#vault-email"
+    },
+    {
+      "family": "vault-sidebar-utility-missing-handler",
+      "label": "Vault 설정",
+      "result": "PASS",
+      "detail": "Utility click caused no route change."
+    },
+    {
+      "family": "vault-sidebar-utility-missing-handler",
+      "label": "문서 태그",
+      "result": "PASS",
+      "detail": "Utility click caused no route change."
+    }
+  ],
+  "observation_count": 27,
+  "console_event_count": 36,
+  "console_events": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    }
+  ],
+  "ledger_rows_updated_with_browser_evidence": [
+    "LCX8-ACTION-0012",
+    "LCX8-ACTION-0016",
+    "LCX8-ACTION-0017",
+    "LCX8-ACTION-0018",
+    "LCX8-ACTION-0019",
+    "LCX8-ACTION-0020",
+    "LCX8-ACTION-0021",
+    "LCX8-ACTION-0022",
+    "LCX8-ACTION-0023",
+    "LCX8-ACTION-0024",
+    "LCX8-ACTION-0025",
+    "LCX8-ACTION-0026",
+    "LCX8-ACTION-0027",
+    "LCX8-ACTION-0028",
+    "LCX8-ACTION-0035",
+    "LCX8-ACTION-0282",
+    "LCX8-ACTION-0283",
+    "LCX8-ACTION-0284",
+    "LCX8-ACTION-0285",
+    "LCX8-ACTION-0286",
+    "LCX8-ACTION-0287",
+    "LCX8-ACTION-0288",
+    "LCX8-ACTION-0289",
+    "LCX8-ACTION-0290",
+    "LCX8-ACTION-0291",
+    "LCX8-ACTION-0292",
+    "LCX8-ACTION-0293",
+    "LCX8-ACTION-0294",
+    "LCX8-ACTION-0295",
+    "LCX8-ACTION-0296",
+    "LCX8-ACTION-0297",
+    "LCX8-ACTION-0298",
+    "LCX8-ACTION-0299",
+    "LCX8-ACTION-0300",
+    "LCX8-ACTION-0301",
+    "LCX8-ACTION-0302"
+  ],
+  "non_claims": {
+    "api_operation_pass": false,
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false
+  },
+  "console_event_note": "API 500 console events were observed because browser QA intentionally ran the web server without starting the API server. This does not promote or fail API-backed rows."
+}

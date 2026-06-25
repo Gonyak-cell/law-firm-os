@@ -1,0 +1,146 @@
+{
+  "schema_version": "matter.lcx8.desktop-screen-qa.p6-t02.v1",
+  "generated_at": "2026-06-25T14:03:40.770Z",
+  "status": "DESKTOP_SCREEN_QA_PASS_NO_FINAL_STATUS_PROMOTION",
+  "tuw": "P6-T02",
+  "command": "npm run matter-desktop:screen-qa",
+  "result": "PASS",
+  "source_receipt": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa-result.json",
+  "screenshots": {
+    "final": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa.png",
+    "initial_login": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-initial-login-ui.png",
+    "super_admin_product": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-super-admin-product-ui.png"
+  },
+  "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
+  "launch_target": "packaged_mac_app",
+  "app_name": "matter",
+  "runtime_summary": {
+    "label": "AWS temporary runtime connected",
+    "visible_label": "작업공간 연결됨",
+    "account_count_label": "등록된 계정 9개",
+    "base_url_material_printed": false,
+    "operator_token_material_printed": false,
+    "password_material_printed": false,
+    "reset_token_material_printed": false
+  },
+  "ui_summary": {
+    "initial_login_brand_visible": true,
+    "initial_login_panel_visible": true,
+    "matter_wordmark_visible": true,
+    "capability_cards": 4,
+    "capability_labels": [
+      "Client",
+      "Matter",
+      "People",
+      "Vault"
+    ],
+    "top_header_nav": {
+      "labels": [
+        "Home",
+        "Client",
+        "Matter",
+        "People",
+        "Vault"
+      ],
+      "axis_ids": [
+        "home",
+        "clients",
+        "matters",
+        "people",
+        "vault"
+      ],
+      "in_topbar": true,
+      "active_axis": "home"
+    },
+    "horizontal_overflow": false
+  },
+  "permission_smoke_summary": {
+    "registered_account_count": 9,
+    "sampled_account_keys": [
+      "jwsuh_at_amic_kr",
+      "ytkim_at_amic_kr"
+    ],
+    "super_admin_dashboard_http_status": 200,
+    "super_admin_admin_http_status": 200,
+    "general_admin_http_status": 403
+  },
+  "forbidden_material_checks": {
+    "token_or_password_visible_in_final_dom": false,
+    "reset_token_input_cleared_before_screenshot": true,
+    "generated_password_visible_in_final_dom": false,
+    "final_dom_character_count": 435
+  },
+  "release_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_final_approval": false
+  },
+  "acceptance": {
+    "screenshot_recorded": true,
+    "source_receipt_recorded": true,
+    "login_and_product_surface_recorded": true,
+    "no_secret_material_visible": true,
+    "production_go_live_claim": false,
+    "public_release_claim": false,
+    "owner_final_approval_claim": false,
+    "status_changes": 0
+  },
+  "reviewed_rows": 6,
+  "next_tuw": "P6-T03",
+  "rows": [
+    {
+      "id": "LCX8-ACTION-0244",
+      "status": "GUARDED",
+      "surface": "desktop-shell",
+      "label": "Desktop shell launch",
+      "persistence_boundary": "not required",
+      "audit_boundary": "not required for shell startup; no packaged release claim",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0250",
+      "status": "BLOCKED",
+      "surface": "desktop-renderer",
+      "label": "Desktop login submit",
+      "persistence_boundary": "secure store/session cache proof remains P6/P4",
+      "audit_boundary": "external runtime/API audit proof remains P4/P6",
+      "remediation_lane": "P6/P4"
+    },
+    {
+      "id": "LCX8-ACTION-0252",
+      "status": "BLOCKED",
+      "surface": "desktop-renderer",
+      "label": "Dashboard feature check",
+      "persistence_boundary": "not required for smoke read; runtime proof pending",
+      "audit_boundary": "runtime smoke/audit receipt remains P4/P6",
+      "remediation_lane": "P6/P4"
+    },
+    {
+      "id": "LCX8-ACTION-0253",
+      "status": "BLOCKED",
+      "surface": "desktop-renderer",
+      "label": "Admin feature check",
+      "persistence_boundary": "not required for smoke read; runtime proof pending",
+      "audit_boundary": "runtime smoke/audit receipt remains P4/P6",
+      "remediation_lane": "P6/P4"
+    },
+    {
+      "id": "LCX8-ACTION-0254",
+      "status": "BLOCKED",
+      "surface": "desktop-session",
+      "label": "Password reset bridge methods",
+      "persistence_boundary": "runtime reset token/email flow proof pending; no visible offline.html controls currently trigger it",
+      "audit_boundary": "runtime reset receipt proof pending",
+      "remediation_lane": "P6/P4/Lane A"
+    },
+    {
+      "id": "LCX8-ACTION-0255",
+      "status": "BLOCKED",
+      "surface": "desktop-session",
+      "label": "Session status/runtime/accounts load",
+      "persistence_boundary": "read-only status/accounts load",
+      "audit_boundary": "runtime/account read proof remains P4/P6",
+      "remediation_lane": "P6"
+    }
+  ]
+}

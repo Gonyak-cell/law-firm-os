@@ -1,0 +1,529 @@
+{
+  "schema_version": "matter.lcx8.mobile-overflow-focus-smoke.p3-t11.v1",
+  "generated_at": "2026-06-25T13:15:53.354Z",
+  "status": "complete_mixed_mobile_smoke_findings",
+  "tuw": "P3-T11",
+  "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
+  "web_base_url": "http://127.0.0.1:5174",
+  "api_base_url": "http://127.0.0.1:4180 via Vite proxy",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "device_scale_factor": 2,
+    "is_mobile": true,
+    "has_touch": true
+  },
+  "surfaces_reviewed": 4,
+  "selector_checks_reviewed": 8,
+  "horizontal_overflow_count": 0,
+  "hidden_required_selector_count": 1,
+  "focus_issue_count": 1,
+  "focus_failures": [
+    "global_search_hidden_or_not_focusable"
+  ],
+  "api_response_count": 44,
+  "api_5xx_count": 0,
+  "console_error_count": 0,
+  "focus_smoke": {
+    "global_search": {
+      "selector_count": 1,
+      "visible": false,
+      "focused": false,
+      "popover_count": 0,
+      "horizontal_overflow": false,
+      "error": "global search input is not visible at 390px mobile viewport",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-focus-global-search.png"
+    },
+    "people_search": {
+      "selector_count": 1,
+      "visible": true,
+      "focused": true,
+      "horizontal_overflow": false,
+      "error": null,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-focus-people-search.png"
+    },
+    "notification_drawer": {
+      "trigger_count": 1,
+      "trigger_visible": true,
+      "drawer_open_count": 1,
+      "active_after_two_tabs": {
+        "tag": "button",
+        "text": "대시보드",
+        "in_drawer": false,
+        "rect": {
+          "left": 166,
+          "right": 288,
+          "top": 107,
+          "bottom": 151
+        }
+      },
+      "horizontal_overflow": false,
+      "closed_by_escape": true,
+      "error": null,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-focus-notification-drawer.png"
+    }
+  },
+  "results": [
+    {
+      "name": "home-command-center",
+      "path": "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+      "row_ids": [
+        "LCX8-ACTION-0036",
+        "LCX8-ACTION-0012",
+        "LCX8-ACTION-0016"
+      ],
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "document_scroll_width": 390,
+        "body_scroll_width": 390,
+        "client_width": 390,
+        "horizontal_overflow": false,
+        "visible_focusable_count": 11,
+        "horizontally_offscreen_focusable_count": 2,
+        "horizontally_offscreen_focusables": [
+          {
+            "tag": "button",
+            "text": "Vault",
+            "visible": true,
+            "horizontallyOffscreen": true,
+            "rect": {
+              "left": 348,
+              "right": 432,
+              "top": 38,
+              "bottom": 94,
+              "width": 84,
+              "height": 56
+            }
+          },
+          {
+            "tag": "button",
+            "text": "검토함3",
+            "visible": true,
+            "horizontallyOffscreen": true,
+            "rect": {
+              "left": 294,
+              "right": 426,
+              "top": 107,
+              "bottom": 151,
+              "width": 132,
+              "height": 44
+            }
+          }
+        ],
+        "button_count": 25,
+        "input_count": 1,
+        "drawer_count": 0,
+        "body_text_sample": "matter Home Client Matter 직원 Vault 서 3 최근 작업 8 대시보드 검토함 3 오늘의 운영 대기열 처리할 Matter, 승인 대기, 최근 문서, 동기화 상태를 먼저 확인합니다. 새로고침 오늘 처리할 Matter 6 6개 항목을 확인했습니다. 승인 대기 0 현재 검토 대기 신호가 없습니다. 최근 문서 1 1개 항목을 확인했습니다. 실패한 동기화 0 연결 실패 신호가 없습니다. Matter 작업 큐 실패, 권한 없음, 빈 상태를 구분해 표시합니다. Matter 목록 6개 항목을 확인했습니다. 정상 승인·구성원 확인 1개 항목을 확인했습니다. 정상 최근 문서 확인 1개 항목을 확인했습니다. 정상 권한·감사 요약 Client 정상 Matter 정상 직원 정상 Vault 정상 Client Client 정보와 연결된 Matter를 권한 범위 안에서 확인합니다. 열기 Matter Matter 진행 상황, 팀, 문서, 청구 흐름을 확인합니다. 열기 직원 직원, 근태관리, "
+      },
+      "selector_checks": [
+        {
+          "row_id": "LCX8-ACTION-0036",
+          "label": "Home refresh",
+          "selector": ".lcx-web-command-center .page-header .secondary-button",
+          "selector_count": 1,
+          "visible": true,
+          "bounding_box": {
+            "x": 20,
+            "y": 247,
+            "width": 88,
+            "height": 32
+          },
+          "within_viewport_horizontally": true,
+          "error": null
+        },
+        {
+          "row_id": "LCX8-ACTION-0012",
+          "label": "Global search input",
+          "selector": ".global-search input",
+          "selector_count": 1,
+          "visible": false,
+          "bounding_box": null,
+          "within_viewport_horizontally": false,
+          "error": null
+        },
+        {
+          "row_id": "LCX8-ACTION-0016",
+          "label": "Notification trigger",
+          "selector": "[data-notification-trigger=\"true\"]",
+          "selector_count": 1,
+          "visible": true,
+          "bounding_box": {
+            "x": 340,
+            "y": 0,
+            "width": 38,
+            "height": 38
+          },
+          "within_viewport_horizontally": true,
+          "error": null
+        }
+      ],
+      "network_response_count": 14,
+      "api_5xx_count": 0,
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-home-command-center.png"
+    },
+    {
+      "name": "matter-list",
+      "path": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "row_ids": [
+        "LCX8-ACTION-0044"
+      ],
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "document_scroll_width": 390,
+        "body_scroll_width": 390,
+        "client_width": 390,
+        "horizontal_overflow": false,
+        "visible_focusable_count": 27,
+        "horizontally_offscreen_focusable_count": 5,
+        "horizontally_offscreen_focusables": [
+          {
+            "tag": "button",
+            "text": "Vault",
+            "visible": true,
+            "horizontallyOffscreen": true,
+            "rect": {
+              "left": 348,
+              "right": 432,
+              "top": 38,
+              "bottom": 94,
+              "width": 84,
+              "height": 56
+            }
+          },
+          {
+            "tag": "button",
+            "text": "Matter 운영",
+            "visible": true,
+            "horizontallyOffscreen": true,
+            "rect": {
+              "left": 12,
+              "right": 413,
+              "top": 107,
+              "bottom": 151,
+              "width": 401,
+              "height": 44
+            }
+          },
+          {
+            "tag": "button",
+            "text": "Matter 개시",
+            "visible": true,
+            "horizontallyOffscreen": true,
+            "rect": {
+              "left": 284,
+              "right": 413,
+              "top": 155,
+              "bottom": 193,
+              "width": 130,
+              "height": 38
+            }
+          },
+          {
+            "tag": "button",
+            "text": "업무 진행",
+            "visible": true,
+            "horizontallyOffscreen": true,
+            "rect": {
+              "left": 419,
+              "right": 560,
+              "top": 107,
+              "bottom": 193,
+              "width": 141,
+              "height": 86
+            }
+          },
+          {
+            "tag": "button",
+            "text": "청구·분석",
+            "visible": true,
+            "horizontallyOffscreen": true,
+            "rect": {
+              "left": 566,
+              "right": 707,
+              "top": 107,
+              "bottom": 193,
+              "width": 141,
+              "height": 86
+            }
+          }
+        ],
+        "button_count": 37,
+        "input_count": 3,
+        "drawer_count": 0,
+        "body_text_sample": "matter Home Client Matter 직원 Vault 서 3 Matter 운영 Matter 목록 18 진행 현황 Matter 개시 업무 진행 청구·분석 Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 목록 권한 기준 적용 새 Matter 개시는 승인 후 반영됩니다. 전체 Matter 개시 중 종료 개시 저장 0개 선택 선택 완료 Matter 제목 진행 상태 청구 상태 Matter 1 Matter 1 개시 중 청구 준비 가능 개인 작업 기록 최근 본 항목 제목 상태 일시 Matter 1 Matter 1 개시 중 06. 25. 오후 10:15 레코드 Matter 1 상태 개시 중 청구 청구 준비 가능 책임자 미지정 팀 1 문서 0 활동 0 기한 0 대화 0 청구 2 분석 2 청구 상태 청구 준비 가능 저장 책임자 미지정 변경 레코드 필드 Matter 제목 / 청구 준비 상태 / 위험도 필드 작업 책"
+      },
+      "selector_checks": [
+        {
+          "row_id": "LCX8-ACTION-0044",
+          "label": "Matter refresh",
+          "selector": "#matters-home .page-header .secondary-button",
+          "selector_count": 1,
+          "visible": true,
+          "bounding_box": {
+            "x": 20,
+            "y": 289,
+            "width": 88,
+            "height": 32
+          },
+          "within_viewport_horizontally": true,
+          "error": null
+        },
+        {
+          "row_id": "LCX8-ACTION-0045",
+          "label": "Matter section tabs",
+          "selector": ".matter-section-tabs button",
+          "selector_count": 5,
+          "visible": true,
+          "bounding_box": {
+            "x": 20,
+            "y": 335,
+            "width": 45,
+            "height": 38
+          },
+          "within_viewport_horizontally": true,
+          "error": null
+        }
+      ],
+      "network_response_count": 22,
+      "api_5xx_count": 0,
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-matter-list.png"
+    },
+    {
+      "name": "vault-documents",
+      "path": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "row_ids": [
+        "LCX8-ACTION-0091"
+      ],
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "document_scroll_width": 390,
+        "body_scroll_width": 390,
+        "client_width": 390,
+        "horizontal_overflow": false,
+        "visible_focusable_count": 12,
+        "horizontally_offscreen_focusable_count": 2,
+        "horizontally_offscreen_focusables": [
+          {
+            "tag": "button",
+            "text": "Vault",
+            "visible": true,
+            "horizontallyOffscreen": true,
+            "rect": {
+              "left": 348,
+              "right": 432,
+              "top": 38,
+              "bottom": 94,
+              "width": 84,
+              "height": 56
+            }
+          },
+          {
+            "tag": "button",
+            "text": "메일 보관함",
+            "visible": true,
+            "horizontallyOffscreen": true,
+            "rect": {
+              "left": 282,
+              "right": 420,
+              "top": 107,
+              "bottom": 151,
+              "width": 138,
+              "height": 44
+            }
+          }
+        ],
+        "button_count": 19,
+        "input_count": 1,
+        "drawer_count": 0,
+        "body_text_sample": "matter Home Client Matter 직원 Vault 서 3 문서함 24 문서 상세 메일 보관함 Vault Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다. 새로고침 Vault 문서함 권한 기준 적용 문서 본문은 권한이 있을 때만 표시합니다. Matter 선택됨 / Vault / 작업공간 준비됨 보존 설정 없음 / 권한 기준 적용 문서 제목 등록 계정 상태 버전 권한 보존 문서 1 Synthetic engagement letter 서지원 사용 중 현재 버전 기본 없음"
+      },
+      "selector_checks": [
+        {
+          "row_id": "LCX8-ACTION-0091",
+          "label": "Vault refresh",
+          "selector": "#vault-home .page-header .secondary-button",
+          "selector_count": 1,
+          "visible": true,
+          "bounding_box": {
+            "x": 20,
+            "y": 247,
+            "width": 88,
+            "height": 32
+          },
+          "within_viewport_horizontally": true,
+          "error": null
+        }
+      ],
+      "network_response_count": 1,
+      "api_5xx_count": 0,
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-vault-documents.png"
+    },
+    {
+      "name": "people-directory",
+      "path": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "row_ids": [
+        "LCX8-ACTION-0093",
+        "LCX8-ACTION-0095"
+      ],
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "document_scroll_width": 390,
+        "body_scroll_width": 390,
+        "client_width": 390,
+        "horizontal_overflow": false,
+        "visible_focusable_count": 29,
+        "horizontally_offscreen_focusable_count": 6,
+        "horizontally_offscreen_focusables": [
+          {
+            "tag": "button",
+            "text": "Vault",
+            "visible": true,
+            "horizontallyOffscreen": true,
+            "rect": {
+              "left": 348,
+              "right": 432,
+              "top": 38,
+              "bottom": 94,
+              "width": 84,
+              "height": 56
+            }
+          },
+          {
+            "tag": "button",
+            "text": "관리",
+            "visible": true,
+            "horizontallyOffscreen": true,
+            "rect": {
+              "left": 12,
+              "right": 705,
+              "top": 107,
+              "bottom": 151,
+              "width": 693,
+              "height": 44
+            }
+          },
+          {
+            "tag": "button",
+            "text": "요청 관리5",
+            "visible": true,
+            "horizontallyOffscreen": true,
+            "rect": {
+              "left": 328,
+              "right": 462,
+              "top": 155,
+              "bottom": 193,
+              "width": 134,
+              "height": 38
+            }
+          },
+          {
+            "tag": "button",
+            "text": "입퇴사 관리",
+            "visible": true,
+            "horizontallyOffscreen": true,
+            "rect": {
+              "left": 466,
+              "right": 589,
+              "top": 155,
+              "bottom": 193,
+              "width": 123,
+              "height": 38
+            }
+          },
+          {
+            "tag": "button",
+            "text": "직원 등록",
+            "visible": true,
+            "horizontallyOffscreen": true,
+            "rect": {
+              "left": 593,
+              "right": 705,
+              "top": 155,
+              "bottom": 193,
+              "width": 112,
+              "height": 38
+            }
+          },
+          {
+            "tag": "button",
+            "text": "회사 설정",
+            "visible": true,
+            "horizontallyOffscreen": true,
+            "rect": {
+              "left": 711,
+              "right": 852,
+              "top": 107,
+              "bottom": 193,
+              "width": 141,
+              "height": 86
+            }
+          }
+        ],
+        "button_count": 41,
+        "input_count": 2,
+        "drawer_count": 0,
+        "body_text_sample": "matter Home Client Matter 직원 Vault 서 3 관리 직원 9 조직 휴가관리 요청 관리 5 입퇴사 관리 직원 등록 회사 설정 직원 관리 직원, 조직, 휴가관리, 요청 관리, 입퇴사 관리, 회사방침, 급여정산과 리포트를 확인합니다. 새로고침 인물 검색 Client·Matter 관계 Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다. 전체 내부 변호사 Client 상대 대리인 전문가 규제기관 A Arbitrator Han 중재인 · Arbitration Institution 활성 A Ari Kim 내부 변호사 · LCX Litigation Group 활성 C Counterparty A 상대방 · Counterparty Organization 활성 D Dr. Seo 전문가/증인 · Expert Witness Group 활성 F FSC Reviewer 규제기관 담당자 · Financial Services Commission 활성 J Jin Lee"
+      },
+      "selector_checks": [
+        {
+          "row_id": "LCX8-ACTION-0093",
+          "label": "People refresh",
+          "selector": "#people-home .page-header .secondary-button",
+          "selector_count": 1,
+          "visible": true,
+          "bounding_box": {
+            "x": 20,
+            "y": 306,
+            "width": 88,
+            "height": 32
+          },
+          "within_viewport_horizontally": true,
+          "error": null
+        },
+        {
+          "row_id": "LCX8-ACTION-0095",
+          "label": "People directory search",
+          "selector": ".legal-people-search input",
+          "selector_count": 1,
+          "visible": true,
+          "bounding_box": {
+            "x": 71,
+            "y": 453,
+            "width": 272,
+            "height": 19
+          },
+          "within_viewport_horizontally": true,
+          "error": null
+        }
+      ],
+      "network_response_count": 7,
+      "api_5xx_count": 0,
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t11-mobile-people-directory.png"
+    }
+  ],
+  "next_tuw": "P4-T00 API route coverage mapping from browser responses"
+}

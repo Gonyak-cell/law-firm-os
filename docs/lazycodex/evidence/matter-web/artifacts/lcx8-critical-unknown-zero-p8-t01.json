@@ -1,0 +1,36 @@
+{
+  "schema_version": "matter.lcx8.critical-unknown-zero.p8-t01.v1",
+  "generated_at": "2026-06-25T14:29:03.383Z",
+  "status": "CRITICAL_UNKNOWN_ZERO_CONFIRMED",
+  "tuw": "P8-T01",
+  "critical_selector": "Rows with final status PASS, GUARDED, BLOCKED, FAIL, or DESCRIPTOR_ONLY; these are operational/guarded/runtime/defect/descriptor rows rather than local UI-only route controls.",
+  "ledger_rows": 324,
+  "all_unknown_count": 0,
+  "critical_row_count": 196,
+  "critical_unknown_count": 0,
+  "critical_by_status": {
+    "FAIL": 43,
+    "BLOCKED": 122,
+    "PASS": 10,
+    "GUARDED": 19,
+    "DESCRIPTOR_ONLY": 2
+  },
+  "unknown_rows": [],
+  "critical_unknown_rows": [],
+  "acceptance": {
+    "unknown_rows_zero": true,
+    "critical_unknown_rows_zero": true
+  },
+  "status_changes": 0,
+  "next_tuw": "P8-T02",
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  }
+}

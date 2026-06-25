@@ -1,0 +1,30 @@
+{
+  "schema_version": "matter.lcx8.ai-slop-lint.p7-t05.v1",
+  "generated_at": "2026-06-25T14:25:17.932Z",
+  "status": "AI_SLOP_LINT_PASS_NO_AUTO_DETECTABLE_SIGNALS",
+  "tuw": "P7-T05",
+  "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+  "cwd": "/Users/jws/Documents/Codex/Law Firm OS",
+  "exit_code": 0,
+  "output": "sloplint: no auto-detectable AI slop signals found in /Users/jws/Documents/Codex/Law Firm OS",
+  "source_changes_reviewed": "changed-files mode from sloplint --changed",
+  "status_changes": 0,
+  "next_tuw": "P7-T06",
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  },
+  "non_claims_preserved": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "external_receipt_completion": false,
+    "real_client_data_migration": false
+  }
+}

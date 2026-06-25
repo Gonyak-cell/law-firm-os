@@ -1,0 +1,133 @@
+{
+  "schema_version": "matter.lcx8.desktop-deep-link-notification.p6-t05.v1",
+  "generated_at": "2026-06-25T14:08:33.686Z",
+  "status": "DESKTOP_DEEP_LINK_NOTIFICATION_MAPPED_EXTERNAL_OS_BLOCKERS_PRESERVED",
+  "tuw": "P6-T05",
+  "command_receipts": [
+    {
+      "command": "node scripts/validate-desktop-deep-link-contract.mjs",
+      "result": "PASS",
+      "allowed_routes": [
+        "matter",
+        "document",
+        "task",
+        "auth_callback"
+      ],
+      "route_intent_only": true,
+      "forbidden_actions_checked": 9,
+      "owner_approval_recorded": false
+    },
+    {
+      "command": "node scripts/validate-matter-desktop-notification-copy.mjs",
+      "result": "PASS",
+      "templates_checked": 2,
+      "findings": []
+    },
+    {
+      "command": "node --test apps/desktop/test/deep-link-deny.test.mjs apps/desktop/test/deep-link-open-audit.test.mjs apps/desktop/test/deep-link-parser.test.mjs apps/desktop/test/deep-link-permission.test.mjs apps/desktop/test/notification-route-intent.test.mjs",
+      "result": "PASS",
+      "tests_total": 11,
+      "tests_passed": 11,
+      "tests_failed": 0
+    }
+  ],
+  "reviewed_rows": 6,
+  "category_counts": {
+    "route_intent_open_logic_proven_os_protocol_blocked": 1,
+    "auth_callback_logic_proven_external_auth_receipt_blocked": 1,
+    "forbidden_action_guard_confirmed": 1,
+    "invalid_route_guard_confirmed": 1,
+    "notification_route_intent_logic_proven_os_delivery_blocked": 1,
+    "notification_action_sensitive_payload_guard_confirmed": 1
+  },
+  "status_changes": 0,
+  "blocked_external_os_delivery_rows": [
+    "LCX8-ACTION-0263",
+    "LCX8-ACTION-0264",
+    "LCX8-ACTION-0267"
+  ],
+  "guard_rows_confirmed": [
+    "LCX8-ACTION-0265",
+    "LCX8-ACTION-0266",
+    "LCX8-ACTION-0268"
+  ],
+  "non_claims": {
+    "os_protocol_registration_clicked": false,
+    "native_notification_delivery_clicked": false,
+    "external_auth_provider_callback_receipt": false,
+    "owner_approval_recorded": false
+  },
+  "next_tuw": "P6-T06",
+  "rows": [
+    {
+      "id": "LCX8-ACTION-0263",
+      "status_before": "BLOCKED",
+      "status_after": "BLOCKED",
+      "surface": "desktop-deep-links",
+      "label": "Route-only matter/document/task deep links",
+      "category": "route_intent_open_logic_proven_os_protocol_blocked",
+      "reason": "valid matter/document/task route intent parser, permission recheck, and audit paths pass tests, but OS protocol registration/visible shell delivery receipt is not captured",
+      "remediation_lane": "P6/P4"
+    },
+    {
+      "id": "LCX8-ACTION-0264",
+      "status_before": "BLOCKED",
+      "status_after": "BLOCKED",
+      "surface": "desktop-deep-links",
+      "label": "Auth callback deep link",
+      "category": "auth_callback_logic_proven_external_auth_receipt_blocked",
+      "reason": "auth callback parser/audit path passes tests, but external auth callback delivery and receipt remain unproven",
+      "remediation_lane": "P6/P4"
+    },
+    {
+      "id": "LCX8-ACTION-0265",
+      "status_before": "GUARDED",
+      "status_after": "GUARDED",
+      "surface": "desktop-deep-links",
+      "label": "Forbidden action deep links",
+      "category": "forbidden_action_guard_confirmed",
+      "reason": "forbidden action deep-link hosts and query parameters are denied before mutation",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0266",
+      "status_before": "GUARDED",
+      "status_after": "GUARDED",
+      "surface": "desktop-deep-links",
+      "label": "Invalid deep link route/query/id",
+      "category": "invalid_route_guard_confirmed",
+      "reason": "invalid route/query/id shapes are rejected by parser guard",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0267",
+      "status_before": "BLOCKED",
+      "status_after": "BLOCKED",
+      "surface": "desktop-notifications",
+      "label": "Notification click route intent",
+      "category": "notification_route_intent_logic_proven_os_delivery_blocked",
+      "reason": "notification click route-intent parser tests pass, but native OS notification delivery and visible shell routing receipt is not captured",
+      "remediation_lane": "P6/P4"
+    },
+    {
+      "id": "LCX8-ACTION-0268",
+      "status_before": "GUARDED",
+      "status_after": "GUARDED",
+      "surface": "desktop-notifications",
+      "label": "Notification action/sensitive payload guard",
+      "category": "notification_action_sensitive_payload_guard_confirmed",
+      "reason": "notification action execution and sensitive payload templates are rejected/sanitized by tests and validator",
+      "remediation_lane": null
+    }
+  ],
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 9,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 123,
+    "fail": 43
+  }
+}
