@@ -203,7 +203,6 @@ test("avatar profile opens a matter-consistent personal profile surface without 
   assert.match(appSource, /<UserProfileSurface \/>/);
   assert.match(appSource, /onProfile=\{\(\) => navigateToView\("profile"\)\}/);
   assert.match(shellSource, /data-profile-trigger="true"/);
-  assert.match(shellSource, /<span>서<\/span>/);
   assert.match(shellSource, /profileSidebarItems/);
   assert.match(shellSource, /data-context-sidebar=\{view\}/);
   assert.doesNotMatch(shellSource, /\{labels\.upgrade\}/);
@@ -212,15 +211,14 @@ test("avatar profile opens a matter-consistent personal profile surface without 
   assert.match(profileSource, /비용·정산 내역/);
   assert.match(profileSource, /개인정보 관리/);
   assert.match(profileSource, /부재 일정/);
-  assert.match(profileSource, /시작 설정/);
-  assert.match(profileSource, />80%<\/strong>/);
   assert.match(profileSource, /내 프로필/);
-  assert.match(profileSource, /계정 정리 중/);
-  assert.doesNotMatch(profileSource, /Contracts \/ Agreements|Expenses and claims overview|Personal Information|Time off|My Onboarding|Your Profile|Help & Feedback|계약 \/ 약정|비용 및 청구 현황|오프보딩|유연 지급|출금 방법|MessageCircle/);
+  assert.match(profileSource, /프로필 데이터 없음/);
+  assert.match(profileSource, /연결 필요/);
+  assert.match(profileSource, /실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다/);
+  assert.doesNotMatch(profileSource, /서지원|jws@matter\.local|법무 운영 매니저|외부 협업자|월 정액 자문|2024년 4월 15일|월 \$30\.00|계정 정리 중|진행 중|>80%<\/strong>|Contracts \/ Agreements|Expenses and claims overview|Personal Information|Time off|My Onboarding|Your Profile|Help & Feedback|계약 \/ 약정|비용 및 청구 현황|오프보딩|유연 지급|출금 방법|MessageCircle/);
   assert.doesNotMatch(profileSource, /deel-/);
   assert.match(stylesSource, /\.matter-profile-surface[\s\S]*background:\s*var\(--am-canvas\)/);
   assert.match(stylesSource, /\.matter-profile-grid[\s\S]*grid-template-columns:\s*minmax\(520px, 1fr\) minmax\(320px, 0\.58fr\)/);
-  assert.match(stylesSource, /\.matter-profile-progress-meter span[\s\S]*width:\s*80%/);
   assert.doesNotMatch(stylesSource, /deel-|#f7f6f2|\.matter-profile-progress-card\s*\{[^}]*position:\s*fixed/);
   assert.doesNotMatch(navSource, /id: "profile"/);
 });

@@ -11,24 +11,8 @@ import {
   UserRound
 } from "lucide-react";
 
-const contractRows = [
-  ["이용 유형", "외부 협업자"],
-  ["계약 방식", "월 정액 자문"],
-  ["담당 역할", "법무 운영 매니저"],
-  ["권한 등급", "미설정"],
-  ["시작일", "2024년 4월 15일"],
-  ["정산 금액", "월 $30.00"]
-];
-
-const generalRows = [
-  ["이름", "서지원"],
-  ["이메일", "jws@matter.local"],
-  ["근무 국가", "대한민국"],
-  ["워크스페이스", "Client Matter People Vault"]
-];
-
 const actionCards = [
-  { label: "비용·정산 내역", badge: "신규", icon: ReceiptText },
+  { label: "비용·정산 내역", icon: ReceiptText },
   { label: "개인정보 관리", icon: IdCard },
   { label: "부재 일정", icon: CalendarDays }
 ];
@@ -55,13 +39,13 @@ export function UserProfileSurface() {
 
       <header className="matter-profile-hero panel">
         <div className="matter-profile-photo" aria-hidden="true">
-          <span>서</span>
+          <UserRound size={28} />
         </div>
         <div className="matter-profile-hero-copy">
-          <h1>서지원</h1>
-          <p>법무 운영 매니저</p>
+          <h1>프로필 데이터 없음</h1>
+          <p>로그인 세션 또는 사용자 프로필 API가 연결되면 개인정보와 계약 정보를 표시합니다.</p>
           <div className="matter-profile-meta">
-            <span className="matter-profile-status offboarding">계정 정리 중</span>
+            <span className="matter-profile-status">연결 필요</span>
           </div>
         </div>
       </header>
@@ -76,17 +60,9 @@ export function UserProfileSurface() {
               </div>
             </div>
             <div className="panel-body matter-profile-card-body">
-              <div className="matter-profile-summary">
-                <strong>서지원</strong>
-                <span className="matter-profile-status in-progress">진행 중</span>
-              </div>
-              <div className="matter-profile-field-list">
-                {contractRows.map(([label, value]) => (
-                  <div className="matter-profile-field-row" key={label}>
-                    <span>{label}</span>
-                    <strong>{value}</strong>
-                  </div>
-                ))}
+              <div className="live-data-state live-data-empty">
+                <strong>계약 정보를 표시할 수 없습니다.</strong>
+                <span>실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.</span>
               </div>
             </div>
           </article>
@@ -99,13 +75,9 @@ export function UserProfileSurface() {
               </div>
             </div>
             <div className="panel-body matter-profile-card-body">
-              <div className="matter-profile-field-list">
-                {generalRows.map(([label, value]) => (
-                  <div className="matter-profile-field-row" key={label}>
-                    <span>{label}</span>
-                    <strong>{value}</strong>
-                  </div>
-                ))}
+              <div className="live-data-state live-data-empty">
+                <strong>계정 정보를 표시할 수 없습니다.</strong>
+                <span>사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.</span>
               </div>
             </div>
           </article>
@@ -120,19 +92,18 @@ export function UserProfileSurface() {
               <ChevronRight size={20} />
             </button>
           ))}
-          <div className="matter-profile-progress-card panel" data-profile-onboarding-pill="true">
+          <div className="matter-profile-progress-card panel" data-profile-data-state="empty">
             <div className="panel-head">
               <div>
-                <h2>시작 설정</h2>
-                <span>프로필 설정 진행률</span>
+                <h2>프로필 연결 상태</h2>
+                <span>실제 데이터 필요</span>
               </div>
-              <strong>80%</strong>
             </div>
             <div className="panel-body">
-              <div className="matter-profile-progress-meter" aria-label="시작 설정 80% 완료">
-                <span />
+              <div className="live-data-state live-data-empty">
+                <strong>연결된 프로필 데이터가 없습니다.</strong>
+                <span>임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다.</span>
               </div>
-              <p>계정 기본 정보와 계약 정보가 준비되었습니다. 지급 설정만 확인하면 완료됩니다.</p>
             </div>
           </div>
         </aside>
