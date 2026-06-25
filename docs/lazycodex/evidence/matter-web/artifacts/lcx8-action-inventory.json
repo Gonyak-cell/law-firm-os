@@ -82,11 +82,11 @@
   "status_counts": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 10,
+    "pass": 11,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 122,
+    "blocked": 121,
     "fail": 42
   },
   "completed_tuws": [
@@ -1291,26 +1291,32 @@
     "resolved_rows": [
       "LCX8-ACTION-0280",
       "LCX8-ACTION-0272",
-      "LCX8-ACTION-0273"
+      "LCX8-ACTION-0273",
+      "LCX8-ACTION-0054"
     ],
     "status_counts_after": {
       "inventory_rows": 324,
       "unknown": 0,
-      "pass": 10,
+      "pass": 11,
       "guarded": 20,
       "ui_only": 128,
       "descriptor_only": 2,
-      "blocked": 122,
+      "blocked": 121,
       "fail": 42
     },
-    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-list-view-write-status-2026-06-26.json",
     "artifacts": [
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
-      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json"
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-list-view-write-status-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0054-matter-list-view-write-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0054-matter-list-view-write-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0054-matter-list-view-write-proof.png"
     ],
-    "latest_note": "LCX8-ACTION-0272/0273 remain GUARDED; P7-AFF-001 Client guarded mutation affordance and P7-COPY-002 guarded copy are resolved."
+    "latest_note": "LCX8-ACTION-0054 is promoted from BLOCKED to PASS by Matter list-view safe UI write, reload/read-back, audit, and denied/review fail-closed proof. LCX8-ACTION-0272/0273 remain GUARDED with guarded affordance/copy resolved.",
+    "latest_verification_summary": "Post-closeout LCX8-ACTION-0054 verification: node --test apps/api/test/cmp-r4-g4-matter.test.js PASS 11/11; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; git diff --check PASS; JSON/count invariant PASS."
   }
 }

@@ -339,7 +339,30 @@
       "tuw": "P8-T03",
       "source_file": "apps/web/src/components/MattersSurface.jsx; apps/web/src/data/apiClient.js",
       "handler": "handleSaveOpeningListView -> saveMatterListView({ label: \"개시 Matter\", status: \"opening\" })",
-      "api_route": "POST /api/matters/list-views"
+      "api_route": "POST /api/matters/list-views",
+      "post_closeout_resolution": {
+        "status_before": "BLOCKED",
+        "status_after": "PASS",
+        "resolved_at": "2026-06-25T15:44:50.298Z",
+        "evidence_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0054-matter-list-view-write-proof.json",
+        "status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-list-view-write-status-2026-06-26.json",
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0054-matter-list-view-write-proof.png",
+        "proof_summary": {
+          "write_http_status": 200,
+          "write_outcome": "updated",
+          "list_view_id": "matter_view_user_opening",
+          "state_idempotent": true,
+          "read_back_found": true,
+          "audit_event_id": "matter.list_view.saved:tenant_rp05_synthetic:matter_view_user_opening:2026-06-25T15:44:49.631Z",
+          "denied_write_outcome": "403/blocked",
+          "review_write_outcome": "200/review_required",
+          "production_ready_claim": false
+        },
+        "non_claims": [
+          "local synthetic runtime proof only",
+          "no production readiness or go-live approval claimed"
+        ]
+      }
     },
     {
       "id": "LCX8-ACTION-0055",
@@ -2906,12 +2929,12 @@
   "status_counts_after": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 10,
-    "guarded": 19,
+    "pass": 11,
+    "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 122,
-    "fail": 43
+    "blocked": 121,
+    "fail": 42
   },
   "post_closeout_resolution": {
     "resolved_rows": [
@@ -2952,5 +2975,16 @@
     "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json",
     "remaining_findings": [],
     "note": "Historical P7/P8 artifacts remain closeout snapshots; current product uses Korean guarded copy for 의뢰인 in Client denied/review states."
+  },
+  "post_closeout_resolution_lcx8_action_0054": {
+    "resolved_rows": [
+      "LCX8-ACTION-0054"
+    ],
+    "status_before": "BLOCKED",
+    "status_after": "PASS",
+    "resolved_at": "2026-06-25T15:44:50.298Z",
+    "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-list-view-write-status-2026-06-26.json",
+    "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0054-matter-list-view-write-proof.json",
+    "note": "Historical P8 ranking/assignment remains a closeout snapshot; current product ledger marks LCX8-ACTION-0054 PASS after write/read-back/audit/fail-closed proof."
   }
 }
