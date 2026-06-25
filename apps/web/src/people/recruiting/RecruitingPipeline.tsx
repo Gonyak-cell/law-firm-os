@@ -15,8 +15,8 @@ function stageLabel(value) {
   if (value === "submitted") return "접수";
   if (value === "screening") return "검토";
   if (value === "interview") return "면접";
-  if (value === "offer") return "채용 제안";
-  if (value === "hired") return "채용";
+  if (value === "offer") return "합격자";
+  if (value === "hired") return "구성원 등록";
   if (value === "open") return "진행 중";
   if (value === "sent") return "발송";
   if (value === "scheduled") return "예정";
@@ -49,9 +49,9 @@ export function RecruitingPipeline() {
 
   let body;
   if (result === null) {
-    body = <div className="live-data-state live-data-loading">채용 정보를 불러오는 중입니다</div>;
+    body = <div className="live-data-state live-data-loading">구성원 등록 정보를 불러오는 중입니다</div>;
   } else if (result.kind === "error") {
-    body = <div className="live-data-state live-data-error">채용 정보를 불러오지 못했습니다.</div>;
+    body = <div className="live-data-state live-data-error">구성원 등록 정보를 불러오지 못했습니다.</div>;
   } else {
     body = (
       <>
@@ -69,9 +69,9 @@ export function RecruitingPipeline() {
           ])}
         />
         <DataTable
-          columns={["채용 제안", "지원", "상태", "문서"]}
+          columns={["합격자", "지원", "상태", "문서"]}
           rows={result.offers.map((offer, index) => [
-            `채용 제안 ${index + 1}`,
+            `합격자 ${index + 1}`,
             `지원 ${index + 1}`,
             stageLabel(offer.state),
             offer.document_ref ? "준비됨" : "미등록"
@@ -82,7 +82,7 @@ export function RecruitingPipeline() {
             <div className="approval-row" key={application.application_id}>
               <div>
                 <strong>{`지원 ${index + 1}`}</strong>
-                <span>지원자 / 채용 공고</span>
+                <span>지원자 / 구성원 등록</span>
               </div>
               <em>{stageLabel(application.stage)}</em>
               <button className="secondary-button" disabled={!NEXT_STAGE[application.stage]} onClick={() => advance(application)}>
@@ -97,7 +97,7 @@ export function RecruitingPipeline() {
   }
 
   return (
-    <Panel id="people-recruiting" className="people-panel span-2" title="채용 진행" meta="지원자 관리">
+    <Panel id="people-recruiting" className="people-panel span-2" title="구성원 등록" meta="채용 연동">
       {body}
     </Panel>
   );

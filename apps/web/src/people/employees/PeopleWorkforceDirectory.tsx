@@ -19,8 +19,8 @@ const STATUS_TABS = [
   { id: "active", label: "재직" },
   { id: "onboarding", label: "입사 예정" },
   { id: "offboarding", label: "퇴사 예정" },
-  { id: "dismissed", label: "종료" },
-  { id: "collaborators", label: "외부 협업" }
+  { id: "dismissed", label: "퇴사" },
+  { id: "collaborators", label: "계약직" }
 ];
 
 type HrxRecord = Record<string, unknown>;
@@ -59,7 +59,7 @@ function roleLabel(value: unknown) {
   if (normalized.includes("associate")) return "어소시에이트";
   if (normalized.includes("paralegal")) return "실무 지원";
   if (normalized.includes("intern")) return "인턴";
-  if (normalized.includes("contractor")) return "외부 협업자";
+  if (normalized.includes("contractor")) return "계약직";
   if (normalized.includes("admin")) return "관리";
   if (normalized.includes("hr")) return "인사 담당";
   return value ? "담당자" : "미등록";
@@ -175,7 +175,7 @@ function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycle
       jobTitle: roleLabel(stringField(employee, "title") || stringField(employee, "role")),
       workerType: workerTypeLabel(employee),
       country: countryLabel(stringField(employee, "country") || stringField(employee, "country_label")),
-      owner: "People",
+      owner: "인사",
       lastEdited: recencyLabel(index),
       lastVisited: countryLabel(stringField(employee, "country") || stringField(employee, "country_label")),
       employeeId: stringField(employee, "employee_id") || undefined
@@ -196,7 +196,7 @@ function statusForTab(activeTab: string, employeeResult: EmployeeResult, lifecyc
   if (["onboarding", "offboarding"].includes(activeTab) && lifecycleResult?.kind === "error") {
     return {
       kind: "error",
-      message: "입사·퇴사 업무를 불러오지 못했습니다.",
+      message: "입퇴사 관리 업무를 불러오지 못했습니다.",
       detail: "로컬 런타임 또는 권한 컨텍스트를 확인하세요."
     };
   }
@@ -266,7 +266,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
     <section className="hr-roster-surface" data-hr-workforce-table="true">
       <header className="hr-roster-header">
         <div>
-          <h2>People</h2>
+          <h2>구성원</h2>
         </div>
         <div className="hr-roster-actions">
           <button type="button" className="text-button">
@@ -275,7 +275,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
           </button>
           <button type="button" className={viewMode === "org" ? "secondary-button active" : "secondary-button"} onClick={() => setViewMode(viewMode === "org" ? "table" : "org")}>
             <GitBranch size={15} />
-            조직도
+            조직
           </button>
           <button type="button" className="primary-button">
             <UserPlus size={15} />
@@ -381,7 +381,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
         <div className="hr-org-chart" data-hr-org-chart="true">
           <div className="hr-org-root">
             <GitBranch size={18} />
-            <strong>조직도</strong>
+            <strong>조직</strong>
             <span>재직 구성원을 부서 기준으로 표시합니다.</span>
           </div>
           {orgStatus ? (
@@ -410,7 +410,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
               ))}
               {orgGroups.size === 0 && (
                 <div className="live-data-state live-data-empty">
-                  <strong>조직도에 표시할 구성원이 없습니다.</strong>
+                  <strong>조직에 표시할 구성원이 없습니다.</strong>
                 </div>
               )}
             </div>

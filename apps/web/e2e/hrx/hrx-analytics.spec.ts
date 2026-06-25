@@ -19,10 +19,11 @@ test("People summary panel fetches workspace API without static fallback cards",
   assert.match(home, /people-analytics/);
   assert.match(component, /fetchHrxAnalytics/);
   assert.match(api, /\/api\/hrx\/analytics/);
-  assert.match(component, /업무 요약/);
+  assert.match(component, /리포트/);
+  assert.match(component, /실시간 리포트/);
   assert.match(component, /요약/);
   assert.match(component, /개별 상세/);
-  assert.match(component, /구성원 정보를 불러올 수 없습니다/);
-  assert.doesNotMatch(component, /People 현황|People 업무 요약/);
+  assert.match(component, /리포트를 불러올 수 없습니다/);
+  assert.doesNotMatch(component, /People 현황|People 업무 요약|인사 현황|구성원 인사이트|인력 현황/);
   assert.doesNotMatch(component, /mockData|profileRows|matters/);
 });

@@ -62,7 +62,7 @@ export function LeaveRequestPage({ employeeId, refreshKey, onSubmitted }) {
   }
 
   return (
-    <Panel id="people-leave" className="people-panel span-2" title="휴가 신청" meta="휴가 현황">
+    <Panel id="people-leave" className="people-panel span-2" title="휴가관리" meta="휴가 현황">
       <div className="people-panel-kicker">
         <CalendarCheck size={15} />
         휴가를 신청하고 잔여 휴가를 확인합니다

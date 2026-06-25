@@ -534,10 +534,10 @@ function ContactsTable({
       />
       <div className="record-action-strip legal-people-backlink-strip" data-lcx-ppl-client-backlink="true">
         <div>
-          <strong>법률 인물 연결</strong>
-          <span>Client 연락처와 연결된 법률 인물 기록을 함께 확인합니다.</span>
-          {legalPeopleResult === null && <em>법률 인물 조회 중</em>}
-          {legalPeopleResult?.kind === "error" && <em>법률 인물 조회 실패</em>}
+          <strong>관련 인물 연결</strong>
+          <span>Client 연락처와 연결된 인물 기록을 함께 확인합니다.</span>
+          {legalPeopleResult === null && <em>인물 기록 조회 중</em>}
+          {legalPeopleResult?.kind === "error" && <em>인물 기록 조회 실패</em>}
         </div>
         <div className="legal-people-backlink-list" aria-label="Client 연결 인물">
           {legalPeople.slice(0, 4).map((person) => (
@@ -701,12 +701,12 @@ function IntakeActionPanel({ intakeRequest, auditCount, conflictResult, clearanc
           <ActionNotice
             pending={conflictPending}
             result={conflictResult}
-            pendingText="충돌 검토 중입니다."
-            successText="충돌 스냅샷이 기록되었습니다."
+            pendingText="이해상충 검토 중입니다."
+            successText="이해상충 스냅샷이 기록되었습니다."
           />
         </div>
         <button className="secondary-button" type="button" disabled={!intakeRequest || conflictPending} onClick={onConflictCheck}>
-          충돌 검토
+          이해상충 검토
         </button>
       </div>
       <div className="record-action-strip">

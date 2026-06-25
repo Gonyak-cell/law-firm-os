@@ -62,9 +62,9 @@ export function ManagerApprovalQueue() {
 
   let body;
   if (result === null) {
-    body = <div className="live-data-state live-data-loading">승인 요청을 불러오는 중입니다</div>;
+    body = <div className="live-data-state live-data-loading">요청을 불러오는 중입니다</div>;
   } else if (result.kind === "error") {
-    body = <div className="live-data-state live-data-error">승인 요청을 불러오지 못했습니다.</div>;
+    body = <div className="live-data-state live-data-error">요청을 불러오지 못했습니다.</div>;
   } else {
     body = (
       <div className="approval-queue">
@@ -92,7 +92,7 @@ export function ManagerApprovalQueue() {
   }
 
   return (
-    <Panel id="people-approvals" className="people-panel span-2" title="승인 요청" meta="관리자 승인">
+    <Panel id="people-approvals" className="people-panel span-2" title="요청 관리" meta="전자결재">
       {body}
       {audit?.kind === "data" && (
         <DataTable

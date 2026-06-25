@@ -21,6 +21,8 @@ test("HRX step-up challenge is rendered from server-required state without local
   assert.match(api, /body\?\.step_up_required === true/);
   assert.match(challenge, /data-hrx-step-up-challenge="true"/);
   assert.match(challenge, /권한 확인/);
+  assert.match(challenge, /인사기록/);
+  assert.doesNotMatch(challenge, /활동 기록/);
   assert.match(runner, /hrx-step-up-challenge/);
   assert.doesNotMatch(challenge, /x-lawos-hrx-step-up|assurance_level|mfa: true|tenant-a|actor_id/);
   assert.match(api, /"x-lawos-tenant-id"/);

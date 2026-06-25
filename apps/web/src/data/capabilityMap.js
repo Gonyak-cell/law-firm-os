@@ -73,7 +73,7 @@ export const backendCapabilities = Object.freeze([
   },
   {
     id: "people",
-    label: "People",
+    label: "구성원",
     route: "people",
     owner: "people",
     readEndpoints: [
@@ -104,7 +104,7 @@ export const backendCapabilities = Object.freeze([
       "POST /api/hrx/ai/assistant"
     ],
     auditEndpoints: ["GET /api/hrx/audit"],
-    boundary: "구성원, 근태, 승인 업무를 한곳에서 확인합니다."
+    boundary: "구성원, 근태관리, 전자결재를 한곳에서 확인합니다."
   },
   {
     id: "vault",

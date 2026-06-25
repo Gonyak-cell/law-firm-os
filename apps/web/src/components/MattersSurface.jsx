@@ -72,7 +72,7 @@ const MATTER_WORK_TABS = [
   { section: "matter-calendar", label: "일정" },
   { section: "matter-channel", label: "대화" }
 ];
-const MATTER_PATH_STEPS = ["신규", "충돌검토", "계약", "수행", "청구"];
+const MATTER_PATH_STEPS = ["신규", "이해상충", "계약", "수행", "청구"];
 const TIMELINE_FILTERS = Object.freeze([
   Object.freeze({ id: "all", label: "전체", icon: ListChecks }),
   Object.freeze({ id: "matter", label: "Matter", icon: CheckCircle2 }),
@@ -134,11 +134,11 @@ function legalPeopleItems(result) {
 function LegalMatterPeopleBacklinkPanel({ result }) {
   const people = legalPeopleItems(result);
   return (
-    <Panel id="matter-people-backlinks" className="record-list-panel" title="법률 인물 연결" meta="Client-Matter-People">
+    <Panel id="matter-people-backlinks" className="record-list-panel" title="Matter 인물 연결" meta="참여자·연락처">
       <div className="legal-people-backlink-panel" data-lcx-ppl-matter-backlink="true">
         <div className="people-panel-kicker">
           <Link2 size={15} />
-          Matter 참여자와 외부 관계자를 법률 인물 기록과 함께 확인합니다.
+          Matter 참여자와 관련 인물 기록을 함께 확인합니다.
         </div>
         {result === null && <div className="live-data-state live-data-loading">Matter 연결 인물을 불러오는 중입니다</div>}
         {result?.kind === "error" && <div className="live-data-state live-data-error">Matter 연결 인물을 불러오지 못했습니다.</div>}

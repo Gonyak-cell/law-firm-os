@@ -18,6 +18,10 @@ test("HRX policy console reads and creates policy versions through API", async (
   assert.match(home, /HRXPolicyConsole/);
   assert.match(component, /fetchHrxPolicies/);
   assert.match(component, /createHrxPolicyVersion/);
+  assert.match(component, /승인 규칙/);
+  assert.match(component, /회사 설정 - 요청/);
+  assert.match(component, /규칙 이름/);
+  assert.doesNotMatch(component, /인사 정책|정책 이름/);
   assert.match(api, /\/api\/hrx\/policies/);
   assert.doesNotMatch(component, /mockData|profileRows|matters/);
 });

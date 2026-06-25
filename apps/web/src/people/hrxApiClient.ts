@@ -158,8 +158,8 @@ export async function fetchLegalPeopleEthics(filters = {}) {
   };
 }
 
-export async function fetchHrxDocuments(employeeId) {
-  if (!employeeId) return { kind: "empty" };
+export async function fetchHrxDocuments(employeeId, options = {}) {
+  if (!employeeId && options.scope !== "all") return { kind: "empty" };
   const result = await requestJson(withQuery("/api/hrx/documents", { employee_id: employeeId }));
   if (result.kind !== "data" || !Array.isArray(result.body.documents)) return { kind: "error" };
   return { kind: "data", documents: result.body.documents };

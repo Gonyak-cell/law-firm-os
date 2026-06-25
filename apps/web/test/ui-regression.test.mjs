@@ -66,6 +66,7 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
   assert.match(shellSource, /people-members/);
   assert.match(shellSource, /people-org-chart/);
   assert.match(shellSource, /people-documents/);
+  assert.match(shellSource, /people-certificates/);
   assert.match(shellSource, /people-leave/);
   assert.match(shellSource, /people-approvals/);
   assert.match(shellSource, /people-recruiting/);
@@ -872,7 +873,7 @@ test("HRX lifecycle board stays API-backed from People runtime", async () => {
   assert.match(lifecycleSource, /closeHrxOffboardingCase/);
   assert.match(lifecycleSource, /taskTitleLabel/);
   assert.match(lifecycleSource, /documentSummary/);
-  assert.match(lifecycleSource, /입사·퇴사 업무를 불러오지 못했습니다/);
+  assert.match(lifecycleSource, /입퇴사 관리 업무를 불러오지 못했습니다/);
   assert.doesNotMatch(lifecycleSource, /<strong>{task\.title}<\/strong>|plan\.employee_id|plan\.document_refs\?\.join|<strong>{caseItem\.offboarding_id}<\/strong>|caseItem\.employee_id/);
   assert.match(peopleApiSource, /\/api\/hrx\/lifecycle\/onboarding/);
   assert.match(peopleApiSource, /\/api\/hrx\/lifecycle\/offboarding/);

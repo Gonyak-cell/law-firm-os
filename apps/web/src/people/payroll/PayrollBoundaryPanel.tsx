@@ -82,7 +82,7 @@ export function PayrollBoundaryPanel() {
   }
 
   return (
-    <Panel id="people-payroll" className="people-panel span-2" title="급여 정산" meta="미리보기·내보내기만 제공">
+    <Panel id="people-payroll" className="people-panel span-2" title="급여정산" meta="미리보기·내보내기 전용">
       <div className="people-panel-kicker">
         <ShieldCheck size={15} />
         현재는 정산 미리보기, 검토 승인, 내보내기만 제공합니다. 계산·세금·지급 실행은 아직 제공하지 않습니다.
@@ -117,9 +117,9 @@ export function PayrollBoundaryPanel() {
           내보내기 파일 생성
         </button>
       </div>
-      {state === "idle" && <div className="live-data-state live-data-empty">급여 정산 미리보기를 준비할 수 있습니다.</div>}
-      {state === "loading" && <div className="live-data-state live-data-loading">급여 정산 자료를 확인하는 중입니다.</div>}
-      {state === "error" && <div className="live-data-state live-data-error">급여 정산 자료를 확인하지 못했습니다.</div>}
+      {state === "idle" && <div className="live-data-state live-data-empty">급여정산 미리보기를 준비할 수 있습니다.</div>}
+      {state === "loading" && <div className="live-data-state live-data-loading">급여정산 자료를 확인하는 중입니다.</div>}
+      {state === "error" && <div className="live-data-state live-data-error">급여정산 자료를 확인하지 못했습니다.</div>}
       {rows.length > 0 && <DataTable columns={["항목", "상태", "근거"]} rows={rows} />}
     </Panel>
   );

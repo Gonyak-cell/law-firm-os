@@ -39,7 +39,7 @@ export function HRXAuditViewer() {
 
   let body;
   if (result === null) {
-    body = <div className="live-data-state live-data-loading">활동 기록을 불러오는 중입니다</div>;
+    body = <div className="live-data-state live-data-loading">인사기록을 불러오는 중입니다</div>;
   } else if (result.kind === "step_up_required") {
     body = (
       <HrxStepUpChallenge
@@ -47,7 +47,7 @@ export function HRXAuditViewer() {
       />
     );
   } else if (result.kind === "error") {
-    body = <div className="live-data-state live-data-error">활동 기록을 불러오지 못했습니다.</div>;
+    body = <div className="live-data-state live-data-error">인사기록을 불러오지 못했습니다.</div>;
   } else {
     body = (
       <DataTable
@@ -58,10 +58,10 @@ export function HRXAuditViewer() {
   }
 
   return (
-    <Panel id="people-audit" className="people-panel span-2" title="활동 기록" meta="추가 확인 필요">
+    <Panel id="people-audit" className="people-panel span-2" title="인사기록" meta="조직 변경 이력">
       <div className="people-panel-kicker">
         <ClipboardList size={15} />
-        중요한 활동은 추가 확인 후 표시됩니다.
+        구성원 정보, 조직 변경 이력, 승진 기록 등을 확인합니다.
       </div>
       {body}
     </Panel>

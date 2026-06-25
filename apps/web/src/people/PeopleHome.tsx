@@ -27,6 +27,7 @@ const PEOPLE_SECTIONS = new Set([
   "people-members",
   "people-org-chart",
   "people-documents",
+  "people-certificates",
   "people-leave",
   "people-approvals",
   "people-recruiting",
@@ -62,7 +63,7 @@ export function PeopleHome({ labels, activeSection = "" }) {
     <section id="people-home" className="surface stack people-surface" data-hrx-api-backed="true">
       <PageHeader
         title={labels.peopleTitle}
-        subtitle="Client, Matter, 조직, 외부 참여자 관계와 충돌·윤리벽 검토를 확인합니다. 직원 관리는 별도 영역에서 다룹니다."
+        subtitle="구성원, 조직, 휴가관리, 요청 관리, 입퇴사 관리, 회사방침, 급여정산과 리포트를 확인합니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshKey((key) => key + 1)}>
             <RefreshCw size={15} />
@@ -94,8 +95,14 @@ export function PeopleHome({ labels, activeSection = "" }) {
 
       {currentSection === "people-documents" && (
         <div className="people-runtime-grid">
+          <HRDocumentWorkspace refreshKey={refreshKey} mode="regulations" />
+        </div>
+      )}
+
+      {currentSection === "people-certificates" && (
+        <div className="people-runtime-grid">
           <EmployeeList selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} refreshKey={refreshKey} />
-          <HRDocumentWorkspace employeeId={selectedEmployeeId} refreshKey={refreshKey} />
+          <HRDocumentWorkspace employeeId={selectedEmployeeId} refreshKey={refreshKey} mode="certificates" />
         </div>
       )}
 

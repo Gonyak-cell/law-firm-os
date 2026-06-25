@@ -50,7 +50,7 @@ function auditLabel(action) {
   if (action === "admin.permission_set.patched") return "권한 세트 변경";
   if (action === "admin.permission_assignment.created") return "권한 배정 요청";
   if (action === "admin.permission_assignment.revoked") return "권한 회수 요청";
-  if (action === "admin.object_field_policy.patched") return "필드 정책 변경";
+  if (action === "admin.object_field_policy.patched") return "항목 표시 방식 수정";
   if (action === "admin.connected_app.created") return "연결 앱 등록";
   if (action === "admin.connected_app.disabled") return "연결 앱 중지";
   return "관리 기록";
@@ -121,10 +121,10 @@ export function PermissionAdminPanel() {
 
   return (
     <section className="people-admin-grid span-2" data-sf-b-w06-admin-setup="true">
-      <Panel title="권한 세트" meta={loading ? "불러오는 중" : `${permissionSets.length}개`} className="people-admin-panel">
+      <Panel title="권한" meta={loading ? "불러오는 중" : `${permissionSets.length}개`} className="people-admin-panel">
         <div className="people-panel-kicker">
           <ShieldCheck size={14} />
-          People 안에서 Client/Matter 접근 권한을 검토합니다.
+          조직관리자와 구성원 권한의 범위를 설정합니다.
         </div>
         <DataTable
           columns={["이름", "규칙", "범위", "상태"]}
@@ -165,7 +165,7 @@ export function PermissionAdminPanel() {
         </div>
       </Panel>
 
-      <Panel title="권한 배정" meta={`${assignments.length}개`} className="people-admin-panel">
+      <Panel title="액세스 권한" meta={`${assignments.length}개`} className="people-admin-panel">
         <DataTable
           columns={["대상", "세트", "상태", "적용"]}
           rows={assignments.map((item) => [
@@ -205,13 +205,13 @@ export function PermissionAdminPanel() {
         </div>
       </Panel>
 
-      <Panel title="People 민감도 연결" meta={`${ethicsPermissionLinks.length}개`} className="people-admin-panel">
+      <Panel title="권한 범위" meta={`${ethicsPermissionLinks.length}개`} className="people-admin-panel">
         <div className="people-panel-kicker" data-lcx-ppl-06-permission-linkage="true">
           <ShieldCheck size={14} />
-          충돌/윤리벽 민감 필드와 권한 세트 연결을 확인합니다.
+          이해상충·접근 제한 민감 항목과 권한 세트 연결을 확인합니다.
         </div>
         <DataTable
-          columns={["필드", "필요 역할", "권한 세트", "표시"]}
+          columns={["항목", "필요 역할", "권한 세트", "표시"]}
           rows={ethicsPermissionLinks.map((item) => [
             item.sensitive_field,
             item.required_role,
@@ -220,12 +220,12 @@ export function PermissionAdminPanel() {
           ])}
         />
         <div className="live-data-state" data-lcx-ppl-06-permission-receipt-link="true">
-          <strong>Reviewer receipt</strong>
+          <strong>검토 기록</strong>
           {ethicsReceiptCount}건 연결됨
         </div>
       </Panel>
 
-      <Panel title="객체 관리" meta={activeObject} className="people-admin-panel">
+      <Panel title="구성원 커스텀 필드" meta={activeObject} className="people-admin-panel">
         <div className="object-manager-tabs" data-object-manager-admin="route-backed" data-sf-b-w06-object-manager="true">
           {objects.map((item) => (
             <button
@@ -239,7 +239,7 @@ export function PermissionAdminPanel() {
           ))}
         </div>
         <DataTable
-          columns={["필드", "표시", "상태", "구조 변경"]}
+          columns={["항목", "표시", "상태", "구조 변경"]}
           rows={fields.map((item) => [
             item.label,
             stateLabel(item.visibility),
@@ -258,16 +258,16 @@ export function PermissionAdminPanel() {
             }))}
           >
             <Database size={15} />
-            정책 변경
+            표시 방식 수정
           </button>
         </div>
         <div className={statusClass(results.fieldPolicy)} data-sf-b-w06-field-policy-owner-blocked-result="true">
-          <strong>필드 정책</strong>
+          <strong>커스텀 항목</strong>
           {resultText(results.fieldPolicy)}
         </div>
       </Panel>
 
-      <Panel title="연결 앱" meta={`${connectedApps.length}개`} className="people-admin-panel">
+      <Panel title="연동" meta={`${connectedApps.length}개`} className="people-admin-panel">
         <div className="connected-app-list" data-connected-apps-admin="provider-blocked" data-sf-b-w06-connected-app-list="true">
           {connectedApps.map((item) => (
             <Property
@@ -302,7 +302,7 @@ export function PermissionAdminPanel() {
         </div>
       </Panel>
 
-      <Panel title="감사 기록" meta={`${auditRows.length}건`} className="people-admin-panel span-2">
+      <Panel title="권한 변경 이력" meta={`${auditRows.length}건`} className="people-admin-panel span-2">
         <DataTable
           columns={["작업", "대상", "보안"]}
           rows={auditRows.slice(0, 6).map((item) => [
@@ -312,7 +312,7 @@ export function PermissionAdminPanel() {
           ])}
         />
         <div className="live-data-state" data-sf-b-w06-admin-audit="true">
-          <strong>감사 경계</strong>
+          <strong>기록 표시 범위</strong>
           직접 식별자, 토큰, 원문 정책은 숨깁니다.
         </div>
       </Panel>

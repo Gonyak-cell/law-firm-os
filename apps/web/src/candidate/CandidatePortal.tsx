@@ -8,8 +8,8 @@ function stageLabel(value) {
   if (value === "submitted") return "접수";
   if (value === "screening") return "검토";
   if (value === "interview") return "면접";
-  if (value === "offer") return "채용 제안";
-  if (value === "hired") return "채용";
+  if (value === "offer") return "합격자";
+  if (value === "hired") return "구성원 등록";
   if (value === "created" || value === "updated") return "확인";
   return "확인 필요";
 }
@@ -21,7 +21,7 @@ function candidateTypeLabel(value) {
 
 function documentTypeLabel(value) {
   if (value === "resume") return "이력서";
-  if (value === "offer") return "채용 제안서";
+  if (value === "offer") return "합격자 문서";
   if (value === "policy") return "정책 문서";
   return "문서";
 }
@@ -75,7 +75,7 @@ export function CandidatePortal({ candidateId }) {
   }
 
   return (
-    <Panel className="people-panel span-2" title="지원자 정보" meta="채용">
+    <Panel className="people-panel span-2" title="지원자 정보" meta="구성원 등록">
       <div className="people-panel-kicker">
         <BadgeCheck size={15} />
         지원 내역과 문서 정보를 확인합니다

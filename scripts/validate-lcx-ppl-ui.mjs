@@ -73,8 +73,16 @@ assert.equal(contract.claim_boundary.go_live_approved, false);
 assert.equal(contract.claim_boundary.enterprise_trust_approved, false);
 assert.equal(contract.claim_boundary.ai_final_decision_allowed, false);
 
-for (const label of ["디렉터리", "관계망", "충돌/벽", "구성원(HRX)"]) {
+for (const label of ["관리", "회사 설정", "구성원", "휴가관리", "요청 관리", "입퇴사 관리", "회사방침", "증명서 발급 요청", "승인 규칙", "인사기록", "권한", "리포트"]) {
   requireText(shellPath, label);
+}
+
+for (const hiddenLabel of ["관계자 관리", "사건 관련 인물", "인물 목록", "인물 검색", "연결 관계", "Client/Matter 연결", "구성원 운영", "설정·정산", "인사규정", "인력 현황", "인사정보 접근 권한"]) {
+  assert.equal(read(shellPath).includes(hiddenLabel), false, `People sidebar must not expose removed legal-person menu label: ${hiddenLabel}`);
+}
+
+for (const hiddenSection of ["people-directory", "people-relationships", "people-conflicts"]) {
+  assert.equal(read(shellPath).includes(`section: "${hiddenSection}"`), false, `People sidebar must not expose removed legal-person route: ${hiddenSection}`);
 }
 
 for (const marker of [
@@ -82,8 +90,8 @@ for (const marker of [
   "people-relationships",
   "people-conflicts",
   "LegalPeopleWorkspace",
-  "Client, Matter, 조직, 외부 참여자",
-  "HRX 직원 관리는 하위 영역"
+  "구성원, 조직, 휴가관리",
+  "회사방침, 급여정산"
 ]) {
   requireText(peopleHomePath, marker);
 }
@@ -93,10 +101,10 @@ for (const marker of [
   "fetchLegalPeopleSearch",
   "fetchLegalPersonDetail",
   "fetchLegalPeopleRelationships",
-  "법률 People 디렉터리",
-  "People 상세",
-  "관계 패널",
-  "충돌/윤리벽",
+  "Matter 참여자 확인",
+  "참여자 상세",
+  "Client·Matter 관련 기록",
+  "이해상충 검토",
   "권한에 따라 축약"
 ]) {
   requireText(legalPeopleWorkspacePath, marker);
@@ -117,7 +125,7 @@ for (const marker of [
   "fetchLegalPeopleSearch",
   "client_id: \"client_lcx_001\"",
   "data-lcx-ppl-client-backlink",
-  "법률 People 연결"
+  "관련 인물 연결"
 ]) {
   requireText(clientsSurfacePath, marker);
 }
@@ -126,7 +134,7 @@ for (const marker of [
   "fetchLegalPeopleSearch",
   "matter_id: \"matter_lcx_001\"",
   "data-lcx-ppl-matter-backlink",
-  "Matter 참여자와 외부 관계자"
+  "Matter 참여자와 관련 인물"
 ]) {
   requireText(mattersSurfacePath, marker);
 }
