@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx8.final-lane-assignment.p8-t02-t06.v1",
-  "generated_at": "2026-06-25T14:30:37.120Z",
+  "generated_at": "2026-06-25T15:29:35.840801Z",
   "status": "FINAL_REMEDIATION_LANES_ASSIGNED",
   "tuws_closed": [
     "P8-T02",
@@ -2394,7 +2394,23 @@
       "tuw": "P8-T06",
       "source_file": "apps/web/src/components/ClientsSurface.jsx; apps/web/src/data/apiClient.js",
       "handler": "fetchMasterDataRecords(ctx=denied) -> renderLiveState(result, \"Client\") -> live-data-denied panel",
-      "api_route": "GET /master-data/records"
+      "api_route": "GET /master-data/records",
+      "post_closeout_resolution": {
+        "resolved_rows": [
+          "LCX8-ACTION-0272",
+          "LCX8-ACTION-0273"
+        ],
+        "finding_resolved": "P7-AFF-001",
+        "status_before": "GUARDED",
+        "status_after": "GUARDED",
+        "resolved_at": "2026-06-25T15:29:35.840801Z",
+        "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
+        "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
+        "remaining_findings": [
+          "P7-COPY-002"
+        ],
+        "note": "Historical P7/P8 artifacts remain closeout snapshots; current product hides Client guarded-state mutation affordances and skips guarded record-action fetches. Copy-policy cleanup remains open under P7-COPY-002."
+      }
     },
     {
       "id": "LCX8-ACTION-0273",
@@ -2409,7 +2425,23 @@
       "tuw": "P8-T06",
       "source_file": "apps/web/src/components/ClientsSurface.jsx; apps/web/src/data/apiClient.js",
       "handler": "fetchMasterDataRecords(ctx=review) -> renderLiveState(result, \"Client\") -> live-data-review panel",
-      "api_route": "GET /master-data/records"
+      "api_route": "GET /master-data/records",
+      "post_closeout_resolution": {
+        "resolved_rows": [
+          "LCX8-ACTION-0272",
+          "LCX8-ACTION-0273"
+        ],
+        "finding_resolved": "P7-AFF-001",
+        "status_before": "GUARDED",
+        "status_after": "GUARDED",
+        "resolved_at": "2026-06-25T15:29:35.840801Z",
+        "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
+        "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
+        "remaining_findings": [
+          "P7-COPY-002"
+        ],
+        "note": "Historical P7/P8 artifacts remain closeout snapshots; current product hides Client guarded-state mutation affordances and skips guarded record-action fetches. Copy-policy cleanup remains open under P7-COPY-002."
+      }
     },
     {
       "id": "LCX8-ACTION-0280",
@@ -2838,5 +2870,21 @@
     "resolved_at": "2026-06-25T15:19:55.545851Z",
     "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
     "note": "Historical P8 ranking/assignment remains a closeout snapshot; current product ledger marks LCX8-ACTION-0280 resolved."
+  },
+  "post_closeout_resolution_client_guarded_affordance": {
+    "resolved_rows": [
+      "LCX8-ACTION-0272",
+      "LCX8-ACTION-0273"
+    ],
+    "finding_resolved": "P7-AFF-001",
+    "status_before": "GUARDED",
+    "status_after": "GUARDED",
+    "resolved_at": "2026-06-25T15:29:35.840801Z",
+    "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
+    "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
+    "remaining_findings": [
+      "P7-COPY-002"
+    ],
+    "note": "Historical P7/P8 artifacts remain closeout snapshots; current product hides Client guarded-state mutation affordances and skips guarded record-action fetches. Copy-policy cleanup remains open under P7-COPY-002."
   }
 }

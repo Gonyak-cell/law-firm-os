@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx8.action-run.v1",
-  "generated_at": "2026-06-25T15:19:55.545851Z",
+  "generated_at": "2026-06-25T15:29:35.840801Z",
   "status": "lcx8_closed_current_product_flow_pass_pending_go_live_decision",
   "goal": "LCX8 UI action operational audit breakdown and startup",
   "baseline": {
@@ -1259,6 +1259,13 @@
       "result": "PASS_CURRENT_PRODUCT_FLOW_BLOCKER_RESOLVED",
       "summary": "Index marks W8 closed with current-product P9 flow/live verifier pass and no remaining closeout blocker.",
       "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-matter-web-index-update-p9-t09.json"
+    },
+    {
+      "id": "POST-CLOSEOUT-LCX8-ACTION-0272-0273",
+      "command": "Client guarded-state affordance remediation, Playwright denied/review check, npm --workspace apps/web run test:ui, npm run build, npm run ui:live:verify, npm run ui:flows:verify, npm run lcx:ppl:ui:validate",
+      "result": "PASS_GUARDED_STATUS_UNCHANGED",
+      "summary": "Resolved P7-AFF-001 for Client denied/review guarded panels by hiding the record-action mutation affordance and skipping guarded record-action fetches. LCX8-ACTION-0272/0273 remain GUARDED; P7-COPY-002 remains Lane E.",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json"
     }
   ],
   "baseline_blockers": [
@@ -1396,7 +1403,9 @@
   },
   "post_closeout_remediation": {
     "resolved_rows": [
-      "LCX8-ACTION-0280"
+      "LCX8-ACTION-0280",
+      "LCX8-ACTION-0272",
+      "LCX8-ACTION-0273"
     ],
     "status_counts_after": {
       "inventory_rows": 324,
@@ -1408,6 +1417,12 @@
       "blocked": 122,
       "fail": 42
     },
-    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json"
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
+    "artifacts": [
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json"
+    ],
+    "latest_note": "LCX8-ACTION-0272/0273 remain GUARDED; P7-AFF-001 Client guarded mutation affordance is resolved; P7-COPY-002 remains Lane E."
   }
 }

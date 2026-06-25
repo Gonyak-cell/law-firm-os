@@ -1,0 +1,99 @@
+{
+  "schema_version": "matter.lcx8.post-closeout-client-guarded-affordance-status.v1",
+  "generated_at": "2026-06-25T15:29:35.840801Z",
+  "status": "POST_CLOSEOUT_CLIENT_GUARDED_AFFORDANCE_REMEDIATION_RECORDED",
+  "action_ids": [
+    "LCX8-ACTION-0272",
+    "LCX8-ACTION-0273"
+  ],
+  "finding_resolved": "P7-AFF-001",
+  "remaining_findings": [
+    "P7-COPY-002"
+  ],
+  "status_before": {
+    "LCX8-ACTION-0272": "GUARDED",
+    "LCX8-ACTION-0273": "GUARDED"
+  },
+  "status_after": {
+    "LCX8-ACTION-0272": "GUARDED",
+    "LCX8-ACTION-0273": "GUARDED"
+  },
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 42
+  },
+  "implementation": {
+    "source_files": [
+      "apps/web/src/components/ClientsSurface.jsx",
+      "apps/web/test/ui-regression.test.mjs"
+    ],
+    "summary": "ClientsSurface now treats denied/review Client live states as guarded, clears record-action mutation state, skips guarded record-action fetches, and renders RecordActionSummary only for unguarded selected clients."
+  },
+  "browser_qa": {
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
+    "passed": true,
+    "checks": [
+      {
+        "action_id": "LCX8-ACTION-0272",
+        "name": "client-denied",
+        "passed": true,
+        "record_action_panel_count": 0,
+        "record_action_strip_count": 0,
+        "enabled_mutation_button_count": 0,
+        "record_action_fetch_count": 0,
+        "protected_token_hits": [],
+        "api_5xx_count": 0
+      },
+      {
+        "action_id": "LCX8-ACTION-0273",
+        "name": "client-review",
+        "passed": true,
+        "record_action_panel_count": 0,
+        "record_action_strip_count": 0,
+        "enabled_mutation_button_count": 0,
+        "record_action_fetch_count": 0,
+        "protected_token_hits": [],
+        "api_5xx_count": 0
+      }
+    ]
+  },
+  "verification_commands": [
+    {
+      "command": "Playwright Client denied/review guarded affordance remediation QA",
+      "result": "PASS record_action_panel_count=0 enabled_mutation_button_count=0 record_action_fetch_count=0"
+    },
+    {
+      "command": "npm --workspace apps/web run test:ui",
+      "result": "PASS 17/17"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS"
+    },
+    {
+      "command": "npm run ui:live:verify",
+      "result": "PASS 13/13"
+    },
+    {
+      "command": "npm run ui:flows:verify",
+      "result": "PASS 9/9"
+    },
+    {
+      "command": "npm run lcx:ppl:ui:validate",
+      "result": "PASS"
+    }
+  ],
+  "non_claims": {
+    "status_promoted_to_pass": false,
+    "go_live_approved": false,
+    "production_ready": false,
+    "copy_issue_resolved": false,
+    "historical_p7_p8_artifacts_are_closeout_snapshots": true
+  }
+}

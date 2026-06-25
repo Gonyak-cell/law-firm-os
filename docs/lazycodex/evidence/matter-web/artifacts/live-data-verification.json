@@ -1,15 +1,13 @@
 {
   "schema_version": "matter.lcx-web.live-data-verification.v1",
-  "generated_at": "2026-06-25T15:21:04.422Z",
+  "generated_at": "2026-06-25T15:31:36.228Z",
   "base_url": "http://127.0.0.1:5173",
   "api_base": "http://127.0.0.1:4180 via vite dev proxy",
   "source_of_truth": "apps/web",
   "passed": true,
-  "api_response_count": 115,
+  "api_response_count": 111,
   "api_server_errors": [],
   "console_errors_recorded_not_gated": [
-    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
-    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
     "Failed to load resource: the server responded with a status of 403 (Forbidden)",
     "Failed to load resource: the server responded with a status of 403 (Forbidden)",
     "Failed to load resource: the server responded with a status of 403 (Forbidden)",

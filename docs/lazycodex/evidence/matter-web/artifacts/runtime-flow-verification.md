@@ -1,6 +1,6 @@
 # LCX-WEB Runtime Flow Verification
 
-Generated at: 2026-06-25T15:16:39.197Z
+Generated at: 2026-06-25T15:31:45.794Z
 
 Overall result: PASS
 
@@ -31,8 +31,6 @@ Source of truth: `apps/web`
 
 Recorded for operator review. Denied/review flows may surface expected non-2xx network messages.
 
-- Failed to load resource: the server responded with a status of 403 (Forbidden)
-- Failed to load resource: the server responded with a status of 403 (Forbidden)
 - Failed to load resource: the server responded with a status of 403 (Forbidden)
 - Failed to load resource: the server responded with a status of 403 (Forbidden)
 - Failed to load resource: the server responded with a status of 403 (Forbidden)

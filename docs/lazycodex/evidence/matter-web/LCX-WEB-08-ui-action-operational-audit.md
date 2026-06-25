@@ -230,7 +230,7 @@ Latest completed slice:
 - P6-T06 desktop update/session mapping: ran desktop session tests (15/15 pass), update tests (3/3 pass), and the session cleanup contract validator. Desktop logout/session cleanup was promoted to `PASS`; signed update and rollback remain `BLOCKED` pending packaged updater/notarization/owner receipts; public update channel remains `GUARDED`. Status counts are now PASS 10, GUARDED 19, UI_ONLY 128, DESCRIPTOR_ONLY 2, BLOCKED 122, FAIL 43, UNKNOWN 0.
 - P6-T07 desktop external runtime blocker classification: reviewed all 26 desktop/native rows. Native status counts are PASS 7, GUARDED 10, BLOCKED 9, UNKNOWN 0. Temporary packaged desktop/AWS runtime evidence is not treated as production go-live, public release, owner approval, OS protocol, native notification, file bridge active-shell, or packaged updater/notarization proof. No statuses changed.
 - P7-T00 visual overlap/hidden-control review: used Lazyweb desktop dashboard references as a light comparison baseline and reviewed representative LCX8 mobile/desktop screenshots. Desktop login/product screens and primary mobile panels are not occluded, but three Lane E findings were recorded for mobile clipped/offscreen product/secondary navigation and hidden global search. No statuses changed.
-- P7-T01 disabled/guarded affordance review: reviewed disabled/unavailable sweep plus guarded-state, fail-closed, and Matter/Vault permission-trimming artifacts. Matter/Vault and HRX guarded affordances communicate unavailability; Client guarded panels still expose one enabled mutation affordance and the People guarded-state gap remains a known `FAIL`. Two findings were recorded and no statuses changed.
+- P7-T01 disabled/guarded affordance review: reviewed disabled/unavailable sweep plus guarded-state, fail-closed, and Matter/Vault permission-trimming artifacts. Matter/Vault and HRX guarded affordances communicate unavailability; at closeout, Client guarded panels still exposed one enabled mutation affordance and the People guarded-state gap remained a known `FAIL`. Post-closeout remediation now records People as `GUARDED` and resolves the Client mutation affordance for `LCX8-ACTION-0272`/`LCX8-ACTION-0273`; the Client copy issue `P7-COPY-002` remains open.
 - P7-T02 focus/dialog/drawer review: reviewed mobile focus smoke for global search, People search, and notification drawer behavior. People search focus and Escape close for the notification drawer pass; global search hidden/focus failure and notification drawer focus containment are Lane E findings. No statuses changed.
 - P7-T03 Korean copy review complete: KOREAN_COPY_REVIEW_COMPLETE_WITH_LANE_E_FINDINGS.
 - P7-T04 launch/readiness claim review complete: LAUNCH_CLAIM_REVIEW_COMPLETE_NO_OVERCLAIM_FINDINGS.
@@ -289,7 +289,9 @@ Latest completed slice:
   rendered web routes. Client/Matter/Vault denied/review states are represented
   as `GUARDED`. At closeout, People directory denied/review was a `FAIL`; the
   post-closeout remediation now records `LCX8-ACTION-0280` as `GUARDED` with
-  browser/API evidence in
+  browser/API evidence. The same post-closeout evidence set records
+  `LCX8-ACTION-0272` and `LCX8-ACTION-0273` as still `GUARDED` while resolving
+  the Client denied/review mutation affordance. Current status evidence is in
   `docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json`.
 - P1-T12 coverage count created
   `docs/lazycodex/evidence/matter-web/artifacts/lcx8-coverage-count-p1-t12.json`.
@@ -597,11 +599,11 @@ Latest completed slice:
 | Status | Count | Scope |
 | --- | ---: | --- |
 | PASS | 10 | One read-only Vault refresh row, two local synthetic Matter write rows with reload/read-model/audit proof, six packaged desktop shell/login/reset/runtime/feature-check rows, and one desktop logout/session cleanup row. These are evidence claims only, not production go-live claims. |
-| GUARDED | 19 | Desktop native guards, Client/Matter/Vault denied/review state panels, grouped Matter disabled mutation strips, and the HRX audit step-up retry state. |
+| GUARDED | 20 | Desktop native guards, Client/Matter/Vault/People denied/review state panels, grouped Matter disabled mutation strips, and the HRX audit step-up retry state. Client guarded mutation affordances are resolved post-closeout, while Client copy cleanup remains Lane E. |
 | UI_ONLY | 128 | Local inputs, state toggles, route/hash navigation, Matter/People/Client/Profile/Vault selection controls, Shell topbar/search/sidebar navigation, Matter/Vault sidebar backfill rows, Matter team form fields, and desktop login input fields. |
 | DESCRIPTOR_ONLY | 2 | Profile data unavailable and Vault email filing unavailable state panels that describe missing runtime/provider layers without exposing executable operations. |
 | BLOCKED | 122 | Remaining write/read rows needing click/API/audit/persistence proof, provider/payment/data-cloud/owner receipt rows, and desktop native paths needing active shell, P6/P4, OS, packaging, or external runtime evidence. |
-| FAIL | 43 | P2-T08-confirmed no-handler/no-section-surface affordances, Shell utility buttons without handlers, Vault detail/email panel overflow controls, People directory guarded-state gap, workforce row no-effect, and standalone HRX header refresh gap. |
+| FAIL | 42 | P2-T08-confirmed no-handler/no-section-surface affordances, Shell utility buttons without handlers, Vault detail/email panel overflow controls, workforce row no-effect, and standalone HRX header refresh gap. The People directory guarded-state gap was resolved post-closeout into `GUARDED`. |
 
 ## Coverage Count After P1-T12
 
@@ -947,11 +949,11 @@ LCX8 verdict:
 - inventoried action rows: 324
 - critical unknown actions: 0
 - runtime-ready local PASS actions: 10
-- guarded actions: 19
+- guarded actions: 20
 - UI-only actions: 128
 - descriptor-only actions: 2
 - blocked actions: 122
-- failed actions: 43
+- failed actions: 42
 - production go-live: false
 - final go-live decision: false
 - launch authorization claim: false
@@ -976,11 +978,11 @@ false pending the final go-live decision.
 | UNKNOWN rows | 0 |
 | Critical UNKNOWN rows | 0 |
 | PASS | 10 |
-| GUARDED | 19 |
+| GUARDED | 20 |
 | UI_ONLY | 128 |
 | DESCRIPTOR_ONLY | 2 |
 | BLOCKED | 122 |
-| FAIL | 43 |
+| FAIL | 42 |
 | Remediation-ready issues | 184 |
 | P8 risk tiers | critical 1, high 92, medium 76, low 15 |
 

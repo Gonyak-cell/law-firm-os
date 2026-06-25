@@ -914,14 +914,27 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   const leadCount = resultItems(leadsResult).length;
   const opportunityCount = opportunities.length;
   const intakeCount = intakes.length;
+  const clientGuardedState =
+    liveCtx === "denied" ||
+    liveCtx === "review" ||
+    clientsResult?.uiState === "denied" ||
+    clientsResult?.uiState === "review_required" ||
+    clientsResult?.outcome === "review_required";
 
   useEffect(() => {
     let cancelled = false;
     setClientRecordActionFieldsResult(null);
     setClientRecordActionAuditResult(null);
+    setClientRecordActionUpdateResult(null);
+    setClientRecordActionOwnerResult(null);
+    if (clientGuardedState || !selectedClientId) {
+      return () => {
+        cancelled = true;
+      };
+    }
     Promise.all([
       fetchRecordActionFields({ objectName: "client", ctx: liveCtx }),
-      selectedClientId ? fetchRecordActionAudit({ objectName: "client", recordId: selectedClientId, ctx: liveCtx }) : Promise.resolve({ kind: "data", items: [] })
+      fetchRecordActionAudit({ objectName: "client", recordId: selectedClientId, ctx: liveCtx })
     ]).then(([fields, audit]) => {
       if (cancelled) return;
       setClientRecordActionFieldsResult(fields);
@@ -930,7 +943,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     return () => {
       cancelled = true;
     };
-  }, [liveCtx, refreshToken, selectedClientId]);
+  }, [clientGuardedState, liveCtx, refreshToken, selectedClientId]);
 
   async function handleOpportunityHandoff() {
     if (!selectedOpportunity?.opportunity_id) return;
@@ -1349,16 +1362,18 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
           mergeProposalCount={mergeProposalCount}
           executableMergeCount={executableMergeCount}
         />
-        <RecordActionSummary
-          fieldsResult={clientRecordActionFieldsResult}
-          auditResult={clientRecordActionAuditResult}
-          updateResult={clientRecordActionUpdateResult}
-          ownerResult={clientRecordActionOwnerResult}
-          pending={clientRecordActionPending}
-          ownerPending={clientRecordActionOwnerPending}
-          onFieldUpdate={handleClientRecordActionFieldUpdate}
-          onOwnerBlocked={handleClientOwnerBlockedAction}
-        />
+        {!clientGuardedState && selectedClientId && (
+          <RecordActionSummary
+            fieldsResult={clientRecordActionFieldsResult}
+            auditResult={clientRecordActionAuditResult}
+            updateResult={clientRecordActionUpdateResult}
+            ownerResult={clientRecordActionOwnerResult}
+            pending={clientRecordActionPending}
+            ownerPending={clientRecordActionOwnerPending}
+            onFieldUpdate={handleClientRecordActionFieldUpdate}
+            onOwnerBlocked={handleClientOwnerBlockedAction}
+          />
+        )}
       </div>
     </section>
   );

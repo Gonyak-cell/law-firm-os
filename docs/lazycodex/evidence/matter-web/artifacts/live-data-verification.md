@@ -1,6 +1,6 @@
 # LCX-WEB Live Data Verification
 
-Generated at: 2026-06-25T15:21:04.422Z
+Generated at: 2026-06-25T15:31:36.228Z
 
 Overall result: PASS
 
@@ -29,8 +29,6 @@ Any HTTP 5xx response from `/api` or `/master-data` fails its check.
 
 Recorded for operator review. Denied/review flows may produce expected non-2xx network messages.
 
-- Failed to load resource: the server responded with a status of 403 (Forbidden)
-- Failed to load resource: the server responded with a status of 403 (Forbidden)
 - Failed to load resource: the server responded with a status of 403 (Forbidden)
 - Failed to load resource: the server responded with a status of 403 (Forbidden)
 - Failed to load resource: the server responded with a status of 403 (Forbidden)
