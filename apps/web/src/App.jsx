@@ -146,7 +146,7 @@ export function App() {
             />
           )}
           {view === "clients" && <ClientsSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
-          {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
+          {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} onNavigateSection={(section) => navigateToView("matters", section)} />}
           {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} />}
           {view === "vault" && <VaultSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
           {view === "profile" && <UserProfileSurface />}

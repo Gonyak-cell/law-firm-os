@@ -28,13 +28,13 @@ export function HRDocumentWorkspace({ employeeId, refreshKey }) {
 
   let body;
   if (!employeeId) {
-    body = <div className="live-data-state live-data-empty">구성원을 선택해주세요.</div>;
+    body = <div className="live-data-state live-data-empty">구성원을 선택하세요.</div>;
   } else if (result === null) {
-    body = <div className="live-data-state live-data-loading">문서 정보를 불러오는 중입니다</div>;
+    body = <div className="live-data-state live-data-loading">문서 목록을 불러오는 중입니다</div>;
   } else if (result.kind === "empty") {
-    body = <div className="live-data-state live-data-empty">구성원을 선택해주세요.</div>;
+    body = <div className="live-data-state live-data-empty">구성원을 선택하세요.</div>;
   } else if (result.kind === "error") {
-    body = <div className="live-data-state live-data-error">문서 정보를 불러오지 못했습니다.</div>;
+    body = <div className="live-data-state live-data-error">문서 목록을 불러오지 못했습니다.</div>;
   } else if (result.documents.length === 0) {
     body = <div className="live-data-state live-data-empty">표시할 문서가 없습니다.</div>;
   } else {
@@ -52,10 +52,10 @@ export function HRDocumentWorkspace({ employeeId, refreshKey }) {
   }
 
   return (
-    <Panel id="people-documents" className="people-panel span-2" title="인사 문서" meta="권한 적용">
+    <Panel id="people-documents" className="people-panel span-2" title="인사 문서" meta="권한 기준 적용">
       <div className="people-panel-kicker">
         <FileText size={15} />
-        문서 내용은 권한이 있을 때만 표시됩니다.
+        문서 본문은 권한이 있을 때만 표시합니다.
       </div>
       {body}
     </Panel>

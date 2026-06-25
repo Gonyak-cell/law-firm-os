@@ -44,7 +44,7 @@ export function OpsSurface({ labels, liveCtx = "allow" }) {
 
   let body;
   if (result === null) body = <div className="live-data-state live-data-loading"><strong>운영 항목 불러오는 중</strong> 확인할 항목을 준비하고 있습니다.</div>;
-  else if (result.kind === "error") body = <div className="live-data-state live-data-error"><strong>운영 항목을 불러올 수 없습니다</strong> 잠시 후 다시 시도하세요.</div>;
+  else if (result.kind === "error") body = <div className="live-data-state live-data-error"><strong>운영 항목을 불러올 수 없습니다</strong> 새로고침하거나 연결 상태를 확인하세요.</div>;
   else if (result.uiState === "denied") body = <div className="live-data-state live-data-denied"><strong>접근할 수 없습니다</strong> 현재 권한으로는 운영 항목을 볼 수 없습니다.</div>;
   else if (result.uiState === "review_required" || result.outcome === "review_required") body = <div className="live-data-state live-data-review"><strong>검토가 필요합니다</strong> 담당자 확인 후 운영 항목을 볼 수 있습니다.</div>;
   else body = (

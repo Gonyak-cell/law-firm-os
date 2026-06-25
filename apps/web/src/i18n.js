@@ -2,14 +2,14 @@ import { PRODUCT_BRAND } from "./brand/brand";
 
 export const copy = {
   ko: {
-    create: "생성",
+    create: "새로 만들기",
     recent: "최근",
     favorites: "즐겨찾기",
     spaces: "공간",
     search: "검색",
     invite: "구성원 초대",
     upgrade: "요금제",
-    workspace: "AMIC Law",
+    workspace: "",
     project: "Client Matter People Vault",
     language: "한국어",
     theme: "테마",
@@ -76,14 +76,14 @@ export const copy = {
     themeTitle: "테마 환경설정"
   },
   en: {
-    create: "생성",
+    create: "새로 만들기",
     recent: "최근",
     favorites: "즐겨찾기",
     spaces: "공간",
     search: "검색",
     invite: "구성원 초대",
     upgrade: "요금제",
-    workspace: "AMIC Law",
+    workspace: "",
     project: "Client Matter People Vault",
     language: "한국어",
     theme: "테마",

@@ -125,7 +125,7 @@ function UserProfilesListLiveSurface({ labels, liveCtx }) {
     body = (
       <div className="live-data-state live-data-error">
         <strong>프로필을 불러올 수 없습니다</strong>
-        잠시 후 다시 시도하세요.
+        새로고침하거나 연결 상태를 확인하세요.
       </div>
     );
   } else if (result.uiState === "denied") {

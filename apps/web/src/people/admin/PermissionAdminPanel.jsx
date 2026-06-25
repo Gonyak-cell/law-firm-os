@@ -313,7 +313,7 @@ export function PermissionAdminPanel() {
         />
         <div className="live-data-state" data-sf-b-w06-admin-audit="true">
           <strong>감사 경계</strong>
-          직접 식별자, 토큰, 원문 정책은 표시하지 않습니다.
+          직접 식별자, 토큰, 원문 정책은 숨깁니다.
         </div>
       </Panel>
     </section>

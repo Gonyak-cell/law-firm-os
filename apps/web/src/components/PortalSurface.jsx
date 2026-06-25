@@ -9,7 +9,7 @@ const PORTAL_AUDIT_HINT_REF = "ui_cmp_g10_portal_probe";
 
 function LiveState({ result, label }) {
   if (result === null) return <div className="live-data-state live-data-loading"><strong>{label} 불러오는 중</strong> 공유 정보를 확인하고 있습니다.</div>;
-  if (result.kind === "error") return <div className="live-data-state live-data-error"><strong>{label}를 불러올 수 없습니다</strong> 잠시 후 다시 시도하세요.</div>;
+  if (result.kind === "error") return <div className="live-data-state live-data-error"><strong>{label}를 불러올 수 없습니다</strong> 새로고침하거나 연결 상태를 확인하세요.</div>;
   if (result.uiState === "denied") return <div className="live-data-state live-data-denied"><strong>접근할 수 없습니다</strong> 현재 권한으로는 이 공유 화면을 볼 수 없습니다.</div>;
   if (result.uiState === "review_required" || result.outcome === "review_required") return <div className="live-data-state live-data-review"><strong>검토가 필요합니다</strong> 담당자 확인 후 공유 정보를 볼 수 있습니다.</div>;
   return null;
@@ -69,7 +69,7 @@ export function PortalSurface({ labels, liveCtx = "allow" }) {
         }
       />
       <div className="portal-runtime-grid">
-        <Panel className="span-2 portal-panel" title="공유 범위" meta="권한 적용">
+        <Panel className="span-2 portal-panel" title="공유 범위" meta="권한 기준 적용">
           {blocking ?? (
             <div className="portal-safe-strip">
               <ShieldCheck size={15} />

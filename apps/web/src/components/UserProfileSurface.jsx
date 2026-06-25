@@ -14,7 +14,6 @@ import {
 const contractRows = [
   ["이용 유형", "외부 협업자"],
   ["계약 방식", "월 정액 자문"],
-  ["소속 조직", "AMIC Law"],
   ["담당 역할", "법무 운영 매니저"],
   ["권한 등급", "미설정"],
   ["시작일", "2024년 4월 15일"],
@@ -39,7 +38,6 @@ export function UserProfileSurface() {
     <section className="matter-profile-surface surface" data-user-profile-surface="matter-consistent">
       <div className="matter-profile-topline">
         <div className="matter-profile-title">
-          <span className="eyebrow">AMIC LAW</span>
           <h1>내 프로필</h1>
           <p>개인 정보, 계약, 정산 설정을 한 화면에서 관리합니다.</p>
         </div>
@@ -64,7 +62,6 @@ export function UserProfileSurface() {
           <p>법무 운영 매니저</p>
           <div className="matter-profile-meta">
             <span className="matter-profile-status offboarding">계정 정리 중</span>
-            <span className="matter-profile-meta-pill">AMIC Law</span>
           </div>
         </div>
       </header>
