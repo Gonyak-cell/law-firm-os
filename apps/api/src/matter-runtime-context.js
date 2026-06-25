@@ -1,8 +1,11 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import {
   createMatterActivityCalendarChannelService,
   createMatterCoreSyntheticFixture,
   createMatterDocumentEmailBuilderService,
   createMatterRepository,
+  upsertMatterAppClientFromVaultContract,
+  upsertMatterAppMatterFromVaultContract,
 } from "../../../packages/matter/src/index.js";
 import { addMatterTeamMember } from "../../../packages/matter/src/staffing-service.js";
 import { appendMatterAuditEvent } from "../../../packages/matter/src/audit.js";
@@ -25,6 +28,8 @@ export const MATTER_API_ERROR_CODES = Object.freeze({
   review_required: "MATTER_REVIEW_REQUIRED",
   approval_required: "MATTER_APPROVAL_REQUIRED",
   not_found: "MATTER_NOT_FOUND",
+  vault_bridge_required: "MATTER_VAULT_BRIDGE_REQUIRED",
+  vault_bridge_blocked: "MATTER_VAULT_BRIDGE_BLOCKED",
 });
 
 export const MATTER_BOUNDED_CONTEXT = Object.freeze({
@@ -62,6 +67,9 @@ export const MATTER_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/matters/recently-viewed",
     "PATCH /api/matters/:matter_id",
     "POST /api/matters/openings",
+    "GET /api/matters/vault-bridge/status",
+    "POST /api/matters/vault-bridge/clients/upsert",
+    "POST /api/matters/vault-bridge/matters/upsert",
     "POST /api/matters/list-views",
     "POST /api/matters/bulk/status-transitions",
     "POST /api/matters/:matter_id/documents",
@@ -95,6 +103,29 @@ const DEFAULT_MATTER_LIST_VIEWS = Object.freeze([
 
 function clone(value) {
   return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+}
+
+function configuredVaultBridgeToken() {
+  const value = process.env.LAWOS_VAULT_BRIDGE_TOKEN;
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function bearerToken(headers = {}) {
+  const raw = headers.authorization ?? headers.Authorization;
+  if (typeof raw !== "string") return null;
+  const match = raw.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1].trim() : null;
+}
+
+function tokenDigest(value) {
+  return createHash("sha256").update(String(value)).digest();
+}
+
+function tokenMatches(expected, actual) {
+  if (!expected || !actual) return false;
+  const expectedDigest = tokenDigest(expected);
+  const actualDigest = tokenDigest(actual);
+  return timingSafeEqual(expectedDigest, actualDigest);
 }
 
 function createMatterRuntimeSeed() {
@@ -268,6 +299,149 @@ function errorResponse(status, requestId, codes, extra = {}) {
       production_ready_claim: false,
     },
   };
+}
+
+function vaultBridgeError(status, requestId, code, extra = {}) {
+  return {
+    status,
+    body: {
+      request_id: requestId,
+      outcome: "blocked",
+      item: null,
+      safe_error_codes: [code],
+      audit_hint_ref: extra.audit_hint_ref ?? null,
+      state_idempotent: false,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+function validateVaultBridgeAuth({ headers, requestId } = {}) {
+  const expected = configuredVaultBridgeToken();
+  if (!expected) {
+    return vaultBridgeError(503, requestId, MATTER_API_ERROR_CODES.vault_bridge_required);
+  }
+  if (!tokenMatches(expected, bearerToken(headers))) {
+    return vaultBridgeError(403, requestId, MATTER_API_ERROR_CODES.vault_bridge_blocked);
+  }
+  return null;
+}
+
+function safeVaultBridgeAuditMetadata(input = {}) {
+  return Object.freeze({
+    idempotency_key_hash: input.idempotencyKeyHash ?? null,
+    approval_ref: input.approvalRef ?? null,
+    source_revision: input.sourceRevision ?? input.migrationApprovalRef ?? null,
+    source_ref: "vault_approved_mapping",
+  });
+}
+
+function handleVaultBridgeStatus({ headers, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const authError = validateVaultBridgeAuth({ headers, requestId });
+  if (authError) return authError;
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      item: {
+        source_mode: "matter_app_api",
+        client_upsert_path: "/api/matters/vault-bridge/clients/upsert",
+        matter_upsert_path: "/api/matters/vault-bridge/matters/upsert",
+        runtime_write_ready: true,
+        repository_durable: runtime.repository?.durable === true,
+      },
+      safe_error_codes: [],
+      state_idempotent: true,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+function handleVaultBridgeClientUpsert({ body, headers, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const authError = validateVaultBridgeAuth({ headers, requestId });
+  if (authError) return authError;
+  try {
+    const result = upsertMatterAppClientFromVaultContract({
+      repository: runtime.repository,
+      request: body,
+      actor_id: body?.migrationOperatorRef ?? "vault-bridge",
+    });
+    if (!result.idempotent_replay) {
+      appendAudit(runtime, {
+        event_id: `matter.vault_bridge.client_upsert:${body.tenantRef}:${result.clientId}:${body.idempotencyKeyHash}`,
+        tenant_id: body.tenantRef,
+        actor_id: body.migrationOperatorRef ?? "vault-bridge",
+        action: "matter.vault_bridge.client_upsert",
+        object_type: "MatterClient",
+        object_id: result.clientId,
+        reason: "vault_approved_mapping_client_upsert",
+        metadata: safeVaultBridgeAuditMetadata(body),
+      });
+    }
+    return {
+      status: result.action === "created" ? 201 : 200,
+      body: {
+        request_id: requestId,
+        outcome: result.action,
+        clientId: result.clientId,
+        clientDisplayName: result.clientDisplayName,
+        clientShortName: result.clientShortName,
+        sourceRevision: result.sourceRevision,
+        action: result.action,
+        idempotent_replay: result.idempotent_replay === true,
+        safe_error_codes: [],
+        state_idempotent: true,
+        production_ready_claim: false,
+      },
+    };
+  } catch {
+    return vaultBridgeError(400, requestId, MATTER_API_ERROR_CODES.validation_error);
+  }
+}
+
+function handleVaultBridgeMatterUpsert({ body, headers, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const authError = validateVaultBridgeAuth({ headers, requestId });
+  if (authError) return authError;
+  try {
+    const result = upsertMatterAppMatterFromVaultContract({
+      repository: runtime.repository,
+      request: body,
+      actor_id: body?.migrationOperatorRef ?? "vault-bridge",
+    });
+    if (!result.idempotent_replay) {
+      appendAudit(runtime, {
+        event_id: `matter.vault_bridge.matter_upsert:${body.tenantRef}:${result.matterAppMatterId}:${body.idempotencyKeyHash}`,
+        tenant_id: body.tenantRef,
+        actor_id: body.migrationOperatorRef ?? "vault-bridge",
+        action: "matter.vault_bridge.matter_upsert",
+        object_type: "Matter",
+        object_id: result.matterAppMatterId,
+        reason: "vault_approved_mapping_matter_upsert",
+        metadata: safeVaultBridgeAuditMetadata(body),
+      });
+    }
+    return {
+      status: result.action === "created" ? 201 : 200,
+      body: {
+        request_id: requestId,
+        outcome: result.action,
+        matterAppMatterId: result.matterAppMatterId,
+        matterCode: result.matterCode,
+        clientId: result.clientId,
+        sourceRevision: result.sourceRevision,
+        action: result.action,
+        idempotent_replay: result.idempotent_replay === true,
+        safe_error_codes: [],
+        state_idempotent: true,
+        production_ready_claim: false,
+      },
+    };
+  } catch {
+    return vaultBridgeError(400, requestId, MATTER_API_ERROR_CODES.validation_error);
+  }
 }
 
 function validateCommonQuery(query, requestId) {
@@ -2519,10 +2693,20 @@ export async function handleMatterApiRequest({
   method,
   query,
   body,
+  headers,
   context,
   requestId,
   runtime = DEFAULT_MATTER_RUNTIME,
 } = {}) {
+  if (pathname === "/api/matters/vault-bridge/status" && method === "GET") {
+    return handleVaultBridgeStatus({ headers, requestId, runtime });
+  }
+  if (pathname === "/api/matters/vault-bridge/clients/upsert" && method === "POST") {
+    return handleVaultBridgeClientUpsert({ body, headers, requestId, runtime });
+  }
+  if (pathname === "/api/matters/vault-bridge/matters/upsert" && method === "POST") {
+    return handleVaultBridgeMatterUpsert({ body, headers, requestId, runtime });
+  }
   if (pathname === "/api/matters" && method === "GET") {
     return handleMatterList({ query, context, requestId, runtime });
   }
