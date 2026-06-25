@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx8.post-closeout-remediation-status.v1",
-  "generated_at": "2026-06-25T15:44:50.298Z",
+  "generated_at": "2026-06-25T15:57:36.772Z",
   "status": "POST_CLOSEOUT_REMEDIATION_RECORDED",
   "resolved_rows": [
     {
@@ -111,6 +111,34 @@
         "console_message_count": 0,
         "network_event_count": 5
       }
+    },
+    {
+      "id": "LCX8-ACTION-0055",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "matter",
+      "section": "bulk-actions",
+      "label": "선택 완료",
+      "evidence": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0055-matter-bulk-status-proof.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0055-matter-bulk-status-proof.md",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0055-matter-bulk-status-proof.png"
+      ],
+      "proof_summary": {
+        "write_http_status": 200,
+        "write_outcome": "updated",
+        "selected_matter_id": "matter_lcx8_0055_owner_1782402998336",
+        "updated_count": 1,
+        "item_status": "closed",
+        "item_wip_status": "completed",
+        "state_idempotent": true,
+        "read_back_found": true,
+        "aggregate_audit_event_id": "matter.bulk.status_transition:tenant_rp05_synthetic:ui_bulk_status_closed_1782403056104",
+        "item_audit_event_id": "matter.status.bulk_transitioned:tenant_rp05_synthetic:matter_lcx8_0055_owner_1782402998336:ui_bulk_status_closed_1782403056104",
+        "denied_write_outcome": "403/blocked",
+        "review_write_outcome": "200/review_required",
+        "production_ready_claim": false
+      }
     }
   ],
   "status_counts_before": {
@@ -126,11 +154,11 @@
   "status_counts_after": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 11,
+    "pass": 12,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 121,
+    "blocked": 120,
     "fail": 42
   },
   "commands": [
@@ -193,7 +221,12 @@
     },
     {
       "command": "JSON parse and LCX8 ledger count invariant",
-      "result": "PASS 324 rows; PASS 11; BLOCKED 121; UNKNOWN 0; LCX8-ACTION-0054 PASS"
+      "result": "PASS 324 rows; PASS 12; BLOCKED 120; UNKNOWN 0; LCX8-ACTION-0055 PASS"
+    },
+    {
+      "command": "Playwright LCX8-ACTION-0055 Matter bulk status UI/API/read-back/audit/fail-closed proof",
+      "result": "PASS 200/updated",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0055-matter-bulk-status-proof.json"
     }
   ],
   "non_claims": {
@@ -204,7 +237,9 @@
     "client_guarded_copy_issue_resolved": true,
     "client_guarded_rows_promoted_to_pass": false,
     "matter_list_view_write_status_promoted_to_pass": true,
-    "matter_list_view_write_production_ready_claim": false
+    "matter_list_view_write_production_ready_claim": false,
+    "matter_bulk_status_promoted_to_pass": true,
+    "matter_bulk_status_production_ready_claim": false
   },
-  "latest_verification_summary": "Post-closeout LCX8-ACTION-0054 verification: node --test apps/api/test/cmp-r4-g4-matter.test.js PASS 11/11; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; git diff --check PASS; JSON/count invariant PASS."
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0055 verification: node --test apps/api/test/cmp-r4-g4-matter.test.js PASS 11/11; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
 }

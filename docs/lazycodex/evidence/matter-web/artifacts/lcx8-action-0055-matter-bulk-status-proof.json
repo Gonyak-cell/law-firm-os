@@ -1,0 +1,296 @@
+{
+  "action_id": "LCX8-ACTION-0055",
+  "generated_at": "2026-06-25T15:57:36.772Z",
+  "route": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+  "status_decision": "BLOCKED_TO_PASS",
+  "precondition": {
+    "synthetic_tenant": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "selected_matter_id": "matter_lcx8_0055_owner_1782402998336",
+    "selected_matter_number": "M-TENANT-RP05-LCX8BULK1782402998336",
+    "selected_title": "LCX8 0055 owner bulk proof 1782402998336",
+    "selected_status_before": "opening",
+    "selected_wip_status_before": "not_started"
+  },
+  "ui_write_proof": {
+    "row_selector": "[data-matter-bulk-select-row=\"true\"] within row matched by title",
+    "action_selector": "[data-matter-bulk-status-action=\"true\"]",
+    "button_label": "선택 완료",
+    "selected_count_before_click": 1,
+    "success_text": "선택 항목이 완료되었습니다.",
+    "selection_cleared_after_write": true,
+    "reload_closed_status_visible": true,
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0055-matter-bulk-status-proof.png"
+  },
+  "write_response": {
+    "http_status": 200,
+    "outcome": "updated",
+    "updated_count": 1,
+    "requested_count": 1,
+    "partial_update": false,
+    "automatic_matter_creation": false,
+    "item_status": "closed",
+    "item_wip_status": "completed",
+    "aggregate_audit_event_id": "matter.bulk.status_transition:tenant_rp05_synthetic:ui_bulk_status_closed_1782403056104",
+    "aggregate_audit_action": "matter.bulk.status_transition",
+    "item_audit_event_id": "matter.status.bulk_transitioned:tenant_rp05_synthetic:matter_lcx8_0055_owner_1782402998336:ui_bulk_status_closed_1782403056104",
+    "item_audit_action": "matter.status.bulk_transitioned",
+    "audit_permission_ref": "ui_sf_b_w02_matter_bulk_status_transition",
+    "state_idempotent": true,
+    "production_ready_claim": false,
+    "raw": {
+      "request_id": "req_722527b9-0d48-4b9d-bd3f-f8c97b4d9846",
+      "outcome": "updated",
+      "items": [
+        {
+          "tenant_id": "tenant_rp05_synthetic",
+          "resource_id": "matter_lcx8_0055_owner_1782402998336",
+          "matter_id": "matter_lcx8_0055_owner_1782402998336",
+          "matter_code": "AMIC API/litigation/계약분쟁",
+          "matter_number": "M-TENANT-RP05-LCX8BULK1782402998336",
+          "matter_name": "LCX8 0055 owner bulk proof 1782402998336",
+          "title": "LCX8 0055 owner bulk proof 1782402998336",
+          "status": "closed",
+          "client_id": "client_rp04_amic",
+          "client_display_name": "(주)AMIC API 주식회사",
+          "legal_client_party_id": "party_rp04_amic",
+          "billing_client_party_id": "party_rp04_amic",
+          "matter_type_english": "litigation",
+          "matter_detail_type_korean": "계약분쟁",
+          "source_revision": "api-opening-test-revision",
+          "owner_module": "MatterCore",
+          "owner_employee_id": null,
+          "owner_user_id": null,
+          "owner_display_name": null,
+          "permission_envelope_id": "perm_matter_lcx8_0055_owner_1782402998336",
+          "audit_trace_id": "audit_matter_lcx8_0055_owner_1782402998336",
+          "document_count": 0,
+          "vault_workspace_id": "workspace:matter_lcx8_0055_owner_1782402998336",
+          "matter_vault_linked": true,
+          "team_member_count": 0,
+          "wip_status": "completed",
+          "risk_level": "standard",
+          "opened_at": null,
+          "closed_at": "2026-06-25T15:57:36.105Z",
+          "runtime_write_ready": true,
+          "r5_r6_owner_decision_ready": true,
+          "production_ready_claim": false
+        }
+      ],
+      "bulk_action": {
+        "target_status": "closed",
+        "requested_count": 1,
+        "updated_count": 1,
+        "automatic_matter_creation": false,
+        "partial_update": false
+      },
+      "audit_event": {
+        "event_id": "matter.bulk.status_transition:tenant_rp05_synthetic:ui_bulk_status_closed_1782403056104",
+        "tenant_id": "tenant_rp05_synthetic",
+        "actor_id": "matter_matter_operator",
+        "action": "matter.bulk.status_transition",
+        "object_type": "MatterBulkAction",
+        "object_id": "ui_bulk_status_closed_1782403056104",
+        "decision": "allow",
+        "reason": "bulk_status_complete",
+        "occurred_at": "2026-06-25T15:57:36.105Z",
+        "metadata": {
+          "target_status": "closed",
+          "requested_count": 1,
+          "updated_count": 1,
+          "permission_ref": "ui_sf_b_w02_matter_bulk_status_transition"
+        },
+        "event_hash": "f480ede331e3c94f63c303a174a4747cefeaf1be03f6a19d635c05878d17671e"
+      },
+      "audit_events": [
+        {
+          "event_id": "matter.status.bulk_transitioned:tenant_rp05_synthetic:matter_lcx8_0055_owner_1782402998336:ui_bulk_status_closed_1782403056104",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.status.bulk_transitioned",
+          "object_type": "Matter",
+          "object_id": "matter_lcx8_0055_owner_1782402998336",
+          "decision": "allow",
+          "reason": "bulk_status_complete",
+          "occurred_at": "2026-06-25T15:57:36.105Z",
+          "metadata": {
+            "previous_status": "opening",
+            "target_status": "closed",
+            "permission_ref": "ui_sf_b_w02_matter_bulk_status_transition",
+            "bulk_action_ref": "ui_bulk_status_closed_1782403056104"
+          },
+          "event_hash": "0e51eb5e4e0d0d3f15adbd6a8e96a7ccf4e2aadd6d4b37e5ab5568aabf4a277f"
+        }
+      ],
+      "timeline_events": [
+        {
+          "model_type": "MatterTimelineEvent",
+          "resource_id": "matter.timeline.bulk_status_transition:tenant_rp05_synthetic:matter_lcx8_0055_owner_1782402998336:ui_bulk_status_closed_1782403056104",
+          "event_id": "matter.timeline.bulk_status_transition:tenant_rp05_synthetic:matter_lcx8_0055_owner_1782402998336:ui_bulk_status_closed_1782403056104",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0055_owner_1782402998336",
+          "occurred_at": "2026-06-25T15:57:36.105Z",
+          "type": "matter.status.bulk_transitioned",
+          "title": "Matter bulk status updated",
+          "source_ref": "closed",
+          "source_module": "matter",
+          "source_object_id": "matter_lcx8_0055_owner_1782402998336",
+          "safe_summary": {
+            "previous_status": "opening",
+            "target_status": "closed"
+          },
+          "raw_storage_path_included": false,
+          "document_bytes_included": false,
+          "writes_product_state": true,
+          "creates_database_rows": true
+        }
+      ],
+      "idempotent_replay": false,
+      "safe_error_codes": [],
+      "audit_hint_ref": "ui_sf_b_w02_matter_bulk_status_transition_probe",
+      "state_idempotent": true,
+      "count_leak_prevented": true,
+      "production_ready_claim": false
+    }
+  },
+  "read_back_proof": {
+    "http_status": 200,
+    "found": true,
+    "item": {
+      "tenant_id": "tenant_rp05_synthetic",
+      "resource_id": "matter_lcx8_0055_owner_1782402998336",
+      "matter_id": "matter_lcx8_0055_owner_1782402998336",
+      "matter_code": "AMIC API/litigation/계약분쟁",
+      "matter_number": "M-TENANT-RP05-LCX8BULK1782402998336",
+      "matter_name": "LCX8 0055 owner bulk proof 1782402998336",
+      "title": "LCX8 0055 owner bulk proof 1782402998336",
+      "status": "closed",
+      "client_id": "client_rp04_amic",
+      "client_display_name": "(주)AMIC API 주식회사",
+      "legal_client_party_id": "party_rp04_amic",
+      "billing_client_party_id": "party_rp04_amic",
+      "matter_type_english": "litigation",
+      "matter_detail_type_korean": "계약분쟁",
+      "source_revision": "api-opening-test-revision",
+      "owner_module": "MatterCore",
+      "owner_employee_id": null,
+      "owner_user_id": null,
+      "owner_display_name": null,
+      "permission_envelope_id": "perm_matter_lcx8_0055_owner_1782402998336",
+      "audit_trace_id": "audit_matter_lcx8_0055_owner_1782402998336",
+      "document_count": 0,
+      "vault_workspace_id": "workspace:matter_lcx8_0055_owner_1782402998336",
+      "matter_vault_linked": true,
+      "team_member_count": 0,
+      "wip_status": "completed",
+      "risk_level": "standard",
+      "opened_at": null,
+      "closed_at": "2026-06-25T15:57:36.105Z",
+      "runtime_write_ready": true,
+      "r5_r6_owner_decision_ready": true,
+      "production_ready_claim": false
+    },
+    "production_ready_claim": false
+  },
+  "audit_proof": {
+    "http_status": 200,
+    "aggregate_found": true,
+    "aggregate_event": {
+      "event_id": "matter.bulk.status_transition:tenant_rp05_synthetic:ui_bulk_status_closed_1782403056104",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "action": "matter.bulk.status_transition",
+      "object_type": "MatterBulkAction",
+      "object_id": "ui_bulk_status_closed_1782403056104",
+      "decision": "allow",
+      "reason": "bulk_status_complete",
+      "occurred_at": "2026-06-25T15:57:36.105Z",
+      "metadata": {
+        "target_status": "closed",
+        "requested_count": 1,
+        "updated_count": 1,
+        "permission_ref": "ui_sf_b_w02_matter_bulk_status_transition"
+      },
+      "event_hash": "f480ede331e3c94f63c303a174a4747cefeaf1be03f6a19d635c05878d17671e"
+    },
+    "item_found": true,
+    "item_event": {
+      "event_id": "matter.status.bulk_transitioned:tenant_rp05_synthetic:matter_lcx8_0055_owner_1782402998336:ui_bulk_status_closed_1782403056104",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "action": "matter.status.bulk_transitioned",
+      "object_type": "Matter",
+      "object_id": "matter_lcx8_0055_owner_1782402998336",
+      "decision": "allow",
+      "reason": "bulk_status_complete",
+      "occurred_at": "2026-06-25T15:57:36.105Z",
+      "metadata": {
+        "previous_status": "opening",
+        "target_status": "closed",
+        "permission_ref": "ui_sf_b_w02_matter_bulk_status_transition",
+        "bulk_action_ref": "ui_bulk_status_closed_1782403056104"
+      },
+      "event_hash": "0e51eb5e4e0d0d3f15adbd6a8e96a7ccf4e2aadd6d4b37e5ab5568aabf4a277f"
+    },
+    "production_ready_claim": false
+  },
+  "fail_closed_proof": {
+    "denied_write": {
+      "http_status": 403,
+      "outcome": "blocked",
+      "safe_error_codes": [
+        "MATTER_UNAUTHORIZED_OMISSION"
+      ],
+      "ui_state": "denied",
+      "production_ready_claim": false
+    },
+    "review_write": {
+      "http_status": 200,
+      "outcome": "review_required",
+      "safe_error_codes": [
+        "MATTER_REVIEW_REQUIRED"
+      ],
+      "ui_state": "review_required",
+      "production_ready_claim": false
+    }
+  },
+  "console_messages": [],
+  "network_events": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/matters/bulk/status-transitions",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+      "status": 200
+    }
+  ],
+  "non_claims": [
+    "Local synthetic runtime proof only.",
+    "Fixture Matter was created through the local API only to drive the LCX8-ACTION-0055 UI surface.",
+    "production_ready_claim=false is preserved by write/read/audit surfaces.",
+    "No external customer data or go-live approval claimed."
+  ]
+}

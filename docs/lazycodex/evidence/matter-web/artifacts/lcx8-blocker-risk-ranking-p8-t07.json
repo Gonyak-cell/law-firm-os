@@ -459,7 +459,35 @@
       "api_route": "POST /api/matters/bulk/status-transitions",
       "score": 86,
       "tier": "high",
-      "reason": "API write lacks complete precondition/audit/persistence proof."
+      "reason": "API write lacks complete precondition/audit/persistence proof.",
+      "post_closeout_resolution": {
+        "status_before": "BLOCKED",
+        "status_after": "PASS",
+        "resolved_at": "2026-06-25T15:57:36.772Z",
+        "evidence_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0055-matter-bulk-status-proof.json",
+        "status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-bulk-status-2026-06-26.json",
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0055-matter-bulk-status-proof.png",
+        "proof_summary": {
+          "write_http_status": 200,
+          "write_outcome": "updated",
+          "selected_matter_id": "matter_lcx8_0055_owner_1782402998336",
+          "updated_count": 1,
+          "item_status": "closed",
+          "item_wip_status": "completed",
+          "state_idempotent": true,
+          "read_back_found": true,
+          "aggregate_audit_event_id": "matter.bulk.status_transition:tenant_rp05_synthetic:ui_bulk_status_closed_1782403056104",
+          "item_audit_event_id": "matter.status.bulk_transitioned:tenant_rp05_synthetic:matter_lcx8_0055_owner_1782402998336:ui_bulk_status_closed_1782403056104",
+          "denied_write_outcome": "403/blocked",
+          "review_write_outcome": "200/review_required",
+          "production_ready_claim": false
+        },
+        "non_claims": [
+          "local synthetic runtime proof only",
+          "fixture Matter was created only to drive the UI surface",
+          "no production readiness or go-live approval claimed"
+        ]
+      }
     },
     {
       "id": "LCX8-ACTION-0061",
@@ -868,7 +896,35 @@
       "api_route": "POST /api/matters/bulk/status-transitions",
       "score": 86,
       "tier": "high",
-      "reason": "API write lacks complete precondition/audit/persistence proof."
+      "reason": "API write lacks complete precondition/audit/persistence proof.",
+      "post_closeout_resolution": {
+        "status_before": "BLOCKED",
+        "status_after": "PASS",
+        "resolved_at": "2026-06-25T15:57:36.772Z",
+        "evidence_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0055-matter-bulk-status-proof.json",
+        "status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-bulk-status-2026-06-26.json",
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0055-matter-bulk-status-proof.png",
+        "proof_summary": {
+          "write_http_status": 200,
+          "write_outcome": "updated",
+          "selected_matter_id": "matter_lcx8_0055_owner_1782402998336",
+          "updated_count": 1,
+          "item_status": "closed",
+          "item_wip_status": "completed",
+          "state_idempotent": true,
+          "read_back_found": true,
+          "aggregate_audit_event_id": "matter.bulk.status_transition:tenant_rp05_synthetic:ui_bulk_status_closed_1782403056104",
+          "item_audit_event_id": "matter.status.bulk_transitioned:tenant_rp05_synthetic:matter_lcx8_0055_owner_1782402998336:ui_bulk_status_closed_1782403056104",
+          "denied_write_outcome": "403/blocked",
+          "review_write_outcome": "200/review_required",
+          "production_ready_claim": false
+        },
+        "non_claims": [
+          "local synthetic runtime proof only",
+          "fixture Matter was created only to drive the UI surface",
+          "no production readiness or go-live approval claimed"
+        ]
+      }
     },
     {
       "id": "LCX8-ACTION-0061",
@@ -3561,11 +3617,11 @@
   "status_counts_after": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 11,
+    "pass": 12,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 121,
+    "blocked": 120,
     "fail": 42
   },
   "post_closeout_resolution": {
@@ -3618,5 +3674,16 @@
     "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-list-view-write-status-2026-06-26.json",
     "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0054-matter-list-view-write-proof.json",
     "note": "Historical P8 ranking/assignment remains a closeout snapshot; current product ledger marks LCX8-ACTION-0054 PASS after write/read-back/audit/fail-closed proof."
+  },
+  "post_closeout_resolution_lcx8_action_0055": {
+    "resolved_rows": [
+      "LCX8-ACTION-0055"
+    ],
+    "status_before": "BLOCKED",
+    "status_after": "PASS",
+    "resolved_at": "2026-06-25T15:57:36.772Z",
+    "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-bulk-status-2026-06-26.json",
+    "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0055-matter-bulk-status-proof.json",
+    "note": "Historical P8 ranking/assignment remains a closeout snapshot; current product ledger marks LCX8-ACTION-0055 PASS after UI bulk write/read-back/audit/fail-closed proof."
   }
 }
