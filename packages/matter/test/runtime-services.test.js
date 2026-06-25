@@ -19,6 +19,8 @@ import {
   matterOpeningDependencyDecision,
   openMatterTransaction,
   upsertCanonicalMatterIdentity,
+  upsertMatterAppClientFromVaultContract,
+  upsertMatterAppMatterFromVaultContract,
   validateMatterCode,
   reserveMatterNumber,
   transitionMatterTask,
@@ -196,6 +198,110 @@ test("Matter canonical identity upsert stores client and tenant-unique matter co
         },
       }),
     /Matter code already exists/,
+  );
+});
+
+test("Vault approved write contract maps client and matter code into Matter app identity", () => {
+  const repository = createMatterRepository();
+  const clientRequest = {
+    tenantRef: tenant_id,
+    idempotencyKeyHash: "hash:vault-client-1",
+    clientDisplayName: "(주)Vault 반영 주식회사",
+    clientShortName: "Vault 반영",
+    approvalRef: "approval-ref-1",
+    sourceRevision: "approval-rev-2",
+    migrationApprovalRef: "migration-approval-1",
+    supportingEvidenceRefs: ["evidence-ref-1"],
+  };
+  const client = upsertMatterAppClientFromVaultContract({
+    repository,
+    request: clientRequest,
+    actor_id,
+  });
+  assert.equal(client.clientDisplayName, "(주)Vault 반영 주식회사");
+  assert.equal(client.client.client_short_name, "Vault 반영");
+  assert.equal(client.sourceRevision, "approval-rev-2");
+  assert.equal(client.action, "created");
+
+  const reusedClient = upsertMatterAppClientFromVaultContract({
+    repository,
+    request: {
+      ...clientRequest,
+      idempotencyKeyHash: "hash:vault-client-2",
+      approvalRef: "approval-ref-2",
+      sourceRevision: "approval-rev-3",
+      migrationApprovalRef: "migration-approval-2",
+    },
+    actor_id,
+  });
+  assert.equal(reusedClient.clientId, client.clientId);
+  assert.equal(reusedClient.action, "reused");
+  assert.equal(repository.list({ tenant_id, model_type: "MatterClient" }).length, 1);
+
+  const matterRequest = {
+    tenantRef: tenant_id,
+    idempotencyKeyHash: "hash:vault-matter-1",
+    clientId: client.clientId,
+    clientDisplayName: client.clientDisplayName,
+    matterCode: "Vault 반영/Civil/계약분쟁",
+    matterName: "Vault reflected approved matter",
+    matterTypeEnglish: "Civil",
+    matterDetailTypeKorean: "계약분쟁",
+    practiceGroup: "litigation",
+    responsibleLawyer: "lawyer-ref-1",
+    openedAt: "2026-06-24T00:00:00.000Z",
+    sourceRevision: "approval-rev-2",
+    sourceUpdatedAt: "2026-06-24T00:00:00.000Z",
+    migrationApprovalRef: "migration-approval-1",
+  };
+  const matter = upsertMatterAppMatterFromVaultContract({
+    repository,
+    request: matterRequest,
+    actor_id,
+  });
+  assert.equal(matter.matterCode, "Vault 반영/Civil/계약분쟁");
+  assert.equal(matter.clientId, client.clientId);
+  assert.equal(matter.sourceRevision, "approval-rev-2");
+  assert.equal(matter.action, "created");
+  assert.equal(matter.matter.practice_group, "litigation");
+  assert.equal(matter.matter.responsible_lawyer, "lawyer-ref-1");
+  assert.equal(matter.matter.source_updated_at, "2026-06-24T00:00:00.000Z");
+
+  const replay = upsertMatterAppMatterFromVaultContract({
+    repository,
+    request: matterRequest,
+    actor_id,
+  });
+  assert.equal(replay.idempotent_replay, true);
+  assert.equal(replay.action, "skipped_idempotent");
+  assert.equal(repository.list({ tenant_id, model_type: "MatterClient" }).length, 1);
+  assert.equal(repository.list({ tenant_id, model_type: "Matter" }).length, 1);
+
+  assert.throws(
+    () =>
+      upsertMatterAppMatterFromVaultContract({
+        repository,
+        request: {
+          ...matterRequest,
+          idempotencyKeyHash: "hash:vault-matter-2",
+          matterAppMatterId: "matter-vault-duplicate",
+        },
+        actor_id,
+      }),
+    /Matter code already exists/,
+  );
+  assert.throws(
+    () =>
+      upsertMatterAppMatterFromVaultContract({
+        repository,
+        request: {
+          ...matterRequest,
+          idempotencyKeyHash: "hash:vault-matter-bad-code",
+          matterCode: "Wrong/Civil/계약분쟁",
+        },
+        actor_id,
+      }),
+    /matterCode must match/,
   );
 });
 
