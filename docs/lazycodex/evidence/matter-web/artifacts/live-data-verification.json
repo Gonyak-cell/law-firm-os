@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx-web.live-data-verification.v1",
-  "generated_at": "2026-06-25T16:08:55.366Z",
+  "generated_at": "2026-06-26T05:38:51.608Z",
   "base_url": "http://127.0.0.1:5173",
   "api_base": "http://127.0.0.1:4180 via vite dev proxy",
   "source_of_truth": "apps/web",
@@ -110,7 +110,7 @@
       "passed": true,
       "detail": {
         "selector": "[data-cmp-g4-live-matters='true']",
-        "state_text": "Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 목록 권한 기준 적용 새 Matter 개시는 승인 후 반영됩니다. 전체 Matter 개시 중 종료 개시 저장 0개 선택 선택 완료 Matter 제목 진행 상태 청구 상태 Matter 1 Matter 1 개시 중 청구 준비 가능 개인 작업 기록 최근 본 항목 제목 상태 일시 Matter 1 Matter",
+        "state_text": "Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 목록 권한 기준 적용 새 Matter 개시는 승인 후 반영됩니다. 전체 Matter 개시 중 종료 개시 저장 0개 선택 선택 완료 Matter 제목 진행 상태 청구 상태 Matter 1 Matter 1 종료 완료 M-LCX8-0063-1782452202543 LCX8 status proof 17824",
         "api_5xx_count": 0,
         "api_5xx": []
       },

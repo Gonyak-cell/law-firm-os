@@ -310,7 +310,40 @@
       "source_file": "apps/web/src/components/MattersSurface.jsx; apps/web/src/data/apiClient.js",
       "handler": "handleCompleteStatus -> completeMatterStatus({ matterId })",
       "api_route": "POST /api/matters/:matter_id/status-transitions",
-      "risk_reason": "API write lacks complete precondition/audit/persistence proof."
+      "risk_reason": "API write lacks complete precondition/audit/persistence proof.",
+      "post_closeout_resolution": {
+        "status_before": "BLOCKED",
+        "status_after": "PASS",
+        "resolved_at": "2026-06-26T05:36:42.543Z",
+        "evidence_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0063-matter-status-transition-proof.json",
+        "status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-status-transition-2026-06-26.json",
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0063-matter-status-transition-proof.png",
+        "proof_summary": {
+          "write_http_status": 200,
+          "write_outcome": "updated",
+          "matter_id": "matter_lcx8_0063_status_1782452202543",
+          "before_status": "opening",
+          "after_status": "closed",
+          "before_wip_status": "not_started",
+          "after_wip_status": "completed",
+          "transition_previous_status": "opening",
+          "transition_target_status": "closed",
+          "state_idempotent": true,
+          "read_back_found": true,
+          "audit_event_action": "matter.status.transitioned",
+          "audit_event_id": "matter.status.transitioned:tenant_rp05_synthetic:matter_lcx8_0063_status_1782452202543:closed",
+          "denied_write_outcome": "403/blocked",
+          "review_write_outcome": "200/review_required",
+          "invalid_status_outcome": "400/blocked",
+          "production_ready_claim": false
+        },
+        "non_claims": [
+          "local synthetic runtime proof only",
+          "fixture Matter was created only to drive the UI surface",
+          "no production readiness or go-live approval claimed",
+          "no external receipt claimed"
+        ]
+      }
     },
     {
       "rank": 8,
@@ -3583,5 +3616,16 @@
     "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-record-field-update-status-2026-06-26.json",
     "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0061-matter-record-field-update-proof.json",
     "note": "Historical P8 ranking/assignment remains a closeout snapshot; current product ledger marks LCX8-ACTION-0061 PASS after Matter record field-update write/read-back/audit/fail-closed proof."
+  },
+  "post_closeout_resolution_lcx8_action_0063": {
+    "resolved_rows": [
+      "LCX8-ACTION-0063"
+    ],
+    "status_before": "BLOCKED",
+    "status_after": "PASS",
+    "resolved_at": "2026-06-26T05:36:42.543Z",
+    "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-status-transition-2026-06-26.json",
+    "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0063-matter-status-transition-proof.json",
+    "note": "Historical P8 ranking/assignment remains a closeout snapshot; current product ledger marks LCX8-ACTION-0063 PASS after Matter status transition write/read-back/audit/fail-closed proof."
   }
 }

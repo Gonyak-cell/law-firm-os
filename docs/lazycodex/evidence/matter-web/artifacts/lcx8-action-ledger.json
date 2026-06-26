@@ -43,7 +43,7 @@
     ],
     "active_next_tuw": "P7-T03",
     "scope_note": "P7-T02 reviewed focus/dialog/drawer behavior from mobile focus smoke. People search focus and notification Escape close pass; global search hidden and notification drawer focus containment are Lane E findings. P7-T03 Korean copy review is active next.",
-    "status_counts_last_updated_by": "post-closeout-remediation-lcx8-action-0061",
+    "status_counts_last_updated_by": "post-closeout-remediation-lcx8-action-0063",
     "api_backed_rows_reviewed": 117,
     "p5_t07_reviewed_rows": 38,
     "p6_t00_native_rows_reviewed": 26,
@@ -59,16 +59,17 @@
     "p7_t00_findings": 3,
     "p7_t01_findings": 2,
     "p7_t02_findings": 2,
-    "post_closeout_remediation_count": 6,
+    "post_closeout_remediation_count": 7,
     "post_closeout_remediation_rows": [
       "LCX8-ACTION-0280",
       "LCX8-ACTION-0272",
       "LCX8-ACTION-0273",
       "LCX8-ACTION-0054",
       "LCX8-ACTION-0055",
-      "LCX8-ACTION-0061"
+      "LCX8-ACTION-0061",
+      "LCX8-ACTION-0063"
     ],
-    "post_closeout_remediation_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-record-field-update-status-2026-06-26.json",
+    "post_closeout_remediation_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-status-transition-2026-06-26.json",
     "post_closeout_remediation_artifacts": [
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
@@ -86,17 +87,21 @@
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-record-field-update-status-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0061-matter-record-field-update-proof.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0061-matter-record-field-update-proof.md",
-      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0061-matter-record-field-update-proof.png"
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0061-matter-record-field-update-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-status-transition-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0063-matter-status-transition-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0063-matter-status-transition-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0063-matter-status-transition-proof.png"
     ]
   },
   "status_counts": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 13,
+    "pass": 14,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 119,
+    "blocked": 118,
     "fail": 42
   },
   "rows": [
@@ -2249,8 +2254,8 @@
       "permission_boundary": "Matter status transition permission context",
       "audit_boundary": "status transition audit expected by API",
       "persistence_boundary": "repository write expected; command-center/read-back proof required in P4/P5",
-      "remediation_lane": "Lane B",
-      "status": "BLOCKED",
+      "remediation_lane": null,
+      "status": "PASS",
       "tuw": "P1-T06",
       "surface": "matter",
       "route": "/?locale=ko&view=matters&data=live&ctx=allow#matter-command",
@@ -2279,9 +2284,48 @@
         "P5-T01 safe fixture definition: fixture_family=matter_runtime; applicability=P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED; tenant=tenant_rp05_synthetic; actor=matter_matter_operator; selected_for_p5_t02=false; no_write_executed=true; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-safe-fixture-definition-p5-t01.json",
         "P8 final remediation lane assignment: lane=Lane B; reason=api_permission_audit_persistence_or_runtime_proof_gap; tuw=P8-T03; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-lane-assignment-p8-t02-t06.json",
         "P8-T07 blocker risk ranking: tier=high; score=86; reason=API write lacks complete precondition/audit/persistence proof.; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-blocker-risk-ranking-p8-t07.json",
-        "P8-T08 remediation-ready issue text: rank=7; tier=high; title=Prove matter write action 완료; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-ready-issues-p8-t08.json"
+        "P8-T08 remediation-ready issue text: rank=7; tier=high; title=Prove matter write action 완료; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-ready-issues-p8-t08.json",
+        "Post-closeout LCX8-ACTION-0063 Matter status transition proof: http_status=200; outcome=updated; matter_id=matter_lcx8_0063_status_1782452202543; status=closed; wip_status=completed; audit_event=matter.status.transitioned; read_back=true; denied=403/blocked; review=200/review_required; invalid_status=400/blocked; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0063-matter-status-transition-proof.json",
+        "Post-closeout LCX8-ACTION-0063 status artifact: status_before=BLOCKED; status_after=PASS; counts_after=PASS 14/BLOCKED 118; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-status-transition-2026-06-26.json",
+        "Post-closeout LCX8-ACTION-0063 non-claim: local synthetic runtime proof only; fixture Matter used only to drive UI status transition; production_ready_claim=false on write/read/audit; no external receipt or go-live approval claimed.",
+        "Post-closeout LCX8-ACTION-0063 verification: node --test apps/api/test/cmp-r4-g4-matter.test.js PASS 11/11; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
       ],
-      "notes": "P2-T04 source/API client trace complete; P3/P4 click/API/audit/read-back proof pending before any PASS promotion. P4-T05 maps audit proof requirements; row is not PASS without audit event/read proof. P4-T06 stabilizes the expected blocked/failure/guarded reason for remediation ranking. P4-T07 focused API tests passed for related domains; status remains provisional until P4-T08/P5 classification. P4-T08 assigned API-backed provisional status BLOCKED. P5-T00 identifies this API write as a durable persistence candidate; actual write execution is deferred until the P5-T01 safe fixture is defined. P5-T01 defines synthetic fixture applicability for this API write; P5-T02 must capture execution/read-back/audit before any PASS promotion. P8 assigns remediation lane Lane B (api_permission_audit_persistence_or_runtime_proof_gap). P8-T07 ranks this remediation as high risk (score 86). P8-T08 issue text ready: Prove matter write action 완료."
+      "notes": "P2-T04 source/API client trace complete; P3/P4 click/API/audit/read-back proof pending before any PASS promotion. P4-T05 maps audit proof requirements; row is not PASS without audit event/read proof. P4-T06 stabilizes the expected blocked/failure/guarded reason for remediation ranking. P4-T07 focused API tests passed for related domains; status remains provisional until P4-T08/P5 classification. P4-T08 assigned API-backed provisional status BLOCKED. P5-T00 identifies this API write as a durable persistence candidate; actual write execution is deferred until the P5-T01 safe fixture is defined. P5-T01 defines synthetic fixture applicability for this API write; P5-T02 must capture execution/read-back/audit before any PASS promotion. P8 assigns remediation lane Lane B (api_permission_audit_persistence_or_runtime_proof_gap). P8-T07 ranks this remediation as high risk (score 86). P8-T08 issue text ready: Prove matter write action 완료. LCX8-ACTION-0063 is promoted to PASS after current-product UI 완료 click, Matter status transition, API read-back, audit proof, denied/review/invalid-status fail-closed proof, and reload completed-state proof. Historical P4/P5/P8 blocker notes remain closeout context.",
+      "post_closeout_remediation": {
+        "row_id": "LCX8-ACTION-0063",
+        "status_before": "BLOCKED",
+        "status_after": "PASS",
+        "resolved_at": "2026-06-26T05:36:42.543Z",
+        "evidence_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0063-matter-status-transition-proof.json",
+        "status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-status-transition-2026-06-26.json",
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0063-matter-status-transition-proof.png",
+        "proof_summary": {
+          "write_http_status": 200,
+          "write_outcome": "updated",
+          "matter_id": "matter_lcx8_0063_status_1782452202543",
+          "before_status": "opening",
+          "after_status": "closed",
+          "before_wip_status": "not_started",
+          "after_wip_status": "completed",
+          "transition_previous_status": "opening",
+          "transition_target_status": "closed",
+          "state_idempotent": true,
+          "read_back_found": true,
+          "audit_event_action": "matter.status.transitioned",
+          "audit_event_id": "matter.status.transitioned:tenant_rp05_synthetic:matter_lcx8_0063_status_1782452202543:closed",
+          "denied_write_outcome": "403/blocked",
+          "review_write_outcome": "200/review_required",
+          "invalid_status_outcome": "400/blocked",
+          "production_ready_claim": false
+        },
+        "non_claims": [
+          "local synthetic runtime proof only",
+          "fixture Matter was created only to drive the UI surface",
+          "no production readiness or go-live approval claimed",
+          "no external receipt claimed"
+        ],
+        "verification_summary": "Post-closeout LCX8-ACTION-0063 verification: node --test apps/api/test/cmp-r4-g4-matter.test.js PASS 11/11; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+      }
     },
     {
       "id": "LCX8-ACTION-0064",

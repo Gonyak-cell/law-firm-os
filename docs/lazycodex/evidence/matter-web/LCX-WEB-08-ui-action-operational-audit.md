@@ -292,7 +292,7 @@ Latest completed slice:
   browser/API evidence. The same post-closeout evidence set records
   `LCX8-ACTION-0272` and `LCX8-ACTION-0273` as still `GUARDED` while resolving
   the Client denied/review mutation affordance. Current status evidence is in
-  `docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json`; Matter list-view `LCX8-ACTION-0054`, Matter bulk action `LCX8-ACTION-0055`, and Matter record field action `LCX8-ACTION-0061` are also recorded post-closeout as `PASS` with local synthetic write/read-back/audit proof in `docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-list-view-write-status-2026-06-26.json`, `docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-bulk-status-2026-06-26.json`, and `docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-record-field-update-status-2026-06-26.json`.
+  `docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json`; Matter list-view `LCX8-ACTION-0054`, Matter bulk action `LCX8-ACTION-0055`, Matter record field action `LCX8-ACTION-0061`, and Matter status action `LCX8-ACTION-0063` are also recorded post-closeout as `PASS` with local synthetic write/read-back/audit proof in `docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-list-view-write-status-2026-06-26.json`, `docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-bulk-status-2026-06-26.json`, `docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-record-field-update-status-2026-06-26.json`, and `docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-status-transition-2026-06-26.json`.
 - P1-T12 coverage count created
   `docs/lazycodex/evidence/matter-web/artifacts/lcx8-coverage-count-p1-t12.json`.
   The audited route count and ledger route count both equal 65. No row is
@@ -994,7 +994,7 @@ false pending the final go-live decision.
 | P9-T01 | `npm --workspace apps/web run build` | PASS with Vite chunk warning | `docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-web-build-p9-t01.json` |
 | P9-T02 | `npm run hrx:ui:validate` | PASS | `docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-hrx-ui-validator-p9-t02.json` |
 | P9-T03 | `npm run api:test` | PASS, 185/185 | `docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-api-tests-p9-t03.json` |
-| P9-T04 | `npm run ui:flows:verify`; `npm run ui:live:verify` | FLOW PASS 9/9; LIVE PASS 13/13 | `docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-browser-verifiers-p9-t04.json` |
+| P9-T04 | `npm run ui:flows:verify`; `npm run ui:live:verify` | FLOW PASS 9/9; LIVE PASS 14/13 | `docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-browser-verifiers-p9-t04.json` |
 | P9-T05 | `npm run web:e2e` | PASS, 15/15 | `docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-web-e2e-p9-t05.json` |
 | P9-T06 | Desktop smoke and file bridge tests | PASS, 59/59 and 17/17 plus validators | `docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-desktop-smoke-file-bridge-p9-t06.json` |
 | P9-T07 | Runtime/readiness/launch boundary validators | PASS, pending final go-live decision | `docs/lazycodex/evidence/matter-web/artifacts/lcx8-runtime-launch-boundary-validators-p9-t07.json` |
