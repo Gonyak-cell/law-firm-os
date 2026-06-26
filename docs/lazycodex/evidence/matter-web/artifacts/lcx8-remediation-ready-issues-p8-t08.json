@@ -3739,5 +3739,23 @@
     "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-email-draft-2026-06-26.json",
     "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0070-matter-email-draft-proof.json",
     "note": "Historical P8 ranking/assignment remains a closeout snapshot; current product ledger marks LCX8-ACTION-0070 PASS after Matter email draft create, idempotent replay/read-back, audit, and fail-closed proof."
+  },
+  "post_closeout_resolution_lcx8_action_0071": {
+    "resolved_rows": [
+      "LCX8-ACTION-0071"
+    ],
+    "status_counts_after": {
+      "inventory_rows": 324,
+      "unknown": 0,
+      "pass": 21,
+      "guarded": 20,
+      "ui_only": 128,
+      "descriptor_only": 2,
+      "blocked": 111,
+      "fail": 42
+    },
+    "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-email-draft-patch-2026-06-26.json",
+    "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0071-matter-email-draft-patch-proof.json",
+    "note": "Historical P8 ranking/assignment remains a closeout snapshot; current product ledger marks LCX8-ACTION-0071 PASS after Matter email draft patch, idempotent replay/read-back, audit, and fail-closed proof."
   }
 }
