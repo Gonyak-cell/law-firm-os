@@ -662,40 +662,61 @@
       "result": "PASS"
     }
   ],
-  "non_claims": {
-    "go_live_approved": false,
-    "production_ready": false,
-    "historical_p8_artifacts_are_closeout_snapshots": true,
-    "client_guarded_affordance_status_promoted_to_pass": false,
-    "client_guarded_copy_issue_resolved": true,
-    "client_guarded_rows_promoted_to_pass": false,
-    "matter_list_view_write_status_promoted_to_pass": true,
-    "matter_list_view_write_production_ready_claim": false,
-    "matter_bulk_status_promoted_to_pass": true,
-    "matter_bulk_status_production_ready_claim": false,
-    "matter_record_field_update_promoted_to_pass": true,
-    "matter_record_field_update_production_ready_claim": false,
-    "matter_status_transition_promoted_to_pass": true,
-    "matter_status_transition_production_ready_claim": false,
-    "matter_builder_draft_promoted_to_pass": true,
-    "matter_builder_draft_production_ready_claim": false,
-    "matter_builder_draft_patch_promoted_to_pass": true,
-    "matter_builder_draft_patch_production_ready_claim": false,
-    "matter_builder_approval_promoted_to_pass": true,
-    "matter_builder_approval_owner_receipt_claim": false,
-    "matter_builder_approval_production_ready_claim": false,
-    "matter_builder_publish_promoted_to_pass": true,
-    "matter_builder_publish_owner_receipt_claim": false,
-    "matter_builder_publish_vault_document_created_claim": false,
-    "matter_builder_publish_production_ready_claim": false,
-    "matter_email_draft_promoted_to_pass": true,
-    "matter_email_draft_external_provider_send_claim": false,
-    "matter_email_draft_provider_receipt_claim": false,
-    "matter_email_draft_production_ready_claim": false,
-    "matter_email_draft_patch_promoted_to_pass": true,
-    "matter_email_draft_patch_external_provider_send_claim": false,
-    "matter_email_draft_patch_provider_receipt_claim": false,
-    "matter_email_draft_patch_production_ready_claim": false
-  },
-  "latest_verification_summary": "Post-closeout LCX8-ACTION-0071 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+  "non_claims": [
+    "LCX8-ACTION-0072 remains BLOCKED/Lane D; provider_blocked internal audit proof is not an external provider receipt or send-success claim."
+  ],
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0072 verification: UI/API provider-boundary proof PASS (30 assertions); node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS. Status remains BLOCKED/Lane D because external_provider_receipt_required is still unsatisfied.",
+  "external_receipt_pending_rows": [
+    {
+      "id": "LCX8-ACTION-0072",
+      "status_before": "BLOCKED",
+      "status_after": "BLOCKED",
+      "surface": "matter",
+      "section": "matter-vault",
+      "label": "발송 요청",
+      "remediation_lane": "Lane D",
+      "blocked_reason": "external_provider_receipt_required",
+      "external_receipt_required": true,
+      "no_pass_promotion": true,
+      "evidence": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0072-matter-email-send-boundary-proof.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0072-matter-email-send-boundary-proof.md",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-email-send-boundary-2026-06-26.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-email-send-boundary-2026-06-26.md",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0072-matter-email-send-boundary-proof.png"
+      ],
+      "proof_summary": {
+        "matter_id": "matter_lcx8_0072_send_1782482499333",
+        "draft_id": "email_draft_matter_lcx8_0072_send_1782482499333_1782482500479",
+        "ui_send_http_status": 200,
+        "ui_send_outcome": "provider_blocked",
+        "ui_state": "provider_blocked",
+        "provider_configured": false,
+        "external_send_state": "provider_blocked",
+        "provider_receipt_present": false,
+        "audit_event_action": "matter.email_draft.send.blocked",
+        "audit_event_decision": "blocked",
+        "audit_event_reason": "external_provider_receipt_required",
+        "audit_read_back_count": 1,
+        "denied_write_outcome": "403/denied",
+        "review_write_outcome": "200/review_required",
+        "missing_draft_outcome": "404/empty",
+        "guard_audit_count_after": 1,
+        "production_ready_claim": false
+      },
+      "validation": {
+        "browser_ui_api_proof": "PASS 30/30 assertions",
+        "api_tests": "PASS 16/16",
+        "web_ui_tests": "PASS 17/17",
+        "web_build": "PASS (existing Vite chunk-size warning only)",
+        "live_verifier": "PASS 13/13",
+        "flow_verifier": "PASS 9/9",
+        "sloplint": "PASS",
+        "json_count_invariant": "PASS",
+        "git_diff_check": "PASS",
+        "external_provider_receipt": "MISSING_BY_BOUNDARY"
+      },
+      "latest_verification_summary": "Post-closeout LCX8-ACTION-0072 verification: UI/API provider-boundary proof PASS (30 assertions); node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS. Status remains BLOCKED/Lane D because external_provider_receipt_required is still unsatisfied."
+    }
+  ]
 }

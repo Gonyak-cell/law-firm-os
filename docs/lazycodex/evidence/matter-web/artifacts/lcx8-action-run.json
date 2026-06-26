@@ -1581,10 +1581,68 @@
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-email-draft-patch-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0071-matter-email-draft-patch-proof.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0071-matter-email-draft-patch-proof.md",
-      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0071-matter-email-draft-patch-proof.png"
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0071-matter-email-draft-patch-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0072-matter-email-send-boundary-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0072-matter-email-send-boundary-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-email-send-boundary-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-email-send-boundary-2026-06-26.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0072-matter-email-send-boundary-proof.png"
     ],
-    "latest_note": "LCX8-ACTION-0071 is promoted from BLOCKED to PASS by Matter 내용 정리 UI/API proof, idempotent replay, matter.email_draft.patched audit read-back, and denied/review/invalid-patch/missing-draft fail-closed proof. LCX8-ACTION-0272/0273 remain GUARDED.",
-    "latest_verification_summary": "Post-closeout LCX8-ACTION-0071 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+    "latest_note": "LCX8-ACTION-0072 is now documented with current-product provider-blocked UI/API/audit proof, but remains BLOCKED/Lane D because external_provider_receipt_required is still unsatisfied. Resolved rows remain unchanged through LCX8-ACTION-0071.",
+    "latest_verification_summary": "Post-closeout LCX8-ACTION-0072 verification: UI/API provider-boundary proof PASS (30 assertions); node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS. Status remains BLOCKED/Lane D because external_provider_receipt_required is still unsatisfied.",
+    "external_receipt_pending_rows": [
+      {
+        "id": "LCX8-ACTION-0072",
+        "status_before": "BLOCKED",
+        "status_after": "BLOCKED",
+        "surface": "matter",
+        "section": "matter-vault",
+        "label": "발송 요청",
+        "remediation_lane": "Lane D",
+        "blocked_reason": "external_provider_receipt_required",
+        "external_receipt_required": true,
+        "no_pass_promotion": true,
+        "evidence": [
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0072-matter-email-send-boundary-proof.json",
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0072-matter-email-send-boundary-proof.md",
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-email-send-boundary-2026-06-26.json",
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-email-send-boundary-2026-06-26.md",
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0072-matter-email-send-boundary-proof.png"
+        ],
+        "proof_summary": {
+          "matter_id": "matter_lcx8_0072_send_1782482499333",
+          "draft_id": "email_draft_matter_lcx8_0072_send_1782482499333_1782482500479",
+          "ui_send_http_status": 200,
+          "ui_send_outcome": "provider_blocked",
+          "ui_state": "provider_blocked",
+          "provider_configured": false,
+          "external_send_state": "provider_blocked",
+          "provider_receipt_present": false,
+          "audit_event_action": "matter.email_draft.send.blocked",
+          "audit_event_decision": "blocked",
+          "audit_event_reason": "external_provider_receipt_required",
+          "audit_read_back_count": 1,
+          "denied_write_outcome": "403/denied",
+          "review_write_outcome": "200/review_required",
+          "missing_draft_outcome": "404/empty",
+          "guard_audit_count_after": 1,
+          "production_ready_claim": false
+        },
+        "validation": {
+          "browser_ui_api_proof": "PASS 30/30 assertions",
+          "api_tests": "PASS 16/16",
+          "web_ui_tests": "PASS 17/17",
+          "web_build": "PASS (existing Vite chunk-size warning only)",
+          "live_verifier": "PASS 13/13",
+          "flow_verifier": "PASS 9/9",
+          "sloplint": "PASS",
+          "json_count_invariant": "PASS",
+          "git_diff_check": "PASS",
+          "external_provider_receipt": "MISSING_BY_BOUNDARY"
+        },
+        "latest_verification_summary": "Post-closeout LCX8-ACTION-0072 verification: UI/API provider-boundary proof PASS (30 assertions); node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS. Status remains BLOCKED/Lane D because external_provider_receipt_required is still unsatisfied."
+      }
+    ]
   },
   "coverage": {
     "status_counts_last_updated_by": "post-closeout-remediation-lcx8-action-0071",
