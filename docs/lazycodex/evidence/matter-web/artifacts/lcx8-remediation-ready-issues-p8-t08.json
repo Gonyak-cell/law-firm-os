@@ -506,20 +506,67 @@
     {
       "rank": 15,
       "id": "LCX8-ACTION-0073",
-      "tier": "high",
+      "tier": "resolved",
       "score": 86,
-      "status": "BLOCKED",
-      "remediation_lane": "Lane B",
+      "status": "PASS",
+      "remediation_lane": "resolved",
       "surface": "matter",
       "section": "matter-timeline",
       "label": "작업 추가",
       "trace_depth": "api_write",
-      "title": "Prove matter write action 작업 추가",
-      "body": "Complete safe fixture write, reload/read-back, audit event, and focused API proof for POST /api/matters/:matter_id/activities. Source: apps/web/src/components/MattersSurface.jsx; apps/web/src/data/apiClient.js; handler: handleCreateActivity -> createMatterActivity({ matterId, title, status }). Acceptance: row can move from BLOCKED only after write response, persisted read-back, audit proof, and fail-closed/permission assertions pass.",
+      "title": "Resolved: Prove matter write action 작업 추가",
+      "body": "Current-product proof shows UI click -> POST /api/matters/:matter_id/activities, HTTP 201 created, replay 200 idempotent_replay, activity/timeline/audit read-back, denied 403 fail-closed, review_required guard, invalid activity type blocked, and guard probes did not create activity/timeline/audit rows.",
       "source_file": "apps/web/src/components/MattersSurface.jsx; apps/web/src/data/apiClient.js",
       "handler": "handleCreateActivity -> createMatterActivity({ matterId, title, status })",
       "api_route": "POST /api/matters/:matter_id/activities",
-      "risk_reason": "API write lacks complete precondition/audit/persistence proof."
+      "risk_reason": "API write lacks complete precondition/audit/persistence proof.",
+      "post_closeout_resolution": {
+        "id": "LCX8-ACTION-0073",
+        "status_before": "BLOCKED",
+        "status_after": "PASS",
+        "surface": "matter",
+        "section": "matter-timeline",
+        "label": "작업 추가",
+        "evidence": [
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0073-matter-activity-create-proof.json",
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0073-matter-activity-create-proof.md",
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-activity-create-2026-06-27.json",
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-activity-create-2026-06-27.md",
+          "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0073-matter-activity-create-proof.png"
+        ],
+        "proof_summary": {
+          "write_http_status": 201,
+          "write_outcome": "created",
+          "matter_id": "matter_lcx8_0073_activity_1782515296663",
+          "activity_id": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+          "activity_type": "task",
+          "activity_status": "todo",
+          "replay_outcome": "idempotent_replay",
+          "activity_read_back_count": 1,
+          "timeline_read_back_count": 1,
+          "audit_event_action": "matter.activity.created",
+          "audit_event_id": "matter.activity.created:tenant_rp05_synthetic:matter_lcx8_0073_activity_1782515296663:activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+          "denied_write_outcome": "403/denied",
+          "review_write_outcome": "200/review_required",
+          "invalid_activity_outcome": "400/blocked",
+          "guard_activity_count": 0,
+          "guard_timeline_count": 0,
+          "guard_audit_count": 0,
+          "production_ready_claim": false
+        },
+        "validation": {
+          "browser_ui_api_proof": "PASS 29/29 assertions",
+          "api_tests": "PASS 20/20",
+          "web_ui_tests": "PASS 17/17",
+          "web_build": "PASS (existing Vite chunk-size warning only)",
+          "live_verifier": "PASS 13/13",
+          "flow_verifier": "PASS 9/9",
+          "sloplint": "PASS",
+          "json_count_invariant": "PASS",
+          "git_diff_check": "PASS"
+        },
+        "latest_verification_summary": "Post-closeout LCX8-ACTION-0073 verification: UI/API activity proof PASS (29 assertions); node --test apps/api/test/sf-b-w03-activity-calendar-channel.test.js apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 20/20; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+      }
     },
     {
       "rank": 16,
@@ -3620,11 +3667,11 @@
   "status_counts_after": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 21,
+    "pass": 22,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 111,
+    "blocked": 110,
     "fail": 42
   },
   "post_closeout_resolution": {
@@ -3859,5 +3906,52 @@
       "external_provider_receipt": "MISSING_BY_BOUNDARY"
     },
     "latest_verification_summary": "Post-closeout LCX8-ACTION-0072 verification: UI/API provider-boundary proof PASS (30 assertions); node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS. Status remains BLOCKED/Lane D because external_provider_receipt_required is still unsatisfied."
+  },
+  "post_closeout_resolution_lcx8_action_0073": {
+    "id": "LCX8-ACTION-0073",
+    "status_before": "BLOCKED",
+    "status_after": "PASS",
+    "surface": "matter",
+    "section": "matter-timeline",
+    "label": "작업 추가",
+    "evidence": [
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0073-matter-activity-create-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0073-matter-activity-create-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-activity-create-2026-06-27.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-activity-create-2026-06-27.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0073-matter-activity-create-proof.png"
+    ],
+    "proof_summary": {
+      "write_http_status": 201,
+      "write_outcome": "created",
+      "matter_id": "matter_lcx8_0073_activity_1782515296663",
+      "activity_id": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+      "activity_type": "task",
+      "activity_status": "todo",
+      "replay_outcome": "idempotent_replay",
+      "activity_read_back_count": 1,
+      "timeline_read_back_count": 1,
+      "audit_event_action": "matter.activity.created",
+      "audit_event_id": "matter.activity.created:tenant_rp05_synthetic:matter_lcx8_0073_activity_1782515296663:activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+      "denied_write_outcome": "403/denied",
+      "review_write_outcome": "200/review_required",
+      "invalid_activity_outcome": "400/blocked",
+      "guard_activity_count": 0,
+      "guard_timeline_count": 0,
+      "guard_audit_count": 0,
+      "production_ready_claim": false
+    },
+    "validation": {
+      "browser_ui_api_proof": "PASS 29/29 assertions",
+      "api_tests": "PASS 20/20",
+      "web_ui_tests": "PASS 17/17",
+      "web_build": "PASS (existing Vite chunk-size warning only)",
+      "live_verifier": "PASS 13/13",
+      "flow_verifier": "PASS 9/9",
+      "sloplint": "PASS",
+      "json_count_invariant": "PASS",
+      "git_diff_check": "PASS"
+    },
+    "latest_verification_summary": "Post-closeout LCX8-ACTION-0073 verification: UI/API activity proof PASS (29 assertions); node --test apps/api/test/sf-b-w03-activity-calendar-channel.test.js apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 20/20; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
   }
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx-web.runtime-verification.v1",
-  "generated_at": "2026-06-26T14:04:44.008Z",
+  "generated_at": "2026-06-26T23:10:54.064Z",
   "base_url": "http://127.0.0.1:5173",
   "source_of_truth": "apps/web",
   "passed": true,

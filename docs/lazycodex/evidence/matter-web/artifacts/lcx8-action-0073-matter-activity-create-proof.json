@@ -1,0 +1,630 @@
+{
+  "action_id": "LCX8-ACTION-0073",
+  "title": "Matter 작업 추가 activity create proof",
+  "completed_at": "2026-06-26T23:08:17.909Z",
+  "surface": "matter",
+  "route": "/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline",
+  "browser_start_route": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+  "browser_action_route": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline",
+  "final_browser_url": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline",
+  "fixture": {
+    "tenant_id": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "matter_id": "matter_lcx8_0073_activity_1782515296663",
+    "matter_number": "M-LCX8-0073-15296663",
+    "title": "LCX8 activity proof 1782515296663",
+    "activity_id": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+    "safe_fixture_family": "matter_runtime_activity_create",
+    "existing_seed_mutated": false
+  },
+  "trace": {
+    "ui_handler": "handleCreateActivity -> createMatterActivity({ matterId, title, status })",
+    "selector": "#matter-timeline button:has-text(\"작업 추가\")",
+    "api_route": "POST /api/matters/:matter_id/activities",
+    "service": "matterActivityService.createActivity -> createMatterActivityCalendarChannelService.createActivity",
+    "audit_action": "matter.activity.created",
+    "timeline_event_type": "matter.activity.task",
+    "replay_contract": "recordMatterRuntimeReplay + matterRuntimeReplay by idempotency_key"
+  },
+  "fixture_proof": {
+    "opening": {
+      "status": 201,
+      "outcome": "created",
+      "ui_state": null,
+      "safe_error_codes": [],
+      "item": {
+        "tenant_id": "tenant_rp05_synthetic",
+        "resource_id": "matter_lcx8_0073_activity_1782515296663",
+        "matter_id": "matter_lcx8_0073_activity_1782515296663",
+        "matter_code": null,
+        "matter_number": "M-LCX8-0073-15296663",
+        "matter_name": "LCX8 activity proof 1782515296663",
+        "title": "LCX8 activity proof 1782515296663",
+        "status": "opening",
+        "client_id": "party_lcx8_0073_client",
+        "client_display_name": null,
+        "legal_client_party_id": "party_lcx8_0073_client",
+        "billing_client_party_id": "party_lcx8_0073_client",
+        "matter_type_english": null,
+        "matter_detail_type_korean": null,
+        "source_revision": null,
+        "owner_module": "MatterCore",
+        "owner_employee_id": null,
+        "owner_user_id": null,
+        "owner_display_name": null,
+        "permission_envelope_id": "perm_matter_lcx8_0073_activity_1782515296663",
+        "audit_trace_id": "audit_matter_lcx8_0073_activity_1782515296663",
+        "document_count": 0,
+        "vault_workspace_id": "workspace:matter_lcx8_0073_activity_1782515296663",
+        "matter_vault_linked": true,
+        "team_member_count": 0,
+        "wip_status": "not_started",
+        "risk_level": "standard",
+        "opened_at": null,
+        "closed_at": null,
+        "runtime_write_ready": true,
+        "r5_r6_owner_decision_ready": true,
+        "production_ready_claim": false
+      },
+      "audit_event": {
+        "event_id": "matter_opened:tenant_rp05_synthetic:matter_lcx8_0073_activity_1782515296663",
+        "tenant_id": "tenant_rp05_synthetic",
+        "actor_id": "matter_matter_operator",
+        "action": "matter.open",
+        "object_type": "Matter",
+        "object_id": "matter_lcx8_0073_activity_1782515296663",
+        "decision": "allow",
+        "reason": "matter_opened_with_clearance",
+        "occurred_at": "2026-06-26T23:08:16.676Z",
+        "metadata": {
+          "matter_number": "M-LCX8-0073-15296663",
+          "matter_code": null,
+          "idempotency_key": "ui:matter_lcx8_0073_activity_1782515296663:opening:1782515296663"
+        },
+        "event_hash": "d018a16a60c86e39acab8f37932ce5b3f29048e14609c721e0f0b9b73269790c"
+      },
+      "timeline_event": null,
+      "idempotent_replay": false,
+      "state_idempotent": true,
+      "production_ready_claim": false
+    }
+  },
+  "browser_proof": {
+    "url": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0073-matter-activity-create-proof.png",
+    "result_message": "활동이 감사 이력과 활동 이력에 기록되었습니다.",
+    "selected_matter_observed": "Matter timeline panel after selecting synthetic matter from #matters-list",
+    "api_responses": [
+      {
+        "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+        "method": "POST",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_lcx8_0073_activity_1782515296663/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0073_activity_1782515296663/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0073_activity_1782515296663/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0073_activity_1782515296663/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0073_activity_1782515296663/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0073_activity_1782515296663/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0073_activity_1782515296663/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0073_activity_1782515296663/recently-viewed",
+        "method": "POST",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0073_activity_1782515296663/activities",
+        "method": "POST",
+        "status": 201
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0073_activity_1782515296663/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0073_activity_1782515296663/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0073_activity_1782515296663/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0073_activity_1782515296663/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0073_activity_1782515296663/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+        "method": "GET",
+        "status": 200
+      }
+    ],
+    "ui_create_request_payload": {
+      "tenant_id": "tenant_rp05_synthetic",
+      "permission_ref": "ui_sf_b_w03_activity_write",
+      "audit_hint_ref": "ui_sf_b_w03_activity_write_probe",
+      "actor_id": "matter_matter_operator",
+      "idempotency_key": "ui:matter_lcx8_0073_activity_1782515296663:activity:1782515297834",
+      "activity": {
+        "activity_id": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+        "activity_type": "task",
+        "title": "증거 검토 작업",
+        "status": "todo",
+        "due_at": "2026-06-27T23:08:17.834Z"
+      }
+    }
+  },
+  "api_write": {
+    "ui_create": {
+      "status": 201,
+      "outcome": "created",
+      "ui_state": null,
+      "safe_error_codes": [],
+      "item": {
+        "activity_id": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+        "matter_id": "matter_lcx8_0073_activity_1782515296663",
+        "activity_type": "task",
+        "title": "증거 검토 작업",
+        "status": "todo",
+        "due_at": "2026-06-27T23:08:17.834Z",
+        "assigned_to_label": "미지정",
+        "safe_excerpt": null,
+        "raw_body_included": false,
+        "provider_event_id_included": false,
+        "external_send_state": "not_applicable",
+        "production_ready_claim": false
+      },
+      "audit_event": {
+        "event_id": "matter.activity.created:tenant_rp05_synthetic:matter_lcx8_0073_activity_1782515296663:activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+        "tenant_id": "tenant_rp05_synthetic",
+        "actor_id": "matter_matter_operator",
+        "action": "matter.activity.created",
+        "object_type": "MatterTask",
+        "object_id": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+        "decision": "allow",
+        "reason": "activity_created",
+        "occurred_at": "2026-06-26T23:08:17.836Z",
+        "metadata": {
+          "activity_type": "task",
+          "raw_body_included": false,
+          "provider_event_id_included": false,
+          "raw_provider_payload_included": false,
+          "direct_personal_contact_identifier_included": false
+        }
+      },
+      "timeline_event": {
+        "model_type": "MatterTimelineEvent",
+        "resource_id": "matter.timeline.activity:tenant_rp05_synthetic:matter_lcx8_0073_activity_1782515296663:activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+        "event_id": "matter.timeline.activity:tenant_rp05_synthetic:matter_lcx8_0073_activity_1782515296663:activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+        "tenant_id": "tenant_rp05_synthetic",
+        "matter_id": "matter_lcx8_0073_activity_1782515296663",
+        "occurred_at": "2026-06-26T23:08:17.836Z",
+        "type": "matter.activity.task",
+        "title": "증거 검토 작업",
+        "source_ref": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+        "source_module": "matter",
+        "source_object_id": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+        "safe_summary": {
+          "activity_type": "task",
+          "status": "todo"
+        },
+        "raw_body_included": false,
+        "raw_provider_payload_included": false,
+        "writes_product_state": true,
+        "creates_database_rows": true
+      },
+      "idempotent_replay": false,
+      "state_idempotent": true,
+      "production_ready_claim": false
+    },
+    "idempotent_replay": {
+      "status": 200,
+      "outcome": "idempotent_replay",
+      "ui_state": null,
+      "safe_error_codes": [],
+      "item": {
+        "activity_id": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+        "matter_id": "matter_lcx8_0073_activity_1782515296663",
+        "activity_type": "task",
+        "title": "증거 검토 작업",
+        "status": "todo",
+        "due_at": "2026-06-27T23:08:17.834Z",
+        "assigned_to_label": "미지정",
+        "safe_excerpt": null,
+        "raw_body_included": false,
+        "provider_event_id_included": false,
+        "external_send_state": "not_applicable",
+        "production_ready_claim": false
+      },
+      "audit_event": {
+        "event_id": "matter.activity.created:tenant_rp05_synthetic:matter_lcx8_0073_activity_1782515296663:activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+        "tenant_id": "tenant_rp05_synthetic",
+        "actor_id": "matter_matter_operator",
+        "action": "matter.activity.created",
+        "object_type": "MatterTask",
+        "object_id": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+        "decision": "allow",
+        "reason": "activity_created",
+        "occurred_at": "2026-06-26T23:08:17.836Z",
+        "metadata": {
+          "activity_type": "task",
+          "raw_body_included": false,
+          "provider_event_id_included": false,
+          "raw_provider_payload_included": false,
+          "direct_personal_contact_identifier_included": false
+        }
+      },
+      "timeline_event": {
+        "model_type": "MatterTimelineEvent",
+        "resource_id": "matter.timeline.activity:tenant_rp05_synthetic:matter_lcx8_0073_activity_1782515296663:activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+        "event_id": "matter.timeline.activity:tenant_rp05_synthetic:matter_lcx8_0073_activity_1782515296663:activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+        "tenant_id": "tenant_rp05_synthetic",
+        "matter_id": "matter_lcx8_0073_activity_1782515296663",
+        "occurred_at": "2026-06-26T23:08:17.836Z",
+        "type": "matter.activity.task",
+        "title": "증거 검토 작업",
+        "source_ref": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+        "source_module": "matter",
+        "source_object_id": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+        "safe_summary": {
+          "activity_type": "task",
+          "status": "todo"
+        },
+        "raw_body_included": false,
+        "raw_provider_payload_included": false,
+        "writes_product_state": true,
+        "creates_database_rows": true
+      },
+      "idempotent_replay": true,
+      "state_idempotent": true,
+      "production_ready_claim": false
+    }
+  },
+  "read_back": {
+    "activities_status": 200,
+    "activity_count_for_created_id": 1,
+    "activity_item": {
+      "activity_id": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+      "matter_id": "matter_lcx8_0073_activity_1782515296663",
+      "activity_type": "task",
+      "title": "증거 검토 작업",
+      "status": "todo",
+      "due_at": "2026-06-27T23:08:17.834Z",
+      "assigned_to_label": "미지정",
+      "safe_excerpt": null,
+      "raw_body_included": false,
+      "provider_event_id_included": false,
+      "external_send_state": "not_applicable",
+      "production_ready_claim": false
+    },
+    "timeline_status": 200,
+    "timeline_count_for_created_id": 1,
+    "timeline_event": {
+      "event_id": "matter.timeline.activity:tenant_rp05_synthetic:matter_lcx8_0073_activity_1782515296663:activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+      "tenant_id": "tenant_rp05_synthetic",
+      "matter_id": "matter_lcx8_0073_activity_1782515296663",
+      "occurred_at": "2026-06-26T23:08:17.836Z",
+      "type": "matter.activity.task",
+      "title": "증거 검토 작업",
+      "source_ref": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834"
+    }
+  },
+  "audit": {
+    "read_back_status": 200,
+    "activity_created_event_count_before_guards": 1,
+    "activity_created_event_count_after_guards": 1,
+    "event": {
+      "event_id": "matter.activity.created:tenant_rp05_synthetic:matter_lcx8_0073_activity_1782515296663:activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "action": "matter.activity.created",
+      "object_type": "MatterTask",
+      "object_id": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+      "decision": "allow",
+      "reason": "activity_created",
+      "occurred_at": "2026-06-26T23:08:17.836Z",
+      "metadata": {
+        "activity_type": "task",
+        "raw_body_included": false,
+        "provider_event_id_included": false,
+        "raw_provider_payload_included": false,
+        "direct_personal_contact_identifier_included": false
+      }
+    }
+  },
+  "fail_closed": {
+    "denied": {
+      "status": 403,
+      "outcome": "blocked",
+      "ui_state": "denied",
+      "safe_error_codes": [
+        "MATTER_UNAUTHORIZED_OMISSION"
+      ],
+      "item": null,
+      "audit_event": null,
+      "timeline_event": null,
+      "idempotent_replay": false,
+      "state_idempotent": false,
+      "production_ready_claim": false
+    },
+    "review": {
+      "status": 200,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "safe_error_codes": [
+        "MATTER_REVIEW_REQUIRED"
+      ],
+      "item": null,
+      "audit_event": null,
+      "timeline_event": null,
+      "idempotent_replay": false,
+      "state_idempotent": false,
+      "production_ready_claim": false
+    },
+    "invalid_activity_type": {
+      "status": 400,
+      "outcome": "blocked",
+      "ui_state": "blocked",
+      "safe_error_codes": [
+        "MATTER_API_VALIDATION_ERROR"
+      ],
+      "item": null,
+      "audit_event": null,
+      "timeline_event": null,
+      "idempotent_replay": false,
+      "state_idempotent": false,
+      "production_ready_claim": false
+    },
+    "guard_activity_count": 0,
+    "guard_timeline_count": 0,
+    "guard_audit_count": 0
+  },
+  "persistence_and_reload": {
+    "classification": "repository_write_with_activity_timeline_audit_readback",
+    "activity_persisted": true,
+    "timeline_persisted": true,
+    "audit_persisted": true,
+    "replay_idempotent": true,
+    "status_after": "PASS"
+  },
+  "console_network": {
+    "console_messages": [],
+    "console_errors": [],
+    "request_failures": [],
+    "unexpected_api_failures": []
+  },
+  "assertions": {
+    "fixture_created": true,
+    "fixture_vault_link_created": true,
+    "ui_create_status_201": true,
+    "ui_create_outcome_created": true,
+    "activity_id_safe": true,
+    "activity_type_task": true,
+    "activity_status_todo": true,
+    "raw_body_hidden": true,
+    "provider_reference_hidden": true,
+    "audit_event_created": true,
+    "audit_event_object_id_matches": true,
+    "timeline_event_created": true,
+    "replay_idempotent": true,
+    "replay_same_activity": true,
+    "activity_read_back_found": true,
+    "timeline_read_back_found": true,
+    "audit_read_back_found": true,
+    "result_message_observed": true,
+    "title_observed": true,
+    "denied_fail_closed": true,
+    "review_fail_closed": true,
+    "invalid_activity_blocked": true,
+    "guards_did_not_mutate_activity": true,
+    "guards_did_not_mutate_timeline": true,
+    "guards_did_not_mutate_audit": true,
+    "no_request_failures": true,
+    "no_console_errors": true,
+    "production_ready_claim_false": true,
+    "navigated_to_matter_timeline": true
+  },
+  "non_claims": [
+    "Synthetic local runtime write/read-back proof only; no production go-live or owner approval claimed.",
+    "No external provider, payment, or public launch claim is made."
+  ],
+  "validation": {
+    "browser_ui_api_proof": "PASS 29/29 assertions",
+    "api_tests": "PASS 20/20",
+    "web_ui_tests": "PASS 17/17",
+    "web_build": "PASS (existing Vite chunk-size warning only)",
+    "live_verifier": "PASS 13/13",
+    "flow_verifier": "PASS 9/9",
+    "sloplint": "PASS",
+    "json_count_invariant": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0073 verification: UI/API activity proof PASS (29 assertions); node --test apps/api/test/sf-b-w03-activity-calendar-channel.test.js apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 20/20; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+}

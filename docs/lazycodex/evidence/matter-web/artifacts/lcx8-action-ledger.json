@@ -124,11 +124,11 @@
   "status_counts": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 21,
+    "pass": 22,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 111,
+    "blocked": 110,
     "fail": 42
   },
   "rows": [
@@ -2898,8 +2898,8 @@
       "permission_boundary": "Matter activity write permission context",
       "audit_boundary": "activity create audit expected by API",
       "persistence_boundary": "repository write expected; timeline/activity read-back required in P4/P5",
-      "remediation_lane": "Lane B",
-      "status": "BLOCKED",
+      "remediation_lane": "",
+      "status": "PASS",
       "tuw": "P1-T06",
       "surface": "matter",
       "route": "/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline",
@@ -2928,9 +2928,13 @@
         "P5-T01 safe fixture definition: fixture_family=matter_runtime; applicability=P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED; tenant=tenant_rp05_synthetic; actor=matter_matter_operator; selected_for_p5_t02=false; no_write_executed=true; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-safe-fixture-definition-p5-t01.json",
         "P8 final remediation lane assignment: lane=Lane B; reason=api_permission_audit_persistence_or_runtime_proof_gap; tuw=P8-T03; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-lane-assignment-p8-t02-t06.json",
         "P8-T07 blocker risk ranking: tier=high; score=86; reason=API write lacks complete precondition/audit/persistence proof.; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-blocker-risk-ranking-p8-t07.json",
-        "P8-T08 remediation-ready issue text: rank=15; tier=high; title=Prove matter write action 작업 추가; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-ready-issues-p8-t08.json"
+        "P8-T08 remediation-ready issue text: rank=15; tier=high; title=Prove matter write action 작업 추가; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-ready-issues-p8-t08.json",
+        "Post-closeout LCX8-ACTION-0073 proof: UI click -> POST /api/matters/:matter_id/activities returned 201/created; replay=200/idempotent_replay; activity/timeline/audit read-back passed; denied/review/invalid guards fail-closed; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0073-matter-activity-create-proof.json",
+        "Post-closeout LCX8-ACTION-0073 status artifact: status_before=BLOCKED; status_after=PASS; counts_after=PASS 22/BLOCKED 110; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-activity-create-2026-06-27.json",
+        "Post-closeout LCX8-ACTION-0073 non-claim: local synthetic runtime proof only; production_ready_claim=false; no production go-live or owner approval claimed.",
+        "Post-closeout LCX8-ACTION-0073 verification: API tests PASS 20/20; web UI tests PASS 17/17; build PASS; live verifier PASS 13/13; flow verifier PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
       ],
-      "notes": "P2-T04 source/API client trace complete; P3/P4 click/API/audit/read-back proof pending before any PASS promotion. P4-T05 maps audit proof requirements; row is not PASS without audit event/read proof. P4-T06 stabilizes the expected blocked/failure/guarded reason for remediation ranking. P4-T07 focused API tests passed for related domains; status remains provisional until P4-T08/P5 classification. P4-T08 assigned API-backed provisional status BLOCKED. P5-T00 identifies this API write as a durable persistence candidate; actual write execution is deferred until the P5-T01 safe fixture is defined. P5-T01 defines synthetic fixture applicability for this API write; P5-T02 must capture execution/read-back/audit before any PASS promotion. P8 assigns remediation lane Lane B (api_permission_audit_persistence_or_runtime_proof_gap). P8-T07 ranks this remediation as high risk (score 86). P8-T08 issue text ready: Prove matter write action 작업 추가."
+      "notes": "LCX8-ACTION-0073 is promoted to PASS after current-product UI 작업 추가 click, Matter activity POST created response, idempotent replay, activity/timeline/audit read-back, and denied/review/invalid fail-closed proof. Post-closeout LCX8-ACTION-0073 verification: UI/API activity proof PASS (29 assertions); node --test apps/api/test/sf-b-w03-activity-calendar-channel.test.js apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 20/20; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
     },
     {
       "id": "LCX8-ACTION-0074",

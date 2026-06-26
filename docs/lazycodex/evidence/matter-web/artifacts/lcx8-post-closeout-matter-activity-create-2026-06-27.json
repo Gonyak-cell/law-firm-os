@@ -1,0 +1,81 @@
+{
+  "id": "lcx8-post-closeout-matter-activity-create-2026-06-27",
+  "action_id": "LCX8-ACTION-0073",
+  "status": "pass_post_closeout_synthetic_runtime",
+  "completed_at": "2026-06-26T23:08:17.909Z",
+  "fixture": {
+    "tenant_id": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "matter_id": "matter_lcx8_0073_activity_1782515296663",
+    "matter_number": "M-LCX8-0073-15296663",
+    "title": "LCX8 activity proof 1782515296663",
+    "activity_id": "activity_matter_lcx8_0073_activity_1782515296663_1782515297834",
+    "safe_fixture_family": "matter_runtime_activity_create",
+    "existing_seed_mutated": false
+  },
+  "proof_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0073-matter-activity-create-proof.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0073-matter-activity-create-proof.md",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0073-matter-activity-create-proof.png"
+  ],
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 22,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 110,
+    "fail": 42
+  },
+  "resolution": {
+    "status_before": "BLOCKED",
+    "status_after": "PASS",
+    "remediation_lane": "resolved",
+    "proof_basis": "UI click, POST /activities write, idempotent replay, activity/timeline/audit read-back, denied/review/invalid fail-closed guards.",
+    "production_ready_claim": false
+  },
+  "assertions": {
+    "fixture_created": true,
+    "fixture_vault_link_created": true,
+    "ui_create_status_201": true,
+    "ui_create_outcome_created": true,
+    "activity_id_safe": true,
+    "activity_type_task": true,
+    "activity_status_todo": true,
+    "raw_body_hidden": true,
+    "provider_reference_hidden": true,
+    "audit_event_created": true,
+    "audit_event_object_id_matches": true,
+    "timeline_event_created": true,
+    "replay_idempotent": true,
+    "replay_same_activity": true,
+    "activity_read_back_found": true,
+    "timeline_read_back_found": true,
+    "audit_read_back_found": true,
+    "result_message_observed": true,
+    "title_observed": true,
+    "denied_fail_closed": true,
+    "review_fail_closed": true,
+    "invalid_activity_blocked": true,
+    "guards_did_not_mutate_activity": true,
+    "guards_did_not_mutate_timeline": true,
+    "guards_did_not_mutate_audit": true,
+    "no_request_failures": true,
+    "no_console_errors": true,
+    "production_ready_claim_false": true,
+    "navigated_to_matter_timeline": true
+  },
+  "validation": {
+    "browser_ui_api_proof": "PASS 29/29 assertions",
+    "api_tests": "PASS 20/20",
+    "web_ui_tests": "PASS 17/17",
+    "web_build": "PASS (existing Vite chunk-size warning only)",
+    "live_verifier": "PASS 13/13",
+    "flow_verifier": "PASS 9/9",
+    "sloplint": "PASS",
+    "json_count_invariant": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0073 verification: UI/API activity proof PASS (29 assertions); node --test apps/api/test/sf-b-w03-activity-calendar-channel.test.js apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 20/20; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+}
