@@ -1,13 +1,13 @@
 # LCX8 Post-Closeout Remediation Status
 
-Generated at: 2026-06-25T15:37:28.085930Z
+Generated at: 2026-06-26T13:02:44.550Z
 
-Resolved rows: `LCX8-ACTION-0280` People directory denied/review state; `LCX8-ACTION-0272` and `LCX8-ACTION-0273` Client denied/review mutation affordance and guarded-state copy.
+Resolved rows: `LCX8-ACTION-0280` People directory denied/review state; `LCX8-ACTION-0272` and `LCX8-ACTION-0273` Client denied/review mutation affordance and guarded-state copy; `LCX8-ACTION-0054`, `LCX8-ACTION-0055`, `LCX8-ACTION-0061`, `LCX8-ACTION-0063`, `LCX8-ACTION-0065`, `LCX8-ACTION-0066`, and `LCX8-ACTION-0067` Matter local synthetic write/read-back/audit proofs.
 
-Status count change: FAIL 43 -> 42 and GUARDED 19 -> 20 from the People guarded-state remediation. The Client affordance/copy remediation changes no status counts; both Client rows remain `GUARDED`.
+Status count change: current post-closeout counts are PASS 17, GUARDED 20, UI_ONLY 128, DESCRIPTOR_ONLY 2, BLOCKED 115, FAIL 42, UNKNOWN 0. `LCX8-ACTION-0067` moved from `BLOCKED` to `PASS` after Matter builder draft patch proof.
 
-Evidence: `docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0280-people-guard-state-remediation.json`, `docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0280-people-guard-state-api-remediation.json`, `docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json`, `docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json`, `docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json`, `docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json`.
+Evidence: `docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0067-matter-builder-draft-patch-proof.json`, `docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-builder-draft-patch-2026-06-26.json`, `docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0067-matter-builder-draft-patch-proof.png`.
 
-Verification: `npm run lcx:ppl:ui:validate`, `node --test apps/api/test/hrx/legal-people-api.test.js`, `node scripts/verify-matter-live-data.mjs`, `npm --workspace apps/web run test:ui`, `npm run build`, `npm run ui:live:verify`, `npm run ui:flows:verify`, Client guarded browser QA, and sloplint all passed.
+Verification: Post-closeout LCX8-ACTION-0067 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS.
 
-Non-claim: this resolves the current-product guarded-state, Client mutation-affordance, and Client guarded-copy gaps only; it is not a `PASS` promotion for Client guarded rows, a go-live approval, or production-ready approval.
+Non-claim: this records local synthetic current-product runtime proof only; it is not go-live approval, production-ready approval, external receipt, or real-client-data proof.

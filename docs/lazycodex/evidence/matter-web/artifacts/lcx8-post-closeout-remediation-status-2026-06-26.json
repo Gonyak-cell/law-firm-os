@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx8.post-closeout-remediation-status.v1",
-  "generated_at": "2026-06-26T05:36:42.543Z",
+  "generated_at": "2026-06-26T13:02:44.550Z",
   "status": "POST_CLOSEOUT_REMEDIATION_RECORDED",
   "resolved_rows": [
     {
@@ -269,6 +269,44 @@
         "review_preview_status": 404,
         "production_ready_claim": false
       }
+    },
+    {
+      "id": "LCX8-ACTION-0067",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "matter",
+      "section": "matter-vault",
+      "label": "검토 준비",
+      "evidence": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0067-matter-builder-draft-patch-proof.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0067-matter-builder-draft-patch-proof.md",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0067-matter-builder-draft-patch-proof.png"
+      ],
+      "proof_summary": {
+        "write_http_status": 200,
+        "write_outcome": "updated",
+        "matter_id": "matter_lcx8_0067_patch_1782478170369",
+        "draft_id": "builder_draft_matter_lcx8_0067_patch_1782478170369_1782478627221",
+        "draft_title": "위임계약서 초안",
+        "draft_status": "ready_for_review",
+        "approval_state": "approval_required",
+        "publish_state": "owner_blocked",
+        "replay_outcome": "idempotent_replay",
+        "preview_http_status": 200,
+        "preview_outcome": "passed",
+        "preview_sections": [
+          "표지",
+          "핵심 조항",
+          "승인 필요 항목"
+        ],
+        "timeline_event_type": "matter.builder.draft",
+        "audit_event_action": "matter.builder.draft.patched",
+        "audit_event_id": "matter.builder.draft.patched:tenant_rp05_synthetic:matter_lcx8_0067_patch_1782478170369:builder_draft_matter_lcx8_0067_patch_1782478170369_1782478627221:2026-06-26T12:57:07.256Z",
+        "denied_write_outcome": "403/blocked",
+        "review_write_outcome": "200/review_required",
+        "invalid_draft_outcome": "404/blocked",
+        "production_ready_claim": false
+      }
     }
   ],
   "status_counts_before": {
@@ -284,11 +322,11 @@
   "status_counts_after": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 16,
+    "pass": 17,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 116,
+    "blocked": 115,
     "fail": 42
   },
   "commands": [
@@ -351,7 +389,7 @@
     },
     {
       "command": "JSON parse and LCX8 ledger count invariant",
-      "result": "PASS 324 rows; PASS 16; BLOCKED 116; UNKNOWN 0; LCX8-ACTION-0066 PASS"
+      "result": "PASS 324 rows; PASS 17; BLOCKED 115; UNKNOWN 0; LCX8-ACTION-0067 PASS"
     },
     {
       "command": "Playwright LCX8-ACTION-0055 Matter bulk status UI/API/read-back/audit/fail-closed proof",
@@ -384,6 +422,15 @@
     {
       "command": "node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js",
       "result": "PASS 16/16"
+    },
+    {
+      "command": "Playwright LCX8-ACTION-0067 Matter builder draft patch UI/API/preview/audit/fail-closed proof",
+      "result": "PASS 200/updated",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0067-matter-builder-draft-patch-proof.json"
+    },
+    {
+      "command": "JSON parse and LCX8 ledger count invariant",
+      "result": "PENDING 324 rows; PASS 17; BLOCKED 115; UNKNOWN 0; LCX8-ACTION-0067 PASS"
     }
   ],
   "non_claims": {
@@ -402,7 +449,9 @@
     "matter_status_transition_promoted_to_pass": true,
     "matter_status_transition_production_ready_claim": false,
     "matter_builder_draft_promoted_to_pass": true,
-    "matter_builder_draft_production_ready_claim": false
+    "matter_builder_draft_production_ready_claim": false,
+    "matter_builder_draft_patch_promoted_to_pass": true,
+    "matter_builder_draft_patch_production_ready_claim": false
   },
-  "latest_verification_summary": "Post-closeout LCX8-ACTION-0066 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0067 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
 }
