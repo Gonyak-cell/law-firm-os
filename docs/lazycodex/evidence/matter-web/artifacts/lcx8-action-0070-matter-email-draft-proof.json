@@ -1,0 +1,573 @@
+{
+  "action_id": "LCX8-ACTION-0070",
+  "title": "LCX8 Matter email draft create proof",
+  "completed_at": "2026-06-26T13:39:02.025Z",
+  "surface": "matter-vault",
+  "route": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-vault",
+  "browser_start_route": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+  "final_browser_url": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-vault",
+  "fixture": {
+    "tenant_id": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "matter_id": "matter_lcx8_0070_email_1782481142025",
+    "matter_number": "M-LCX8-0070-81142025",
+    "title": "LCX8 email draft proof 1782481142025",
+    "draft_id": "email_draft_matter_lcx8_0070_email_1782481142025_1782481143322",
+    "safe_fixture_family": "matter_runtime_email_draft_create",
+    "existing_seed_mutated": false
+  },
+  "trace": {
+    "ui_handler": "handleCreateEmailDraft -> createMatterEmailDraft",
+    "selector": "[data-sf-b-w04-email-draft-action=\"true\"]",
+    "api_route": "POST /api/matters/:matter_id/email-drafts",
+    "service": "matterDocumentEmailBuilderService.createEmailDraft",
+    "audit_action": "matter.email_draft.created",
+    "replay_contract": "recordMatterRuntimeReplay + matterRuntimeReplay by idempotency_key"
+  },
+  "fixture_proof": {
+    "opening": {
+      "status": 201,
+      "outcome": "created",
+      "ui_state": null,
+      "safe_error_codes": [],
+      "item": {
+        "tenant_id": "tenant_rp05_synthetic",
+        "resource_id": "matter_lcx8_0070_email_1782481142025",
+        "matter_id": "matter_lcx8_0070_email_1782481142025",
+        "matter_code": "AMIC LCX8 0070/litigation/계약분쟁",
+        "matter_number": "M-LCX8-0070-81142025",
+        "matter_name": "LCX8 email draft proof 1782481142025",
+        "title": "LCX8 email draft proof 1782481142025",
+        "status": "opening",
+        "client_id": "client_rp04_amic",
+        "client_display_name": "(주)AMIC LCX8 0070",
+        "legal_client_party_id": "party_rp04_amic",
+        "billing_client_party_id": "party_rp04_amic",
+        "matter_type_english": "litigation",
+        "matter_detail_type_korean": "계약분쟁",
+        "source_revision": "lcx8-action-0070-email-draft-proof",
+        "owner_module": "MatterCore",
+        "owner_employee_id": null,
+        "owner_user_id": null,
+        "owner_display_name": null,
+        "permission_envelope_id": "perm_matter_lcx8_0070_email_1782481142025",
+        "audit_trace_id": "audit_matter_lcx8_0070_email_1782481142025",
+        "document_count": 0,
+        "vault_workspace_id": "workspace:matter_lcx8_0070_email_1782481142025",
+        "matter_vault_linked": true,
+        "team_member_count": 0,
+        "wip_status": "not_started",
+        "risk_level": "standard",
+        "opened_at": null,
+        "closed_at": null,
+        "runtime_write_ready": true,
+        "r5_r6_owner_decision_ready": true,
+        "production_ready_claim": false
+      },
+      "audit_event": {
+        "event_id": "matter_opened:tenant_rp05_synthetic:matter_lcx8_0070_email_1782481142025",
+        "tenant_id": "tenant_rp05_synthetic",
+        "actor_id": "matter_matter_operator",
+        "action": "matter.open",
+        "object_type": "Matter",
+        "object_id": "matter_lcx8_0070_email_1782481142025",
+        "decision": "allow",
+        "reason": "matter_opened_with_clearance",
+        "occurred_at": "2026-06-26T13:39:02.036Z",
+        "metadata": {
+          "matter_number": "M-LCX8-0070-81142025",
+          "matter_code": "AMIC LCX8 0070/litigation/계약분쟁",
+          "idempotency_key": "lcx8-action-0070:opening:matter_lcx8_0070_email_1782481142025"
+        },
+        "event_hash": "e989b2e6c379d4026be19aba57f754da24edee6157f1ac2a208bad8b8540225b"
+      },
+      "idempotent_replay": false,
+      "state_idempotent": true,
+      "production_ready_claim": false
+    },
+    "detail_read": {
+      "status": 200,
+      "matter_id": "matter_lcx8_0070_email_1782481142025",
+      "unauthorized_count_leaked": false
+    },
+    "vault_summary_read": {
+      "status": 200,
+      "body_keys": [
+        "request_id",
+        "outcome",
+        "item",
+        "safe_error_codes",
+        "audit_hint_ref",
+        "ui_state",
+        "count_leak_prevented",
+        "production_ready_claim"
+      ]
+    }
+  },
+  "browser_proof": {
+    "url": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-vault",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0070-matter-email-draft-proof.png",
+    "result_message": "이메일 초안이 생성되었습니다.\n수신자와 본문 원문은 숨깁니다.",
+    "selected_matter_observed": "M-LCX8-0070-81142025",
+    "api_responses": [
+      {
+        "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+        "method": "POST",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_lcx8_0070_email_1782481142025/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0070_email_1782481142025/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0070_email_1782481142025/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0070_email_1782481142025/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0070_email_1782481142025/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0070_email_1782481142025/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0070_email_1782481142025/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0070_email_1782481142025/recently-viewed",
+        "method": "POST",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0070_email_1782481142025/vault-summary?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_vault_summary&audit_hint_ref=ui_mv_matter_vault_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0070_email_1782481142025/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_documents&audit_hint_ref=ui_mv_matter_vault_documents_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/vault/search?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_search&audit_hint_ref=ui_mv_matter_vault_search_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/vault/audit?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_audit&audit_hint_ref=ui_mv_matter_vault_audit_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0070_email_1782481142025/document-templates?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w04_document_template_read&audit_hint_ref=ui_sf_b_w04_document_template_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0070_email_1782481142025/builder-approval-requests?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w04_builder_approval_read&audit_hint_ref=ui_sf_b_w04_builder_approval_read_probe",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0070_email_1782481142025/email-drafts",
+        "method": "POST",
+        "status": 201
+      }
+    ],
+    "ui_create_request_payload": {
+      "tenant_id": "tenant_rp05_synthetic",
+      "permission_ref": "ui_sf_b_w04_email_draft_create",
+      "audit_hint_ref": "ui_sf_b_w04_email_draft_create_probe",
+      "actor_id": "matter_matter_operator",
+      "idempotency_key": "ui:matter_lcx8_0070_email_1782481142025:email:email_draft_matter_lcx8_0070_email_1782481142025_1782481143322:1782481143322",
+      "draft": {
+        "draft_id": "email_draft_matter_lcx8_0070_email_1782481142025_1782481143322",
+        "template_id": "matter_status_update_email",
+        "subject": "Matter 진행상황 안내",
+        "body": "이메일 초안 본문",
+        "recipient_refs": [
+          "client_contact_ref"
+        ]
+      }
+    }
+  },
+  "api_write": {
+    "ui_create": {
+      "status": 201,
+      "outcome": "created",
+      "ui_state": null,
+      "safe_error_codes": [],
+      "item": {
+        "draft_id": "email_draft_matter_lcx8_0070_email_1782481142025_1782481143322",
+        "matter_id": "matter_lcx8_0070_email_1782481142025",
+        "template_id": "matter_status_update_email",
+        "subject": "Matter 진행상황 안내",
+        "status": "draft",
+        "safe_excerpt": "입력 본문 9자",
+        "recipient_count": 1,
+        "provider_state": {
+          "provider_configured": false,
+          "external_send_state": "provider_blocked",
+          "provider_credentials_included": false,
+          "raw_provider_payload_included": false
+        },
+        "direct_personal_contact_identifier_included": false,
+        "raw_body_included": false,
+        "raw_provider_payload_included": false,
+        "production_ready_claim": false
+      },
+      "audit_event": {
+        "event_id": "matter.email_draft.created:tenant_rp05_synthetic:matter_lcx8_0070_email_1782481142025:email_draft_matter_lcx8_0070_email_1782481142025_1782481143322",
+        "tenant_id": "tenant_rp05_synthetic",
+        "actor_id": "matter_matter_operator",
+        "action": "matter.email_draft.created",
+        "object_type": "MatterEmailDraft",
+        "object_id": "email_draft_matter_lcx8_0070_email_1782481142025_1782481143322",
+        "decision": "allow",
+        "reason": "email_draft_created_provider_blocked",
+        "occurred_at": "2026-06-26T13:39:03.324Z",
+        "metadata": {
+          "external_send_state": "provider_blocked",
+          "raw_body_included": false,
+          "raw_template_body_included": false,
+          "raw_provider_payload_included": false,
+          "raw_contact_values_included": false,
+          "document_bytes_included": false
+        }
+      },
+      "idempotent_replay": false,
+      "state_idempotent": true,
+      "production_ready_claim": false
+    },
+    "idempotent_replay": {
+      "status": 200,
+      "outcome": "idempotent_replay",
+      "ui_state": null,
+      "safe_error_codes": [],
+      "item": {
+        "draft_id": "email_draft_matter_lcx8_0070_email_1782481142025_1782481143322",
+        "matter_id": "matter_lcx8_0070_email_1782481142025",
+        "template_id": "matter_status_update_email",
+        "subject": "Matter 진행상황 안내",
+        "status": "draft",
+        "safe_excerpt": "입력 본문 9자",
+        "recipient_count": 1,
+        "provider_state": {
+          "provider_configured": false,
+          "external_send_state": "provider_blocked",
+          "provider_credentials_included": false,
+          "raw_provider_payload_included": false
+        },
+        "direct_personal_contact_identifier_included": false,
+        "raw_body_included": false,
+        "raw_provider_payload_included": false,
+        "production_ready_claim": false
+      },
+      "audit_event": {
+        "event_id": "matter.email_draft.created:tenant_rp05_synthetic:matter_lcx8_0070_email_1782481142025:email_draft_matter_lcx8_0070_email_1782481142025_1782481143322",
+        "tenant_id": "tenant_rp05_synthetic",
+        "actor_id": "matter_matter_operator",
+        "action": "matter.email_draft.created",
+        "object_type": "MatterEmailDraft",
+        "object_id": "email_draft_matter_lcx8_0070_email_1782481142025_1782481143322",
+        "decision": "allow",
+        "reason": "email_draft_created_provider_blocked",
+        "occurred_at": "2026-06-26T13:39:03.324Z",
+        "metadata": {
+          "external_send_state": "provider_blocked",
+          "raw_body_included": false,
+          "raw_template_body_included": false,
+          "raw_provider_payload_included": false,
+          "raw_contact_values_included": false,
+          "document_bytes_included": false
+        }
+      },
+      "idempotent_replay": true,
+      "state_idempotent": true,
+      "production_ready_claim": false
+    }
+  },
+  "audit": {
+    "action": "matter.email_draft.created",
+    "event_id": "matter.email_draft.created:tenant_rp05_synthetic:matter_lcx8_0070_email_1782481142025:email_draft_matter_lcx8_0070_email_1782481142025_1782481143322",
+    "object_id": "email_draft_matter_lcx8_0070_email_1782481142025_1782481143322",
+    "decision": "allow",
+    "reason": "email_draft_created_provider_blocked",
+    "metadata": {
+      "external_send_state": "provider_blocked",
+      "raw_body_included": false,
+      "raw_template_body_included": false,
+      "raw_provider_payload_included": false,
+      "raw_contact_values_included": false,
+      "document_bytes_included": false
+    },
+    "matching_event_count_after_replay": 1,
+    "matching_event_count_after_guards": 1
+  },
+  "fail_closed": {
+    "denied": {
+      "status": 403,
+      "outcome": "blocked",
+      "ui_state": "denied",
+      "safe_error_codes": [
+        "MATTER_UNAUTHORIZED_OMISSION"
+      ],
+      "item": null,
+      "audit_event": null,
+      "idempotent_replay": false,
+      "state_idempotent": false,
+      "production_ready_claim": false
+    },
+    "review": {
+      "status": 200,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "safe_error_codes": [
+        "MATTER_REVIEW_REQUIRED"
+      ],
+      "item": null,
+      "audit_event": null,
+      "idempotent_replay": false,
+      "state_idempotent": false,
+      "production_ready_claim": false
+    },
+    "invalid_template": {
+      "status": 400,
+      "outcome": "blocked",
+      "ui_state": "blocked",
+      "safe_error_codes": [
+        "MATTER_API_VALIDATION_ERROR"
+      ],
+      "item": null,
+      "audit_event": null,
+      "idempotent_replay": false,
+      "state_idempotent": false,
+      "production_ready_claim": false
+    },
+    "guard_draft_audit_count": 0
+  },
+  "persistence_and_reload": {
+    "idempotent_replay_same_draft": true,
+    "audit_read_back_status": 200,
+    "audit_read_back_event_count": 1,
+    "note": "No GET email-drafts list route exists in the current matter-core API; persistence is proven by stored idempotent replay plus matter audit read-back for the created draft."
+  },
+  "console_network": {
+    "console_errors": [],
+    "request_failures": []
+  },
+  "assertions": {
+    "fixture_created": true,
+    "fixture_vault_link_created": true,
+    "fixture_read_safe": true,
+    "ui_email_status_201": true,
+    "ui_email_outcome_created": true,
+    "email_draft_id_safe": true,
+    "email_draft_status_draft": true,
+    "email_template_email_category": true,
+    "raw_body_hidden": true,
+    "provider_payload_hidden": true,
+    "direct_contact_identifier_hidden": true,
+    "provider_state_blocked": true,
+    "audit_event_created": true,
+    "audit_metadata_provider_blocked": true,
+    "replay_idempotent": true,
+    "replay_same_draft": true,
+    "result_message_observed": true,
+    "result_raw_body_hidden_copy_observed": true,
+    "selected_matter_observed": true,
+    "denied_fail_closed": true,
+    "review_fail_closed": true,
+    "invalid_template_blocked": true,
+    "guards_did_not_mutate_audit": true,
+    "no_request_failures": true,
+    "no_console_errors": true,
+    "production_ready_claim_false": true,
+    "navigated_to_matter_vault": true
+  },
+  "non_claims": [
+    "local synthetic runtime proof only",
+    "email draft is an internal draft record only",
+    "raw body, direct contact identifiers, and provider payload are not exposed",
+    "external email provider send is not executed",
+    "provider receipt is not claimed",
+    "production readiness or go-live approval is not claimed"
+  ]
+}

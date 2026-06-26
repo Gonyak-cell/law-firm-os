@@ -1301,6 +1301,34 @@
       "result": "PASS_BLOCKED_TO_PASS",
       "summary": "Resolved LCX8-ACTION-0063 by proving 완료 transitions a selected Matter from opening to closed/completed, read-back returns the persisted value, matter.status.transitioned audit is present, and denied/review/invalid-status writes fail closed. Final focused API/UI/build/live/flow/sloplint validation pending rerun.",
       "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-status-transition-2026-06-26.json"
+    },
+    {
+      "command": "node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js",
+      "result": "PASS 16/16"
+    },
+    {
+      "command": "npm --workspace apps/web run test:ui",
+      "result": "PASS 17/17"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS (existing Vite chunk-size warning only)"
+    },
+    {
+      "command": "npm run ui:live:verify",
+      "result": "PASS 13/13"
+    },
+    {
+      "command": "npm run ui:flows:verify",
+      "result": "PASS 9/9"
+    },
+    {
+      "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+      "result": "PASS no auto-detectable AI slop signals"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
     }
   ],
   "baseline_blockers": [
@@ -1357,7 +1385,11 @@
     "matter_builder_publish_promoted_to_pass": true,
     "matter_builder_publish_owner_receipt_claim": false,
     "matter_builder_publish_vault_document_created_claim": false,
-    "matter_builder_publish_production_ready_claim": false
+    "matter_builder_publish_production_ready_claim": false,
+    "matter_email_draft_promoted_to_pass": true,
+    "matter_email_draft_external_provider_send_claim": false,
+    "matter_email_draft_provider_receipt_claim": false,
+    "matter_email_draft_production_ready_claim": false
   },
   "active_next_tuw": null,
   "completed_tuws": [
@@ -1433,11 +1465,11 @@
   "status_counts": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 19,
+    "pass": 20,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 113,
+    "blocked": 112,
     "fail": 42
   },
   "post_closeout_remediation": {
@@ -1453,19 +1485,20 @@
       "LCX8-ACTION-0066",
       "LCX8-ACTION-0067",
       "LCX8-ACTION-0068",
-      "LCX8-ACTION-0069"
+      "LCX8-ACTION-0069",
+      "LCX8-ACTION-0070"
     ],
     "status_counts_after": {
       "inventory_rows": 324,
       "unknown": 0,
-      "pass": 19,
+      "pass": 20,
       "guarded": 20,
       "ui_only": 128,
       "descriptor_only": 2,
-      "blocked": 113,
+      "blocked": 112,
       "fail": 42
     },
-    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-builder-publish-2026-06-26.json",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-email-draft-2026-06-26.json",
     "artifacts": [
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
@@ -1507,9 +1540,35 @@
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-builder-publish-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0069-matter-builder-publish-proof.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0069-matter-builder-publish-proof.md",
-      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0069-matter-builder-publish-proof.png"
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0069-matter-builder-publish-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-email-draft-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0070-matter-email-draft-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0070-matter-email-draft-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0070-matter-email-draft-proof.png"
     ],
-    "latest_note": "LCX8-ACTION-0069 is promoted from BLOCKED to PASS by Matter builder Vault 등록 요청 UI/API owner-blocked proof, no Vault document creation, matter.builder.publish.blocked audit event, and denied/review/missing-draft fail-closed proof. LCX8-ACTION-0272/0273 remain GUARDED.",
-    "latest_verification_summary": "Post-closeout LCX8-ACTION-0069 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
-  }
+    "latest_note": "LCX8-ACTION-0070 is promoted from BLOCKED to PASS by Matter 이메일 초안 생성 UI/API proof, idempotent replay, matter.email_draft.created audit read-back, and denied/review/invalid-template fail-closed proof. LCX8-ACTION-0272/0273 remain GUARDED.",
+    "latest_verification_summary": "Post-closeout LCX8-ACTION-0070 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+  },
+  "coverage": {
+    "status_counts_last_updated_by": "post-closeout-remediation-lcx8-action-0070",
+    "post_closeout_remediation_count": 13,
+    "post_closeout_remediation_rows": [
+      "LCX8-ACTION-0280",
+      "LCX8-ACTION-0272",
+      "LCX8-ACTION-0273",
+      "LCX8-ACTION-0054",
+      "LCX8-ACTION-0055",
+      "LCX8-ACTION-0061",
+      "LCX8-ACTION-0063",
+      "LCX8-ACTION-0065",
+      "LCX8-ACTION-0066",
+      "LCX8-ACTION-0067",
+      "LCX8-ACTION-0068",
+      "LCX8-ACTION-0069",
+      "LCX8-ACTION-0070"
+    ],
+    "post_closeout_remediation_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-email-draft-2026-06-26.json"
+  },
+  "latest_note": "LCX8-ACTION-0070 is promoted from BLOCKED to PASS by Matter 이메일 초안 생성 UI/API proof, idempotent replay, matter.email_draft.created audit read-back, and denied/review/invalid-template fail-closed proof. LCX8-ACTION-0272/0273 remain GUARDED.",
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0070 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
 }

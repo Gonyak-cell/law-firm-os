@@ -43,7 +43,7 @@
     ],
     "active_next_tuw": "P7-T03",
     "scope_note": "P7-T02 reviewed focus/dialog/drawer behavior from mobile focus smoke. People search focus and notification Escape close pass; global search hidden and notification drawer focus containment are Lane E findings. P7-T03 Korean copy review is active next.",
-    "status_counts_last_updated_by": "post-closeout-remediation-lcx8-action-0069",
+    "status_counts_last_updated_by": "post-closeout-remediation-lcx8-action-0070",
     "api_backed_rows_reviewed": 117,
     "p5_t07_reviewed_rows": 38,
     "p6_t00_native_rows_reviewed": 26,
@@ -124,11 +124,11 @@
   "status_counts": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 19,
+    "pass": 20,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 113,
+    "blocked": 112,
     "fail": 42
   },
   "rows": [
@@ -2766,8 +2766,8 @@
       "permission_boundary": "Matter email draft permission context",
       "audit_boundary": "email draft create audit expected by API",
       "persistence_boundary": "draft write expected; read-back required in P4/P5",
-      "remediation_lane": "Lane B",
-      "status": "BLOCKED",
+      "remediation_lane": "",
+      "status": "PASS",
       "tuw": "P1-T06",
       "surface": "matter",
       "route": "/?locale=ko&view=matters&data=live&ctx=allow#matter-vault",
@@ -2797,9 +2797,13 @@
         "P5-T01 safe fixture definition: fixture_family=matter_runtime; applicability=P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED; tenant=tenant_rp05_synthetic; actor=matter_matter_operator; selected_for_p5_t02=false; no_write_executed=true; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-safe-fixture-definition-p5-t01.json",
         "P8 final remediation lane assignment: lane=Lane B; reason=api_permission_audit_persistence_or_runtime_proof_gap; tuw=P8-T03; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-lane-assignment-p8-t02-t06.json",
         "P8-T07 blocker risk ranking: tier=high; score=86; reason=API write lacks complete precondition/audit/persistence proof.; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-blocker-risk-ranking-p8-t07.json",
-        "P8-T08 remediation-ready issue text: rank=13; tier=high; title=Prove matter write action 이메일 초안 생성; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-ready-issues-p8-t08.json"
+        "P8-T08 remediation-ready issue text: rank=13; tier=high; title=Prove matter write action 이메일 초안 생성; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-ready-issues-p8-t08.json",
+        "Post-closeout LCX8-ACTION-0070 Matter email draft create proof: http_status=201; outcome=created; matter_id=matter_lcx8_0070_email_1782481142025; draft_id=email_draft_matter_lcx8_0070_email_1782481142025_1782481143322; draft_status=draft; provider_state=provider_blocked; replay=200/idempotent_replay; audit_event=matter.email_draft.created; audit_count_after_guards=1; denied=403/denied; review=200/review_required; invalid_template=400/blocked; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0070-matter-email-draft-proof.json",
+        "Post-closeout LCX8-ACTION-0070 status artifact: status_before=BLOCKED; status_after=PASS; counts_after=PASS 20/BLOCKED 112; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-email-draft-2026-06-26.json",
+        "Post-closeout LCX8-ACTION-0070 non-claim: local synthetic runtime proof only; internal email draft only; raw_body_included=false; direct_personal_contact_identifier_included=false; raw_provider_payload_included=false; external_provider_send=false; provider_receipt_claim=false; production_ready_claim=false; no go-live approval claimed.",
+        "Post-closeout LCX8-ACTION-0070 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
       ],
-      "notes": "P2-T04 source/API client trace complete; P3/P4 click/API/audit/read-back proof pending before any PASS promotion. P4-T04 adds permission trimming evidence only; audit/write/read-back proof is still required before PASS. P4-T05 maps audit proof requirements; row is not PASS without audit event/read proof. P4-T06 stabilizes the expected blocked/failure/guarded reason for remediation ranking. P4-T07 focused API tests passed for related domains; status remains provisional until P4-T08/P5 classification. P4-T08 assigned API-backed provisional status BLOCKED. P5-T00 identifies this API write as a durable persistence candidate; actual write execution is deferred until the P5-T01 safe fixture is defined. P5-T01 defines synthetic fixture applicability for this API write; P5-T02 must capture execution/read-back/audit before any PASS promotion. P8 assigns remediation lane Lane B (api_permission_audit_persistence_or_runtime_proof_gap). P8-T07 ranks this remediation as high risk (score 86). P8-T08 issue text ready: Prove matter write action 이메일 초안 생성."
+      "notes": "P2-T04 source/API client trace complete; P3/P4 click/API/audit/read-back proof pending before any PASS promotion. P4-T04 adds permission trimming evidence only; audit/write/read-back proof is still required before PASS. P4-T05 maps audit proof requirements; row is not PASS without audit event/read proof. P4-T06 stabilizes the expected blocked/failure/guarded reason for remediation ranking. P4-T07 focused API tests passed for related domains; status remains provisional until P4-T08/P5 classification. P4-T08 assigned API-backed provisional status BLOCKED. P5-T00 identifies this API write as a durable persistence candidate; actual write execution is deferred until the P5-T01 safe fixture is defined. P5-T01 defines synthetic fixture applicability for this API write; P5-T02 must capture execution/read-back/audit before any PASS promotion. P8 assigns remediation lane Lane B (api_permission_audit_persistence_or_runtime_proof_gap). P8-T07 ranks this remediation as high risk (score 86). P8-T08 issue text ready: Prove matter write action 이메일 초안 생성. LCX8-ACTION-0070 is promoted to PASS after current-product UI 이메일 초안 생성 click, Matter email draft API created response, idempotent replay/read-back, matter.email_draft.created audit proof, and denied/review/invalid-template fail-closed proof. Historical P4/P5/P8 blocker notes remain closeout context."
     },
     {
       "id": "LCX8-ACTION-0071",
@@ -11650,7 +11654,11 @@
     "matter_builder_publish_promoted_to_pass": true,
     "matter_builder_publish_owner_receipt_claim": false,
     "matter_builder_publish_vault_document_created_claim": false,
-    "matter_builder_publish_production_ready_claim": false
+    "matter_builder_publish_production_ready_claim": false,
+    "matter_email_draft_promoted_to_pass": true,
+    "matter_email_draft_external_provider_send_claim": false,
+    "matter_email_draft_provider_receipt_claim": false,
+    "matter_email_draft_production_ready_claim": false
   },
   "active_next_tuw": null,
   "completed_tuws": [

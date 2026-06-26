@@ -374,6 +374,40 @@
         "invalid_draft_outcome": "404/empty",
         "production_ready_claim": false
       }
+    },
+    {
+      "id": "LCX8-ACTION-0070",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "matter",
+      "section": "matter-vault",
+      "label": "이메일 초안 생성",
+      "evidence": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0070-matter-email-draft-proof.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0070-matter-email-draft-proof.md",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0070-matter-email-draft-proof.png"
+      ],
+      "proof_summary": {
+        "write_http_status": 201,
+        "write_outcome": "created",
+        "matter_id": "matter_lcx8_0070_email_1782481142025",
+        "draft_id": "email_draft_matter_lcx8_0070_email_1782481142025_1782481143322",
+        "draft_status": "draft",
+        "template_id": "matter_status_update_email",
+        "provider_state": "provider_blocked",
+        "raw_body_included": false,
+        "raw_provider_payload_included": false,
+        "direct_personal_contact_identifier_included": false,
+        "replay_outcome": "idempotent_replay",
+        "replay_same_draft": true,
+        "audit_event_action": "matter.email_draft.created",
+        "audit_event_id": "matter.email_draft.created:tenant_rp05_synthetic:matter_lcx8_0070_email_1782481142025:email_draft_matter_lcx8_0070_email_1782481142025_1782481143322",
+        "audit_event_count_after_guards": 1,
+        "denied_write_outcome": "403/denied",
+        "review_write_outcome": "200/review_required",
+        "invalid_template_outcome": "400/blocked",
+        "production_ready_claim": false
+      }
     }
   ],
   "status_counts_before": {
@@ -389,11 +423,11 @@
   "status_counts_after": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 19,
+    "pass": 20,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 113,
+    "blocked": 112,
     "fail": 42
   },
   "commands": [
@@ -512,6 +546,43 @@
     {
       "command": "JSON parse and LCX8 ledger count invariant",
       "result": "PENDING 324 rows; PASS 19; BLOCKED 113; UNKNOWN 0; LCX8-ACTION-0069 PASS"
+    },
+    {
+      "command": "Playwright LCX8-ACTION-0070 Matter email draft UI/API/replay/audit/fail-closed proof",
+      "result": "PASS 201/created",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0070-matter-email-draft-proof.json"
+    },
+    {
+      "command": "JSON parse and LCX8 ledger count invariant",
+      "result": "PASS 324 rows; PASS 20; BLOCKED 112; UNKNOWN 0; LCX8-ACTION-0070 PASS"
+    },
+    {
+      "command": "node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js",
+      "result": "PASS 16/16"
+    },
+    {
+      "command": "npm --workspace apps/web run test:ui",
+      "result": "PASS 17/17"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS (existing Vite chunk-size warning only)"
+    },
+    {
+      "command": "npm run ui:live:verify",
+      "result": "PASS 13/13"
+    },
+    {
+      "command": "npm run ui:flows:verify",
+      "result": "PASS 9/9"
+    },
+    {
+      "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+      "result": "PASS no auto-detectable AI slop signals"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
     }
   ],
   "non_claims": {
@@ -539,7 +610,11 @@
     "matter_builder_publish_promoted_to_pass": true,
     "matter_builder_publish_owner_receipt_claim": false,
     "matter_builder_publish_vault_document_created_claim": false,
-    "matter_builder_publish_production_ready_claim": false
+    "matter_builder_publish_production_ready_claim": false,
+    "matter_email_draft_promoted_to_pass": true,
+    "matter_email_draft_external_provider_send_claim": false,
+    "matter_email_draft_provider_receipt_claim": false,
+    "matter_email_draft_production_ready_claim": false
   },
-  "latest_verification_summary": "Post-closeout LCX8-ACTION-0069 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0070 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
 }

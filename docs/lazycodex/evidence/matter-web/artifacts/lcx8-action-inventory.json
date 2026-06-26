@@ -82,11 +82,11 @@
   "status_counts": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 19,
+    "pass": 20,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 113,
+    "blocked": 112,
     "fail": 42
   },
   "completed_tuws": [
@@ -1362,5 +1362,6 @@
     ],
     "latest_note": "LCX8-ACTION-0069 is promoted from BLOCKED to PASS by Matter builder Vault 등록 요청 UI/API owner-blocked proof, no Vault document creation, matter.builder.publish.blocked audit event, and denied/review/missing-draft fail-closed proof. LCX8-ACTION-0272/0273 remain GUARDED.",
     "latest_verification_summary": "Post-closeout LCX8-ACTION-0069 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
-  }
+  },
+  "status_counts_last_updated_by": "post-closeout-remediation-lcx8-action-0070"
 }
