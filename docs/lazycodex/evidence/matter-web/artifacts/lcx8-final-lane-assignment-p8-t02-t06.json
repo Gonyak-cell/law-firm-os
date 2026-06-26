@@ -3053,11 +3053,11 @@
   "status_counts_after": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 17,
+    "pass": 18,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 115,
+    "blocked": 114,
     "fail": 42
   },
   "post_closeout_resolution": {
@@ -3176,5 +3176,16 @@
     "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-builder-draft-patch-2026-06-26.json",
     "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0067-matter-builder-draft-patch-proof.json",
     "note": "Historical P8 ranking/assignment remains a closeout snapshot; current product ledger marks LCX8-ACTION-0067 PASS after Matter builder draft patch write/preview/audit/replay/fail-closed proof."
+  },
+  "post_closeout_resolution_lcx8_action_0068": {
+    "resolved_rows": [
+      "LCX8-ACTION-0068"
+    ],
+    "status_before": "BLOCKED",
+    "status_after": "PASS",
+    "resolved_at": "2026-06-26T13:12:44.554Z",
+    "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-builder-approval-2026-06-26.json",
+    "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0068-matter-builder-approval-proof.json",
+    "note": "Historical P8 ranking/assignment remains a closeout snapshot; current product ledger marks LCX8-ACTION-0068 PASS after Matter builder approval write/list/audit/replay/fail-closed proof."
   }
 }

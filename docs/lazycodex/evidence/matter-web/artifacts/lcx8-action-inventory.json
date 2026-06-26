@@ -82,11 +82,11 @@
   "status_counts": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 17,
+    "pass": 18,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 115,
+    "blocked": 114,
     "fail": 42
   },
   "completed_tuws": [
@@ -1298,19 +1298,20 @@
       "LCX8-ACTION-0063",
       "LCX8-ACTION-0065",
       "LCX8-ACTION-0066",
-      "LCX8-ACTION-0067"
+      "LCX8-ACTION-0067",
+      "LCX8-ACTION-0068"
     ],
     "status_counts_after": {
       "inventory_rows": 324,
       "unknown": 0,
-      "pass": 17,
+      "pass": 18,
       "guarded": 20,
       "ui_only": 128,
       "descriptor_only": 2,
-      "blocked": 115,
+      "blocked": 114,
       "fail": 42
     },
-    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-builder-draft-patch-2026-06-26.json",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-builder-approval-2026-06-26.json",
     "artifacts": [
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
@@ -1344,9 +1345,13 @@
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-builder-draft-patch-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0067-matter-builder-draft-patch-proof.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0067-matter-builder-draft-patch-proof.md",
-      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0067-matter-builder-draft-patch-proof.png"
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0067-matter-builder-draft-patch-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-builder-approval-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0068-matter-builder-approval-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0068-matter-builder-approval-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0068-matter-builder-approval-proof.png"
     ],
-    "latest_note": "LCX8-ACTION-0067 is promoted from BLOCKED to PASS by Matter builder draft patch UI write, idempotent replay, preview read-back, audit event, timeline event, and denied/review/missing-draft fail-closed proof. LCX8-ACTION-0272/0273 remain GUARDED.",
-    "latest_verification_summary": "Post-closeout LCX8-ACTION-0067 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+    "latest_note": "LCX8-ACTION-0068 is promoted from BLOCKED to PASS by Matter builder approval UI write, idempotent replay, approval list read-back, audit event, and denied/review/missing-draft fail-closed proof. LCX8-ACTION-0272/0273 remain GUARDED.",
+    "latest_verification_summary": "Post-closeout LCX8-ACTION-0068 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
   }
 }
