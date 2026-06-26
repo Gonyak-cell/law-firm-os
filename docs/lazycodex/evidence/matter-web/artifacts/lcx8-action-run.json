@@ -1429,11 +1429,11 @@
   "status_counts": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 14,
+    "pass": 15,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 118,
+    "blocked": 117,
     "fail": 42
   },
   "post_closeout_remediation": {
@@ -1444,19 +1444,20 @@
       "LCX8-ACTION-0054",
       "LCX8-ACTION-0055",
       "LCX8-ACTION-0061",
-      "LCX8-ACTION-0063"
+      "LCX8-ACTION-0063",
+      "LCX8-ACTION-0065"
     ],
     "status_counts_after": {
       "inventory_rows": 324,
       "unknown": 0,
-      "pass": 14,
+      "pass": 15,
       "guarded": 20,
       "ui_only": 128,
       "descriptor_only": 2,
-      "blocked": 118,
+      "blocked": 117,
       "fail": 42
     },
-    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-status-transition-2026-06-26.json",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-document-facade-2026-06-26.json",
     "artifacts": [
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
@@ -1478,9 +1479,13 @@
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-status-transition-2026-06-26.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0063-matter-status-transition-proof.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0063-matter-status-transition-proof.md",
-      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0063-matter-status-transition-proof.png"
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0063-matter-status-transition-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-document-facade-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0065-matter-document-facade-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0065-matter-document-facade-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0065-matter-document-facade-proof.png"
     ],
-    "latest_note": "LCX8-ACTION-0063 is promoted from BLOCKED to PASS by Matter status transition UI write, read-back, audit event, reload completed state, and denied/review/invalid-status fail-closed proof. LCX8-ACTION-0272/0273 remain GUARDED.",
-    "latest_verification_summary": "Post-closeout LCX8-ACTION-0063 verification: node --test apps/api/test/cmp-r4-g4-matter.test.js PASS 11/11; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+    "latest_note": "LCX8-ACTION-0065 is promoted from BLOCKED to PASS by Matter document facade UI write, idempotent replay, Vault read-back, audit event, reload document-count state, and denied/review/invalid fail-closed proof. LCX8-ACTION-0272/0273 remain GUARDED.",
+    "latest_verification_summary": "Post-closeout LCX8-ACTION-0065 verification: node --test apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g5-vault.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS."
   }
 }

@@ -1,0 +1,1091 @@
+{
+  "action_id": "LCX8-ACTION-0065",
+  "title": "Matter document facade operational proof",
+  "completed_at": "2026-06-26T05:58:22.313Z",
+  "surface": "matter",
+  "route": "/?locale=ko&view=matters&data=live&ctx=allow#matter-vault",
+  "fixture": {
+    "tenant_id": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "matter_id": "matter_lcx8_0065_document_1782453499980",
+    "matter_number": "M-LCX8-0065-53499980",
+    "title": "LCX8 document proof 1782453499980",
+    "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+    "document_title": "Matter 문서 연결 기록",
+    "safe_fixture_family": "matter_runtime_document_facade",
+    "existing_seed_mutated": false
+  },
+  "trace": {
+    "selector": "[data-matter-document-facade-action=\"true\"]",
+    "ui_handler": "handleCreateDocument",
+    "api_client": "createMatterDocumentFacade",
+    "api_route": "POST /api/matters/:matter_id/documents",
+    "api_handler": "handleMatterDocumentFacade",
+    "permission_ref": "ui_mv_matter_document_facade",
+    "audit_hint_ref": "ui_mv_matter_document_facade_probe",
+    "audit_action": "matter.document_facade.uploaded"
+  },
+  "browser_proof": {
+    "url": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-vault",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0065-matter-document-facade-proof.png",
+    "result_message": "문서가 Vault에 연결되었습니다.",
+    "reload_text_checks": [
+      "Vault 연결됨",
+      "1개 문서"
+    ],
+    "api_responses": [
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+        "method": "POST",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0065_document_1782453499980/recently-viewed",
+        "method": "POST",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0065_document_1782453499980/documents",
+        "method": "POST",
+        "status": 201
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+        "method": "POST",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0065_document_1782453499980/recently-viewed",
+        "method": "POST",
+        "status": 200
+      }
+    ],
+    "request_failures": [],
+    "console_messages": [],
+    "page_errors": []
+  },
+  "api_write": {
+    "status": 201,
+    "outcome": "created",
+    "item": {
+      "tenant_id": "tenant_rp05_synthetic",
+      "matter_id": "matter_lcx8_0065_document_1782453499980",
+      "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "title": "Matter 문서 연결 기록",
+      "status": "active",
+      "current_version_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+      "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+      "raw_storage_path_included": false,
+      "document_bytes_included": false,
+      "matter_owns_document_bytes": false
+    },
+    "version": {
+      "model_type": "DmsDocumentVersion",
+      "tenant_id": "tenant_rp05_synthetic",
+      "matter_id": "matter_lcx8_0065_document_1782453499980",
+      "owner_module": "legal-workspace-dms",
+      "permission_envelope_id": "perm_lcx8_0065_envelope",
+      "audit_trace_id": "audit:matter_lcx8_0065_document_1782453499980:vault-document",
+      "synthetic_only": true,
+      "writes_product_state": true,
+      "evaluates_runtime_permission": false,
+      "writes_audit_event": false,
+      "creates_database_rows": false,
+      "reads_object_storage": false,
+      "writes_object_storage": false,
+      "exposes_document_bytes": false,
+      "exposes_extracted_text": false,
+      "version_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+      "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "version_number": 1,
+      "status": "current",
+      "file_object_id": "file:version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+      "created_by": "matter_matter_operator",
+      "created_at": "2026-06-10T00:00:00.000Z",
+      "hash_algorithm": "sha256",
+      "sha256": "c14be96a3c7d7e61d6f772b2b8254c26a094cd523749cc064aa5188c311e3a74",
+      "persisted": true,
+      "resource_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+      "updated_at": "2026-06-26T05:58:21.590Z"
+    },
+    "file_object": {
+      "model_type": "DmsFileObject",
+      "tenant_id": "tenant_rp05_synthetic",
+      "matter_id": "matter_lcx8_0065_document_1782453499980",
+      "owner_module": "legal-workspace-dms",
+      "permission_envelope_id": "perm_lcx8_0065_envelope",
+      "audit_trace_id": "audit:matter_lcx8_0065_document_1782453499980:vault-document",
+      "synthetic_only": true,
+      "writes_product_state": true,
+      "evaluates_runtime_permission": false,
+      "writes_audit_event": false,
+      "creates_database_rows": false,
+      "reads_object_storage": false,
+      "writes_object_storage": false,
+      "exposes_document_bytes": false,
+      "exposes_extracted_text": false,
+      "file_object_id": "file:version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+      "sha256": "c14be96a3c7d7e61d6f772b2b8254c26a094cd523749cc064aa5188c311e3a74",
+      "byte_size": 27,
+      "mime_type": "text/plain",
+      "object_storage_runtime_executed": false,
+      "document_bytes_loaded": false,
+      "raw_path_exposed": false,
+      "bytes_included": false,
+      "vault_object_id": "vault:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588:version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+      "resource_id": "file:version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+      "created_at": "2026-06-26T05:58:21.590Z",
+      "updated_at": "2026-06-26T05:58:21.590Z",
+      "storage_pointer_ref_included": false
+    },
+    "audit_event": {
+      "event_id": "dms.document.upload:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "action": "dms.document.upload",
+      "object_type": "DmsDocument",
+      "object_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "decision": "allow",
+      "reason": "document_uploaded_to_vault",
+      "occurred_at": "2026-06-26T05:58:21.591Z",
+      "before": {},
+      "after": {
+        "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+        "version_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1"
+      },
+      "metadata": {},
+      "event_hash": "349915c249fc2c8111c090d53d050ed233b7e6c00e1deebb49b3225184167985"
+    },
+    "matter_audit_event": {
+      "event_id": "matter.document_facade.uploaded:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "action": "matter.document_facade.uploaded",
+      "object_type": "DmsDocument",
+      "object_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "decision": "allow",
+      "reason": "matter_facade_delegated_bytes_to_vault",
+      "occurred_at": "2026-06-26T05:58:21.591Z",
+      "metadata": {
+        "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+        "timeline_event_id": "matter.timeline.vault_document:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588"
+      },
+      "event_hash": "57d83366ff05c6b82c89cf75d8a89cff5c6a03330cbf7da2e6612546ee7b76ff"
+    },
+    "timeline_event": {
+      "model_type": "MatterTimelineEvent",
+      "resource_id": "matter.timeline.vault_document:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "event_id": "matter.timeline.vault_document:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "tenant_id": "tenant_rp05_synthetic",
+      "matter_id": "matter_lcx8_0065_document_1782453499980",
+      "occurred_at": "2026-06-26T05:58:21.591Z",
+      "type": "document.version.created",
+      "title": "Matter 문서 연결 기록",
+      "source_ref": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "source_module": "vault",
+      "source_object_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "safe_summary": {
+        "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+        "version_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1"
+      },
+      "raw_storage_path_included": false,
+      "document_bytes_included": false,
+      "writes_product_state": true,
+      "creates_database_rows": true
+    },
+    "production_ready_claim": false
+  },
+  "persistence_and_reload": {
+    "summary_before": {
+      "tenant_id": "tenant_rp05_synthetic",
+      "matter_id": "matter_lcx8_0065_document_1782453499980",
+      "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+      "default_folder_id": "folder:workspace:matter_lcx8_0065_document_1782453499980:root",
+      "workspace_status": "active",
+      "document_count": 0,
+      "legal_hold_count": 0,
+      "privilege_label_count": 0,
+      "omitted_denied_count": null,
+      "count_leak_prevented": true,
+      "raw_storage_path_included": false,
+      "document_bytes_included": false,
+      "production_ready_claim": false
+    },
+    "summary_after": {
+      "tenant_id": "tenant_rp05_synthetic",
+      "matter_id": "matter_lcx8_0065_document_1782453499980",
+      "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+      "default_folder_id": "folder:workspace:matter_lcx8_0065_document_1782453499980:root",
+      "workspace_status": "active",
+      "document_count": 1,
+      "legal_hold_count": 0,
+      "privilege_label_count": 0,
+      "omitted_denied_count": null,
+      "count_leak_prevented": true,
+      "raw_storage_path_included": false,
+      "document_bytes_included": false,
+      "production_ready_claim": false
+    },
+    "command_center_vault_summary": {
+      "tenant_id": "tenant_rp05_synthetic",
+      "matter_id": "matter_lcx8_0065_document_1782453499980",
+      "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+      "default_folder_id": "folder:workspace:matter_lcx8_0065_document_1782453499980:root",
+      "workspace_status": "active",
+      "document_count": 1,
+      "legal_hold_count": 0,
+      "privilege_label_count": 0,
+      "omitted_denied_count": null,
+      "count_leak_prevented": true,
+      "raw_storage_path_included": false,
+      "document_bytes_included": false,
+      "production_ready_claim": false
+    },
+    "timeline_document_event": {
+      "event_id": "matter.timeline.vault_document:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "tenant_id": "tenant_rp05_synthetic",
+      "matter_id": "matter_lcx8_0065_document_1782453499980",
+      "occurred_at": "2026-06-26T05:58:21.591Z",
+      "type": "document.version.created",
+      "title": "Matter 문서 연결 기록",
+      "source_ref": "doc_matter_lcx8_0065_document_1782453499980_1782453501588"
+    },
+    "reload_ui_document_count_one": true
+  },
+  "audit": {
+    "facade_audit_event": {
+      "event_id": "matter.document_facade.uploaded:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "action": "matter.document_facade.uploaded",
+      "object_type": "DmsDocument",
+      "object_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "decision": "allow",
+      "reason": "matter_facade_delegated_bytes_to_vault",
+      "occurred_at": "2026-06-26T05:58:21.591Z",
+      "metadata": {
+        "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+        "timeline_event_id": "matter.timeline.vault_document:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588"
+      },
+      "event_hash": "57d83366ff05c6b82c89cf75d8a89cff5c6a03330cbf7da2e6612546ee7b76ff"
+    },
+    "audit_route_status": 200,
+    "response_audit_event": {
+      "event_id": "dms.document.upload:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "action": "dms.document.upload",
+      "object_type": "DmsDocument",
+      "object_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "decision": "allow",
+      "reason": "document_uploaded_to_vault",
+      "occurred_at": "2026-06-26T05:58:21.591Z",
+      "before": {},
+      "after": {
+        "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+        "version_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1"
+      },
+      "metadata": {},
+      "event_hash": "349915c249fc2c8111c090d53d050ed233b7e6c00e1deebb49b3225184167985"
+    },
+    "response_matter_audit_event": {
+      "event_id": "matter.document_facade.uploaded:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "action": "matter.document_facade.uploaded",
+      "object_type": "DmsDocument",
+      "object_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+      "decision": "allow",
+      "reason": "matter_facade_delegated_bytes_to_vault",
+      "occurred_at": "2026-06-26T05:58:21.591Z",
+      "metadata": {
+        "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+        "timeline_event_id": "matter.timeline.vault_document:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588"
+      },
+      "event_hash": "57d83366ff05c6b82c89cf75d8a89cff5c6a03330cbf7da2e6612546ee7b76ff"
+    }
+  },
+  "fail_closed": {
+    "denied": {
+      "status": 403,
+      "body": {
+        "request_id": "req_3a060469-5f98-41c0-b90f-d56258f94f7a",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_UNAUTHORIZED_OMISSION"
+        ],
+        "audit_hint_ref": "ui_mv_matter_document_facade_probe",
+        "ui_state": "denied",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "review": {
+      "status": 200,
+      "body": {
+        "request_id": "req_c349527c-a2b2-4b0a-aa95-73288ab49d79",
+        "outcome": "review_required",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_REVIEW_REQUIRED"
+        ],
+        "audit_hint_ref": "ui_mv_matter_document_facade_probe",
+        "ui_state": "review_required",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "invalid": {
+      "status": 400,
+      "body": {
+        "request_id": "req_edbaa225-4688-4d87-ad6a-aae18c6c8717",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_API_VALIDATION_ERROR"
+        ],
+        "audit_hint_ref": "ui_mv_matter_document_facade_probe",
+        "ui_state": "blocked",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "summary_after_guards": {
+      "tenant_id": "tenant_rp05_synthetic",
+      "matter_id": "matter_lcx8_0065_document_1782453499980",
+      "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+      "default_folder_id": "folder:workspace:matter_lcx8_0065_document_1782453499980:root",
+      "workspace_status": "active",
+      "document_count": 1,
+      "legal_hold_count": 0,
+      "privilege_label_count": 0,
+      "omitted_denied_count": null,
+      "count_leak_prevented": true,
+      "raw_storage_path_included": false,
+      "document_bytes_included": false,
+      "production_ready_claim": false
+    },
+    "timeline_after_guards_visible_count": 1
+  },
+  "idempotency": {
+    "replay_status": 200,
+    "replay_outcome": "idempotent_replay",
+    "replay_document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+    "idempotency_key": "ui:matter_lcx8_0065_document_1782453499980:document:1782453501588"
+  },
+  "assertions": {
+    "fixture_created": true,
+    "vault_link_created_safe": true,
+    "precondition_document_count_zero": true,
+    "ui_post_status_201": true,
+    "ui_post_outcome_created": true,
+    "ui_post_document_id_present": true,
+    "ui_post_no_document_bytes": true,
+    "ui_post_no_raw_storage_path": true,
+    "ui_post_matter_does_not_own_bytes": true,
+    "file_object_safe": true,
+    "matter_audit_event_returned": true,
+    "timeline_event_created": true,
+    "replay_idempotent": true,
+    "readback_summary_document_count_one": true,
+    "command_center_readback_document_count_one": true,
+    "timeline_readback_contains_document": true,
+    "audit_contains_facade_upload": true,
+    "reload_ui_document_count_one": true,
+    "reload_ui_vault_connected": true,
+    "result_message_observed": true,
+    "denied_fail_closed": true,
+    "review_fail_closed": true,
+    "invalid_payload_blocked": true,
+    "guards_did_not_mutate": true,
+    "no_request_failures": true,
+    "no_console_errors": true,
+    "production_ready_claim_false": true
+  },
+  "api_responses": {
+    "opened": {
+      "status": 201,
+      "body": {
+        "request_id": "req_003d3cee-2a38-4435-a2d1-cd650c85b606",
+        "outcome": "created",
+        "item": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "resource_id": "matter_lcx8_0065_document_1782453499980",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "matter_code": null,
+          "matter_number": "M-LCX8-0065-53499980",
+          "matter_name": "LCX8 document proof 1782453499980",
+          "title": "LCX8 document proof 1782453499980",
+          "status": "opening",
+          "client_id": "party_lcx8_0065_client",
+          "client_display_name": null,
+          "legal_client_party_id": "party_lcx8_0065_client",
+          "billing_client_party_id": "party_lcx8_0065_client",
+          "matter_type_english": null,
+          "matter_detail_type_korean": null,
+          "source_revision": null,
+          "owner_module": "MatterCore",
+          "owner_employee_id": null,
+          "owner_user_id": null,
+          "owner_display_name": null,
+          "permission_envelope_id": "perm_lcx8_0065_envelope",
+          "audit_trace_id": "audit_lcx8_0065_open_1782453499980",
+          "document_count": 0,
+          "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+          "matter_vault_linked": true,
+          "team_member_count": 0,
+          "wip_status": "not_started",
+          "risk_level": "standard",
+          "opened_at": null,
+          "closed_at": null,
+          "runtime_write_ready": true,
+          "r5_r6_owner_decision_ready": true,
+          "production_ready_claim": false
+        },
+        "dms_workspace": {
+          "model_type": "DmsWorkspace",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "owner_module": "legal-workspace-dms",
+          "permission_envelope_id": "perm_lcx8_0065_envelope",
+          "audit_trace_id": "audit_lcx8_0065_open_1782453499980",
+          "synthetic_only": true,
+          "writes_product_state": true,
+          "evaluates_runtime_permission": false,
+          "writes_audit_event": false,
+          "creates_database_rows": false,
+          "reads_object_storage": false,
+          "writes_object_storage": false,
+          "exposes_document_bytes": false,
+          "exposes_extracted_text": false,
+          "workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+          "name": "LCX8 document proof 1782453499980",
+          "status": "active",
+          "root_folder_id": "folder:workspace:matter_lcx8_0065_document_1782453499980:root",
+          "matter_trace_ref": "matter:matter_lcx8_0065_document_1782453499980",
+          "client_visible_by_default": false,
+          "resource_id": "workspace:matter_lcx8_0065_document_1782453499980",
+          "created_at": "2026-06-26T05:58:19.997Z",
+          "updated_at": "2026-06-26T05:58:19.997Z"
+        },
+        "default_folder": {
+          "model_type": "DmsFolder",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "owner_module": "legal-workspace-dms",
+          "permission_envelope_id": "perm_lcx8_0065_envelope",
+          "audit_trace_id": "audit_lcx8_0065_open_1782453499980",
+          "synthetic_only": true,
+          "writes_product_state": true,
+          "evaluates_runtime_permission": false,
+          "writes_audit_event": false,
+          "creates_database_rows": false,
+          "reads_object_storage": false,
+          "writes_object_storage": false,
+          "exposes_document_bytes": false,
+          "exposes_extracted_text": false,
+          "folder_id": "folder:workspace:matter_lcx8_0065_document_1782453499980:root",
+          "workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+          "parent_folder_id": null,
+          "name": "Root",
+          "status": "active",
+          "resource_id": "folder:workspace:matter_lcx8_0065_document_1782453499980:root",
+          "created_at": "2026-06-26T05:58:19.997Z",
+          "updated_at": "2026-06-26T05:58:19.997Z"
+        },
+        "matter_vault_link": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+          "default_folder_id": "folder:workspace:matter_lcx8_0065_document_1782453499980:root",
+          "permission_envelope_id": "perm_lcx8_0065_envelope",
+          "status": "active",
+          "raw_storage_path_included": false,
+          "document_bytes_included": false,
+          "vault_mutates_matter_status": false
+        },
+        "billing_ledger": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "ledger_id": "matter_billing_ledger_matter_lcx8_0065_document_1782453499980"
+        },
+        "audit_event": {
+          "event_id": "matter_opened:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.open",
+          "object_type": "Matter",
+          "object_id": "matter_lcx8_0065_document_1782453499980",
+          "decision": "allow",
+          "reason": "matter_opened_with_clearance",
+          "occurred_at": "2026-06-26T05:58:19.996Z",
+          "metadata": {
+            "matter_number": "M-LCX8-0065-53499980",
+            "matter_code": null,
+            "idempotency_key": "ui:matter_lcx8_0065_document_1782453499980:open"
+          },
+          "event_hash": "a4edf3888b141ac46cbc6bf7e5e45ea9f080fea74223cb4af318c5f4385f848f"
+        },
+        "link_audit_event": {
+          "event_id": "matter.vault_link.created:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.vault_link.created",
+          "object_type": "MatterVaultLink",
+          "object_id": "matter_lcx8_0065_document_1782453499980:workspace:matter_lcx8_0065_document_1782453499980",
+          "decision": "allow",
+          "reason": "clearance_gated_matter_opening_created_vault_workspace",
+          "occurred_at": "2026-06-26T05:58:19.998Z",
+          "metadata": {
+            "matter_id": "matter_lcx8_0065_document_1782453499980",
+            "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+            "idempotency_key": "ui:matter_lcx8_0065_document_1782453499980:open"
+          },
+          "event_hash": "b355a7d7c9e4b344a105796c5c24ea6303277469e5332097625c884e404c89eb"
+        },
+        "idempotent_replay": false,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_lcx8_action_0065_matter_open_probe",
+        "state_idempotent": true,
+        "production_ready_claim": false
+      }
+    },
+    "ui_post": {
+      "status": 201,
+      "body": {
+        "request_id": "req_acf1b32c-ef20-414a-b18f-4eef3ed80235",
+        "outcome": "created",
+        "item": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "title": "Matter 문서 연결 기록",
+          "status": "active",
+          "current_version_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+          "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+          "raw_storage_path_included": false,
+          "document_bytes_included": false,
+          "matter_owns_document_bytes": false
+        },
+        "version": {
+          "model_type": "DmsDocumentVersion",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "owner_module": "legal-workspace-dms",
+          "permission_envelope_id": "perm_lcx8_0065_envelope",
+          "audit_trace_id": "audit:matter_lcx8_0065_document_1782453499980:vault-document",
+          "synthetic_only": true,
+          "writes_product_state": true,
+          "evaluates_runtime_permission": false,
+          "writes_audit_event": false,
+          "creates_database_rows": false,
+          "reads_object_storage": false,
+          "writes_object_storage": false,
+          "exposes_document_bytes": false,
+          "exposes_extracted_text": false,
+          "version_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+          "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "version_number": 1,
+          "status": "current",
+          "file_object_id": "file:version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+          "created_by": "matter_matter_operator",
+          "created_at": "2026-06-10T00:00:00.000Z",
+          "hash_algorithm": "sha256",
+          "sha256": "c14be96a3c7d7e61d6f772b2b8254c26a094cd523749cc064aa5188c311e3a74",
+          "persisted": true,
+          "resource_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+          "updated_at": "2026-06-26T05:58:21.590Z"
+        },
+        "file_object": {
+          "model_type": "DmsFileObject",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "owner_module": "legal-workspace-dms",
+          "permission_envelope_id": "perm_lcx8_0065_envelope",
+          "audit_trace_id": "audit:matter_lcx8_0065_document_1782453499980:vault-document",
+          "synthetic_only": true,
+          "writes_product_state": true,
+          "evaluates_runtime_permission": false,
+          "writes_audit_event": false,
+          "creates_database_rows": false,
+          "reads_object_storage": false,
+          "writes_object_storage": false,
+          "exposes_document_bytes": false,
+          "exposes_extracted_text": false,
+          "file_object_id": "file:version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+          "sha256": "c14be96a3c7d7e61d6f772b2b8254c26a094cd523749cc064aa5188c311e3a74",
+          "byte_size": 27,
+          "mime_type": "text/plain",
+          "object_storage_runtime_executed": false,
+          "document_bytes_loaded": false,
+          "raw_path_exposed": false,
+          "bytes_included": false,
+          "vault_object_id": "vault:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588:version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+          "resource_id": "file:version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+          "created_at": "2026-06-26T05:58:21.590Z",
+          "updated_at": "2026-06-26T05:58:21.590Z",
+          "storage_pointer_ref_included": false
+        },
+        "audit_event": {
+          "event_id": "dms.document.upload:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "dms.document.upload",
+          "object_type": "DmsDocument",
+          "object_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "decision": "allow",
+          "reason": "document_uploaded_to_vault",
+          "occurred_at": "2026-06-26T05:58:21.591Z",
+          "before": {},
+          "after": {
+            "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+            "version_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1"
+          },
+          "metadata": {},
+          "event_hash": "349915c249fc2c8111c090d53d050ed233b7e6c00e1deebb49b3225184167985"
+        },
+        "matter_audit_event": {
+          "event_id": "matter.document_facade.uploaded:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.document_facade.uploaded",
+          "object_type": "DmsDocument",
+          "object_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "decision": "allow",
+          "reason": "matter_facade_delegated_bytes_to_vault",
+          "occurred_at": "2026-06-26T05:58:21.591Z",
+          "metadata": {
+            "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+            "timeline_event_id": "matter.timeline.vault_document:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588"
+          },
+          "event_hash": "57d83366ff05c6b82c89cf75d8a89cff5c6a03330cbf7da2e6612546ee7b76ff"
+        },
+        "timeline_event": {
+          "model_type": "MatterTimelineEvent",
+          "resource_id": "matter.timeline.vault_document:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "event_id": "matter.timeline.vault_document:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "occurred_at": "2026-06-26T05:58:21.591Z",
+          "type": "document.version.created",
+          "title": "Matter 문서 연결 기록",
+          "source_ref": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "source_module": "vault",
+          "source_object_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "safe_summary": {
+            "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+            "version_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1"
+          },
+          "raw_storage_path_included": false,
+          "document_bytes_included": false,
+          "writes_product_state": true,
+          "creates_database_rows": true
+        },
+        "idempotent_replay": false,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_mv_matter_document_facade_probe",
+        "production_ready_claim": false
+      }
+    },
+    "replay": {
+      "status": 200,
+      "body": {
+        "request_id": "req_ca51c24b-93a0-4df6-9da8-f209638bcd8a",
+        "outcome": "idempotent_replay",
+        "item": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "title": "Matter 문서 연결 기록",
+          "status": "active",
+          "current_version_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+          "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+          "raw_storage_path_included": false,
+          "document_bytes_included": false,
+          "matter_owns_document_bytes": false
+        },
+        "version": {
+          "model_type": "DmsDocumentVersion",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "owner_module": "legal-workspace-dms",
+          "permission_envelope_id": "perm_lcx8_0065_envelope",
+          "audit_trace_id": "audit:matter_lcx8_0065_document_1782453499980:vault-document",
+          "synthetic_only": true,
+          "writes_product_state": true,
+          "evaluates_runtime_permission": false,
+          "writes_audit_event": false,
+          "creates_database_rows": false,
+          "reads_object_storage": false,
+          "writes_object_storage": false,
+          "exposes_document_bytes": false,
+          "exposes_extracted_text": false,
+          "version_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+          "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "version_number": 1,
+          "status": "current",
+          "file_object_id": "file:version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+          "created_by": "matter_matter_operator",
+          "created_at": "2026-06-10T00:00:00.000Z",
+          "hash_algorithm": "sha256",
+          "sha256": "c14be96a3c7d7e61d6f772b2b8254c26a094cd523749cc064aa5188c311e3a74",
+          "persisted": true,
+          "resource_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+          "updated_at": "2026-06-26T05:58:21.590Z"
+        },
+        "file_object": {
+          "model_type": "DmsFileObject",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "owner_module": "legal-workspace-dms",
+          "permission_envelope_id": "perm_lcx8_0065_envelope",
+          "audit_trace_id": "audit:matter_lcx8_0065_document_1782453499980:vault-document",
+          "synthetic_only": true,
+          "writes_product_state": true,
+          "evaluates_runtime_permission": false,
+          "writes_audit_event": false,
+          "creates_database_rows": false,
+          "reads_object_storage": false,
+          "writes_object_storage": false,
+          "exposes_document_bytes": false,
+          "exposes_extracted_text": false,
+          "file_object_id": "file:version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+          "sha256": "c14be96a3c7d7e61d6f772b2b8254c26a094cd523749cc064aa5188c311e3a74",
+          "byte_size": 27,
+          "mime_type": "text/plain",
+          "object_storage_runtime_executed": false,
+          "document_bytes_loaded": false,
+          "raw_path_exposed": false,
+          "bytes_included": false,
+          "vault_object_id": "vault:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588:version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+          "resource_id": "file:version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1",
+          "created_at": "2026-06-26T05:58:21.590Z",
+          "updated_at": "2026-06-26T05:58:21.590Z",
+          "storage_pointer_ref_included": false
+        },
+        "audit_event": {
+          "event_id": "dms.document.upload:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "dms.document.upload",
+          "object_type": "DmsDocument",
+          "object_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "decision": "allow",
+          "reason": "document_uploaded_to_vault",
+          "occurred_at": "2026-06-26T05:58:21.591Z",
+          "before": {},
+          "after": {
+            "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+            "version_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1"
+          },
+          "metadata": {},
+          "event_hash": "349915c249fc2c8111c090d53d050ed233b7e6c00e1deebb49b3225184167985"
+        },
+        "matter_audit_event": {
+          "event_id": "matter.document_facade.uploaded:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.document_facade.uploaded",
+          "object_type": "DmsDocument",
+          "object_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "decision": "allow",
+          "reason": "matter_facade_delegated_bytes_to_vault",
+          "occurred_at": "2026-06-26T05:58:21.591Z",
+          "metadata": {
+            "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+            "timeline_event_id": "matter.timeline.vault_document:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588"
+          },
+          "event_hash": "57d83366ff05c6b82c89cf75d8a89cff5c6a03330cbf7da2e6612546ee7b76ff"
+        },
+        "timeline_event": {
+          "model_type": "MatterTimelineEvent",
+          "resource_id": "matter.timeline.vault_document:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "event_id": "matter.timeline.vault_document:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "occurred_at": "2026-06-26T05:58:21.591Z",
+          "type": "document.version.created",
+          "title": "Matter 문서 연결 기록",
+          "source_ref": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "source_module": "vault",
+          "source_object_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "safe_summary": {
+            "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+            "version_id": "version_doc_matter_lcx8_0065_document_1782453499980_1782453501588_1"
+          },
+          "raw_storage_path_included": false,
+          "document_bytes_included": false,
+          "writes_product_state": true,
+          "creates_database_rows": true
+        },
+        "idempotent_replay": true,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_mv_matter_document_facade_probe",
+        "production_ready_claim": false
+      }
+    },
+    "summary_before": {
+      "status": 200,
+      "body": {
+        "request_id": "req_43895ec1-a219-494b-9399-14ecc346b315",
+        "outcome": "passed",
+        "item": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+          "default_folder_id": "folder:workspace:matter_lcx8_0065_document_1782453499980:root",
+          "workspace_status": "active",
+          "document_count": 0,
+          "legal_hold_count": 0,
+          "privilege_label_count": 0,
+          "omitted_denied_count": null,
+          "count_leak_prevented": true,
+          "raw_storage_path_included": false,
+          "document_bytes_included": false,
+          "production_ready_claim": false
+        },
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_lcx8_action_0065_vault_summary_probe",
+        "ui_state": "empty",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "summary_after": {
+      "status": 200,
+      "body": {
+        "request_id": "req_a8352ddd-8f34-4aa4-83bf-7b13af8b829b",
+        "outcome": "passed",
+        "item": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+          "default_folder_id": "folder:workspace:matter_lcx8_0065_document_1782453499980:root",
+          "workspace_status": "active",
+          "document_count": 1,
+          "legal_hold_count": 0,
+          "privilege_label_count": 0,
+          "omitted_denied_count": null,
+          "count_leak_prevented": true,
+          "raw_storage_path_included": false,
+          "document_bytes_included": false,
+          "production_ready_claim": false
+        },
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_lcx8_action_0065_vault_summary_probe",
+        "ui_state": null,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "command_after": {
+      "status": 200,
+      "body": {
+        "request_id": "req_42c01585-8969-4814-b5d4-19caae6c2db3",
+        "outcome": "passed",
+        "item": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "resource_id": "matter_lcx8_0065_document_1782453499980",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "matter_code": null,
+          "matter_number": "M-LCX8-0065-53499980",
+          "matter_name": "LCX8 document proof 1782453499980",
+          "title": "LCX8 document proof 1782453499980",
+          "status": "opening",
+          "client_id": "party_lcx8_0065_client",
+          "client_display_name": null,
+          "legal_client_party_id": "party_lcx8_0065_client",
+          "billing_client_party_id": "party_lcx8_0065_client",
+          "matter_type_english": null,
+          "matter_detail_type_korean": null,
+          "source_revision": null,
+          "owner_module": "MatterCore",
+          "owner_employee_id": null,
+          "owner_user_id": null,
+          "owner_display_name": null,
+          "permission_envelope_id": "perm_lcx8_0065_envelope",
+          "audit_trace_id": "audit_lcx8_0065_open_1782453499980",
+          "document_count": 0,
+          "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+          "matter_vault_linked": true,
+          "team_member_count": 0,
+          "wip_status": "not_started",
+          "risk_level": "standard",
+          "opened_at": null,
+          "closed_at": null,
+          "runtime_write_ready": true,
+          "r5_r6_owner_decision_ready": true,
+          "production_ready_claim": false
+        },
+        "team": [],
+        "client_report": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "report_id": "matter_report:matter_lcx8_0065_document_1782453499980",
+          "visible_sections": [
+            {
+              "section_id": "status",
+              "title": "Status",
+              "body": "opening",
+              "client_visible": true
+            }
+          ],
+          "removed_fields": [],
+          "unauthorized_count_leaked": false
+        },
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_lcx8_action_0065_command_probe",
+        "ui_state": null,
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "vault_summary": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+          "default_folder_id": "folder:workspace:matter_lcx8_0065_document_1782453499980:root",
+          "workspace_status": "active",
+          "document_count": 1,
+          "legal_hold_count": 0,
+          "privilege_label_count": 0,
+          "omitted_denied_count": null,
+          "count_leak_prevented": true,
+          "raw_storage_path_included": false,
+          "document_bytes_included": false,
+          "production_ready_claim": false
+        },
+        "matter_vault_link": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+          "default_folder_id": "folder:workspace:matter_lcx8_0065_document_1782453499980:root",
+          "permission_envelope_id": "perm_lcx8_0065_envelope",
+          "status": "active",
+          "raw_storage_path_included": false,
+          "document_bytes_included": false,
+          "vault_mutates_matter_status": false
+        }
+      }
+    },
+    "timeline_after": {
+      "status": 200,
+      "body": {
+        "request_id": "req_2515e1fe-5ee2-4943-bdf7-d5ec0ea2057b",
+        "outcome": "passed",
+        "item": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "visible_entries": [
+            {
+              "event_id": "matter.timeline.vault_document:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+              "tenant_id": "tenant_rp05_synthetic",
+              "matter_id": "matter_lcx8_0065_document_1782453499980",
+              "occurred_at": "2026-06-26T05:58:21.591Z",
+              "type": "document.version.created",
+              "title": "Matter 문서 연결 기록",
+              "source_ref": "doc_matter_lcx8_0065_document_1782453499980_1782453501588"
+            }
+          ],
+          "omitted_entry_count": null,
+          "count_leak_prevented": true
+        },
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_lcx8_action_0065_timeline_probe",
+        "ui_state": null,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "audit_after": {
+      "status": 200,
+      "matched_event": {
+        "event_id": "matter.document_facade.uploaded:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+        "tenant_id": "tenant_rp05_synthetic",
+        "actor_id": "matter_matter_operator",
+        "action": "matter.document_facade.uploaded",
+        "object_type": "DmsDocument",
+        "object_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+        "decision": "allow",
+        "reason": "matter_facade_delegated_bytes_to_vault",
+        "occurred_at": "2026-06-26T05:58:21.591Z",
+        "metadata": {
+          "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+          "timeline_event_id": "matter.timeline.vault_document:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588"
+        },
+        "event_hash": "57d83366ff05c6b82c89cf75d8a89cff5c6a03330cbf7da2e6612546ee7b76ff"
+      }
+    },
+    "denied": {
+      "status": 403,
+      "body": {
+        "request_id": "req_3a060469-5f98-41c0-b90f-d56258f94f7a",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_UNAUTHORIZED_OMISSION"
+        ],
+        "audit_hint_ref": "ui_mv_matter_document_facade_probe",
+        "ui_state": "denied",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "review": {
+      "status": 200,
+      "body": {
+        "request_id": "req_c349527c-a2b2-4b0a-aa95-73288ab49d79",
+        "outcome": "review_required",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_REVIEW_REQUIRED"
+        ],
+        "audit_hint_ref": "ui_mv_matter_document_facade_probe",
+        "ui_state": "review_required",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "invalid": {
+      "status": 400,
+      "body": {
+        "request_id": "req_edbaa225-4688-4d87-ad6a-aae18c6c8717",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_API_VALIDATION_ERROR"
+        ],
+        "audit_hint_ref": "ui_mv_matter_document_facade_probe",
+        "ui_state": "blocked",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "summary_after_guards": {
+      "status": 200,
+      "body": {
+        "request_id": "req_f54cc237-392b-4141-ab2f-44a7d9e36474",
+        "outcome": "passed",
+        "item": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "vault_workspace_id": "workspace:matter_lcx8_0065_document_1782453499980",
+          "default_folder_id": "folder:workspace:matter_lcx8_0065_document_1782453499980:root",
+          "workspace_status": "active",
+          "document_count": 1,
+          "legal_hold_count": 0,
+          "privilege_label_count": 0,
+          "omitted_denied_count": null,
+          "count_leak_prevented": true,
+          "raw_storage_path_included": false,
+          "document_bytes_included": false,
+          "production_ready_claim": false
+        },
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_lcx8_action_0065_vault_summary_probe",
+        "ui_state": null,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    }
+  }
+}

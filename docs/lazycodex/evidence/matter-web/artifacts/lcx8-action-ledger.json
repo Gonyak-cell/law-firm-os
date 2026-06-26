@@ -97,11 +97,11 @@
   "status_counts": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 14,
+    "pass": 15,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 118,
+    "blocked": 117,
     "fail": 42
   },
   "rows": [
@@ -2372,8 +2372,8 @@
       "permission_boundary": "Matter document facade permission context",
       "audit_boundary": "document facade write audit expected by API",
       "persistence_boundary": "repository write expected; Vault document read-back required in P4/P5",
-      "remediation_lane": "Lane B",
-      "status": "BLOCKED",
+      "remediation_lane": null,
+      "status": "PASS",
       "tuw": "P1-T06",
       "surface": "matter",
       "route": "/?locale=ko&view=matters&data=live&ctx=allow#matter-vault",
@@ -2403,9 +2403,45 @@
         "P5-T01 safe fixture definition: fixture_family=matter_runtime; applicability=P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED; tenant=tenant_rp05_synthetic; actor=matter_matter_operator; selected_for_p5_t02=false; no_write_executed=true; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-safe-fixture-definition-p5-t01.json",
         "P8 final remediation lane assignment: lane=Lane B; reason=api_permission_audit_persistence_or_runtime_proof_gap; tuw=P8-T03; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-lane-assignment-p8-t02-t06.json",
         "P8-T07 blocker risk ranking: tier=high; score=86; reason=API write lacks complete precondition/audit/persistence proof.; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-blocker-risk-ranking-p8-t07.json",
-        "P8-T08 remediation-ready issue text: rank=8; tier=high; title=Prove matter write action 문서 연결; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-ready-issues-p8-t08.json"
+        "P8-T08 remediation-ready issue text: rank=8; tier=high; title=Prove matter write action 문서 연결; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-ready-issues-p8-t08.json",
+        "Post-closeout LCX8-ACTION-0065 Matter document facade proof: http_status=201; outcome=created; matter_id=matter_lcx8_0065_document_1782453499980; document_id=doc_matter_lcx8_0065_document_1782453499980_1782453501588; replay=200/idempotent_replay; read_back_document_count=1; audit_event=matter.document_facade.uploaded; denied=403/blocked; review=200/review_required; invalid=400/blocked; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0065-matter-document-facade-proof.json",
+        "Post-closeout LCX8-ACTION-0065 status artifact: status_before=BLOCKED; status_after=PASS; counts_after=PASS 15/BLOCKED 117; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-document-facade-2026-06-26.json",
+        "Post-closeout LCX8-ACTION-0065 non-claim: local synthetic runtime proof only; fixture Matter/Vault document used only to drive UI document facade; production_ready_claim=false on write/read/audit; no external receipt or go-live approval claimed.",
+        "Post-closeout LCX8-ACTION-0065 verification: node --test apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g5-vault.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS."
       ],
-      "notes": "P2-T04 source/API client trace complete; P3/P4 click/API/audit/read-back proof pending before any PASS promotion. P4-T04 adds permission trimming evidence only; audit/write/read-back proof is still required before PASS. P4-T05 maps audit proof requirements; row is not PASS without audit event/read proof. P4-T06 stabilizes the expected blocked/failure/guarded reason for remediation ranking. P4-T07 focused API tests passed for related domains; status remains provisional until P4-T08/P5 classification. P4-T08 assigned API-backed provisional status BLOCKED. P5-T00 identifies this API write as a durable persistence candidate; actual write execution is deferred until the P5-T01 safe fixture is defined. P5-T01 defines synthetic fixture applicability for this API write; P5-T02 must capture execution/read-back/audit before any PASS promotion. P8 assigns remediation lane Lane B (api_permission_audit_persistence_or_runtime_proof_gap). P8-T07 ranks this remediation as high risk (score 86). P8-T08 issue text ready: Prove matter write action 문서 연결."
+      "notes": "P2-T04 source/API client trace complete; P3/P4 click/API/audit/read-back proof pending before any PASS promotion. P4-T04 adds permission trimming evidence only; audit/write/read-back proof is still required before PASS. P4-T05 maps audit proof requirements; row is not PASS without audit event/read proof. P4-T06 stabilizes the expected blocked/failure/guarded reason for remediation ranking. P4-T07 focused API tests passed for related domains; status remains provisional until P4-T08/P5 classification. P4-T08 assigned API-backed provisional status BLOCKED. P5-T00 identifies this API write as a durable persistence candidate; actual write execution is deferred until the P5-T01 safe fixture is defined. P5-T01 defines synthetic fixture applicability for this API write; P5-T02 must capture execution/read-back/audit before any PASS promotion. P8 assigns remediation lane Lane B (api_permission_audit_persistence_or_runtime_proof_gap). P8-T07 ranks this remediation as high risk (score 86). P8-T08 issue text ready: Prove matter write action 문서 연결. LCX8-ACTION-0065 is promoted to PASS after current-product UI 문서 연결 click, Matter document facade API write, idempotent replay, Vault summary/command-center/timeline read-back, matter.document_facade.uploaded audit proof, reload document-count proof, and denied/review/invalid fail-closed proof. Historical P4/P5/P8 blocker notes remain closeout context.",
+      "post_closeout_remediation": {
+        "row_id": "LCX8-ACTION-0065",
+        "status_before": "BLOCKED",
+        "status_after": "PASS",
+        "resolved_at": "2026-06-26T05:58:22.313Z",
+        "evidence_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0065-matter-document-facade-proof.json",
+        "status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-document-facade-2026-06-26.json",
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0065-matter-document-facade-proof.png",
+        "proof_summary": {
+          "write_http_status": 201,
+          "write_outcome": "created",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "document_title": "Matter 문서 연결 기록",
+          "replay_outcome": "idempotent_replay",
+          "read_back_document_count": 1,
+          "command_center_document_count": 1,
+          "timeline_event_type": "document.version.created",
+          "audit_event_action": "matter.document_facade.uploaded",
+          "audit_event_id": "matter.document_facade.uploaded:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "denied_write_outcome": "403/blocked",
+          "review_write_outcome": "200/review_required",
+          "invalid_payload_outcome": "400/blocked",
+          "production_ready_claim": false
+        },
+        "non_claims": [
+          "local synthetic runtime proof only",
+          "fixture Matter and Vault document were created only to drive the UI surface",
+          "no production readiness or go-live approval claimed",
+          "no external receipt claimed"
+        ]
+      }
     },
     {
       "id": "LCX8-ACTION-0066",

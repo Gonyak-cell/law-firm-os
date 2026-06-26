@@ -544,7 +544,39 @@
       "tuw": "P8-T03",
       "source_file": "apps/web/src/components/MatterVaultPanel.jsx; apps/web/src/data/apiClient.js",
       "handler": "handleCreateDocument -> createMatterDocumentFacade({ matterId, title, contentText })",
-      "api_route": "POST /api/matters/:matter_id/documents"
+      "api_route": "POST /api/matters/:matter_id/documents",
+      "post_closeout_resolution": {
+        "row_id": "LCX8-ACTION-0065",
+        "status_before": "BLOCKED",
+        "status_after": "PASS",
+        "resolved_at": "2026-06-26T05:58:22.313Z",
+        "evidence_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0065-matter-document-facade-proof.json",
+        "status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-document-facade-2026-06-26.json",
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0065-matter-document-facade-proof.png",
+        "proof_summary": {
+          "write_http_status": 201,
+          "write_outcome": "created",
+          "matter_id": "matter_lcx8_0065_document_1782453499980",
+          "document_id": "doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "document_title": "Matter 문서 연결 기록",
+          "replay_outcome": "idempotent_replay",
+          "read_back_document_count": 1,
+          "command_center_document_count": 1,
+          "timeline_event_type": "document.version.created",
+          "audit_event_action": "matter.document_facade.uploaded",
+          "audit_event_id": "matter.document_facade.uploaded:tenant_rp05_synthetic:matter_lcx8_0065_document_1782453499980:doc_matter_lcx8_0065_document_1782453499980_1782453501588",
+          "denied_write_outcome": "403/blocked",
+          "review_write_outcome": "200/review_required",
+          "invalid_payload_outcome": "400/blocked",
+          "production_ready_claim": false
+        },
+        "non_claims": [
+          "local synthetic runtime proof only",
+          "fixture Matter and Vault document were created only to drive the UI surface",
+          "no production readiness or go-live approval claimed",
+          "no external receipt claimed"
+        ]
+      }
     },
     {
       "id": "LCX8-ACTION-0066",
@@ -3021,11 +3053,11 @@
   "status_counts_after": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 12,
+    "pass": 15,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 120,
+    "blocked": 117,
     "fail": 42
   },
   "post_closeout_resolution": {
@@ -3111,5 +3143,16 @@
     "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-status-transition-2026-06-26.json",
     "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0063-matter-status-transition-proof.json",
     "note": "Historical P8 ranking/assignment remains a closeout snapshot; current product ledger marks LCX8-ACTION-0063 PASS after Matter status transition write/read-back/audit/fail-closed proof."
+  },
+  "post_closeout_resolution_lcx8_action_0065": {
+    "resolved_rows": [
+      "LCX8-ACTION-0065"
+    ],
+    "status_before": "BLOCKED",
+    "status_after": "PASS",
+    "resolved_at": "2026-06-26T05:58:22.313Z",
+    "current_status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-document-facade-2026-06-26.json",
+    "qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0065-matter-document-facade-proof.json",
+    "note": "Historical P8 ranking/assignment remains a closeout snapshot; current product ledger marks LCX8-ACTION-0065 PASS after Matter document facade write/read-back/audit/replay/fail-closed proof."
   }
 }

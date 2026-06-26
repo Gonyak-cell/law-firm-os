@@ -910,8 +910,15 @@ export function handleMatterDocumentFacade({ matterId, body, context, requestId,
       actor_id: body.actor_id ?? context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
-    const timeline = createMatterVaultTimelineEvent(runtime, {
-      event_id: `matter.timeline.vault_document:${query.tenant_id}:${matterId}:${result.document.document_id}`,
+    const timelineEventId = `matter.timeline.vault_document:${query.tenant_id}:${matterId}:${result.document.document_id}`;
+    const auditEventId = `matter.document_facade.uploaded:${query.tenant_id}:${matterId}:${result.document.document_id}`;
+    const existingTimeline = result.idempotent_replay
+      ? runtime.repository
+          .list({ tenant_id: query.tenant_id, model_type: "MatterTimelineEvent", matter_id: matterId })
+          .find((event) => event.event_id === timelineEventId)
+      : null;
+    const timeline = existingTimeline ?? createMatterVaultTimelineEvent(runtime, {
+      event_id: timelineEventId,
       tenant_id: query.tenant_id,
       matter_id: matterId,
       type: "document.version.created",
@@ -920,8 +927,13 @@ export function handleMatterDocumentFacade({ matterId, body, context, requestId,
       source_object_id: result.document.document_id,
       safe_summary: { document_id: result.document.document_id, version_id: result.version.version_id },
     });
-    appendAudit(runtime, {
-      event_id: `matter.document_facade.uploaded:${query.tenant_id}:${matterId}:${result.document.document_id}`,
+    const existingMatterAudit = result.idempotent_replay
+      ? runtime.repository
+          .listAudit({ tenant_id: query.tenant_id })
+          .find((event) => event.event_id === auditEventId)
+      : null;
+    const matterAudit = existingMatterAudit ?? appendAudit(runtime, {
+      event_id: auditEventId,
       tenant_id: query.tenant_id,
       actor_id: body.actor_id ?? context.principal.user_id,
       action: "matter.document_facade.uploaded",
@@ -950,6 +962,7 @@ export function handleMatterDocumentFacade({ matterId, body, context, requestId,
         version: result.version,
         file_object: serializeFileObjectSafe(result.file_object),
         audit_event: result.audit_event,
+        matter_audit_event: matterAudit,
         timeline_event: timeline,
         idempotent_replay: result.idempotent_replay,
         safe_error_codes: [],
