@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx8.post-closeout-remediation-status.v1",
-  "generated_at": "2026-06-26T13:14:25.956Z",
+  "generated_at": "2026-06-26T13:26:24.594Z",
   "status": "POST_CLOSEOUT_REMEDIATION_RECORDED",
   "resolved_rows": [
     {
@@ -340,6 +340,40 @@
         "invalid_draft_outcome": "404/blocked",
         "production_ready_claim": false
       }
+    },
+    {
+      "id": "LCX8-ACTION-0069",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "matter",
+      "section": "matter-vault",
+      "label": "Vault 등록 요청",
+      "evidence": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0069-matter-builder-publish-proof.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0069-matter-builder-publish-proof.md",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0069-matter-builder-publish-proof.png"
+      ],
+      "proof_summary": {
+        "write_http_status": 200,
+        "write_outcome": "owner_blocked",
+        "ui_state": "owner_blocked",
+        "matter_id": "matter_lcx8_0069_publish_1782480383355",
+        "draft_id": "builder_draft_matter_lcx8_0069_publish_1782480383355_1782480384502",
+        "publish_state": "owner_blocked",
+        "owner_approval_ref_included": false,
+        "vault_document_created": false,
+        "document_bytes_included": false,
+        "vault_document_count_after_publish": 0,
+        "vault_document_count_after_guards": 0,
+        "audit_event_action": "matter.builder.publish.blocked",
+        "audit_event_id": "matter.builder.publish.blocked:tenant_rp05_synthetic:matter_lcx8_0069_publish_1782480383355:builder_draft_matter_lcx8_0069_publish_1782480383355_1782480384502:2026-06-26T13:26:24.537Z",
+        "audit_event_decision": "blocked",
+        "audit_event_count_after_guards": 1,
+        "denied_write_outcome": "403/denied",
+        "review_write_outcome": "200/review_required",
+        "invalid_draft_outcome": "404/empty",
+        "production_ready_claim": false
+      }
     }
   ],
   "status_counts_before": {
@@ -355,11 +389,11 @@
   "status_counts_after": {
     "inventory_rows": 324,
     "unknown": 0,
-    "pass": 18,
+    "pass": 19,
     "guarded": 20,
     "ui_only": 128,
     "descriptor_only": 2,
-    "blocked": 114,
+    "blocked": 113,
     "fail": 42
   },
   "commands": [
@@ -398,10 +432,6 @@
     {
       "command": "npm run ui:live:verify",
       "result": "PASS 13/13"
-    },
-    {
-      "command": "npm run ui:flows:verify",
-      "result": "PASS 9/9"
     },
     {
       "command": "Playwright Client denied/review guarded copy remediation QA",
@@ -473,6 +503,15 @@
     {
       "command": "JSON parse and LCX8 ledger count invariant",
       "result": "PENDING 324 rows; PASS 18; BLOCKED 114; UNKNOWN 0; LCX8-ACTION-0068 PASS"
+    },
+    {
+      "command": "Playwright LCX8-ACTION-0069 Matter builder publish UI/API/no-document/audit/fail-closed proof",
+      "result": "PASS 200/owner_blocked/no-vault-document",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0069-matter-builder-publish-proof.json"
+    },
+    {
+      "command": "JSON parse and LCX8 ledger count invariant",
+      "result": "PENDING 324 rows; PASS 19; BLOCKED 113; UNKNOWN 0; LCX8-ACTION-0069 PASS"
     }
   ],
   "non_claims": {
@@ -496,7 +535,11 @@
     "matter_builder_draft_patch_production_ready_claim": false,
     "matter_builder_approval_promoted_to_pass": true,
     "matter_builder_approval_owner_receipt_claim": false,
-    "matter_builder_approval_production_ready_claim": false
+    "matter_builder_approval_production_ready_claim": false,
+    "matter_builder_publish_promoted_to_pass": true,
+    "matter_builder_publish_owner_receipt_claim": false,
+    "matter_builder_publish_vault_document_created_claim": false,
+    "matter_builder_publish_production_ready_claim": false
   },
-  "latest_verification_summary": "Post-closeout LCX8-ACTION-0068 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0069 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
 }
