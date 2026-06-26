@@ -18,7 +18,7 @@ Goal: `LCX-WEB apps/web canonical product UI 38 TUW full implementation`
 
 | Phase | Evidence file | TUWs |
 | --- | --- | --- |
-| W8 UI Action Operational Audit | `LCX-WEB-08-ui-action-operational-audit.md` | LCX8-P0 through LCX8-P9 closed with current-product P9 flow/live verifier pass; final ledger 324 rows, UNKNOWN 0, PASS 10, GUARDED 19, UI_ONLY 128, DESCRIPTOR_ONLY 2, BLOCKED 122, FAIL 43; P9 flow verifier passed 9/9 and live verifier passed 13/13; no remaining closeout blocker |
+| W8 UI Action Operational Audit | `LCX-WEB-08-ui-action-operational-audit.md` | LCX8-P0 through LCX8-P9 closed with current-product P9 flow/live verifier pass; closeout ledger 324 rows, UNKNOWN 0, PASS 10, GUARDED 19, UI_ONLY 128, DESCRIPTOR_ONLY 2, BLOCKED 122, FAIL 43; current post-closeout ledger PASS 16, GUARDED 20, UI_ONLY 128, DESCRIPTOR_ONLY 2, BLOCKED 116, FAIL 42, UNKNOWN 0; P9 flow verifier passed 9/9 and live verifier passed 13/13; no remaining closeout blocker |
 
 ## W8 Final Boundary
 

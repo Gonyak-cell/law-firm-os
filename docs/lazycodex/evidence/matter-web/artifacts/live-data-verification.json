@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx-web.live-data-verification.v1",
-  "generated_at": "2026-06-26T06:01:32.907Z",
+  "generated_at": "2026-06-26T12:41:59.576Z",
   "base_url": "http://127.0.0.1:5173",
   "api_base": "http://127.0.0.1:4180 via vite dev proxy",
   "source_of_truth": "apps/web",
@@ -110,7 +110,7 @@
       "passed": true,
       "detail": {
         "selector": "[data-cmp-g4-live-matters='true']",
-        "state_text": "Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 목록 권한 기준 적용 새 Matter 개시는 승인 후 반영됩니다. 전체 Matter 개시 중 종료 개시 저장 0개 선택 선택 완료 Matter 제목 진행 상태 청구 상태 Matter 1 Matter 1 개시 중 청구 준비 가능 M-LCX8-0065-53499980 LCX8 document proof ",
+        "state_text": "Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 목록 권한 기준 적용 새 Matter 개시는 승인 후 반영됩니다. 전체 Matter 개시 중 종료 개시 저장 0개 선택 선택 완료 Matter 제목 진행 상태 청구 상태 Matter 1 Matter 1 개시 중 청구 준비 가능 M-LCX8-0066-54036394 LCX8 builder proof 1",
         "api_5xx_count": 0,
         "api_5xx": []
       },
@@ -170,7 +170,7 @@
       "passed": true,
       "detail": {
         "selector": "[data-cmp-g2-live-clients='true']",
-        "state_text": "Client Client와 상담 접수, 영업 기회를 한 화면에서 확인합니다. 새로고침 데이터 보강 Client 외부 연동 2개 확인 연동 요청 동의와 보존 보강 범위는 담당자 승인 후 적용됩니다. 승인 확인 외부 연동 등록 아직 실행 전 동의 상태 아직 실행 전 외부 연동 상태 범위 외부 연결 Salesforce Data Cloud 외부 확인 대기 기업 정보 / 관계 / Matter 맥락 아니오 FullContact 데이터 보",
+        "state_text": "Client Client와 상담 접수, 영업 기회를 한 화면에서 확인합니다. 새로고침 데이터 보강 Client 외부 연동 확인 중 연동 요청 동의와 보존 보강 범위는 담당자 승인 후 적용됩니다. 승인 확인 외부 연동 등록 아직 실행 전 동의 상태 아직 실행 전 외부 연동 정보를 불러오는 중입니다. 보강 미리보기 안전 출력 작업 생성 보강 작업 대기 미리보기 작업 상태 아직 실행 전 대상 대기 동의 대기 신뢰도 대기 외부 연결 ",
         "api_5xx_count": 0,
         "api_5xx": []
       },
@@ -182,7 +182,7 @@
       "passed": true,
       "detail": {
         "selector": "[data-cmp-g2-live-clients='true']",
-        "state_text": "Client Client와 상담 접수, 영업 기회를 한 화면에서 확인합니다. 새로고침 보고서 Client 저장된 보고서 2개 생성 필터와 열 Client 그룹 / Matter 수 / 손익 조정 생성 상태 아직 실행 전 정의 상태 아직 실행 전 보고서 범위 차트 공유 원문 Client 손익 개요 Client 막대 private 보호됨 Matter business overview Matter 표 private 보호됨 Client ",
+        "state_text": "Client Client와 상담 접수, 영업 기회를 한 화면에서 확인합니다. 새로고침 보고서 Client 저장된 보고서 확인 중 생성 필터와 열 허용 필드 확인 조정 생성 상태 아직 실행 전 정의 상태 아직 실행 전 보고서 정보를 불러오는 중입니다. Client 손익 집계 수익성 새로고침 기존 Matter 집계에서만 Client 집계를 만듭니다. 새로고침 집계 상태 아직 실행 전 Client 손익 정보를 불러오는 중입니다. 실",
         "api_5xx_count": 0,
         "api_5xx": []
       },

@@ -1,0 +1,784 @@
+{
+  "action_id": "LCX8-ACTION-0066",
+  "title": "Matter builder draft operational proof",
+  "completed_at": "2026-06-26T06:07:18.716Z",
+  "surface": "matter",
+  "route": "/?locale=ko&view=matters&data=live&ctx=allow#matter-vault",
+  "fixture": {
+    "tenant_id": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "matter_id": "matter_lcx8_0066_builder_1782454036394",
+    "matter_number": "M-LCX8-0066-54036394",
+    "title": "LCX8 builder proof 1782454036394",
+    "draft_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+    "safe_fixture_family": "matter_runtime_builder_draft",
+    "existing_seed_mutated": false
+  },
+  "trace": {
+    "selector": "[data-sf-b-w04-builder-draft-action=\"true\"]",
+    "ui_handler": "handleCreateBuilderDraft",
+    "api_client": "createMatterBuilderDraft; fetchMatterBuilderDraftPreview",
+    "api_route": "POST /api/matters/:matter_id/builder-drafts; GET /api/matters/:matter_id/builder-drafts/:draft_id/preview",
+    "api_handler": "handleMatterBuilderDraftCreate; handleMatterBuilderDraftPreview",
+    "permission_ref": "ui_sf_b_w04_builder_draft_create",
+    "audit_hint_ref": "ui_sf_b_w04_builder_draft_create_probe",
+    "audit_action": "matter.builder.draft.created"
+  },
+  "browser_proof": {
+    "url": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-vault",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0066-matter-builder-draft-proof.png",
+    "result_message": "문서 초안이 생성되었습니다.",
+    "reload_text_checks": [
+      "문서 초안"
+    ],
+    "api_responses": [
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+        "method": "POST",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0066_builder_1782454036394/recently-viewed",
+        "method": "POST",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0066_builder_1782454036394/builder-drafts",
+        "method": "POST",
+        "status": 201
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+        "method": "POST",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0066_builder_1782454036394/recently-viewed",
+        "method": "POST",
+        "status": 200
+      }
+    ],
+    "request_failures": [],
+    "console_messages": [],
+    "page_errors": []
+  },
+  "api_write": {
+    "status": 201,
+    "outcome": "created",
+    "item": {
+      "draft_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+      "matter_id": "matter_lcx8_0066_builder_1782454036394",
+      "template_id": "matter_engagement_letter",
+      "title": "위임계약서 초안",
+      "status": "draft",
+      "safe_excerpt": "입력 본문 8자",
+      "merge_field_count": 3,
+      "approval_state": "approval_required",
+      "publish_state": "owner_blocked",
+      "raw_body_included": false,
+      "raw_template_body_included": false,
+      "raw_contact_values_included": false,
+      "document_bytes_included": false,
+      "production_ready_claim": false
+    },
+    "audit_event": {
+      "event_id": "matter.builder.draft.created:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394:builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "action": "matter.builder.draft.created",
+      "object_type": "MatterBuilderDraft",
+      "object_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+      "decision": "allow",
+      "reason": "document_builder_draft_created",
+      "occurred_at": "2026-06-26T06:07:17.974Z",
+      "metadata": {
+        "template_id": "matter_engagement_letter",
+        "approval_state": "approval_required",
+        "raw_body_included": false,
+        "raw_template_body_included": false,
+        "raw_provider_payload_included": false,
+        "raw_contact_values_included": false,
+        "document_bytes_included": false
+      }
+    },
+    "timeline_event": {
+      "model_type": "MatterTimelineEvent",
+      "resource_id": "matter.timeline.builder_draft:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394:builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+      "event_id": "matter.timeline.builder_draft:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394:builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+      "tenant_id": "tenant_rp05_synthetic",
+      "matter_id": "matter_lcx8_0066_builder_1782454036394",
+      "occurred_at": "2026-06-26T06:07:17.974Z",
+      "type": "matter.builder.draft",
+      "title": "위임계약서 초안",
+      "source_ref": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+      "source_module": "matter-builder",
+      "source_object_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+      "safe_summary": {
+        "template_id": "matter_engagement_letter",
+        "approval_state": "approval_required"
+      },
+      "raw_body_included": false,
+      "raw_provider_payload_included": false,
+      "writes_product_state": true,
+      "creates_database_rows": true
+    },
+    "production_ready_claim": false
+  },
+  "preview_readback": {
+    "status": 200,
+    "outcome": "passed",
+    "item": {
+      "draft_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+      "matter_id": "matter_lcx8_0066_builder_1782454036394",
+      "title": "위임계약서 초안",
+      "template_label": "위임계약서",
+      "preview_sections": [
+        "표지",
+        "핵심 조항",
+        "승인 필요 항목"
+      ],
+      "safe_excerpt": "입력 본문 8자",
+      "merge_field_count": 3,
+      "raw_body_included": false,
+      "raw_template_body_included": false,
+      "raw_contact_values_included": false,
+      "document_bytes_included": false,
+      "production_ready_claim": false
+    }
+  },
+  "audit": {
+    "builder_audit_event": {
+      "event_id": "matter.builder.draft.created:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394:builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "action": "matter.builder.draft.created",
+      "object_type": "MatterBuilderDraft",
+      "object_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+      "decision": "allow",
+      "reason": "document_builder_draft_created",
+      "occurred_at": "2026-06-26T06:07:17.974Z",
+      "metadata": {
+        "template_id": "matter_engagement_letter",
+        "approval_state": "approval_required",
+        "raw_body_included": false,
+        "raw_template_body_included": false,
+        "raw_provider_payload_included": false,
+        "raw_contact_values_included": false,
+        "document_bytes_included": false
+      }
+    },
+    "audit_route_status": 200,
+    "response_audit_event": {
+      "event_id": "matter.builder.draft.created:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394:builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "action": "matter.builder.draft.created",
+      "object_type": "MatterBuilderDraft",
+      "object_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+      "decision": "allow",
+      "reason": "document_builder_draft_created",
+      "occurred_at": "2026-06-26T06:07:17.974Z",
+      "metadata": {
+        "template_id": "matter_engagement_letter",
+        "approval_state": "approval_required",
+        "raw_body_included": false,
+        "raw_template_body_included": false,
+        "raw_provider_payload_included": false,
+        "raw_contact_values_included": false,
+        "document_bytes_included": false
+      }
+    }
+  },
+  "timeline": {
+    "draft_timeline_event": {
+      "event_id": "matter.timeline.builder_draft:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394:builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+      "tenant_id": "tenant_rp05_synthetic",
+      "matter_id": "matter_lcx8_0066_builder_1782454036394",
+      "occurred_at": "2026-06-26T06:07:17.974Z",
+      "type": "matter.builder.draft",
+      "title": "위임계약서 초안",
+      "source_ref": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973"
+    },
+    "timeline_route_status": 200
+  },
+  "fail_closed": {
+    "denied": {
+      "status": 403,
+      "body": {
+        "request_id": "req_a56099cf-c1a8-4d83-b903-08e6a6dea088",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_UNAUTHORIZED_OMISSION"
+        ],
+        "audit_hint_ref": "ui_sf_b_w04_builder_draft_create_probe",
+        "ui_state": "denied",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "review": {
+      "status": 200,
+      "body": {
+        "request_id": "req_bfa4bb4b-0f0c-4411-b805-19253efe64f2",
+        "outcome": "review_required",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_REVIEW_REQUIRED"
+        ],
+        "audit_hint_ref": "ui_sf_b_w04_builder_draft_create_probe",
+        "ui_state": "review_required",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "invalid": {
+      "status": 400,
+      "body": {
+        "request_id": "req_0f8df7b7-b3f7-45b4-95a0-1d084bd1f8b9",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_API_VALIDATION_ERROR"
+        ],
+        "audit_hint_ref": "ui_sf_b_w04_builder_draft_create_probe",
+        "ui_state": "blocked",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "denied_preview_status": 404,
+    "review_preview_status": 404
+  },
+  "idempotency": {
+    "replay_status": 200,
+    "replay_outcome": "idempotent_replay",
+    "replay_draft_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+    "idempotency_key": "ui:matter_lcx8_0066_builder_1782454036394:builder:builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973:1782454037973"
+  },
+  "assertions": {
+    "fixture_created": true,
+    "template_read_safe": true,
+    "ui_post_status_201": true,
+    "ui_post_outcome_created": true,
+    "ui_post_draft_id_present": true,
+    "ui_post_no_raw_body": true,
+    "ui_post_no_raw_template": true,
+    "ui_post_no_contact_values": true,
+    "ui_post_no_document_bytes": true,
+    "audit_event_created": true,
+    "timeline_event_created": true,
+    "replay_idempotent": true,
+    "preview_readback_passed": true,
+    "preview_safe": true,
+    "audit_contains_builder_create": true,
+    "timeline_readback_contains_draft": true,
+    "result_message_observed": true,
+    "reload_ui_builder_section_present": true,
+    "denied_fail_closed": true,
+    "review_fail_closed": true,
+    "invalid_template_blocked": true,
+    "guards_did_not_mutate": true,
+    "no_request_failures": true,
+    "no_console_errors": true,
+    "production_ready_claim_false": true
+  },
+  "api_responses": {
+    "opened": {
+      "status": 201,
+      "body": {
+        "request_id": "req_389931ab-88a3-4c45-adbd-7ad89157ba18",
+        "outcome": "created",
+        "item": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "resource_id": "matter_lcx8_0066_builder_1782454036394",
+          "matter_id": "matter_lcx8_0066_builder_1782454036394",
+          "matter_code": null,
+          "matter_number": "M-LCX8-0066-54036394",
+          "matter_name": "LCX8 builder proof 1782454036394",
+          "title": "LCX8 builder proof 1782454036394",
+          "status": "opening",
+          "client_id": "party_lcx8_0066_client",
+          "client_display_name": null,
+          "legal_client_party_id": "party_lcx8_0066_client",
+          "billing_client_party_id": "party_lcx8_0066_client",
+          "matter_type_english": null,
+          "matter_detail_type_korean": null,
+          "source_revision": null,
+          "owner_module": "MatterCore",
+          "owner_employee_id": null,
+          "owner_user_id": null,
+          "owner_display_name": null,
+          "permission_envelope_id": "perm_lcx8_0066_envelope",
+          "audit_trace_id": "audit_lcx8_0066_open_1782454036394",
+          "document_count": 0,
+          "vault_workspace_id": "workspace:matter_lcx8_0066_builder_1782454036394",
+          "matter_vault_linked": true,
+          "team_member_count": 0,
+          "wip_status": "not_started",
+          "risk_level": "standard",
+          "opened_at": null,
+          "closed_at": null,
+          "runtime_write_ready": true,
+          "r5_r6_owner_decision_ready": true,
+          "production_ready_claim": false
+        },
+        "dms_workspace": {
+          "model_type": "DmsWorkspace",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0066_builder_1782454036394",
+          "owner_module": "legal-workspace-dms",
+          "permission_envelope_id": "perm_lcx8_0066_envelope",
+          "audit_trace_id": "audit_lcx8_0066_open_1782454036394",
+          "synthetic_only": true,
+          "writes_product_state": true,
+          "evaluates_runtime_permission": false,
+          "writes_audit_event": false,
+          "creates_database_rows": false,
+          "reads_object_storage": false,
+          "writes_object_storage": false,
+          "exposes_document_bytes": false,
+          "exposes_extracted_text": false,
+          "workspace_id": "workspace:matter_lcx8_0066_builder_1782454036394",
+          "name": "LCX8 builder proof 1782454036394",
+          "status": "active",
+          "root_folder_id": "folder:workspace:matter_lcx8_0066_builder_1782454036394:root",
+          "matter_trace_ref": "matter:matter_lcx8_0066_builder_1782454036394",
+          "client_visible_by_default": false,
+          "resource_id": "workspace:matter_lcx8_0066_builder_1782454036394",
+          "created_at": "2026-06-26T06:07:16.415Z",
+          "updated_at": "2026-06-26T06:07:16.415Z"
+        },
+        "default_folder": {
+          "model_type": "DmsFolder",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0066_builder_1782454036394",
+          "owner_module": "legal-workspace-dms",
+          "permission_envelope_id": "perm_lcx8_0066_envelope",
+          "audit_trace_id": "audit_lcx8_0066_open_1782454036394",
+          "synthetic_only": true,
+          "writes_product_state": true,
+          "evaluates_runtime_permission": false,
+          "writes_audit_event": false,
+          "creates_database_rows": false,
+          "reads_object_storage": false,
+          "writes_object_storage": false,
+          "exposes_document_bytes": false,
+          "exposes_extracted_text": false,
+          "folder_id": "folder:workspace:matter_lcx8_0066_builder_1782454036394:root",
+          "workspace_id": "workspace:matter_lcx8_0066_builder_1782454036394",
+          "parent_folder_id": null,
+          "name": "Root",
+          "status": "active",
+          "resource_id": "folder:workspace:matter_lcx8_0066_builder_1782454036394:root",
+          "created_at": "2026-06-26T06:07:16.415Z",
+          "updated_at": "2026-06-26T06:07:16.415Z"
+        },
+        "matter_vault_link": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0066_builder_1782454036394",
+          "vault_workspace_id": "workspace:matter_lcx8_0066_builder_1782454036394",
+          "default_folder_id": "folder:workspace:matter_lcx8_0066_builder_1782454036394:root",
+          "permission_envelope_id": "perm_lcx8_0066_envelope",
+          "status": "active",
+          "raw_storage_path_included": false,
+          "document_bytes_included": false,
+          "vault_mutates_matter_status": false
+        },
+        "billing_ledger": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0066_builder_1782454036394",
+          "ledger_id": "matter_billing_ledger_matter_lcx8_0066_builder_1782454036394"
+        },
+        "audit_event": {
+          "event_id": "matter_opened:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.open",
+          "object_type": "Matter",
+          "object_id": "matter_lcx8_0066_builder_1782454036394",
+          "decision": "allow",
+          "reason": "matter_opened_with_clearance",
+          "occurred_at": "2026-06-26T06:07:16.414Z",
+          "metadata": {
+            "matter_number": "M-LCX8-0066-54036394",
+            "matter_code": null,
+            "idempotency_key": "ui:matter_lcx8_0066_builder_1782454036394:open"
+          },
+          "event_hash": "d377abc276249c508e5d2be27114e34e29febea99ae733820e214cd523534f7e"
+        },
+        "link_audit_event": {
+          "event_id": "matter.vault_link.created:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.vault_link.created",
+          "object_type": "MatterVaultLink",
+          "object_id": "matter_lcx8_0066_builder_1782454036394:workspace:matter_lcx8_0066_builder_1782454036394",
+          "decision": "allow",
+          "reason": "clearance_gated_matter_opening_created_vault_workspace",
+          "occurred_at": "2026-06-26T06:07:16.415Z",
+          "metadata": {
+            "matter_id": "matter_lcx8_0066_builder_1782454036394",
+            "vault_workspace_id": "workspace:matter_lcx8_0066_builder_1782454036394",
+            "idempotency_key": "ui:matter_lcx8_0066_builder_1782454036394:open"
+          },
+          "event_hash": "75c4cf93cdecb98d01710b0ac08c23613296c145d62d57151a3ebfe1b288c7e1"
+        },
+        "idempotent_replay": false,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_lcx8_action_0066_matter_open_probe",
+        "state_idempotent": true,
+        "production_ready_claim": false
+      }
+    },
+    "templates_before": {
+      "status": 200,
+      "body": {
+        "request_id": "req_793202ea-fba3-4c74-a902-913fb059c54a",
+        "outcome": "passed",
+        "items": [
+          {
+            "template_id": "matter_engagement_letter",
+            "label": "위임계약서",
+            "category": "document",
+            "merge_field_count": 3,
+            "merge_fields": [
+              "client_name",
+              "matter_title",
+              "responsible_attorney"
+            ],
+            "requires_approval": true,
+            "raw_template_body_included": false,
+            "raw_contact_values_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "template_id": "matter_status_update_email",
+            "label": "진행상황 안내 메일",
+            "category": "email",
+            "merge_field_count": 3,
+            "merge_fields": [
+              "client_name",
+              "matter_title",
+              "next_deadline"
+            ],
+            "requires_approval": true,
+            "raw_template_body_included": false,
+            "raw_contact_values_included": false,
+            "production_ready_claim": false
+          }
+        ],
+        "page_info": {
+          "returned_count": 2,
+          "omitted_item_count": null
+        },
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_lcx8_action_0066_template_probe",
+        "ui_state": null,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "ui_post": {
+      "status": 201,
+      "body": {
+        "request_id": "req_a57ebf06-d07b-45dc-b9cd-8293a4b9710e",
+        "outcome": "created",
+        "ui_state": null,
+        "item": {
+          "draft_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+          "matter_id": "matter_lcx8_0066_builder_1782454036394",
+          "template_id": "matter_engagement_letter",
+          "title": "위임계약서 초안",
+          "status": "draft",
+          "safe_excerpt": "입력 본문 8자",
+          "merge_field_count": 3,
+          "approval_state": "approval_required",
+          "publish_state": "owner_blocked",
+          "raw_body_included": false,
+          "raw_template_body_included": false,
+          "raw_contact_values_included": false,
+          "document_bytes_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "matter.builder.draft.created:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394:builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.builder.draft.created",
+          "object_type": "MatterBuilderDraft",
+          "object_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+          "decision": "allow",
+          "reason": "document_builder_draft_created",
+          "occurred_at": "2026-06-26T06:07:17.974Z",
+          "metadata": {
+            "template_id": "matter_engagement_letter",
+            "approval_state": "approval_required",
+            "raw_body_included": false,
+            "raw_template_body_included": false,
+            "raw_provider_payload_included": false,
+            "raw_contact_values_included": false,
+            "document_bytes_included": false
+          }
+        },
+        "timeline_event": {
+          "model_type": "MatterTimelineEvent",
+          "resource_id": "matter.timeline.builder_draft:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394:builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+          "event_id": "matter.timeline.builder_draft:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394:builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0066_builder_1782454036394",
+          "occurred_at": "2026-06-26T06:07:17.974Z",
+          "type": "matter.builder.draft",
+          "title": "위임계약서 초안",
+          "source_ref": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+          "source_module": "matter-builder",
+          "source_object_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+          "safe_summary": {
+            "template_id": "matter_engagement_letter",
+            "approval_state": "approval_required"
+          },
+          "raw_body_included": false,
+          "raw_provider_payload_included": false,
+          "writes_product_state": true,
+          "creates_database_rows": true
+        },
+        "deadline_change_request": null,
+        "confirmation": null,
+        "provider_state": null,
+        "approval_request": null,
+        "publish_state": null,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w04_builder_draft_create_probe",
+        "state_idempotent": true,
+        "idempotent_replay": false,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "replay": {
+      "status": 200,
+      "body": {
+        "request_id": "req_5aa19c90-315b-4f07-a690-18f310eb8776",
+        "outcome": "idempotent_replay",
+        "ui_state": null,
+        "item": {
+          "draft_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+          "matter_id": "matter_lcx8_0066_builder_1782454036394",
+          "template_id": "matter_engagement_letter",
+          "title": "위임계약서 초안",
+          "status": "draft",
+          "safe_excerpt": "입력 본문 8자",
+          "merge_field_count": 3,
+          "approval_state": "approval_required",
+          "publish_state": "owner_blocked",
+          "raw_body_included": false,
+          "raw_template_body_included": false,
+          "raw_contact_values_included": false,
+          "document_bytes_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "matter.builder.draft.created:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394:builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.builder.draft.created",
+          "object_type": "MatterBuilderDraft",
+          "object_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+          "decision": "allow",
+          "reason": "document_builder_draft_created",
+          "occurred_at": "2026-06-26T06:07:17.974Z",
+          "metadata": {
+            "template_id": "matter_engagement_letter",
+            "approval_state": "approval_required",
+            "raw_body_included": false,
+            "raw_template_body_included": false,
+            "raw_provider_payload_included": false,
+            "raw_contact_values_included": false,
+            "document_bytes_included": false
+          }
+        },
+        "timeline_event": {
+          "model_type": "MatterTimelineEvent",
+          "resource_id": "matter.timeline.builder_draft:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394:builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+          "event_id": "matter.timeline.builder_draft:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394:builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0066_builder_1782454036394",
+          "occurred_at": "2026-06-26T06:07:17.974Z",
+          "type": "matter.builder.draft",
+          "title": "위임계약서 초안",
+          "source_ref": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+          "source_module": "matter-builder",
+          "source_object_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+          "safe_summary": {
+            "template_id": "matter_engagement_letter",
+            "approval_state": "approval_required"
+          },
+          "raw_body_included": false,
+          "raw_provider_payload_included": false,
+          "writes_product_state": true,
+          "creates_database_rows": true
+        },
+        "deadline_change_request": null,
+        "confirmation": null,
+        "provider_state": null,
+        "approval_request": null,
+        "publish_state": null,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w04_builder_draft_create_probe",
+        "state_idempotent": true,
+        "idempotent_replay": true,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "preview": {
+      "status": 200,
+      "body": {
+        "request_id": "req_42c66b65-183e-45b2-ad6c-3483c3105326",
+        "outcome": "passed",
+        "ui_state": null,
+        "item": {
+          "draft_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+          "matter_id": "matter_lcx8_0066_builder_1782454036394",
+          "title": "위임계약서 초안",
+          "template_label": "위임계약서",
+          "preview_sections": [
+            "표지",
+            "핵심 조항",
+            "승인 필요 항목"
+          ],
+          "safe_excerpt": "입력 본문 8자",
+          "merge_field_count": 3,
+          "raw_body_included": false,
+          "raw_template_body_included": false,
+          "raw_contact_values_included": false,
+          "document_bytes_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": null,
+        "timeline_event": null,
+        "deadline_change_request": null,
+        "confirmation": null,
+        "provider_state": null,
+        "approval_request": null,
+        "publish_state": null,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_lcx8_action_0066_preview_probe_builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+        "state_idempotent": true,
+        "idempotent_replay": false,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "audit_after": {
+      "status": 200,
+      "matched_event": {
+        "event_id": "matter.builder.draft.created:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394:builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+        "tenant_id": "tenant_rp05_synthetic",
+        "actor_id": "matter_matter_operator",
+        "action": "matter.builder.draft.created",
+        "object_type": "MatterBuilderDraft",
+        "object_id": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+        "decision": "allow",
+        "reason": "document_builder_draft_created",
+        "occurred_at": "2026-06-26T06:07:17.974Z",
+        "metadata": {
+          "template_id": "matter_engagement_letter",
+          "approval_state": "approval_required",
+          "raw_body_included": false,
+          "raw_template_body_included": false,
+          "raw_provider_payload_included": false,
+          "raw_contact_values_included": false,
+          "document_bytes_included": false
+        }
+      }
+    },
+    "timeline_after": {
+      "status": 200,
+      "matched_event": {
+        "event_id": "matter.timeline.builder_draft:tenant_rp05_synthetic:matter_lcx8_0066_builder_1782454036394:builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973",
+        "tenant_id": "tenant_rp05_synthetic",
+        "matter_id": "matter_lcx8_0066_builder_1782454036394",
+        "occurred_at": "2026-06-26T06:07:17.974Z",
+        "type": "matter.builder.draft",
+        "title": "위임계약서 초안",
+        "source_ref": "builder_draft_matter_lcx8_0066_builder_1782454036394_1782454037973"
+      }
+    },
+    "denied": {
+      "status": 403,
+      "body": {
+        "request_id": "req_a56099cf-c1a8-4d83-b903-08e6a6dea088",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_UNAUTHORIZED_OMISSION"
+        ],
+        "audit_hint_ref": "ui_sf_b_w04_builder_draft_create_probe",
+        "ui_state": "denied",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "review": {
+      "status": 200,
+      "body": {
+        "request_id": "req_bfa4bb4b-0f0c-4411-b805-19253efe64f2",
+        "outcome": "review_required",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_REVIEW_REQUIRED"
+        ],
+        "audit_hint_ref": "ui_sf_b_w04_builder_draft_create_probe",
+        "ui_state": "review_required",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "invalid": {
+      "status": 400,
+      "body": {
+        "request_id": "req_0f8df7b7-b3f7-45b4-95a0-1d084bd1f8b9",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_API_VALIDATION_ERROR"
+        ],
+        "audit_hint_ref": "ui_sf_b_w04_builder_draft_create_probe",
+        "ui_state": "blocked",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "denied_preview": {
+      "status": 404,
+      "body": {
+        "request_id": "req_36ccc970-9c31-4d22-bd87-e7d57bbcab69",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_API_VALIDATION_ERROR"
+        ],
+        "audit_hint_ref": "ui_lcx8_action_0066_preview_probe_builder_draft_matter_lcx8_0066_builder_1782454036394_denied_1782454036394",
+        "ui_state": "empty",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "review_preview": {
+      "status": 404,
+      "body": {
+        "request_id": "req_5d777074-72ff-4952-948c-6dd899c88000",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_API_VALIDATION_ERROR"
+        ],
+        "audit_hint_ref": "ui_lcx8_action_0066_preview_probe_builder_draft_matter_lcx8_0066_builder_1782454036394_review_1782454036394",
+        "ui_state": "empty",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    }
+  }
+}
