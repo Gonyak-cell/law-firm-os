@@ -38,6 +38,10 @@ import {
   MATTER_VAULT_REGISTERED_TENANT_ID,
   listRegisteredAccounts,
 } from "./matter-vault-account-registry.js";
+import {
+  HRX_MEMBER_ROSTER_SOURCE_REF,
+  listHrxMemberRosterRows,
+} from "./hrx-member-roster-registry.js";
 import { evaluateRouteDecision } from "./permission-gate.js";
 
 const SYNTHETIC_TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
@@ -49,6 +53,10 @@ const HRX_DEFAULT_SEED_TENANT_IDS = Object.freeze(
 const REGISTERED_ACCOUNTS = listRegisteredAccounts();
 const SEED_SOURCE_REF = MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE;
 const COMPATIBILITY_SOURCE_REF = "HRX:api-compatibility-fixture";
+const MEMBER_ROSTER = listHrxMemberRosterRows();
+const MEMBER_ROSTER_BY_USER_ID = new Map(MEMBER_ROSTER.map((member) => [member.user_id, member]));
+const MEMBER_ROSTER_BY_EMPLOYEE_ID = new Map(MEMBER_ROSTER.map((member) => [member.employee_id, member]));
+const MEMBER_ROSTER_BY_DISPLAY_NAME = new Map(MEMBER_ROSTER.map((member) => [member.display_name, member]));
 const COMPATIBILITY_PEOPLE = Object.freeze([
   Object.freeze({
     employee_id: "emp-001",
@@ -74,40 +82,54 @@ function accountEmployeeId(account) {
   return `emp_${String(account.user_id).replace(/^user_/, "")}`;
 }
 
+function memberRosterForAccount(account) {
+  return MEMBER_ROSTER_BY_USER_ID.get(account.user_id) ?? MEMBER_ROSTER_BY_DISPLAY_NAME.get(account.display_name) ?? null;
+}
+
+function employeeIdForRegisteredAccount(account) {
+  return memberRosterForAccount(account)?.employee_id ?? accountEmployeeId(account);
+}
+
 function registeredEmployees(tenantId) {
-  return REGISTERED_ACCOUNTS.map((account) => ({
-    tenant_id: tenantId,
-    employee_id: accountEmployeeId(account),
-    display_name: account.display_name,
-    legal_name: account.display_name,
-    work_email: account.email,
-    status: account.status === "active" ? "active" : "inactive",
-    source_ref: SEED_SOURCE_REF,
-  }));
+  return REGISTERED_ACCOUNTS.map((account) => {
+    const member = memberRosterForAccount(account);
+    return {
+      tenant_id: tenantId,
+      employee_id: member?.employee_id ?? accountEmployeeId(account),
+      display_name: member?.display_name ?? account.display_name,
+      legal_name: member?.legal_name || member?.display_name || account.display_name,
+      work_email: member?.work_email ?? account.email,
+      status: member?.status ?? (account.status === "active" ? "active" : "inactive"),
+      source_ref: member?.source_ref ?? SEED_SOURCE_REF,
+    };
+  });
 }
 
 function registeredEmploymentProfiles(tenantId) {
-  return REGISTERED_ACCOUNTS.map((account) => ({
-    tenant_id: tenantId,
-    profile_id: `profile_${account.user_id.replace(/^user_/, "")}`,
-    employee_id: accountEmployeeId(account),
-    employment_type: "full_time",
-    status: account.status === "active" ? "active" : "terminated",
-    title: account.source_title ?? "구성원",
-    org_unit_id: account.group_ids?.[0] ?? "group_matter_vault_users",
-    effective_from: "2026-06-22",
-    source_ref: SEED_SOURCE_REF,
-  }));
+  return REGISTERED_ACCOUNTS.map((account) => {
+    const member = memberRosterForAccount(account);
+    return {
+      tenant_id: tenantId,
+      profile_id: `profile_${account.user_id.replace(/^user_/, "")}`,
+      employee_id: member?.employee_id ?? accountEmployeeId(account),
+      employment_type: member?.employment_type ?? "full_time",
+      status: member?.profile_status ?? (account.status === "active" ? "active" : "terminated"),
+      title: member?.title ?? account.source_title ?? "구성원",
+      org_unit_id: member?.org_unit_id || account.group_ids?.[0] || "group_matter_vault_users",
+      effective_from: "2026-06-22",
+      source_ref: member?.source_ref ?? SEED_SOURCE_REF,
+    };
+  });
 }
 
 function registeredEmployeeUserLinks(tenantId) {
   return REGISTERED_ACCOUNTS.map((account) => ({
     tenant_id: tenantId,
     link_id: `link_${account.user_id.replace(/^user_/, "")}`,
-    employee_id: accountEmployeeId(account),
+    employee_id: employeeIdForRegisteredAccount(account),
     user_id: account.user_id,
     purpose: "login_mapping",
-    source_ref: SEED_SOURCE_REF,
+    source_ref: HRX_MEMBER_ROSTER_SOURCE_REF,
   }));
 }
 
@@ -162,6 +184,52 @@ function seedEmployeeUserLinks(tenantId) {
   return tenantId === HRX_API_COMPATIBILITY_TENANT_ID
     ? compatibilityEmployeeUserLinks(tenantId)
     : registeredEmployeeUserLinks(tenantId);
+}
+
+function memberRosterForEmployee(employee) {
+  return (
+    MEMBER_ROSTER_BY_EMPLOYEE_ID.get(employee.employee_id) ??
+    MEMBER_ROSTER_BY_DISPLAY_NAME.get(employee.display_name) ??
+    null
+  );
+}
+
+function departmentForDirectoryRow(employee, profile, member) {
+  if (member?.department) return member.department;
+  const title = String(profile?.title ?? "");
+  const orgUnitId = String(profile?.org_unit_id ?? "");
+  if (title.includes("변호사") || orgUnitId.includes("attorneys")) return "법무";
+  if (orgUnitId.includes("firm_operations")) return "운영";
+  if (orgUnitId.includes("firm_leadership")) return "경영";
+  if (orgUnitId.includes("system_admins") || orgUnitId.includes("matter_vault_admins")) return "관리";
+  return "Matter Vault";
+}
+
+function employeeRosterReadFields(employee, profile) {
+  const member = memberRosterForEmployee(employee);
+  const department = departmentForDirectoryRow(employee, profile, member);
+  return {
+    title: profile?.title,
+    employment_type: profile?.employment_type,
+    affiliation: member?.affiliation ?? "AMIC Law",
+    department,
+    organization_group: member?.organization_group ?? department,
+    country: member?.country ?? "대한민국",
+    source_ref: member?.source_ref ?? employee.source_ref,
+  };
+}
+
+function employeeDirectoryRows(repository, tenantId) {
+  const profilesByEmployeeId = new Map(
+    repository.listEmploymentProfiles({ tenant_id: tenantId }).map((profile) => [profile.employee_id, profile]),
+  );
+  return repository.listEmployees({ tenant_id: tenantId }).map((employee) => {
+    const profile = profilesByEmployeeId.get(employee.employee_id);
+    return {
+      ...employee,
+      ...employeeRosterReadFields(employee, profile),
+    };
+  });
 }
 
 function seedEmployeeId(tenantId, index) {
@@ -840,7 +908,7 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
     if (pathname === "/api/hrx/employees" && method === "GET") {
       const guarded = employeeGuardResponse({ permissionContext, actorContext });
       if (guarded) return guarded;
-      return response(200, { outcome: "ok", employees: context.repository.listEmployees({ tenant_id: tenantId }) });
+      return response(200, { outcome: "ok", employees: employeeDirectoryRows(context.repository, tenantId) });
     }
 
     if (pathname === "/api/hrx/employee-user-links" && method === "GET") {
@@ -1001,7 +1069,10 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       const [employmentProfile] = context.repository.listEmploymentProfiles({ tenant_id: tenantId, employee_id: employeeId });
       return response(200, {
         outcome: "ok",
-        employee,
+        employee: {
+          ...employee,
+          ...employeeRosterReadFields(employee, employmentProfile),
+        },
         employment_profile: employmentProfile ?? null,
         masked_compensation_ref: null,
       });

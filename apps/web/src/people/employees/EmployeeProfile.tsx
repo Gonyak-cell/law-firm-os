@@ -5,13 +5,16 @@ import { Panel, Property } from "../../components/primitives.jsx";
 import { fetchHrxEmployeeProfile } from "../hrxApiClient.ts";
 
 function roleLabel(value) {
-  const normalized = String(value ?? "").toLowerCase();
+  const text = String(value ?? "").trim();
+  if (!text) return "미등록";
+  if (/[가-힣]/.test(text)) return text;
+  const normalized = text.toLowerCase();
   if (normalized.includes("partner")) return "파트너";
   if (normalized.includes("associate")) return "어소시에이트";
   if (normalized.includes("paralegal")) return "실무 지원";
   if (normalized.includes("admin")) return "관리";
   if (normalized.includes("hr")) return "인사 담당";
-  return value ? "담당자" : "미등록";
+  return "담당자";
 }
 
 function employmentTypeLabel(value) {
@@ -21,6 +24,11 @@ function employmentTypeLabel(value) {
   if (normalized.includes("contract")) return "계약직";
   if (normalized.includes("intern")) return "인턴";
   return value ? "등록됨" : "권한 필요";
+}
+
+function displayValue(value) {
+  const text = String(value ?? "").trim();
+  return text || "확인 필요";
 }
 
 export function EmployeeProfile({ employeeId, refreshKey }) {
@@ -53,10 +61,12 @@ export function EmployeeProfile({ employeeId, refreshKey }) {
       <div className="property-grid people-profile-grid">
         <Property label="구성원" value={employee.display_name} />
         <Property label="상태" value={employee.status === "active" ? "재직" : employee.status === "on_leave" ? "휴가" : "확인 필요"} />
-        <Property label="역할" value={roleLabel(profile.title ?? employee.role)} />
+        <Property label="역할" value={roleLabel(profile.title ?? employee.title ?? employee.role)} />
         <Property label="고용 형태" value={employmentTypeLabel(profile.employment_type)} />
+        <Property label="소속" value={displayValue(employee.affiliation)} />
+        <Property label="부서" value={displayValue(employee.department)} />
+        <Property label="조직" value={displayValue(employee.organization_group)} />
         <Property label="보상 정보" value="권한 필요" />
-        <Property label="소속" value="현재 조직" />
       </div>
     );
   }
