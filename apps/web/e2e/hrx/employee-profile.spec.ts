@@ -17,6 +17,10 @@ test("Employee profile is scoped and keeps compensation masked by default", asyn
   assert.match(profile, /fetchHrxEmployeeProfile/);
   assert.match(api, /\/api\/hrx\/employees\/\$\{encodeURIComponent\(employeeId\)\}/);
   assert.match(profile, /권한이 없는 정보는 숨깁니다/);
+  assert.match(profile, /label="소속" value=\{displayValue\(employee\.affiliation\)\}/);
+  assert.match(profile, /label="부서" value=\{displayValue\(employee\.department\)\}/);
+  assert.match(profile, /label="조직" value=\{displayValue\(employee\.organization_group\)\}/);
   assert.match(profile, /보상 정보" value="권한 필요"/);
+  assert.doesNotMatch(profile, /현재 조직/);
   assert.doesNotMatch(profile, /salary|base_pay|bonus_amount/);
 });
