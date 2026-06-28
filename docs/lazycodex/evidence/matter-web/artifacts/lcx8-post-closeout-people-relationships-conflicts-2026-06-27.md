@@ -1,0 +1,17 @@
+# LCX8-ACTION-0166..0181 People Relationships/Conflicts Status
+
+Status: PASS
+
+Batch: LCX8-ALL-10
+
+Resolved rows: LCX8-ACTION-0166, LCX8-ACTION-0167, LCX8-ACTION-0168, LCX8-ACTION-0169, LCX8-ACTION-0170, LCX8-ACTION-0171, LCX8-ACTION-0172, LCX8-ACTION-0173, LCX8-ACTION-0174, LCX8-ACTION-0175, LCX8-ACTION-0176, LCX8-ACTION-0177, LCX8-ACTION-0178, LCX8-ACTION-0179, LCX8-ACTION-0180, LCX8-ACTION-0181
+
+Proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0166-0181-people-relationships-conflicts-proof.json
+
+Summary: Post-closeout LCX8-ACTION-0166..0181 verification: People relationships/conflicts Legal People search/filter/row proof PASS (relationships and conflicts modes each observed search query API read, 6/6 type tabs with expected type_id, row selection detail/relationships/ethics reads, denied/review People guard routes with no protected legal-people requests after refresh, direct allow/denied/review API probes PASS for search/filter/detail/relationships/ethics with empty guarded payloads); node --test apps/api/test/hrx/legal-people-api.test.js apps/api/test/hrx/route-authz.test.js apps/api/test/hrx-runtime-api.test.js PASS 31/31; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS. Status moved BLOCKED -> PASS for 16 rows.
+
+Counts after: PASS 61, GUARDED 20, UI_ONLY 128, DESCRIPTOR_ONLY 2, BLOCKED 78, FAIL 35, UNKNOWN 0
+
+Non-claims:
+- This is read-only Legal People relationships/conflicts search/filter/selection proof; no HRX write persistence is claimed.
+- This proof does not claim final legal conflict decisions, external reviewer receipts, production go-live, or real customer data.

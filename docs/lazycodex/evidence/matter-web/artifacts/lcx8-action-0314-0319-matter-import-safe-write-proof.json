@@ -1,0 +1,1248 @@
+{
+  "schema_version": "law-firm-os.lcx8.action-proof.v1",
+  "generated_at": "2026-06-28T03:49:04.406Z",
+  "batch": "LCX8-ALL-13",
+  "slice": "matter_import_safe_write_proof",
+  "url": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-import",
+  "rows": [
+    "LCX8-ACTION-0314",
+    "LCX8-ACTION-0315",
+    "LCX8-ACTION-0316",
+    "LCX8-ACTION-0317",
+    "LCX8-ACTION-0319"
+  ],
+  "status": "PASS",
+  "summary": "LCX8-ACTION-0314/0315/0316/0317/0319 Matter import lifecycle browser/API proof: job creation, source manifest, allowlisted mapping, dry-run preview, and rollback/error-report all operated through current UI/API with audit events, read-back, raw-row redaction, denied/review fail-closed probes, and no production import execution claim.",
+  "screenshots": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0314-0319-matter-import-start.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0314-0319-matter-import-after-actions.png"
+  ],
+  "action_results": [
+    {
+      "row_id": "LCX8-ACTION-0314",
+      "label": "작업 생성",
+      "request_path": "/api/import-jobs",
+      "status": 201,
+      "response": {
+        "request_id": "req_6485c1c0-3339-4bfa-8a51-fdf78aa65bb9",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "created",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_matter",
+          "target_object": "matter_runtime_patch",
+          "target_label": "Matter patch",
+          "source_type": "csv_manifest",
+          "status": "created",
+          "created_at": "2026-06-28T03:49:04.210Z",
+          "updated_at": "2026-06-28T03:49:04.210Z",
+          "source_file_staged": false,
+          "mapping_saved": false,
+          "dry_run_status": "not_started",
+          "execution_state": "not_started",
+          "rollback_state": "not_started",
+          "safe_counts_only": true,
+          "raw_file_bytes_included": false,
+          "raw_rows_included": false,
+          "direct_personal_contact_identifier_included": false,
+          "storage_pointer_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "import_audit_323cd373-bf07-450d-a52e-7a960ceb57c3",
+          "action": "import.job.created",
+          "object_type": "ClientMatterImportJob",
+          "object_id": "import_job_ui_sf_b_w05_matter",
+          "actor_ref_included": false,
+          "raw_values_included": false
+        },
+        "state_idempotent": true,
+        "idempotent_replay": false
+      },
+      "follow_up": null,
+      "read_back_job": {
+        "job_id": "import_job_ui_sf_b_w05_matter",
+        "target_object": "matter_runtime_patch",
+        "target_label": "Matter patch",
+        "source_type": "csv_manifest",
+        "status": "created",
+        "created_at": "2026-06-28T03:49:04.210Z",
+        "updated_at": "2026-06-28T03:49:04.210Z",
+        "source_file_staged": false,
+        "mapping_saved": false,
+        "dry_run_status": "not_started",
+        "execution_state": "not_started",
+        "rollback_state": "not_started",
+        "safe_counts_only": true,
+        "raw_file_bytes_included": false,
+        "raw_rows_included": false,
+        "direct_personal_contact_identifier_included": false,
+        "storage_pointer_included": false,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "row_id": "LCX8-ACTION-0315",
+      "label": "원본 준비",
+      "request_path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/source-files",
+      "status": 201,
+      "response": {
+        "request_id": "req_26c13614-9491-456b-baf3-68d5153bf329",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "staged",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_matter",
+          "source_id": "import_source:import_job_ui_sf_b_w05_matter",
+          "file_name": "client-matter-import.csv",
+          "mime_type": "text/csv",
+          "row_count_bucket": "11-100",
+          "column_count": 2,
+          "columns": [
+            {
+              "source_field": "matter_title",
+              "label": "Matter 제목",
+              "ordinal": 1,
+              "sample_value_state": "redacted"
+            },
+            {
+              "source_field": "matter_risk",
+              "label": "위험도",
+              "ordinal": 2,
+              "sample_value_state": "redacted"
+            }
+          ],
+          "source_profile_hash": "90a9794e5ff46bfa",
+          "source_manifest_ref": "source_manifest:import_job_ui_sf_b_w05_matter:90a9794e5ff46bfa",
+          "raw_file_bytes_included": false,
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "storage_pointer_included": false
+        },
+        "preview": {
+          "job_id": "import_job_ui_sf_b_w05_matter",
+          "target_object": "matter_runtime_patch",
+          "row_count_bucket": "11-100",
+          "sampled_row_count": 3,
+          "sample_rows": [
+            {
+              "row_label": "Row 1",
+              "cells": [
+                {
+                  "source_field": "matter_title",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "matter_risk",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 2",
+              "cells": [
+                {
+                  "source_field": "matter_title",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "matter_risk",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 3",
+              "cells": [
+                {
+                  "source_field": "matter_title",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "matter_risk",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            }
+          ],
+          "validation_summary": {
+            "mapped_field_count": 0,
+            "missing_required_fields": [
+              "title"
+            ],
+            "issue_count": 1,
+            "duplicate_policy": "review_required",
+            "count_leak_prevented": true
+          },
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "storage_pointer_included": false
+        },
+        "audit_event": {
+          "event_id": "import_audit_5d5e3e0c-64f8-4184-882b-b497d37adb1b",
+          "action": "import.source.staged",
+          "object_type": "ClientMatterImportJob",
+          "object_id": "import_job_ui_sf_b_w05_matter",
+          "actor_ref_included": false,
+          "raw_values_included": false
+        },
+        "state_idempotent": true,
+        "idempotent_replay": false
+      },
+      "follow_up": null,
+      "read_back_job": {
+        "job_id": "import_job_ui_sf_b_w05_matter",
+        "target_object": "matter_runtime_patch",
+        "target_label": "Matter patch",
+        "source_type": "csv_manifest",
+        "status": "source_staged",
+        "created_at": "2026-06-28T03:49:04.210Z",
+        "updated_at": "2026-06-28T03:49:04.257Z",
+        "source_file_staged": true,
+        "mapping_saved": false,
+        "dry_run_status": "not_started",
+        "execution_state": "not_started",
+        "rollback_state": "not_started",
+        "safe_counts_only": true,
+        "raw_file_bytes_included": false,
+        "raw_rows_included": false,
+        "direct_personal_contact_identifier_included": false,
+        "storage_pointer_included": false,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "row_id": "LCX8-ACTION-0316",
+      "label": "매핑 저장",
+      "request_path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/field-mappings",
+      "status": 200,
+      "response": {
+        "request_id": "req_92ff588c-32be-40f4-9e07-24d4895bc64f",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "mapped",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_matter",
+          "mapping_id": "import_mapping:import_job_ui_sf_b_w05_matter",
+          "target_object": "matter_runtime_patch",
+          "field_mappings": [
+            {
+              "source_field": "matter_title",
+              "target_field": "title",
+              "transform": "copy",
+              "validation_state": "mapped",
+              "raw_value_included": false
+            },
+            {
+              "source_field": "matter_risk",
+              "target_field": "risk_level",
+              "transform": "copy",
+              "validation_state": "mapped",
+              "raw_value_included": false
+            }
+          ],
+          "required_fields_satisfied": true,
+          "blocked_target_rejected": true,
+          "raw_values_included": false
+        },
+        "preview": {
+          "job_id": "import_job_ui_sf_b_w05_matter",
+          "target_object": "matter_runtime_patch",
+          "row_count_bucket": "11-100",
+          "sampled_row_count": 3,
+          "sample_rows": [
+            {
+              "row_label": "Row 1",
+              "cells": [
+                {
+                  "source_field": "matter_title",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "matter_risk",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 2",
+              "cells": [
+                {
+                  "source_field": "matter_title",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "matter_risk",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 3",
+              "cells": [
+                {
+                  "source_field": "matter_title",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "matter_risk",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            }
+          ],
+          "validation_summary": {
+            "mapped_field_count": 2,
+            "missing_required_fields": [],
+            "issue_count": 0,
+            "duplicate_policy": "review_required",
+            "count_leak_prevented": true
+          },
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "storage_pointer_included": false
+        },
+        "audit_event": {
+          "event_id": "import_audit_1bd3cdf2-3b82-4e37-a41a-7c110ff50d7b",
+          "action": "import.mapping.saved",
+          "object_type": "ClientMatterImportJob",
+          "object_id": "import_job_ui_sf_b_w05_matter",
+          "actor_ref_included": false,
+          "raw_values_included": false
+        },
+        "state_idempotent": true,
+        "idempotent_replay": false
+      },
+      "follow_up": null,
+      "read_back_job": {
+        "job_id": "import_job_ui_sf_b_w05_matter",
+        "target_object": "matter_runtime_patch",
+        "target_label": "Matter patch",
+        "source_type": "csv_manifest",
+        "status": "mapping_saved",
+        "created_at": "2026-06-28T03:49:04.210Z",
+        "updated_at": "2026-06-28T03:49:04.289Z",
+        "source_file_staged": true,
+        "mapping_saved": true,
+        "dry_run_status": "not_started",
+        "execution_state": "not_started",
+        "rollback_state": "not_started",
+        "safe_counts_only": true,
+        "raw_file_bytes_included": false,
+        "raw_rows_included": false,
+        "direct_personal_contact_identifier_included": false,
+        "storage_pointer_included": false,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "row_id": "LCX8-ACTION-0317",
+      "label": "검증 실행",
+      "request_path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/dry-run",
+      "status": 200,
+      "response": {
+        "request_id": "req_82135366-3ecb-4784-a39a-9b779335b091",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "ui_state": "ready_for_owner_approval",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_matter",
+          "dry_run_id": "import_dry_run:import_job_ui_sf_b_w05_matter",
+          "outcome": "passed",
+          "ui_state": "ready_for_owner_approval",
+          "mutation_count": 0,
+          "planned_create_count": 12,
+          "planned_update_count": 0,
+          "warning_count": 0,
+          "rollback_plan_ref": "rollback_plan:import_job_ui_sf_b_w05_matter:90bf445d1cc56a9f",
+          "duplicate_policy": "review_required",
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "import_audit_a428c95b-ee4e-4aef-ac58-6b75d4789010",
+          "action": "import.dry_run.completed",
+          "object_type": "ClientMatterImportJob",
+          "object_id": "import_job_ui_sf_b_w05_matter",
+          "actor_ref_included": false,
+          "raw_values_included": false
+        },
+        "state_idempotent": true,
+        "idempotent_replay": false
+      },
+      "follow_up": {
+        "request_id": "req_5cdf4fc0-8e1d-47c8-bb58-8f6184448575",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_matter",
+          "target_object": "matter_runtime_patch",
+          "row_count_bucket": "11-100",
+          "sampled_row_count": 3,
+          "sample_rows": [
+            {
+              "row_label": "Row 1",
+              "cells": [
+                {
+                  "source_field": "matter_title",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "matter_risk",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 2",
+              "cells": [
+                {
+                  "source_field": "matter_title",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "matter_risk",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 3",
+              "cells": [
+                {
+                  "source_field": "matter_title",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "matter_risk",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            }
+          ],
+          "validation_summary": {
+            "mapped_field_count": 2,
+            "missing_required_fields": [],
+            "issue_count": 0,
+            "duplicate_policy": "review_required",
+            "count_leak_prevented": true
+          },
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "storage_pointer_included": false
+        }
+      },
+      "read_back_job": {
+        "job_id": "import_job_ui_sf_b_w05_matter",
+        "target_object": "matter_runtime_patch",
+        "target_label": "Matter patch",
+        "source_type": "csv_manifest",
+        "status": "dry_run_passed",
+        "created_at": "2026-06-28T03:49:04.210Z",
+        "updated_at": "2026-06-28T03:49:04.325Z",
+        "source_file_staged": true,
+        "mapping_saved": true,
+        "dry_run_status": "passed",
+        "execution_state": "not_started",
+        "rollback_state": "not_started",
+        "safe_counts_only": true,
+        "raw_file_bytes_included": false,
+        "raw_rows_included": false,
+        "direct_personal_contact_identifier_included": false,
+        "storage_pointer_included": false,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "row_id": "LCX8-ACTION-0319",
+      "label": "확인",
+      "request_path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/rollback",
+      "status": 200,
+      "response": {
+        "request_id": "req_0668ca61-fdbe-4eaf-960b-c944f0e08cc7",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "blocked",
+        "ui_state": "blocked",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_matter",
+          "rollback_id": "import_rollback:import_job_ui_sf_b_w05_matter",
+          "outcome": "blocked",
+          "ui_state": "blocked",
+          "rollback_state": "execution_receipt_required",
+          "target_records_reverted": 0,
+          "compensation_receipt_required": false,
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "import_audit_f34ddd77-5bea-4b69-8fac-5fe121908a92",
+          "action": "import.rollback.blocked",
+          "object_type": "ClientMatterImportJob",
+          "object_id": "import_job_ui_sf_b_w05_matter",
+          "actor_ref_included": false,
+          "raw_values_included": false
+        },
+        "state_idempotent": true,
+        "idempotent_replay": false
+      },
+      "follow_up": {
+        "request_id": "req_deac2a35-f8f8-42d1-a1b3-69382f06b566",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_matter",
+          "status": "rollback_blocked",
+          "items": [
+            {
+              "row_label": "Validation summary",
+              "issue_category": "no_blocking_errors",
+              "target_field": null,
+              "remediation_hint": "Dry-run can be reviewed by an owner before execution.",
+              "raw_row_included": false,
+              "raw_personal_identifier_included": false
+            }
+          ],
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "storage_pointer_included": false
+        },
+        "items": [
+          {
+            "row_label": "Validation summary",
+            "issue_category": "no_blocking_errors",
+            "target_field": null,
+            "remediation_hint": "Dry-run can be reviewed by an owner before execution.",
+            "raw_row_included": false,
+            "raw_personal_identifier_included": false
+          }
+        ]
+      },
+      "read_back_job": {
+        "job_id": "import_job_ui_sf_b_w05_matter",
+        "target_object": "matter_runtime_patch",
+        "target_label": "Matter patch",
+        "source_type": "csv_manifest",
+        "status": "rollback_blocked",
+        "created_at": "2026-06-28T03:49:04.210Z",
+        "updated_at": "2026-06-28T03:49:04.356Z",
+        "source_file_staged": true,
+        "mapping_saved": true,
+        "dry_run_status": "passed",
+        "execution_state": "not_started",
+        "rollback_state": "execution_receipt_required",
+        "safe_counts_only": true,
+        "raw_file_bytes_included": false,
+        "raw_rows_included": false,
+        "direct_personal_contact_identifier_included": false,
+        "storage_pointer_included": false,
+        "production_ready_claim": false
+      }
+    }
+  ],
+  "direct_api_probes": {
+    "deniedTargets": {
+      "status": 403,
+      "body": {
+        "request_id": "req_cbe90123-2f50-438b-b869-da1f97f0d528",
+        "outcome": "denied",
+        "items": [],
+        "safe_error_codes": [
+          "IMPORT_DATA_PERMISSION_REQUIRED"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "denied",
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe_denied"
+      }
+    },
+    "reviewTargets": {
+      "status": 200,
+      "body": {
+        "request_id": "req_46aca7ca-8770-42ac-b5dc-14d73982d896",
+        "outcome": "review_required",
+        "items": [],
+        "safe_error_codes": [
+          "IMPORT_DATA_REVIEW_REQUIRED"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "review_required",
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe_review"
+      }
+    },
+    "blockedTarget": {
+      "status": 400,
+      "body": {
+        "request_id": "req_38d9b60a-92f7-49e7-8a47-ff6c419ff5c6",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "IMPORT_DATA_VALIDATION_ERROR"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "blocked",
+        "message": "blocked import target",
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe"
+      }
+    }
+  },
+  "network": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-targets?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-targets",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/import-jobs",
+      "path": "/api/import-jobs",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/import-jobs/import_job_ui_sf_b_w05_matter/source-files",
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/source-files",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/import-jobs/import_job_ui_sf_b_w05_matter/field-mappings",
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/field-mappings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/import-jobs/import_job_ui_sf_b_w05_matter/dry-run",
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/dry-run",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs/import_job_ui_sf_b_w05_matter/preview?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/preview",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/import-jobs/import_job_ui_sf_b_w05_matter/rollback",
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/rollback",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs/import_job_ui_sf_b_w05_matter/error-report?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/error-report",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs",
+      "status": 200
+    }
+  ],
+  "network_summary": {
+    "responses": 14,
+    "api_4xx": 0,
+    "api_5xx": 0,
+    "direct_denied_review_probes_recorded_separately": true
+  },
+  "console_messages": [],
+  "assertions": [
+    {
+      "name": "matter_import_wizard_visible_after_load",
+      "url": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-import",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0314_http_success",
+      "observed_status": 201,
+      "path": "/api/import-jobs",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0314_expected_outcome",
+      "outcome": "created",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0314_no_production_ready_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0314_audit_event_action",
+      "audit_event": {
+        "event_id": "import_audit_323cd373-bf07-450d-a52e-7a960ceb57c3",
+        "action": "import.job.created",
+        "object_type": "ClientMatterImportJob",
+        "object_id": "import_job_ui_sf_b_w05_matter",
+        "actor_ref_included": false,
+        "raw_values_included": false
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0314_audit_safe_actor_ref",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0314_matter_target_object",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0314_raw_rows_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0314_dom_result_visible",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0314_job_list_read_back_status",
+      "observed_status": 200,
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0314_job_list_contains_fixture",
+      "job_status": "created",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0314_read_back_no_production_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0315_http_success",
+      "observed_status": 201,
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/source-files",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0315_expected_outcome",
+      "outcome": "staged",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0315_no_production_ready_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0315_audit_event_action",
+      "audit_event": {
+        "event_id": "import_audit_5d5e3e0c-64f8-4184-882b-b497d37adb1b",
+        "action": "import.source.staged",
+        "object_type": "ClientMatterImportJob",
+        "object_id": "import_job_ui_sf_b_w05_matter",
+        "actor_ref_included": false,
+        "raw_values_included": false
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0315_audit_safe_actor_ref",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0315_source_raw_rows_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0315_source_storage_pointer_hidden",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0315_preview_raw_rows_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0315_dom_result_visible",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0315_job_list_read_back_status",
+      "observed_status": 200,
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0315_job_list_contains_fixture",
+      "job_status": "source_staged",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0315_read_back_no_production_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0316_http_success",
+      "observed_status": 200,
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/field-mappings",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0316_expected_outcome",
+      "outcome": "mapped",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0316_no_production_ready_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0316_audit_event_action",
+      "audit_event": {
+        "event_id": "import_audit_1bd3cdf2-3b82-4e37-a41a-7c110ff50d7b",
+        "action": "import.mapping.saved",
+        "object_type": "ClientMatterImportJob",
+        "object_id": "import_job_ui_sf_b_w05_matter",
+        "actor_ref_included": false,
+        "raw_values_included": false
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0316_audit_safe_actor_ref",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0316_mapping_matter_target_object",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0316_required_fields_satisfied",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0316_raw_values_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0316_dom_result_visible",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0316_job_list_read_back_status",
+      "observed_status": 200,
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0316_job_list_contains_fixture",
+      "job_status": "mapping_saved",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0316_read_back_no_production_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0317_http_success",
+      "observed_status": 200,
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/dry-run",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0317_expected_outcome",
+      "outcome": "passed",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0317_no_production_ready_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0317_audit_event_action",
+      "audit_event": {
+        "event_id": "import_audit_a428c95b-ee4e-4aef-ac58-6b75d4789010",
+        "action": "import.dry_run.completed",
+        "object_type": "ClientMatterImportJob",
+        "object_id": "import_job_ui_sf_b_w05_matter",
+        "actor_ref_included": false,
+        "raw_values_included": false
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0317_audit_safe_actor_ref",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0317_dry_run_zero_mutation",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0317_dry_run_ready_for_owner_approval",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0317_dry_run_raw_identifiers_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0317_preview_read_back_response",
+      "observed_status": 200,
+      "body": {
+        "request_id": "req_5cdf4fc0-8e1d-47c8-bb58-8f6184448575",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_matter",
+          "target_object": "matter_runtime_patch",
+          "row_count_bucket": "11-100",
+          "sampled_row_count": 3,
+          "sample_rows": [
+            {
+              "row_label": "Row 1",
+              "cells": [
+                {
+                  "source_field": "matter_title",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "matter_risk",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 2",
+              "cells": [
+                {
+                  "source_field": "matter_title",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "matter_risk",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 3",
+              "cells": [
+                {
+                  "source_field": "matter_title",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "matter_risk",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            }
+          ],
+          "validation_summary": {
+            "mapped_field_count": 2,
+            "missing_required_fields": [],
+            "issue_count": 0,
+            "duplicate_policy": "review_required",
+            "count_leak_prevented": true
+          },
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "storage_pointer_included": false
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0317_preview_read_back_raw_rows_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0317_dom_result_visible",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0317_safe_preview_visible",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0317_job_list_read_back_status",
+      "observed_status": 200,
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0317_job_list_contains_fixture",
+      "job_status": "dry_run_passed",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0317_read_back_no_production_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0319_http_success",
+      "observed_status": 200,
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/rollback",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0319_expected_outcome",
+      "outcome": "blocked",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0319_no_production_ready_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0319_audit_event_action",
+      "audit_event": {
+        "event_id": "import_audit_f34ddd77-5bea-4b69-8fac-5fe121908a92",
+        "action": "import.rollback.blocked",
+        "object_type": "ClientMatterImportJob",
+        "object_id": "import_job_ui_sf_b_w05_matter",
+        "actor_ref_included": false,
+        "raw_values_included": false
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0319_audit_safe_actor_ref",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0319_rollback_zero_reverted",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0319_rollback_raw_rows_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0319_error_report_read_back_response",
+      "observed_status": 200,
+      "body": {
+        "request_id": "req_deac2a35-f8f8-42d1-a1b3-69382f06b566",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_matter",
+          "status": "rollback_blocked",
+          "items": [
+            {
+              "row_label": "Validation summary",
+              "issue_category": "no_blocking_errors",
+              "target_field": null,
+              "remediation_hint": "Dry-run can be reviewed by an owner before execution.",
+              "raw_row_included": false,
+              "raw_personal_identifier_included": false
+            }
+          ],
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "storage_pointer_included": false
+        },
+        "items": [
+          {
+            "row_label": "Validation summary",
+            "issue_category": "no_blocking_errors",
+            "target_field": null,
+            "remediation_hint": "Dry-run can be reviewed by an owner before execution.",
+            "raw_row_included": false,
+            "raw_personal_identifier_included": false
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0319_error_report_raw_row_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0319_dom_result_visible",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0319_safe_error_report_visible",
+      "errorReportText": "항목\t상태\t조치\nValidation summary\t차단 없음\t담당자 검토 후 실행 요청 가능",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0319_job_list_read_back_status",
+      "observed_status": 200,
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0319_job_list_contains_fixture",
+      "job_status": "rollback_blocked",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0319_read_back_no_production_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "direct_denied_import_targets_403",
+      "observed_status": 403,
+      "body": {
+        "request_id": "req_cbe90123-2f50-438b-b869-da1f97f0d528",
+        "outcome": "denied",
+        "items": [],
+        "safe_error_codes": [
+          "IMPORT_DATA_PERMISSION_REQUIRED"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "denied",
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe_denied"
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "direct_denied_count_leak_prevented",
+      "status": "PASS"
+    },
+    {
+      "name": "direct_review_import_targets_200",
+      "observed_status": 200,
+      "body": {
+        "request_id": "req_46aca7ca-8770-42ac-b5dc-14d73982d896",
+        "outcome": "review_required",
+        "items": [],
+        "safe_error_codes": [
+          "IMPORT_DATA_REVIEW_REQUIRED"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "review_required",
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe_review"
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "direct_review_ui_state_review_required",
+      "status": "PASS"
+    },
+    {
+      "name": "blocked_target_rejected_status",
+      "observed_status": 400,
+      "body": {
+        "request_id": "req_38d9b60a-92f7-49e7-8a47-ff6c419ff5c6",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "IMPORT_DATA_VALIDATION_ERROR"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "blocked",
+        "message": "blocked import target",
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe"
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "blocked_target_ui_state_blocked",
+      "status": "PASS"
+    },
+    {
+      "name": "browser_network_no_api_4xx",
+      "api4xx": [],
+      "status": "PASS"
+    },
+    {
+      "name": "browser_network_no_api_5xx",
+      "api5xx": [],
+      "status": "PASS"
+    },
+    {
+      "name": "browser_console_no_errors",
+      "consoleMessages": [],
+      "status": "PASS"
+    }
+  ],
+  "assertion_summary": {
+    "total": 74,
+    "pass": 74,
+    "fail": 0
+  },
+  "classification": {
+    "LCX8-ACTION-0314": {
+      "before": "BLOCKED",
+      "after": "PASS",
+      "trace_depth": "api_write"
+    },
+    "LCX8-ACTION-0315": {
+      "before": "BLOCKED",
+      "after": "PASS",
+      "trace_depth": "api_write"
+    },
+    "LCX8-ACTION-0316": {
+      "before": "BLOCKED",
+      "after": "PASS",
+      "trace_depth": "api_write"
+    },
+    "LCX8-ACTION-0317": {
+      "before": "BLOCKED",
+      "after": "PASS",
+      "trace_depth": "api_write"
+    },
+    "LCX8-ACTION-0319": {
+      "before": "BLOCKED",
+      "after": "PASS",
+      "trace_depth": "api_write"
+    }
+  }
+}

@@ -186,6 +186,13 @@ test("SF-B-W06R assignment and object manager routes expose owner-blocked effect
     assert.equal(patchedField.body.outcome, "owner_blocked");
     assert.equal(patchedField.body.physical_schema_mutated, false);
     assert.equal(patchedField.body.item.restricted_fields_exposed, false);
+
+    const readBackFields = await json(baseUrl, `/api/admin/object-manager/objects/Matter/fields?${query("fields_readback")}`);
+    const riskLevel = readBackFields.body.items.find((item) => item.field_name === "risk_level");
+    assert.equal(readBackFields.status, 200);
+    assert.equal(riskLevel.visibility, "review_required");
+    assert.equal(riskLevel.ui_state, "owner_blocked");
+    assert.equal(riskLevel.physical_schema_mutated, false);
   });
 });
 

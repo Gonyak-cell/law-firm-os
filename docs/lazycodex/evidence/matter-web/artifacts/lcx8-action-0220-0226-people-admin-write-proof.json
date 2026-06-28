@@ -1,0 +1,2559 @@
+{
+  "proof_id": "lcx8-action-0220-0226-people-admin-write-proof",
+  "generated_at": "2026-06-28T02:34:45.994Z",
+  "status": "PASS",
+  "target_ids": [
+    "LCX8-ACTION-0220",
+    "LCX8-ACTION-0221",
+    "LCX8-ACTION-0222",
+    "LCX8-ACTION-0223",
+    "LCX8-ACTION-0224",
+    "LCX8-ACTION-0225",
+    "LCX8-ACTION-0226"
+  ],
+  "route": "http://127.0.0.1:5173/?locale=ko&view=people&data=live&ctx=allow#people-admin",
+  "api_base": "http://127.0.0.1:4180",
+  "source_trace": {
+    "component": "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+    "api_client": "apps/web/src/data/apiClient.js",
+    "api_handler": "apps/api/src/admin-permission-runtime-context.js",
+    "service": "packages/admin/src/permission-admin-service.js",
+    "path_summary": "PermissionAdminPanel.runAction -> apiClient writeAdminPermissionRuntime -> admin permission API routes -> createPermissionAdminSetupService owner/provider gated writes"
+  },
+  "current_product_copy_update": {
+    "LCX8-ACTION-0224": {
+      "ledger_label_before": "정책 변경",
+      "observed_button_label": "표시 방식 수정",
+      "selector": "[data-sf-b-w06-field-policy-owner-blocked-action=\"true\"]"
+    }
+  },
+  "browser_proof": [
+    {
+      "id": "LCX8-ACTION-0220",
+      "label": "세트 요청",
+      "button": "[data-sf-b-w06-permission-set-create-action=\"true\"]",
+      "result": "[data-sf-b-w06-permission-set-create-result=\"true\"]",
+      "expectedText": "승인 대기",
+      "routeIncludes": "/api/admin/permission-sets",
+      "method": "POST",
+      "visibleText": "세트 요청",
+      "resultText": "세트 요청승인 대기",
+      "observedResponses": [
+        {
+          "status": 201,
+          "url": "http://127.0.0.1:5173/api/admin/permission-sets"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+        }
+      ],
+      "observedRequestCount": 1
+    },
+    {
+      "id": "LCX8-ACTION-0221",
+      "label": "변경 요청",
+      "button": "[data-sf-b-w06-permission-set-patch-action=\"true\"]",
+      "result": "[data-sf-b-w06-permission-set-patch-result=\"true\"]",
+      "expectedText": "승인 대기",
+      "routeIncludes": "/api/admin/permission-sets/",
+      "method": "PATCH",
+      "visibleText": "변경 요청",
+      "resultText": "변경 요청승인 대기",
+      "observedResponses": [
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:5173/api/admin/permission-sets/permission_set_client_matter_reviewer"
+        }
+      ],
+      "observedRequestCount": 1
+    },
+    {
+      "id": "LCX8-ACTION-0222",
+      "label": "배정 요청",
+      "button": "[data-sf-b-w06-assignment-owner-blocked-action=\"true\"]",
+      "result": "[data-sf-b-w06-assignment-owner-blocked-result=\"true\"]",
+      "expectedText": "승인 대기",
+      "routeIncludes": "/api/admin/permission-assignments",
+      "method": "POST",
+      "visibleText": "배정 요청",
+      "resultText": "배정 요청승인 대기",
+      "observedResponses": [
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:5173/api/admin/permission-assignments"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+        }
+      ],
+      "observedRequestCount": 1
+    },
+    {
+      "id": "LCX8-ACTION-0223",
+      "label": "회수 요청",
+      "button": "[data-sf-b-w06-revoke-owner-blocked-action=\"true\"]",
+      "result": "[data-sf-b-w06-revoke-owner-blocked-result=\"true\"]",
+      "expectedText": "승인 대기",
+      "routeIncludes": "/api/admin/permission-assignments/",
+      "method": "DELETE",
+      "visibleText": "회수 요청",
+      "resultText": "회수 요청승인 대기",
+      "observedResponses": [
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:5173/api/admin/permission-assignments/permission_assignment_reviewer_seed"
+        }
+      ],
+      "observedRequestCount": 1
+    },
+    {
+      "id": "LCX8-ACTION-0224",
+      "label": "표시 방식 수정",
+      "ledgerLabelBefore": "정책 변경",
+      "button": "[data-sf-b-w06-field-policy-owner-blocked-action=\"true\"]",
+      "result": "[data-sf-b-w06-field-policy-owner-blocked-result=\"true\"]",
+      "expectedText": "승인 대기",
+      "routeIncludes": "/api/admin/object-manager/objects/",
+      "method": "PATCH",
+      "visibleText": "표시 방식 수정",
+      "resultText": "커스텀 항목승인 대기",
+      "observedResponses": [
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields/status"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+        }
+      ],
+      "observedRequestCount": 1
+    },
+    {
+      "id": "LCX8-ACTION-0225",
+      "label": "연결 요청",
+      "button": "[data-sf-b-w06-connected-app-provider-blocked-action=\"true\"]",
+      "result": "[data-sf-b-w06-connected-app-provider-blocked-result=\"true\"]",
+      "expectedText": "외부 확인 대기",
+      "routeIncludes": "/api/admin/connected-apps",
+      "method": "POST",
+      "visibleText": "연결 요청",
+      "resultText": "연결 상태외부 확인 대기",
+      "observedResponses": [
+        {
+          "status": 201,
+          "url": "http://127.0.0.1:5173/api/admin/connected-apps"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+        }
+      ],
+      "observedRequestCount": 1
+    },
+    {
+      "id": "LCX8-ACTION-0226",
+      "label": "중지 요청",
+      "buttonText": "중지 요청",
+      "result": "[data-sf-b-w06-connected-app-provider-blocked-result=\"true\"]",
+      "expectedText": "외부 확인 대기",
+      "routeIncludes": "/api/admin/connected-apps/",
+      "method": "POST",
+      "visibleText": "중지 요청",
+      "resultText": "연결 상태외부 확인 대기",
+      "observedResponses": [
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:5173/api/admin/connected-apps/connected_app_microsoft_graph/disable"
+        }
+      ],
+      "observedRequestCount": 1
+    }
+  ],
+  "browser_events": {
+    "console": [],
+    "pageErrors": [],
+    "requests": [
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "PATCH",
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets/permission_set_client_matter_reviewer"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "DELETE",
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments/permission_assignment_reviewer_seed"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "PATCH",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields/status"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps/connected_app_microsoft_graph/disable"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      }
+    ],
+    "responses": [
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 201,
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets/permission_set_client_matter_reviewer"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments/permission_assignment_reviewer_seed"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields/status"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 201,
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps/connected_app_microsoft_graph/disable"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+      }
+    ]
+  },
+  "direct_api_probes": [
+    {
+      "name": "0220 create permission set",
+      "pathname": "/api/admin/permission-sets",
+      "method": "POST",
+      "effect": "allow",
+      "status": 201,
+      "body": {
+        "request_id": "req_e98c271a-009a-42d3-a5e0-a50b2e6ef8dd",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_write",
+        "production_ready_claim": false,
+        "outcome": "owner_blocked",
+        "ui_state": "owner_blocked",
+        "item": {
+          "permission_set_id": "permission_set_lcx8_20260628_0220_0226",
+          "label": "LCX8 owner-reviewed permission set",
+          "description": "LCX8 safe fixture permission set",
+          "status": "owner_review_required",
+          "rule_count": 3,
+          "object_acl_count": 2,
+          "owner_approval_required": true,
+          "wildcard_actions_allowed": false,
+          "raw_policy_json_included": false,
+          "direct_principal_identifiers_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "admin_perm_audit_75a8d9b3-d0f0-4486-b9cc-7d68d967b00a",
+          "object_id": "permission_set_lcx8_20260628_0220_0226",
+          "action": "admin.permission_set.created",
+          "actor_ref_included": false,
+          "raw_policy_json_included": false,
+          "direct_principal_identifiers_included": false,
+          "oauth_client_secret_included": false,
+          "provider_tokens_included": false,
+          "production_ready_claim": false
+        }
+      }
+    },
+    {
+      "name": "0220 idempotent replay",
+      "pathname": "/api/admin/permission-sets",
+      "method": "POST",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_aeb834fa-ba9e-46a2-880f-86bfc71af5be",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_write",
+        "production_ready_claim": false,
+        "outcome": "idempotent_replay",
+        "ui_state": "owner_blocked",
+        "item": {
+          "permission_set_id": "permission_set_lcx8_20260628_0220_0226",
+          "label": "LCX8 owner-reviewed permission set",
+          "description": "LCX8 safe fixture permission set",
+          "status": "owner_review_required",
+          "rule_count": 3,
+          "object_acl_count": 2,
+          "owner_approval_required": true,
+          "wildcard_actions_allowed": false,
+          "raw_policy_json_included": false,
+          "direct_principal_identifiers_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "admin_perm_audit_75a8d9b3-d0f0-4486-b9cc-7d68d967b00a",
+          "object_id": "permission_set_lcx8_20260628_0220_0226",
+          "action": "admin.permission_set.created",
+          "actor_ref_included": false,
+          "raw_policy_json_included": false,
+          "direct_principal_identifiers_included": false,
+          "oauth_client_secret_included": false,
+          "provider_tokens_included": false,
+          "production_ready_claim": false
+        },
+        "idempotent_replay": true
+      }
+    },
+    {
+      "name": "0220 readback permission set",
+      "pathname": "/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_lcx8_0220_0226_permission_set_readback&audit_hint_ref=audit_lcx8_0220_0226_permission_set_readback",
+      "method": "GET",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_a6a5e97b-46e9-4c75-ac61-53f7f357ddb8",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_permission_set_readback",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "items": [
+          {
+            "permission_set_id": "permission_set_client_matter_reviewer",
+            "label": "Client Matter 검토 권한 갱신",
+            "description": "승인 검토가 필요한 권한 세트 변경",
+            "status": "owner_review_required",
+            "rule_count": 3,
+            "object_acl_count": 2,
+            "owner_approval_required": true,
+            "wildcard_actions_allowed": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "permission_set_id": "permission_set_ui_1782614083161",
+            "label": "Client Matter 검토 권한",
+            "description": "Client와 Matter 작업면 검토 권한",
+            "status": "owner_review_required",
+            "rule_count": 3,
+            "object_acl_count": 2,
+            "owner_approval_required": true,
+            "wildcard_actions_allowed": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "permission_set_id": "permission_set_lcx8_20260628_0220_0226",
+            "label": "LCX8 owner-reviewed permission set",
+            "description": "LCX8 safe fixture permission set",
+            "status": "owner_review_required",
+            "rule_count": 3,
+            "object_acl_count": 2,
+            "owner_approval_required": true,
+            "wildcard_actions_allowed": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "production_ready_claim": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "0221 patch permission set",
+      "pathname": "/api/admin/permission-sets/permission_set_lcx8_20260628_0220_0226",
+      "method": "PATCH",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_ca332e9c-ffec-429e-bf00-abe3166b328f",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_write",
+        "production_ready_claim": false,
+        "outcome": "owner_blocked",
+        "ui_state": "owner_blocked",
+        "item": {
+          "permission_set_id": "permission_set_lcx8_20260628_0220_0226",
+          "label": "LCX8 permission set patched",
+          "description": "LCX8 safe fixture permission set",
+          "status": "owner_review_required",
+          "rule_count": 3,
+          "object_acl_count": 2,
+          "owner_approval_required": true,
+          "wildcard_actions_allowed": false,
+          "raw_policy_json_included": false,
+          "direct_principal_identifiers_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "admin_perm_audit_b1f60b91-d9cb-4a57-9551-3228650cdde9",
+          "object_id": "permission_set_lcx8_20260628_0220_0226",
+          "action": "admin.permission_set.patched",
+          "actor_ref_included": false,
+          "raw_policy_json_included": false,
+          "direct_principal_identifiers_included": false,
+          "oauth_client_secret_included": false,
+          "provider_tokens_included": false,
+          "production_ready_claim": false
+        }
+      }
+    },
+    {
+      "name": "0221 readback patched permission set",
+      "pathname": "/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_lcx8_0220_0226_permission_set_patch_readback&audit_hint_ref=audit_lcx8_0220_0226_permission_set_patch_readback",
+      "method": "GET",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_3f8fff7f-29ba-4372-9ff9-8c5cb929d11a",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_permission_set_patch_readback",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "items": [
+          {
+            "permission_set_id": "permission_set_client_matter_reviewer",
+            "label": "Client Matter 검토 권한 갱신",
+            "description": "승인 검토가 필요한 권한 세트 변경",
+            "status": "owner_review_required",
+            "rule_count": 3,
+            "object_acl_count": 2,
+            "owner_approval_required": true,
+            "wildcard_actions_allowed": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "permission_set_id": "permission_set_ui_1782614083161",
+            "label": "Client Matter 검토 권한",
+            "description": "Client와 Matter 작업면 검토 권한",
+            "status": "owner_review_required",
+            "rule_count": 3,
+            "object_acl_count": 2,
+            "owner_approval_required": true,
+            "wildcard_actions_allowed": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "permission_set_id": "permission_set_lcx8_20260628_0220_0226",
+            "label": "LCX8 permission set patched",
+            "description": "LCX8 safe fixture permission set",
+            "status": "owner_review_required",
+            "rule_count": 3,
+            "object_acl_count": 2,
+            "owner_approval_required": true,
+            "wildcard_actions_allowed": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "production_ready_claim": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "0222 assign permission set",
+      "pathname": "/api/admin/permission-assignments",
+      "method": "POST",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_170bd677-f8cc-499e-a160-77c73f58a7e1",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_write",
+        "production_ready_claim": false,
+        "outcome": "owner_blocked",
+        "ui_state": "owner_blocked",
+        "item": {
+          "assignment_id": "permission_assignment_lcx8_20260628_0220_0226",
+          "permission_set_id": "permission_set_lcx8_20260628_0220_0226",
+          "target_label": "LCX8 review group",
+          "status": "owner_blocked",
+          "ui_state": "owner_blocked",
+          "grant_applied": false,
+          "revoke_applied": false,
+          "direct_actor_identifier_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "admin_perm_audit_af88efd4-4e22-4f6e-b783-1a1d60ad5497",
+          "object_id": "permission_assignment_lcx8_20260628_0220_0226",
+          "action": "admin.permission_assignment.owner_blocked",
+          "actor_ref_included": false,
+          "raw_policy_json_included": false,
+          "direct_principal_identifiers_included": false,
+          "oauth_client_secret_included": false,
+          "provider_tokens_included": false,
+          "production_ready_claim": false
+        }
+      }
+    },
+    {
+      "name": "0222 readback assignment",
+      "pathname": "/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_lcx8_0220_0226_assignment_readback&audit_hint_ref=audit_lcx8_0220_0226_assignment_readback",
+      "method": "GET",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_f5e6b169-08b9-48a3-8b25-e510f656672d",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_assignment_readback",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "items": [
+          {
+            "assignment_id": "permission_assignment_reviewer_seed",
+            "permission_set_id": "permission_set_client_matter_reviewer",
+            "target_label": "Client review group",
+            "status": "revoke_owner_blocked",
+            "ui_state": "owner_blocked",
+            "grant_applied": true,
+            "revoke_applied": false,
+            "direct_actor_identifier_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "assignment_id": "permission_assignment_ui_1782614083961",
+            "permission_set_id": "permission_set_client_matter_reviewer",
+            "target_label": "Client Matter 검토 그룹",
+            "status": "owner_blocked",
+            "ui_state": "owner_blocked",
+            "grant_applied": false,
+            "revoke_applied": false,
+            "direct_actor_identifier_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "assignment_id": "permission_assignment_lcx8_20260628_0220_0226",
+            "permission_set_id": "permission_set_lcx8_20260628_0220_0226",
+            "target_label": "LCX8 review group",
+            "status": "owner_blocked",
+            "ui_state": "owner_blocked",
+            "grant_applied": false,
+            "revoke_applied": false,
+            "direct_actor_identifier_included": false,
+            "production_ready_claim": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "0223 revoke assignment",
+      "pathname": "/api/admin/permission-assignments/permission_assignment_lcx8_20260628_0220_0226",
+      "method": "DELETE",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_f89cf991-bf6f-4945-aa1e-0e1095fea73d",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_write",
+        "production_ready_claim": false,
+        "outcome": "owner_blocked",
+        "ui_state": "owner_blocked",
+        "item": {
+          "assignment_id": "permission_assignment_lcx8_20260628_0220_0226",
+          "permission_set_id": "permission_set_lcx8_20260628_0220_0226",
+          "target_label": "LCX8 review group",
+          "status": "revoke_owner_blocked",
+          "ui_state": "owner_blocked",
+          "grant_applied": false,
+          "revoke_applied": false,
+          "direct_actor_identifier_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "admin_perm_audit_0b6ef61e-8f24-4154-b3a0-894320842522",
+          "object_id": "permission_assignment_lcx8_20260628_0220_0226",
+          "action": "admin.permission_assignment.revoke_owner_blocked",
+          "actor_ref_included": false,
+          "raw_policy_json_included": false,
+          "direct_principal_identifiers_included": false,
+          "oauth_client_secret_included": false,
+          "provider_tokens_included": false,
+          "production_ready_claim": false
+        }
+      }
+    },
+    {
+      "name": "0223 readback revoked assignment",
+      "pathname": "/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_lcx8_0220_0226_revoke_readback&audit_hint_ref=audit_lcx8_0220_0226_revoke_readback",
+      "method": "GET",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_2704b23e-3364-4e71-853d-3ba8fa5a6641",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_revoke_readback",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "items": [
+          {
+            "assignment_id": "permission_assignment_reviewer_seed",
+            "permission_set_id": "permission_set_client_matter_reviewer",
+            "target_label": "Client review group",
+            "status": "revoke_owner_blocked",
+            "ui_state": "owner_blocked",
+            "grant_applied": true,
+            "revoke_applied": false,
+            "direct_actor_identifier_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "assignment_id": "permission_assignment_ui_1782614083961",
+            "permission_set_id": "permission_set_client_matter_reviewer",
+            "target_label": "Client Matter 검토 그룹",
+            "status": "owner_blocked",
+            "ui_state": "owner_blocked",
+            "grant_applied": false,
+            "revoke_applied": false,
+            "direct_actor_identifier_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "assignment_id": "permission_assignment_lcx8_20260628_0220_0226",
+            "permission_set_id": "permission_set_lcx8_20260628_0220_0226",
+            "target_label": "LCX8 review group",
+            "status": "revoke_owner_blocked",
+            "ui_state": "owner_blocked",
+            "grant_applied": false,
+            "revoke_applied": false,
+            "direct_actor_identifier_included": false,
+            "production_ready_claim": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "0224 patch object field policy",
+      "pathname": "/api/admin/object-manager/objects/Matter/fields/risk_level",
+      "method": "PATCH",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_63679345-9207-4679-80cb-ae784bc1dced",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_write",
+        "production_ready_claim": false,
+        "outcome": "owner_blocked",
+        "ui_state": "owner_blocked",
+        "item": {
+          "object_name": "Matter",
+          "field_name": "risk_level",
+          "label": "risk level",
+          "visibility": "review_required",
+          "permission_ref": "matter:risk_level:read",
+          "ui_state": "owner_blocked",
+          "owner_approval_required": true,
+          "physical_schema_mutated": false,
+          "restricted_fields_exposed": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "admin_perm_audit_e9589587-55eb-4b2e-9e15-f43db9c6c2e5",
+          "object_id": "Matter:risk_level",
+          "action": "admin.object_manager.field_policy.owner_blocked",
+          "actor_ref_included": false,
+          "raw_policy_json_included": false,
+          "direct_principal_identifiers_included": false,
+          "oauth_client_secret_included": false,
+          "provider_tokens_included": false,
+          "production_ready_claim": false
+        },
+        "physical_schema_mutated": false
+      }
+    },
+    {
+      "name": "0224 readback field policy",
+      "pathname": "/api/admin/object-manager/objects/Matter/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_lcx8_0220_0226_field_policy_readback&audit_hint_ref=audit_lcx8_0220_0226_field_policy_readback",
+      "method": "GET",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_9abfb5b3-317a-49fb-9e78-981839a78eea",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_field_policy_readback",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "items": [
+          {
+            "object_name": "Matter",
+            "field_name": "title",
+            "label": "title",
+            "visibility": "visible",
+            "permission_ref": "matter:title:read",
+            "ui_state": "active",
+            "owner_approval_required": false,
+            "physical_schema_mutated": false,
+            "restricted_fields_exposed": false,
+            "production_ready_claim": false
+          },
+          {
+            "object_name": "Matter",
+            "field_name": "risk_level",
+            "label": "risk level",
+            "visibility": "review_required",
+            "permission_ref": "matter:risk_level:read",
+            "ui_state": "owner_blocked",
+            "owner_approval_required": true,
+            "physical_schema_mutated": false,
+            "restricted_fields_exposed": false,
+            "production_ready_claim": false
+          },
+          {
+            "object_name": "Matter",
+            "field_name": "wip_status",
+            "label": "wip status",
+            "visibility": "visible",
+            "permission_ref": "matter:wip_status:read",
+            "ui_state": "active",
+            "owner_approval_required": false,
+            "physical_schema_mutated": false,
+            "restricted_fields_exposed": false,
+            "production_ready_claim": false
+          }
+        ],
+        "physical_schema_mutation_allowed": false
+      }
+    },
+    {
+      "name": "0225 create connected app",
+      "pathname": "/api/admin/connected-apps",
+      "method": "POST",
+      "effect": "allow",
+      "status": 201,
+      "body": {
+        "request_id": "req_0d570bb5-81ce-45d7-9623-c6b8e7ab30a4",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_write",
+        "production_ready_claim": false,
+        "outcome": "provider_blocked",
+        "ui_state": "provider_blocked",
+        "item": {
+          "app_id": "connected_app_lcx8_20260628_0220_0226",
+          "label": "LCX8 provider-gated integration",
+          "status": "disabled",
+          "ui_state": "provider_blocked",
+          "provider_configured": false,
+          "provider_revocation_applied": false,
+          "provider_revocation_receipt_required": true,
+          "oauth_client_secret_included": false,
+          "provider_tokens_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "admin_perm_audit_37552c66-6a63-44a7-a6e6-95d5b5b6223a",
+          "object_id": "connected_app_lcx8_20260628_0220_0226",
+          "action": "admin.connected_app.created_provider_blocked",
+          "actor_ref_included": false,
+          "raw_policy_json_included": false,
+          "direct_principal_identifiers_included": false,
+          "oauth_client_secret_included": false,
+          "provider_tokens_included": false,
+          "production_ready_claim": false
+        }
+      }
+    },
+    {
+      "name": "0225 readback connected app",
+      "pathname": "/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_lcx8_0220_0226_connected_create_readback&audit_hint_ref=audit_lcx8_0220_0226_connected_create_readback",
+      "method": "GET",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_4b792483-c420-49cc-a88f-39bc1d53d641",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_connected_create_readback",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "items": [
+          {
+            "app_id": "connected_app_microsoft_graph",
+            "label": "Microsoft Graph",
+            "status": "disable_provider_blocked",
+            "ui_state": "provider_blocked",
+            "provider_configured": false,
+            "provider_revocation_applied": false,
+            "provider_revocation_receipt_required": true,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "app_id": "connected_app_teams",
+            "label": "Microsoft Teams",
+            "status": "disabled",
+            "ui_state": "provider_blocked",
+            "provider_configured": false,
+            "provider_revocation_applied": false,
+            "provider_revocation_receipt_required": true,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "app_id": "connected_app_ui_1782614085159",
+            "label": "외부 캘린더 연결",
+            "status": "disabled",
+            "ui_state": "provider_blocked",
+            "provider_configured": false,
+            "provider_revocation_applied": false,
+            "provider_revocation_receipt_required": true,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "app_id": "connected_app_lcx8_20260628_0220_0226",
+            "label": "LCX8 provider-gated integration",
+            "status": "disabled",
+            "ui_state": "provider_blocked",
+            "provider_configured": false,
+            "provider_revocation_applied": false,
+            "provider_revocation_receipt_required": true,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "0226 disable connected app",
+      "pathname": "/api/admin/connected-apps/connected_app_microsoft_graph/disable",
+      "method": "POST",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_ffd0757e-9549-4489-ae5c-f153779072f6",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_write",
+        "production_ready_claim": false,
+        "outcome": "provider_blocked",
+        "ui_state": "provider_blocked",
+        "item": {
+          "app_id": "connected_app_microsoft_graph",
+          "label": "Microsoft Graph",
+          "status": "disable_provider_blocked",
+          "ui_state": "provider_blocked",
+          "provider_configured": false,
+          "provider_revocation_applied": false,
+          "provider_revocation_receipt_required": true,
+          "oauth_client_secret_included": false,
+          "provider_tokens_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "admin_perm_audit_7ad0e4e5-9713-4d16-9a96-ef1e34069146",
+          "object_id": "connected_app_microsoft_graph",
+          "action": "admin.connected_app.disable_provider_blocked",
+          "actor_ref_included": false,
+          "raw_policy_json_included": false,
+          "direct_principal_identifiers_included": false,
+          "oauth_client_secret_included": false,
+          "provider_tokens_included": false,
+          "production_ready_claim": false
+        }
+      }
+    },
+    {
+      "name": "0226 readback connected app disabled",
+      "pathname": "/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_lcx8_0220_0226_connected_disable_readback&audit_hint_ref=audit_lcx8_0220_0226_connected_disable_readback",
+      "method": "GET",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_852038de-6376-4e0b-b1d0-9bfe3c92cfc3",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_connected_disable_readback",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "items": [
+          {
+            "app_id": "connected_app_microsoft_graph",
+            "label": "Microsoft Graph",
+            "status": "disable_provider_blocked",
+            "ui_state": "provider_blocked",
+            "provider_configured": false,
+            "provider_revocation_applied": false,
+            "provider_revocation_receipt_required": true,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "app_id": "connected_app_teams",
+            "label": "Microsoft Teams",
+            "status": "disabled",
+            "ui_state": "provider_blocked",
+            "provider_configured": false,
+            "provider_revocation_applied": false,
+            "provider_revocation_receipt_required": true,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "app_id": "connected_app_ui_1782614085159",
+            "label": "외부 캘린더 연결",
+            "status": "disabled",
+            "ui_state": "provider_blocked",
+            "provider_configured": false,
+            "provider_revocation_applied": false,
+            "provider_revocation_receipt_required": true,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "app_id": "connected_app_lcx8_20260628_0220_0226",
+            "label": "LCX8 provider-gated integration",
+            "status": "disabled",
+            "ui_state": "provider_blocked",
+            "provider_configured": false,
+            "provider_revocation_applied": false,
+            "provider_revocation_receipt_required": true,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "0220-0226 audit readback",
+      "pathname": "/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_lcx8_0220_0226_audit_readback&audit_hint_ref=audit_lcx8_0220_0226_audit_readback",
+      "method": "GET",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_5ef4eb20-0d3f-41d1-9998-f4e11743a86b",
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_0220_0226_audit_readback",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "items": [
+          {
+            "event_id": "admin_perm_audit_07cdd434-0c4c-475f-b571-58477e9b0496",
+            "object_id": "permission_set_ui_1782614083161",
+            "action": "admin.permission_set.created",
+            "actor_ref_included": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "event_id": "admin_perm_audit_c8a55e20-3e62-465c-8eab-8dd76418eb6e",
+            "object_id": "permission_set_client_matter_reviewer",
+            "action": "admin.permission_set.patched",
+            "actor_ref_included": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "event_id": "admin_perm_audit_801a4f8b-1947-484f-8d8d-2f0d4570a5a6",
+            "object_id": "permission_assignment_ui_1782614083961",
+            "action": "admin.permission_assignment.owner_blocked",
+            "actor_ref_included": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "event_id": "admin_perm_audit_f7b8ff21-e4c3-45f2-830c-c9ffb20bddba",
+            "object_id": "permission_assignment_reviewer_seed",
+            "action": "admin.permission_assignment.revoke_owner_blocked",
+            "actor_ref_included": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "event_id": "admin_perm_audit_a8a35d10-2ac1-470d-902a-d06b614b4053",
+            "object_id": "Client:status",
+            "action": "admin.object_manager.field_policy.owner_blocked",
+            "actor_ref_included": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "event_id": "admin_perm_audit_c06a34c3-178c-4d06-9dd7-76da46898f09",
+            "object_id": "connected_app_ui_1782614085159",
+            "action": "admin.connected_app.created_provider_blocked",
+            "actor_ref_included": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "event_id": "admin_perm_audit_8bddf8cd-04ec-4000-9df9-d542805b5c0d",
+            "object_id": "connected_app_microsoft_graph",
+            "action": "admin.connected_app.disable_provider_blocked",
+            "actor_ref_included": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "event_id": "admin_perm_audit_75a8d9b3-d0f0-4486-b9cc-7d68d967b00a",
+            "object_id": "permission_set_lcx8_20260628_0220_0226",
+            "action": "admin.permission_set.created",
+            "actor_ref_included": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "event_id": "admin_perm_audit_b1f60b91-d9cb-4a57-9551-3228650cdde9",
+            "object_id": "permission_set_lcx8_20260628_0220_0226",
+            "action": "admin.permission_set.patched",
+            "actor_ref_included": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "event_id": "admin_perm_audit_af88efd4-4e22-4f6e-b783-1a1d60ad5497",
+            "object_id": "permission_assignment_lcx8_20260628_0220_0226",
+            "action": "admin.permission_assignment.owner_blocked",
+            "actor_ref_included": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "event_id": "admin_perm_audit_0b6ef61e-8f24-4154-b3a0-894320842522",
+            "object_id": "permission_assignment_lcx8_20260628_0220_0226",
+            "action": "admin.permission_assignment.revoke_owner_blocked",
+            "actor_ref_included": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "event_id": "admin_perm_audit_e9589587-55eb-4b2e-9e15-f43db9c6c2e5",
+            "object_id": "Matter:risk_level",
+            "action": "admin.object_manager.field_policy.owner_blocked",
+            "actor_ref_included": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "event_id": "admin_perm_audit_37552c66-6a63-44a7-a6e6-95d5b5b6223a",
+            "object_id": "connected_app_lcx8_20260628_0220_0226",
+            "action": "admin.connected_app.created_provider_blocked",
+            "actor_ref_included": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          {
+            "event_id": "admin_perm_audit_7ad0e4e5-9713-4d16-9a96-ef1e34069146",
+            "object_id": "connected_app_microsoft_graph",
+            "action": "admin.connected_app.disable_provider_blocked",
+            "actor_ref_included": false,
+            "raw_policy_json_included": false,
+            "direct_principal_identifiers_included": false,
+            "oauth_client_secret_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "0220 denied create permission set",
+      "pathname": "/api/admin/permission-sets",
+      "method": "POST",
+      "effect": "deny",
+      "status": 403,
+      "body": {
+        "request_id": "req_c911dca2-5188-4e47-ab0e-81fd9e70594b",
+        "outcome": "denied",
+        "items": [],
+        "safe_error_codes": [
+          "ADMIN_PERMISSION_PERMISSION_REQUIRED"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "denied",
+        "audit_hint_ref": "audit_lcx8_0220_0226_write"
+      }
+    },
+    {
+      "name": "0220 review create permission set",
+      "pathname": "/api/admin/permission-sets",
+      "method": "POST",
+      "effect": "review_required",
+      "status": 200,
+      "body": {
+        "request_id": "req_cfc5a0a4-1a10-4917-908b-b1a626c0e262",
+        "outcome": "review_required",
+        "items": [],
+        "safe_error_codes": [
+          "ADMIN_PERMISSION_REVIEW_REQUIRED"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "review_required",
+        "audit_hint_ref": "audit_lcx8_0220_0226_write"
+      }
+    },
+    {
+      "name": "0221 denied patch permission set",
+      "pathname": "/api/admin/permission-sets/permission_set_lcx8_20260628_0220_0226",
+      "method": "PATCH",
+      "effect": "deny",
+      "status": 403,
+      "body": {
+        "request_id": "req_14bdc7ee-e8aa-4741-b472-c63e9deb5aed",
+        "outcome": "denied",
+        "items": [],
+        "safe_error_codes": [
+          "ADMIN_PERMISSION_PERMISSION_REQUIRED"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "denied",
+        "audit_hint_ref": "audit_lcx8_0220_0226_write"
+      }
+    },
+    {
+      "name": "0222 review assign permission set",
+      "pathname": "/api/admin/permission-assignments",
+      "method": "POST",
+      "effect": "review_required",
+      "status": 200,
+      "body": {
+        "request_id": "req_aae370da-ab12-4e60-b49e-162933f074c2",
+        "outcome": "review_required",
+        "items": [],
+        "safe_error_codes": [
+          "ADMIN_PERMISSION_REVIEW_REQUIRED"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "review_required",
+        "audit_hint_ref": "audit_lcx8_0220_0226_write"
+      }
+    },
+    {
+      "name": "0224 denied field policy",
+      "pathname": "/api/admin/object-manager/objects/Matter/fields/risk_level",
+      "method": "PATCH",
+      "effect": "deny",
+      "status": 403,
+      "body": {
+        "request_id": "req_03e70306-1c05-4d97-8f6f-61670c0bd59b",
+        "outcome": "denied",
+        "items": [],
+        "safe_error_codes": [
+          "ADMIN_PERMISSION_PERMISSION_REQUIRED"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "denied",
+        "audit_hint_ref": "audit_lcx8_0220_0226_write"
+      }
+    },
+    {
+      "name": "0225 review connected app",
+      "pathname": "/api/admin/connected-apps",
+      "method": "POST",
+      "effect": "review_required",
+      "status": 200,
+      "body": {
+        "request_id": "req_7e8a7cce-afee-4ed8-a1cc-1d5e1e7b26fa",
+        "outcome": "review_required",
+        "items": [],
+        "safe_error_codes": [
+          "ADMIN_PERMISSION_REVIEW_REQUIRED"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "review_required",
+        "audit_hint_ref": "audit_lcx8_0220_0226_write"
+      }
+    },
+    {
+      "name": "0226 denied connected app disable",
+      "pathname": "/api/admin/connected-apps/connected_app_microsoft_graph/disable",
+      "method": "POST",
+      "effect": "deny",
+      "status": 403,
+      "body": {
+        "request_id": "req_027a0f2d-d161-4f27-af5b-82ff6c12b567",
+        "outcome": "denied",
+        "items": [],
+        "safe_error_codes": [
+          "ADMIN_PERMISSION_PERMISSION_REQUIRED"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "denied",
+        "audit_hint_ref": "audit_lcx8_0220_0226_write"
+      }
+    }
+  ],
+  "audit_readback_actions": [
+    "admin.permission_set.created",
+    "admin.permission_set.patched",
+    "admin.permission_assignment.owner_blocked",
+    "admin.permission_assignment.revoke_owner_blocked",
+    "admin.object_manager.field_policy.owner_blocked",
+    "admin.connected_app.created_provider_blocked",
+    "admin.connected_app.disable_provider_blocked"
+  ],
+  "screenshots": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0220-0226-people-admin-initial.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0220-0226-people-admin-after-actions.png"
+  ],
+  "assertions": [
+    {
+      "name": "api health mounted",
+      "status": "PASS",
+      "details": {
+        "status": 200
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0220 visible label",
+      "status": "PASS",
+      "details": {
+        "visibleText": "세트 요청",
+        "expected": "세트 요청"
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0220 result state",
+      "status": "PASS",
+      "details": {
+        "resultText": "세트 요청승인 대기",
+        "expected": "승인 대기"
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0220 network route",
+      "status": "PASS",
+      "details": {
+        "responses": [
+          {
+            "status": 201,
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0221 visible label",
+      "status": "PASS",
+      "details": {
+        "visibleText": "변경 요청",
+        "expected": "변경 요청"
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0221 result state",
+      "status": "PASS",
+      "details": {
+        "resultText": "변경 요청승인 대기",
+        "expected": "승인 대기"
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0221 network route",
+      "status": "PASS",
+      "details": {
+        "responses": [
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets/permission_set_client_matter_reviewer"
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0222 visible label",
+      "status": "PASS",
+      "details": {
+        "visibleText": "배정 요청",
+        "expected": "배정 요청"
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0222 result state",
+      "status": "PASS",
+      "details": {
+        "resultText": "배정 요청승인 대기",
+        "expected": "승인 대기"
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0222 network route",
+      "status": "PASS",
+      "details": {
+        "responses": [
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0223 visible label",
+      "status": "PASS",
+      "details": {
+        "visibleText": "회수 요청",
+        "expected": "회수 요청"
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0223 result state",
+      "status": "PASS",
+      "details": {
+        "resultText": "회수 요청승인 대기",
+        "expected": "승인 대기"
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0223 network route",
+      "status": "PASS",
+      "details": {
+        "responses": [
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments/permission_assignment_reviewer_seed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0224 visible label",
+      "status": "PASS",
+      "details": {
+        "visibleText": "표시 방식 수정",
+        "expected": "표시 방식 수정"
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0224 result state",
+      "status": "PASS",
+      "details": {
+        "resultText": "커스텀 항목승인 대기",
+        "expected": "승인 대기"
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0224 network route",
+      "status": "PASS",
+      "details": {
+        "responses": [
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields/status"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0225 visible label",
+      "status": "PASS",
+      "details": {
+        "visibleText": "연결 요청",
+        "expected": "연결 요청"
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0225 result state",
+      "status": "PASS",
+      "details": {
+        "resultText": "연결 상태외부 확인 대기",
+        "expected": "외부 확인 대기"
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0225 network route",
+      "status": "PASS",
+      "details": {
+        "responses": [
+          {
+            "status": 201,
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0226 visible label",
+      "status": "PASS",
+      "details": {
+        "visibleText": "중지 요청",
+        "expected": "중지 요청"
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0226 result state",
+      "status": "PASS",
+      "details": {
+        "resultText": "연결 상태외부 확인 대기",
+        "expected": "외부 확인 대기"
+      }
+    },
+    {
+      "name": "browser LCX8-ACTION-0226 network route",
+      "status": "PASS",
+      "details": {
+        "responses": [
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps/connected_app_microsoft_graph/disable"
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser console/page errors empty",
+      "status": "PASS",
+      "details": {
+        "console": [],
+        "pageErrors": [],
+        "requests": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets/permission_set_client_matter_reviewer"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "DELETE",
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments/permission_assignment_reviewer_seed"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields/status"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps/connected_app_microsoft_graph/disable"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          }
+        ],
+        "responses": [
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 201,
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets/permission_set_client_matter_reviewer"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments/permission_assignment_reviewer_seed"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields/status"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 201,
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps/connected_app_microsoft_graph/disable"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe"
+          }
+        ]
+      }
+    },
+    {
+      "name": "api 0220 create permission set",
+      "status": "PASS",
+      "details": {
+        "status": 201,
+        "outcome": "owner_blocked",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0220 idempotent replay",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "idempotent_replay",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0220 readback permission set",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "passed",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0221 patch permission set",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "owner_blocked",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0221 readback patched permission set",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "passed",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0222 assign permission set",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "owner_blocked",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0222 readback assignment",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "passed",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0223 revoke assignment",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "owner_blocked",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0223 readback revoked assignment",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "passed",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0224 patch object field policy",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "owner_blocked",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0224 readback field policy",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "passed",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0225 create connected app",
+      "status": "PASS",
+      "details": {
+        "status": 201,
+        "outcome": "provider_blocked",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0225 readback connected app",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "passed",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0226 disable connected app",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "provider_blocked",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0226 readback connected app disabled",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "passed",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0220-0226 audit readback",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "passed",
+        "safe_error_codes": []
+      }
+    },
+    {
+      "name": "api 0220 denied create permission set",
+      "status": "PASS",
+      "details": {
+        "status": 403,
+        "outcome": "denied",
+        "safe_error_codes": [
+          "ADMIN_PERMISSION_PERMISSION_REQUIRED"
+        ]
+      }
+    },
+    {
+      "name": "api 0220 review create permission set",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "review_required",
+        "safe_error_codes": [
+          "ADMIN_PERMISSION_REVIEW_REQUIRED"
+        ]
+      }
+    },
+    {
+      "name": "api 0221 denied patch permission set",
+      "status": "PASS",
+      "details": {
+        "status": 403,
+        "outcome": "denied",
+        "safe_error_codes": [
+          "ADMIN_PERMISSION_PERMISSION_REQUIRED"
+        ]
+      }
+    },
+    {
+      "name": "api 0222 review assign permission set",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "review_required",
+        "safe_error_codes": [
+          "ADMIN_PERMISSION_REVIEW_REQUIRED"
+        ]
+      }
+    },
+    {
+      "name": "api 0224 denied field policy",
+      "status": "PASS",
+      "details": {
+        "status": 403,
+        "outcome": "denied",
+        "safe_error_codes": [
+          "ADMIN_PERMISSION_PERMISSION_REQUIRED"
+        ]
+      }
+    },
+    {
+      "name": "api 0225 review connected app",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "outcome": "review_required",
+        "safe_error_codes": [
+          "ADMIN_PERMISSION_REVIEW_REQUIRED"
+        ]
+      }
+    },
+    {
+      "name": "api 0226 denied connected app disable",
+      "status": "PASS",
+      "details": {
+        "status": 403,
+        "outcome": "denied",
+        "safe_error_codes": [
+          "ADMIN_PERMISSION_PERMISSION_REQUIRED"
+        ]
+      }
+    }
+  ],
+  "classification": {
+    "pass_rows": [
+      "LCX8-ACTION-0220",
+      "LCX8-ACTION-0221",
+      "LCX8-ACTION-0222",
+      "LCX8-ACTION-0223",
+      "LCX8-ACTION-0224",
+      "LCX8-ACTION-0225",
+      "LCX8-ACTION-0226"
+    ],
+    "owner_blocked_request_rows": [
+      "LCX8-ACTION-0220",
+      "LCX8-ACTION-0221",
+      "LCX8-ACTION-0222",
+      "LCX8-ACTION-0223",
+      "LCX8-ACTION-0224"
+    ],
+    "provider_blocked_request_rows": [
+      "LCX8-ACTION-0225",
+      "LCX8-ACTION-0226"
+    ],
+    "non_claims": [
+      "No permission grant was applied silently.",
+      "No physical object schema mutation was executed.",
+      "No OAuth/provider token or external connected-app runtime was executed.",
+      "No production readiness claim is made."
+    ]
+  }
+}

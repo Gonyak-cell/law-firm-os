@@ -1,0 +1,120 @@
+{
+  "schema_version": "matter.lcx8.post-closeout.client-sidebar-route.v1",
+  "generated_at": "2026-06-28T03:30:09.529Z",
+  "status": "PASS_WITH_MIXED_CLASSIFICATION",
+  "target_ids": [
+    "LCX8-ACTION-0103",
+    "LCX8-ACTION-0104",
+    "LCX8-ACTION-0105",
+    "LCX8-ACTION-0106",
+    "LCX8-ACTION-0107",
+    "LCX8-ACTION-0108",
+    "LCX8-ACTION-0109",
+    "LCX8-ACTION-0110",
+    "LCX8-ACTION-0111"
+  ],
+  "route_only_ui_only_rows": [
+    "LCX8-ACTION-0103",
+    "LCX8-ACTION-0104",
+    "LCX8-ACTION-0105",
+    "LCX8-ACTION-0106",
+    "LCX8-ACTION-0107",
+    "LCX8-ACTION-0108"
+  ],
+  "api_read_side_effect_rows": [
+    "LCX8-ACTION-0109",
+    "LCX8-ACTION-0110",
+    "LCX8-ACTION-0111"
+  ],
+  "api_write_side_effect_rows": [],
+  "batch": "LCX8-ALL-41",
+  "status_after": "UI_ONLY final for 0103..0108; PASS api_read for 0109..0111",
+  "proof_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0103-0111-client-sidebar-route-proof.json",
+  "markdown_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0103-0111-client-sidebar-route-proof.md",
+  "implementation_fix": {
+    "file": "apps/api/src/routes/reports.js",
+    "reason": "GET /api/reports/audit was shadowed by GET /api/reports/:reportId and returned 400 as reportId=audit.",
+    "regression_test": "apps/api/test/cmp-r4-g8-analytics.test.js G8 report audit collection route is not shadowed by report definition route"
+  },
+  "summary": "Post-closeout LCX8-ACTION-0103..0111 Client sidebar route proof PASS 37/37. LCX8-ACTION-0103..0108 remain UI_ONLY final route/history navigation with visible Client panels and no API request after click. LCX8-ACTION-0109/0110/0111 moved UI_ONLY -> PASS because current Client data/report/import panels mount API reads after navigation and browser proof observed successful GET responses with no mutation requests, no API 4xx/5xx, and no console errors after fixing the /api/reports/audit route ordering. Verification PASS: focused API 17/17, web UI 17/17, build PASS with existing Vite chunk-size warning only, ui:flows PASS 9/9, ui:live PASS 13/13, sloplint PASS, git diff --check PASS, JSON/CSV invariant PASS, ports 4180/5173 clear. Counts after this slice: PASS 82, GUARDED 20, UI_ONLY 117, DESCRIPTOR_ONLY 2, BLOCKED 68, FAIL 35, UNKNOWN 0. No Client write, People/Vault write, provider execution, external receipt, audit write, or production launch claim is made.",
+  "classification": {
+    "LCX8-ACTION-0103": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0104": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0105": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0106": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0107": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0108": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0109": "UI_ONLY_FINAL_ROUTE_NAVIGATION_WITH_API_READ_PANEL_MOUNT",
+    "LCX8-ACTION-0110": "UI_ONLY_FINAL_ROUTE_NAVIGATION_WITH_API_READ_PANEL_MOUNT",
+    "LCX8-ACTION-0111": "UI_ONLY_FINAL_ROUTE_NAVIGATION_WITH_API_READ_PANEL_MOUNT"
+  },
+  "api_routes_by_row": {
+    "LCX8-ACTION-0103": [],
+    "LCX8-ACTION-0104": [],
+    "LCX8-ACTION-0105": [],
+    "LCX8-ACTION-0106": [],
+    "LCX8-ACTION-0107": [],
+    "LCX8-ACTION-0108": [],
+    "LCX8-ACTION-0109": [
+      "GET /api/data-cloud/providers",
+      "GET /api/data-cloud/unified-profiles/unified_profile_client_seed",
+      "GET /api/data-cloud/enrichment-results",
+      "GET /api/data-cloud/audit"
+    ],
+    "LCX8-ACTION-0110": [
+      "GET /api/reports",
+      "GET /api/analytics/client-profitability",
+      "GET /api/reports/audit"
+    ],
+    "LCX8-ACTION-0111": [
+      "GET /api/import-targets",
+      "GET /api/import-jobs"
+    ]
+  },
+  "verification": {
+    "proof_assertions": "PASS 37/37 docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0103-0111-client-sidebar-route-proof.json",
+    "browser_rows": 9,
+    "route_only_rows": 6,
+    "api_read_side_effect_rows": 3,
+    "api_write_side_effect_rows": 0,
+    "console_errors": "PASS 0 console errors in proof browser session",
+    "network_mutations": "PASS no mutation requests observed",
+    "network_errors": "PASS no API 4xx/5xx after click",
+    "focused_api_tests": "PASS 17/17 node --test apps/api/test/sf-b-w07-data-cloud-enrichment.test.js apps/api/test/sf-b-w08-report-builder-client-profitability.test.js apps/api/test/sf-b-w05-import-data-mapping.test.js apps/api/test/cmp-r4-g8-analytics.test.js",
+    "web_ui_tests": "PASS 17/17 npm --workspace apps/web run test:ui",
+    "build": "PASS npm run build (existing Vite chunk-size warning only)",
+    "flow_verifier": "PASS 9/9 npm run ui:flows:verify",
+    "live_verifier": "PASS 13/13 npm run ui:live:verify",
+    "sloplint": "PASS python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+    "diff_check": "PASS git diff --check",
+    "json_csv_invariant": "PASS",
+    "ports": "PASS 4180/5173 clear after controlled server shutdown"
+  },
+  "status_counts_after": {
+    "PASS": 82,
+    "GUARDED": 20,
+    "UI_ONLY": 117,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 68,
+    "FAIL": 35,
+    "UNKNOWN": 0
+  },
+  "next_row": "LCX8-ACTION-0233",
+  "non_claims": [
+    "This proof classifies the Client sidebar actions as route/history navigation plus observed read-only panel mount effects where present; no mutation or durable write is claimed.",
+    "LCX8-ACTION-0109/0110/0111 mount read-only panels after navigation; the sidebar click still performs no mutation request.",
+    "No Client/People/Vault write, provider execution, external receipt, audit write, or production launch claim is made.",
+    "Denied/review fail-closed behavior is covered by separate guarded-state proof and is not promoted by this route/read slice."
+  ],
+  "latest_note": "Post-closeout LCX8-ACTION-0103..0111 Client sidebar route proof PASS 37/37. LCX8-ACTION-0103..0108 remain UI_ONLY final route/history navigation with visible Client panels and no API request after click. LCX8-ACTION-0109/0110/0111 moved UI_ONLY -> PASS because current Client data/report/import panels mount API reads after navigation and browser proof observed successful GET responses with no mutation requests, no API 4xx/5xx, and no console errors after fixing the /api/reports/audit route ordering. Verification PASS: focused API 17/17, web UI 17/17, build PASS with existing Vite chunk-size warning only, ui:flows PASS 9/9, ui:live PASS 13/13, sloplint PASS, git diff --check PASS, JSON/CSV invariant PASS, ports 4180/5173 clear. Counts after this slice: PASS 82, GUARDED 20, UI_ONLY 117, DESCRIPTOR_ONLY 2, BLOCKED 68, FAIL 35, UNKNOWN 0. No Client write, People/Vault write, provider execution, external receipt, audit write, or production launch claim is made.",
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0103..0111 Client sidebar route proof PASS 37/37. LCX8-ACTION-0103..0108 remain UI_ONLY final route/history navigation with visible Client panels and no API request after click. LCX8-ACTION-0109/0110/0111 moved UI_ONLY -> PASS because current Client data/report/import panels mount API reads after navigation and browser proof observed successful GET responses with no mutation requests, no API 4xx/5xx, and no console errors after fixing the /api/reports/audit route ordering. Verification PASS: focused API 17/17, web UI 17/17, build PASS with existing Vite chunk-size warning only, ui:flows PASS 9/9, ui:live PASS 13/13, sloplint PASS, git diff --check PASS, JSON/CSV invariant PASS, ports 4180/5173 clear. Counts after this slice: PASS 82, GUARDED 20, UI_ONLY 117, DESCRIPTOR_ONLY 2, BLOCKED 68, FAIL 35, UNKNOWN 0. No Client write, People/Vault write, provider execution, external receipt, audit write, or production launch claim is made.",
+  "status_counts": {
+    "PASS": 82,
+    "GUARDED": 20,
+    "UI_ONLY": 117,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 68,
+    "FAIL": 35,
+    "UNKNOWN": 0
+  }
+}

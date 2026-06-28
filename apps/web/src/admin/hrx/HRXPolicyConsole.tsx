@@ -81,6 +81,10 @@ export function HRXPolicyConsole() {
           <span>버전</span>
           <input value={form.policy_version} onChange={(event) => setForm({ ...form, policy_version: event.target.value })} />
         </label>
+        <label>
+          <span>시작일</span>
+          <input value={form.effective_from} onChange={(event) => setForm({ ...form, effective_from: event.target.value })} />
+        </label>
         <button className="primary-button">규칙 버전 생성</button>
       </form>
       {body}

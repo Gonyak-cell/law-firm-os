@@ -1,0 +1,92 @@
+{
+  "schema_version": "matter.lcx8.all_remaining.control_freeze.v1",
+  "generated_at": "2026-06-26T23:32:56Z",
+  "batch_id": "LCX8-ALL-00",
+  "status": "CONTROL_FREEZE_RECORDED",
+  "branch": "codex/matter-vault-approved-upserts",
+  "head": "649041320c6ec33f9ae2cc90619abc9f04fe0394",
+  "dirty_tree": "?? docs/lazycodex/lcx8-remaining-ui-action-remediation-plan-2026-06-27.md\n?? docs/ui-reference/prototypes/matter-launch-login-dashboard-2026-06-25.html",
+  "source_ledger": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+  "plan": "docs/lazycodex/lcx8-remaining-ui-action-remediation-plan-2026-06-27.md",
+  "inventory_rows": 324,
+  "status_counts": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 22,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 110,
+    "fail": 42
+  },
+  "non_pass_coverage": {
+    "expected_non_pass_rows": 302,
+    "assigned_non_pass_rows": 302,
+    "missing_row_ids": [],
+    "pass_rows_accidentally_assigned": [],
+    "plan_declares_coverage": true
+  },
+  "runtime_ports": [
+    {
+      "port": 3000,
+      "listener": ""
+    },
+    {
+      "port": 3001,
+      "listener": "COMMAND   PID USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nnode    74375  jws   16u  IPv6 0xd88565ad8a3db69b      0t0  TCP *:3001 (LISTEN)"
+    },
+    {
+      "port": 5173,
+      "listener": ""
+    },
+    {
+      "port": 5174,
+      "listener": ""
+    },
+    {
+      "port": 8080,
+      "listener": ""
+    },
+    {
+      "port": 8787,
+      "listener": ""
+    },
+    {
+      "port": 4173,
+      "listener": ""
+    }
+  ],
+  "verification_scripts": {
+    "root": {
+      "build": "npm --workspace apps/web run build",
+      "web:e2e": "node scripts/run-web-e2e.mjs",
+      "matter-desktop:screen-qa": "node scripts/smoke-matter-desktop-screen-qa.mjs",
+      "ui:flows:verify": "node scripts/verify-matter-ui-flows.mjs",
+      "ui:live:verify": "node scripts/verify-matter-live-data.mjs",
+      "api:start": "npm --workspace apps/api run start",
+      "api:test": "npm --workspace apps/api run test"
+    },
+    "workspaces": {
+      "apps/web/package.json": {
+        "build": "vite build",
+        "test:ui": "node --test test/*.test.mjs"
+      },
+      "apps/api/package.json": {
+        "test": "node --test test/*.test.js test/hrx/*.test.js"
+      },
+      "apps/desktop/package.json": {
+        "test:smoke": "node --test test/*.test.mjs",
+        "test:file-bridge": "node --test test/file-bridge.test.mjs test/file-picker-gesture.test.mjs test/file-upload-bridge.test.mjs test/file-save-as.test.mjs test/temp-preview-cleanup.test.mjs && cd ../.. && node scripts/validate-desktop-file-bridge-contract.mjs && node scripts/validate-matter-desktop-file-bridge.mjs"
+      }
+    }
+  },
+  "acceptance": {
+    "branch_head_recorded": true,
+    "dirty_tree_recorded": true,
+    "unknown_zero": true,
+    "all_non_pass_assigned": true,
+    "pass_rows_not_assigned": true,
+    "unrelated_untracked_prototype_preserved": true
+  },
+  "next_batch": "LCX8-ALL-11"
+}

@@ -1,0 +1,244 @@
+{
+  "schema_version": "law-firm-os.lcx8.post-closeout.matter-finance-analytics.v0.1",
+  "generated_at": "2026-06-28T07:01:43.812Z",
+  "batch_id": "LCX8-ALL-27",
+  "action_ids": [
+    "LCX8-ACTION-0307",
+    "LCX8-ACTION-0308",
+    "LCX8-ACTION-0309",
+    "LCX8-ACTION-0311",
+    "LCX8-ACTION-0312",
+    "LCX8-ACTION-0313"
+  ],
+  "prerequisite_blocker_ids": [
+    "LCX8-ACTION-0310"
+  ],
+  "status_before": "BLOCKED",
+  "status_after": "PASS",
+  "remediation_lane_after": "resolved",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0307-0308-0309-0311-0313-matter-finance-analytics-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0307-0308-0309-0311-0313-matter-finance-analytics-proof.md",
+  "counts_before": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "counts_after": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "source_fixes": [],
+  "evidence": [
+    {
+      "id": "LCX8-ACTION-0307",
+      "observed_text": "Matter 구성원 권한 기준 적용 팀원 번호 구성원 계정 로그인 계정 역할 담당 변호사 책임 변호사 패러리걸 청구 검토자 책임자가 지정되었습니다 추가 책임자 지정 완료 팀원 구성원 로그인 계정 역할 상태 팀원 1 연결됨 연결됨 책임 변호사 사용 중",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0307-matter-team-proof.png",
+      "response_status": 201,
+      "read_back": {
+        "path": "/api/matters/matter_rp05_synthetic_opening",
+        "status": 200,
+        "object_id": "matter_rp05_synthetic_opening",
+        "passed": true
+      },
+      "audit_actions": [
+        {
+          "action": "matter.team.member.add",
+          "object_id": "lcx8-team-1782629823445",
+          "found": true
+        },
+        {
+          "action": "matter.owner.assignment",
+          "object_id": "matter_rp05_synthetic_opening",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "matter team write denied",
+          "status": 403,
+          "safe_error_codes": [
+            "MATTER_UNAUTHORIZED_OMISSION"
+          ],
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    },
+    {
+      "id": "LCX8-ACTION-0308",
+      "observed_text": "청구 청구 관리 30분 시간 기록됨 시간이 기록되었습니다. 시간 기록 청구 준비 승인 시간 기준 청구 준비 수납 청구 잔액 기준 수납 기록 시간 일자 상태 분 시간 1 2026-06-20 진행 중 30 시간 2 2026-06-20 진행 중 60 청구서 상태 금액 통화 청구서 1 진행 중 KRW 400,000 KRW 이벤트 대상 상태 시간 생성 시간 기록됨 기록됨 ARAgingSnapshot 기록됨",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0308-matter-finance-time-proof.png",
+      "response_status": 201,
+      "read_back": {
+        "path": "/api/finance/time-entries",
+        "status": 200,
+        "object_id": "time_ui_matter_rp05_synthetic_opening",
+        "passed": true
+      },
+      "audit_actions": [
+        {
+          "action": "time.entry.create",
+          "object_id": "time_ui_matter_rp05_synthetic_opening",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "finance time write denied",
+          "status": 403,
+          "safe_error_codes": [
+            "FINANCE_UNAUTHORIZED_OMISSION"
+          ],
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    },
+    {
+      "id": "LCX8-ACTION-0309",
+      "observed_text": "청구 청구 관리 30분 시간 기록됨 시간이 기록되었습니다. 시간 기록 KRW 400,000 청구 준비됨 청구 준비가 생성되었습니다. 청구 준비 수납 청구 잔액 기준 수납 기록 시간 일자 상태 분 시간 1 2026-06-20 진행 중 30 시간 2 2026-06-20 진행 중 60 청구서 상태 금액 통화 청구서 1 진행 중 KRW 400,000 KRW 이벤트 대상 상태 시간 생성 시간 기록됨 청구 준비 생성 Matter 기록됨 기록됨 ARAgingSnapshot 기록됨",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0309-matter-finance-wip-proof.png",
+      "response_status": 201,
+      "read_back": {
+        "path": "/api/finance/wip response",
+        "status": 201,
+        "object_id": "wip:tenant_cmp_g7_synthetic:matter_rp05_synthetic_opening:time_cmp_g7_seed:0",
+        "passed": true
+      },
+      "audit_actions": [
+        {
+          "action": "wip.generate",
+          "object_id": "matter_rp05_synthetic_opening",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "finance wip write denied",
+          "status": 403,
+          "safe_error_codes": [
+            "FINANCE_UNAUTHORIZED_OMISSION"
+          ],
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    },
+    {
+      "id": "LCX8-ACTION-0311",
+      "observed_text": "분석 분석 관리 대시보드 새로고침됨 대시보드가 갱신되었습니다. 새로고침 내보내기 안전 내보내기 내보내기 손익 증거 준비됨 손익 갱신 대시보드 유형 지표 상태 AR Aging 미수금 현황 KRW 400,000 게시됨 Client Health Client 상태 87% 게시됨 Practice P&L 업무 손익 32 게시됨 Matter 표준 수금 손익 M-TENANT-RP05-0001 KRW 400,000 KRW 0 KRW -400,000",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0311-matter-analytics-refresh-proof.png",
+      "response_status": 201,
+      "read_back": {
+        "path": "/api/analytics/dashboards",
+        "status": 200,
+        "object_id": "refresh:tenant_cmp_g8_synthetic:1782629828315",
+        "passed": true
+      },
+      "audit_actions": [
+        {
+          "action": "analytics.read_model.refresh",
+          "object_id": "refresh:tenant_cmp_g8_synthetic:1782629828315",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "analytics refresh denied",
+          "status": 403,
+          "safe_error_codes": [
+            "ANALYTICS_UNAUTHORIZED_OMISSION"
+          ],
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    },
+    {
+      "id": "LCX8-ACTION-0312",
+      "observed_text": "분석 분석 관리 대시보드 새로고침됨 대시보드가 갱신되었습니다. 새로고침 내보내기 검토 대기 내보내기 검토가 생성되었습니다. 세부 Matter와 인증 정보는 포함하지 않습니다. 내보내기 손익 증거 준비됨 손익 갱신 대시보드 유형 지표 상태 AR Aging 미수금 현황 KRW 400,000 게시됨 Client Health Client 상태 87% 게시됨 Practice P&L 업무 손익 32 게시됨 Matter 표준 수금 손익 M-TENANT-RP05-0001 KRW 400,000 KRW 0 KRW -400,000",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0312-matter-analytics-export-proof.png",
+      "response_status": 201,
+      "read_back": {
+        "path": "/api/analytics/exports response",
+        "status": 201,
+        "object_id": "analytics_export_dashboard-ar-aging",
+        "passed": true
+      },
+      "audit_actions": [
+        {
+          "action": "analytics.export.create",
+          "object_id": "analytics_export_dashboard-ar-aging",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "analytics export denied",
+          "status": 403,
+          "safe_error_codes": [
+            "ANALYTICS_UNAUTHORIZED_OMISSION"
+          ],
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    },
+    {
+      "id": "LCX8-ACTION-0313",
+      "observed_text": "분석 분석 관리 대시보드 새로고침됨 대시보드가 갱신되었습니다. 새로고침 내보내기 검토 대기 내보내기 검토가 생성되었습니다. 세부 Matter와 인증 정보는 포함하지 않습니다. 내보내기 손익 증거 준비됨 손익이 갱신되었습니다. 손익 갱신 대시보드 유형 지표 상태 AR Aging 미수금 현황 KRW 400,000 게시됨 Client Health Client 상태 87% 게시됨 Practice P&L 업무 손익 32 게시됨 Matter 표준 수금 손익 M-TENANT-RP05-0001 KRW 400,000 KRW 400,000 KRW 0",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0313-matter-analytics-profitability-proof.png",
+      "response_status": 201,
+      "read_back": {
+        "path": "/api/analytics/matter-profitability",
+        "status": 200,
+        "object_id": "matter-profit:tenant_cmp_g8_synthetic:matter_rp05_synthetic_opening",
+        "passed": true
+      },
+      "audit_actions": [
+        {
+          "action": "analytics.matter_profitability.refresh",
+          "object_id": "matter-profit:tenant_cmp_g8_synthetic:matter_rp05_synthetic_opening",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "analytics profitability denied",
+          "status": 403,
+          "safe_error_codes": [
+            "ANALYTICS_UNAUTHORIZED_OMISSION"
+          ],
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    }
+  ],
+  "prerequisites": [
+    {
+      "id": "LCX8-ACTION-0310",
+      "purpose": "prerequisite_for_lcx8_action_0313_profitability_button",
+      "response_status": 201,
+      "outcome": "created",
+      "audit_action": "payment.import",
+      "status_decision": "BLOCKED remains BLOCKED / Lane D",
+      "non_claim": "local synthetic payment import prerequisite only; no banking/external receipt/payment execution claim"
+    }
+  ],
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0307/0308/0309/0311/0312/0313 Matter team/finance/analytics proof PASS 11/11. Browser clicked Matter team responsible-attorney assignment, Finance time entry, Finance WIP generation, Analytics refresh, Analytics export, and Analytics matter-profitability refresh. Proof captured API write responses, read-back or response-bound proof where no GET route exists, audit events, denied permission guard probes, no page errors, and no unexpected console errors. LCX8-ACTION-0310 payment import was used only as a local synthetic prerequisite for profitability and remains BLOCKED/Lane D with no external banking receipt, payment execution, production-ready, or go-live claim.",
+  "non_claims": [
+    "safe synthetic local Matter/Finance/Analytics runtime proof only",
+    "LCX8-ACTION-0310 remains BLOCKED/Lane D until external banking receipt exists",
+    "no external provider, banking receipt, payment execution, production-ready, or go-live claim"
+  ]
+}

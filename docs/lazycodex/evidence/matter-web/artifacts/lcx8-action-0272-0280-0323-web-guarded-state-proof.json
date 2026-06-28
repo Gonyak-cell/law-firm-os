@@ -1,0 +1,1732 @@
+{
+  "schema_version": "law-firm-os.lcx8.web-guarded-state-proof.v0.1",
+  "generated_at": "2026-06-28T07:17:39.094Z",
+  "result": "PASS",
+  "action_ids": [
+    "LCX8-ACTION-0272",
+    "LCX8-ACTION-0273",
+    "LCX8-ACTION-0274",
+    "LCX8-ACTION-0275",
+    "LCX8-ACTION-0276",
+    "LCX8-ACTION-0277",
+    "LCX8-ACTION-0278",
+    "LCX8-ACTION-0279",
+    "LCX8-ACTION-0280",
+    "LCX8-ACTION-0323"
+  ],
+  "status_decision": "GUARDED final state confirmed; status remains GUARDED",
+  "base_url": "http://127.0.0.1:5174",
+  "api_base": "http://127.0.0.1:4180",
+  "assertions": [
+    {
+      "name": "LCX8-ACTION-0272 guarded DOM and no leak",
+      "passed": true,
+      "details": {
+        "id": "LCX8-ACTION-0272",
+        "name": "Client list denied state",
+        "url": "/?locale=ko&view=clients&data=live&ctx=denied#clients-list",
+        "state_selector": ".live-data-denied",
+        "state_text": "접근 권한이 없습니다 권한이 있는 의뢰인만 표시합니다.",
+        "table_rows": 0,
+        "people_runtime_grid_count": 0,
+        "leaked_tokens": null,
+        "responses": [
+          {
+            "check": null,
+            "method": "GET",
+            "status": 403,
+            "path": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "MASTER_DATA_API_UNAUTHORIZED_OMISSION"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 403,
+            "path": "/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "body": {
+              "outcome": "denied",
+              "ui_state": "denied",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "HRX_LEGAL_PEOPLE_ACCESS_DENIED"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": null
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 403,
+            "path": "/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 403,
+            "path": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 403,
+            "path": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 403,
+            "path": "/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 403,
+            "path": "/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 403,
+            "path": "/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 403,
+            "path": "/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          }
+        ],
+        "api_5xx_count": 0,
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0272-proof.png",
+        "passed": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0273 guarded DOM and no leak",
+      "passed": true,
+      "details": {
+        "id": "LCX8-ACTION-0273",
+        "name": "Client list review state",
+        "url": "/?locale=ko&view=clients&data=live&ctx=review#clients-list",
+        "state_selector": ".live-data-review",
+        "state_text": "검토가 필요합니다 검토가 끝나면 의뢰인 정보를 확인할 수 있습니다.",
+        "table_rows": 0,
+        "people_runtime_grid_count": 0,
+        "leaked_tokens": null,
+        "responses": [
+          {
+            "check": null,
+            "method": "GET",
+            "status": 200,
+            "path": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "MASTER_DATA_REVIEW_REQUIRED"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 200,
+            "path": "/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "HRX_LEGAL_PEOPLE_REVIEW_REQUIRED"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": null
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 200,
+            "path": "/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "CRM_INTAKE_REVIEW_REQUIRED"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 200,
+            "path": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "CRM_INTAKE_REVIEW_REQUIRED"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 200,
+            "path": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "CRM_INTAKE_REVIEW_REQUIRED"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 200,
+            "path": "/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "CRM_INTAKE_REVIEW_REQUIRED"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 200,
+            "path": "/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "CRM_INTAKE_REVIEW_REQUIRED"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 200,
+            "path": "/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "CRM_INTAKE_REVIEW_REQUIRED"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 200,
+            "path": "/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "CRM_INTAKE_REVIEW_REQUIRED"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          }
+        ],
+        "api_5xx_count": 0,
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0273-proof.png",
+        "passed": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0274 guarded DOM and no leak",
+      "passed": true,
+      "details": {
+        "id": "LCX8-ACTION-0274",
+        "name": "Matter list denied state",
+        "url": "/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+        "state_selector": ".live-data-denied",
+        "state_text": "접근 권한이 없습니다 권한이 있는 정보만 표시됩니다.",
+        "table_rows": 0,
+        "people_runtime_grid_count": 0,
+        "leaked_tokens": null,
+        "responses": [
+          {
+            "check": null,
+            "method": "GET",
+            "status": 403,
+            "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "MATTER_UNAUTHORIZED_OMISSION"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 403,
+            "path": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "MATTER_UNAUTHORIZED_OMISSION"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 403,
+            "path": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+            "body": {
+              "outcome": "denied",
+              "ui_state": "denied",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "RECORD_ACTIONS_PERMISSION_REQUIRED"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 200,
+            "path": "/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+            "body": {
+              "outcome": "ok",
+              "ui_state": null,
+              "safe_error_code": null,
+              "safe_error_codes": [],
+              "step_up_required": false,
+              "count_leak_prevented": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": null
+            }
+          }
+        ],
+        "api_5xx_count": 0,
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0274-proof.png",
+        "passed": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0275 guarded DOM and no leak",
+      "passed": true,
+      "details": {
+        "id": "LCX8-ACTION-0275",
+        "name": "Matter list review state",
+        "url": "/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+        "state_selector": ".live-data-review",
+        "state_text": "검토가 필요합니다 검토가 끝나면 Matter 목록을 확인할 수 있습니다.",
+        "table_rows": 0,
+        "people_runtime_grid_count": 0,
+        "leaked_tokens": null,
+        "responses": [
+          {
+            "check": null,
+            "method": "GET",
+            "status": 200,
+            "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "MATTER_REVIEW_REQUIRED"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 200,
+            "path": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "MATTER_REVIEW_REQUIRED"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 200,
+            "path": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "RECORD_ACTIONS_REVIEW_REQUIRED"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          },
+          {
+            "check": null,
+            "method": "GET",
+            "status": 200,
+            "path": "/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+            "body": {
+              "outcome": "ok",
+              "ui_state": null,
+              "safe_error_code": null,
+              "safe_error_codes": [],
+              "step_up_required": false,
+              "count_leak_prevented": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": null
+            }
+          }
+        ],
+        "api_5xx_count": 0,
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0275-proof.png",
+        "passed": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0276 guarded DOM and no leak",
+      "passed": true,
+      "details": {
+        "id": "LCX8-ACTION-0276",
+        "name": "Vault documents denied state",
+        "url": "/?locale=ko&view=vault&data=live&ctx=denied#vault-documents",
+        "state_selector": ".live-data-denied",
+        "state_text": "접근 권한이 없습니다 권한이 있는 정보만 표시됩니다.",
+        "table_rows": 0,
+        "people_runtime_grid_count": 0,
+        "leaked_tokens": null,
+        "responses": [
+          {
+            "check": null,
+            "method": "GET",
+            "status": 403,
+            "path": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe",
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "VAULT_DMS_UNAUTHORIZED_OMISSION"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          }
+        ],
+        "api_5xx_count": 0,
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0276-proof.png",
+        "passed": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0277 guarded DOM and no leak",
+      "passed": true,
+      "details": {
+        "id": "LCX8-ACTION-0277",
+        "name": "Vault documents review state",
+        "url": "/?locale=ko&view=vault&data=live&ctx=review#vault-documents",
+        "state_selector": ".live-data-review",
+        "state_text": "검토가 필요합니다 검토가 끝나면 Vault 문서를 확인할 수 있습니다.",
+        "table_rows": 0,
+        "people_runtime_grid_count": 0,
+        "leaked_tokens": null,
+        "responses": [
+          {
+            "check": null,
+            "method": "GET",
+            "status": 200,
+            "path": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe",
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "safe_error_code": null,
+              "safe_error_codes": [
+                "VAULT_DMS_REVIEW_REQUIRED"
+              ],
+              "step_up_required": false,
+              "count_leak_prevented": true,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false,
+              "production_ready_claim": false,
+              "item_count": 0
+            }
+          }
+        ],
+        "api_5xx_count": 0,
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0277-proof.png",
+        "passed": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0280 guarded DOM and no leak",
+      "passed": true,
+      "details": {
+        "id": "LCX8-ACTION-0280",
+        "name": "People directory denied/review state",
+        "url": "/?locale=ko&view=people&data=live&ctx=denied#people-directory",
+        "state_selector": "[data-lcx8-people-guard-state='true']",
+        "state_text": "접근 권한이 없습니다 권한이 있는 People 정보만 표시합니다.",
+        "table_rows": 0,
+        "people_runtime_grid_count": 0,
+        "leaked_tokens": null,
+        "responses": [],
+        "api_5xx_count": 0,
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0280-proof.png",
+        "passed": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0280 review guarded DOM and no leak",
+      "passed": true,
+      "details": {
+        "id": "LCX8-ACTION-0280",
+        "name": "People directory denied/review state",
+        "url": "/?locale=ko&view=people&data=live&ctx=review#people-directory",
+        "state_selector": "[data-lcx8-people-guard-state='true']",
+        "state_text": "검토가 필요합니다 검토가 끝나면 People 정보를 확인할 수 있습니다.",
+        "table_rows": 0,
+        "people_runtime_grid_count": 0,
+        "leaked_tokens": null,
+        "responses": [],
+        "api_5xx_count": 0,
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0280-review.png",
+        "passed": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0278 mutation affordance disabled",
+      "passed": true,
+      "details": {
+        "id": "LCX8-ACTION-0278",
+        "name": "Matter record action strip disabled under denied/review",
+        "states": [
+          {
+            "url": "/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+            "state_text_matched": true,
+            "control_count": 4,
+            "enabled_visible_control_count": 0,
+            "enabled_visible_controls": [],
+            "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0278-denied.png"
+          },
+          {
+            "url": "/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+            "state_text_matched": true,
+            "control_count": 4,
+            "enabled_visible_control_count": 0,
+            "enabled_visible_controls": [],
+            "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0278-review.png"
+          }
+        ],
+        "passed": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0279 mutation affordance disabled",
+      "passed": true,
+      "details": {
+        "id": "LCX8-ACTION-0279",
+        "name": "Matter Vault action strip disabled under denied/review",
+        "states": [
+          {
+            "url": "/?locale=ko&view=matters&data=live&ctx=denied#matter-vault",
+            "state_text_matched": true,
+            "control_count": 0,
+            "enabled_visible_control_count": 0,
+            "enabled_visible_controls": [],
+            "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0279-denied.png"
+          },
+          {
+            "url": "/?locale=ko&view=matters&data=live&ctx=review#matter-vault",
+            "state_text_matched": true,
+            "control_count": 0,
+            "enabled_visible_control_count": 0,
+            "enabled_visible_controls": [],
+            "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0279-review.png"
+          }
+        ],
+        "passed": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0323 HRX step-up API and UI retry",
+      "passed": true,
+      "details": {
+        "id": "LCX8-ACTION-0323",
+        "name": "HRX audit step-up retry",
+        "api": {
+          "challenged": {
+            "status": 403,
+            "safe_error_code": "HRX_STEP_UP_REQUIRED",
+            "step_up_required": true
+          },
+          "stale": {
+            "status": 403,
+            "safe_error_code": "HRX_STEP_UP_REQUIRED",
+            "step_up_required": true
+          },
+          "allowed": {
+            "status": 200,
+            "outcome": "ok",
+            "event_count": 1
+          }
+        },
+        "ui": {
+          "routed_step_up_responses": 2,
+          "challenge_text": "추가 확인이 필요합니다 인사기록을 보려면 다시 확인하세요. 확인 후 권한이 있는 정보만 표시됩니다. 권한 확인 다시 확인",
+          "retry_button_clicked": true,
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0323-step-up.png"
+        },
+        "passed": true
+      }
+    },
+    {
+      "name": "no unexpected guarded proof console errors",
+      "passed": true,
+      "details": {
+        "unexpectedConsoleErrors": []
+      }
+    }
+  ],
+  "rowProofs": [
+    {
+      "id": "LCX8-ACTION-0272",
+      "name": "Client list denied state",
+      "url": "/?locale=ko&view=clients&data=live&ctx=denied#clients-list",
+      "state_selector": ".live-data-denied",
+      "state_text": "접근 권한이 없습니다 권한이 있는 의뢰인만 표시합니다.",
+      "table_rows": 0,
+      "people_runtime_grid_count": 0,
+      "leaked_tokens": null,
+      "responses": [
+        {
+          "check": null,
+          "method": "GET",
+          "status": 403,
+          "path": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+          "body": {
+            "outcome": "blocked",
+            "ui_state": "denied",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "MASTER_DATA_API_UNAUTHORIZED_OMISSION"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 403,
+          "path": "/api/hrx/legal-people/search?client_id=client_lcx_001",
+          "body": {
+            "outcome": "denied",
+            "ui_state": "denied",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "HRX_LEGAL_PEOPLE_ACCESS_DENIED"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": null
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 403,
+          "path": "/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "body": {
+            "outcome": "blocked",
+            "ui_state": "denied",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 403,
+          "path": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "body": {
+            "outcome": "blocked",
+            "ui_state": "denied",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 403,
+          "path": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "body": {
+            "outcome": "blocked",
+            "ui_state": "denied",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 403,
+          "path": "/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "body": {
+            "outcome": "blocked",
+            "ui_state": "denied",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 403,
+          "path": "/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "body": {
+            "outcome": "blocked",
+            "ui_state": "denied",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 403,
+          "path": "/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "body": {
+            "outcome": "blocked",
+            "ui_state": "denied",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 403,
+          "path": "/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+          "body": {
+            "outcome": "blocked",
+            "ui_state": "denied",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        }
+      ],
+      "api_5xx_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0272-proof.png",
+      "passed": true,
+      "status_decision": "GUARDED final state confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0273",
+      "name": "Client list review state",
+      "url": "/?locale=ko&view=clients&data=live&ctx=review#clients-list",
+      "state_selector": ".live-data-review",
+      "state_text": "검토가 필요합니다 검토가 끝나면 의뢰인 정보를 확인할 수 있습니다.",
+      "table_rows": 0,
+      "people_runtime_grid_count": 0,
+      "leaked_tokens": null,
+      "responses": [
+        {
+          "check": null,
+          "method": "GET",
+          "status": 200,
+          "path": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+          "body": {
+            "outcome": "review_required",
+            "ui_state": "review_required",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "MASTER_DATA_REVIEW_REQUIRED"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 200,
+          "path": "/api/hrx/legal-people/search?client_id=client_lcx_001",
+          "body": {
+            "outcome": "review_required",
+            "ui_state": "review_required",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "HRX_LEGAL_PEOPLE_REVIEW_REQUIRED"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": null
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 200,
+          "path": "/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "body": {
+            "outcome": "review_required",
+            "ui_state": "review_required",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "CRM_INTAKE_REVIEW_REQUIRED"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 200,
+          "path": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "body": {
+            "outcome": "review_required",
+            "ui_state": "review_required",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "CRM_INTAKE_REVIEW_REQUIRED"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 200,
+          "path": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "body": {
+            "outcome": "review_required",
+            "ui_state": "review_required",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "CRM_INTAKE_REVIEW_REQUIRED"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 200,
+          "path": "/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "body": {
+            "outcome": "review_required",
+            "ui_state": "review_required",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "CRM_INTAKE_REVIEW_REQUIRED"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 200,
+          "path": "/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "body": {
+            "outcome": "review_required",
+            "ui_state": "review_required",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "CRM_INTAKE_REVIEW_REQUIRED"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 200,
+          "path": "/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "body": {
+            "outcome": "review_required",
+            "ui_state": "review_required",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "CRM_INTAKE_REVIEW_REQUIRED"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 200,
+          "path": "/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+          "body": {
+            "outcome": "review_required",
+            "ui_state": "review_required",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "CRM_INTAKE_REVIEW_REQUIRED"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        }
+      ],
+      "api_5xx_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0273-proof.png",
+      "passed": true,
+      "status_decision": "GUARDED final state confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0274",
+      "name": "Matter list denied state",
+      "url": "/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+      "state_selector": ".live-data-denied",
+      "state_text": "접근 권한이 없습니다 권한이 있는 정보만 표시됩니다.",
+      "table_rows": 0,
+      "people_runtime_grid_count": 0,
+      "leaked_tokens": null,
+      "responses": [
+        {
+          "check": null,
+          "method": "GET",
+          "status": 403,
+          "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+          "body": {
+            "outcome": "blocked",
+            "ui_state": "denied",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "MATTER_UNAUTHORIZED_OMISSION"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 403,
+          "path": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+          "body": {
+            "outcome": "blocked",
+            "ui_state": "denied",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "MATTER_UNAUTHORIZED_OMISSION"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 403,
+          "path": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+          "body": {
+            "outcome": "denied",
+            "ui_state": "denied",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "RECORD_ACTIONS_PERMISSION_REQUIRED"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 200,
+          "path": "/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+          "body": {
+            "outcome": "ok",
+            "ui_state": null,
+            "safe_error_code": null,
+            "safe_error_codes": [],
+            "step_up_required": false,
+            "count_leak_prevented": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": null
+          }
+        }
+      ],
+      "api_5xx_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0274-proof.png",
+      "passed": true,
+      "status_decision": "GUARDED final state confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0275",
+      "name": "Matter list review state",
+      "url": "/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+      "state_selector": ".live-data-review",
+      "state_text": "검토가 필요합니다 검토가 끝나면 Matter 목록을 확인할 수 있습니다.",
+      "table_rows": 0,
+      "people_runtime_grid_count": 0,
+      "leaked_tokens": null,
+      "responses": [
+        {
+          "check": null,
+          "method": "GET",
+          "status": 200,
+          "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+          "body": {
+            "outcome": "review_required",
+            "ui_state": "review_required",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "MATTER_REVIEW_REQUIRED"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 200,
+          "path": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+          "body": {
+            "outcome": "review_required",
+            "ui_state": "review_required",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "MATTER_REVIEW_REQUIRED"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 200,
+          "path": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+          "body": {
+            "outcome": "review_required",
+            "ui_state": "review_required",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "RECORD_ACTIONS_REVIEW_REQUIRED"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        },
+        {
+          "check": null,
+          "method": "GET",
+          "status": 200,
+          "path": "/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+          "body": {
+            "outcome": "ok",
+            "ui_state": null,
+            "safe_error_code": null,
+            "safe_error_codes": [],
+            "step_up_required": false,
+            "count_leak_prevented": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": null
+          }
+        }
+      ],
+      "api_5xx_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0275-proof.png",
+      "passed": true,
+      "status_decision": "GUARDED final state confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0276",
+      "name": "Vault documents denied state",
+      "url": "/?locale=ko&view=vault&data=live&ctx=denied#vault-documents",
+      "state_selector": ".live-data-denied",
+      "state_text": "접근 권한이 없습니다 권한이 있는 정보만 표시됩니다.",
+      "table_rows": 0,
+      "people_runtime_grid_count": 0,
+      "leaked_tokens": null,
+      "responses": [
+        {
+          "check": null,
+          "method": "GET",
+          "status": 403,
+          "path": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe",
+          "body": {
+            "outcome": "blocked",
+            "ui_state": "denied",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "VAULT_DMS_UNAUTHORIZED_OMISSION"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        }
+      ],
+      "api_5xx_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0276-proof.png",
+      "passed": true,
+      "status_decision": "GUARDED final state confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0277",
+      "name": "Vault documents review state",
+      "url": "/?locale=ko&view=vault&data=live&ctx=review#vault-documents",
+      "state_selector": ".live-data-review",
+      "state_text": "검토가 필요합니다 검토가 끝나면 Vault 문서를 확인할 수 있습니다.",
+      "table_rows": 0,
+      "people_runtime_grid_count": 0,
+      "leaked_tokens": null,
+      "responses": [
+        {
+          "check": null,
+          "method": "GET",
+          "status": 200,
+          "path": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe",
+          "body": {
+            "outcome": "review_required",
+            "ui_state": "review_required",
+            "safe_error_code": null,
+            "safe_error_codes": [
+              "VAULT_DMS_REVIEW_REQUIRED"
+            ],
+            "step_up_required": false,
+            "count_leak_prevented": true,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false,
+            "production_ready_claim": false,
+            "item_count": 0
+          }
+        }
+      ],
+      "api_5xx_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0277-proof.png",
+      "passed": true,
+      "status_decision": "GUARDED final state confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0280",
+      "name": "People directory denied/review state",
+      "url": "/?locale=ko&view=people&data=live&ctx=denied#people-directory",
+      "state_selector": "[data-lcx8-people-guard-state='true']",
+      "state_text": "접근 권한이 없습니다 권한이 있는 People 정보만 표시합니다.",
+      "table_rows": 0,
+      "people_runtime_grid_count": 0,
+      "leaked_tokens": null,
+      "responses": [],
+      "api_5xx_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0280-proof.png",
+      "passed": true,
+      "status_decision": "GUARDED final state confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0280:review",
+      "name": "People directory denied/review state",
+      "url": "/?locale=ko&view=people&data=live&ctx=review#people-directory",
+      "state_selector": "[data-lcx8-people-guard-state='true']",
+      "state_text": "검토가 필요합니다 검토가 끝나면 People 정보를 확인할 수 있습니다.",
+      "table_rows": 0,
+      "people_runtime_grid_count": 0,
+      "leaked_tokens": null,
+      "responses": [],
+      "api_5xx_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0280-review.png",
+      "passed": true,
+      "status_decision": "GUARDED final state confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0278",
+      "name": "Matter record action strip disabled under denied/review",
+      "states": [
+        {
+          "url": "/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+          "state_text_matched": true,
+          "control_count": 4,
+          "enabled_visible_control_count": 0,
+          "enabled_visible_controls": [],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0278-denied.png"
+        },
+        {
+          "url": "/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+          "state_text_matched": true,
+          "control_count": 4,
+          "enabled_visible_control_count": 0,
+          "enabled_visible_controls": [],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0278-review.png"
+        }
+      ],
+      "passed": true,
+      "status_decision": "GUARDED final state confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0279",
+      "name": "Matter Vault action strip disabled under denied/review",
+      "states": [
+        {
+          "url": "/?locale=ko&view=matters&data=live&ctx=denied#matter-vault",
+          "state_text_matched": true,
+          "control_count": 0,
+          "enabled_visible_control_count": 0,
+          "enabled_visible_controls": [],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0279-denied.png"
+        },
+        {
+          "url": "/?locale=ko&view=matters&data=live&ctx=review#matter-vault",
+          "state_text_matched": true,
+          "control_count": 0,
+          "enabled_visible_control_count": 0,
+          "enabled_visible_controls": [],
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0279-review.png"
+        }
+      ],
+      "passed": true,
+      "status_decision": "GUARDED final state confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0323",
+      "name": "HRX audit step-up retry",
+      "api": {
+        "challenged": {
+          "status": 403,
+          "safe_error_code": "HRX_STEP_UP_REQUIRED",
+          "step_up_required": true
+        },
+        "stale": {
+          "status": 403,
+          "safe_error_code": "HRX_STEP_UP_REQUIRED",
+          "step_up_required": true
+        },
+        "allowed": {
+          "status": 200,
+          "outcome": "ok",
+          "event_count": 1
+        }
+      },
+      "ui": {
+        "routed_step_up_responses": 2,
+        "challenge_text": "추가 확인이 필요합니다 인사기록을 보려면 다시 확인하세요. 확인 후 권한이 있는 정보만 표시됩니다. 권한 확인 다시 확인",
+        "retry_button_clicked": true,
+        "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0323-step-up.png"
+      },
+      "passed": true,
+      "status_decision": "GUARDED final state confirmed"
+    }
+  ],
+  "console_messages_recorded_not_gated": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    }
+  ],
+  "unexpected_console_errors": [],
+  "non_claims": [
+    "guarded/fail-closed state proof only",
+    "no mutation/write success claimed",
+    "no protected row/detail/payload visibility claimed",
+    "HRX step-up UI challenge is driven with the real server response shape via browser route interception plus direct API proof",
+    "no production-ready or go-live claim"
+  ]
+}

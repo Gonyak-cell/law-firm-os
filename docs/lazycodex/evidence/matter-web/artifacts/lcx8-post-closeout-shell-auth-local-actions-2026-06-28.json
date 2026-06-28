@@ -1,0 +1,157 @@
+{
+  "schema_version": "law-firm-os.lcx8.post-closeout.shell-auth-local-actions.v0.1",
+  "generated_at": "2026-06-28T05:30:09.788Z",
+  "batch_id": "LCX8-ALL-23",
+  "action_ids": [
+    "LCX8-ACTION-0004",
+    "LCX8-ACTION-0005",
+    "LCX8-ACTION-0017",
+    "LCX8-ACTION-0027",
+    "LCX8-ACTION-0028",
+    "LCX8-ACTION-0032",
+    "LCX8-ACTION-0033",
+    "LCX8-ACTION-0034",
+    "LCX8-ACTION-0112",
+    "LCX8-ACTION-0113",
+    "LCX8-ACTION-0164",
+    "LCX8-ACTION-0165",
+    "LCX8-ACTION-0296",
+    "LCX8-ACTION-0297",
+    "LCX8-ACTION-0301",
+    "LCX8-ACTION-0302"
+  ],
+  "status_before": "FAIL",
+  "status_after": "PASS",
+  "remediation_lane_after": "resolved",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0004-0034-0112-0113-0164-0165-0296-0302-shell-auth-local-actions-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0004-0034-0112-0113-0164-0165-0296-0302-shell-auth-local-actions-proof.md",
+  "counts_before": {
+    "PASS": 132,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 36,
+    "FAIL": 19,
+    "UNKNOWN": 0
+  },
+  "counts_after": {
+    "PASS": 132,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 36,
+    "FAIL": 19,
+    "UNKNOWN": 0
+  },
+  "source_fixes": [
+    "apps/web/src/components/AuthSurface.jsx wires Remember me and Forgot password to visible local login state.",
+    "apps/web/src/components/Shell.jsx wires topbar help, notification footer actions, workspace card, and sidebar utilities to visible local state panels.",
+    "apps/web/src/styles.css styles the new local-state panels using existing Shell/Auth visual primitives."
+  ],
+  "evidence": [
+    {
+      "id": "LCX8-ACTION-0004",
+      "observed_text": "이 기기에서 로그인 이메일을 기억합니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0004-remember-me-proof.png",
+      "dom_label": null
+    },
+    {
+      "id": "LCX8-ACTION-0005",
+      "observed_text": "비밀번호 재설정 안내를 보낼 계정을 확인합니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0005-forgot-password-proof.png",
+      "dom_label": null
+    },
+    {
+      "id": "LCX8-ACTION-0017",
+      "observed_text": "도움말 현재 화면의 운영 상태와 권한 경계를 확인합니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0017-help-proof.png",
+      "dom_label": null
+    },
+    {
+      "id": "LCX8-ACTION-0027",
+      "observed_text": "모든 알림을 읽음으로 표시했습니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0027-notifications-read-proof.png",
+      "dom_label": null
+    },
+    {
+      "id": "LCX8-ACTION-0028",
+      "observed_text": "알림 설정은 이 기기에서만 표시됩니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0028-notification-settings-proof.png",
+      "dom_label": null
+    },
+    {
+      "id": "LCX8-ACTION-0034",
+      "observed_text": "Home 작업공간 작업공간 전환 메뉴를 이 화면에서 확인합니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0034-workspace-menu-proof.png",
+      "dom_label": null
+    },
+    {
+      "id": "LCX8-ACTION-0032",
+      "observed_text": "작업공간 설정 Home 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0032-workspace-settings-proof.png",
+      "dom_label": null
+    },
+    {
+      "id": "LCX8-ACTION-0033",
+      "observed_text": "태그 관리 Home 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0033-tag-management-proof.png",
+      "dom_label": null
+    },
+    {
+      "id": "LCX8-ACTION-0112",
+      "observed_text": "Client 설정 Client 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0112-client-settings-proof.png",
+      "dom_label": null
+    },
+    {
+      "id": "LCX8-ACTION-0113",
+      "observed_text": "태그 관리 Client 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0113-client-tags-proof.png",
+      "dom_label": null
+    },
+    {
+      "id": "LCX8-ACTION-0164",
+      "observed_text": "회사 설정 구성원 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0164-people-settings-proof.png",
+      "dom_label": "회사 설정"
+    },
+    {
+      "id": "LCX8-ACTION-0165",
+      "observed_text": "권한 구성원 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0165-people-permissions-proof.png",
+      "dom_label": "권한"
+    },
+    {
+      "id": "LCX8-ACTION-0296",
+      "observed_text": "Matter 설정 Matter 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0296-matter-settings-proof.png",
+      "dom_label": null
+    },
+    {
+      "id": "LCX8-ACTION-0297",
+      "observed_text": "태그 관리 Matter 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0297-matter-tags-proof.png",
+      "dom_label": null
+    },
+    {
+      "id": "LCX8-ACTION-0301",
+      "observed_text": "Vault 설정 Vault 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0301-vault-settings-proof.png",
+      "dom_label": null
+    },
+    {
+      "id": "LCX8-ACTION-0302",
+      "observed_text": "문서 태그 Vault 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0302-vault-tags-proof.png",
+      "dom_label": null
+    }
+  ],
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0004/0005/0017/0027/0028/0032/0033/0034/0112/0113/0164/0165/0296/0297/0301/0302 shell/auth local-action verification: proof PASS 18/18; browser clicked login remember, forgot password, topbar help, notification mark-read/settings, workspace menu, and sidebar utilities across Home, Client, People, Matter, and Vault. Each row produced visible local UI state, no page errors, no unexpected console errors, and no persistence/API-write/production-ready/go-live claim. npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS with existing Vite chunk-size warning only; MATTER_UI_URL=http://127.0.0.1:5174 npm run ui:flows:verify PASS 9/9; MATTER_UI_URL=http://127.0.0.1:5174 npm run ui:live:verify PASS 13/13; git diff --check PASS; sloplint exited 0 with 33 existing weak stylesheet findings and no new shadow/glow hit from this batch.",
+  "non_claims": [
+    "local browser UI-state proof only",
+    "no persistence or durable reload proof required for these rows",
+    "no API write claim",
+    "no external receipt claim",
+    "no production go-live or production-ready claim"
+  ]
+}

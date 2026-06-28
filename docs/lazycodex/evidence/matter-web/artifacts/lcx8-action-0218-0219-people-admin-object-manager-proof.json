@@ -1,0 +1,920 @@
+{
+  "id": "lcx8-action-0218-0219-people-admin-object-manager-proof",
+  "generated_at": "2026-06-27T01:28:48.485Z",
+  "status": "PASS",
+  "target_ids": [
+    "LCX8-ACTION-0218",
+    "LCX8-ACTION-0219"
+  ],
+  "batch": "LCX8-ALL-10",
+  "base_url": "http://127.0.0.1:5173",
+  "api_base_url": "http://127.0.0.1:4180",
+  "browser_proof": {
+    "route": "/?locale=ko&view=people&data=live&ctx=allow#people-admin",
+    "tab_texts": [
+      "Client",
+      "Matter"
+    ],
+    "initial_responses": [
+      {
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "permission_sets"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "permission_assignments"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "objects"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "connected_apps"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "admin_audit"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics",
+        "status": 200,
+        "key": "hrx_ethics"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "client_fields"
+      }
+    ],
+    "matter": {
+      "clicked_label": "Matter",
+      "active": true,
+      "panel_meta": "Matter",
+      "text_excerpt": "구성원 커스텀 필드\nMatter\nClient\nMatter\n항목\t표시\t상태\t구조 변경\ntitle\tvisible\t활성\t아니오\nrisk level\tvisible\t활성\t아니오\nwip status\tvisible\t활성\t아니오\n표시 방식 수정\n커스텀 항목\n아직 실행 전",
+      "responses_after_click": [
+        {
+          "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+          "status": 200,
+          "key": "permission_sets"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+          "status": 200,
+          "key": "permission_assignments"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+          "status": 200,
+          "key": "objects"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+          "status": 200,
+          "key": "connected_apps"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+          "status": 200,
+          "key": "admin_audit"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics",
+          "status": 200,
+          "key": "hrx_ethics"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Matter/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+          "status": 200,
+          "key": "matter_fields"
+        }
+      ],
+      "fields_endpoint_observed": true,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0219-people-admin-matter-tab-proof.png"
+    },
+    "client": {
+      "clicked_label": "Client",
+      "active": true,
+      "panel_meta": "Client",
+      "text_excerpt": "구성원 커스텀 필드\nClient\nClient\nMatter\n항목\t표시\t상태\t구조 변경\ndisplay name\tvisible\t활성\t아니오\nstatus\tvisible\t활성\t아니오\nowner ref\tvisible\t활성\t아니오\n표시 방식 수정\n커스텀 항목\n아직 실행 전",
+      "responses_after_click": [
+        {
+          "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+          "status": 200,
+          "key": "permission_sets"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+          "status": 200,
+          "key": "permission_assignments"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+          "status": 200,
+          "key": "objects"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+          "status": 200,
+          "key": "connected_apps"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+          "status": 200,
+          "key": "admin_audit"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics",
+          "status": 200,
+          "key": "hrx_ethics"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+          "status": 200,
+          "key": "client_fields"
+        }
+      ],
+      "fields_endpoint_observed": true,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0218-people-admin-client-tab-proof.png"
+    },
+    "all_tracked_responses": [
+      {
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "permission_sets"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "permission_assignments"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "objects"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "connected_apps"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "admin_audit"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics",
+        "status": 200,
+        "key": "hrx_ethics"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "client_fields"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "permission_sets"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "permission_assignments"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "objects"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "connected_apps"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "admin_audit"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics",
+        "status": 200,
+        "key": "hrx_ethics"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Matter/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "matter_fields"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/permission-sets?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "permission_sets"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/permission-assignments?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "permission_assignments"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "objects"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/connected-apps?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "connected_apps"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/audit?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "admin_audit"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics",
+        "status": 200,
+        "key": "hrx_ethics"
+      },
+      {
+        "url": "http://127.0.0.1:5173/api/admin/object-manager/objects/Client/fields?tenant_id=tenant_sf_b_w06_synthetic&permission_ref=ui_sf_b_w06_permission_admin&audit_hint_ref=ui_sf_b_w06_permission_admin_probe",
+        "status": 200,
+        "key": "client_fields"
+      }
+    ],
+    "observed_keys": [
+      "admin_audit",
+      "client_fields",
+      "connected_apps",
+      "hrx_ethics",
+      "matter_fields",
+      "objects",
+      "permission_assignments",
+      "permission_sets"
+    ],
+    "api_5xx_count": 0,
+    "console_events": []
+  },
+  "guarded_browser_proofs": [
+    {
+      "route": "/?locale=ko&view=people&data=live&ctx=denied#people-admin",
+      "ctx": "denied",
+      "guard_visible": true,
+      "guard_text": "접근 권한이 없습니다\n권한이 있는 People 정보만 표시합니다.",
+      "object_tab_count": 0,
+      "protected_request_count_after_guard_route": 0,
+      "api_5xx_count": 0,
+      "console_events": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0218-0219-people-admin-denied-guard-proof.png"
+    },
+    {
+      "route": "/?locale=ko&view=people&data=live&ctx=review#people-admin",
+      "ctx": "review",
+      "guard_visible": true,
+      "guard_text": "검토가 필요합니다\n검토가 끝나면 People 정보를 확인할 수 있습니다.",
+      "object_tab_count": 0,
+      "protected_request_count_after_guard_route": 0,
+      "api_5xx_count": 0,
+      "console_events": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0218-0219-people-admin-review-guard-proof.png"
+    }
+  ],
+  "direct_admin_probes": [
+    {
+      "endpoint": "/api/admin/permission-sets",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "item_count": 1,
+      "count_leak_prevented": null,
+      "no_payload_leak": null,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/permission-assignments",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "item_count": 1,
+      "count_leak_prevented": null,
+      "no_payload_leak": null,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/object-manager/objects",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "item_count": 2,
+      "count_leak_prevented": null,
+      "no_payload_leak": null,
+      "physical_schema_mutation_allowed": false,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "items",
+        "outcome",
+        "physical_schema_mutation_allowed",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/connected-apps",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "item_count": 2,
+      "count_leak_prevented": null,
+      "no_payload_leak": null,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/audit",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "item_count": 0,
+      "count_leak_prevented": null,
+      "no_payload_leak": null,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/object-manager/objects/Client/fields",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "item_count": 3,
+      "count_leak_prevented": null,
+      "no_payload_leak": null,
+      "physical_schema_mutation_allowed": false,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "items",
+        "outcome",
+        "physical_schema_mutation_allowed",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/object-manager/objects/Matter/fields",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "item_count": 3,
+      "count_leak_prevented": null,
+      "no_payload_leak": null,
+      "physical_schema_mutation_allowed": false,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "items",
+        "outcome",
+        "physical_schema_mutation_allowed",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/permission-sets",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "denied",
+      "ui_state": "denied",
+      "item_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/permission-assignments",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "denied",
+      "ui_state": "denied",
+      "item_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/object-manager/objects",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "denied",
+      "ui_state": "denied",
+      "item_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/connected-apps",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "denied",
+      "ui_state": "denied",
+      "item_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/audit",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "denied",
+      "ui_state": "denied",
+      "item_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/object-manager/objects/Client/fields",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "denied",
+      "ui_state": "denied",
+      "item_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/object-manager/objects/Matter/fields",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "denied",
+      "ui_state": "denied",
+      "item_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/permission-sets",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "item_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/permission-assignments",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "item_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/object-manager/objects",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "item_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/connected-apps",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "item_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/audit",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "item_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/object-manager/objects/Client/fields",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "item_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/admin/object-manager/objects/Matter/fields",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "item_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "physical_schema_mutation_allowed": null,
+      "production_ready_claim": false,
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    }
+  ],
+  "direct_hrx_ethics_probes": [
+    {
+      "endpoint": "/api/hrx/legal-people/ethics",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "ok",
+      "ui_state": null,
+      "review_queue_count": 4,
+      "ethical_wall_count": 2,
+      "count_leak_prevented": null,
+      "no_payload_leak": null,
+      "shape": [
+        "claim_boundary",
+        "ethical_walls",
+        "filters",
+        "outcome",
+        "permission_links",
+        "permission_summary",
+        "request_id",
+        "review_queue",
+        "reviewer_receipts",
+        "schema_version",
+        "state_counts"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/ethics",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "denied",
+      "ui_state": "denied",
+      "review_queue_count": 0,
+      "ethical_wall_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "ethical_walls",
+        "fail_closed",
+        "outcome",
+        "permission_links",
+        "permission_summary",
+        "request_id",
+        "review_queue",
+        "review_required",
+        "reviewer_receipts",
+        "safe_error_codes",
+        "schema_version",
+        "state_counts",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/ethics",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "review_queue_count": 0,
+      "ethical_wall_count": 0,
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "ethical_walls",
+        "fail_closed",
+        "outcome",
+        "permission_links",
+        "permission_summary",
+        "request_id",
+        "review_queue",
+        "review_required",
+        "reviewer_receipts",
+        "safe_error_codes",
+        "schema_version",
+        "state_counts",
+        "ui_state"
+      ]
+    }
+  ],
+  "screenshots": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0218-people-admin-client-tab-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0219-people-admin-matter-tab-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0218-0219-people-admin-denied-guard-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0218-0219-people-admin-review-guard-proof.png"
+  ],
+  "assertions": [
+    {
+      "name": "client_and_matter_tabs_visible",
+      "pass": true
+    },
+    {
+      "name": "matter_tab_click_makes_matter_active",
+      "pass": true
+    },
+    {
+      "name": "client_tab_click_makes_client_active",
+      "pass": true
+    },
+    {
+      "name": "matter_fields_endpoint_observed",
+      "pass": true
+    },
+    {
+      "name": "client_fields_endpoint_observed",
+      "pass": true
+    },
+    {
+      "name": "admin_collections_and_hrx_ethics_observed",
+      "pass": true
+    },
+    {
+      "name": "no_browser_5xx",
+      "pass": true
+    },
+    {
+      "name": "no_browser_console_errors",
+      "pass": true
+    },
+    {
+      "name": "guarded_people_admin_routes_show_guard",
+      "pass": true
+    },
+    {
+      "name": "guarded_people_admin_routes_hide_object_tabs",
+      "pass": true
+    },
+    {
+      "name": "guarded_people_admin_routes_make_no_admin_or_hrx_requests",
+      "pass": true
+    },
+    {
+      "name": "direct_admin_allow_probes_passed",
+      "pass": true
+    },
+    {
+      "name": "direct_admin_denied_probes_fail_closed",
+      "pass": true
+    },
+    {
+      "name": "direct_admin_review_probes_review_required",
+      "pass": true
+    },
+    {
+      "name": "direct_hrx_ethics_allow_denied_review_probes_passed",
+      "pass": true
+    }
+  ],
+  "non_claims": [
+    "This is read-only object-manager tab switch proof; no admin permission write action is claimed.",
+    "LCX8-ACTION-0218/0219 proof does not claim production schema mutation, connected-app provider execution, or final launch readiness."
+  ]
+}

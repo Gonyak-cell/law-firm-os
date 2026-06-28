@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   CalendarDays,
   ChevronRight,
@@ -12,12 +12,35 @@ import {
 } from "lucide-react";
 
 const actionCards = [
-  { label: "비용·정산 내역", icon: ReceiptText },
-  { label: "개인정보 관리", icon: IdCard },
-  { label: "부재 일정", icon: CalendarDays }
+  { label: "비용·정산 내역", icon: ReceiptText, body: "비용과 정산 내역은 프로필 데이터 연결 후 표시합니다." },
+  { label: "개인정보 관리", icon: IdCard, body: "개인정보 변경은 인증된 프로필 API 연결 후 진행합니다." },
+  { label: "부재 일정", icon: CalendarDays, body: "부재 일정은 캘린더 연동 후 확인합니다." }
 ];
 
+const profileSections = {
+  expenses: {
+    title: "비용 관리",
+    body: "비용 관리 화면을 열었습니다. 실제 비용 데이터가 연결되면 제출 내역과 검토 상태를 표시합니다."
+  },
+  transactions: {
+    title: "정산 내역",
+    body: "정산 내역 화면을 열었습니다. 실제 정산 API가 연결되면 지급 상태를 표시합니다."
+  },
+  payments: {
+    title: "지급 설정",
+    body: "지급 설정 화면을 열었습니다. 지급 수단 변경은 인증된 프로필 API 연결 후 처리합니다."
+  },
+  withdrawal: {
+    title: "입금 계좌",
+    body: "입금 계좌 화면을 열었습니다. 계좌 정보는 실제 프로필 API 연결 전까지 표시하지 않습니다."
+  }
+};
+
 export function UserProfileSurface() {
+  const [localAction, setLocalAction] = useState(null);
+  const activeSection = typeof window === "undefined" ? "" : decodeURIComponent(window.location.hash.replace(/^#/, ""));
+  const sectionState = profileSections[activeSection] ?? null;
+
   return (
     <section className="matter-profile-surface surface" data-user-profile-surface="matter-consistent">
       <div className="matter-profile-topline">
@@ -26,16 +49,33 @@ export function UserProfileSurface() {
           <p>개인 정보, 계약, 정산 설정을 한 화면에서 관리합니다.</p>
         </div>
         <div className="matter-profile-top-actions">
-          <button type="button" className="ghost-button matter-profile-help-link">
+          <button
+            type="button"
+            className="ghost-button matter-profile-help-link"
+            data-profile-help-feedback="true"
+            onClick={() => setLocalAction({ title: "도움말 및 피드백", body: "프로필 화면 도움말과 피드백 접수 상태를 열었습니다." })}
+          >
             <CircleHelp size={17} />
             도움말 및 피드백
           </button>
-          <button type="button" className="secondary-button matter-profile-contract-button">
+          <button
+            type="button"
+            className="secondary-button matter-profile-contract-button"
+            data-profile-contract-create="true"
+            onClick={() => setLocalAction({ title: "계약 생성", body: "새 계약 생성 준비 상태를 열었습니다. 실제 생성은 Matter 개시 화면에서 처리합니다." })}
+          >
             <CirclePlus size={18} />
             계약 생성
           </button>
         </div>
       </div>
+
+      {(sectionState || localAction) && (
+        <div className="live-data-state live-data-review" role="status" data-profile-local-state="true" data-profile-section-state={sectionState ? activeSection : undefined}>
+          <strong>{(localAction ?? sectionState).title}</strong>
+          {(localAction ?? sectionState).body}
+        </div>
+      )}
 
       <header className="matter-profile-hero panel">
         <div className="matter-profile-photo" aria-hidden="true">
@@ -84,8 +124,14 @@ export function UserProfileSurface() {
         </div>
 
         <aside className="matter-profile-side-stack" aria-label="프로필 작업">
-          {actionCards.map(({ label, badge, icon: Icon }) => (
-            <button type="button" className="matter-profile-action-card" key={label}>
+          {actionCards.map(({ label, badge, icon: Icon, body }) => (
+            <button
+              type="button"
+              className="matter-profile-action-card"
+              key={label}
+              data-profile-action-card={label}
+              onClick={() => setLocalAction({ title: label, body })}
+            >
               <span className="matter-profile-action-icon"><Icon size={22} /></span>
               <strong>{label}</strong>
               {badge && <span className="matter-profile-new-tag">{badge}</span>}

@@ -1,0 +1,180 @@
+{
+  "id": "lcx8-post-closeout-legal-people-search-filter-row-2026-06-27",
+  "generated_at": "2026-06-27T00:53:53.140Z",
+  "status": "PASS",
+  "batch": "LCX8-ALL-10",
+  "resolved_rows": [
+    {
+      "id": "LCX8-ACTION-0095",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "people-directory",
+      "section": "legal-people-search",
+      "label": "이름, 역할, 조직 검색",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "selector": ".legal-people-search input"
+    },
+    {
+      "id": "LCX8-ACTION-0096",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "people-directory",
+      "section": "legal-people-type-tabs",
+      "label": "전체",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "selector": ".legal-people-type-tabs button:has-text(\"전체\")"
+    },
+    {
+      "id": "LCX8-ACTION-0097",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "people-directory",
+      "section": "legal-people-type-tabs",
+      "label": "내부 변호사",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "selector": ".legal-people-type-tabs button:has-text(\"내부 변호사\")"
+    },
+    {
+      "id": "LCX8-ACTION-0098",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "people-directory",
+      "section": "legal-people-type-tabs",
+      "label": "Client",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "selector": ".legal-people-type-tabs button:has-text(\"Client\")"
+    },
+    {
+      "id": "LCX8-ACTION-0099",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "people-directory",
+      "section": "legal-people-type-tabs",
+      "label": "상대 대리인",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "selector": ".legal-people-type-tabs button:has-text(\"상대 대리인\")"
+    },
+    {
+      "id": "LCX8-ACTION-0100",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "people-directory",
+      "section": "legal-people-type-tabs",
+      "label": "전문가",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "selector": ".legal-people-type-tabs button:has-text(\"전문가\")"
+    },
+    {
+      "id": "LCX8-ACTION-0101",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "people-directory",
+      "section": "legal-people-type-tabs",
+      "label": "규제기관",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "selector": ".legal-people-type-tabs button:has-text(\"규제기관\")"
+    },
+    {
+      "id": "LCX8-ACTION-0102",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "people-directory",
+      "section": "legal-people-row-list",
+      "label": "Legal person row",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "selector": ".people-row.legal-people-row"
+    }
+  ],
+  "status_counts_before": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 36,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 103,
+    "fail": 35
+  },
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 44,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 95,
+    "fail": 35
+  },
+  "proof_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0095-0102-legal-people-search-filter-row-proof.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0095-0102-legal-people-search-filter-row-proof.md",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-legal-people-search-filter-row-2026-06-27.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-legal-people-search-filter-row-2026-06-27.md",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0095-legal-people-search-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0096-0101-legal-people-type-tabs-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0102-legal-person-row-proof.png"
+  ],
+  "proof_summary": {
+    "target_ids": [
+      "LCX8-ACTION-0095",
+      "LCX8-ACTION-0096",
+      "LCX8-ACTION-0097",
+      "LCX8-ACTION-0098",
+      "LCX8-ACTION-0099",
+      "LCX8-ACTION-0100",
+      "LCX8-ACTION-0101",
+      "LCX8-ACTION-0102"
+    ],
+    "selected_person_id": "person_arbitrator_001",
+    "tab_assertions": [
+      {
+        "id": "LCX8-ACTION-0097",
+        "pass": true,
+        "type_id": "internal_lawyer",
+        "observed_type_id": "internal_lawyer",
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=internal_lawyer"
+      },
+      {
+        "id": "LCX8-ACTION-0098",
+        "pass": true,
+        "type_id": "client_contact",
+        "observed_type_id": "client_contact",
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=client_contact"
+      },
+      {
+        "id": "LCX8-ACTION-0099",
+        "pass": true,
+        "type_id": "opposing_counsel",
+        "observed_type_id": "opposing_counsel",
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=opposing_counsel"
+      },
+      {
+        "id": "LCX8-ACTION-0100",
+        "pass": true,
+        "type_id": "expert_witness",
+        "observed_type_id": "expert_witness",
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=expert_witness"
+      },
+      {
+        "id": "LCX8-ACTION-0101",
+        "pass": true,
+        "type_id": "regulator_contact",
+        "observed_type_id": "regulator_contact",
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=regulator_contact"
+      },
+      {
+        "id": "LCX8-ACTION-0096",
+        "pass": true,
+        "type_id": "",
+        "observed_type_id": "",
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search"
+      }
+    ],
+    "direct_api_probe_count": 27
+  },
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0095..0102 verification: Legal People search/filter/row proof PASS (search query API read observed, 6/6 type tabs observed with expected type_id, row selection observed detail/relationships/ethics reads, HRX runtime headers present, no API errors, direct allow/denied/review API probes PASS for query/filter/detail/relationships/ethics with count_leak_prevented on guarded responses); node --test apps/api/test/hrx/route-authz.test.js apps/api/test/hrx-runtime-api.test.js PASS 23/23; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS. Status moved BLOCKED -> PASS for 8 rows.",
+  "non_claims": [
+    "This is read-only Legal People search/filter/selection proof; no HRX write persistence is claimed.",
+    "No production go-live or external approval is claimed."
+  ]
+}

@@ -1,0 +1,1517 @@
+{
+  "id": "lcx8-action-0114-client-refresh-api-read-proof",
+  "generated_at": "2026-06-27T01:00:49.410Z",
+  "status": "PASS",
+  "target_id": "LCX8-ACTION-0114",
+  "base_url": "http://127.0.0.1:5173",
+  "api_base_url": "http://127.0.0.1:4180",
+  "route": "/?locale=ko&view=clients&data=live&ctx=allow#clients-list",
+  "selector": "#clients-home .page-header .secondary-button",
+  "selected_client_id": "client_group_rp04_amic",
+  "selected_account_id": "org_cmp_g6_account_001",
+  "expected_active_endpoints": [
+    {
+      "key": "master-data ClientGroup",
+      "match": "/master-data/records"
+    },
+    {
+      "key": "legal people client backlink",
+      "match": "/api/hrx/legal-people/search"
+    },
+    {
+      "key": "crm leads",
+      "match": "/api/crm/leads"
+    },
+    {
+      "key": "crm opportunities",
+      "match": "/api/crm/opportunities"
+    },
+    {
+      "key": "intake requests",
+      "match": "/api/intake/requests"
+    },
+    {
+      "key": "intake audit",
+      "match": "/api/intake/audit"
+    },
+    {
+      "key": "crm accounts",
+      "match": "/api/crm/accounts"
+    },
+    {
+      "key": "crm contacts",
+      "match": "/api/crm/contacts"
+    },
+    {
+      "key": "crm duplicate merge proposals",
+      "match": "/api/crm/duplicate-merge-proposals"
+    },
+    {
+      "key": "crm account contacts",
+      "match": "/api/crm/accounts/org_cmp_g6_account_001/contacts"
+    },
+    {
+      "key": "client record-action fields",
+      "match": "/api/record-actions/client/fields"
+    },
+    {
+      "key": "client record-action audit",
+      "match": "/api/record-actions/client/client_group_rp04_amic/audit"
+    }
+  ],
+  "observed_endpoint_keys_after_refresh": [
+    "master-data ClientGroup",
+    "legal people client backlink",
+    "crm leads",
+    "crm opportunities",
+    "intake requests",
+    "intake audit",
+    "crm accounts",
+    "crm contacts",
+    "crm duplicate merge proposals",
+    "crm account contacts",
+    "client record-action fields",
+    "client record-action audit"
+  ],
+  "observed_expected_endpoints": 12,
+  "allow_browser_proof": {
+    "ctx": "allow",
+    "route": "/?locale=ko&view=clients&data=live&ctx=allow#clients-list",
+    "selector": "#clients-home .page-header .secondary-button",
+    "refresh_button_visible": true,
+    "observed_endpoint_keys_after_refresh": [
+      "master-data ClientGroup",
+      "legal people client backlink",
+      "crm leads",
+      "crm opportunities",
+      "intake requests",
+      "intake audit",
+      "crm accounts",
+      "crm contacts",
+      "crm duplicate merge proposals",
+      "crm account contacts",
+      "client record-action fields",
+      "client record-action audit"
+    ],
+    "observed_expected_endpoints": 12,
+    "expected_endpoint_count": 12,
+    "refresh_response_summary": [
+      {
+        "key": "master-data ClientGroup",
+        "match": "/master-data/records",
+        "count": 1,
+        "statuses": [
+          200
+        ]
+      },
+      {
+        "key": "legal people client backlink",
+        "match": "/api/hrx/legal-people/search",
+        "count": 1,
+        "statuses": [
+          200
+        ]
+      },
+      {
+        "key": "crm leads",
+        "match": "/api/crm/leads",
+        "count": 1,
+        "statuses": [
+          200
+        ]
+      },
+      {
+        "key": "crm opportunities",
+        "match": "/api/crm/opportunities",
+        "count": 1,
+        "statuses": [
+          200
+        ]
+      },
+      {
+        "key": "intake requests",
+        "match": "/api/intake/requests",
+        "count": 1,
+        "statuses": [
+          200
+        ]
+      },
+      {
+        "key": "intake audit",
+        "match": "/api/intake/audit",
+        "count": 1,
+        "statuses": [
+          200
+        ]
+      },
+      {
+        "key": "crm accounts",
+        "match": "/api/crm/accounts",
+        "count": 2,
+        "statuses": [
+          200
+        ]
+      },
+      {
+        "key": "crm contacts",
+        "match": "/api/crm/contacts",
+        "count": 1,
+        "statuses": [
+          200
+        ]
+      },
+      {
+        "key": "crm duplicate merge proposals",
+        "match": "/api/crm/duplicate-merge-proposals",
+        "count": 1,
+        "statuses": [
+          200
+        ]
+      },
+      {
+        "key": "crm account contacts",
+        "match": "/api/crm/accounts/org_cmp_g6_account_001/contacts",
+        "count": 1,
+        "statuses": [
+          200
+        ]
+      },
+      {
+        "key": "client record-action fields",
+        "match": "/api/record-actions/client/fields",
+        "count": 2,
+        "statuses": [
+          200
+        ]
+      },
+      {
+        "key": "client record-action audit",
+        "match": "/api/record-actions/client/client_group_rp04_amic/audit",
+        "count": 2,
+        "statuses": [
+          200
+        ]
+      }
+    ],
+    "protected_account_contacts_request_count": 1,
+    "protected_record_action_request_count": 4,
+    "guard_visible": false,
+    "api_4xx_count": 0,
+    "api_4xx": [],
+    "api_5xx_count": 0,
+    "api_5xx": [],
+    "console_events": [],
+    "text_excerpt": "Client\n\nClient와 상담 접수, 영업 기회를 한 화면에서 확인합니다.\n\n새로고침\nClient 목록\n권한 기준 적용\n검토가 필요한 Client가 있습니다.\nClient\t진행 상태\t대표 당사자\t구성원\t연결된 Matter\nClient 1\t검토 필요\t미지정\t2\t미지정\n레코드\nClient 1\n상태\n검토 필요\n대표 당사자\n미지정\n구성원\n2\n연결 Matter\n미지정\n잠재 Client\n1\n기회\n1\n접수\n1\n계정\n1\n연락처\n1\n권한 기준에 맞춰 표시됩니다.\n병합 검토 0건 / 실행 가능 0건\n데이터 보강 상태는 Client 데이터 관리에서 확인합니다.\n보고서와 손익은 Client 보고서에서 확인합니다.\n레코드 작업\nClient name / Client status\n필드 업데이트\n담당자 일괄 변경\n승인 조건 확인\n승인 확인\n최근 작업 0건",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0114-client-refresh-allow-proof.png"
+  },
+  "guarded_browser_proofs": [
+    {
+      "ctx": "denied",
+      "route": "/?locale=ko&view=clients&data=live&ctx=denied#clients-list",
+      "selector": "#clients-home .page-header .secondary-button",
+      "refresh_button_visible": true,
+      "observed_endpoint_keys_after_refresh": [
+        "master-data ClientGroup",
+        "legal people client backlink",
+        "crm leads",
+        "crm opportunities",
+        "intake requests",
+        "intake audit",
+        "crm accounts",
+        "crm contacts",
+        "crm duplicate merge proposals"
+      ],
+      "observed_expected_endpoints": 9,
+      "expected_endpoint_count": 12,
+      "refresh_response_summary": [
+        {
+          "key": "master-data ClientGroup",
+          "match": "/master-data/records",
+          "count": 1,
+          "statuses": [
+            403
+          ]
+        },
+        {
+          "key": "legal people client backlink",
+          "match": "/api/hrx/legal-people/search",
+          "count": 1,
+          "statuses": [
+            403
+          ]
+        },
+        {
+          "key": "crm leads",
+          "match": "/api/crm/leads",
+          "count": 1,
+          "statuses": [
+            403
+          ]
+        },
+        {
+          "key": "crm opportunities",
+          "match": "/api/crm/opportunities",
+          "count": 1,
+          "statuses": [
+            403
+          ]
+        },
+        {
+          "key": "intake requests",
+          "match": "/api/intake/requests",
+          "count": 1,
+          "statuses": [
+            403
+          ]
+        },
+        {
+          "key": "intake audit",
+          "match": "/api/intake/audit",
+          "count": 1,
+          "statuses": [
+            403
+          ]
+        },
+        {
+          "key": "crm accounts",
+          "match": "/api/crm/accounts",
+          "count": 1,
+          "statuses": [
+            403
+          ]
+        },
+        {
+          "key": "crm contacts",
+          "match": "/api/crm/contacts",
+          "count": 1,
+          "statuses": [
+            403
+          ]
+        },
+        {
+          "key": "crm duplicate merge proposals",
+          "match": "/api/crm/duplicate-merge-proposals",
+          "count": 1,
+          "statuses": [
+            403
+          ]
+        },
+        {
+          "key": "crm account contacts",
+          "match": "/api/crm/accounts/org_cmp_g6_account_001/contacts",
+          "count": 0,
+          "statuses": []
+        },
+        {
+          "key": "client record-action fields",
+          "match": "/api/record-actions/client/fields",
+          "count": 0,
+          "statuses": []
+        },
+        {
+          "key": "client record-action audit",
+          "match": "/api/record-actions/client/client_group_rp04_amic/audit",
+          "count": 0,
+          "statuses": []
+        }
+      ],
+      "protected_account_contacts_request_count": 0,
+      "protected_record_action_request_count": 0,
+      "guard_visible": true,
+      "api_4xx_count": 9,
+      "api_4xx": [
+        {
+          "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+          "status": 403
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+          "status": 403
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "status": 403
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "status": 403
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "status": 403
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "status": 403
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "status": 403
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "status": 403
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+          "status": 403
+        }
+      ],
+      "api_5xx_count": 0,
+      "api_5xx": [],
+      "console_events": [
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+        }
+      ],
+      "text_excerpt": "Client\n\nClient와 상담 접수, 영업 기회를 한 화면에서 확인합니다.\n\n새로고침\nClient 목록\n권한 기준 적용\n접근 권한이 없습니다\n권한이 있는 의뢰인만 표시합니다.\n레코드\nClient\n상태\n대기\n대표 당사자\n미지정\n구성원\n0\n연결 Matter\n미지정\n잠재 Client\n0\n기회\n0\n접수\n0\n계정\n0\n연락처\n0\n권한 기준에 맞춰 표시됩니다.\n병합 검토 0건 / 실행 가능 0건\n데이터 보강 상태는 Client 데이터 관리에서 확인합니다.\n보고서와 손익은 Client 보고서에서 확인합니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0114-client-refresh-denied-proof.png"
+    },
+    {
+      "ctx": "review",
+      "route": "/?locale=ko&view=clients&data=live&ctx=review#clients-list",
+      "selector": "#clients-home .page-header .secondary-button",
+      "refresh_button_visible": true,
+      "observed_endpoint_keys_after_refresh": [
+        "master-data ClientGroup",
+        "legal people client backlink",
+        "crm leads",
+        "crm opportunities",
+        "intake requests",
+        "intake audit",
+        "crm accounts",
+        "crm contacts",
+        "crm duplicate merge proposals"
+      ],
+      "observed_expected_endpoints": 9,
+      "expected_endpoint_count": 12,
+      "refresh_response_summary": [
+        {
+          "key": "master-data ClientGroup",
+          "match": "/master-data/records",
+          "count": 1,
+          "statuses": [
+            200
+          ]
+        },
+        {
+          "key": "legal people client backlink",
+          "match": "/api/hrx/legal-people/search",
+          "count": 1,
+          "statuses": [
+            200
+          ]
+        },
+        {
+          "key": "crm leads",
+          "match": "/api/crm/leads",
+          "count": 1,
+          "statuses": [
+            200
+          ]
+        },
+        {
+          "key": "crm opportunities",
+          "match": "/api/crm/opportunities",
+          "count": 1,
+          "statuses": [
+            200
+          ]
+        },
+        {
+          "key": "intake requests",
+          "match": "/api/intake/requests",
+          "count": 1,
+          "statuses": [
+            200
+          ]
+        },
+        {
+          "key": "intake audit",
+          "match": "/api/intake/audit",
+          "count": 1,
+          "statuses": [
+            200
+          ]
+        },
+        {
+          "key": "crm accounts",
+          "match": "/api/crm/accounts",
+          "count": 1,
+          "statuses": [
+            200
+          ]
+        },
+        {
+          "key": "crm contacts",
+          "match": "/api/crm/contacts",
+          "count": 1,
+          "statuses": [
+            200
+          ]
+        },
+        {
+          "key": "crm duplicate merge proposals",
+          "match": "/api/crm/duplicate-merge-proposals",
+          "count": 1,
+          "statuses": [
+            200
+          ]
+        },
+        {
+          "key": "crm account contacts",
+          "match": "/api/crm/accounts/org_cmp_g6_account_001/contacts",
+          "count": 0,
+          "statuses": []
+        },
+        {
+          "key": "client record-action fields",
+          "match": "/api/record-actions/client/fields",
+          "count": 0,
+          "statuses": []
+        },
+        {
+          "key": "client record-action audit",
+          "match": "/api/record-actions/client/client_group_rp04_amic/audit",
+          "count": 0,
+          "statuses": []
+        }
+      ],
+      "protected_account_contacts_request_count": 0,
+      "protected_record_action_request_count": 0,
+      "guard_visible": true,
+      "api_4xx_count": 0,
+      "api_4xx": [],
+      "api_5xx_count": 0,
+      "api_5xx": [],
+      "console_events": [],
+      "text_excerpt": "Client\n\nClient와 상담 접수, 영업 기회를 한 화면에서 확인합니다.\n\n새로고침\nClient 목록\n권한 기준 적용\n검토가 필요합니다\n검토가 끝나면 의뢰인 정보를 확인할 수 있습니다.\n레코드\nClient\n상태\n대기\n대표 당사자\n미지정\n구성원\n0\n연결 Matter\n미지정\n잠재 Client\n0\n기회\n0\n접수\n0\n계정\n0\n연락처\n0\n권한 기준에 맞춰 표시됩니다.\n병합 검토 0건 / 실행 가능 0건\n데이터 보강 상태는 Client 데이터 관리에서 확인합니다.\n보고서와 손익은 Client 보고서에서 확인합니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0114-client-refresh-review-proof.png"
+    }
+  ],
+  "direct_api_probes": [
+    {
+      "key": "master-data ClientGroup",
+      "endpoint": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "count_leak_prevented": null,
+      "item_count": 1,
+      "people_count": null,
+      "safe_error_codes": [],
+      "shape": [
+        "audit_hint_ref",
+        "items",
+        "omitted_fields",
+        "outcome",
+        "page_info",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "legal people client backlink",
+      "endpoint": "/api/hrx/legal-people/search?client_id=client_lcx_001",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "ok",
+      "ui_state": null,
+      "count_leak_prevented": null,
+      "item_count": null,
+      "people_count": 3,
+      "safe_error_codes": [],
+      "shape": [
+        "claim_boundary",
+        "facets",
+        "filters",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "schema_version"
+      ]
+    },
+    {
+      "key": "crm leads",
+      "endpoint": "/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "count_leak_prevented": true,
+      "item_count": 1,
+      "people_count": null,
+      "safe_error_codes": [],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "page_info",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm opportunities",
+      "endpoint": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "count_leak_prevented": true,
+      "item_count": 1,
+      "people_count": null,
+      "safe_error_codes": [],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "page_info",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "intake requests",
+      "endpoint": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "count_leak_prevented": true,
+      "item_count": 1,
+      "people_count": null,
+      "safe_error_codes": [],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "page_info",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "intake audit",
+      "endpoint": "/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes"
+      ]
+    },
+    {
+      "key": "crm accounts",
+      "endpoint": "/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "count_leak_prevented": true,
+      "item_count": 1,
+      "people_count": null,
+      "safe_error_codes": [],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "page_info",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm contacts",
+      "endpoint": "/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "count_leak_prevented": true,
+      "item_count": 1,
+      "people_count": null,
+      "safe_error_codes": [],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "page_info",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm duplicate merge proposals",
+      "endpoint": "/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": "empty",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "page_info",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm account contacts",
+      "endpoint": "/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "count_leak_prevented": true,
+      "item_count": 1,
+      "people_count": null,
+      "safe_error_codes": [],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "page_info",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "client record-action fields",
+      "endpoint": "/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "count_leak_prevented": null,
+      "item_count": null,
+      "people_count": null,
+      "safe_error_codes": [],
+      "shape": [
+        "audit_hint_ref",
+        "item",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes"
+      ]
+    },
+    {
+      "key": "client record-action audit",
+      "endpoint": "/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "outcome": "passed",
+      "ui_state": null,
+      "count_leak_prevented": null,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [],
+      "shape": [
+        "audit_hint_ref",
+        "items",
+        "outcome",
+        "page_info",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes"
+      ]
+    },
+    {
+      "key": "master-data ClientGroup",
+      "endpoint": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "blocked",
+      "ui_state": "denied",
+      "count_leak_prevented": null,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "MASTER_DATA_API_UNAUTHORIZED_OMISSION"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "items",
+        "omitted_fields",
+        "outcome",
+        "page_info",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "legal people client backlink",
+      "endpoint": "/api/hrx/legal-people/search?client_id=client_lcx_001",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "denied",
+      "ui_state": "denied",
+      "count_leak_prevented": true,
+      "item_count": null,
+      "people_count": 0,
+      "safe_error_codes": [
+        "HRX_LEGAL_PEOPLE_ACCESS_DENIED"
+      ],
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm leads",
+      "endpoint": "/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "blocked",
+      "ui_state": "denied",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm opportunities",
+      "endpoint": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "blocked",
+      "ui_state": "denied",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "intake requests",
+      "endpoint": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "blocked",
+      "ui_state": "denied",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "intake audit",
+      "endpoint": "/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "blocked",
+      "ui_state": "denied",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm accounts",
+      "endpoint": "/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "blocked",
+      "ui_state": "denied",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm contacts",
+      "endpoint": "/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "blocked",
+      "ui_state": "denied",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm duplicate merge proposals",
+      "endpoint": "/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "blocked",
+      "ui_state": "denied",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm account contacts",
+      "endpoint": "/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "blocked",
+      "ui_state": "denied",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "client record-action fields",
+      "endpoint": "/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "denied",
+      "ui_state": "denied",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "RECORD_ACTIONS_PERMISSION_REQUIRED"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "client record-action audit",
+      "endpoint": "/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "outcome": "denied",
+      "ui_state": "denied",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "RECORD_ACTIONS_PERMISSION_REQUIRED"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "master-data ClientGroup",
+      "endpoint": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "count_leak_prevented": null,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "MASTER_DATA_REVIEW_REQUIRED"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "items",
+        "omitted_fields",
+        "outcome",
+        "page_info",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "legal people client backlink",
+      "endpoint": "/api/hrx/legal-people/search?client_id=client_lcx_001",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "count_leak_prevented": true,
+      "item_count": null,
+      "people_count": 0,
+      "safe_error_codes": [
+        "HRX_LEGAL_PEOPLE_REVIEW_REQUIRED"
+      ],
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm leads",
+      "endpoint": "/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_REVIEW_REQUIRED"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm opportunities",
+      "endpoint": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_REVIEW_REQUIRED"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "intake requests",
+      "endpoint": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_REVIEW_REQUIRED"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "intake audit",
+      "endpoint": "/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_REVIEW_REQUIRED"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm accounts",
+      "endpoint": "/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_REVIEW_REQUIRED"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm contacts",
+      "endpoint": "/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_REVIEW_REQUIRED"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm duplicate merge proposals",
+      "endpoint": "/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_REVIEW_REQUIRED"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "crm account contacts",
+      "endpoint": "/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "CRM_INTAKE_REVIEW_REQUIRED"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "client record-action fields",
+      "endpoint": "/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "RECORD_ACTIONS_REVIEW_REQUIRED"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    },
+    {
+      "key": "client record-action audit",
+      "endpoint": "/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "count_leak_prevented": true,
+      "item_count": 0,
+      "people_count": null,
+      "safe_error_codes": [
+        "RECORD_ACTIONS_REVIEW_REQUIRED"
+      ],
+      "shape": [
+        "audit_hint_ref",
+        "count_leak_prevented",
+        "items",
+        "outcome",
+        "production_ready_claim",
+        "request_id",
+        "safe_error_codes",
+        "ui_state"
+      ]
+    }
+  ],
+  "screenshots": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0114-client-refresh-allow-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0114-client-refresh-denied-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0114-client-refresh-review-proof.png"
+  ],
+  "assertions": [
+    {
+      "name": "allow_refresh_button_visible",
+      "pass": true
+    },
+    {
+      "name": "allow_refresh_observed_12_expected_endpoints",
+      "pass": true
+    },
+    {
+      "name": "allow_refresh_no_api_5xx",
+      "pass": true
+    },
+    {
+      "name": "allow_refresh_no_console_errors",
+      "pass": true
+    },
+    {
+      "name": "denied_guard_visible",
+      "pass": true
+    },
+    {
+      "name": "denied_no_protected_followup_reads",
+      "pass": true
+    },
+    {
+      "name": "denied_no_api_5xx",
+      "pass": true
+    },
+    {
+      "name": "review_guard_visible",
+      "pass": true
+    },
+    {
+      "name": "review_no_protected_followup_reads",
+      "pass": true
+    },
+    {
+      "name": "review_no_api_5xx",
+      "pass": true
+    },
+    {
+      "name": "direct_allow_probes_ok",
+      "pass": true
+    },
+    {
+      "name": "direct_denied_probes_fail_closed",
+      "pass": true
+    },
+    {
+      "name": "direct_review_probes_fail_closed",
+      "pass": true
+    },
+    {
+      "name": "selected_safe_fixture_ids_present",
+      "pass": true
+    }
+  ],
+  "non_claims": [
+    "This is read-only Client header refresh proof; no Client write persistence is claimed.",
+    "No production go-live, external approval, or real customer data claim is made."
+  ]
+}

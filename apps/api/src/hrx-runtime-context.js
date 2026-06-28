@@ -532,6 +532,86 @@ function legalPeopleGuardResponse({ permissionContext, actorContext, action, res
   });
 }
 
+function employeeGuardResponse({ permissionContext, actorContext }) {
+  if (!permissionContext) return null;
+  const decision = evaluateRouteDecision({
+    context: permissionContext,
+    resource: {
+      tenant_id: actorContext.tenant_id,
+      resource_type: "HrxEmployee",
+      resource_id: "employees",
+      matter_id: null,
+    },
+    action: "hrx.employee.read",
+  });
+  if (decision.effect === "allow") return null;
+
+  const isReview = decision.effect === "review_required" || decision.effect === "approval_required";
+  const uiState = isReview ? "review_required" : "denied";
+  return response(isReview ? 200 : 403, {
+    schema_version: "lawos.hrx.employee.guarded_response.v0.1",
+    outcome: uiState,
+    ui_state: uiState,
+    safe_error_codes: [isReview ? "HRX_EMPLOYEE_REVIEW_REQUIRED" : "HRX_EMPLOYEE_ACCESS_DENIED"],
+    fail_closed: !isReview,
+    review_required: isReview,
+    count_leak_prevented: true,
+    employees: [],
+    permission_summary: {
+      actor_id: actorContext.actor_id,
+      employee_records_visible: false,
+      raw_contact_values_included: false,
+      provider_payload_included: false,
+    },
+    claim_boundary: "hrx.employee.read_guarded",
+  });
+}
+
+function hrxReadGuardResponse({
+  permissionContext,
+  actorContext,
+  action,
+  resourceType,
+  resourceId,
+  schemaVersion,
+  deniedCode,
+  reviewCode,
+  claimBoundary,
+  emptyBody,
+  permissionSummary,
+}) {
+  if (!permissionContext) return null;
+  const decision = evaluateRouteDecision({
+    context: permissionContext,
+    resource: {
+      tenant_id: actorContext.tenant_id,
+      resource_type: resourceType,
+      resource_id: resourceId,
+      matter_id: null,
+    },
+    action,
+  });
+  if (decision.effect === "allow") return null;
+
+  const isReview = decision.effect === "review_required" || decision.effect === "approval_required";
+  const uiState = isReview ? "review_required" : "denied";
+  return response(isReview ? 200 : 403, {
+    schema_version: schemaVersion,
+    outcome: uiState,
+    ui_state: uiState,
+    safe_error_codes: [isReview ? reviewCode : deniedCode],
+    fail_closed: !isReview,
+    review_required: isReview,
+    count_leak_prevented: true,
+    ...emptyBody,
+    permission_summary: {
+      actor_id: actorContext.actor_id,
+      ...permissionSummary,
+    },
+    claim_boundary: claimBoundary,
+  });
+}
+
 function requireTrustedRequestContext(requestContext = {}) {
   const tenantId = typeof requestContext.tenant_id === "string" ? requestContext.tenant_id.trim() : "";
   const actorId = typeof requestContext.actor_id === "string" ? requestContext.actor_id.trim() : "";
@@ -758,6 +838,8 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
     const tenantId = actorContext.tenant_id;
 
     if (pathname === "/api/hrx/employees" && method === "GET") {
+      const guarded = employeeGuardResponse({ permissionContext, actorContext });
+      if (guarded) return guarded;
       return response(200, { outcome: "ok", employees: context.repository.listEmployees({ tenant_id: tenantId }) });
     }
 
@@ -926,6 +1008,24 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
     }
 
     if (pathname === "/api/hrx/documents" && method === "GET") {
+      const guarded = hrxReadGuardResponse({
+        permissionContext,
+        actorContext,
+        action: "hrx.document.read",
+        resourceType: "HrxDocument",
+        resourceId: query.employee_id ?? query.document_id ?? "documents",
+        schemaVersion: "lawos.hrx.document.guarded_response.v0.1",
+        deniedCode: "HRX_DOCUMENT_ACCESS_DENIED",
+        reviewCode: "HRX_DOCUMENT_REVIEW_REQUIRED",
+        claimBoundary: "hrx.document.read_guarded",
+        emptyBody: { documents: [] },
+        permissionSummary: {
+          document_metadata_visible: false,
+          source_refs_visible: false,
+          provider_payload_included: false,
+        },
+      });
+      if (guarded) return guarded;
       return response(200, {
         outcome: "ok",
         documents: context.documents.list({ tenant_id: tenantId, employee_id: query.employee_id }),
@@ -933,6 +1033,24 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
     }
 
     if (pathname === "/api/hrx/leave" && method === "GET") {
+      const guarded = hrxReadGuardResponse({
+        permissionContext,
+        actorContext,
+        action: "hrx.leave.read",
+        resourceType: "HrxLeaveState",
+        resourceId: query.employee_id ?? "leave",
+        schemaVersion: "lawos.hrx.leave.guarded_response.v0.1",
+        deniedCode: "HRX_LEAVE_ACCESS_DENIED",
+        reviewCode: "HRX_LEAVE_REVIEW_REQUIRED",
+        claimBoundary: "hrx.leave.read_guarded",
+        emptyBody: { balance: null, requests: [] },
+        permissionSummary: {
+          leave_balance_visible: false,
+          leave_requests_visible: false,
+          policy_payload_included: false,
+        },
+      });
+      if (guarded) return guarded;
       return response(200, {
         outcome: "ok",
         balance: context.leaveLedger.balance({

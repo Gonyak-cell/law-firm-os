@@ -15,7 +15,7 @@ test("Employee list fetches /api/hrx/employees without a static fallback", async
   const api = await readWebFile("src/people/hrxApiClient.ts");
 
   assert.match(list, /fetchHrxEmployees/);
-  assert.match(api, /requestJson\("\/api\/hrx\/employees"\)/);
+  assert.match(api, /requestJson\("\/api\/hrx\/employees"(?:,\s*options)?\)/);
   assert.match(api, /"x-lawos-tenant-id"/);
   assert.match(api, /"x-lawos-actor-id"/);
   assert.doesNotMatch(api, /HRX_PERMISSION_CONTEXT/);

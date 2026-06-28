@@ -1017,3 +1017,118 @@ false pending the final go-live decision.
 | ID | Severity | Evidence | Resolution |
 | --- | --- | --- | --- |
 | LCX8-P9-BLOCKER-FLOW-VERIFY-001 | high | Prior final `ui:flows:verify` failed 9 stale expected-text checks while `ui:live:verify` passed 13/13. | Resolved. `scripts/verify-matter-ui-flows.mjs` now checks current product copy/state and surface selectors; P9-T04 rerun passed `ui:flows:verify` 9/9 and `ui:live:verify` 13/13. No remaining closeout blocker is recorded. |
+
+## Post-Closeout Client Data Cloud Blocker Proof
+
+- `LCX8-ACTION-0129..0134` Client Data Cloud blocker proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0129-0134-client-data-cloud-proof.json
+- Closeout: docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-data-cloud-2026-06-28.json
+- Verification: Post-closeout LCX8-ACTION-0129..0134 verification: Client Data Cloud proof PASS (13/13 assertions); focused API node --test apps/api/test/sf-b-w07-data-cloud-enrichment.test.js PASS 4/4. Browser clicked current-product provider request, consent confirmation, enrichment preview, execute confirmation, identity candidates, and segment activation controls. API responses returned provider_blocked, owner_blocked, or route_mounted with write audit events/read-back, denied/review fail-closed guards, no data-cloud 4xx/5xx, no browser console errors, no provider payload/raw identifiers, and no production-ready claim. Status remains BLOCKED/Lane D because external provider/owner receipts are still missing.
+- Boundary: status remains `BLOCKED` / Lane D; no external provider/owner receipt, product mutation, production go-live, or production-ready claim is made.
+
+## Post-Closeout Client Data Cloud Blocker Proof
+
+- `LCX8-ACTION-0129..0134` Client Data Cloud blocker proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0129-0134-client-data-cloud-proof.json
+- Closeout: docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-data-cloud-2026-06-28.json
+- Verification: Post-closeout LCX8-ACTION-0129..0134 verification: Client Data Cloud blocker proof PASS 13/13; focused API node --test apps/api/test/sf-b-w07-data-cloud-enrichment.test.js PASS 4/4; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS with existing Vite chunk-size warning only; MATTER_UI_URL=http://127.0.0.1:5174 npm run ui:flows:verify PASS 9/9; MATTER_UI_URL=http://127.0.0.1:5174 npm run ui:live:verify PASS 13/13; sloplint PASS; git diff --check PASS. Status remains BLOCKED/Lane D because external provider/owner receipts are still missing. No external data-cloud provider execution, owner approval, product mutation, production go-live, or production-ready claim is made.
+- Boundary: status remains `BLOCKED` / Lane D; no external provider/owner receipt, product mutation, production go-live, or production-ready claim is made.
+
+## Post-Closeout Refresh API-Read Proof
+
+- `LCX8-ACTION-0036/0044/0064` refresh API-read proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0036-0044-0064-refresh-api-read-proof.json
+- Closeout: docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-refresh-api-read-2026-06-28.json
+- Verification: Post-closeout LCX8-ACTION-0036/0044/0064 refresh API-read verification: proof PASS 16/16; browser clicked Home, Matter header, and Matter Vault refresh controls; all expected GET endpoints were observed; denied/review guard text was observed; no API 5xx, no unexpected non-GET writes beyond Matter recently-viewed, no unsafe guard success, and no unexpected browser console errors.
+- Boundary: status promoted to `PASS` from local browser/API proof only; no production go-live, external production receipt, or product write claim is made for these refresh rows.
+
+## Post-Closeout Shell/Auth Local Actions Proof
+
+- Rows: `LCX8-ACTION-0004, LCX8-ACTION-0005, LCX8-ACTION-0017, LCX8-ACTION-0027, LCX8-ACTION-0028, LCX8-ACTION-0032, LCX8-ACTION-0033, LCX8-ACTION-0034, LCX8-ACTION-0112, LCX8-ACTION-0113, LCX8-ACTION-0164, LCX8-ACTION-0165, LCX8-ACTION-0296, LCX8-ACTION-0297, LCX8-ACTION-0301, LCX8-ACTION-0302`
+- Proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0004-0034-0112-0113-0164-0165-0296-0302-shell-auth-local-actions-proof.json
+- Closeout: docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-shell-auth-local-actions-2026-06-28.json
+- Verification: Post-closeout LCX8-ACTION-0004/0005/0017/0027/0028/0032/0033/0034/0112/0113/0164/0165/0296/0297/0301/0302 shell/auth local-action verification: proof PASS 18/18; browser clicked login remember, forgot password, topbar help, notification mark-read/settings, workspace menu, and sidebar utilities across Home, Client, People, Matter, and Vault. Each row produced visible local UI state, no page errors, no unexpected console errors, and no persistence/API-write/production-ready/go-live claim.
+- Boundary: status promoted to `PASS` from local browser UI-state proof only; no persistence, API write, external receipt, production-ready, or go-live claim is made.
+
+## Post-Closeout People Workforce Local Actions Proof
+
+- Rows: `LCX8-ACTION-0183, LCX8-ACTION-0185, LCX8-ACTION-0186, LCX8-ACTION-0192, LCX8-ACTION-0194, LCX8-ACTION-0195, LCX8-ACTION-0196`
+- Proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0183-0196-people-workforce-local-actions-proof.json
+- Closeout: docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-people-workforce-local-actions-2026-06-28.json
+- Verification: Post-closeout LCX8-ACTION-0183/0185/0186/0192/0194/0195/0196 People workforce proof PASS 10/10. Browser clicked roster more, member add, add menu, table options, property options, employee row, and lifecycle onboarding row. The five toolbar/header controls produced explicit local UI state; the employee row opened EmployeeProfile API-read detail; the lifecycle route rendered LifecycleBoard API-read surface and the onboarding row produced visible local selection state. HRX requests observed 10 reads and 0 writes; no page errors or unexpected console errors. npm --workspace apps/web run test:ui PASS 17/17 before proof.
+- Boundary: status promoted to `PASS` from local browser UI-state/API-read proof only; no persistence, API write, external receipt, production-ready, or go-live claim is made.
+
+## Post-Closeout Profile And People Refresh Proof
+
+- Rows: `LCX8-ACTION-0233, LCX8-ACTION-0234, LCX8-ACTION-0235, LCX8-ACTION-0236, LCX8-ACTION-0237, LCX8-ACTION-0238, LCX8-ACTION-0239, LCX8-ACTION-0240, LCX8-ACTION-0241, LCX8-ACTION-0242, LCX8-ACTION-0243, LCX8-ACTION-0324`
+- Proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0233-0243-0324-profile-people-refresh-proof.json
+- Closeout: docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-profile-people-refresh-2026-06-28.json
+- Verification: Post-closeout LCX8-ACTION-0233..0243/0324 profile and People refresh proof PASS 15/15. Browser clicked profile section routes, profile utility buttons, profile top actions, profile action cards, and People header refresh on people-approvals. Profile route/local rows produced visible state, People refresh re-fired GET /api/hrx/approvals through standalone panel remount, and proof observed 0 API writes, no page errors, and no unexpected console errors. npm --workspace apps/web run test:ui PASS 17/17 after preserving the existing UserProfileSurface route contract.
+- Boundary: status promoted to `PASS` from route/local UI-state/API-read proof only; no persistence, API write, external receipt, production-ready, or go-live claim is made.
+
+## Post-Closeout People HRX Write Proof
+
+- `LCX8-ACTION-0201/0202/0203/0204/0208/0209/0210/0215/0216/0217` People HRX write proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0201-0204-0208-0217-people-hrx-write-proof.json
+- Closeout: docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-people-hrx-write-2026-06-28.json
+- Verification: Post-closeout LCX8-ACTION-0201/0202/0203/0204/0208/0209/0210/0215/0216/0217 People HRX write proof PASS 13/13. Browser clicked leave submit, approval reject/approve, recruiting stage update, policy version create, AI advisory/final-review prompts, and payroll preview/approve/export controls. Proof captured API write responses, API read-back or response-bound read-back where no GET route exists, HRX audit events, denied scope guard probes, no page errors, and no unexpected console errors. Payroll export remains artifact-reference only with no provider, tax, calculation, disbursement, production-ready, or go-live claim.
+- Boundary: safe synthetic local HRX writes only; no external provider, payroll/tax calculation, payment/disbursement instruction, final people decision, production-ready, or go-live claim is made.
+
+## Post-Closeout Matter Finance Analytics Proof
+
+- `LCX8-ACTION-0307/0308/0309/0311/0312/0313` Matter team/finance/analytics proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0307-0308-0309-0311-0313-matter-finance-analytics-proof.json
+- Closeout: docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-finance-analytics-2026-06-28.json
+- Verification: Post-closeout LCX8-ACTION-0307/0308/0309/0311/0312/0313 Matter team/finance/analytics proof PASS 11/11. Browser clicked Matter team responsible-attorney assignment, Finance time entry, Finance WIP generation, Analytics refresh, Analytics export, and Analytics matter-profitability refresh. Proof captured API write responses, read-back or response-bound proof where no GET route exists, audit events, denied permission guard probes, no page errors, and no unexpected console errors. LCX8-ACTION-0310 payment import was used only as a local synthetic prerequisite for profitability and remains BLOCKED/Lane D with no external banking receipt, payment execution, production-ready, or go-live claim.
+- Boundary: `LCX8-ACTION-0310` remains `BLOCKED` / Lane D; no external provider, banking receipt, payment execution, production-ready, or go-live claim is made.
+
+## Post-Closeout Desktop Native Bridge Blocker Proof
+
+- `LCX8-ACTION-0247/0256/0257/0261` desktop native bridge blocker proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0247-0256-0257-0261-desktop-native-bridge-proof.json
+- Closeout: docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-desktop-native-bridge-2026-06-28.json
+- Verification: Post-closeout LCX8-ACTION-0247/0256/0257/0261 desktop native bridge proof PASS. Desktop file bridge suite PASS 17/17 plus contract validators PASS; desktop smoke PASS 59/59. Source proof confirms active shell loads session.cjs and exposes matterSession only; fileBridge.js/materFileBridge and tempPreview manager exist and test cleanly but are not loaded/registered by active product shell. Status remains BLOCKED/Lane B pending visible shell trigger and active preload/IPC integration.
+- Boundary: status remains `BLOCKED` / Lane B; active product shell native preload/IPC integration and visible OS file dialog/temp-preview trigger are still unproven.
+
+## Post-Closeout Web Guarded State Proof
+
+- `LCX8-ACTION-0272..0280/0323` guarded state proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0280-0323-web-guarded-state-proof.json
+- Closeout: docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-web-guarded-state-2026-06-28.json
+- Verification: Post-closeout LCX8-ACTION-0272..0280/0323 web guarded-state proof PASS 12/12. Browser proof confirmed Client/Matter/Vault/People denied and review states, mutation affordance enabled count 0 for Matter record and Matter Vault guarded contexts, protected token leak 0, API 5xx count 0, and HRX audit step-up direct API fail-closed plus UI retry challenge rendering. Status remains GUARDED as final fail-closed state; no write success, protected payload visibility, production-ready, or go-live claim.
+- Boundary: status remains `GUARDED`; no mutation/write success, protected payload visibility, production-ready, or go-live claim is made.\n
+## Post-Closeout People Sidebar Current UI Proof
+
+- `LCX8-ACTION-0148/0152..0163` People sidebar current UI proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0148-0152-0163-people-sidebar-current-ui-proof.json
+- Closeout: docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-people-sidebar-current-ui-2026-06-28.json
+- Verification: Post-closeout LCX8-ACTION-0148/0152..0163 People sidebar current-UI proof PASS. Browser proof clicked the current People sidebar group and route items, confirmed hash routing into PeopleHome sections, active sidebar state, no API writes, no API 5xx, and product-label reconciliation for labels that changed in the current UI. Status remains UI_ONLY as final local route/navigation classification. LCX8-ACTION-0146/0147/0149/0150/0151 are deferred because their legacy Legal People/sidebar labels are no longer current visible sidebar actions.
+- Boundary: status remains `UI_ONLY`; no API write, persistence, external provider, production-ready, or go-live claim is made.
+
+
+### LCX8-ACTION-0184/0187..0193/0198..0200/0205..0207/0211..0214 People HRX local fields
+
+- Status: UI_ONLY final classification; status remains UI_ONLY.
+- Proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0184-0187-0193-0198-0214-people-hrx-local-fields-proof.json
+- Closeout: docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-people-hrx-local-fields-2026-06-28.json
+- Verification: Post-closeout LCX8-ACTION-0184/0187..0193/0198..0200/0205..0207/0211..0214 People HRX local-fields proof PASS. Browser proof clicked workforce org/status/search controls and filled leave, policy, and payroll local form fields without submitting write actions. It confirmed UI-only React state, current-product label reconciliation, no API writes, no API 5xx, no page errors, and no unexpected console errors. Status remains UI_ONLY as final local state/form classification.
+- Non-claim: no submit, API write, persistence, external provider, production-ready, or go-live claim.
+
+
+### LCX8-ACTION-0248/0249 Desktop renderer login fields
+
+- Status: UI_ONLY final classification; status remains UI_ONLY.
+- Proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0248-0249-desktop-renderer-login-fields-proof.json
+- Closeout: docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-desktop-renderer-login-fields-2026-06-28.json
+- Verification: Post-closeout LCX8-ACTION-0248/0249 desktop renderer login field proof PASS. Browser proof loaded ?view=auth&authStep=login, filled email/password local fields, confirmed no submit, no API write, no native bridge call, no API 5xx, no page errors, and no unexpected console errors. Password raw value was not recorded in proof output. Status remains UI_ONLY as final renderer field-state classification.
+- Non-claim: no login submit, API write, native bridge call, persistence, production-ready, or go-live claim.
+
+
+### LCX8-ACTION-0245/0246/0258..0271 Desktop native residual
+
+- Status: final guarded/blocked classification; statuses remain GUARDED/BLOCKED.
+- Proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0245-0246-0258-0271-desktop-native-residual-proof.json
+- Closeout: docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-desktop-native-residual-2026-06-28.json
+- Verification: Post-closeout LCX8-ACTION-0245/0246/0258..0271 desktop native residual proof PASS. Source/runtime assertions confirmed approved renderer origin guard, unapproved navigation/window-open denial, file bridge trusted gesture and renderer-byte guard, denied permission audit, temp preview cleanup, deep-link route-only and invalid/action guards, notification route-intent guard, signed internal update/rollback source controller, and public update channel denial. Desktop tests passed: test:smoke 59/59, test:file-bridge 17/17 plus validators, test:update 3/3. Guarded rows remain GUARDED; external OS/runtime receipt rows remain BLOCKED.
+- Non-claim: no OS file dialog, OS protocol, OS notification, packaged updater, production-ready, or go-live claim.
+
+
+### LCX8-ACTION-0062/0281/0318/0322 Final blocker descriptor
+
+- Status: final BLOCKED/DESCRIPTOR_ONLY classification.
+- Proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0062-0281-0318-0322-final-blocker-descriptor-proof.json
+- Closeout: docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-final-blocker-descriptor-2026-06-28.json
+- Verification: Post-closeout LCX8-ACTION-0062/0281/0318/0322 final blocker/descriptor proof PASS. API tests passed 191/191. Matter write rows 0062 and 0318 remain BLOCKED because owner/approval write execution, durable read-back, and audit receipt are not captured. Profile row 0281 remains DESCRIPTOR_ONLY because UserProfileSurface renders unavailable panels without a profile API runtime. Vault row 0322 remains DESCRIPTOR_ONLY because EmailFilingView renders external provider unavailable state with no submit/provider API handler.
+- Non-claim: no owner/approval write execution, durable read-back, audit write receipt, external provider receipt, production-ready, or go-live claim.

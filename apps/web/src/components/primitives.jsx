@@ -1,5 +1,4 @@
 import React from "react";
-import { MoreHorizontal } from "lucide-react";
 
 export function PageHeader({ eyebrow, title, subtitle, actions }) {
   return (
@@ -22,9 +21,6 @@ export function Panel({ id, title, meta, children, className = "" }) {
           <h2>{title}</h2>
           {meta && <span>{meta}</span>}
         </div>
-        <button className="icon-button">
-          <MoreHorizontal size={16} />
-        </button>
       </header>
       <div className="panel-body">{children}</div>
     </section>

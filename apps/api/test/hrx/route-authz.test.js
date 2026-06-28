@@ -11,8 +11,23 @@ const ALLOW_HEADERS = Object.freeze({
   "x-lawos-tenant-id": "tenant-a",
   "x-lawos-actor-id": "hrx-authz-user",
   "x-lawos-actor-role": "people_ops",
-  "x-lawos-hrx-scopes": "hrx.employee.read,hrx.employee.write,hrx.document.read,hrx.legal_people.read,hrx.payroll.preview,hrx.payroll.export",
+  "x-lawos-hrx-scopes": "hrx.employee.read,hrx.employee.write,hrx.document.read,hrx.leave.read,hrx.legal_people.read,hrx.payroll.preview,hrx.payroll.export",
 });
+
+const PERMISSION_PRINCIPAL = Object.freeze({
+  user_id: "hrx-authz-user",
+  actor_id: "hrx-authz-user",
+  tenant_id: "tenant-a",
+  role_ids: ["people_ops"],
+});
+
+function permissionContext(effect) {
+  return JSON.stringify({
+    principal: PERMISSION_PRINCIPAL,
+    rules: effect === "deny" ? [] : [{ id: `rule_${effect}`, effect, action: "*" }],
+    object_acl: [],
+  });
+}
 
 async function json(path, options = {}) {
   const response = await fetch(`${baseUrl}${path}`, options);
@@ -72,6 +87,63 @@ test("HRX API allows scoped trusted context and rejects unmapped HRX routes", as
   const unmapped = await json("/api/hrx/not-mapped", { headers: ALLOW_HEADERS });
   assert.equal(unmapped.status, 403);
   assert.equal(unmapped.body.safe_error_code, "HRX_ROUTE_POLICY_REQUIRED");
+});
+
+test("HRX employees read route honors permission-context deny and review decisions", async () => {
+  const denied = await json("/api/hrx/employees", {
+    headers: { ...ALLOW_HEADERS, "x-lawos-permission-context": permissionContext("deny") },
+  });
+  assert.equal(denied.status, 403);
+  assert.equal(denied.body.ui_state, "denied");
+  assert.equal(denied.body.count_leak_prevented, true);
+  assert.deepEqual(denied.body.employees, []);
+
+  const review = await json("/api/hrx/employees", {
+    headers: { ...ALLOW_HEADERS, "x-lawos-permission-context": permissionContext("review_required") },
+  });
+  assert.equal(review.status, 200);
+  assert.equal(review.body.ui_state, "review_required");
+  assert.equal(review.body.review_required, true);
+  assert.equal(review.body.count_leak_prevented, true);
+  assert.deepEqual(review.body.employees, []);
+});
+
+test("HRX document and leave read routes honor permission-context deny and review decisions", async () => {
+  const deniedDocuments = await json("/api/hrx/documents?employee_id=emp-001", {
+    headers: { ...ALLOW_HEADERS, "x-lawos-permission-context": permissionContext("deny") },
+  });
+  assert.equal(deniedDocuments.status, 403);
+  assert.equal(deniedDocuments.body.ui_state, "denied");
+  assert.equal(deniedDocuments.body.count_leak_prevented, true);
+  assert.deepEqual(deniedDocuments.body.documents, []);
+
+  const reviewDocuments = await json("/api/hrx/documents?employee_id=emp-001", {
+    headers: { ...ALLOW_HEADERS, "x-lawos-permission-context": permissionContext("review_required") },
+  });
+  assert.equal(reviewDocuments.status, 200);
+  assert.equal(reviewDocuments.body.ui_state, "review_required");
+  assert.equal(reviewDocuments.body.review_required, true);
+  assert.equal(reviewDocuments.body.count_leak_prevented, true);
+  assert.deepEqual(reviewDocuments.body.documents, []);
+
+  const deniedLeave = await json("/api/hrx/leave?employee_id=emp-001&policy_id=pto-us", {
+    headers: { ...ALLOW_HEADERS, "x-lawos-permission-context": permissionContext("deny") },
+  });
+  assert.equal(deniedLeave.status, 403);
+  assert.equal(deniedLeave.body.ui_state, "denied");
+  assert.equal(deniedLeave.body.count_leak_prevented, true);
+  assert.equal(deniedLeave.body.balance, null);
+  assert.deepEqual(deniedLeave.body.requests, []);
+
+  const reviewLeave = await json("/api/hrx/leave?employee_id=emp-001&policy_id=pto-us", {
+    headers: { ...ALLOW_HEADERS, "x-lawos-permission-context": permissionContext("review_required") },
+  });
+  assert.equal(reviewLeave.status, 200);
+  assert.equal(reviewLeave.body.ui_state, "review_required");
+  assert.equal(reviewLeave.body.review_required, true);
+  assert.equal(reviewLeave.body.count_leak_prevented, true);
+  assert.equal(reviewLeave.body.balance, null);
+  assert.deepEqual(reviewLeave.body.requests, []);
 });
 
 test("HRX API rejects query tenant actor context before runtime", async () => {

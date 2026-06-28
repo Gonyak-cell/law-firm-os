@@ -1,0 +1,186 @@
+{
+  "action_id": "LCX8-ACTION-0080",
+  "title": "Matter opening Matter 등록번호 UI-only field proof",
+  "completed_at": "2026-06-27T00:19:29.710Z",
+  "surface": "matter",
+  "route": "/?locale=ko&view=matters&data=live&ctx=allow#matter-opening",
+  "browser_start_route": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-opening",
+  "final_browser_url": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-opening",
+  "fixture": {
+    "input_value": "matter_ui_only_0080_1782519570778",
+    "safe_fixture_family": "matter_opening_local_form_state",
+    "existing_seed_mutated": false,
+    "persisted": false,
+    "api_write_executed": false
+  },
+  "trace": {
+    "source_file": "apps/web/src/components/MatterOpeningWizard.jsx",
+    "handler": "onChange -> update(\"matterId\") -> setForm",
+    "trace_depth": "ui_state_only",
+    "api_route": null,
+    "submit_boundary": "POST /api/matters/openings only on form submit after all required fields are filled; not part of LCX8-ACTION-0080 field input proof"
+  },
+  "browser_proof": {
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0080-matter-opening-matter-id-ui-only-proof.png",
+    "section_text": "Matter 개시\n승인 필요\nMATTER 등록번호\n제목\nMATTER 번호\n법률 CLIENT\n청구 CLIENT\n이해상충 확인 번호\n접수 번호\n검토 번호\n위임 계약 번호\n확인 번호\n필수 정보를 입력하세요\n개시",
+    "status_text": "필수 정보를 입력하세요",
+    "input_value_after_fill": "matter_ui_only_0080_1782519570778",
+    "input_count": 1,
+    "submit_disabled_after_fill": true,
+    "network_before_input_count": 22,
+    "network_after_input_count": 22,
+    "mutation_network_after_input": [],
+    "opening_post_network": [],
+    "all_network": [
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "status": 200,
+        "method": "POST",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+      }
+    ],
+    "console_messages": [
+      {
+        "type": "debug",
+        "text": "[vite] connecting..."
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connected."
+      }
+    ],
+    "browser_failures": []
+  },
+  "assertions": {
+    "opening section visible": "PASS",
+    "field label visible": "PASS",
+    "input accepts local value": "PASS",
+    "submit remains disabled with partial form": "PASS",
+    "status remains input prompt": "PASS",
+    "no mutation network after input": "PASS",
+    "no opening POST fired": "PASS",
+    "no browser request failures": "PASS",
+    "route remains matter opening": "PASS",
+    "local-only selector matched": "PASS"
+  },
+  "status_decision": {
+    "status_before": "UI_ONLY",
+    "status_after": "UI_ONLY",
+    "remediation_lane": null,
+    "reason": "The visible field captures local React form state only; no API route, audit, or persistence is invoked until the separate submit action."
+  },
+  "non_claims": [
+    "no API write executed for LCX8-ACTION-0080",
+    "no Matter opening persistence claimed for this row",
+    "submit action is a separate row/boundary",
+    "local browser proof only; no production go-live claim"
+  ]
+}

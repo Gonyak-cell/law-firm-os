@@ -1,0 +1,334 @@
+{
+  "schema_version": "law-firm-os.lcx8.post-closeout.people-hrx-write.v0.1",
+  "generated_at": "2026-06-28T06:47:30.263Z",
+  "batch_id": "LCX8-ALL-26",
+  "action_ids": [
+    "LCX8-ACTION-0201",
+    "LCX8-ACTION-0202",
+    "LCX8-ACTION-0203",
+    "LCX8-ACTION-0204",
+    "LCX8-ACTION-0208",
+    "LCX8-ACTION-0209",
+    "LCX8-ACTION-0210",
+    "LCX8-ACTION-0215",
+    "LCX8-ACTION-0216",
+    "LCX8-ACTION-0217"
+  ],
+  "status_before": "BLOCKED",
+  "status_after": "PASS",
+  "remediation_lane_after": "resolved",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0201-0204-0208-0217-people-hrx-write-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0201-0204-0208-0217-people-hrx-write-proof.md",
+  "counts_before": {
+    "PASS": 161,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 26,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "counts_after": {
+    "PASS": 161,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 26,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "source_fixes": [
+    "apps/web/src/admin/hrx/HRXPolicyConsole.tsx exposes the existing effective_from field so policy creation can satisfy the API write precondition.",
+    "scripts/run-lcx8-people-hrx-write-proof.mjs records payroll export audit object_id using the API's PayrollExportArtifact artifact_id."
+  ],
+  "evidence": [
+    {
+      "id": "LCX8-ACTION-0201",
+      "observed_text": "휴가관리 휴가 현황 휴가를 신청하고 잔여 휴가를 확인합니다 시간 시작일 종료일 신청 확인 가능 사용 가능한 휴가 요청 유형 기간 상태 요청 1 연차 신청됨 확인 필요",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0201-people-leave-submit-proof.png",
+      "response_status": 201,
+      "read_back": {
+        "path": "/api/hrx/leave?employee_id=emp_amic_bj_park&policy_id=pto-us",
+        "status": 200,
+        "passed": true,
+        "object_id": "leave-emp_amic_bj_park-1782629035881"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.leave.submit",
+          "object_id": "leave-emp_amic_bj_park-1782629035881",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "leave write scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    },
+    {
+      "id": "LCX8-ACTION-0202",
+      "observed_text": "요청 관리 전자결재 요청 요청 1 반려 반려 승인 요청 요청 2 승인 반려 승인 기록 작업 대상 결과 기록 1 확인 요청 1 확인 필요 기록 2 확인 요청 2 확인 필요 기록 3 확인 요청 3 확인 필요 기록 4 확인 요청 4 확인 필요",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0202-people-approval-reject-proof.png",
+      "response_status": 200,
+      "read_back": {
+        "path": "/api/hrx/approvals",
+        "status": 200,
+        "passed": true,
+        "object_id": "approval-leave-002"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.approval.reject",
+          "object_id": "approval-leave-002",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "approval write scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    },
+    {
+      "id": "LCX8-ACTION-0203",
+      "observed_text": "요청 관리 전자결재 요청 요청 1 반려 반려 승인 요청 요청 2 승인 반려 승인 기록 작업 대상 결과 기록 1 확인 요청 1 확인 필요 기록 2 확인 요청 2 확인 필요 기록 3 확인 요청 3 확인 필요 기록 4 확인 요청 4 확인 필요",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0203-people-approval-approve-proof.png",
+      "response_status": 200,
+      "read_back": {
+        "path": "/api/hrx/approvals",
+        "status": 200,
+        "passed": true,
+        "object_id": "approval-legal-risk-001"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.approval.approve",
+          "object_id": "approval-legal-risk-001",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "approval write scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    },
+    {
+      "id": "LCX8-ACTION-0204",
+      "observed_text": "구성원 등록 채용 연동 공고 제목 상태 모집 공고 1 Senior Litigation Associate 진행 중 모집 중 면접 지원 상태 일정 면접 1 지원 1 예정 등록됨 합격자 지원 상태 문서 합격자 1 지원 1 발송 준비됨 지원 1 지원자 / 구성원 등록 합격자 다음 단계",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0204-people-recruiting-stage-proof.png",
+      "response_status": 200,
+      "read_back": {
+        "path": "/api/hrx/recruiting/pipeline",
+        "status": 200,
+        "passed": true,
+        "object_id": "app-001"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.application.stage.update",
+          "object_id": "app-001",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "recruiting write scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    },
+    {
+      "id": "LCX8-ACTION-0208",
+      "observed_text": "승인 규칙 회사 설정 - 요청 요청에 대한 승인 설정을 관리합니다 규칙 이름 유형 버전 시작일 규칙 버전 생성 규칙 유형 버전 시작일 규칙 1 휴가 규칙 2026.1 2026-01-01 규칙 2 규칙 규칙 3 보존 규칙 2026.1 2026-01-01 규칙 4 보존 규칙 2026.lcx8 2026-08-01",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0208-people-policy-create-proof.png",
+      "response_status": 201,
+      "read_back": {
+        "path": "/api/hrx/policies",
+        "status": 200,
+        "passed": true,
+        "object_id": "lcx8-policy-1782629034770"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.policy.create",
+          "object_id": "lcx8-policy-1782629034770",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "policy write scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    },
+    {
+      "id": "LCX8-ACTION-0209",
+      "observed_text": "검토 중 검토 상태: 대기 최종 판단은 담당자가 확인합니다. 참고 자료 1건 확인",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0209-people-ai-advisory-proof.png",
+      "response_status": 200,
+      "read_back": {
+        "path": "/api/hrx/ai/assistant response",
+        "status": 200,
+        "passed": true,
+        "object_id": "answered"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.ai.interaction",
+          "object_id": null,
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "ai assistant scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    },
+    {
+      "id": "LCX8-ACTION-0210",
+      "observed_text": "검토 중 검토 상태: 대기 최종 판단은 담당자가 확인합니다. 참고 자료 1건 확인",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0210-people-ai-review-proof.png",
+      "response_status": 202,
+      "read_back": {
+        "path": "/api/hrx/ai/reviews",
+        "status": 200,
+        "passed": true,
+        "object_id": "review-ai-93bc516b-fd18-43c9-b8dc-efb1c4004852"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.ai.interaction",
+          "object_id": "ai-93bc516b-fd18-43c9-b8dc-efb1c4004852",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "ai assistant scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    },
+    {
+      "id": "LCX8-ACTION-0215",
+      "observed_text": "급여정산 미리보기·내보내기 전용 현재는 정산 미리보기, 검토 승인, 내보내기만 제공합니다. 계산·세금·지급 실행은 아직 제공하지 않습니다. 기간 구성원 외부 급여 서비스 문서 참조 미리보기 생성 검토 승인 기록 내보내기 파일 생성 항목 상태 근거 상태 검토 승인 payroll-preview-1782629039971 대상 기간 2026-06 2명 정산 실행 아직 미구현 계산·세금 처리는 아직 구현되지 않았습니다 지급 실행 아직 미구현 송금·지급 처리는 아직 구현되지 않았습니다 검토 필수 외부 미리보기 전용 내보내기 파일 payroll-export-artifact:payroll-preview-1782629039971 문서:급여-내보내기-미리보기-001 정산 처리 아직 미구현 계산·세금 처리는 아직 구현되지 않았습니다 지급 처리 아직 미구현 송금·지급 지시는 아직 구현되지 않았습니다",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0215-people-payroll-preview-proof.png",
+      "response_status": 201,
+      "read_back": {
+        "path": "/api/hrx/payroll/preview response",
+        "status": 201,
+        "passed": true,
+        "object_id": "payroll-preview-1782629039971"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.payroll.preview",
+          "object_id": "payroll-preview-1782629039971",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "payroll export scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    },
+    {
+      "id": "LCX8-ACTION-0216",
+      "observed_text": "급여정산 미리보기·내보내기 전용 현재는 정산 미리보기, 검토 승인, 내보내기만 제공합니다. 계산·세금·지급 실행은 아직 제공하지 않습니다. 기간 구성원 외부 급여 서비스 문서 참조 미리보기 생성 검토 승인 기록 내보내기 파일 생성 항목 상태 근거 상태 검토 승인 payroll-preview-1782629039971 대상 기간 2026-06 2명 정산 실행 아직 미구현 계산·세금 처리는 아직 구현되지 않았습니다 지급 실행 아직 미구현 송금·지급 처리는 아직 구현되지 않았습니다 검토 필수 외부 미리보기 전용 내보내기 파일 payroll-export-artifact:payroll-preview-1782629039971 문서:급여-내보내기-미리보기-001 정산 처리 아직 미구현 계산·세금 처리는 아직 구현되지 않았습니다 지급 처리 아직 미구현 송금·지급 지시는 아직 구현되지 않았습니다",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0216-people-payroll-approve-proof.png",
+      "response_status": 200,
+      "read_back": {
+        "path": "/api/hrx/payroll/approve response",
+        "status": 200,
+        "passed": true,
+        "object_id": "payroll-preview-1782629039971"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.payroll.approve",
+          "object_id": "payroll-preview-1782629039971",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "payroll export scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    },
+    {
+      "id": "LCX8-ACTION-0217",
+      "observed_text": "급여정산 미리보기·내보내기 전용 현재는 정산 미리보기, 검토 승인, 내보내기만 제공합니다. 계산·세금·지급 실행은 아직 제공하지 않습니다. 기간 구성원 외부 급여 서비스 문서 참조 미리보기 생성 검토 승인 기록 내보내기 파일 생성 항목 상태 근거 상태 검토 승인 payroll-preview-1782629039971 대상 기간 2026-06 2명 정산 실행 아직 미구현 계산·세금 처리는 아직 구현되지 않았습니다 지급 실행 아직 미구현 송금·지급 처리는 아직 구현되지 않았습니다 검토 필수 외부 미리보기 전용 내보내기 파일 payroll-export-artifact:payroll-preview-1782629039971 문서:급여-내보내기-미리보기-001 정산 처리 아직 미구현 계산·세금 처리는 아직 구현되지 않았습니다 지급 처리 아직 미구현 송금·지급 지시는 아직 구현되지 않았습니다",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0217-people-payroll-export-proof.png",
+      "response_status": 200,
+      "read_back": {
+        "path": "/api/hrx/payroll/export response",
+        "status": 200,
+        "passed": true,
+        "object_id": "payroll-export-artifact:payroll-preview-1782629039971"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.payroll.export",
+          "object_id": "payroll-export-artifact:payroll-preview-1782629039971",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "payroll export scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "trace_depth": "api_write"
+    }
+  ],
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0201/0202/0203/0204/0208/0209/0210/0215/0216/0217 People HRX write proof PASS 13/13. Browser clicked leave submit, approval reject/approve, recruiting stage update, policy version create, AI advisory/final-review prompts, and payroll preview/approve/export controls. Proof captured API write responses, API read-back or response-bound read-back where no GET route exists, HRX audit events, denied scope guard probes, no page errors, and no unexpected console errors. Payroll export remains artifact-reference only with no provider, tax, calculation, disbursement, production-ready, or go-live claim.",
+  "non_claims": [
+    "safe synthetic local HRX runtime proof only",
+    "no external provider execution",
+    "no payroll/tax calculation or payment/disbursement instruction",
+    "no final people decision claim",
+    "no production-ready or go-live claim"
+  ]
+}

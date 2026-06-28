@@ -344,11 +344,14 @@ p {
   align-items: center;
   justify-content: space-between;
   min-height: 46px;
+  width: 100%;
   padding: 0 8px 14px;
   background: transparent;
   border: 0;
   border-radius: 0;
   box-shadow: none;
+  color: var(--am-text);
+  text-align: left;
 }
 
 .workspace-card strong {
@@ -451,6 +454,23 @@ p {
 .sidebar-utility:hover {
   background: var(--am-surface-subtle);
   color: var(--am-blue);
+}
+
+.sidebar-utility-panel {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface-subtle);
+  color: var(--am-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.sidebar-utility-panel strong {
+  color: var(--am-text);
+  font-size: 13px;
 }
 
 .page-canvas {
@@ -647,6 +667,41 @@ p {
   margin: 5px 0 0;
   color: var(--am-text-muted);
   font-size: 12px;
+}
+
+.topbar-help-panel,
+.notification-local-state {
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text-muted);
+}
+
+.topbar-help-panel {
+  position: absolute;
+  right: 112px;
+  top: calc(100% - 8px);
+  z-index: 30;
+  width: min(280px, calc(100vw - 32px));
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.topbar-help-panel strong,
+.notification-local-state strong {
+  color: var(--am-text);
+}
+
+.notification-local-state {
+  display: grid;
+  gap: 4px;
+  margin: 12px 18px 0;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .notification-stack {
@@ -5812,6 +5867,19 @@ html[data-theme="dark"] .public-preview {
   font-weight: 700;
   line-height: 1.25;
   text-align: left;
+}
+
+.login-local-state {
+  display: grid;
+  gap: 4px;
+  margin: -4px 14px 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(11, 115, 238, 0.16);
+  border-radius: 8px;
+  background: rgba(11, 115, 238, 0.06);
+  color: #4b6078;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .matter-login-submit {

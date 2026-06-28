@@ -98,6 +98,8 @@ const notificationItems = [
 ];
 
 export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQuery, view, setView, onCreate, onInvite, onProfile, notificationsOpen, onToggleNotifications }) {
+  const [helpOpen, setHelpOpen] = useState(false);
+
   return (
     <header className="topbar">
       <div className="topbar-brand" data-logo-dock-target="top-left">
@@ -139,7 +141,14 @@ export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQ
           <Bell size={17} />
           <span className="notification-badge">3</span>
         </button>
-        <button className="icon-button" aria-label="도움말">
+        <button
+          className={helpOpen ? "icon-button active" : "icon-button"}
+          aria-label="도움말"
+          aria-expanded={helpOpen ? "true" : "false"}
+          aria-controls="topbar-help-panel"
+          data-topbar-help-trigger="true"
+          onClick={() => setHelpOpen((open) => !open)}
+        >
           <CircleHelp size={17} />
         </button>
         <button className="icon-button" aria-label={labels.theme} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
@@ -150,11 +159,20 @@ export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQ
           {labels.language}
         </button>
       </div>
+      {helpOpen && (
+        <div className="topbar-help-panel" id="topbar-help-panel" role="status" data-topbar-help-panel="true">
+          <strong>도움말</strong>
+          <span>현재 화면의 운영 상태와 권한 경계를 확인합니다.</span>
+        </div>
+      )}
     </header>
   );
 }
 
 export function NotificationDrawer({ open, onClose }) {
+  const [allRead, setAllRead] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   useEffect(() => {
     if (!open) return undefined;
     const onKeyDown = (event) => {
@@ -179,6 +197,12 @@ export function NotificationDrawer({ open, onClose }) {
             <X size={18} />
           </button>
         </header>
+        {(allRead || settingsOpen) && (
+          <div className="notification-local-state" data-notification-local-state="true">
+            {allRead && <span data-notification-read-state="true">모든 알림을 읽음으로 표시했습니다.</span>}
+            {settingsOpen && <span data-notification-settings-state="true">알림 설정은 이 기기에서만 표시됩니다.</span>}
+          </div>
+        )}
         <div className="notification-stack">
           {notificationItems.map((item) => (
             <article className="notification-card" key={item.id} data-notification-card="stacked">
@@ -200,8 +224,8 @@ export function NotificationDrawer({ open, onClose }) {
           ))}
         </div>
         <footer className="notification-drawer-footer">
-          <button type="button" className="text-button">모두 읽음 처리</button>
-          <button type="button" className="text-button">알림 설정</button>
+          <button type="button" className="text-button" data-notification-mark-read="true" onClick={() => setAllRead(true)}>모두 읽음 처리</button>
+          <button type="button" className="text-button" data-notification-settings="true" onClick={() => setSettingsOpen((value) => !value)}>알림 설정</button>
         </footer>
       </aside>
     </div>
@@ -260,6 +284,7 @@ const sidebarMeta = {
 
 export function Sidebar({ labels, view, setView, activeSection = "" }) {
   const [openGroups, setOpenGroups] = useState({});
+  const [utilityPanel, setUtilityPanel] = useState(null);
   const subnav = {
     auth: [
       { label: "로그인", view: "auth" },
@@ -374,13 +399,19 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
 
   return (
     <aside className="sidebar" data-context-sidebar={view} aria-label={`${meta.title} 메뉴`}>
-      <div className="workspace-card">
+      <button
+        type="button"
+        className="workspace-card"
+        data-workspace-menu-trigger="true"
+        aria-expanded={utilityPanel?.kind === "workspace" ? "true" : "false"}
+        onClick={() => setUtilityPanel({ kind: "workspace", label: `${meta.title} 작업공간` })}
+      >
         <div>
           {labels.workspace && <span className="eyebrow">{labels.workspace}</span>}
           <strong>{meta.title}</strong>
         </div>
         <ChevronDown size={15} />
-      </div>
+      </button>
       {subnav.length > 0 && (
         <nav className="sidebar-nav">
           {subnav.map((item, index) => {
@@ -444,11 +475,24 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
       {meta.utilities.length > 0 && (
         <div className="sidebar-utilities">
           {meta.utilities.map(({ label, icon: Icon }) => (
-            <button key={label} type="button" className="sidebar-utility">
+            <button
+              key={label}
+              type="button"
+              className="sidebar-utility"
+              data-sidebar-utility={label}
+              aria-expanded={utilityPanel?.label === label ? "true" : "false"}
+              onClick={() => setUtilityPanel({ kind: "utility", label, scope: meta.title })}
+            >
               <Icon size={16} />
               <span>{label}</span>
             </button>
           ))}
+        </div>
+      )}
+      {utilityPanel && (
+        <div className="sidebar-utility-panel" role="status" data-sidebar-utility-panel="true">
+          <strong>{utilityPanel.label}</strong>
+          <span>{utilityPanel.kind === "workspace" ? "작업공간 전환 메뉴를 이 화면에서 확인합니다." : `${utilityPanel.scope} 설정은 현재 세션에서만 열립니다.`}</span>
         </div>
       )}
     </aside>

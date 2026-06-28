@@ -119,7 +119,10 @@ export function PeopleHome({ labels, activeSection = "", liveCtx = "allow" }) {
       {!guardedState && currentSection === "people-conflicts" && <LegalPeopleWorkspace mode="conflicts" refreshKey={refreshKey} liveCtx={liveCtx} />}
 
       {!guardedState && currentSection === "people-members" && (
-        <PeopleWorkforceDirectory initialTab="active" refreshKey={refreshKey} onSelectEmployee={setSelectedEmployeeId} />
+        <div className="people-runtime-grid">
+          <PeopleWorkforceDirectory initialTab="active" refreshKey={refreshKey} onSelectEmployee={setSelectedEmployeeId} />
+          <EmployeeProfile employeeId={selectedEmployeeId} refreshKey={refreshKey} />
+        </div>
       )}
 
       {!guardedState && currentSection === "people-org-chart" && (
@@ -148,54 +151,57 @@ export function PeopleHome({ labels, activeSection = "", liveCtx = "allow" }) {
 
       {!guardedState && currentSection === "people-approvals" && (
         <div className="people-runtime-grid">
-          <ManagerApprovalQueue />
+          <ManagerApprovalQueue key={refreshKey} />
         </div>
       )}
 
       {!guardedState && currentSection === "people-recruiting" && (
         <div className="people-runtime-grid">
-          <RecruitingPipeline />
-          <CandidatePortal />
+          <RecruitingPipeline key={`recruiting-${refreshKey}`} />
+          <CandidatePortal key={`candidate-${refreshKey}`} />
         </div>
       )}
 
       {!guardedState && currentSection === "people-lifecycle" && (
-        <PeopleWorkforceDirectory initialTab="onboarding" refreshKey={refreshKey} onSelectEmployee={setSelectedEmployeeId} />
+        <div className="people-runtime-grid">
+          <PeopleWorkforceDirectory initialTab="onboarding" refreshKey={refreshKey} onSelectEmployee={setSelectedEmployeeId} />
+          <LifecycleBoard />
+        </div>
       )}
 
       {!guardedState && currentSection === "people-policy" && (
         <div className="people-runtime-grid">
-          <HRXPolicyConsole />
+          <HRXPolicyConsole key={refreshKey} />
         </div>
       )}
 
       {!guardedState && currentSection === "people-audit" && (
         <div className="people-runtime-grid">
-          <HRXAuditViewer />
+          <HRXAuditViewer key={refreshKey} />
         </div>
       )}
 
       {!guardedState && currentSection === "people-analytics" && (
         <div className="people-runtime-grid">
-          <HRAnalytics />
+          <HRAnalytics key={refreshKey} />
         </div>
       )}
 
       {!guardedState && currentSection === "people-ai" && (
         <div className="people-runtime-grid">
-          <HRAIAssistant />
+          <HRAIAssistant key={refreshKey} />
         </div>
       )}
 
       {!guardedState && currentSection === "people-payroll" && (
         <div className="people-runtime-grid">
-          <PayrollBoundaryPanel />
+          <PayrollBoundaryPanel key={refreshKey} />
         </div>
       )}
 
       {!guardedState && currentSection === "people-admin" && (
         <div className="people-runtime-grid">
-          <PermissionAdminPanel />
+          <PermissionAdminPanel key={refreshKey} />
         </div>
       )}
     </section>

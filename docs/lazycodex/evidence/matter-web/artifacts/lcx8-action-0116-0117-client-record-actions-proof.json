@@ -1,0 +1,660 @@
+{
+  "schema_version": "law-firm-os.lcx8.browser-proof.v1",
+  "generated_at": "2026-06-28T04:20:29.382Z",
+  "batch": "LCX8-ALL-14",
+  "slice": "client-record-actions-right-panel",
+  "url": "http://127.0.0.1:5173/?locale=ko&view=clients&data=live&ctx=allow#clients-list",
+  "rows": [
+    "LCX8-ACTION-0116",
+    "LCX8-ACTION-0117"
+  ],
+  "status": "PASS",
+  "summary": "LCX8-ACTION-0116/0117 Client right-panel record actions proof: field update and owner-change approval check operated through current UI/API with safe write, idempotency replay, audit read-back, invalid-field block, denied/review fail-closed probes, owner-blocked no-apply state, and clean browser network/console.",
+  "screenshots": {
+    "start": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0116-0117-client-record-actions-start.png",
+    "after_actions": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0116-0117-client-record-actions-after-actions.png"
+  },
+  "browser_action_results": {
+    "fieldText": "변경 필드 display_name",
+    "ownerText": "승인 후 처리할 수 있습니다."
+  },
+  "direct_api_results": {
+    "field_update": {
+      "status": 200,
+      "outcome": "updated",
+      "changed_fields": [
+        "display_name"
+      ],
+      "audit_action": "record_action.field_updated"
+    },
+    "owner_blocked": {
+      "status": 200,
+      "outcome": "owner_approval_required",
+      "ui_state": "owner_blocked",
+      "applied_count": 0,
+      "audit_action": "record_action.owner_change.blocked"
+    },
+    "audit": {
+      "status": 200,
+      "actions": [
+        "record_action.field_updated"
+      ]
+    },
+    "invalid": {
+      "status": 400,
+      "ui_state": "blocked"
+    },
+    "denied": {
+      "status": 403,
+      "ui_state": "denied",
+      "count_leak_prevented": true
+    },
+    "review": {
+      "status": 200,
+      "ui_state": "review_required",
+      "count_leak_prevented": true
+    }
+  },
+  "network": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/field-update",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/bulk-updates",
+      "status": 200
+    }
+  ],
+  "network_summary": {
+    "api_responses": 14,
+    "api_4xx": 0,
+    "api_5xx": 0
+  },
+  "console_messages": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    }
+  ],
+  "assertions": [
+    {
+      "name": "DOM visible: record actions panel",
+      "status": "PASS",
+      "detail": {
+        "selector": "[data-sf-b-w02-record-actions-panel=\"true\"]"
+      }
+    },
+    {
+      "name": "DOM visible: field registry action",
+      "status": "PASS",
+      "detail": {
+        "selector": "[data-sf-b-w02-field-registry=\"true\"]"
+      }
+    },
+    {
+      "name": "DOM visible: owner blocked action",
+      "status": "PASS",
+      "detail": {
+        "selector": "[data-sf-b-w02-owner-blocked-action=\"true\"]"
+      }
+    },
+    {
+      "name": "DOM visible: audit feed",
+      "status": "PASS",
+      "detail": {
+        "selector": "[data-sf-b-w02-action-audit-feed=\"true\"]"
+      }
+    },
+    {
+      "name": "field update button enabled",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "owner blocked button enabled",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "LCX8-ACTION-0116 field update result: visible",
+      "status": "PASS",
+      "detail": {
+        "text": "변경 필드 display_name"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0116 field update result: text",
+      "status": "PASS",
+      "detail": {
+        "text": "변경 필드 display_name",
+        "expected": "/변경 필드/"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0117 owner blocked result: visible",
+      "status": "PASS",
+      "detail": {
+        "text": "승인 후 처리할 수 있습니다."
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0117 owner blocked result: text",
+      "status": "PASS",
+      "detail": {
+        "text": "승인 후 처리할 수 있습니다.",
+        "expected": "/승인 후 처리/"
+      }
+    },
+    {
+      "name": "browser body does not expose actor id",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "browser body does not expose owner_user_id",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "browser body shows audit feed",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct field update status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct field update outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "updated",
+        "expected": "updated"
+      }
+    },
+    {
+      "name": "direct field update state idempotent",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct field update changed display_name",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "changed_fields": [
+          "display_name"
+        ],
+        "field_level_allowlist": true
+      }
+    },
+    {
+      "name": "direct field update display label",
+      "status": "PASS",
+      "detail": {
+        "actual": "LCX8 Client 작업 검토",
+        "expected": "LCX8 Client 작업 검토"
+      }
+    },
+    {
+      "name": "direct field update audit event",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "event_id": "record_action.field_updated:tenant_rp04_synthetic:client:client_group_rp04_amic:display_name",
+        "action": "record_action.field_updated",
+        "object_type": "Client",
+        "object_id": "client_group_rp04_amic",
+        "reason": "record_field_update",
+        "occurred_at": "2026-06-28T04:20:29.373Z",
+        "changed_fields": [
+          "display_name"
+        ],
+        "actor_ref_included": false,
+        "raw_values_included": false,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "name": "direct field update raw user id flag",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct field update: actor id not exposed",
+      "status": "PASS",
+      "detail": {
+        "actorId": "user_tenant_rp04_synthetic_record_actions"
+      }
+    },
+    {
+      "name": "direct field update: owner raw value absent",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct field update: production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct replay initial status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct replay second status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct replay second outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "idempotent_replay",
+        "expected": "idempotent_replay"
+      }
+    },
+    {
+      "name": "direct replay second flag",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct owner status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct owner outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "owner_approval_required",
+        "expected": "owner_approval_required"
+      }
+    },
+    {
+      "name": "direct owner ui_state",
+      "status": "PASS",
+      "detail": {
+        "actual": "owner_blocked",
+        "expected": "owner_blocked"
+      }
+    },
+    {
+      "name": "direct owner applied count",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "direct owner approval required",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct owner items empty",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "direct owner audit event",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "event_id": "record_action.owner_change.blocked:tenant_rp04_synthetic:client:bulk_lcx8_client_owner_1782620429378",
+        "action": "record_action.owner_change.blocked",
+        "object_type": "Client",
+        "object_id": "bulk_lcx8_client_owner_1782620429378",
+        "reason": "owner_decision_required",
+        "occurred_at": "2026-06-28T04:20:29.379Z",
+        "changed_fields": [],
+        "actor_ref_included": false,
+        "raw_values_included": false,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "name": "direct owner blocked: actor id not exposed",
+      "status": "PASS",
+      "detail": {
+        "actorId": "user_tenant_rp04_synthetic_record_actions"
+      }
+    },
+    {
+      "name": "direct owner blocked: owner raw value absent",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct owner blocked: production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct audit status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct audit outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "passed",
+        "expected": "passed"
+      }
+    },
+    {
+      "name": "direct audit includes field update",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "direct audit actor refs omitted",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct audit raw values omitted",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct audit: actor id not exposed",
+      "status": "PASS",
+      "detail": {
+        "actorId": "user_tenant_rp04_synthetic_record_actions"
+      }
+    },
+    {
+      "name": "direct audit: owner raw value absent",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct audit: production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct invalid field status",
+      "status": "PASS",
+      "detail": {
+        "actual": 400,
+        "expected": 400
+      }
+    },
+    {
+      "name": "direct invalid field ui_state",
+      "status": "PASS",
+      "detail": {
+        "actual": "blocked",
+        "expected": "blocked"
+      }
+    },
+    {
+      "name": "direct invalid count leak prevented",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct invalid production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct denied status",
+      "status": "PASS",
+      "detail": {
+        "actual": 403,
+        "expected": 403
+      }
+    },
+    {
+      "name": "direct denied ui_state",
+      "status": "PASS",
+      "detail": {
+        "actual": "denied",
+        "expected": "denied"
+      }
+    },
+    {
+      "name": "direct denied count leak prevented",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct denied items empty",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "direct denied production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct review status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct review outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "review_required",
+        "expected": "review_required"
+      }
+    },
+    {
+      "name": "direct review ui_state",
+      "status": "PASS",
+      "detail": {
+        "actual": "review_required",
+        "expected": "review_required"
+      }
+    },
+    {
+      "name": "direct review count leak prevented",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct review items empty",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser API 4xx count",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser API 5xx count",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser console error count",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser observed field update request",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "browser observed owner bulk request",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "browser observed audit read",
+      "status": "PASS",
+      "detail": {}
+    }
+  ],
+  "assertion_summary": {
+    "total": 65,
+    "pass": 65,
+    "fail": 0
+  },
+  "classification": {
+    "LCX8-ACTION-0116": "PASS api_write client record field update safe fixture write/read-back/audit/idempotency/invalid-field block",
+    "LCX8-ACTION-0117": "PASS api_write owner_change bulk action owner_blocked no-apply audit/fail-closed"
+  },
+  "non_claims": [
+    "No owner change was applied",
+    "No raw owner/user id exposure claim",
+    "No production approval claim",
+    "No external receipt claim"
+  ]
+}

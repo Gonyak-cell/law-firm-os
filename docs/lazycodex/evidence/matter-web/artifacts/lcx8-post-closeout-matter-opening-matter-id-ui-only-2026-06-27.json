@@ -1,0 +1,56 @@
+{
+  "schema_version": "lcx8.post_closeout.ui_only_classification.v1",
+  "generated_at": "2026-06-27T00:19:29.710Z",
+  "action_id": "LCX8-ACTION-0080",
+  "status": "ui_only_final_classification",
+  "status_before": "UI_ONLY",
+  "status_after": "UI_ONLY",
+  "batch_id": "LCX8-ALL-12",
+  "surface": "matter",
+  "label": "Matter 등록번호",
+  "api_route": null,
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0080-matter-opening-matter-id-ui-only-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0080-matter-opening-matter-id-ui-only-proof.md",
+  "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0080-matter-opening-matter-id-ui-only-proof.png",
+  "fixture": {
+    "input_value": "matter_ui_only_0080_1782519570778",
+    "safe_fixture_family": "matter_opening_local_form_state",
+    "existing_seed_mutated": false,
+    "persisted": false,
+    "api_write_executed": false
+  },
+  "counts_before": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 27,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 105,
+    "fail": 42
+  },
+  "counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 27,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 105,
+    "fail": 42
+  },
+  "validation": {
+    "browser_ui_only_proof": "PASS 10/10 assertions",
+    "api_write_executed": false,
+    "mutation_network_after_input": 0,
+    "opening_post_network": 0,
+    "status_decision": "UI_ONLY remains UI_ONLY"
+  },
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0080 verification: UI-only Matter 등록번호 field proof PASS (10/10 assertions); npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS. Browser input accepted local value, submit remained disabled with partial form, no mutation network and no POST /api/matters/openings fired. Status remains UI_ONLY because this row is local form state only.",
+  "non_claims": [
+    "no API write executed for LCX8-ACTION-0080",
+    "no Matter opening persistence claimed for this row",
+    "submit action is a separate row/boundary",
+    "local browser proof only; no production go-live claim"
+  ]
+}

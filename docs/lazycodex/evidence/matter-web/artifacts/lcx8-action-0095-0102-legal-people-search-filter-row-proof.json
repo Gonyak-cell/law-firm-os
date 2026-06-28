@@ -1,0 +1,1318 @@
+{
+  "id": "lcx8-action-0095-0102-legal-people-search-filter-row-proof",
+  "generated_at": "2026-06-27T00:52:47.261Z",
+  "status": "PASS",
+  "target_ids": [
+    "LCX8-ACTION-0095",
+    "LCX8-ACTION-0096",
+    "LCX8-ACTION-0097",
+    "LCX8-ACTION-0098",
+    "LCX8-ACTION-0099",
+    "LCX8-ACTION-0100",
+    "LCX8-ACTION-0101",
+    "LCX8-ACTION-0102"
+  ],
+  "route": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+  "selected_person_id": "person_arbitrator_001",
+  "row_proof_by_id": {
+    "LCX8-ACTION-0095": {
+      "status_before": "BLOCKED",
+      "status_after_candidate": "PASS",
+      "browser": {
+        "search_query": "arbitrator",
+        "responses": [
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/search",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?query=arbitrator",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          }
+        ]
+      }
+    },
+    "LCX8-ACTION-0096": {
+      "status_before": "BLOCKED",
+      "status_after_candidate": "PASS",
+      "browser": {
+        "id": "LCX8-ACTION-0096",
+        "label": "전체",
+        "type_id": "",
+        "responses": [
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/search",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          }
+        ],
+        "latest_search_url": "http://127.0.0.1:5173/api/hrx/legal-people/search"
+      }
+    },
+    "LCX8-ACTION-0097": {
+      "status_before": "BLOCKED",
+      "status_after_candidate": "PASS",
+      "browser": {
+        "id": "LCX8-ACTION-0097",
+        "label": "내부 변호사",
+        "type_id": "internal_lawyer",
+        "responses": [
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/search",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=internal_lawyer",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/:personId",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/person_internal_lawyer_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/relationships",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/relationships?person_id=person_internal_lawyer_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/ethics",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics?person_id=person_internal_lawyer_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          }
+        ],
+        "latest_search_url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=internal_lawyer"
+      }
+    },
+    "LCX8-ACTION-0098": {
+      "status_before": "BLOCKED",
+      "status_after_candidate": "PASS",
+      "browser": {
+        "id": "LCX8-ACTION-0098",
+        "label": "Client",
+        "type_id": "client_contact",
+        "responses": [
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/search",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=client_contact",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/:personId",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/person_client_contact_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/relationships",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/relationships?person_id=person_client_contact_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/ethics",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics?person_id=person_client_contact_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          }
+        ],
+        "latest_search_url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=client_contact"
+      }
+    },
+    "LCX8-ACTION-0099": {
+      "status_before": "BLOCKED",
+      "status_after_candidate": "PASS",
+      "browser": {
+        "id": "LCX8-ACTION-0099",
+        "label": "상대 대리인",
+        "type_id": "opposing_counsel",
+        "responses": [
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/search",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=opposing_counsel",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/:personId",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/person_opposing_counsel_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/relationships",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/relationships?person_id=person_opposing_counsel_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/ethics",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics?person_id=person_opposing_counsel_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          }
+        ],
+        "latest_search_url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=opposing_counsel"
+      }
+    },
+    "LCX8-ACTION-0100": {
+      "status_before": "BLOCKED",
+      "status_after_candidate": "PASS",
+      "browser": {
+        "id": "LCX8-ACTION-0100",
+        "label": "전문가",
+        "type_id": "expert_witness",
+        "responses": [
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/search",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=expert_witness",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/:personId",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/person_expert_witness_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/relationships",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/relationships?person_id=person_expert_witness_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/ethics",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics?person_id=person_expert_witness_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          }
+        ],
+        "latest_search_url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=expert_witness"
+      }
+    },
+    "LCX8-ACTION-0101": {
+      "status_before": "BLOCKED",
+      "status_after_candidate": "PASS",
+      "browser": {
+        "id": "LCX8-ACTION-0101",
+        "label": "규제기관",
+        "type_id": "regulator_contact",
+        "responses": [
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/search",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=regulator_contact",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/:personId",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/person_regulator_contact_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/relationships",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/relationships?person_id=person_regulator_contact_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/ethics",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics?person_id=person_regulator_contact_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          }
+        ],
+        "latest_search_url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=regulator_contact"
+      }
+    },
+    "LCX8-ACTION-0102": {
+      "status_before": "BLOCKED",
+      "status_after_candidate": "PASS",
+      "browser": {
+        "active_person_before": "F\nFSC Reviewer\n규제기관 담당자 · Financial Services Commission\n활성",
+        "selected_person_id": "person_arbitrator_001",
+        "responses": [
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/:personId",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/person_arbitrator_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/relationships",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/relationships?person_id=person_arbitrator_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          },
+          {
+            "method": "GET",
+            "status": 200,
+            "endpoint_key": "/api/hrx/legal-people/ethics",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics?person_id=person_arbitrator_001",
+            "runtime_headers_ok": true,
+            "permission_context_present": true
+          }
+        ]
+      }
+    }
+  },
+  "search_responses": [
+    {
+      "method": "GET",
+      "status": 200,
+      "endpoint_key": "/api/hrx/legal-people/search",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?query=arbitrator",
+      "runtime_headers_ok": true,
+      "permission_context_present": true
+    }
+  ],
+  "tab_proofs": [
+    {
+      "id": "LCX8-ACTION-0097",
+      "label": "내부 변호사",
+      "type_id": "internal_lawyer",
+      "responses": [
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/search",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=internal_lawyer",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/:personId",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/person_internal_lawyer_001",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/relationships",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/relationships?person_id=person_internal_lawyer_001",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/ethics",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics?person_id=person_internal_lawyer_001",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        }
+      ],
+      "latest_search_url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=internal_lawyer"
+    },
+    {
+      "id": "LCX8-ACTION-0098",
+      "label": "Client",
+      "type_id": "client_contact",
+      "responses": [
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/search",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=client_contact",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/:personId",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/person_client_contact_001",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/relationships",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/relationships?person_id=person_client_contact_001",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/ethics",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics?person_id=person_client_contact_001",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        }
+      ],
+      "latest_search_url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=client_contact"
+    },
+    {
+      "id": "LCX8-ACTION-0099",
+      "label": "상대 대리인",
+      "type_id": "opposing_counsel",
+      "responses": [
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/search",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=opposing_counsel",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/:personId",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/person_opposing_counsel_001",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/relationships",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/relationships?person_id=person_opposing_counsel_001",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/ethics",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics?person_id=person_opposing_counsel_001",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        }
+      ],
+      "latest_search_url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=opposing_counsel"
+    },
+    {
+      "id": "LCX8-ACTION-0100",
+      "label": "전문가",
+      "type_id": "expert_witness",
+      "responses": [
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/search",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=expert_witness",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/:personId",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/person_expert_witness_001",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/relationships",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/relationships?person_id=person_expert_witness_001",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/ethics",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics?person_id=person_expert_witness_001",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        }
+      ],
+      "latest_search_url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=expert_witness"
+    },
+    {
+      "id": "LCX8-ACTION-0101",
+      "label": "규제기관",
+      "type_id": "regulator_contact",
+      "responses": [
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/search",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=regulator_contact",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/:personId",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/person_regulator_contact_001",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/relationships",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/relationships?person_id=person_regulator_contact_001",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/ethics",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics?person_id=person_regulator_contact_001",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        }
+      ],
+      "latest_search_url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=regulator_contact"
+    },
+    {
+      "id": "LCX8-ACTION-0096",
+      "label": "전체",
+      "type_id": "",
+      "responses": [
+        {
+          "method": "GET",
+          "status": 200,
+          "endpoint_key": "/api/hrx/legal-people/search",
+          "url": "http://127.0.0.1:5173/api/hrx/legal-people/search",
+          "runtime_headers_ok": true,
+          "permission_context_present": true
+        }
+      ],
+      "latest_search_url": "http://127.0.0.1:5173/api/hrx/legal-people/search"
+    }
+  ],
+  "tab_assertions": [
+    {
+      "id": "LCX8-ACTION-0097",
+      "pass": true,
+      "type_id": "internal_lawyer",
+      "observed_type_id": "internal_lawyer",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=internal_lawyer"
+    },
+    {
+      "id": "LCX8-ACTION-0098",
+      "pass": true,
+      "type_id": "client_contact",
+      "observed_type_id": "client_contact",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=client_contact"
+    },
+    {
+      "id": "LCX8-ACTION-0099",
+      "pass": true,
+      "type_id": "opposing_counsel",
+      "observed_type_id": "opposing_counsel",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=opposing_counsel"
+    },
+    {
+      "id": "LCX8-ACTION-0100",
+      "pass": true,
+      "type_id": "expert_witness",
+      "observed_type_id": "expert_witness",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=expert_witness"
+    },
+    {
+      "id": "LCX8-ACTION-0101",
+      "pass": true,
+      "type_id": "regulator_contact",
+      "observed_type_id": "regulator_contact",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?type_id=regulator_contact"
+    },
+    {
+      "id": "LCX8-ACTION-0096",
+      "pass": true,
+      "type_id": "",
+      "observed_type_id": "",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/search"
+    }
+  ],
+  "row_responses": [
+    {
+      "method": "GET",
+      "status": 200,
+      "endpoint_key": "/api/hrx/legal-people/:personId",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/person_arbitrator_001",
+      "runtime_headers_ok": true,
+      "permission_context_present": true
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "endpoint_key": "/api/hrx/legal-people/relationships",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/relationships?person_id=person_arbitrator_001",
+      "runtime_headers_ok": true,
+      "permission_context_present": true
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "endpoint_key": "/api/hrx/legal-people/ethics",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics?person_id=person_arbitrator_001",
+      "runtime_headers_ok": true,
+      "permission_context_present": true
+    }
+  ],
+  "direct_api_probes": [
+    {
+      "endpoint": "/api/hrx/legal-people/search?query=arbitrator",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "count_leak_prevented": null,
+      "result_count": 1,
+      "shape": [
+        "claim_boundary",
+        "facets",
+        "filters",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "schema_version"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?query=arbitrator",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?query=arbitrator",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?type_id=internal_lawyer",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "count_leak_prevented": null,
+      "result_count": 1,
+      "shape": [
+        "claim_boundary",
+        "facets",
+        "filters",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "schema_version"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?type_id=internal_lawyer",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?type_id=internal_lawyer",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?type_id=client_contact",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "count_leak_prevented": null,
+      "result_count": 1,
+      "shape": [
+        "claim_boundary",
+        "facets",
+        "filters",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "schema_version"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?type_id=client_contact",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?type_id=client_contact",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?type_id=opposing_counsel",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "count_leak_prevented": null,
+      "result_count": 1,
+      "shape": [
+        "claim_boundary",
+        "facets",
+        "filters",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "schema_version"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?type_id=opposing_counsel",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?type_id=opposing_counsel",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?type_id=expert_witness",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "count_leak_prevented": null,
+      "result_count": 1,
+      "shape": [
+        "claim_boundary",
+        "facets",
+        "filters",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "schema_version"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?type_id=expert_witness",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?type_id=expert_witness",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?type_id=regulator_contact",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "count_leak_prevented": null,
+      "result_count": 1,
+      "shape": [
+        "claim_boundary",
+        "facets",
+        "filters",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "schema_version"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?type_id=regulator_contact",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search?type_id=regulator_contact",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/person_arbitrator_001",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "count_leak_prevented": null,
+      "result_count": 0,
+      "shape": [
+        "affiliations",
+        "audit_summary",
+        "claim_boundary",
+        "clients",
+        "conflict_references",
+        "ethical_wall_references",
+        "matters",
+        "outcome",
+        "permission_summary",
+        "person",
+        "relationships",
+        "relationships_grouped",
+        "request_id",
+        "schema_version"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/person_arbitrator_001",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "affiliations",
+        "audit_summary",
+        "claim_boundary",
+        "clients",
+        "conflict_references",
+        "count_leak_prevented",
+        "ethical_wall_references",
+        "fail_closed",
+        "matters",
+        "outcome",
+        "permission_summary",
+        "person",
+        "relationships",
+        "relationships_grouped",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/person_arbitrator_001",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "affiliations",
+        "audit_summary",
+        "claim_boundary",
+        "clients",
+        "conflict_references",
+        "count_leak_prevented",
+        "ethical_wall_references",
+        "fail_closed",
+        "matters",
+        "outcome",
+        "permission_summary",
+        "person",
+        "relationships",
+        "relationships_grouped",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/relationships?person_id=person_arbitrator_001",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "count_leak_prevented": null,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "outcome",
+        "permission_summary",
+        "pivot",
+        "relationships",
+        "relationships_grouped",
+        "request_id",
+        "schema_version"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/relationships?person_id=person_arbitrator_001",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "fail_closed",
+        "outcome",
+        "permission_summary",
+        "pivot",
+        "relationships",
+        "relationships_grouped",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/relationships?person_id=person_arbitrator_001",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "fail_closed",
+        "outcome",
+        "permission_summary",
+        "pivot",
+        "relationships",
+        "relationships_grouped",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/ethics?person_id=person_arbitrator_001",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "count_leak_prevented": null,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "ethical_walls",
+        "filters",
+        "outcome",
+        "permission_links",
+        "permission_summary",
+        "request_id",
+        "review_queue",
+        "reviewer_receipts",
+        "schema_version",
+        "state_counts"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/ethics?person_id=person_arbitrator_001",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "ethical_walls",
+        "fail_closed",
+        "outcome",
+        "permission_links",
+        "permission_summary",
+        "request_id",
+        "review_queue",
+        "review_required",
+        "reviewer_receipts",
+        "safe_error_codes",
+        "schema_version",
+        "state_counts",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/ethics?person_id=person_arbitrator_001",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "count_leak_prevented": true,
+      "result_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "ethical_walls",
+        "fail_closed",
+        "outcome",
+        "permission_links",
+        "permission_summary",
+        "request_id",
+        "review_queue",
+        "review_required",
+        "reviewer_receipts",
+        "safe_error_codes",
+        "schema_version",
+        "state_counts",
+        "ui_state"
+      ]
+    }
+  ],
+  "console_events": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    }
+  ],
+  "screenshots": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0095-legal-people-search-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0096-0101-legal-people-type-tabs-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0102-legal-person-row-proof.png"
+  ],
+  "assertions": [
+    {
+      "name": "search input triggered query API read",
+      "pass": true
+    },
+    {
+      "name": "search responses had HRX runtime headers and no API errors",
+      "pass": true
+    },
+    {
+      "name": "all type tabs triggered expected type_id API reads",
+      "pass": true
+    },
+    {
+      "name": "row selection triggered detail relationship ethics reads",
+      "pass": true
+    },
+    {
+      "name": "row selection selected concrete person id",
+      "pass": true
+    },
+    {
+      "name": "row responses had HRX runtime headers and no API errors",
+      "pass": true
+    },
+    {
+      "name": "no console errors during proof",
+      "pass": true
+    },
+    {
+      "name": "direct allow API probes return success",
+      "pass": true
+    },
+    {
+      "name": "direct denied API probes fail closed without counts",
+      "pass": true
+    },
+    {
+      "name": "direct review API probes fail closed without counts",
+      "pass": true
+    }
+  ],
+  "non_claims": [
+    "This is read-only Legal People search/filter/selection proof; no HRX write persistence is claimed.",
+    "No production go-live or external approval is claimed."
+  ]
+}

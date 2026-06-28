@@ -331,7 +331,21 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
   }
 
   let body;
-  if (!matterId || summary === null || timeline === null) {
+  if (!matterId && liveCtx === "denied") {
+    body = (
+      <div className="live-data-state live-data-denied">
+        <strong>접근 권한이 없습니다</strong>
+        권한이 있는 Matter Vault 정보만 표시됩니다.
+      </div>
+    );
+  } else if (!matterId && liveCtx === "review") {
+    body = (
+      <div className="live-data-state live-data-review">
+        <strong>검토가 필요합니다</strong>
+        검토가 끝나면 Matter Vault 정보를 확인할 수 있습니다.
+      </div>
+    );
+  } else if (!matterId || summary === null || timeline === null) {
     body = (
       <div className="live-data-state live-data-loading">
         <strong>Matter Vault를 불러오는 중입니다</strong>

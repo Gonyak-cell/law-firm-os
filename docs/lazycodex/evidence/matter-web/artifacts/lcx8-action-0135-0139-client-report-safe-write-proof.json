@@ -1,0 +1,1094 @@
+{
+  "schema_version": "law-firm-os.lcx8.browser-proof.v1",
+  "generated_at": "2026-06-28T04:11:48.405Z",
+  "batch": "LCX8-ALL-15",
+  "slice": "client-report-safe-write",
+  "url": "http://127.0.0.1:5173/?locale=ko&view=clients&data=live&ctx=allow#client-reports",
+  "rows": [
+    "LCX8-ACTION-0135",
+    "LCX8-ACTION-0136",
+    "LCX8-ACTION-0137",
+    "LCX8-ACTION-0138",
+    "LCX8-ACTION-0139"
+  ],
+  "status": "PASS",
+  "summary": "LCX8-ACTION-0135..0139 Client report safe write proof: create, patch, client profitability refresh, bounded report run, and owner-blocked share operated through current UI/API with audit events, read-back, idempotency, raw query/source suppression, denied/review fail-closed probes, no production execution/share claim, and clean browser network/console.",
+  "screenshots": {
+    "start": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0135-0139-client-report-start.png",
+    "after_actions": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0135-0139-client-report-after-actions.png"
+  },
+  "browser_action_results": {
+    "createText": "생성 상태준비됨",
+    "patchText": "정의 상태준비됨",
+    "profitabilityText": "집계 상태재확인됨",
+    "runText": "실행 상태준비됨",
+    "shareText": "공유 상태승인 대기"
+  },
+  "direct_api_results": {
+    "created": {
+      "status": 201,
+      "outcome": "passed",
+      "ui_state": "route_mounted",
+      "audit_action": "report.definition.created",
+      "columns": [
+        "client_group",
+        "matter_count",
+        "profitability_amount"
+      ]
+    },
+    "patched": {
+      "status": 200,
+      "outcome": "passed",
+      "chart_type": "line",
+      "audit_action": "report.definition.patched"
+    },
+    "refreshed": {
+      "status": 201,
+      "outcome": "created",
+      "created_client_identity": false,
+      "source_object_mutated": false
+    },
+    "run": {
+      "status": 200,
+      "outcome": "passed",
+      "bounded_result": true,
+      "arbitrary_sql_executed": false,
+      "table_rows": 4,
+      "audit_action": "report.query_run.completed"
+    },
+    "shared": {
+      "status": 200,
+      "outcome": "owner_blocked",
+      "ui_state": "owner_blocked",
+      "share_grant_applied": false,
+      "owner_decision_required": true,
+      "audit_action": "report.share.owner_blocked"
+    },
+    "audit": {
+      "status": 200,
+      "actions": [
+        "report.definition.created",
+        "report.definition.patched",
+        "report.query_run.completed",
+        "report.share.owner_blocked"
+      ]
+    },
+    "denied": {
+      "status": 403,
+      "ui_state": "denied",
+      "count_leak_prevented": true,
+      "items": 0
+    },
+    "review": {
+      "status": 200,
+      "ui_state": "review_required",
+      "count_leak_prevented": true,
+      "items": 0
+    }
+  },
+  "network": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/reports?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_sf_b_w08_report_builder&audit_hint_ref=ui_sf_b_w08_report_builder_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/analytics/client-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/reports/audit?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_sf_b_w08_report_builder&audit_hint_ref=ui_sf_b_w08_report_builder_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/reports",
+      "status": 201
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:5173/api/reports/report_ui_1782619908168",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/analytics/client-profitability",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/reports/report_ui_1782619908168/run",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/reports/report_ui_1782619908168/share",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/reports?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_sf_b_w08_report_builder&audit_hint_ref=ui_sf_b_w08_report_builder_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/analytics/client-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/reports/audit?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_sf_b_w08_report_builder&audit_hint_ref=ui_sf_b_w08_report_builder_probe",
+      "status": 200
+    }
+  ],
+  "network_summary": {
+    "api_responses": 22,
+    "api_4xx": 0,
+    "api_5xx": 0
+  },
+  "console_messages": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    }
+  ],
+  "assertions": [
+    {
+      "name": "DOM visible: report builder workspace",
+      "status": "PASS",
+      "detail": {
+        "selector": "[data-report-builder=\"route-backed\"]"
+      }
+    },
+    {
+      "name": "DOM visible: saved report list",
+      "status": "PASS",
+      "detail": {
+        "selector": "[data-sf-b-w08-report-list=\"true\"]"
+      }
+    },
+    {
+      "name": "DOM visible: create action",
+      "status": "PASS",
+      "detail": {
+        "selector": "[data-sf-b-w08-report-create-action=\"true\"]"
+      }
+    },
+    {
+      "name": "DOM visible: patch action",
+      "status": "PASS",
+      "detail": {
+        "selector": "[data-sf-b-w08-report-patch-action=\"true\"]"
+      }
+    },
+    {
+      "name": "DOM visible: client profitability panel",
+      "status": "PASS",
+      "detail": {
+        "selector": "[data-client-profitability=\"route-backed\"]"
+      }
+    },
+    {
+      "name": "DOM visible: client profitability refresh action",
+      "status": "PASS",
+      "detail": {
+        "selector": "[data-sf-b-w08-client-profitability-refresh-action=\"true\"]"
+      }
+    },
+    {
+      "name": "DOM visible: report run action",
+      "status": "PASS",
+      "detail": {
+        "selector": "[data-sf-b-w08-report-run-action=\"true\"]"
+      }
+    },
+    {
+      "name": "DOM visible: report share action",
+      "status": "PASS",
+      "detail": {
+        "selector": "[data-sf-b-w08-report-share-action=\"true\"]"
+      }
+    },
+    {
+      "name": "DOM visible: report audit marker",
+      "status": "PASS",
+      "detail": {
+        "selector": "[data-sf-b-w08-report-audit=\"true\"]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0135 create: result visible",
+      "status": "PASS",
+      "detail": {
+        "text": "생성 상태준비됨"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0135 create: expected state text",
+      "status": "PASS",
+      "detail": {
+        "text": "생성 상태준비됨",
+        "expected": "/준비됨/"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0136 patch: result visible",
+      "status": "PASS",
+      "detail": {
+        "text": "정의 상태준비됨"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0136 patch: expected state text",
+      "status": "PASS",
+      "detail": {
+        "text": "정의 상태준비됨",
+        "expected": "/준비됨/"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0137 profitability refresh: result visible",
+      "status": "PASS",
+      "detail": {
+        "text": "집계 상태재확인됨"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0137 profitability refresh: expected state text",
+      "status": "PASS",
+      "detail": {
+        "text": "집계 상태재확인됨",
+        "expected": "/준비됨|재확인됨/"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0138 run: result visible",
+      "status": "PASS",
+      "detail": {
+        "text": "실행 상태준비됨"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0138 run: expected state text",
+      "status": "PASS",
+      "detail": {
+        "text": "실행 상태준비됨",
+        "expected": "/준비됨/"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0139 share: result visible",
+      "status": "PASS",
+      "detail": {
+        "text": "공유 상태승인 대기"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0139 share: expected state text",
+      "status": "PASS",
+      "detail": {
+        "text": "공유 상태승인 대기",
+        "expected": "/승인 대기/"
+      }
+    },
+    {
+      "name": "report chart summary visible",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "bounded result table visible",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "report audit marker visible after share",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "browser body does not expose tenant id",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "browser body does not expose actor id",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "browser body shows protected raw query/source labels",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct create status",
+      "status": "PASS",
+      "detail": {
+        "actual": 201,
+        "expected": 201
+      }
+    },
+    {
+      "name": "direct create outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "passed",
+        "expected": "passed"
+      }
+    },
+    {
+      "name": "direct create ui_state",
+      "status": "PASS",
+      "detail": {
+        "actual": "route_mounted",
+        "expected": "route_mounted"
+      }
+    },
+    {
+      "name": "direct create audit event",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "event_id": "report_audit_7f901d0b-d38b-48a9-ac57-b5d78936810d",
+        "object_id": "report_lcx8_0135_0139_1782619906833",
+        "action": "report.definition.created",
+        "actor_ref_included": false,
+        "raw_query_payload_included": false,
+        "source_payload_included": false,
+        "direct_recipient_contact_values_included": false,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "name": "direct create allowlists columns",
+      "status": "PASS",
+      "detail": {
+        "actual": "client_group,matter_count,profitability_amount",
+        "expected": "client_group,matter_count,profitability_amount"
+      }
+    },
+    {
+      "name": "direct create raw sql included",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct create source payload included",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct create: tenant id not exposed",
+      "status": "PASS",
+      "detail": {
+        "tenant": "tenant_cmp_g8_synthetic"
+      }
+    },
+    {
+      "name": "direct create: actor id not exposed",
+      "status": "PASS",
+      "detail": {
+        "actorId": "report_builder_operator"
+      }
+    },
+    {
+      "name": "direct create: production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct create idempotent replay status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct create idempotent replay outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "idempotent_replay",
+        "expected": "idempotent_replay"
+      }
+    },
+    {
+      "name": "direct create idempotent replay flag",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct patch status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct patch outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "passed",
+        "expected": "passed"
+      }
+    },
+    {
+      "name": "direct patch chart type",
+      "status": "PASS",
+      "detail": {
+        "actual": "line",
+        "expected": "line"
+      }
+    },
+    {
+      "name": "direct patch tenant id included",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct patch raw sql included",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct patch audit event",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "event_id": "report_audit_5d8f5e01-5d81-4bfa-a54d-7faa7389f520",
+        "object_id": "report_lcx8_0135_0139_1782619906833",
+        "action": "report.definition.patched",
+        "actor_ref_included": false,
+        "raw_query_payload_included": false,
+        "source_payload_included": false,
+        "direct_recipient_contact_values_included": false,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "name": "direct patch: tenant id not exposed",
+      "status": "PASS",
+      "detail": {
+        "tenant": "tenant_cmp_g8_synthetic"
+      }
+    },
+    {
+      "name": "direct patch: actor id not exposed",
+      "status": "PASS",
+      "detail": {
+        "actorId": "report_builder_operator"
+      }
+    },
+    {
+      "name": "direct patch: production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct profitability refresh status",
+      "status": "PASS",
+      "detail": {
+        "actual": 201,
+        "expected": 201
+      }
+    },
+    {
+      "name": "direct profitability refresh outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "created",
+        "expected": "created"
+      }
+    },
+    {
+      "name": "direct profitability did not create client identity",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct profitability did not mutate source object",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct profitability matter rows excluded",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct profitability row billing excluded",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct profitability: production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct run status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct run outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "passed",
+        "expected": "passed"
+      }
+    },
+    {
+      "name": "direct run ui_state",
+      "status": "PASS",
+      "detail": {
+        "actual": "route_mounted",
+        "expected": "route_mounted"
+      }
+    },
+    {
+      "name": "direct run bounded result",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct run arbitrary sql false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct run raw query payload false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct run row billing payload false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct run source object mutated false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct run table rows present",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "length": 4
+      }
+    },
+    {
+      "name": "direct run audit event",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "event_id": "report_audit_aa7aba62-93bf-4b18-b674-d50ec4c79d3f",
+        "object_id": "report_lcx8_0135_0139_1782619906833",
+        "action": "report.query_run.completed",
+        "actor_ref_included": false,
+        "raw_query_payload_included": false,
+        "source_payload_included": false,
+        "direct_recipient_contact_values_included": false,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "name": "direct run: tenant id not exposed",
+      "status": "PASS",
+      "detail": {
+        "tenant": "tenant_cmp_g8_synthetic"
+      }
+    },
+    {
+      "name": "direct run: actor id not exposed",
+      "status": "PASS",
+      "detail": {
+        "actorId": "report_builder_operator"
+      }
+    },
+    {
+      "name": "direct run: production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct share status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct share outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "owner_blocked",
+        "expected": "owner_blocked"
+      }
+    },
+    {
+      "name": "direct share ui_state",
+      "status": "PASS",
+      "detail": {
+        "actual": "owner_blocked",
+        "expected": "owner_blocked"
+      }
+    },
+    {
+      "name": "direct share grant not applied",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct share owner decision required",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct share contact values excluded",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct share permission bypass false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct share audit event",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "event_id": "report_audit_0defcdfd-1a55-4f60-97e3-c67fb8f6afbe",
+        "object_id": "report_lcx8_0135_0139_1782619906833",
+        "action": "report.share.owner_blocked",
+        "actor_ref_included": false,
+        "raw_query_payload_included": false,
+        "source_payload_included": false,
+        "direct_recipient_contact_values_included": false,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "name": "direct share: tenant id not exposed",
+      "status": "PASS",
+      "detail": {
+        "tenant": "tenant_cmp_g8_synthetic"
+      }
+    },
+    {
+      "name": "direct share: actor id not exposed",
+      "status": "PASS",
+      "detail": {
+        "actorId": "report_builder_operator"
+      }
+    },
+    {
+      "name": "direct share: production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct audit status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct audit outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "passed",
+        "expected": "passed"
+      }
+    },
+    {
+      "name": "direct audit includes report.definition.created",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct audit includes report.definition.patched",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct audit includes report.query_run.completed",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct audit includes report.share.owner_blocked",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct audit raw payload not included",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct audit contact values not included",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct audit: tenant id not exposed",
+      "status": "PASS",
+      "detail": {
+        "tenant": "tenant_cmp_g8_synthetic"
+      }
+    },
+    {
+      "name": "direct audit: actor id not exposed",
+      "status": "PASS",
+      "detail": {
+        "actorId": "report_builder_operator"
+      }
+    },
+    {
+      "name": "direct audit: production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct read-back list status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct read-back includes report",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct read-back raw sql absent",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct read-back source payload absent",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "direct read-back: tenant id not exposed",
+      "status": "PASS",
+      "detail": {
+        "tenant": "tenant_cmp_g8_synthetic"
+      }
+    },
+    {
+      "name": "direct read-back: actor id not exposed",
+      "status": "PASS",
+      "detail": {
+        "actorId": "report_builder_operator"
+      }
+    },
+    {
+      "name": "direct read-back: production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct denied status",
+      "status": "PASS",
+      "detail": {
+        "actual": 403,
+        "expected": 403
+      }
+    },
+    {
+      "name": "direct denied ui_state",
+      "status": "PASS",
+      "detail": {
+        "actual": "denied",
+        "expected": "denied"
+      }
+    },
+    {
+      "name": "direct denied count leak prevented",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct denied items empty",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "direct denied production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct review status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct review outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "review_required",
+        "expected": "review_required"
+      }
+    },
+    {
+      "name": "direct review ui_state",
+      "status": "PASS",
+      "detail": {
+        "actual": "review_required",
+        "expected": "review_required"
+      }
+    },
+    {
+      "name": "direct review items empty",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "direct review count leak prevented",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "browser API 4xx count",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser API 5xx count",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser console error count",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser observed report create request",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "browser observed report patch request",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "browser observed profitability refresh request",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "browser observed report run request",
+      "status": "PASS",
+      "detail": {}
+    },
+    {
+      "name": "browser observed report share request",
+      "status": "PASS",
+      "detail": {}
+    }
+  ],
+  "assertion_summary": {
+    "total": 114,
+    "pass": 114,
+    "fail": 0
+  },
+  "classification": {
+    "LCX8-ACTION-0135": "PASS api_write report.definition.created safe fixture write/read-back/audit/idempotency",
+    "LCX8-ACTION-0136": "PASS api_write report.definition.patched safe fixture write/read-back/audit",
+    "LCX8-ACTION-0137": "PASS api_write client profitability aggregate refresh without client identity/source mutation",
+    "LCX8-ACTION-0138": "PASS api_write bounded report run with raw SQL/query/source suppression",
+    "LCX8-ACTION-0139": "PASS api_write owner-blocked share request without permission grant/contact disclosure"
+  },
+  "non_claims": [
+    "No arbitrary SQL execution claim",
+    "No raw query/source payload exposure claim",
+    "No production report/share approval claim",
+    "No external provider receipt claim"
+  ]
+}

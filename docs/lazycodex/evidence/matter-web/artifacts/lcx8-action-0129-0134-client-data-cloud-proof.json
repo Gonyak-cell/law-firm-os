@@ -1,0 +1,1102 @@
+{
+  "schema_version": "law-firm-os.lcx8.client-data-cloud-proof.v0.1",
+  "generated_at": "2026-06-28T05:01:26.450Z",
+  "rows": [
+    "LCX8-ACTION-0129",
+    "LCX8-ACTION-0130",
+    "LCX8-ACTION-0131",
+    "LCX8-ACTION-0132",
+    "LCX8-ACTION-0133",
+    "LCX8-ACTION-0134"
+  ],
+  "scope": {
+    "local_browser_runtime": true,
+    "api_base_url": "http://127.0.0.1:4180",
+    "web_origin": "http://127.0.0.1:5174",
+    "external_provider_runtime_enabled": false,
+    "product_record_mutation_allowed": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "source_trace": {
+    "ui_component": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+    "api_client": "apps/web/src/data/apiClient.js#data-cloud functions",
+    "api_routes": "apps/api/src/routes/data-cloud.js",
+    "runtime_context": "apps/api/src/data-cloud-runtime-context.js",
+    "service": "packages/data-cloud/src/service.js"
+  },
+  "actions": [
+    {
+      "id": "LCX8-ACTION-0129",
+      "label": "Provider register request",
+      "selector": "[data-sf-b-w07-provider-register-action=\"true\"]",
+      "expected_text_pattern": "/외부 확인 대기/",
+      "dom_text": "외부 연동 등록\n외부 확인 대기",
+      "responses": [
+        {
+          "method": "POST",
+          "url": "/api/data-cloud/providers",
+          "status": 201,
+          "ok": true,
+          "body": {
+            "outcome": "provider_blocked",
+            "ui_state": "provider_blocked",
+            "safe_error_codes": [],
+            "audit_action": "data_cloud.provider.register_provider_blocked",
+            "audit_event_id_present": true,
+            "provider_payload_included": false,
+            "raw_identifiers_included": false,
+            "production_ready_claim": false,
+            "item": {
+              "provider_id": "provider_ui_1782622886220",
+              "job_id": null,
+              "identity_resolution_id": null,
+              "activation_id": null,
+              "status": "disabled",
+              "ui_state": "provider_blocked",
+              "provider_call_performed": false,
+              "product_records_mutated": false,
+              "provider_configured": false,
+              "consent_applied": false,
+              "automatic_merge_performed": false,
+              "canonical_master_data_write_performed": false,
+              "direct_matter_creation_performed": false,
+              "activation_submitted": false,
+              "audience_member_identifiers_included": false,
+              "raw_identifiers_included": false,
+              "raw_provider_fields_included": false,
+              "raw_contact_values_included": false,
+              "direct_identifiers_included": false,
+              "provider_payload_included": false,
+              "credentials_included": false,
+              "provider_tokens_included": false,
+              "production_ready_claim": false
+            },
+            "result": null,
+            "item_count": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0130",
+      "label": "Consent confirmation",
+      "selector": "[data-sf-b-w07-consent-record-action=\"true\"] button",
+      "expected_text_pattern": "/승인 대기/",
+      "dom_text": "동의 상태\n승인 대기",
+      "responses": [
+        {
+          "method": "POST",
+          "url": "/api/data-cloud/consent-records",
+          "status": 201,
+          "ok": true,
+          "body": {
+            "outcome": "owner_blocked",
+            "ui_state": "owner_blocked",
+            "safe_error_codes": [],
+            "audit_action": "data_cloud.consent.owner_blocked",
+            "audit_event_id_present": true,
+            "provider_payload_included": false,
+            "raw_identifiers_included": false,
+            "production_ready_claim": false,
+            "item": {
+              "provider_id": null,
+              "job_id": null,
+              "identity_resolution_id": null,
+              "activation_id": null,
+              "status": "owner_review_required",
+              "ui_state": "owner_blocked",
+              "provider_call_performed": false,
+              "product_records_mutated": false,
+              "provider_configured": false,
+              "consent_applied": false,
+              "automatic_merge_performed": false,
+              "canonical_master_data_write_performed": false,
+              "direct_matter_creation_performed": false,
+              "activation_submitted": false,
+              "audience_member_identifiers_included": false,
+              "raw_identifiers_included": false,
+              "raw_provider_fields_included": false,
+              "raw_contact_values_included": false,
+              "direct_identifiers_included": false,
+              "provider_payload_included": false,
+              "credentials_included": false,
+              "provider_tokens_included": false,
+              "production_ready_claim": false
+            },
+            "result": null,
+            "item_count": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0131",
+      "label": "Preview job",
+      "selector": "[data-sf-b-w07-enrichment-job-action=\"true\"] button",
+      "expected_text_pattern": "/준비됨/",
+      "dom_text": "작업 상태\n준비됨",
+      "responses": [
+        {
+          "method": "POST",
+          "url": "/api/data-cloud/enrichment-jobs",
+          "status": 201,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "route_mounted",
+            "safe_error_codes": [],
+            "audit_action": "data_cloud.enrichment_job.created",
+            "audit_event_id_present": true,
+            "provider_payload_included": false,
+            "raw_identifiers_included": false,
+            "production_ready_claim": false,
+            "item": {
+              "provider_id": "provider_salesforce_data_cloud",
+              "job_id": "data_cloud_job_ui_1782622886301",
+              "identity_resolution_id": null,
+              "activation_id": null,
+              "status": "preview_ready",
+              "ui_state": "route_mounted",
+              "provider_call_performed": false,
+              "product_records_mutated": false,
+              "provider_configured": false,
+              "consent_applied": false,
+              "automatic_merge_performed": false,
+              "canonical_master_data_write_performed": false,
+              "direct_matter_creation_performed": false,
+              "activation_submitted": false,
+              "audience_member_identifiers_included": false,
+              "raw_identifiers_included": false,
+              "raw_provider_fields_included": false,
+              "raw_contact_values_included": false,
+              "direct_identifiers_included": false,
+              "provider_payload_included": false,
+              "credentials_included": false,
+              "provider_tokens_included": false,
+              "production_ready_claim": false
+            },
+            "result": null,
+            "item_count": null
+          }
+        },
+        {
+          "method": "GET",
+          "url": "/api/data-cloud/enrichment-jobs/data_cloud_job_ui_1782622886301/preview?tenant_id=tenant_sf_b_w07_synthetic&permission_ref=ui_sf_b_w07_data_cloud_enrichment&audit_hint_ref=ui_sf_b_w07_data_cloud_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "safe_error_codes": [],
+            "audit_action": null,
+            "audit_event_id_present": false,
+            "provider_payload_included": false,
+            "raw_identifiers_included": false,
+            "production_ready_claim": false,
+            "item": {
+              "provider_id": "provider_salesforce_data_cloud",
+              "job_id": "data_cloud_job_ui_1782622886301",
+              "identity_resolution_id": null,
+              "activation_id": null,
+              "status": null,
+              "ui_state": null,
+              "provider_call_performed": false,
+              "product_records_mutated": false,
+              "provider_configured": false,
+              "consent_applied": false,
+              "automatic_merge_performed": false,
+              "canonical_master_data_write_performed": false,
+              "direct_matter_creation_performed": false,
+              "activation_submitted": false,
+              "audience_member_identifiers_included": false,
+              "raw_identifiers_included": false,
+              "raw_provider_fields_included": false,
+              "raw_contact_values_included": false,
+              "direct_identifiers_included": false,
+              "provider_payload_included": false,
+              "credentials_included": false,
+              "provider_tokens_included": false,
+              "production_ready_claim": false
+            },
+            "result": null,
+            "item_count": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0132",
+      "label": "Execute confirmation",
+      "selector": "[data-sf-b-w07-enrichment-execute-provider-blocked-action=\"true\"] button",
+      "expected_text_pattern": "/외부 확인 대기/",
+      "dom_text": "실행 상태\n외부 확인 대기",
+      "responses": [
+        {
+          "method": "POST",
+          "url": "/api/data-cloud/enrichment-jobs/data_cloud_job_ui_1782622886301/execute",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "provider_blocked",
+            "ui_state": "provider_blocked",
+            "safe_error_codes": [],
+            "audit_action": "data_cloud.enrichment_job.execute_provider_blocked",
+            "audit_event_id_present": true,
+            "provider_payload_included": false,
+            "raw_identifiers_included": false,
+            "production_ready_claim": false,
+            "item": {
+              "provider_id": "provider_salesforce_data_cloud",
+              "job_id": "data_cloud_job_ui_1782622886301",
+              "identity_resolution_id": null,
+              "activation_id": null,
+              "status": "provider_receipt_required",
+              "ui_state": "provider_blocked",
+              "provider_call_performed": false,
+              "product_records_mutated": false,
+              "provider_configured": false,
+              "consent_applied": false,
+              "automatic_merge_performed": false,
+              "canonical_master_data_write_performed": false,
+              "direct_matter_creation_performed": false,
+              "activation_submitted": false,
+              "audience_member_identifiers_included": false,
+              "raw_identifiers_included": false,
+              "raw_provider_fields_included": false,
+              "raw_contact_values_included": false,
+              "direct_identifiers_included": false,
+              "provider_payload_included": false,
+              "credentials_included": false,
+              "provider_tokens_included": false,
+              "production_ready_claim": false
+            },
+            "result": {
+              "result_id": "data_cloud_result_data_cloud_job_ui_1782622886301",
+              "job_id": "data_cloud_job_ui_1782622886301",
+              "status": "provider_receipt_required",
+              "ui_state": "provider_blocked",
+              "provider_receipt_required": true,
+              "provider_call_performed": false,
+              "raw_provider_fields_included": false,
+              "raw_contact_values_included": false,
+              "direct_identifiers_included": false,
+              "production_ready_claim": false
+            },
+            "item_count": null
+          }
+        },
+        {
+          "method": "GET",
+          "url": "/api/data-cloud/enrichment-results?tenant_id=tenant_sf_b_w07_synthetic&permission_ref=ui_sf_b_w07_data_cloud_enrichment&audit_hint_ref=ui_sf_b_w07_data_cloud_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "safe_error_codes": [],
+            "audit_action": null,
+            "audit_event_id_present": false,
+            "provider_payload_included": false,
+            "raw_identifiers_included": false,
+            "production_ready_claim": false,
+            "item": null,
+            "result": null,
+            "item_count": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0133",
+      "label": "Identity candidates",
+      "selector": "[data-sf-b-w07-identity-resolution-action=\"true\"] button",
+      "expected_text_pattern": "/승인 대기/",
+      "dom_text": "매칭 상태\n승인 대기",
+      "responses": [
+        {
+          "method": "POST",
+          "url": "/api/data-cloud/identity-resolution",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "owner_blocked",
+            "ui_state": "owner_blocked",
+            "safe_error_codes": [],
+            "audit_action": "data_cloud.identity_resolution.owner_blocked",
+            "audit_event_id_present": true,
+            "provider_payload_included": false,
+            "raw_identifiers_included": false,
+            "production_ready_claim": false,
+            "item": {
+              "provider_id": null,
+              "job_id": null,
+              "identity_resolution_id": "identity_resolution_ui_1782622886367",
+              "activation_id": null,
+              "status": "owner_review_required",
+              "ui_state": "owner_blocked",
+              "provider_call_performed": false,
+              "product_records_mutated": false,
+              "provider_configured": false,
+              "consent_applied": false,
+              "automatic_merge_performed": false,
+              "canonical_master_data_write_performed": false,
+              "direct_matter_creation_performed": false,
+              "activation_submitted": false,
+              "audience_member_identifiers_included": false,
+              "raw_identifiers_included": false,
+              "raw_provider_fields_included": false,
+              "raw_contact_values_included": false,
+              "direct_identifiers_included": false,
+              "provider_payload_included": false,
+              "credentials_included": false,
+              "provider_tokens_included": false,
+              "production_ready_claim": false
+            },
+            "result": null,
+            "item_count": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0134",
+      "label": "Segment activation",
+      "selector": "[data-sf-b-w07-segment-activation-provider-blocked-action=\"true\"] button",
+      "expected_text_pattern": "/외부 확인 대기/",
+      "dom_text": "대상 그룹 상태\n외부 확인 대기",
+      "responses": [
+        {
+          "method": "POST",
+          "url": "/api/data-cloud/segment-activations",
+          "status": 201,
+          "ok": true,
+          "body": {
+            "outcome": "provider_blocked",
+            "ui_state": "provider_blocked",
+            "safe_error_codes": [],
+            "audit_action": "data_cloud.segment_activation.provider_blocked",
+            "audit_event_id_present": true,
+            "provider_payload_included": false,
+            "raw_identifiers_included": false,
+            "production_ready_claim": false,
+            "item": {
+              "provider_id": null,
+              "job_id": null,
+              "identity_resolution_id": null,
+              "activation_id": "segment_activation_ui_1782622886393",
+              "status": "provider_receipt_required",
+              "ui_state": "provider_blocked",
+              "provider_call_performed": false,
+              "product_records_mutated": false,
+              "provider_configured": false,
+              "consent_applied": false,
+              "automatic_merge_performed": false,
+              "canonical_master_data_write_performed": false,
+              "direct_matter_creation_performed": false,
+              "activation_submitted": false,
+              "audience_member_identifiers_included": false,
+              "raw_identifiers_included": false,
+              "raw_provider_fields_included": false,
+              "raw_contact_values_included": false,
+              "direct_identifiers_included": false,
+              "provider_payload_included": false,
+              "credentials_included": false,
+              "provider_tokens_included": false,
+              "production_ready_claim": false
+            },
+            "result": null,
+            "item_count": null
+          }
+        }
+      ]
+    }
+  ],
+  "direct_api_guards": {
+    "denied": {
+      "status": 403,
+      "body": {
+        "outcome": "denied",
+        "ui_state": "denied",
+        "safe_error_codes": [
+          "DATA_CLOUD_PERMISSION_REQUIRED"
+        ],
+        "audit_action": null,
+        "audit_event_id_present": false,
+        "provider_payload_included": false,
+        "raw_identifiers_included": false,
+        "production_ready_claim": false,
+        "item": null,
+        "result": null,
+        "item_count": 0
+      }
+    },
+    "review": {
+      "status": 200,
+      "body": {
+        "outcome": "review_required",
+        "ui_state": "review_required",
+        "safe_error_codes": [
+          "DATA_CLOUD_REVIEW_REQUIRED"
+        ],
+        "audit_action": null,
+        "audit_event_id_present": false,
+        "provider_payload_included": false,
+        "raw_identifiers_included": false,
+        "production_ready_claim": false,
+        "item": null,
+        "result": null,
+        "item_count": 0
+      }
+    }
+  },
+  "browser_network_summary": {
+    "data_cloud_response_count": 16,
+    "api4xx5xx_count": 0,
+    "responses": [
+      {
+        "method": "GET",
+        "url": "/api/data-cloud/providers?tenant_id=tenant_sf_b_w07_synthetic&permission_ref=ui_sf_b_w07_data_cloud_enrichment&audit_hint_ref=ui_sf_b_w07_data_cloud_probe",
+        "status": 200,
+        "ok": true,
+        "body": {
+          "outcome": "passed",
+          "ui_state": null,
+          "safe_error_codes": [],
+          "audit_action": null,
+          "audit_event_id_present": false,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": null,
+          "result": null,
+          "item_count": 3
+        }
+      },
+      {
+        "method": "GET",
+        "url": "/api/data-cloud/unified-profiles/unified_profile_client_seed?tenant_id=tenant_sf_b_w07_synthetic&permission_ref=ui_sf_b_w07_data_cloud_enrichment&audit_hint_ref=ui_sf_b_w07_data_cloud_probe",
+        "status": 200,
+        "ok": true,
+        "body": {
+          "outcome": "passed",
+          "ui_state": null,
+          "safe_error_codes": [],
+          "audit_action": null,
+          "audit_event_id_present": false,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": {
+            "provider_id": null,
+            "job_id": null,
+            "identity_resolution_id": null,
+            "activation_id": null,
+            "status": null,
+            "ui_state": null,
+            "provider_call_performed": false,
+            "product_records_mutated": false,
+            "provider_configured": false,
+            "consent_applied": false,
+            "automatic_merge_performed": false,
+            "canonical_master_data_write_performed": false,
+            "direct_matter_creation_performed": false,
+            "activation_submitted": false,
+            "audience_member_identifiers_included": false,
+            "raw_identifiers_included": false,
+            "raw_provider_fields_included": false,
+            "raw_contact_values_included": false,
+            "direct_identifiers_included": false,
+            "provider_payload_included": false,
+            "credentials_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          "result": null,
+          "item_count": null
+        }
+      },
+      {
+        "method": "GET",
+        "url": "/api/data-cloud/enrichment-results?tenant_id=tenant_sf_b_w07_synthetic&permission_ref=ui_sf_b_w07_data_cloud_enrichment&audit_hint_ref=ui_sf_b_w07_data_cloud_probe",
+        "status": 200,
+        "ok": true,
+        "body": {
+          "outcome": "passed",
+          "ui_state": null,
+          "safe_error_codes": [],
+          "audit_action": null,
+          "audit_event_id_present": false,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": null,
+          "result": null,
+          "item_count": 1
+        }
+      },
+      {
+        "method": "GET",
+        "url": "/api/data-cloud/audit?tenant_id=tenant_sf_b_w07_synthetic&permission_ref=ui_sf_b_w07_data_cloud_enrichment&audit_hint_ref=ui_sf_b_w07_data_cloud_probe",
+        "status": 200,
+        "ok": true,
+        "body": {
+          "outcome": "passed",
+          "ui_state": null,
+          "safe_error_codes": [],
+          "audit_action": null,
+          "audit_event_id_present": false,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": null,
+          "result": null,
+          "item_count": 6
+        }
+      },
+      {
+        "method": "POST",
+        "url": "/api/data-cloud/providers",
+        "status": 201,
+        "ok": true,
+        "body": {
+          "outcome": "provider_blocked",
+          "ui_state": "provider_blocked",
+          "safe_error_codes": [],
+          "audit_action": "data_cloud.provider.register_provider_blocked",
+          "audit_event_id_present": true,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": {
+            "provider_id": "provider_ui_1782622886220",
+            "job_id": null,
+            "identity_resolution_id": null,
+            "activation_id": null,
+            "status": "disabled",
+            "ui_state": "provider_blocked",
+            "provider_call_performed": false,
+            "product_records_mutated": false,
+            "provider_configured": false,
+            "consent_applied": false,
+            "automatic_merge_performed": false,
+            "canonical_master_data_write_performed": false,
+            "direct_matter_creation_performed": false,
+            "activation_submitted": false,
+            "audience_member_identifiers_included": false,
+            "raw_identifiers_included": false,
+            "raw_provider_fields_included": false,
+            "raw_contact_values_included": false,
+            "direct_identifiers_included": false,
+            "provider_payload_included": false,
+            "credentials_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          "result": null,
+          "item_count": null
+        }
+      },
+      {
+        "method": "POST",
+        "url": "/api/data-cloud/consent-records",
+        "status": 201,
+        "ok": true,
+        "body": {
+          "outcome": "owner_blocked",
+          "ui_state": "owner_blocked",
+          "safe_error_codes": [],
+          "audit_action": "data_cloud.consent.owner_blocked",
+          "audit_event_id_present": true,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": {
+            "provider_id": null,
+            "job_id": null,
+            "identity_resolution_id": null,
+            "activation_id": null,
+            "status": "owner_review_required",
+            "ui_state": "owner_blocked",
+            "provider_call_performed": false,
+            "product_records_mutated": false,
+            "provider_configured": false,
+            "consent_applied": false,
+            "automatic_merge_performed": false,
+            "canonical_master_data_write_performed": false,
+            "direct_matter_creation_performed": false,
+            "activation_submitted": false,
+            "audience_member_identifiers_included": false,
+            "raw_identifiers_included": false,
+            "raw_provider_fields_included": false,
+            "raw_contact_values_included": false,
+            "direct_identifiers_included": false,
+            "provider_payload_included": false,
+            "credentials_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          "result": null,
+          "item_count": null
+        }
+      },
+      {
+        "method": "GET",
+        "url": "/api/data-cloud/providers?tenant_id=tenant_sf_b_w07_synthetic&permission_ref=ui_sf_b_w07_data_cloud_enrichment&audit_hint_ref=ui_sf_b_w07_data_cloud_probe",
+        "status": 200,
+        "ok": true,
+        "body": {
+          "outcome": "passed",
+          "ui_state": null,
+          "safe_error_codes": [],
+          "audit_action": null,
+          "audit_event_id_present": false,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": null,
+          "result": null,
+          "item_count": 4
+        }
+      },
+      {
+        "method": "GET",
+        "url": "/api/data-cloud/unified-profiles/unified_profile_client_seed?tenant_id=tenant_sf_b_w07_synthetic&permission_ref=ui_sf_b_w07_data_cloud_enrichment&audit_hint_ref=ui_sf_b_w07_data_cloud_probe",
+        "status": 200,
+        "ok": true,
+        "body": {
+          "outcome": "passed",
+          "ui_state": null,
+          "safe_error_codes": [],
+          "audit_action": null,
+          "audit_event_id_present": false,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": {
+            "provider_id": null,
+            "job_id": null,
+            "identity_resolution_id": null,
+            "activation_id": null,
+            "status": null,
+            "ui_state": null,
+            "provider_call_performed": false,
+            "product_records_mutated": false,
+            "provider_configured": false,
+            "consent_applied": false,
+            "automatic_merge_performed": false,
+            "canonical_master_data_write_performed": false,
+            "direct_matter_creation_performed": false,
+            "activation_submitted": false,
+            "audience_member_identifiers_included": false,
+            "raw_identifiers_included": false,
+            "raw_provider_fields_included": false,
+            "raw_contact_values_included": false,
+            "direct_identifiers_included": false,
+            "provider_payload_included": false,
+            "credentials_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          "result": null,
+          "item_count": null
+        }
+      },
+      {
+        "method": "GET",
+        "url": "/api/data-cloud/enrichment-results?tenant_id=tenant_sf_b_w07_synthetic&permission_ref=ui_sf_b_w07_data_cloud_enrichment&audit_hint_ref=ui_sf_b_w07_data_cloud_probe",
+        "status": 200,
+        "ok": true,
+        "body": {
+          "outcome": "passed",
+          "ui_state": null,
+          "safe_error_codes": [],
+          "audit_action": null,
+          "audit_event_id_present": false,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": null,
+          "result": null,
+          "item_count": 1
+        }
+      },
+      {
+        "method": "GET",
+        "url": "/api/data-cloud/audit?tenant_id=tenant_sf_b_w07_synthetic&permission_ref=ui_sf_b_w07_data_cloud_enrichment&audit_hint_ref=ui_sf_b_w07_data_cloud_probe",
+        "status": 200,
+        "ok": true,
+        "body": {
+          "outcome": "passed",
+          "ui_state": null,
+          "safe_error_codes": [],
+          "audit_action": null,
+          "audit_event_id_present": false,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": null,
+          "result": null,
+          "item_count": 8
+        }
+      },
+      {
+        "method": "POST",
+        "url": "/api/data-cloud/enrichment-jobs",
+        "status": 201,
+        "ok": true,
+        "body": {
+          "outcome": "passed",
+          "ui_state": "route_mounted",
+          "safe_error_codes": [],
+          "audit_action": "data_cloud.enrichment_job.created",
+          "audit_event_id_present": true,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": {
+            "provider_id": "provider_salesforce_data_cloud",
+            "job_id": "data_cloud_job_ui_1782622886301",
+            "identity_resolution_id": null,
+            "activation_id": null,
+            "status": "preview_ready",
+            "ui_state": "route_mounted",
+            "provider_call_performed": false,
+            "product_records_mutated": false,
+            "provider_configured": false,
+            "consent_applied": false,
+            "automatic_merge_performed": false,
+            "canonical_master_data_write_performed": false,
+            "direct_matter_creation_performed": false,
+            "activation_submitted": false,
+            "audience_member_identifiers_included": false,
+            "raw_identifiers_included": false,
+            "raw_provider_fields_included": false,
+            "raw_contact_values_included": false,
+            "direct_identifiers_included": false,
+            "provider_payload_included": false,
+            "credentials_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          "result": null,
+          "item_count": null
+        }
+      },
+      {
+        "method": "GET",
+        "url": "/api/data-cloud/enrichment-jobs/data_cloud_job_ui_1782622886301/preview?tenant_id=tenant_sf_b_w07_synthetic&permission_ref=ui_sf_b_w07_data_cloud_enrichment&audit_hint_ref=ui_sf_b_w07_data_cloud_probe",
+        "status": 200,
+        "ok": true,
+        "body": {
+          "outcome": "passed",
+          "ui_state": null,
+          "safe_error_codes": [],
+          "audit_action": null,
+          "audit_event_id_present": false,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": {
+            "provider_id": "provider_salesforce_data_cloud",
+            "job_id": "data_cloud_job_ui_1782622886301",
+            "identity_resolution_id": null,
+            "activation_id": null,
+            "status": null,
+            "ui_state": null,
+            "provider_call_performed": false,
+            "product_records_mutated": false,
+            "provider_configured": false,
+            "consent_applied": false,
+            "automatic_merge_performed": false,
+            "canonical_master_data_write_performed": false,
+            "direct_matter_creation_performed": false,
+            "activation_submitted": false,
+            "audience_member_identifiers_included": false,
+            "raw_identifiers_included": false,
+            "raw_provider_fields_included": false,
+            "raw_contact_values_included": false,
+            "direct_identifiers_included": false,
+            "provider_payload_included": false,
+            "credentials_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          "result": null,
+          "item_count": null
+        }
+      },
+      {
+        "method": "POST",
+        "url": "/api/data-cloud/enrichment-jobs/data_cloud_job_ui_1782622886301/execute",
+        "status": 200,
+        "ok": true,
+        "body": {
+          "outcome": "provider_blocked",
+          "ui_state": "provider_blocked",
+          "safe_error_codes": [],
+          "audit_action": "data_cloud.enrichment_job.execute_provider_blocked",
+          "audit_event_id_present": true,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": {
+            "provider_id": "provider_salesforce_data_cloud",
+            "job_id": "data_cloud_job_ui_1782622886301",
+            "identity_resolution_id": null,
+            "activation_id": null,
+            "status": "provider_receipt_required",
+            "ui_state": "provider_blocked",
+            "provider_call_performed": false,
+            "product_records_mutated": false,
+            "provider_configured": false,
+            "consent_applied": false,
+            "automatic_merge_performed": false,
+            "canonical_master_data_write_performed": false,
+            "direct_matter_creation_performed": false,
+            "activation_submitted": false,
+            "audience_member_identifiers_included": false,
+            "raw_identifiers_included": false,
+            "raw_provider_fields_included": false,
+            "raw_contact_values_included": false,
+            "direct_identifiers_included": false,
+            "provider_payload_included": false,
+            "credentials_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          "result": {
+            "result_id": "data_cloud_result_data_cloud_job_ui_1782622886301",
+            "job_id": "data_cloud_job_ui_1782622886301",
+            "status": "provider_receipt_required",
+            "ui_state": "provider_blocked",
+            "provider_receipt_required": true,
+            "provider_call_performed": false,
+            "raw_provider_fields_included": false,
+            "raw_contact_values_included": false,
+            "direct_identifiers_included": false,
+            "production_ready_claim": false
+          },
+          "item_count": null
+        }
+      },
+      {
+        "method": "GET",
+        "url": "/api/data-cloud/enrichment-results?tenant_id=tenant_sf_b_w07_synthetic&permission_ref=ui_sf_b_w07_data_cloud_enrichment&audit_hint_ref=ui_sf_b_w07_data_cloud_probe",
+        "status": 200,
+        "ok": true,
+        "body": {
+          "outcome": "passed",
+          "ui_state": null,
+          "safe_error_codes": [],
+          "audit_action": null,
+          "audit_event_id_present": false,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": null,
+          "result": null,
+          "item_count": 2
+        }
+      },
+      {
+        "method": "POST",
+        "url": "/api/data-cloud/identity-resolution",
+        "status": 200,
+        "ok": true,
+        "body": {
+          "outcome": "owner_blocked",
+          "ui_state": "owner_blocked",
+          "safe_error_codes": [],
+          "audit_action": "data_cloud.identity_resolution.owner_blocked",
+          "audit_event_id_present": true,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": {
+            "provider_id": null,
+            "job_id": null,
+            "identity_resolution_id": "identity_resolution_ui_1782622886367",
+            "activation_id": null,
+            "status": "owner_review_required",
+            "ui_state": "owner_blocked",
+            "provider_call_performed": false,
+            "product_records_mutated": false,
+            "provider_configured": false,
+            "consent_applied": false,
+            "automatic_merge_performed": false,
+            "canonical_master_data_write_performed": false,
+            "direct_matter_creation_performed": false,
+            "activation_submitted": false,
+            "audience_member_identifiers_included": false,
+            "raw_identifiers_included": false,
+            "raw_provider_fields_included": false,
+            "raw_contact_values_included": false,
+            "direct_identifiers_included": false,
+            "provider_payload_included": false,
+            "credentials_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          "result": null,
+          "item_count": null
+        }
+      },
+      {
+        "method": "POST",
+        "url": "/api/data-cloud/segment-activations",
+        "status": 201,
+        "ok": true,
+        "body": {
+          "outcome": "provider_blocked",
+          "ui_state": "provider_blocked",
+          "safe_error_codes": [],
+          "audit_action": "data_cloud.segment_activation.provider_blocked",
+          "audit_event_id_present": true,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": {
+            "provider_id": null,
+            "job_id": null,
+            "identity_resolution_id": null,
+            "activation_id": "segment_activation_ui_1782622886393",
+            "status": "provider_receipt_required",
+            "ui_state": "provider_blocked",
+            "provider_call_performed": false,
+            "product_records_mutated": false,
+            "provider_configured": false,
+            "consent_applied": false,
+            "automatic_merge_performed": false,
+            "canonical_master_data_write_performed": false,
+            "direct_matter_creation_performed": false,
+            "activation_submitted": false,
+            "audience_member_identifiers_included": false,
+            "raw_identifiers_included": false,
+            "raw_provider_fields_included": false,
+            "raw_contact_values_included": false,
+            "direct_identifiers_included": false,
+            "provider_payload_included": false,
+            "credentials_included": false,
+            "provider_tokens_included": false,
+            "production_ready_claim": false
+          },
+          "result": null,
+          "item_count": null
+        }
+      }
+    ]
+  },
+  "console_messages": [],
+  "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0129-0134-client-data-cloud-proof.png",
+  "assertions": [
+    {
+      "name": "all six browser actions collected",
+      "passed": true,
+      "details": {
+        "count": 6
+      }
+    },
+    {
+      "name": "provider registration remains provider-blocked",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "consent write remains owner-blocked",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "enrichment create mounts route and preview is safe",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "enrichment execute remains provider-blocked",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "identity resolution creates review candidates only",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "segment activation remains provider-blocked",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "every write response has audit event",
+      "passed": true,
+      "details": {
+        "writes": 6
+      }
+    },
+    {
+      "name": "browser observed no data-cloud 4xx/5xx",
+      "passed": true,
+      "details": {
+        "api4xx5xx": []
+      }
+    },
+    {
+      "name": "browser console has no errors",
+      "passed": true,
+      "details": {
+        "consoleMessages": []
+      }
+    },
+    {
+      "name": "deny fail-closed prevents count leak",
+      "passed": true,
+      "details": {
+        "status": 403,
+        "body": {
+          "outcome": "denied",
+          "ui_state": "denied",
+          "safe_error_codes": [
+            "DATA_CLOUD_PERMISSION_REQUIRED"
+          ],
+          "audit_action": null,
+          "audit_event_id_present": false,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": null,
+          "result": null,
+          "item_count": 0
+        }
+      }
+    },
+    {
+      "name": "review context returns review_required without mutation",
+      "passed": true,
+      "details": {
+        "status": 200,
+        "body": {
+          "outcome": "review_required",
+          "ui_state": "review_required",
+          "safe_error_codes": [
+            "DATA_CLOUD_REVIEW_REQUIRED"
+          ],
+          "audit_action": null,
+          "audit_event_id_present": false,
+          "provider_payload_included": false,
+          "raw_identifiers_included": false,
+          "production_ready_claim": false,
+          "item": null,
+          "result": null,
+          "item_count": 0
+        }
+      }
+    },
+    {
+      "name": "no production-ready or provider payload claim",
+      "passed": true,
+      "details": {}
+    }
+  ],
+  "result": "PASS"
+}

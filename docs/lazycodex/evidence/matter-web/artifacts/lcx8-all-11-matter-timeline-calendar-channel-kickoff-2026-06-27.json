@@ -1,0 +1,192 @@
+{
+  "schema_version": "matter.lcx8.all_remaining.batch_kickoff.v1",
+  "generated_at": "2026-06-26T23:34:07Z",
+  "batch_id": "LCX8-ALL-11",
+  "status": "BATCH_STARTED",
+  "branch": "codex/matter-vault-approved-upserts",
+  "head": "649041320c6ec33f9ae2cc90619abc9f04fe0394",
+  "source_ledger": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+  "control_freeze": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-all-00-control-freeze-2026-06-27.json",
+  "rows": [
+    {
+      "id": "LCX8-ACTION-0074",
+      "current_status": "BLOCKED",
+      "surface": "matter",
+      "section": "matter-timeline",
+      "label": "상태 저장",
+      "route": "/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline",
+      "api_route": "PATCH /api/matters/:matter_id/activities/:activity_id",
+      "trace_depth": "api_write",
+      "remediation_lane": "Lane B",
+      "ledger_handler": "handlePatchActivity -> patchMatterActivity",
+      "source_trace": {
+        "handler": "handlePatchActivity",
+        "handler_file": "apps/web/src/components/MattersSurface.jsx",
+        "handler_line": 1998,
+        "client": "patchMatterActivity",
+        "client_file": "apps/web/src/data/apiClient.js",
+        "client_line": 1820,
+        "read_back": [
+          "fetchMatterTimeline",
+          "fetchMatterActivities",
+          "fetchMatterCalendarEvents",
+          "fetchMatterDeadlines",
+          "fetchMatterChannel"
+        ]
+      }
+    },
+    {
+      "id": "LCX8-ACTION-0075",
+      "current_status": "BLOCKED",
+      "surface": "matter",
+      "section": "matter-calendar",
+      "label": "일정 추가",
+      "route": "/?locale=ko&view=matters&data=live&ctx=allow#matter-calendar",
+      "api_route": "POST /api/matters/:matter_id/calendar-events",
+      "trace_depth": "api_write",
+      "remediation_lane": "Lane B",
+      "ledger_handler": "handleCreateCalendarEvent -> createMatterCalendarEvent({ matterId, title, criticality, legalConsequence })",
+      "source_trace": {
+        "handler": "handleCreateCalendarEvent",
+        "handler_file": "apps/web/src/components/MattersSurface.jsx",
+        "handler_line": 2015,
+        "client": "createMatterCalendarEvent",
+        "client_file": "apps/web/src/data/apiClient.js",
+        "client_line": 1847,
+        "read_back": [
+          "fetchMatterTimeline",
+          "fetchMatterActivities",
+          "fetchMatterCalendarEvents",
+          "fetchMatterDeadlines",
+          "fetchMatterChannel"
+        ]
+      }
+    },
+    {
+      "id": "LCX8-ACTION-0076",
+      "current_status": "BLOCKED",
+      "surface": "matter",
+      "section": "matter-calendar",
+      "label": "변경 요청",
+      "route": "/?locale=ko&view=matters&data=live&ctx=allow#matter-calendar",
+      "api_route": "PATCH /api/matters/:matter_id/calendar-events/:event_id",
+      "trace_depth": "api_write",
+      "remediation_lane": "Lane B",
+      "ledger_handler": "handleRequestDeadlineChange -> patchMatterCalendarEvent",
+      "source_trace": {
+        "handler": "handleRequestDeadlineChange",
+        "handler_file": "apps/web/src/components/MattersSurface.jsx",
+        "handler_line": 2032,
+        "client": "patchMatterCalendarEvent",
+        "client_file": "apps/web/src/data/apiClient.js",
+        "client_line": 1883,
+        "read_back": [
+          "fetchMatterTimeline",
+          "fetchMatterActivities",
+          "fetchMatterCalendarEvents",
+          "fetchMatterDeadlines",
+          "fetchMatterChannel"
+        ]
+      }
+    },
+    {
+      "id": "LCX8-ACTION-0077",
+      "current_status": "BLOCKED",
+      "surface": "matter",
+      "section": "matter-calendar",
+      "label": "확인",
+      "route": "/?locale=ko&view=matters&data=live&ctx=allow#matter-calendar",
+      "api_route": "POST /api/matters/:matter_id/deadlines/:deadline_id/confirm-change",
+      "trace_depth": "api_write",
+      "remediation_lane": "Lane B",
+      "ledger_handler": "handleConfirmDeadlineChange -> confirmMatterDeadlineChange",
+      "source_trace": {
+        "handler": "handleConfirmDeadlineChange",
+        "handler_file": "apps/web/src/components/MattersSurface.jsx",
+        "handler_line": 2051,
+        "client": "confirmMatterDeadlineChange",
+        "client_file": "apps/web/src/data/apiClient.js",
+        "client_line": 1916,
+        "read_back": [
+          "fetchMatterTimeline",
+          "fetchMatterActivities",
+          "fetchMatterCalendarEvents",
+          "fetchMatterDeadlines",
+          "fetchMatterChannel"
+        ]
+      }
+    },
+    {
+      "id": "LCX8-ACTION-0078",
+      "current_status": "BLOCKED",
+      "surface": "matter",
+      "section": "matter-channel",
+      "label": "메시지 기록",
+      "route": "/?locale=ko&view=matters&data=live&ctx=allow#matter-channel",
+      "api_route": "POST /api/matters/:matter_id/channel/messages",
+      "trace_depth": "api_write",
+      "remediation_lane": "Lane B",
+      "ledger_handler": "handleCreateChannelMessage -> createMatterChannelMessage",
+      "source_trace": {
+        "handler": "handleCreateChannelMessage",
+        "handler_file": "apps/web/src/components/MattersSurface.jsx",
+        "handler_line": 2066,
+        "client": "createMatterChannelMessage",
+        "client_file": "apps/web/src/data/apiClient.js",
+        "client_line": 1948,
+        "read_back": [
+          "fetchMatterTimeline",
+          "fetchMatterActivities",
+          "fetchMatterCalendarEvents",
+          "fetchMatterDeadlines",
+          "fetchMatterChannel"
+        ]
+      }
+    }
+  ],
+  "shared_read_back_surface": {
+    "function": "refreshMatterActivitySurfaces",
+    "file": "apps/web/src/components/MattersSurface.jsx",
+    "line": 1966,
+    "refetches": [
+      "fetchMatterTimeline",
+      "fetchMatterActivities",
+      "fetchMatterCalendarEvents",
+      "fetchMatterDeadlines",
+      "fetchMatterChannel"
+    ],
+    "state_updates": [
+      "timelineResult",
+      "activityResult",
+      "calendarResult",
+      "deadlineResult",
+      "channelResult"
+    ]
+  },
+  "codegraph_findings": [
+    "All five LCX8-ALL-11 UI handlers call their matching apiClient runtime function and, on data success, call refreshMatterActivitySurfaces().",
+    "apiClient payloads include tenant_id, permission_ref, audit_hint_ref, actor_id, and idempotency_key for each write.",
+    "CodeGraph reported no covering tests for patchMatterActivity/createMatterCalendarEvent/patchMatterCalendarEvent/confirmMatterDeadlineChange, so focused API or UI proof must be added before promotion."
+  ],
+  "proof_order": [
+    "LCX8-ACTION-0074 patch activity status save",
+    "LCX8-ACTION-0075 create calendar event",
+    "LCX8-ACTION-0076 request deadline change by patching event dates",
+    "LCX8-ACTION-0077 confirm deadline change",
+    "LCX8-ACTION-0078 create matter channel message"
+  ],
+  "promotion_requirements": [
+    "Browser click evidence for each visible action.",
+    "API request/response evidence for each route with safe fixture IDs.",
+    "Read-back evidence from refreshMatterActivitySurfaces or reload/read-back API queries.",
+    "Audit event proof for write actions or explicit reason if the route does not emit audit.",
+    "Denied/review/step-up fail-closed proof where route permissions require it.",
+    "Ledger row evidence paths and status counts regenerated before any row promotion."
+  ],
+  "recommended_validation": [
+    "npm run api:test or focused apps/api tests for touched routes",
+    "npm run ui:live:verify",
+    "targeted browser QA for /?locale=ko&view=matters&data=live&ctx=allow#matter-timeline, #matter-calendar, #matter-channel"
+  ],
+  "next_action": "Begin LCX8-ACTION-0074 proof by exercising PATCH /api/matters/:matter_id/activities/:activity_id and validating read-back/audit."
+}

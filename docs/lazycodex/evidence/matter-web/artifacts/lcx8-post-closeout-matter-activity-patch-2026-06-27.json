@@ -1,0 +1,59 @@
+{
+  "schema_version": "matter.lcx8.post_closeout.single_action_status.v1",
+  "generated_at": "2026-06-26T23:40:04.223Z",
+  "action_id": "LCX8-ACTION-0074",
+  "status": "POST_CLOSEOUT_ACTION_RESOLVED",
+  "status_before": "BLOCKED",
+  "status_after": "PASS",
+  "batch_id": "LCX8-ALL-11",
+  "surface": "matter",
+  "label": "상태 저장",
+  "api_route": "PATCH /api/matters/:matter_id/activities/:activity_id",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0074-matter-activity-patch-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0074-matter-activity-patch-proof.md",
+  "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0074-matter-activity-patch-proof.png",
+  "fixture": {
+    "tenant_id": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "matter_id": "matter_lcx8_0074_patch_1782517116176",
+    "matter_number": "M-LCX8-0074-17116176",
+    "title": "LCX8 activity patch proof 1782517116176",
+    "activity_id": "activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+    "safe_fixture_family": "matter_runtime_activity_patch",
+    "existing_seed_mutated": false
+  },
+  "evidence": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0074-matter-activity-patch-proof.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0074-matter-activity-patch-proof.md",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-activity-patch-2026-06-27.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-activity-patch-2026-06-27.md",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0074-matter-activity-patch-proof.png"
+  ],
+  "counts_before": {
+    "pass": 22,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 110,
+    "fail": 42,
+    "unknown": 0
+  },
+  "counts_after": {
+    "pass": 23,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 109,
+    "fail": 42,
+    "unknown": 0
+  },
+  "validation": {
+    "browser_ui_api_proof": "PASS 14/14 assertions",
+    "focused_api_test": "PASS 4/4 node --test apps/api/test/sf-b-w03-activity-calendar-channel.test.js",
+    "read_back": "PASS activity status in_progress and timeline matter.activity.updated read-back",
+    "audit": "PASS matter.activity.patched / activity_updated",
+    "fail_closed": "PASS denied 403, review_required 200, missing activity 404",
+    "non_claim": "local synthetic runtime proof only; no production go-live or owner approval claimed"
+  },
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0074 verification: UI/API activity patch proof PASS (14 assertions); node --test apps/api/test/sf-b-w03-activity-calendar-channel.test.js PASS 4/4; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+}

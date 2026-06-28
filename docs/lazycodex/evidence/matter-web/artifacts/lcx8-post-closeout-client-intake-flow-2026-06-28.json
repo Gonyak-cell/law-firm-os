@@ -1,0 +1,69 @@
+{
+  "schema_version": "law-firm-os.lcx8.post-closeout-resolution.v1",
+  "generated_at": "2026-06-28T04:38:44.872Z",
+  "status": "PASS",
+  "batch": "LCX8-ALL-14",
+  "rows": [
+    "LCX8-ACTION-0118",
+    "LCX8-ACTION-0119",
+    "LCX8-ACTION-0120"
+  ],
+  "status_before": "BLOCKED",
+  "status_after": "PASS",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0118-0120-client-intake-flow-proof.json",
+  "proof_markdown": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0118-0120-client-intake-flow-proof.md",
+  "summary": "Post-closeout LCX8-ACTION-0118/0119/0120 verification: Client opportunity-to-intake flow proof PASS 58/58. Browser clicked current-product CRM handoff, conflict snapshot, and clearance token controls; direct API probes covered handoff write/read-back/audit/idempotency/no Matter shortcut, conflict snapshot hash/audit/idempotency/raw memo suppression, clearance validation/idempotency/missing-snapshot block, denied/review fail-closed envelopes, and audit read-back after restart. Status moved BLOCKED -> PASS for 3 rows. No direct Matter creation, production approval, external receipt, or raw conflict memo exposure claim is made.",
+  "counts_after": {
+    "PASS": 105,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 47,
+    "FAIL": 35,
+    "UNKNOWN": 0
+  },
+  "non_claims": [
+    "no direct Matter creation claim",
+    "no production approval claim",
+    "no external receipt claim",
+    "no raw conflict memo exposure claim"
+  ],
+  "updated_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-run.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-status-count-p8-t00.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-critical-unknown-zero-p8-t01.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-lane-assignment-p8-t02-t06.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-blocker-risk-ranking-p8-t07.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-ready-issues-p8-t08.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-backlog.md",
+    "docs/lazycodex/lcx8-remaining-ui-action-remediation-plan-2026-06-27.md"
+  ],
+  "latest_verification_summary": {
+    "status": "PASS",
+    "batch": "LCX8-ALL-14",
+    "rows": [
+      "LCX8-ACTION-0118",
+      "LCX8-ACTION-0119",
+      "LCX8-ACTION-0120"
+    ],
+    "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0118-0120-client-intake-flow-proof.json",
+    "proof_markdown": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0118-0120-client-intake-flow-proof.md",
+    "browser_proof": "58/58 PASS; browser API 4xx=0; browser API 5xx=0; console_errors=0",
+    "focused_api": "node --test apps/api/test/cmp-r4-g6-crm-intake.test.js PASS 9/9",
+    "web_ui": "npm --workspace apps/web run test:ui PASS 17/17",
+    "build": "npm run build PASS (existing Vite chunk-size warning only)",
+    "runtime_flows": "npm run ui:flows:verify PASS 9/9",
+    "runtime_live": "npm run ui:live:verify PASS 13/13",
+    "sloplint": "PASS no auto-detectable AI slop signals",
+    "diff_check": "git diff --check PASS",
+    "non_claims": [
+      "no direct Matter creation claim",
+      "no production approval claim",
+      "no external receipt claim",
+      "no raw conflict memo exposure claim"
+    ]
+  }
+}

@@ -1,0 +1,217 @@
+{
+  "schema_version": "law-firm-os.lcx8.post-closeout.web-guarded-state.v0.1",
+  "generated_at": "2026-06-28T07:19:08.470Z",
+  "batch_id": "LCX8-ALL-29",
+  "action_ids": [
+    "LCX8-ACTION-0272",
+    "LCX8-ACTION-0273",
+    "LCX8-ACTION-0274",
+    "LCX8-ACTION-0275",
+    "LCX8-ACTION-0276",
+    "LCX8-ACTION-0277",
+    "LCX8-ACTION-0278",
+    "LCX8-ACTION-0279",
+    "LCX8-ACTION-0280",
+    "LCX8-ACTION-0323"
+  ],
+  "status_before": "GUARDED",
+  "status_after": "GUARDED",
+  "status_decision": "GUARDED final state confirmed; status remains GUARDED",
+  "reason": "fail_closed_guarded_state_is_intended_behavior",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0280-0323-web-guarded-state-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0280-0323-web-guarded-state-proof.md",
+  "counts_before": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "counts_after": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "assertions": [
+    {
+      "name": "LCX8-ACTION-0272 guarded DOM and no leak",
+      "passed": true
+    },
+    {
+      "name": "LCX8-ACTION-0273 guarded DOM and no leak",
+      "passed": true
+    },
+    {
+      "name": "LCX8-ACTION-0274 guarded DOM and no leak",
+      "passed": true
+    },
+    {
+      "name": "LCX8-ACTION-0275 guarded DOM and no leak",
+      "passed": true
+    },
+    {
+      "name": "LCX8-ACTION-0276 guarded DOM and no leak",
+      "passed": true
+    },
+    {
+      "name": "LCX8-ACTION-0277 guarded DOM and no leak",
+      "passed": true
+    },
+    {
+      "name": "LCX8-ACTION-0280 guarded DOM and no leak",
+      "passed": true
+    },
+    {
+      "name": "LCX8-ACTION-0280 review guarded DOM and no leak",
+      "passed": true
+    },
+    {
+      "name": "LCX8-ACTION-0278 mutation affordance disabled",
+      "passed": true
+    },
+    {
+      "name": "LCX8-ACTION-0279 mutation affordance disabled",
+      "passed": true
+    },
+    {
+      "name": "LCX8-ACTION-0323 HRX step-up API and UI retry",
+      "passed": true
+    },
+    {
+      "name": "no unexpected guarded proof console errors",
+      "passed": true
+    }
+  ],
+  "evidence": [
+    {
+      "id": "LCX8-ACTION-0272",
+      "row_proofs": [
+        {
+          "id": "LCX8-ACTION-0272",
+          "name": "Client list denied state",
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0272-proof.png",
+          "status_decision": "GUARDED final state confirmed"
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0273",
+      "row_proofs": [
+        {
+          "id": "LCX8-ACTION-0273",
+          "name": "Client list review state",
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0273-proof.png",
+          "status_decision": "GUARDED final state confirmed"
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0274",
+      "row_proofs": [
+        {
+          "id": "LCX8-ACTION-0274",
+          "name": "Matter list denied state",
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0274-proof.png",
+          "status_decision": "GUARDED final state confirmed"
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0275",
+      "row_proofs": [
+        {
+          "id": "LCX8-ACTION-0275",
+          "name": "Matter list review state",
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0275-proof.png",
+          "status_decision": "GUARDED final state confirmed"
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0276",
+      "row_proofs": [
+        {
+          "id": "LCX8-ACTION-0276",
+          "name": "Vault documents denied state",
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0276-proof.png",
+          "status_decision": "GUARDED final state confirmed"
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0277",
+      "row_proofs": [
+        {
+          "id": "LCX8-ACTION-0277",
+          "name": "Vault documents review state",
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0277-proof.png",
+          "status_decision": "GUARDED final state confirmed"
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0278",
+      "row_proofs": [
+        {
+          "id": "LCX8-ACTION-0278",
+          "name": "Matter record action strip disabled under denied/review",
+          "screenshot": null,
+          "status_decision": "GUARDED final state confirmed"
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0279",
+      "row_proofs": [
+        {
+          "id": "LCX8-ACTION-0279",
+          "name": "Matter Vault action strip disabled under denied/review",
+          "screenshot": null,
+          "status_decision": "GUARDED final state confirmed"
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0280",
+      "row_proofs": [
+        {
+          "id": "LCX8-ACTION-0280",
+          "name": "People directory denied/review state",
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0280-proof.png",
+          "status_decision": "GUARDED final state confirmed"
+        },
+        {
+          "id": "LCX8-ACTION-0280:review",
+          "name": "People directory denied/review state",
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0280-review.png",
+          "status_decision": "GUARDED final state confirmed"
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0323",
+      "row_proofs": [
+        {
+          "id": "LCX8-ACTION-0323",
+          "name": "HRX audit step-up retry",
+          "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0323-step-up.png",
+          "status_decision": "GUARDED final state confirmed"
+        }
+      ]
+    }
+  ],
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0272..0280/0323 web guarded-state proof PASS 12/12. Browser proof confirmed Client/Matter/Vault/People denied and review states, mutation affordance enabled count 0 for Matter record and Matter Vault guarded contexts, protected token leak 0, API 5xx count 0, and HRX audit step-up direct API fail-closed plus UI retry challenge rendering. Status remains GUARDED as final fail-closed state; no write success, protected payload visibility, production-ready, or go-live claim.",
+  "non_claims": [
+    "guarded/fail-closed state proof only",
+    "no mutation/write success claimed",
+    "no protected row/detail/payload visibility claimed",
+    "HRX step-up UI challenge is driven with the real server response shape via browser route interception plus direct API proof",
+    "no production-ready or go-live claim"
+  ]
+}

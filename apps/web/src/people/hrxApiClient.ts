@@ -122,8 +122,17 @@ async function requestJson(path, options = {}) {
   return { kind: "data", body };
 }
 
-export async function fetchHrxEmployees() {
-  const result = await requestJson("/api/hrx/employees");
+export async function fetchHrxEmployees(options = {}) {
+  const result = await requestJson("/api/hrx/employees", options);
+  if (result.kind === "guarded") {
+    return {
+      kind: "guarded",
+      uiState: result.body?.ui_state ?? null,
+      outcome: result.body?.outcome ?? null,
+      safeErrorCodes: result.body?.safe_error_codes ?? []
+    };
+  }
+  if (result.kind === "step_up_required") return result;
   if (result.kind !== "data" || !Array.isArray(result.body.employees)) return { kind: "error" };
   return { kind: "data", employees: result.body.employees };
 }
@@ -485,9 +494,9 @@ export async function exportHrxPayrollArtifact(previewId, exportArtifactRef) {
   return { kind: "data", artifact: result.body.artifact };
 }
 
-export async function fetchHrxPeopleOverview() {
-  const employees = await fetchHrxEmployees();
-  if (employees.kind !== "data") return { kind: "error" };
+export async function fetchHrxPeopleOverview(options = {}) {
+  const employees = await fetchHrxEmployees(options);
+  if (employees.kind !== "data") return employees;
   return {
     kind: "data",
     metrics: {

@@ -1,0 +1,59 @@
+{
+  "schema_version": "matter.lcx8.post_closeout.single_action_status.v1",
+  "generated_at": "2026-06-27T00:08:57.962Z",
+  "action_id": "LCX8-ACTION-0078",
+  "status": "POST_CLOSEOUT_ACTION_RESOLVED",
+  "status_before": "BLOCKED",
+  "status_after": "PASS",
+  "batch_id": "LCX8-ALL-11",
+  "surface": "matter",
+  "label": "메시지 기록",
+  "api_route": "POST /api/matters/:matter_id/channel/messages",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0078-matter-channel-message-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0078-matter-channel-message-proof.md",
+  "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0078-matter-channel-message-proof.png",
+  "fixture": {
+    "tenant_id": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "matter_id": "matter_lcx8_0078_channel_1782518870002",
+    "matter_number": "M-LCX8-0078-18870002",
+    "title": "LCX8 channel message proof 1782518870002",
+    "message_id": "channel_message_matter_lcx8_0078_channel_1782518870002_1782518870002",
+    "safe_fixture_family": "matter_runtime_channel_message_create",
+    "existing_seed_mutated": false
+  },
+  "evidence": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0078-matter-channel-message-proof.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0078-matter-channel-message-proof.md",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-channel-message-2026-06-27.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-channel-message-2026-06-27.md",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0078-matter-channel-message-proof.png"
+  ],
+  "counts_before": {
+    "pass": 26,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 106,
+    "fail": 42,
+    "unknown": 0
+  },
+  "counts_after": {
+    "pass": 27,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 105,
+    "fail": 42,
+    "unknown": 0
+  },
+  "validation": {
+    "browser_ui_api_proof": "PASS 24/24 assertions",
+    "focused_api_test": "pending final verification sweep",
+    "read_back": "PASS channel message, matter.channel.message timeline, and audit read-back",
+    "audit": "PASS matter.channel.message.created audit event with internal_only metadata",
+    "fail_closed": "PASS denied 403, review_required 200, empty message blocked or sanitized without guard mutation",
+    "non_claim": "local synthetic runtime proof only; message is internal_only; no external provider receipt, production go-live, or owner approval claimed"
+  },
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0078 verification: UI/API channel message proof PASS (24/24 assertions); node --test apps/api/test/sf-b-w03-activity-calendar-channel.test.js PASS 4/4; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+}

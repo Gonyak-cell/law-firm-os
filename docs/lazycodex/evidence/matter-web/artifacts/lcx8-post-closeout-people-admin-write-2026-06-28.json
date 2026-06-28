@@ -1,0 +1,62 @@
+{
+  "target_ids": [
+    "LCX8-ACTION-0220",
+    "LCX8-ACTION-0221",
+    "LCX8-ACTION-0222",
+    "LCX8-ACTION-0223",
+    "LCX8-ACTION-0224",
+    "LCX8-ACTION-0225",
+    "LCX8-ACTION-0226"
+  ],
+  "status": "PASS",
+  "status_before": "BLOCKED",
+  "status_after": "PASS",
+  "batch": "LCX8-ALL-16",
+  "proof_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0220-0226-people-admin-write-proof.json",
+  "markdown_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0220-0226-people-admin-write-proof.md",
+  "summary": "Post-closeout LCX8-ACTION-0220..0226 verification: People admin write request proof PASS 46/46 (7 browser clicks, 23 direct API probes); API focused tests PASS 36/36; web UI tests PASS 17/17; npm run build PASS with existing Vite chunk-size warning only; ui:live:verify PASS 13/13; ui:flows:verify PASS 9/9; sloplint PASS; git diff --check PASS. Status moved BLOCKED -> PASS for 7 rows.",
+  "verification": {
+    "browser_assertions": 22,
+    "browser_clicks": 7,
+    "direct_api_probes": 23,
+    "total_assertions": 46,
+    "screenshots": 2,
+    "focused_api_regression": "PASS 4/4 apps/api/test/sf-b-w06-permission-admin.test.js",
+    "proof_assertions": "PASS 46/46",
+    "focused_api_tests": "PASS 36/36 (sf-b-w06 permission admin + HRX route/legal people tests)",
+    "web_ui_tests": "PASS 17/17",
+    "build": "PASS (existing Vite chunk-size warning only)",
+    "live_verifier": "PASS 13/13",
+    "flow_verifier": "PASS 9/9",
+    "sloplint": "PASS",
+    "diff_check": "PASS"
+  },
+  "source_fix": {
+    "file": "packages/admin/src/permission-admin-service.js",
+    "reason": "seedTenant now preserves existing AdminFieldPolicy records so object field policy write read-back is not reset by seed upserts.",
+    "regression_test": "apps/api/test/sf-b-w06-permission-admin.test.js read-back assertion for Matter risk_level"
+  },
+  "current_product_copy_update": {
+    "LCX8-ACTION-0224": {
+      "ledger_label_before": "정책 변경",
+      "observed_button_label": "표시 방식 수정",
+      "selector": "[data-sf-b-w06-field-policy-owner-blocked-action=\"true\"]"
+    }
+  },
+  "status_counts_after": {
+    "PASS": 71,
+    "GUARDED": 20,
+    "UI_ONLY": 128,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 68,
+    "FAIL": 35,
+    "UNKNOWN": 0
+  },
+  "next_row": "LCX8-ACTION-0227",
+  "non_claims": [
+    "No permission grant was applied silently.",
+    "No physical object schema mutation was executed.",
+    "No OAuth/provider token or external connected-app runtime was executed.",
+    "No production readiness claim is made."
+  ]
+}

@@ -847,7 +847,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   useEffect(() => {
     let cancelled = false;
     setLegalPeopleClientResult(null);
-    fetchLegalPeopleSearch({ client_id: "client_lcx_001" }).then((next) => {
+    fetchLegalPeopleSearch({ client_id: "client_lcx_001", ctx: liveCtx }).then((next) => {
       if (!cancelled) setLegalPeopleClientResult(next);
     });
     return () => {

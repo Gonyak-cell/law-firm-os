@@ -1,0 +1,1250 @@
+{
+  "schema_version": "law-firm-os.lcx8.people-hrx-write-proof.v0.1",
+  "generated_at": "2026-06-28T06:44:01.694Z",
+  "result": "PASS",
+  "rows": [
+    "LCX8-ACTION-0201",
+    "LCX8-ACTION-0202",
+    "LCX8-ACTION-0203",
+    "LCX8-ACTION-0204",
+    "LCX8-ACTION-0208",
+    "LCX8-ACTION-0209",
+    "LCX8-ACTION-0210",
+    "LCX8-ACTION-0215",
+    "LCX8-ACTION-0216",
+    "LCX8-ACTION-0217"
+  ],
+  "scope": {
+    "local_browser_runtime": true,
+    "web_origin": "http://127.0.0.1:5174",
+    "api_origin": "http://127.0.0.1:4180",
+    "trace_depth": "api_write",
+    "safe_synthetic_fixture": true,
+    "external_provider_execution_claim": false,
+    "payment_execution_claim": false,
+    "final_people_decision_claim": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "source_trace": {
+    "leave": "apps/web/src/people/leave/LeaveRequestPage.tsx -> submitHrxLeaveRequest -> POST /api/hrx/leave",
+    "approvals": "apps/web/src/people/approvals/ManagerApprovalQueue.tsx -> resolveHrxApproval -> POST /api/hrx/approvals/:id/:action",
+    "recruiting": "apps/web/src/people/recruiting/RecruitingPipeline.tsx -> updateHrxApplicationStage -> POST /api/hrx/recruiting/applications/:id/stage",
+    "policy": "apps/web/src/admin/hrx/HRXPolicyConsole.tsx -> createHrxPolicyVersion -> POST /api/hrx/policies",
+    "ai": "apps/web/src/people/ai/HRAIAssistant.tsx -> askHrxAiAssistant -> POST /api/hrx/ai/assistant",
+    "payroll": "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx -> payroll preview/approve/export routes"
+  },
+  "rowProofs": [
+    {
+      "id": "LCX8-ACTION-0201",
+      "label": "신청",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-leave",
+      "selector": "#people-leave button.primary-button:has-text('신청')",
+      "observed_text": "휴가관리 휴가 현황 휴가를 신청하고 잔여 휴가를 확인합니다 시간 시작일 종료일 신청 확인 가능 사용 가능한 휴가 요청 유형 기간 상태 요청 1 연차 신청됨 확인 필요",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0201-people-leave-submit-proof.png",
+      "response": {
+        "status": 201,
+        "url": "http://127.0.0.1:5174/api/hrx/leave",
+        "body": {
+          "request_id": "req_ad22cf14-2250-436a-b4dd-a864c027af87",
+          "outcome": "submitted",
+          "leave_request": {
+            "tenant_id": "tenant_amic_matter_vault",
+            "request_id": "leave-emp_amic_bj_park-1782629035881",
+            "employee_id": "emp_amic_bj_park",
+            "policy_id": "pto-us",
+            "leave_type": "pto",
+            "amount": 1,
+            "start_date": "2026-07-15",
+            "end_date": "2026-07-15",
+            "state": "submitted",
+            "submitted_at": "2026-06-28T06:43:55.883Z",
+            "approver_id": null,
+            "decided_at": null,
+            "decision_reason": null,
+            "source_ref": "LeaveRequest:leave-emp_amic_bj_park-1782629035881",
+            "created_at": "2026-06-28T06:43:55.883Z",
+            "updated_at": "2026-06-28T06:43:55.883Z"
+          }
+        }
+      },
+      "read_back": {
+        "path": "/api/hrx/leave?employee_id=emp_amic_bj_park&policy_id=pto-us",
+        "status": 200,
+        "passed": true,
+        "object_id": "leave-emp_amic_bj_park-1782629035881"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.leave.submit",
+          "object_id": "leave-emp_amic_bj_park-1782629035881",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "leave write scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "status_decision": "PASS",
+      "trace_depth": "api_write",
+      "persistence_claim": true,
+      "api_write_claim": true,
+      "production_ready_claim": false,
+      "non_claims": [
+        "safe synthetic HRX runtime proof only",
+        "no production go-live claim"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0202",
+      "label": "반려",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-approvals",
+      "selector": "#people-approvals button:has-text('반려')",
+      "observed_text": "요청 관리 전자결재 요청 요청 1 반려 반려 승인 요청 요청 2 승인 반려 승인 기록 작업 대상 결과 기록 1 확인 요청 1 확인 필요 기록 2 확인 요청 2 확인 필요 기록 3 확인 요청 3 확인 필요 기록 4 확인 요청 4 확인 필요",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0202-people-approval-reject-proof.png",
+      "response": {
+        "status": 200,
+        "url": "http://127.0.0.1:5174/api/hrx/approvals/approval-leave-002/reject",
+        "body": {
+          "request_id": "req_b8cd6222-ae0d-464a-888e-84ee75e5184b",
+          "outcome": "rejected",
+          "approval": {
+            "tenant_id": "tenant_amic_matter_vault",
+            "approval_id": "approval-leave-002",
+            "object_type": "LeaveRequest",
+            "object_id": "leave-002",
+            "route": "manager",
+            "approver_role": "manager",
+            "state": "rejected",
+            "decided_by": "user_amic_jwsuh",
+            "decision_reason": "reject_from_people_ui"
+          }
+        }
+      },
+      "read_back": {
+        "path": "/api/hrx/approvals",
+        "status": 200,
+        "passed": true,
+        "object_id": "approval-leave-002"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.approval.reject",
+          "object_id": "approval-leave-002",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "approval write scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "status_decision": "PASS",
+      "trace_depth": "api_write",
+      "persistence_claim": true,
+      "api_write_claim": true,
+      "production_ready_claim": false,
+      "non_claims": [
+        "safe synthetic HRX runtime proof only",
+        "no production go-live claim"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0203",
+      "label": "승인",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-approvals",
+      "selector": "#people-approvals button:has-text('승인')",
+      "observed_text": "요청 관리 전자결재 요청 요청 1 반려 반려 승인 요청 요청 2 승인 반려 승인 기록 작업 대상 결과 기록 1 확인 요청 1 확인 필요 기록 2 확인 요청 2 확인 필요 기록 3 확인 요청 3 확인 필요 기록 4 확인 요청 4 확인 필요",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0203-people-approval-approve-proof.png",
+      "response": {
+        "status": 200,
+        "url": "http://127.0.0.1:5174/api/hrx/approvals/approval-legal-risk-001/approve",
+        "body": {
+          "request_id": "req_53c4a117-b1bb-47f9-aa65-f39fc32e9101",
+          "outcome": "approved",
+          "approval": {
+            "tenant_id": "tenant_amic_matter_vault",
+            "approval_id": "approval-legal-risk-001",
+            "object_type": "LegalRisk",
+            "object_id": "legal-risk-001",
+            "route": "legal",
+            "approver_role": "legal_ops",
+            "state": "approved",
+            "decided_by": "user_amic_jwsuh",
+            "decision_reason": "approve_from_people_ui"
+          }
+        }
+      },
+      "read_back": {
+        "path": "/api/hrx/approvals",
+        "status": 200,
+        "passed": true,
+        "object_id": "approval-legal-risk-001"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.approval.approve",
+          "object_id": "approval-legal-risk-001",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "approval write scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "status_decision": "PASS",
+      "trace_depth": "api_write",
+      "persistence_claim": true,
+      "api_write_claim": true,
+      "production_ready_claim": false,
+      "non_claims": [
+        "safe synthetic HRX runtime proof only",
+        "no production go-live claim"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0204",
+      "label": "다음 단계",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-recruiting",
+      "selector": "#people-recruiting button:has-text('다음 단계')",
+      "observed_text": "구성원 등록 채용 연동 공고 제목 상태 모집 공고 1 Senior Litigation Associate 진행 중 모집 중 면접 지원 상태 일정 면접 1 지원 1 예정 등록됨 합격자 지원 상태 문서 합격자 1 지원 1 발송 준비됨 지원 1 지원자 / 구성원 등록 합격자 다음 단계",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0204-people-recruiting-stage-proof.png",
+      "response": {
+        "status": 200,
+        "url": "http://127.0.0.1:5174/api/hrx/recruiting/applications/app-001/stage",
+        "body": {
+          "request_id": "req_6f3ff864-0637-4a97-98dc-33dcbdb273f2",
+          "outcome": "updated",
+          "application": {
+            "tenant_id": "tenant_amic_matter_vault",
+            "application_id": "app-001",
+            "candidate_id": "cand-001",
+            "job_opening_id": "job-001",
+            "stage": "offer",
+            "submitted_at": "2026-06-28T06:43:39.330Z",
+            "stage_reason": "people_ui_pipeline_update"
+          }
+        }
+      },
+      "read_back": {
+        "path": "/api/hrx/recruiting/pipeline",
+        "status": 200,
+        "passed": true,
+        "object_id": "app-001"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.application.stage.update",
+          "object_id": "app-001",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "recruiting write scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "status_decision": "PASS",
+      "trace_depth": "api_write",
+      "persistence_claim": true,
+      "api_write_claim": true,
+      "production_ready_claim": false,
+      "non_claims": [
+        "safe synthetic HRX runtime proof only",
+        "no production go-live claim"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0208",
+      "label": "정책 버전 생성",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-policy",
+      "selector": "#people-policy button.primary-button:has-text('규칙 버전 생성')",
+      "observed_text": "승인 규칙 회사 설정 - 요청 요청에 대한 승인 설정을 관리합니다 규칙 이름 유형 버전 시작일 규칙 버전 생성 규칙 유형 버전 시작일 규칙 1 휴가 규칙 2026.1 2026-01-01 규칙 2 규칙 규칙 3 보존 규칙 2026.1 2026-01-01 규칙 4 보존 규칙 2026.lcx8 2026-08-01",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0208-people-policy-create-proof.png",
+      "response": {
+        "status": 201,
+        "url": "http://127.0.0.1:5174/api/hrx/policies",
+        "body": {
+          "request_id": "req_012a0357-904c-4574-a0c1-47ae43bfde5b",
+          "outcome": "created",
+          "policy": {
+            "tenant_id": "tenant_amic_matter_vault",
+            "policy_id": "lcx8-policy-1782629034770",
+            "policy_type": "retention",
+            "policy_version": "2026.lcx8",
+            "effective_from": "2026-08-01",
+            "configured_by": "user_amic_jwsuh"
+          }
+        }
+      },
+      "read_back": {
+        "path": "/api/hrx/policies",
+        "status": 200,
+        "passed": true,
+        "object_id": "lcx8-policy-1782629034770"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.policy.create",
+          "object_id": "lcx8-policy-1782629034770",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "policy write scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "status_decision": "PASS",
+      "trace_depth": "api_write",
+      "persistence_claim": true,
+      "api_write_claim": true,
+      "production_ready_claim": false,
+      "non_claims": [
+        "safe synthetic HRX runtime proof only",
+        "no production go-live claim"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0209",
+      "label": "문의",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-ai",
+      "selector": ".hrx-ai-actions button:has-text('문의')",
+      "observed_text": "검토 중 검토 상태: 대기 최종 판단은 담당자가 확인합니다. 참고 자료 1건 확인",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0209-people-ai-advisory-proof.png",
+      "response": {
+        "status": 200,
+        "url": "http://127.0.0.1:5174/api/hrx/ai/assistant",
+        "body": {
+          "request_id": "req_1992b240-de80-49d8-a929-bc780c6e67ba",
+          "outcome": "answered",
+          "answer": {
+            "status": "answered",
+            "answer": "Grounded HRX advisory response for: Summarize leave policy guidance for a manager",
+            "citations": [
+              {
+                "source_ref": "Policy:leave:2026",
+                "label": "Leave policy metadata"
+              }
+            ],
+            "source_refs": [
+              "Policy:leave:2026"
+            ],
+            "reason": null
+          },
+          "citations": [
+            {
+              "source_ref": "Policy:leave:2026",
+              "label": "Leave policy metadata"
+            }
+          ],
+          "source_refs": [
+            "Policy:leave:2026"
+          ]
+        }
+      },
+      "read_back": {
+        "path": "/api/hrx/ai/assistant response",
+        "status": 200,
+        "passed": true,
+        "object_id": "answered"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.ai.interaction",
+          "object_id": null,
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "ai assistant scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "status_decision": "PASS",
+      "trace_depth": "api_write",
+      "persistence_claim": true,
+      "api_write_claim": true,
+      "production_ready_claim": false,
+      "non_claims": [
+        "safe synthetic HRX runtime proof only",
+        "no production go-live claim",
+        "advisory answer only; no final people decision claim"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0210",
+      "label": "검토",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-ai",
+      "selector": ".hrx-ai-actions button:has-text('검토')",
+      "observed_text": "검토 중 검토 상태: 대기 최종 판단은 담당자가 확인합니다. 참고 자료 1건 확인",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0210-people-ai-review-proof.png",
+      "response": {
+        "status": 202,
+        "url": "http://127.0.0.1:5174/api/hrx/ai/assistant",
+        "body": {
+          "request_id": "req_11371fdd-7a02-4ed8-b2c8-42f18019efc6",
+          "outcome": "review_required",
+          "answer_status": "blocked",
+          "review_item": {
+            "tenant_id": "tenant_amic_matter_vault",
+            "review_id": "review-ai-93bc516b-fd18-43c9-b8dc-efb1c4004852",
+            "interaction_id": "ai-93bc516b-fd18-43c9-b8dc-efb1c4004852",
+            "state": "pending_review",
+            "risk_level": "critical",
+            "reason": "hrx_ai_must_not_make_final_people_decisions",
+            "answer_status": "blocked",
+            "decision_domain": "hire",
+            "source_refs": [
+              "HRX:decision-guard"
+            ],
+            "created_by": "user_amic_jwsuh",
+            "resolved_by": null
+          },
+          "citations": [
+            {
+              "source_ref": "HRX:decision-guard",
+              "label": "HRX:decision-guard"
+            }
+          ]
+        }
+      },
+      "read_back": {
+        "path": "/api/hrx/ai/reviews",
+        "status": 200,
+        "passed": true,
+        "object_id": "review-ai-93bc516b-fd18-43c9-b8dc-efb1c4004852"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.ai.interaction",
+          "object_id": "ai-93bc516b-fd18-43c9-b8dc-efb1c4004852",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "ai assistant scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "status_decision": "PASS",
+      "trace_depth": "api_write",
+      "persistence_claim": true,
+      "api_write_claim": true,
+      "production_ready_claim": false,
+      "non_claims": [
+        "safe synthetic HRX runtime proof only",
+        "no production go-live claim",
+        "final decision remains human-review blocked"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0215",
+      "label": "미리보기 생성",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-payroll",
+      "selector": "#people-payroll button:has-text('미리보기 생성')",
+      "observed_text": "급여정산 미리보기·내보내기 전용 현재는 정산 미리보기, 검토 승인, 내보내기만 제공합니다. 계산·세금·지급 실행은 아직 제공하지 않습니다. 기간 구성원 외부 급여 서비스 문서 참조 미리보기 생성 검토 승인 기록 내보내기 파일 생성 항목 상태 근거 상태 검토 승인 payroll-preview-1782629039971 대상 기간 2026-06 2명 정산 실행 아직 미구현 계산·세금 처리는 아직 구현되지 않았습니다 지급 실행 아직 미구현 송금·지급 처리는 아직 구현되지 않았습니다 검토 필수 외부 미리보기 전용 내보내기 파일 payroll-export-artifact:payroll-preview-1782629039971 문서:급여-내보내기-미리보기-001 정산 처리 아직 미구현 계산·세금 처리는 아직 구현되지 않았습니다 지급 처리 아직 미구현 송금·지급 지시는 아직 구현되지 않았습니다",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0215-people-payroll-preview-proof.png",
+      "response": {
+        "status": 201,
+        "url": "http://127.0.0.1:5174/api/hrx/payroll/preview",
+        "body": {
+          "request_id": "req_269c40ba-5bfe-4cd1-a2d5-938908920374",
+          "outcome": "preview_created",
+          "preview": {
+            "tenant_id": "tenant_amic_matter_vault",
+            "preview_id": "payroll-preview-1782629039971",
+            "payroll_period": "2026-06",
+            "employee_ids": [
+              "대표 구성원",
+              "운영 담당자"
+            ],
+            "external_provider": "외부 미리보기 전용",
+            "human_review_required": true,
+            "calculation_runtime": false,
+            "disbursement_instruction_included": false,
+            "state": "preview",
+            "approved_by": null,
+            "approved_at": null,
+            "approval_ref": null,
+            "export_artifact_ref": null,
+            "provider_payload_ref": null,
+            "exported_at": null
+          }
+        }
+      },
+      "read_back": {
+        "path": "/api/hrx/payroll/preview response",
+        "status": 201,
+        "passed": true,
+        "object_id": "payroll-preview-1782629039971"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.payroll.preview",
+          "object_id": "payroll-preview-1782629039971",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "payroll export scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "status_decision": "PASS",
+      "trace_depth": "api_write",
+      "persistence_claim": true,
+      "api_write_claim": true,
+      "production_ready_claim": false,
+      "non_claims": [
+        "safe synthetic HRX runtime proof only",
+        "no production go-live claim",
+        "no calculation, tax, payment, or provider execution"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0216",
+      "label": "검토 승인 기록",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-payroll",
+      "selector": "#people-payroll button:has-text('검토 승인 기록')",
+      "observed_text": "급여정산 미리보기·내보내기 전용 현재는 정산 미리보기, 검토 승인, 내보내기만 제공합니다. 계산·세금·지급 실행은 아직 제공하지 않습니다. 기간 구성원 외부 급여 서비스 문서 참조 미리보기 생성 검토 승인 기록 내보내기 파일 생성 항목 상태 근거 상태 검토 승인 payroll-preview-1782629039971 대상 기간 2026-06 2명 정산 실행 아직 미구현 계산·세금 처리는 아직 구현되지 않았습니다 지급 실행 아직 미구현 송금·지급 처리는 아직 구현되지 않았습니다 검토 필수 외부 미리보기 전용 내보내기 파일 payroll-export-artifact:payroll-preview-1782629039971 문서:급여-내보내기-미리보기-001 정산 처리 아직 미구현 계산·세금 처리는 아직 구현되지 않았습니다 지급 처리 아직 미구현 송금·지급 지시는 아직 구현되지 않았습니다",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0216-people-payroll-approve-proof.png",
+      "response": {
+        "status": 200,
+        "url": "http://127.0.0.1:5174/api/hrx/payroll/approve",
+        "body": {
+          "request_id": "req_a0e91b0e-74d5-464a-9921-d1c3a7c07b0e",
+          "outcome": "approved",
+          "preview": {
+            "tenant_id": "tenant_amic_matter_vault",
+            "preview_id": "payroll-preview-1782629039971",
+            "payroll_period": "2026-06",
+            "employee_ids": [
+              "대표 구성원",
+              "운영 담당자"
+            ],
+            "external_provider": "외부 미리보기 전용",
+            "human_review_required": true,
+            "calculation_runtime": false,
+            "disbursement_instruction_included": false,
+            "state": "approved",
+            "approved_by": "user_amic_jwsuh",
+            "approved_at": "2026-06-28T06:44:00.549Z",
+            "approval_ref": "Approval:payroll-preview-1782629039971",
+            "export_artifact_ref": null,
+            "provider_payload_ref": null,
+            "exported_at": null
+          }
+        }
+      },
+      "read_back": {
+        "path": "/api/hrx/payroll/approve response",
+        "status": 200,
+        "passed": true,
+        "object_id": "payroll-preview-1782629039971"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.payroll.approve",
+          "object_id": "payroll-preview-1782629039971",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "payroll export scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "status_decision": "PASS",
+      "trace_depth": "api_write",
+      "persistence_claim": true,
+      "api_write_claim": true,
+      "production_ready_claim": false,
+      "non_claims": [
+        "safe synthetic HRX runtime proof only",
+        "no production go-live claim",
+        "human review approval record only; no payroll execution"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0217",
+      "label": "내보내기 파일 생성",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-payroll",
+      "selector": "#people-payroll button:has-text('내보내기 파일 생성')",
+      "observed_text": "급여정산 미리보기·내보내기 전용 현재는 정산 미리보기, 검토 승인, 내보내기만 제공합니다. 계산·세금·지급 실행은 아직 제공하지 않습니다. 기간 구성원 외부 급여 서비스 문서 참조 미리보기 생성 검토 승인 기록 내보내기 파일 생성 항목 상태 근거 상태 검토 승인 payroll-preview-1782629039971 대상 기간 2026-06 2명 정산 실행 아직 미구현 계산·세금 처리는 아직 구현되지 않았습니다 지급 실행 아직 미구현 송금·지급 처리는 아직 구현되지 않았습니다 검토 필수 외부 미리보기 전용 내보내기 파일 payroll-export-artifact:payroll-preview-1782629039971 문서:급여-내보내기-미리보기-001 정산 처리 아직 미구현 계산·세금 처리는 아직 구현되지 않았습니다 지급 처리 아직 미구현 송금·지급 지시는 아직 구현되지 않았습니다",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0217-people-payroll-export-proof.png",
+      "response": {
+        "status": 200,
+        "url": "http://127.0.0.1:5174/api/hrx/payroll/export",
+        "body": {
+          "request_id": "req_f4baafdd-70c3-4643-be9d-6e35c649de9e",
+          "outcome": "exported",
+          "artifact": {
+            "artifact_id": "payroll-export-artifact:payroll-preview-1782629039971",
+            "preview_id": "payroll-preview-1782629039971",
+            "tenant_id": "tenant_amic_matter_vault",
+            "payroll_period": "2026-06",
+            "employee_count": 2,
+            "external_provider": "외부 미리보기 전용",
+            "export_artifact_ref": "문서:급여-내보내기-미리보기-001",
+            "provider_payload_ref": "ProviderDraft:payroll-preview-1782629039971",
+            "calculation_runtime": false,
+            "disbursement_instruction_included": false,
+            "human_review_required": true
+          }
+        }
+      },
+      "read_back": {
+        "path": "/api/hrx/payroll/export response",
+        "status": 200,
+        "passed": true,
+        "object_id": "payroll-export-artifact:payroll-preview-1782629039971"
+      },
+      "audit_actions": [
+        {
+          "action": "hrx.payroll.export",
+          "object_id": "payroll-export-artifact:payroll-preview-1782629039971",
+          "found": true
+        }
+      ],
+      "guard_probes": [
+        {
+          "name": "payroll export scope denied",
+          "status": 403,
+          "safe_error_code": "HRX_AUTHZ_DENIED",
+          "passed": true
+        }
+      ],
+      "status_decision": "PASS",
+      "trace_depth": "api_write",
+      "persistence_claim": true,
+      "api_write_claim": true,
+      "production_ready_claim": false,
+      "non_claims": [
+        "safe synthetic HRX runtime proof only",
+        "no production go-live claim",
+        "export artifact reference only; no provider execution or payment instruction"
+      ]
+    }
+  ],
+  "assertions": [
+    {
+      "name": "LCX8-ACTION-0201 browser/API/write/read-back/audit proof",
+      "passed": true,
+      "details": {
+        "response_status": 201,
+        "read_back": {
+          "path": "/api/hrx/leave?employee_id=emp_amic_bj_park&policy_id=pto-us",
+          "status": 200,
+          "passed": true,
+          "object_id": "leave-emp_amic_bj_park-1782629035881"
+        },
+        "audit_actions": [
+          {
+            "action": "hrx.leave.submit",
+            "object_id": "leave-emp_amic_bj_park-1782629035881",
+            "found": true
+          }
+        ],
+        "guard_probes": [
+          {
+            "name": "leave write scope denied",
+            "status": 403,
+            "safe_error_code": "HRX_AUTHZ_DENIED",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0202 browser/API/write/read-back/audit proof",
+      "passed": true,
+      "details": {
+        "response_status": 200,
+        "read_back": {
+          "path": "/api/hrx/approvals",
+          "status": 200,
+          "passed": true,
+          "object_id": "approval-leave-002"
+        },
+        "audit_actions": [
+          {
+            "action": "hrx.approval.reject",
+            "object_id": "approval-leave-002",
+            "found": true
+          }
+        ],
+        "guard_probes": [
+          {
+            "name": "approval write scope denied",
+            "status": 403,
+            "safe_error_code": "HRX_AUTHZ_DENIED",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0203 browser/API/write/read-back/audit proof",
+      "passed": true,
+      "details": {
+        "response_status": 200,
+        "read_back": {
+          "path": "/api/hrx/approvals",
+          "status": 200,
+          "passed": true,
+          "object_id": "approval-legal-risk-001"
+        },
+        "audit_actions": [
+          {
+            "action": "hrx.approval.approve",
+            "object_id": "approval-legal-risk-001",
+            "found": true
+          }
+        ],
+        "guard_probes": [
+          {
+            "name": "approval write scope denied",
+            "status": 403,
+            "safe_error_code": "HRX_AUTHZ_DENIED",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0204 browser/API/write/read-back/audit proof",
+      "passed": true,
+      "details": {
+        "response_status": 200,
+        "read_back": {
+          "path": "/api/hrx/recruiting/pipeline",
+          "status": 200,
+          "passed": true,
+          "object_id": "app-001"
+        },
+        "audit_actions": [
+          {
+            "action": "hrx.application.stage.update",
+            "object_id": "app-001",
+            "found": true
+          }
+        ],
+        "guard_probes": [
+          {
+            "name": "recruiting write scope denied",
+            "status": 403,
+            "safe_error_code": "HRX_AUTHZ_DENIED",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0208 browser/API/write/read-back/audit proof",
+      "passed": true,
+      "details": {
+        "response_status": 201,
+        "read_back": {
+          "path": "/api/hrx/policies",
+          "status": 200,
+          "passed": true,
+          "object_id": "lcx8-policy-1782629034770"
+        },
+        "audit_actions": [
+          {
+            "action": "hrx.policy.create",
+            "object_id": "lcx8-policy-1782629034770",
+            "found": true
+          }
+        ],
+        "guard_probes": [
+          {
+            "name": "policy write scope denied",
+            "status": 403,
+            "safe_error_code": "HRX_AUTHZ_DENIED",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0209 browser/API/write/read-back/audit proof",
+      "passed": true,
+      "details": {
+        "response_status": 200,
+        "read_back": {
+          "path": "/api/hrx/ai/assistant response",
+          "status": 200,
+          "passed": true,
+          "object_id": "answered"
+        },
+        "audit_actions": [
+          {
+            "action": "hrx.ai.interaction",
+            "object_id": null,
+            "found": true
+          }
+        ],
+        "guard_probes": [
+          {
+            "name": "ai assistant scope denied",
+            "status": 403,
+            "safe_error_code": "HRX_AUTHZ_DENIED",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0210 browser/API/write/read-back/audit proof",
+      "passed": true,
+      "details": {
+        "response_status": 202,
+        "read_back": {
+          "path": "/api/hrx/ai/reviews",
+          "status": 200,
+          "passed": true,
+          "object_id": "review-ai-93bc516b-fd18-43c9-b8dc-efb1c4004852"
+        },
+        "audit_actions": [
+          {
+            "action": "hrx.ai.interaction",
+            "object_id": "ai-93bc516b-fd18-43c9-b8dc-efb1c4004852",
+            "found": true
+          }
+        ],
+        "guard_probes": [
+          {
+            "name": "ai assistant scope denied",
+            "status": 403,
+            "safe_error_code": "HRX_AUTHZ_DENIED",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0215 browser/API/write/read-back/audit proof",
+      "passed": true,
+      "details": {
+        "response_status": 201,
+        "read_back": {
+          "path": "/api/hrx/payroll/preview response",
+          "status": 201,
+          "passed": true,
+          "object_id": "payroll-preview-1782629039971"
+        },
+        "audit_actions": [
+          {
+            "action": "hrx.payroll.preview",
+            "object_id": "payroll-preview-1782629039971",
+            "found": true
+          }
+        ],
+        "guard_probes": [
+          {
+            "name": "payroll export scope denied",
+            "status": 403,
+            "safe_error_code": "HRX_AUTHZ_DENIED",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0216 browser/API/write/read-back/audit proof",
+      "passed": true,
+      "details": {
+        "response_status": 200,
+        "read_back": {
+          "path": "/api/hrx/payroll/approve response",
+          "status": 200,
+          "passed": true,
+          "object_id": "payroll-preview-1782629039971"
+        },
+        "audit_actions": [
+          {
+            "action": "hrx.payroll.approve",
+            "object_id": "payroll-preview-1782629039971",
+            "found": true
+          }
+        ],
+        "guard_probes": [
+          {
+            "name": "payroll export scope denied",
+            "status": 403,
+            "safe_error_code": "HRX_AUTHZ_DENIED",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0217 browser/API/write/read-back/audit proof",
+      "passed": true,
+      "details": {
+        "response_status": 200,
+        "read_back": {
+          "path": "/api/hrx/payroll/export response",
+          "status": 200,
+          "passed": true,
+          "object_id": "payroll-export-artifact:payroll-preview-1782629039971"
+        },
+        "audit_actions": [
+          {
+            "action": "hrx.payroll.export",
+            "object_id": "payroll-export-artifact:payroll-preview-1782629039971",
+            "found": true
+          }
+        ],
+        "guard_probes": [
+          {
+            "name": "payroll export scope denied",
+            "status": 403,
+            "safe_error_code": "HRX_AUTHZ_DENIED",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser has no page errors",
+      "passed": true,
+      "details": {
+        "pageErrors": []
+      }
+    },
+    {
+      "name": "browser has no unexpected console errors",
+      "passed": true,
+      "details": {
+        "consoleMessages": [],
+        "unexpectedConsoleMessages": []
+      }
+    },
+    {
+      "name": "all proof writes are HRX safe synthetic writes",
+      "passed": true,
+      "details": {
+        "hrxRequests": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5174/api/hrx/leave"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5174/api/hrx/approvals/approval-leave-002/reject"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5174/api/hrx/approvals/approval-legal-risk-001/approve"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5174/api/hrx/recruiting/applications/app-001/stage"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5174/api/hrx/policies"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5174/api/hrx/ai/assistant"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5174/api/hrx/ai/assistant"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5174/api/hrx/payroll/preview"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5174/api/hrx/payroll/approve"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5174/api/hrx/payroll/export"
+          }
+        ]
+      }
+    }
+  ],
+  "consoleMessages": [],
+  "pageErrors": [],
+  "hrxRequests": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/employees"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/employees"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/leave?employee_id=emp_amic_bj_park&policy_id=pto-us"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5174/api/hrx/leave"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/employees"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/leave?employee_id=emp_amic_bj_park&policy_id=pto-us"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/employees"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/approvals"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/audit"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5174/api/hrx/approvals/approval-leave-002/reject"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/approvals"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/audit"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5174/api/hrx/approvals/approval-legal-risk-001/approve"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/approvals"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/audit"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/recruiting/pipeline"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5174/api/hrx/recruiting/applications/app-001/stage"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/recruiting/pipeline"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/policies"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5174/api/hrx/policies"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/policies"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/ai/reviews"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5174/api/hrx/ai/assistant"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/ai/reviews"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5174/api/hrx/ai/assistant"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/ai/reviews"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/ai/reviews"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5174/api/hrx/payroll/preview"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5174/api/hrx/payroll/approve"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5174/api/hrx/payroll/export"
+    }
+  ],
+  "hrxResponses": [
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/employees"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/employees"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/leave?employee_id=emp_amic_bj_park&policy_id=pto-us"
+    },
+    {
+      "status": 201,
+      "url": "http://127.0.0.1:5174/api/hrx/leave"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/employees"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/leave?employee_id=emp_amic_bj_park&policy_id=pto-us"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/employees"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/approvals"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/audit"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/approvals/approval-leave-002/reject"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/approvals"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/audit"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/approvals/approval-legal-risk-001/approve"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/approvals"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/audit"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/recruiting/pipeline"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/recruiting/applications/app-001/stage"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/recruiting/pipeline"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/policies"
+    },
+    {
+      "status": 201,
+      "url": "http://127.0.0.1:5174/api/hrx/policies"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/policies"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/ai/reviews"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/ai/assistant"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/ai/reviews"
+    },
+    {
+      "status": 202,
+      "url": "http://127.0.0.1:5174/api/hrx/ai/assistant"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/ai/reviews"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/ai/reviews"
+    },
+    {
+      "status": 201,
+      "url": "http://127.0.0.1:5174/api/hrx/payroll/preview"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/payroll/approve"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/payroll/export"
+    }
+  ]
+}

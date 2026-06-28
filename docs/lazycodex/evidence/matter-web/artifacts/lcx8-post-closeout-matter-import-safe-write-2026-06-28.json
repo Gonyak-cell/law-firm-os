@@ -1,0 +1,65 @@
+{
+  "schema_version": "law-firm-os.lcx8.post-closeout-resolution.v1",
+  "generated_at": "2026-06-28T03:52:47.625Z",
+  "status": "PASS",
+  "batch": "LCX8-ALL-13",
+  "rows": [
+    "LCX8-ACTION-0314",
+    "LCX8-ACTION-0315",
+    "LCX8-ACTION-0316",
+    "LCX8-ACTION-0317",
+    "LCX8-ACTION-0319"
+  ],
+  "status_before": "BLOCKED",
+  "status_after": "PASS",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0314-0319-matter-import-safe-write-proof.json",
+  "proof_markdown": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0314-0319-matter-import-safe-write-proof.md",
+  "summary": "Post-closeout LCX8-ACTION-0314/0315/0316/0317/0319 verification: Matter import safe write proof PASS 74/74. Browser clicked current-product Matter import job/source/mapping/dry-run/rollback-report controls; direct API probes covered denied/review fail-closed and blocked target rejection; responses included audit events, read-back, raw-row redaction, dry-run zero mutation, rollback/error-report safe boundary, no browser API 4xx/5xx, and no console errors. Status moved BLOCKED -> PASS for 5 rows. LCX8-ACTION-0318 execute remains outside this batch/Lane D; no production import execution claim is made.",
+  "counts_after": {
+    "PASS": 89,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 63,
+    "FAIL": 35,
+    "UNKNOWN": 0
+  },
+  "non_claims": [
+    "LCX8-ACTION-0318 execute remains Lane D/out of batch",
+    "No production import execution claim",
+    "No external provider receipt claim",
+    "No raw row or personal identifier exposure claim"
+  ],
+  "updated_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-run.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
+    "docs/lazycodex/lcx8-remaining-ui-action-remediation-plan-2026-06-27.md"
+  ],
+  "latest_verification_summary": {
+    "status": "PASS",
+    "batch": "LCX8-ALL-13",
+    "rows": [
+      "LCX8-ACTION-0314",
+      "LCX8-ACTION-0315",
+      "LCX8-ACTION-0316",
+      "LCX8-ACTION-0317",
+      "LCX8-ACTION-0319"
+    ],
+    "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0314-0319-matter-import-safe-write-proof.json",
+    "browser_proof": "74/74 PASS; browser API 4xx=0; browser API 5xx=0; console_errors=0",
+    "focused_api": "node --test apps/api/test/sf-b-w05-import-data-mapping.test.js PASS 4/4",
+    "web_ui": "npm --workspace apps/web run test:ui PASS 17/17",
+    "build": "npm run build PASS (existing Vite chunk-size warning only)",
+    "runtime_flows": "npm run ui:flows:verify PASS 9/9",
+    "runtime_live": "npm run ui:live:verify PASS 13/13",
+    "sloplint": "PASS no auto-detectable AI slop signals",
+    "diff_check": "git diff --check PASS",
+    "non_claims": [
+      "LCX8-ACTION-0318 execute not claimed",
+      "no production import execution claim",
+      "no external provider receipt claim"
+    ]
+  }
+}

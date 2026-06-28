@@ -81,6 +81,12 @@ function itemsFromResult(result) {
 }
 
 function combinePillarResults(results) {
+  const guardedResult =
+    results.find((result) => result?.uiState === "denied") ??
+    results.find((result) => result?.uiState === "review_required" || result?.outcome === "review_required") ??
+    results.find((result) => result?.kind === "step_up_required");
+  if (guardedResult) return guardedResult;
+
   const liveResults = results.filter((result) => result?.kind === "data");
   if (liveResults.length > 0) {
     return {
@@ -90,13 +96,7 @@ function combinePillarResults(results) {
       items: liveResults.flatMap(itemsFromResult)
     };
   }
-  return (
-    results.find((result) => result?.uiState === "denied") ??
-    results.find((result) => result?.uiState === "review_required" || result?.outcome === "review_required") ??
-    results.find((result) => result?.kind === "step_up_required") ??
-    results.find((result) => result?.kind === "error") ??
-    { kind: "error" }
-  );
+  return results.find((result) => result?.kind === "error") ?? { kind: "error" };
 }
 
 function WorkAreaRow({ capability, onOpen }) {
@@ -154,7 +154,7 @@ export function HomeSurface({ labels, setView, liveCtx = "allow" }) {
         fetchAnalyticsDashboards(args),
         fetchAiReviewQueue(args)
       ]).then((results) => ({ id: "matter", result: combinePillarResults(results) })),
-      fetchHrxPeopleOverview().then((result) => ({ id: "people", result })),
+      fetchHrxPeopleOverview(args).then((result) => ({ id: "people", result })),
       Promise.all([fetchVaultDocuments(args), fetchDataRoomProjections(args)]).then((results) => ({
         id: "vault",
         result: combinePillarResults(results)
