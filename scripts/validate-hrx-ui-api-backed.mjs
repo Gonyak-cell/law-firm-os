@@ -23,6 +23,7 @@ function assertNoLocalFallback(path) {
 for (const file of [
   "apps/web/src/people/hrxApiClient.ts",
   "apps/web/src/people/PeopleHome.tsx",
+  "apps/web/src/people/peopleFeatureCatalog.js",
   "apps/web/src/people/employees/EmployeeList.tsx",
   "apps/web/src/people/employees/EmployeeProfile.tsx",
   "apps/web/src/people/documents/HRDocumentWorkspace.tsx",
@@ -83,7 +84,7 @@ assert(apiClient.includes('"x-lawos-tenant-id"'), "HRX UI client must pass tenan
 assert(apiClient.includes('"x-lawos-actor-id"'), "HRX UI client must pass actor context to HRX API");
 assert(apiClient.includes('"x-lawos-hrx-scopes"'), "HRX UI client must pass HRX scopes to HRX API");
 assert(apiClient.includes('"x-lawos-hrx-step-up"'), "HRX UI client must pass step-up context to HRX API");
-assert(!/allow.*hrx|hrx.*allow|required_scope|evaluateHrxPolicy/.test(apiClient), "HRX UI client must not implement local HRX allow rules");
+assert(!/required_scope|evaluateHrxPolicy|hasHrxPermission|canAccessHrx/.test(apiClient), "HRX UI client must not implement local HRX policy evaluation");
 assert(!STATIC_UI_FALLBACK_PATTERN.test(apiClient), "HRX UI client must not fallback to static data");
 
 const employeeList = read("apps/web/src/people/employees/EmployeeList.tsx");
@@ -143,13 +144,17 @@ assert(peopleHome.includes("people-certificates") && peopleHome.includes('mode="
 assert(peopleHome.includes("구성원 현황을 불러오지 못했습니다") && !peopleHome.includes("People 정보를 불러오지 못했습니다"), "People home must use Korean error copy");
 
 const shell = read("apps/web/src/components/Shell.jsx");
-assert(shell.includes('label: "구성원", view: "people"') && shell.includes("휴가관리") && shell.includes("요청 관리"), "People menu must use Shiftee employee and request labels");
-assert(shell.includes("회사방침") && shell.includes("증명서 발급 요청") && !shell.includes('label: "문서", view: "people"'), "People menu must use Shiftee document/request labels");
-assert(shell.includes("승인 규칙") && !shell.includes('label: "정책", view: "people"'), "People menu must use Shiftee approval-rule label");
-assert(shell.includes("인사기록") && !shell.includes('label: "감사", view: "people"'), "People menu must use Shiftee personnel-record label");
-assert(shell.includes('label: "권한", view: "people"') && !shell.includes('label: "권한 관리", view: "people"'), "People menu must use Shiftee permission label");
-assert(shell.includes("리포트") && !shell.includes('label: "현황", view: "people"'), "People menu must use Shiftee report label");
-assert(!/문서·증명서|인사 문서|인사 정책|인사규정|활동 기록|권한 관리|권한 설정|인사 현황|구성원 인사이트|급여 정산|인력 현황|인사정보 접근 권한|인사 변경 이력|휴가·승인 규칙|관계자 관리|사건 관련 인물|인물 목록|인물 검색|연결 관계|Client\/Matter 연결/.test(shell), "People menu must not reintroduce unclear or removed labels");
+const peopleCatalog = read("apps/web/src/people/peopleFeatureCatalog.js");
+const peopleNavigationSource = peopleCatalog;
+assert(shell.includes("peopleNavigationGroups") && shell.includes("peopleSidebarGroups"), "Shell must render People menu from the shared catalog");
+assert(peopleNavigationSource.includes("구성원") && peopleNavigationSource.includes("휴가관리") && peopleNavigationSource.includes("요청 관리"), "People menu must use Shiftee employee and request labels");
+assert(peopleNavigationSource.includes("회사방침") && peopleNavigationSource.includes("증명서 발급 요청") && !peopleNavigationSource.includes('label: "문서"'), "People menu must use Shiftee document/request labels");
+assert(peopleNavigationSource.includes("승인 규칙") && !peopleNavigationSource.includes('label: "정책"'), "People menu must use Shiftee approval-rule label");
+assert(peopleNavigationSource.includes("인사기록") && !peopleNavigationSource.includes('label: "감사"'), "People menu must use Shiftee personnel-record label");
+assert(peopleNavigationSource.includes('label: "권한"') && !peopleNavigationSource.includes('label: "권한 관리"'), "People menu must use Shiftee permission label");
+assert(peopleNavigationSource.includes("리포트") && !peopleNavigationSource.includes('label: "현황"'), "People menu must use Shiftee report label");
+assert(peopleNavigationSource.includes("근무일정") && peopleNavigationSource.includes("외부일정") && peopleNavigationSource.includes("출퇴근기록"), "People menu must expose Shiftee-style work schedule and attendance labels");
+assert(!/문서·증명서|인사 문서|인사 정책|인사규정|활동 기록|권한 관리|권한 설정|인사 현황|구성원 인사이트|급여 정산|인력 현황|인사정보 접근 권한|인사 변경 이력|휴가·승인 규칙|관계자 관리|사건 관련 인물|인물 목록|인물 검색|연결 관계|Client\/Matter 연결/.test(peopleNavigationSource), "People menu must not reintroduce unclear or removed labels");
 
 const analytics = read("apps/web/src/people/analytics/HRAnalytics.tsx");
 assert(analytics.includes("fetchHrxAnalytics") && analytics.includes("row_level_details_included"), "People analytics must fetch API and show privacy grain");

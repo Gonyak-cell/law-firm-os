@@ -1,0 +1,26 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.production_rollout_tuw12_ci_receipt.v0.1",
+  "program_id": "LCX-HRX-SFT Production Rollout",
+  "tuw_id": "LCX-HRX-PROD-12",
+  "recorded_at": "2026-06-28T12:09:00Z",
+  "branch": "codex/hrx-people-production-rollout",
+  "pr": {
+    "number": 127,
+    "url": "https://github.com/Gonyak-cell/law-firm-os/pull/127",
+    "state": "OPEN",
+    "is_draft": true,
+    "mergeable": "MERGEABLE",
+    "head_sha": "4a03f29c4d93dbbcda9edbf080eda83e97b06294"
+  },
+  "command": "gh pr checks 127",
+  "observed_result": "no checks reported on the 'codex/hrx-people-production-rollout' branch",
+  "status": "blocked_external_ci_receipt_missing",
+  "claim_boundary": {
+    "ci_green": false,
+    "staging_deployed": false,
+    "production_ready": false,
+    "production_deployed": false,
+    "go_live_approved": false
+  },
+  "next_required_evidence": "Required CI/check run receipt or release-owner disposition that no required checks exist for this draft PR."
+}

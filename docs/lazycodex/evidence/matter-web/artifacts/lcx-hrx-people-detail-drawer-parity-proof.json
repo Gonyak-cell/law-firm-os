@@ -1,0 +1,59 @@
+{
+  "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-members",
+  "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-people-detail-drawer-parity-proof.png",
+  "checks": {
+    "notification": {
+      "width": 440,
+      "right": 0,
+      "top": 0,
+      "bottom": 0,
+      "animationName": "notification-drawer-in",
+      "animationDuration": "0.18s",
+      "animationTimingFunction": "ease-out",
+      "background": "rgb(255, 255, 255)",
+      "boxShadow": "rgba(15, 23, 42, 0.18) -18px 0px 44px 0px",
+      "borderLeft": "1px",
+      "scrimBackground": "rgba(15, 23, 42, 0.46)",
+      "scrimBackdropFilter": "blur(1px)",
+      "zIndex": "140"
+    },
+    "peopleDetail": {
+      "width": 440,
+      "right": 0,
+      "top": 0,
+      "bottom": 0,
+      "animationName": "notification-drawer-in",
+      "animationDuration": "0.18s",
+      "animationTimingFunction": "ease-out",
+      "background": "rgb(255, 255, 255)",
+      "boxShadow": "rgba(15, 23, 42, 0.18) -18px 0px 44px 0px",
+      "borderLeft": "1px",
+      "scrimBackground": "rgba(15, 23, 42, 0.46)",
+      "scrimBackdropFilter": "blur(1px)",
+      "zIndex": "140"
+    },
+    "sameWidth": true,
+    "sameAnimationName": true,
+    "sameAnimationDuration": true,
+    "sameAnimationTiming": true,
+    "sameScrimBackground": true,
+    "sameLayerZIndex": true,
+    "sameRightEdge": true,
+    "noConsoleErrors": true
+  },
+  "consoleMessages": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    }
+  ],
+  "problemMessages": []
+}

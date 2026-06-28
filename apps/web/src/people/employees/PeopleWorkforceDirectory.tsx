@@ -49,6 +49,7 @@ type WorkforceDirectoryProps = {
   refreshKey?: number;
   selectedEmployeeId?: string | null;
   onSelectEmployee?: (employeeId: string | null) => void;
+  compact?: boolean;
 };
 type LocalAction = {
   title: string;
@@ -234,7 +235,7 @@ function organizationGroupLabel(department: string) {
   return department;
 }
 
-export function PeopleWorkforceDirectory({ initialTab = "active", initialView = "table", refreshKey = 0, selectedEmployeeId = null, onSelectEmployee }: WorkforceDirectoryProps) {
+export function PeopleWorkforceDirectory({ initialTab = "active", initialView = "table", refreshKey = 0, selectedEmployeeId = null, onSelectEmployee, compact = false }: WorkforceDirectoryProps) {
   const [employeeResult, setEmployeeResult] = useState<EmployeeResult>(null);
   const [lifecycleResult, setLifecycleResult] = useState<LifecycleResult>(null);
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -296,43 +297,49 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
   };
 
   return (
-    <section className="hr-roster-surface" data-hr-workforce-table="true">
+    <section className="hr-roster-surface" data-hr-workforce-table="true" data-hr-workforce-density={compact ? "compact" : "standard"}>
       <header className="hr-roster-header">
         <div>
-          <h2>구성원</h2>
+          <h2>{compact ? "입퇴사 대상" : "구성원"}</h2>
         </div>
         <div className="hr-roster-actions">
-          <button
-            type="button"
-            className="text-button"
-            data-hr-workforce-more="true"
-            onClick={() => showLocalAction("추가 작업", `현재 ${visibleRows.length}개 항목에 적용할 수 있는 목록 작업을 확인했습니다.`)}
-          >
-            더보기
-            <ChevronDown size={14} />
-          </button>
+          {!compact && (
+            <button
+              type="button"
+              className="text-button"
+              data-hr-workforce-more="true"
+              onClick={() => showLocalAction("추가 작업", `현재 ${visibleRows.length}개 항목에 적용할 수 있는 목록 작업을 확인했습니다.`)}
+            >
+              더보기
+              <ChevronDown size={14} />
+            </button>
+          )}
           <button type="button" className={viewMode === "org" ? "secondary-button active" : "secondary-button"} onClick={() => setViewMode(viewMode === "org" ? "table" : "org")}>
             <GitBranch size={15} />
             조직
           </button>
-          <button
-            type="button"
-            className="primary-button"
-            data-hr-workforce-add="true"
-            onClick={() => showLocalAction("구성원 추가", "HRX 구성원 등록 준비 상태를 열었습니다. 저장은 권한 확인 후 등록 화면에서 처리합니다.")}
-          >
-            <UserPlus size={15} />
-            구성원 추가
-          </button>
-          <button
-            type="button"
-            className="primary-button icon-only"
-            aria-label="추가 메뉴"
-            data-hr-workforce-add-menu="true"
-            onClick={() => showLocalAction("추가 메뉴", "구성원 등록, 목록 내보내기, 보기 설정 작업을 확인했습니다.")}
-          >
-            <ChevronDown size={15} />
-          </button>
+          {!compact && (
+            <>
+              <button
+                type="button"
+                className="primary-button"
+                data-hr-workforce-add="true"
+                onClick={() => showLocalAction("구성원 추가", "HRX 구성원 등록 준비 상태를 열었습니다. 저장은 권한 확인 후 등록 화면에서 처리합니다.")}
+              >
+                <UserPlus size={15} />
+                구성원 추가
+              </button>
+              <button
+                type="button"
+                className="primary-button icon-only"
+                aria-label="추가 메뉴"
+                data-hr-workforce-add-menu="true"
+                onClick={() => showLocalAction("추가 메뉴", "구성원 등록, 목록 내보내기, 보기 설정 작업을 확인했습니다.")}
+              >
+                <ChevronDown size={15} />
+              </button>
+            </>
+          )}
         </div>
       </header>
 
@@ -355,28 +362,32 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
           ))}
         </nav>
         <div className="hr-roster-view-tools" aria-label="테이블 도구">
-          <button
-            type="button"
-            className="icon-button"
-            aria-label="표 보기 옵션"
-            data-hr-workforce-table-options="true"
-            onClick={() => showLocalAction("표 보기 옵션", `${viewMode === "org" ? "조직" : "표"} 보기에서 ${visibleRows.length}개 항목을 표시합니다.`)}
-          >
-            <Filter size={16} />
-          </button>
+          {!compact && (
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="표 보기 옵션"
+              data-hr-workforce-table-options="true"
+              onClick={() => showLocalAction("표 보기 옵션", `${viewMode === "org" ? "조직" : "표"} 보기에서 ${visibleRows.length}개 항목을 표시합니다.`)}
+            >
+              <Filter size={16} />
+            </button>
+          )}
           <label className="hr-roster-search">
             <Search size={16} />
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="검색" aria-label="구성원 검색" />
           </label>
-          <button
-            type="button"
-            className="icon-button"
-            aria-label="속성 조정"
-            data-hr-workforce-property-options="true"
-            onClick={() => showLocalAction("속성 조정", "직위, 구성원, 소속, 부서, 이메일 열을 기준으로 목록 속성을 확인했습니다.")}
-          >
-            <SlidersHorizontal size={16} />
-          </button>
+          {!compact && (
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="속성 조정"
+              data-hr-workforce-property-options="true"
+              onClick={() => showLocalAction("속성 조정", "직위, 구성원, 소속, 부서, 이메일 열을 기준으로 목록 속성을 확인했습니다.")}
+            >
+              <SlidersHorizontal size={16} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -432,6 +443,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                           <FileText className="hr-roster-page-icon" size={17} />
                           <span>
                             <strong>{row.name}</strong>
+                            {compact && <small>{row.workerType} / {row.affiliation}</small>}
                           </span>
                         </button>
                       </td>

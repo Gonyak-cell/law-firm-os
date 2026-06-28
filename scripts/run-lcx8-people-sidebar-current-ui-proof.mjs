@@ -27,19 +27,19 @@ const ROW_IDS = [
 ];
 
 const routeRows = [
-  ["LCX8-ACTION-0152", "구성원", "people-members"],
-  ["LCX8-ACTION-0153", "조직", "people-org-chart", "current label for ledger label 조직도"],
-  ["LCX8-ACTION-0154", "휴가관리", "people-leave", "current label for ledger label 휴가"],
-  ["LCX8-ACTION-0155", "요청 관리", "people-approvals", "current label for ledger label 승인"],
-  ["LCX8-ACTION-0156", "입퇴사 관리", "people-lifecycle", "current label for ledger label 입사·퇴사"],
-  ["LCX8-ACTION-0157", "구성원 등록", "people-recruiting", "current label for ledger label 채용"],
-  ["LCX8-ACTION-0158", "회사방침", "people-documents", "current label for ledger label 인사 문서"],
-  ["LCX8-ACTION-0159", "승인 규칙", "people-policy", "current label for ledger label 인사 정책"],
-  ["LCX8-ACTION-0160", "인사기록", "people-audit", "current label for ledger label 활동 기록"],
-  ["LCX8-ACTION-0161", "권한", "people-admin", "current label for ledger label 권한 관리"],
-  ["LCX8-ACTION-0162", "급여정산", "people-payroll", "current label for ledger label 급여 정산"],
-  ["LCX8-ACTION-0163", "리포트", "people-analytics", "current label for ledger label 인사 현황"]
-].map(([id, productLabel, section, reconciliation]) => ({ id, productLabel, section, reconciliation: reconciliation ?? null }));
+  ["LCX8-ACTION-0152", "구성원", "people-members", "관리"],
+  ["LCX8-ACTION-0153", "조직", "people-org-chart", "관리", "current label for ledger label 조직도"],
+  ["LCX8-ACTION-0154", "휴가관리", "people-leave", "휴가", "current label for ledger label 휴가"],
+  ["LCX8-ACTION-0155", "요청 관리", "people-approvals", "요청/전자결재", "current label for ledger label 승인"],
+  ["LCX8-ACTION-0156", "입퇴사 관리", "people-lifecycle", "관리", "current label for ledger label 입사·퇴사"],
+  ["LCX8-ACTION-0157", "구성원 등록", "people-recruiting", "관리", "current label for ledger label 채용"],
+  ["LCX8-ACTION-0158", "회사방침", "people-documents", "회사 설정", "current label for ledger label 인사 문서"],
+  ["LCX8-ACTION-0159", "승인 규칙", "people-policy", "요청/전자결재", "current label for ledger label 인사 정책"],
+  ["LCX8-ACTION-0160", "인사기록", "people-audit", "회사 설정", "current label for ledger label 활동 기록"],
+  ["LCX8-ACTION-0161", "권한", "people-admin", "회사 설정", "current label for ledger label 권한 관리"],
+  ["LCX8-ACTION-0162", "급여정산", "people-payroll", "마감 및 급여", "current label for ledger label 급여 정산"],
+  ["LCX8-ACTION-0163", "실시간 리포트", "people-analytics", "리포트", "current label for ledger label 인사 현황"]
+].map(([id, productLabel, section, groupLabel, reconciliation]) => ({ id, productLabel, section, groupLabel, reconciliation: reconciliation ?? null }));
 
 function compact(value) {
   return String(value ?? "").replace(/\s+/g, " ").trim();
@@ -99,11 +99,7 @@ async function runGroupToggle(page) {
 
 async function runRouteRow(page, row) {
   await gotoPeople(page, row.section === "people-documents" ? "people-members" : "people-documents");
-  if (["people-documents", "people-policy", "people-audit", "people-admin", "people-payroll", "people-analytics"].includes(row.section)) {
-    await ensureGroupOpen(page, "회사 설정");
-  } else {
-    await ensureGroupOpen(page, "관리");
-  }
+  await ensureGroupOpen(page, row.groupLabel);
   const networkStart = networkEvents.length;
   const requestStart = requestEvents.length;
   const button = page.locator(".sidebar-child").filter({ hasText: row.productLabel }).first();

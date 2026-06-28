@@ -23,6 +23,7 @@ const contractPath = "docs/lazycodex/people-reflection/legal-people-ui-contract.
 const summaryPath = "docs/lazycodex/people-reflection/legal-people-ui-contract.md";
 const evidencePath = "docs/lazycodex/people-reflection/lcx-ppl-05-evidence.json";
 const peopleHomePath = "apps/web/src/people/PeopleHome.tsx";
+const peopleFeatureCatalogPath = "apps/web/src/people/peopleFeatureCatalog.js";
 const legalPeopleWorkspacePath = "apps/web/src/people/legal/LegalPeopleWorkspace.tsx";
 const hrxApiClientPath = "apps/web/src/people/hrxApiClient.ts";
 const shellPath = "apps/web/src/components/Shell.jsx";
@@ -35,6 +36,7 @@ for (const path of [
   summaryPath,
   evidencePath,
   peopleHomePath,
+  peopleFeatureCatalogPath,
   legalPeopleWorkspacePath,
   hrxApiClientPath,
   shellPath,
@@ -50,6 +52,8 @@ assert.equal(packageJson.scripts?.["lcx:ppl:ui:validate"], "node scripts/validat
 
 const contract = readJson(contractPath);
 const evidence = readJson(evidencePath);
+const peopleCatalog = read(peopleFeatureCatalogPath);
+const peopleNavigationSource = `${read(shellPath)}\n${peopleCatalog}`;
 
 assert.equal(contract.schema_version, "lawos.lcx_ppl.legal_people_ui_contract.v0.1");
 assert.equal(contract.program_id, "LCX-PPL Full Reflection");
@@ -74,11 +78,11 @@ assert.equal(contract.claim_boundary.enterprise_trust_approved, false);
 assert.equal(contract.claim_boundary.ai_final_decision_allowed, false);
 
 for (const label of ["관리", "회사 설정", "구성원", "휴가관리", "요청 관리", "입퇴사 관리", "회사방침", "증명서 발급 요청", "승인 규칙", "인사기록", "권한", "리포트"]) {
-  requireText(shellPath, label);
+  assert.ok(peopleNavigationSource.includes(label), `People navigation missing ${label}`);
 }
 
 for (const hiddenLabel of ["관계자 관리", "사건 관련 인물", "인물 목록", "인물 검색", "연결 관계", "Client/Matter 연결", "구성원 운영", "설정·정산", "인사규정", "인력 현황", "인사정보 접근 권한"]) {
-  assert.equal(read(shellPath).includes(hiddenLabel), false, `People sidebar must not expose removed legal-person menu label: ${hiddenLabel}`);
+  assert.equal(peopleNavigationSource.includes(hiddenLabel), false, `People sidebar must not expose removed legal-person menu label: ${hiddenLabel}`);
 }
 
 for (const hiddenSection of ["people-directory", "people-relationships", "people-conflicts"]) {
@@ -90,10 +94,23 @@ for (const marker of [
   "people-relationships",
   "people-conflicts",
   "LegalPeopleWorkspace",
-  "구성원, 조직, 휴가관리",
-  "회사방침, 급여정산"
+  "PEOPLE_SECTION_IDS",
+  "PeopleFeatureStatePanel"
 ]) {
   requireText(peopleHomePath, marker);
+}
+
+for (const marker of [
+  "근무일정",
+  "외부일정",
+  "출퇴근기록",
+  "요청/전자결재",
+  "마감 및 급여",
+  "전자계약",
+  "people-work-schedule-external",
+  "people-company-integrations"
+]) {
+  requireText(peopleFeatureCatalogPath, marker);
 }
 
 for (const marker of [

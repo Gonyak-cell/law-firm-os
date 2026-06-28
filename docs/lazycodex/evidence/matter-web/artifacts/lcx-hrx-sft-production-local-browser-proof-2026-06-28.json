@@ -1,0 +1,80 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.production_local_browser_proof.v0.1",
+  "generated_at": "2026-06-28T11:56:26.731Z",
+  "verdict": "PASS",
+  "base_url": "http://127.0.0.1:5174",
+  "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-local-browser-proof-2026-06-28.png",
+  "checks": {
+    "members": {
+      "has_members_label": true,
+      "has_kim_yang_tae": true,
+      "has_petra_bridge": true,
+      "has_finance": true
+    },
+    "external_schedule": {
+      "has_external_schedule": true,
+      "has_court": true,
+      "has_prosecutor": true,
+      "has_post_office": true,
+      "has_tax_office": true,
+      "has_agency": true
+    },
+    "lifecycle": {
+      "has_lifecycle_title": true,
+      "has_onboarding_work": true,
+      "has_offboarding_work": true,
+      "has_compact_target": true,
+      "body_overflow_clear": true
+    },
+    "drawer_parity": {
+      "notification_drawer_found": true,
+      "people_detail_found": true,
+      "notification_right_edge_zero": true,
+      "people_detail_right_edge_zero": true,
+      "same_width": true,
+      "same_right_edge": true,
+      "same_layer_z_index": true,
+      "same_animation_name": true,
+      "same_animation_duration": true,
+      "same_animation_timing": true,
+      "same_scrim_background": true,
+      "notificationStyle": {
+        "width": 440,
+        "right": 0,
+        "top": 0,
+        "bottom": 0,
+        "layerZIndex": "140",
+        "animationName": "notification-drawer-in",
+        "animationDuration": "0.18s",
+        "animationTimingFunction": "ease-out",
+        "boxShadow": "rgba(15, 23, 42, 0.18) -18px 0px 44px 0px",
+        "scrimBackground": "rgba(15, 23, 42, 0.46)",
+        "scrimBackdropFilter": "blur(1px)"
+      },
+      "peopleDetailStyle": {
+        "width": 440,
+        "right": 0,
+        "top": 0,
+        "bottom": 0,
+        "layerZIndex": "140",
+        "animationName": "notification-drawer-in",
+        "animationDuration": "0.18s",
+        "animationTimingFunction": "ease-out",
+        "boxShadow": "rgba(15, 23, 42, 0.18) -18px 0px 44px 0px",
+        "scrimBackground": "rgba(15, 23, 42, 0.46)",
+        "scrimBackdropFilter": "blur(1px)"
+      }
+    }
+  },
+  "api_response_count": 13,
+  "api_5xx_count": 0,
+  "unexpected_console_messages": [],
+  "page_errors": [],
+  "boolean_failures": [],
+  "non_claims": [
+    "local browser QA only",
+    "no staging proof claim",
+    "no production deployment claim",
+    "no go-live approval claim"
+  ]
+}
