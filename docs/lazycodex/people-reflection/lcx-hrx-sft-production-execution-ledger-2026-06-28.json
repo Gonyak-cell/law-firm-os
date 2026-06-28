@@ -2,7 +2,7 @@
   "schema_version": "lawos.lcx_hrx_sft.production_rollout_execution.v0.1",
   "program_id": "LCX-HRX-SFT Production Rollout",
   "created_at": "2026-06-28T11:52:49Z",
-  "updated_at": "2026-06-28T12:07:24Z",
+  "updated_at": "2026-06-28T12:09:00Z",
   "branch": "codex/hrx-people-production-rollout",
   "head_observed_before_execution": "3fbe44006",
   "source_plan": "docs/lazycodex/people-reflection/lcx-hrx-sft-production-rollout-tuw-plan-2026-06-28.md",
@@ -45,6 +45,7 @@
       "docs/lazycodex/people-reflection/lcx-hrx-sft-production-rollout-tuw-plan-2026-06-28.md",
       "docs/lazycodex/people-reflection/lcx-hrx-sft-production-execution-ledger-2026-06-28.json",
       "docs/lazycodex/people-reflection/lcx-hrx-sft-production-tuw11-rc-receipt-2026-06-28.json",
+      "docs/lazycodex/people-reflection/lcx-hrx-sft-production-tuw12-ci-receipt-2026-06-28.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-navigation-browser-proof.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-navigation-browser-proof.md",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/people-members-roster-source-proof.png",
@@ -239,7 +240,10 @@
       "id": "LCX-HRX-PROD-12",
       "title": "CI parity gate",
       "status": "blocked",
-      "blocked_by": "Requires TUW-11 PR/check run receipt."
+      "blocked_by": "GitHub reported no checks on PR #127 via gh pr checks; requires CI/check run receipt or release-owner disposition that no required checks exist.",
+      "proof": [
+        "docs/lazycodex/people-reflection/lcx-hrx-sft-production-tuw12-ci-receipt-2026-06-28.json"
+      ]
     },
     {
       "id": "LCX-HRX-PROD-13",
