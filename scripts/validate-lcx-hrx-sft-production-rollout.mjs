@@ -17,10 +17,12 @@ function fileExists(path) {
 
 const ledgerPath = "docs/lazycodex/people-reflection/lcx-hrx-sft-production-execution-ledger-2026-06-28.json";
 const planPath = "docs/lazycodex/people-reflection/lcx-hrx-sft-production-rollout-tuw-plan-2026-06-28.md";
+const navigationBrowserProofPath = "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-navigation-browser-proof.json";
 const localBrowserProofPath = "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-local-browser-proof-2026-06-28.json";
 const packageJson = readJson("package.json");
 const ledger = readJson(ledgerPath);
 const plan = read(planPath);
+const navigationBrowserProof = readJson(navigationBrowserProofPath);
 const localBrowserProof = readJson(localBrowserProofPath);
 
 const expectedIds = Array.from({ length: 21 }, (_, index) => `LCX-HRX-PROD-${String(index).padStart(2, "0")}`);
@@ -84,6 +86,12 @@ for (const [name, receipt] of Object.entries(ledger.local_validation_receipts)) 
 }
 
 assert.equal(localBrowserProof.verdict, "PASS");
+assert.equal(navigationBrowserProof.verdict, "PASS");
+assert.ok(fileExists(navigationBrowserProof.roster.screenshot), `missing roster screenshot: ${navigationBrowserProof.roster.screenshot}`);
+assert.ok(
+  fileExists(navigationBrowserProof.external_schedule.screenshot),
+  `missing external schedule screenshot: ${navigationBrowserProof.external_schedule.screenshot}`
+);
 assert.equal(localBrowserProof.checks.members.has_kim_yang_tae, true);
 assert.equal(localBrowserProof.checks.external_schedule.has_court, true);
 assert.equal(localBrowserProof.checks.external_schedule.has_prosecutor, true);

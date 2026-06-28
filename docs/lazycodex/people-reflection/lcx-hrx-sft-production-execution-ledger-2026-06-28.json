@@ -46,6 +46,8 @@
       "docs/lazycodex/people-reflection/lcx-hrx-sft-production-execution-ledger-2026-06-28.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-navigation-browser-proof.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-navigation-browser-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/people-members-roster-source-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/people-work-schedule-external-proof.png",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-lifecycle-cleanup-proof.json",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-lifecycle-cleanup-proof.png",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-people-detail-drawer-parity-proof.json",
@@ -168,7 +170,9 @@
       "status": "done-local",
       "proof": [
         "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-local-browser-proof-2026-06-28.json",
-        "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-navigation-browser-proof.json"
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-navigation-browser-proof.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/people-members-roster-source-proof.png",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/people-work-schedule-external-proof.png"
       ]
     },
     {
