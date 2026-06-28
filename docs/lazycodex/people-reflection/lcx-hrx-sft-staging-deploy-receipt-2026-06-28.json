@@ -1,0 +1,76 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.staging_deploy_receipt.v0.1",
+  "program_id": "LCX-HRX-SFT Production Rollout",
+  "tuw_id": "LCX-HRX-PROD-13",
+  "recorded_at": "2026-06-28T13:36:50Z",
+  "source": {
+    "runtime_deploy_ref": "origin/main",
+    "runtime_deploy_commit": "cfc6416f6e1a17a1ad5355829a57eeb0e7814760",
+    "release_payload": "apps/web/dist and Lambda zip packaged from the current origin/main runtime after PR #129 merge"
+  },
+  "aws_identity": {
+    "account": "770880870480",
+    "assumed_role_arn": "arn:aws:sts::770880870480:assumed-role/matter-prod-deploy-admin/botocore-session-1782653037",
+    "profile": "matter-prod-deploy-admin",
+    "region": "ap-northeast-2"
+  },
+  "web_deployment": {
+    "bucket": "matter-lawos-web-staging-770880870480-apne2",
+    "bucket_created_for_stage": true,
+    "bucket_public_access_block": {
+      "BlockPublicAcls": true,
+      "IgnorePublicAcls": true,
+      "BlockPublicPolicy": true,
+      "RestrictPublicBuckets": true
+    },
+    "bucket_ownership": "BucketOwnerEnforced",
+    "bucket_encryption": "AES256",
+    "s3_sync_executed": true,
+    "s3_synced_assets": [
+      "assets/index-BrLnLC97.js",
+      "assets/index-x40NzoCF.css",
+      "assets/matter-mark-Cc_2F105.svg",
+      "assets/parnas-tower-login-Dogx2L0o.jpg",
+      "index.html"
+    ],
+    "cloudfront_distribution_id": "E2M91XZ7D3ZSH5",
+    "cloudfront_domain": "d4l5xmvrfsx5b.cloudfront.net",
+    "cloudfront_url": "https://d4l5xmvrfsx5b.cloudfront.net",
+    "cloudfront_status": "Deployed",
+    "cloudfront_enabled": true,
+    "cloudfront_comment": "matter Law Firm OS temporary staging web entrypoint"
+  },
+  "api_deployment": {
+    "lambda_function_name": "matter-lawos-api-staging",
+    "lambda_runtime": "nodejs22.x",
+    "lambda_last_modified": "2026-06-28T13:26:00.425+0000",
+    "lambda_state": "Active",
+    "lambda_last_update_status": "Successful",
+    "lambda_code_sha256": "yZLT2/c1yo7t93kflTLpft1BEvzh2MYJxxbHlpDkAHg=",
+    "lambda_function_url": "https://3iv7rfot4n6zdxzgdypbijyvze0mphlh.lambda-url.ap-northeast-2.on.aws/",
+    "lambda_environment": {
+      "LAWOS_DEPLOYMENT_COMMIT": "cfc6416f6e1a17a1ad5355829a57eeb0e7814760",
+      "LAWOS_DEPLOYMENT_ENV": "staging",
+      "LAWOS_DEPLOYMENT_MODE": "aws_lambda_function_url"
+    },
+    "zip_packaging": {
+      "zip_path": "/tmp/matter-lawos-api-staging-cfc6416f6e1a17a1ad5355829a57eeb0e7814760.zip",
+      "included_runtime_roots": [
+        "apps/api/src",
+        "apps/api/package.json",
+        "packages",
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json"
+      ]
+    }
+  },
+  "claim_boundary": {
+    "staging_deployed": true,
+    "staging_validated": false,
+    "production_deployed": true,
+    "production_ready": false,
+    "go_live_approved": false,
+    "payroll_provider_live": false,
+    "electronic_contract_provider_live": false
+  }
+}

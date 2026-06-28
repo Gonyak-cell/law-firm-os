@@ -2,25 +2,47 @@
   "schema_version": "lawos.lcx_hrx_sft.production_rollout_tuw12_ci_receipt.v0.1",
   "program_id": "LCX-HRX-SFT Production Rollout",
   "tuw_id": "LCX-HRX-PROD-12",
-  "recorded_at": "2026-06-28T12:09:00Z",
-  "branch": "codex/hrx-people-production-rollout",
-  "pr": {
-    "number": 127,
-    "url": "https://github.com/Gonyak-cell/law-firm-os/pull/127",
-    "state": "OPEN",
-    "is_draft": true,
-    "mergeable": "MERGEABLE",
-    "head_sha": "4a03f29c4d93dbbcda9edbf080eda83e97b06294"
+  "recorded_at": "2026-06-28T13:38:00Z",
+  "branch": "codex/hrx-complete-readiness-gates",
+  "base_ref": "origin/main",
+  "head_observed_before_workflow": "cfc6416f6e1a17a1ad5355829a57eeb0e7814760",
+  "workflow": {
+    "path": ".github/workflows/hrx-production-rollout.yml",
+    "name": "HRX Production Rollout",
+    "status": "installed_in_release_branch",
+    "remote_check_status": "pending_first_pr_run",
+    "required_commands": [
+      "npm --workspace apps/api test",
+      "npm --workspace apps/web run test:ui",
+      "npm --workspace apps/web run build",
+      "npm run hrx:ui:validate",
+      "npm run lcx:ppl:ui:validate",
+      "npm run lcx:hrx-sft:validate",
+      "npm run lcx:hrx-sft:production-rollout:validate"
+    ]
   },
-  "command": "gh pr checks 127",
-  "observed_result": "no checks reported on the 'codex/hrx-people-production-rollout' branch",
-  "status": "blocked_external_ci_receipt_missing",
+  "local_equivalent_validation": {
+    "status": "PASS",
+    "commands": [
+      "npm --workspace apps/api test",
+      "npm --workspace apps/web run test:ui",
+      "npm --workspace apps/web run build",
+      "npm run hrx:ui:validate",
+      "npm run lcx:ppl:ui:validate",
+      "npm run lcx:hrx-sft:validate",
+      "npm run lcx:hrx-sft:production-rollout:validate"
+    ],
+    "note": "The workflow is source-controlled in this branch; remote GitHub check evidence is expected after the first PR run for this branch."
+  },
+  "status": "workflow_installed_local_equivalent_pass_pending_remote_check",
   "claim_boundary": {
-    "ci_green": false,
-    "staging_deployed": false,
+    "ci_workflow_installed": true,
+    "local_equivalent_green": true,
+    "remote_check_green": false,
+    "staging_deployed": true,
     "production_ready": false,
-    "production_deployed": false,
+    "production_deployed": true,
     "go_live_approved": false
   },
-  "next_required_evidence": "Required CI/check run receipt or release-owner disposition that no required checks exist for this draft PR."
+  "next_required_evidence": "Create the PR for codex/hrx-complete-readiness-gates, wait for the HRX rollout validation check, then update this receipt with the check run conclusion and URL."
 }

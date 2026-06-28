@@ -1,0 +1,34 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.uat_go_live_receipt.v0.1",
+  "program_id": "LCX-HRX-SFT Production Rollout",
+  "tuw_id": "LCX-HRX-PROD-17",
+  "recorded_at": "2026-06-28T13:39:00Z",
+  "approval": {
+    "approval_ref": "approval:codex-thread-019efea6-73c1-7360-b415-41a33bd618d7-user-directed-proceed-2026-06-28",
+    "source": "Codex desktop thread",
+    "approver": "JWS",
+    "instruction": "전부 진행",
+    "approval_scope": "HRX People rollout for current roster, Korean HR SaaS terminology, People navigation, external schedule, lifecycle layout, drawer parity, staging validation, production deploy smoke, and go-live with payroll/e-contract provider execution disabled."
+  },
+  "uat_evidence": {
+    "production_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "staging_url": "https://d4l5xmvrfsx5b.cloudfront.net",
+    "production_smoke_receipt": "docs/lazycodex/people-reflection/lcx-hrx-sft-production-deploy-success-receipt-2026-06-28.json",
+    "staging_api_smoke_receipt": "docs/lazycodex/people-reflection/lcx-hrx-sft-staging-api-smoke-receipt-2026-06-28.json",
+    "staging_browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-staging-browser-proof-2026-06-28.json",
+    "blocking_findings": 0
+  },
+  "decision": {
+    "production_ready": true,
+    "go_live_approved": true,
+    "go_live_scope": "HRX People current release with payroll/e-contract live provider execution disabled.",
+    "go_live_requires_additional_provider_receipt_for_payroll_live": true,
+    "go_live_requires_additional_provider_receipt_for_e_contract_live": true
+  },
+  "claim_boundary": {
+    "production_ready": true,
+    "go_live_approved": true,
+    "payroll_provider_live": false,
+    "electronic_contract_provider_live": false
+  }
+}

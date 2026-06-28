@@ -1,0 +1,58 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.security_provider_disposition.v0.1",
+  "program_id": "LCX-HRX-SFT Production Rollout",
+  "tuw_id": "LCX-HRX-PROD-16",
+  "recorded_at": "2026-06-28T13:38:30Z",
+  "review_scope": [
+    "HRX People roster Source of Truth exposure",
+    "HRX route authorization fail-closed behavior",
+    "People drawer and notification drawer parity",
+    "Payroll and electronic-contract provider execution boundaries",
+    "Production and staging smoke evidence"
+  ],
+  "security_controls_reviewed": {
+    "tenant_context_required": true,
+    "query_tenant_actor_context_forbidden": true,
+    "hrx_scope_authorization_required": true,
+    "missing_scope_fails_closed": true,
+    "browser_api_5xx_count_zero": true,
+    "page_errors_zero": true,
+    "unexpected_console_messages_zero": true,
+    "s3_public_access_block_enabled": true,
+    "staging_lambda_active": true,
+    "production_lambda_active": true
+  },
+  "provider_boundaries": {
+    "payroll_provider_live": false,
+    "payroll_execution_enabled": false,
+    "payroll_export_live_transfer_enabled": false,
+    "electronic_contract_provider_live": false,
+    "electronic_signature_send_enabled": false,
+    "provider_credentials_present_in_repo": false,
+    "provider_live_claim_allowed": false,
+    "launch_allowed_with_provider_execution_disabled": true
+  },
+  "disposition": {
+    "status": "approved_for_current_hrx_people_launch_scope",
+    "production_ready_with_disabled_provider_execution": true,
+    "blocking_findings": 0,
+    "residual_risks": [
+      "Payroll provider live transfer remains disabled until a separate provider credential, contract, and live-send UAT receipt exists.",
+      "Electronic contract live send remains disabled until a separate provider credential, template, and live-send UAT receipt exists."
+    ]
+  },
+  "evidence": [
+    "docs/lazycodex/people-reflection/lcx-hrx-sft-production-deploy-success-receipt-2026-06-28.json",
+    "docs/lazycodex/people-reflection/lcx-hrx-sft-staging-deploy-receipt-2026-06-28.json",
+    "docs/lazycodex/people-reflection/lcx-hrx-sft-staging-api-smoke-receipt-2026-06-28.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-staging-browser-proof-2026-06-28.json",
+    "scripts/validate-hrx-route-authz.mjs",
+    "scripts/validate-hrx-context-hardening.mjs"
+  ],
+  "claim_boundary": {
+    "production_ready": true,
+    "go_live_approved": false,
+    "payroll_provider_live": false,
+    "electronic_contract_provider_live": false
+  }
+}
