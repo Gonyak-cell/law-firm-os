@@ -1,0 +1,46 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.production_rollout_tuw11_receipt.v0.1",
+  "program_id": "LCX-HRX-SFT Production Rollout",
+  "tuw_id": "LCX-HRX-PROD-11",
+  "recorded_at": "2026-06-28T12:07:24Z",
+  "branch": "codex/hrx-people-production-rollout",
+  "base": "main",
+  "pr": {
+    "number": 127,
+    "url": "https://github.com/Gonyak-cell/law-firm-os/pull/127",
+    "state": "OPEN",
+    "is_draft": true,
+    "title": "Prepare HRX People production rollout candidate"
+  },
+  "commits": [
+    {
+      "sha": "a78819a3d3fd0dd739f2d03dc8fb628040259613",
+      "message": "Prepare HRX People production rollout candidate",
+      "purpose": "Release candidate payload"
+    },
+    {
+      "sha": "3213d913b724a6af8a6ba71ec6093f7c81602b4d",
+      "message": "Include HRX rollout proof screenshots",
+      "purpose": "Fresh checkout validator proof completeness"
+    }
+  ],
+  "validated_before_pr": [
+    "npm run lcx:hrx-sft:production-rollout:validate",
+    "npm run lcx:hrx-sft:validate",
+    "npm run hrx:ui:validate",
+    "npm run lcx:ppl:ui:validate",
+    "npm --workspace apps/web run test:ui",
+    "npm --workspace apps/web run build",
+    "git diff --check"
+  ],
+  "claim_boundary": {
+    "production_ready": false,
+    "production_deployed": false,
+    "go_live_approved": false,
+    "payroll_provider_live": false,
+    "electronic_contract_provider_live": false,
+    "staging_deployed": false,
+    "staging_validated": false
+  },
+  "next_gate": "LCX-HRX-PROD-12 CI parity gate"
+}
