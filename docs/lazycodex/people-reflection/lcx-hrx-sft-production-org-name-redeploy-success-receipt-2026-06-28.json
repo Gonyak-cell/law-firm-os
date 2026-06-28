@@ -1,0 +1,127 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.production_org_name_redeploy_success_receipt.v0.1",
+  "program_id": "LCX-HRX-SFT Production Rollout",
+  "recorded_at": "2026-06-28T14:47:00Z",
+  "source": {
+    "runtime_deploy_commit": "0e4a4960d017e55057330a3b9417bd947df4721f",
+    "runtime_deploy_ref": "origin/main",
+    "included_prs": [
+      {
+        "number": 135,
+        "url": "https://github.com/Gonyak-cell/law-firm-os/pull/135",
+        "purpose": "Use full HRX organization names in roster source of truth and People organization UI"
+      }
+    ],
+    "previous_runtime_deploy_commit": "230a46a962f462bb1fc45639a3823be2c7cc5a28",
+    "previous_lambda_code_sha256": "excglIFmw9Wb8NaTISKLJt6wANnjdYSkWuPZHEsBCGw="
+  },
+  "aws_identity": {
+    "account": "770880870480",
+    "assumed_role_arn": "arn:aws:sts::770880870480:assumed-role/matter-prod-deploy-admin/botocore-session-1782657753",
+    "profile": "matter-prod-deploy-admin",
+    "region": "ap-northeast-2"
+  },
+  "web_deployment": {
+    "bucket": "matter-lawos-web-prod-770880870480-apne2",
+    "s3_sync_executed": true,
+    "cloudfront_distribution_id": "E3MVAKX2DIR3CS",
+    "cloudfront_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "cloudfront_invalidation_id": "I62ZJ6WFLHU405W6MWUZOFKL7P",
+    "cloudfront_invalidation_status": "Completed",
+    "root_status": 200,
+    "root_asset_js": "assets/index-CYXXruwh.js",
+    "root_asset_css": "assets/index-x40NzoCF.css"
+  },
+  "api_deployment": {
+    "lambda_function_name": "matter-lawos-api-prod",
+    "lambda_runtime": "nodejs22.x",
+    "lambda_last_modified": "2026-06-28T14:43:42.000+0000",
+    "lambda_state": "Active",
+    "lambda_last_update_status": "Successful",
+    "lambda_code_sha256": "UYlxTgSsrfzFVEkXDSP6Qj1WrmG5IheJyQevDWt+tLw=",
+    "lambda_revision_id": "8cdfd51f-c7fd-494c-ad3c-76d6044b8fcd",
+    "lambda_environment": {
+      "LAWOS_DEPLOYMENT_COMMIT": "0e4a4960d017e55057330a3b9417bd947df4721f",
+      "LAWOS_DEPLOYMENT_MODE": "aws_lambda_function_url"
+    },
+    "zip_packaging": {
+      "zip_path": "/tmp/matter-lawos-api-prod-0e4a4960-full.zip",
+      "included_runtime_roots": [
+        "apps/api/src",
+        "apps/api/package.json",
+        "packages",
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json"
+      ]
+    }
+  },
+  "pre_deploy_validation": {
+    "npm_ci": "PASS",
+    "github_main_hrx_production_rollout": {
+      "status": "success",
+      "run_url": "https://github.com/Gonyak-cell/law-firm-os/actions/runs/28325495620",
+      "head_sha": "0e4a4960d017e55057330a3b9417bd947df4721f"
+    },
+    "npm_workspace_apps_api_test": {
+      "status": "PASS",
+      "tests": 195,
+      "failed": 0
+    },
+    "npm_workspace_apps_web_run_build": {
+      "status": "PASS",
+      "asset_js": "assets/index-CYXXruwh.js",
+      "asset_css": "assets/index-x40NzoCF.css"
+    },
+    "npm_run_lcx_hrx_sft_roster_validate": {
+      "status": "PASS",
+      "organization_groups": {
+        "PETRA BRIDGE PARTNERS": 3,
+        "AMIC Law": 4,
+        "Staff": 2
+      }
+    },
+    "npm_run_lcx_hrx_sft_production_rollout_validate": "PASS"
+  },
+  "production_smoke": {
+    "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-org-name-redeploy-browser-proof-2026-06-28.json",
+    "verdict": "PASS",
+    "api_health_status": 200,
+    "hrx_employees_status": 200,
+    "hrx_employees_count": 9,
+    "hrx_employees_roster_source_ref": "hrx-member-roster-source-of-truth",
+    "organization_groups": {
+      "PETRA BRIDGE PARTNERS": 3,
+      "AMIC Law": 4,
+      "Staff": 2
+    },
+    "removed_organization_group_labels_visible": {
+      "PETRA BRIDGE": false,
+      "AMIC": false
+    },
+    "hrx_employees_sample": {
+      "display_name": "김양태",
+      "title": "대표이사",
+      "affiliation": "PETRA BRIDGE PARTNERS",
+      "department": "Finance",
+      "organization_group": "PETRA BRIDGE PARTNERS",
+      "source_ref": "hrx-member-roster-source-of-truth"
+    },
+    "negative_security_smoke": {
+      "missing_context_status": 400,
+      "missing_context_safe_error_code": "HRX_TENANT_CONTEXT_REQUIRED",
+      "documents_missing_scope_status": 403,
+      "documents_missing_scope_safe_error_code": "HRX_AUTHZ_DENIED"
+    },
+    "browser_page_errors": [],
+    "browser_unexpected_console_messages": []
+  },
+  "claim_boundary": {
+    "production_deployed": true,
+    "production_ready": true,
+    "go_live_approved": true,
+    "staging_deployed": true,
+    "staging_validated": true,
+    "payroll_provider_live": false,
+    "electronic_contract_provider_live": false
+  }
+}

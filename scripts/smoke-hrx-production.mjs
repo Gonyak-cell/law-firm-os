@@ -56,7 +56,17 @@ assert.ok(kimYangTae, "production HRX employees must include 김양태");
 assert.equal(kimYangTae.title, "대표이사");
 assert.equal(kimYangTae.affiliation, "PETRA BRIDGE PARTNERS");
 assert.equal(kimYangTae.department, "Finance");
-assert.equal(kimYangTae.organization_group, "PETRA BRIDGE");
+assert.equal(kimYangTae.organization_group, "PETRA BRIDGE PARTNERS");
+
+const organizationGroups = employees.body.employees.reduce((groups, employee) => {
+  groups[employee.organization_group] = (groups[employee.organization_group] ?? 0) + 1;
+  return groups;
+}, {});
+assert.equal(organizationGroups["PETRA BRIDGE PARTNERS"], 3);
+assert.equal(organizationGroups["AMIC Law"], 4);
+assert.equal(organizationGroups.Staff, 2);
+assert.equal(organizationGroups["PETRA BRIDGE"], undefined);
+assert.equal(organizationGroups.AMIC, undefined);
 
 const onboarding = await getJson("/api/hrx/lifecycle/onboarding", HRX_READ_HEADERS);
 assert.equal(onboarding.status, 200, "production HRX onboarding lifecycle must return 200");
@@ -83,6 +93,7 @@ const summary = {
   api_health_status: health.status,
   hrx_employees_status: employees.status,
   hrx_employees_count: employees.body.employees.length,
+  organization_groups: organizationGroups,
   roster_source_ref: expectedSourceRef,
   sample_member: {
     display_name: kimYangTae.display_name,
