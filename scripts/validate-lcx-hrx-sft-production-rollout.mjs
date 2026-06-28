@@ -56,6 +56,9 @@ for (const id of expectedIds) {
 }
 
 const ciRemoteGreen = ciReceipt.claim_boundary?.remote_check_green === true;
+const ciBillingBlocked =
+  ciReceipt.status === "remote_check_blocked_account_billing" &&
+  /payments have failed|spending limit/i.test(ciReceipt.remote_check?.annotation_message ?? "");
 const stagingDeployed = stagingDeployReceipt.claim_boundary?.staging_deployed === true;
 const stagingValidated =
   stagingApiSmokeReceipt.claim_boundary?.staging_validated === true &&
@@ -103,6 +106,9 @@ const tuw12 = tuwById.get("LCX-HRX-PROD-12");
 if (ciRemoteGreen) {
   assert.equal(tuw12?.status, "done-remote", "LCX-HRX-PROD-12 must be done-remote after remote CI green evidence");
   assert.match(tuw12?.check_url ?? "", /^https:\/\/github\.com\/.+/);
+} else if (ciBillingBlocked) {
+  assert.equal(tuw12?.status, "blocked", "LCX-HRX-PROD-12 must stay blocked while GitHub Actions billing prevents runner start");
+  assert.match(tuw12?.blocked_by ?? "", /billing|spending limit/i);
 } else {
   assert.equal(tuw12?.status, "ready", "LCX-HRX-PROD-12 must stay ready while the first remote CI run is pending");
   assert.equal(tuw12?.remote_check_status, "pending_first_pr_run");
@@ -143,6 +149,12 @@ for (const [name, receipt] of Object.entries(ledger.local_validation_receipts)) 
   if (name === "sloplint_changed") {
     assert.equal(receipt.status, "REVIEWED");
     assert.equal(receipt.blocking_findings, 0);
+  } else if (name === "ci_workflow_installed") {
+    assert.ok(["PASS", "BLOCKED_EXTERNAL_BILLING"].includes(receipt.status), "CI receipt must be pass or an explicit external billing blocker");
+    if (receipt.status === "BLOCKED_EXTERNAL_BILLING") {
+      assert.match(receipt.workflow_run_url ?? "", /^https:\/\/github\.com\/.+/);
+      assert.match(receipt.blocking_reason ?? "", /billing|spending limit/i);
+    }
   } else {
     assert.equal(receipt.status, "PASS", `${name} must pass before TUW-11`);
   }
@@ -175,7 +187,11 @@ assert.ok(localBrowserProof.non_claims.includes("no go-live approval claim"));
 
 assert.equal(ciReceipt.schema_version, "lawos.lcx_hrx_sft.production_rollout_tuw12_ci_receipt.v0.1");
 assert.equal(ciReceipt.workflow.path, ciWorkflowPath);
-assert.ok(["workflow_installed_local_equivalent_pass_pending_remote_check", "remote_check_green"].includes(ciReceipt.status));
+assert.ok([
+  "workflow_installed_local_equivalent_pass_pending_remote_check",
+  "remote_check_green",
+  "remote_check_blocked_account_billing"
+].includes(ciReceipt.status));
 for (const command of ciReceipt.workflow.required_commands) {
   assert.ok(ciWorkflow.includes(command), `CI workflow missing required command: ${command}`);
 }
@@ -186,9 +202,14 @@ if (ciRemoteGreen) {
   assert.match(ciReceipt.remote_check?.url ?? "", /^https:\/\/github\.com\/.+/);
   assert.equal(ciReceipt.remote_check?.conclusion, "success");
 } else {
-  assert.equal(ciReceipt.workflow.remote_check_status, "pending_first_pr_run");
+  assert.ok(["pending_first_pr_run", "blocked_account_billing"].includes(ciReceipt.workflow.remote_check_status));
   assert.equal(ciReceipt.claim_boundary.production_ready, false);
   assert.equal(ciReceipt.claim_boundary.go_live_approved, false);
+  if (ciBillingBlocked) {
+    assert.equal(ciReceipt.remote_check.conclusion, "failure");
+    assert.equal(ciReceipt.remote_check.failure_class, "github_account_billing_or_spending_limit");
+    assert.match(ciReceipt.remote_check.url, /^https:\/\/github\.com\/.+/);
+  }
 }
 
 assert.equal(stagingDeployReceipt.schema_version, "lawos.lcx_hrx_sft.staging_deploy_receipt.v0.1");

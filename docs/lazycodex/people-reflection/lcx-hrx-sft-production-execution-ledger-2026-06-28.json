@@ -2,7 +2,7 @@
   "schema_version": "lawos.lcx_hrx_sft.production_rollout_execution.v0.1",
   "program_id": "LCX-HRX-SFT Production Rollout",
   "created_at": "2026-06-28T11:52:49Z",
-  "updated_at": "2026-06-28T13:39:30Z",
+  "updated_at": "2026-06-28T13:45:30Z",
   "branch": "codex/hrx-complete-readiness-gates",
   "head_observed_before_execution": "3fbe44006",
   "source_plan": "docs/lazycodex/people-reflection/lcx-hrx-sft-production-rollout-tuw-plan-2026-06-28.md",
@@ -143,9 +143,12 @@
       "hrx_employees_status": 200
     },
     "ci_workflow_installed": {
-      "status": "PASS",
+      "status": "BLOCKED_EXTERNAL_BILLING",
       "path": ".github/workflows/hrx-production-rollout.yml",
-      "remote_check_status": "pending_first_pr_run"
+      "pr_url": "https://github.com/Gonyak-cell/law-firm-os/pull/130",
+      "workflow_run_url": "https://github.com/Gonyak-cell/law-firm-os/actions/runs/28324131232",
+      "remote_check_status": "blocked_account_billing",
+      "blocking_reason": "GitHub Actions job did not start because recent account payments failed or the spending limit needs to be increased."
     },
     "staging_deploy": {
       "status": "PASS",
@@ -177,7 +180,7 @@
       "status": "PASS",
       "path": "docs/lazycodex/people-reflection/lcx-hrx-sft-uat-go-live-receipt-2026-06-28.json",
       "approval_ref": "approval:codex-thread-019efea6-73c1-7360-b415-41a33bd618d7-user-directed-proceed-2026-06-28",
-      "remote_ci_status": "pending_first_pr_run"
+      "remote_ci_status": "blocked_account_billing"
     }
   },
   "tuws": [
@@ -297,13 +300,16 @@
     {
       "id": "LCX-HRX-PROD-12",
       "title": "CI parity gate",
-      "status": "ready",
+      "status": "blocked",
       "proof": [
         "docs/lazycodex/people-reflection/lcx-hrx-sft-production-tuw12-ci-receipt-2026-06-28.json",
         ".github/workflows/hrx-production-rollout.yml"
       ],
       "workflow_path": ".github/workflows/hrx-production-rollout.yml",
-      "remote_check_status": "pending_first_pr_run"
+      "remote_check_status": "blocked_account_billing",
+      "blocked_by": "GitHub Actions job did not start because recent account payments failed or the spending limit needs to be increased; rerun PR #130 after billing/spending-limit resolution.",
+      "pr_url": "https://github.com/Gonyak-cell/law-firm-os/pull/130",
+      "workflow_run_url": "https://github.com/Gonyak-cell/law-firm-os/actions/runs/28324131232"
     },
     {
       "id": "LCX-HRX-PROD-13",
@@ -349,7 +355,7 @@
       "title": "UAT and go/no-go",
       "status": "done-remote",
       "approval_ref": "approval:codex-thread-019efea6-73c1-7360-b415-41a33bd618d7-user-directed-proceed-2026-06-28",
-      "final_claim_pending": "remote_ci_green",
+      "final_claim_pending": "remote_ci_green_after_github_billing_resolution",
       "proof": [
         "docs/lazycodex/people-reflection/lcx-hrx-sft-uat-go-live-receipt-2026-06-28.json"
       ]
