@@ -1,0 +1,138 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.production_redeploy_success_receipt.v0.1",
+  "program_id": "LCX-HRX-SFT Production Rollout",
+  "recorded_at": "2026-06-28T14:05:30Z",
+  "source": {
+    "runtime_deploy_commit": "230a46a962f462bb1fc45639a3823be2c7cc5a28",
+    "runtime_deploy_ref": "origin/main",
+    "included_prs": [
+      {
+        "number": 130,
+        "url": "https://github.com/Gonyak-cell/law-firm-os/pull/130",
+        "purpose": "HRX rollout readiness gates, staging evidence, and workflow"
+      },
+      {
+        "number": 131,
+        "url": "https://github.com/Gonyak-cell/law-firm-os/pull/131",
+        "purpose": "package-lock workspace sync for CI"
+      },
+      {
+        "number": 132,
+        "url": "https://github.com/Gonyak-cell/law-firm-os/pull/132",
+        "purpose": "green CI evidence and readiness/go-live gate closure"
+      }
+    ]
+  },
+  "aws_identity": {
+    "account": "770880870480",
+    "assumed_role_arn": "arn:aws:sts::770880870480:assumed-role/matter-prod-deploy-admin/botocore-session-1782653037",
+    "profile": "matter-prod-deploy-admin",
+    "region": "ap-northeast-2"
+  },
+  "web_deployment": {
+    "bucket": "matter-lawos-web-prod-770880870480-apne2",
+    "s3_sync_executed": true,
+    "cloudfront_distribution_id": "E3MVAKX2DIR3CS",
+    "cloudfront_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "cloudfront_invalidation_id": "I79BASXNO2RAPS2FWGPF5E61T9",
+    "cloudfront_invalidation_status": "Completed",
+    "root_status": 200,
+    "root_asset_js": "assets/index-BrLnLC97.js",
+    "root_asset_css": "assets/index-x40NzoCF.css"
+  },
+  "api_deployment": {
+    "lambda_function_name": "matter-lawos-api-prod",
+    "lambda_runtime": "nodejs22.x",
+    "lambda_last_modified": "2026-06-28T14:00:57.000+0000",
+    "lambda_state": "Active",
+    "lambda_last_update_status": "Successful",
+    "lambda_code_sha256": "excglIFmw9Wb8NaTISKLJt6wANnjdYSkWuPZHEsBCGw=",
+    "lambda_environment": {
+      "LAWOS_DEPLOYMENT_COMMIT": "230a46a962f462bb1fc45639a3823be2c7cc5a28",
+      "LAWOS_DEPLOYMENT_MODE": "aws_lambda_function_url"
+    },
+    "zip_packaging": {
+      "zip_path": "/tmp/matter-lawos-api-prod-230a46a9-full.zip",
+      "included_runtime_roots": [
+        "apps/api/src",
+        "apps/api/package.json",
+        "packages",
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json"
+      ]
+    }
+  },
+  "pre_deploy_validation": {
+    "npm_ci": "PASS",
+    "npm_workspace_apps_api_test": {
+      "status": "PASS",
+      "tests": 195,
+      "failed": 0
+    },
+    "npm_workspace_apps_web_run_build": {
+      "status": "PASS",
+      "asset_js": "assets/index-BrLnLC97.js",
+      "asset_css": "assets/index-x40NzoCF.css"
+    },
+    "npm_run_lcx_hrx_sft_production_rollout_validate": "PASS"
+  },
+  "production_smoke": {
+    "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-redeploy-browser-proof-2026-06-28.json",
+    "verdict": "PASS",
+    "api_health_status": 200,
+    "hrx_employees_status": 200,
+    "hrx_employees_count": 9,
+    "hrx_employees_roster_source_ref": "hrx-member-roster-source-of-truth",
+    "hrx_employees_sample": {
+      "display_name": "김양태",
+      "title": "대표이사",
+      "affiliation": "PETRA BRIDGE PARTNERS",
+      "department": "Finance",
+      "organization_group": "PETRA BRIDGE",
+      "source_ref": "hrx-member-roster-source-of-truth"
+    },
+    "people_external_schedule_required_terms_visible": {
+      "People": true,
+      "구성원": true,
+      "근무일정": true,
+      "외부일정": true,
+      "법원": true,
+      "우체국": true,
+      "검찰": true,
+      "세무서": true,
+      "관청": true
+    },
+    "removed_people_terms_visible": {
+      "법률 People": false,
+      "디렉터리": false,
+      "관계망": false,
+      "충돌·윤리벽": false,
+      "충돌/벽": false,
+      "활동 기록": false,
+      "인사 현황": false,
+      "권한 관리": false
+    },
+    "people_detail_drawer_parity": {
+      "same_width": true,
+      "same_right_edge": true,
+      "same_animation": true,
+      "detail_width": 440,
+      "notification_width": 440,
+      "detail_animation": "notification-drawer-in",
+      "notification_animation": "notification-drawer-in",
+      "detail_text_has_roster_source": true
+    },
+    "browser_api_5xx_count": 0,
+    "browser_page_errors": [],
+    "browser_unexpected_console_messages": []
+  },
+  "claim_boundary": {
+    "production_deployed": true,
+    "production_ready": true,
+    "go_live_approved": true,
+    "staging_deployed": true,
+    "staging_validated": true,
+    "payroll_provider_live": false,
+    "electronic_contract_provider_live": false
+  }
+}

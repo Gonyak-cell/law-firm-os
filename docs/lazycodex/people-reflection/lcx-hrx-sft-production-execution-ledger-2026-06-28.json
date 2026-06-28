@@ -2,8 +2,8 @@
   "schema_version": "lawos.lcx_hrx_sft.production_rollout_execution.v0.1",
   "program_id": "LCX-HRX-SFT Production Rollout",
   "created_at": "2026-06-28T11:52:49Z",
-  "updated_at": "2026-06-28T13:55:30Z",
-  "branch": "codex/hrx-final-readiness",
+  "updated_at": "2026-06-28T14:06:00Z",
+  "branch": "codex/hrx-prod-redeploy-evidence",
   "head_observed_before_execution": "3fbe44006",
   "source_plan": "docs/lazycodex/people-reflection/lcx-hrx-sft-production-rollout-tuw-plan-2026-06-28.md",
   "parent_plan": "docs/lazycodex/people-reflection/lcx-hrx-sft-production-rollout-plan-2026-06-28.md",
@@ -67,7 +67,13 @@
       "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/staging/people-work-schedule-external-staging-proof.png",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/staging/people-lifecycle-staging-proof.png",
       "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/staging/people-detail-drawer-staging-proof.png",
-      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/staging/notification-drawer-staging-proof.png"
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/staging/notification-drawer-staging-proof.png",
+      "docs/lazycodex/people-reflection/lcx-hrx-sft-production-redeploy-success-receipt-2026-06-28.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-redeploy-browser-proof-2026-06-28.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/production-redeploy/people-work-schedule-external-production-redeploy-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/production-redeploy/people-lifecycle-production-redeploy-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/production-redeploy/people-detail-panel-production-redeploy-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/production-redeploy/notification-drawer-production-redeploy-proof.png"
     ],
     "excluded": [
       {
@@ -181,6 +187,14 @@
       "path": "docs/lazycodex/people-reflection/lcx-hrx-sft-uat-go-live-receipt-2026-06-28.json",
       "approval_ref": "approval:codex-thread-019efea6-73c1-7360-b415-41a33bd618d7-user-directed-proceed-2026-06-28",
       "remote_ci_status": "success"
+    },
+    "production_redeploy_success": {
+      "status": "PASS",
+      "path": "docs/lazycodex/people-reflection/lcx-hrx-sft-production-redeploy-success-receipt-2026-06-28.json",
+      "runtime_deploy_commit": "230a46a962f462bb1fc45639a3823be2c7cc5a28",
+      "cloudfront_invalidation_id": "I79BASXNO2RAPS2FWGPF5E61T9",
+      "lambda_code_sha256": "excglIFmw9Wb8NaTISKLJt6wANnjdYSkWuPZHEsBCGw=",
+      "production_smoke": "PASS"
     }
   },
   "tuws": [
@@ -366,19 +380,21 @@
       "title": "Production deploy preflight",
       "status": "done-remote",
       "aws_identity": "arn:aws:sts::770880870480:assumed-role/matter-prod-deploy-admin/botocore-session-1782649897",
-      "runtime_deploy_commit": "8f2203337dc46d54eba545f5d5cd461ce97b3576",
+      "runtime_deploy_commit": "230a46a962f462bb1fc45639a3823be2c7cc5a28",
       "proof": [
-        "docs/lazycodex/people-reflection/lcx-hrx-sft-production-deploy-success-receipt-2026-06-28.json"
+        "docs/lazycodex/people-reflection/lcx-hrx-sft-production-deploy-success-receipt-2026-06-28.json",
+        "docs/lazycodex/people-reflection/lcx-hrx-sft-production-redeploy-success-receipt-2026-06-28.json"
       ]
     },
     {
       "id": "LCX-HRX-PROD-19",
       "title": "Production deploy",
       "status": "done-remote",
-      "cloudfront_invalidation_id": "ICBFL9E6B0TGKCC1D8GBD0PJ5O",
-      "lambda_code_sha256": "9SSle1IBNKzEGX8lmO3oER/jwN4dvX4TU87sb8Iv8HU=",
+      "cloudfront_invalidation_id": "I79BASXNO2RAPS2FWGPF5E61T9",
+      "lambda_code_sha256": "excglIFmw9Wb8NaTISKLJt6wANnjdYSkWuPZHEsBCGw=",
       "proof": [
-        "docs/lazycodex/people-reflection/lcx-hrx-sft-production-deploy-success-receipt-2026-06-28.json"
+        "docs/lazycodex/people-reflection/lcx-hrx-sft-production-deploy-success-receipt-2026-06-28.json",
+        "docs/lazycodex/people-reflection/lcx-hrx-sft-production-redeploy-success-receipt-2026-06-28.json"
       ]
     },
     {
@@ -389,7 +405,9 @@
       "api_health_status": 200,
       "hrx_employees_status": 200,
       "proof": [
-        "docs/lazycodex/people-reflection/lcx-hrx-sft-production-deploy-success-receipt-2026-06-28.json"
+        "docs/lazycodex/people-reflection/lcx-hrx-sft-production-deploy-success-receipt-2026-06-28.json",
+        "docs/lazycodex/people-reflection/lcx-hrx-sft-production-redeploy-success-receipt-2026-06-28.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-redeploy-browser-proof-2026-06-28.json"
       ]
     }
   ]
