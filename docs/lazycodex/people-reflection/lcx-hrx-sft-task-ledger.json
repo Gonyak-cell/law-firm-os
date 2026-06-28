@@ -1,0 +1,134 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.task_ledger.v0.1",
+  "program_id": "LCX-HRX-SFT People Shiftee Adoption",
+  "created_at": "2026-06-28",
+  "branch": "codex/hrx-member-roster-source-of-truth",
+  "head": "807e781c2",
+  "claim_boundary": {
+    "roster_source_of_truth_preserved": true,
+    "people_navigation_catalog_complete": true,
+    "external_schedule_under_work_schedule": true,
+    "runtime_ui_validated": true,
+    "browser_qa_complete": true,
+    "payroll_provider_live": false,
+    "electronic_contract_provider_live": false,
+    "production_ready": false,
+    "go_live_approved": false
+  },
+  "evidence": {
+    "plan": "docs/lazycodex/people-reflection/lcx-hrx-shiftee-full-adoption-plan-2026-06-28.md",
+    "baseline_receipt": "docs/lazycodex/people-reflection/lcx-hrx-sft-baseline-2026-06-28.md",
+    "feature_catalog": "apps/web/src/people/peopleFeatureCatalog.js",
+    "catalog_validator": "scripts/validate-lcx-hrx-sft-feature-catalog.mjs",
+    "roster_validator": "scripts/validate-lcx-hrx-sft-roster-source.mjs",
+    "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-navigation-browser-proof.json",
+    "roster_source_of_truth": "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json",
+    "roster_registry": "apps/api/src/hrx-member-roster-registry.js",
+    "lazyweb": {
+      "version": "0.13.7",
+      "health": "healthy",
+      "create_redirect": "lazyweb-design-create",
+      "existing_screen_report": "not_grounded_screenshot_temp_path_unavailable"
+    }
+  },
+  "tasks": [
+    {
+      "id": "LCX-HRX-SFT-00.01",
+      "title": "Baseline receipt and worktree boundary",
+      "status": "completed_validated",
+      "evidence": ["docs/lazycodex/people-reflection/lcx-hrx-sft-baseline-2026-06-28.md"]
+    },
+    {
+      "id": "LCX-HRX-SFT-00.02",
+      "title": "Task ledger with no unclassified work",
+      "status": "completed_validated",
+      "evidence": ["docs/lazycodex/people-reflection/lcx-hrx-sft-task-ledger.json"]
+    },
+    {
+      "id": "LCX-HRX-SFT-00.04",
+      "title": "Lazyweb visual research gate",
+      "status": "classified_deferred",
+      "reason": "Existing screenshots were temporary files and no longer readable; greenfield workflow fetched instead."
+    },
+    {
+      "id": "LCX-HRX-SFT-00.05",
+      "title": "Roster Source of Truth freeze",
+      "status": "completed_validated",
+      "evidence": [
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json",
+        "apps/api/src/hrx-member-roster-registry.js",
+        "scripts/validate-lcx-hrx-sft-roster-source.mjs"
+      ]
+    },
+    {
+      "id": "LCX-HRX-SFT-01.00",
+      "title": "People feature catalog and navigation state shell",
+      "status": "completed_validated",
+      "evidence": [
+        "apps/web/src/people/peopleFeatureCatalog.js",
+        "apps/web/src/components/Shell.jsx",
+        "apps/web/src/people/PeopleHome.tsx",
+        "scripts/validate-lcx-hrx-sft-feature-catalog.mjs"
+      ]
+    },
+    {
+      "id": "LCX-HRX-SFT-02.00",
+      "title": "Roster Source-of-Truth validator",
+      "status": "completed_validated",
+      "evidence": ["scripts/validate-lcx-hrx-sft-roster-source.mjs"]
+    },
+    {
+      "id": "LCX-HRX-SFT-03.00",
+      "title": "Work schedule and external schedule foundation",
+      "status": "completed_validated",
+      "evidence": [
+        "apps/web/src/people/peopleFeatureCatalog.js",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-navigation-browser-proof.json"
+      ]
+    },
+    {
+      "id": "LCX-HRX-SFT-04.00",
+      "title": "Attendance record coverage",
+      "status": "classified_setup_state_shell",
+      "evidence": ["apps/web/src/people/peopleFeatureCatalog.js"]
+    },
+    {
+      "id": "LCX-HRX-SFT-05.00",
+      "title": "Leave coverage",
+      "status": "classified_mixed_active_setup",
+      "evidence": [
+        "apps/web/src/people/leave/LeaveRequestPage.tsx",
+        "apps/web/src/people/peopleFeatureCatalog.js"
+      ]
+    },
+    {
+      "id": "LCX-HRX-SFT-06.00",
+      "title": "Request and approval coverage",
+      "status": "classified_mixed_active_setup",
+      "evidence": [
+        "apps/web/src/people/approvals/ManagerApprovalQueue.tsx",
+        "apps/web/src/admin/hrx/HRXPolicyConsole.tsx",
+        "apps/web/src/people/peopleFeatureCatalog.js"
+      ]
+    },
+    {
+      "id": "LCX-HRX-SFT-07.00",
+      "title": "Report, close, payroll, message, e-contract, and company setting gates",
+      "status": "classified_provider_and_audit_gated",
+      "evidence": [
+        "apps/web/src/people/analytics/HRAnalytics.tsx",
+        "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx",
+        "apps/web/src/people/peopleFeatureCatalog.js"
+      ]
+    },
+    {
+      "id": "LCX-HRX-SFT-08.00",
+      "title": "Runtime validation and browser QA",
+      "status": "completed_validated",
+      "evidence": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-navigation-browser-proof.json",
+        "apps/web/test/ui-regression.test.mjs"
+      ]
+    }
+  ]
+}

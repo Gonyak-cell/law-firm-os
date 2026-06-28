@@ -23,6 +23,38 @@ import { navItems } from "../data/nav.js";
 import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
 import { profileSidebarItems } from "./UserProfileSurface.jsx";
+import { peopleNavigationGroups } from "../people/peopleFeatureCatalog.js";
+
+const peopleIconMap = {
+  bell: Bell,
+  clipboard: ClipboardList,
+  file: FileText,
+  mail: Mail,
+  settings: Settings,
+  shield: ShieldCheck,
+  users: UserPlus
+};
+
+function peopleSidebarGroups() {
+  return peopleNavigationGroups.map((group) => {
+    const GroupIcon = peopleIconMap[group.icon] ?? ClipboardList;
+    return {
+      label: group.label,
+      icon: GroupIcon,
+      children: group.children.map((child) => {
+        const ChildIcon = peopleIconMap[child.icon] ?? ClipboardList;
+        return {
+          label: child.label,
+          view: "people",
+          section: child.section,
+          icon: ChildIcon,
+          count: child.badge,
+          active: child.active
+        };
+      })
+    };
+  });
+}
 
 export function LoadingSurface({ labels, locale, theme, setLocale, setTheme, className = "", message = labels.loading }) {
   useEffect(() => {
@@ -333,33 +365,7 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
         ]
       }
     ],
-    people: [
-      {
-        label: "관리",
-        icon: UserPlus,
-        children: [
-          { label: "구성원", view: "people", section: "people-members", icon: UserPlus, count: "9", active: true },
-          { label: "조직", view: "people", section: "people-org-chart", icon: ClipboardList },
-          { label: "휴가관리", view: "people", section: "people-leave", icon: ClipboardList },
-          { label: "요청 관리", view: "people", section: "people-approvals", icon: ShieldCheck, count: "5" },
-          { label: "입퇴사 관리", view: "people", section: "people-lifecycle", icon: ClipboardList },
-          { label: "구성원 등록", view: "people", section: "people-recruiting", icon: UserPlus }
-        ]
-      },
-      {
-        label: "회사 설정",
-        icon: Settings,
-        children: [
-          { label: "회사방침", view: "people", section: "people-documents", icon: FileText },
-          { label: "증명서 발급 요청", view: "people", section: "people-certificates", icon: FileText },
-          { label: "승인 규칙", view: "people", section: "people-policy", icon: FileText },
-          { label: "인사기록", view: "people", section: "people-audit", icon: ClipboardList },
-          { label: "권한", view: "people", section: "people-admin", icon: ShieldCheck },
-          { label: "급여정산", view: "people", section: "people-payroll", icon: FileText },
-          { label: "리포트", view: "people", section: "people-analytics", icon: ClipboardList }
-        ]
-      }
-    ],
+    people: peopleSidebarGroups(),
     vault: [
       { label: "문서함", view: "vault", section: "vault-documents", icon: FileText, count: "24" },
       { label: "문서 상세", view: "vault", section: "vault-detail", icon: ClipboardList },

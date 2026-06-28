@@ -18,11 +18,20 @@ import { HRAIAssistant } from "./ai/HRAIAssistant.tsx";
 import { PayrollBoundaryPanel } from "./payroll/PayrollBoundaryPanel.tsx";
 import { PermissionAdminPanel } from "./admin/PermissionAdminPanel.jsx";
 import { LegalPeopleWorkspace } from "./legal/LegalPeopleWorkspace.tsx";
+import { PEOPLE_SECTION_IDS, getPeopleFeatureBySection } from "./peopleFeatureCatalog.js";
 
-const PEOPLE_SECTIONS = new Set([
+const LEGACY_LEGAL_PEOPLE_SECTIONS = [
   "people-directory",
   "people-relationships",
-  "people-conflicts",
+  "people-conflicts"
+];
+
+const PEOPLE_SECTIONS = new Set([
+  ...LEGACY_LEGAL_PEOPLE_SECTIONS,
+  ...PEOPLE_SECTION_IDS
+]);
+
+const HANDLED_PEOPLE_SECTIONS = new Set([
   "people-members",
   "people-org-chart",
   "people-documents",
@@ -41,19 +50,76 @@ const PEOPLE_SECTIONS = new Set([
 
 const WORKFORCE_SECTIONS = new Set(["people-members", "people-org-chart", "people-lifecycle"]);
 
+const EXTERNAL_SCHEDULE_TYPES = [
+  { place: "법원", work: "판결선고 청취, 변론기일, 문서 제출", fields: "법원명, 사건번호, 기일, 담당 구성원" },
+  { place: "검찰", work: "기록복사, 조사 동행, 문서 제출", fields: "청명, 사건번호, 방문 목적, 담당 구성원" },
+  { place: "우체국", work: "내용증명 발송, 등기 발송", fields: "발송 대상, 발송 방식, 접수번호" },
+  { place: "세무서", work: "신고, 자료 제출, 민원 처리", fields: "세무서명, 업무 유형, 제출 자료" },
+  { place: "관청", work: "인허가, 민원, 자료 제출", fields: "기관명, 업무 유형, 접수번호" }
+];
+
+function PeopleFeatureStatePanel({ feature }) {
+  const stateMeta = feature.stateMeta;
+  const isExternalSchedule = feature.section === "people-work-schedule-external";
+
+  return (
+    <section className="people-feature-state" data-people-feature-state={feature.section} data-people-feature-status={feature.state}>
+      <header className="people-feature-state-head">
+        <div>
+          <span className="eyebrow">{feature.groupLabel}</span>
+          <h2>{feature.label}</h2>
+          <p>{feature.summary}</p>
+        </div>
+        <span className="people-feature-status">{stateMeta.label}</span>
+      </header>
+
+      <div className="people-feature-state-grid">
+        <div className="people-feature-section">
+          <h3>반영할 기능</h3>
+          <ul>
+            {feature.capabilities.map((capability) => (
+              <li key={capability}>{capability}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="people-feature-section">
+          <h3>구현 상태</h3>
+          <p>{stateMeta.description}</p>
+          <p>운영 기준, 권한, API 영수증이 준비되면 이 항목을 실제 화면으로 전환합니다.</p>
+        </div>
+      </div>
+
+      {isExternalSchedule && (
+        <div className="people-feature-section people-external-schedule-section">
+          <h3>외부일정 유형</h3>
+          <div className="people-external-schedule-grid">
+            {EXTERNAL_SCHEDULE_TYPES.map((item) => (
+              <div key={item.place} className="people-external-schedule-row">
+                <strong>{item.place}</strong>
+                <span>{item.work}</span>
+                <small>{item.fields}</small>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function peopleGuardState(liveCtx) {
   if (liveCtx === "denied") {
     return {
       className: "live-data-denied",
       title: "접근 권한이 없습니다",
-      body: "권한이 있는 People 정보만 표시합니다."
+      body: "권한이 있는 구성원 정보만 표시합니다."
     };
   }
   if (liveCtx === "review") {
     return {
       className: "live-data-review",
       title: "검토가 필요합니다",
-      body: "검토가 끝나면 People 정보를 확인할 수 있습니다."
+      body: "검토가 끝나면 구성원 정보를 확인할 수 있습니다."
     };
   }
   return null;
@@ -64,6 +130,7 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }) {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const currentSection = PEOPLE_SECTIONS.has(activeSection) ? activeSection : "people-members";
+  const currentFeature = getPeopleFeatureBySection(currentSection);
   const guardedState = peopleGuardState(liveCtx);
 
   useEffect(() => {
@@ -173,9 +240,9 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }) {
         )}
 
         {!guardedState && currentSection === "people-lifecycle" && (
-          <div className="people-runtime-grid">
-            <PeopleWorkforceDirectory initialTab="onboarding" refreshKey={refreshKey} selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} />
+          <div className="people-runtime-grid people-lifecycle-runtime-grid">
             <LifecycleBoard />
+            <PeopleWorkforceDirectory compact initialTab="onboarding" refreshKey={refreshKey} selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} />
           </div>
         )}
 
@@ -213,6 +280,10 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }) {
           <div className="people-runtime-grid">
             <PermissionAdminPanel key={refreshKey} />
           </div>
+        )}
+
+        {!guardedState && currentFeature && !HANDLED_PEOPLE_SECTIONS.has(currentSection) && (
+          <PeopleFeatureStatePanel feature={currentFeature} />
         )}
       </div>
     </section>

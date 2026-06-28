@@ -1,0 +1,33 @@
+{
+  "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-lifecycle",
+  "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-lifecycle-cleanup-proof.png",
+  "checks": {
+    "hasGrid": true,
+    "hasBoard": true,
+    "hasCompactRoster": true,
+    "compactTitle": "입퇴사 대상",
+    "gridColumns": "692.547px 333.438px",
+    "boardBeforeRoster": true,
+    "boardWider": true,
+    "tabLabels": [
+      "현재 재직",
+      "입사예정",
+      "퇴사예정",
+      "퇴사",
+      "계약직"
+    ],
+    "wrappedTabs": [],
+    "visibleHeaders": [
+      "구성원",
+      "소속"
+    ],
+    "wrappedHeaders": [],
+    "bodyOverflow": false,
+    "rosterTableOverflow": false,
+    "lifecycleHeads": [
+      "입사 준비 업무",
+      "퇴사 정리 업무"
+    ]
+  },
+  "consoleMessages": []
+}
