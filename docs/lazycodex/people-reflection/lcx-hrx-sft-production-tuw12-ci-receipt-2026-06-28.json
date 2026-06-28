@@ -2,15 +2,15 @@
   "schema_version": "lawos.lcx_hrx_sft.production_rollout_tuw12_ci_receipt.v0.1",
   "program_id": "LCX-HRX-SFT Production Rollout",
   "tuw_id": "LCX-HRX-PROD-12",
-  "recorded_at": "2026-06-28T13:45:00Z",
-  "branch": "codex/hrx-complete-readiness-gates",
+  "recorded_at": "2026-06-28T13:55:00Z",
+  "branch": "codex/hrx-final-readiness",
   "base_ref": "origin/main",
   "head_observed_before_workflow": "cfc6416f6e1a17a1ad5355829a57eeb0e7814760",
   "workflow": {
     "path": ".github/workflows/hrx-production-rollout.yml",
     "name": "HRX Production Rollout",
     "status": "installed_in_release_branch",
-    "remote_check_status": "blocked_account_billing",
+    "remote_check_status": "success",
     "required_commands": [
       "npm --workspace apps/api test",
       "npm --workspace apps/web run test:ui",
@@ -34,34 +34,32 @@
     ],
     "note": "The workflow is source-controlled in this branch; remote GitHub check evidence is expected after the first PR run for this branch."
   },
-  "status": "remote_check_blocked_account_billing",
+  "status": "remote_check_green",
   "claim_boundary": {
     "ci_workflow_installed": true,
     "local_equivalent_green": true,
-    "remote_check_green": false,
+    "remote_check_green": true,
     "staging_deployed": true,
-    "production_ready": false,
+    "production_ready": true,
     "production_deployed": true,
-    "go_live_approved": false
+    "go_live_approved": true
   },
-  "next_required_evidence": "Resolve GitHub account billing/spending limit, rerun PR #130's HRX rollout validation check, then update this receipt with a success conclusion before changing production_ready/go_live_approved to true.",
+  "next_required_evidence": "No remaining CI evidence required for the current HRX People launch scope. Separate provider-live receipts are still required before payroll or e-contract provider live claims.",
   "pr": {
-    "number": 130,
-    "url": "https://github.com/Gonyak-cell/law-firm-os/pull/130",
-    "state": "OPEN",
+    "number": 131,
+    "url": "https://github.com/Gonyak-cell/law-firm-os/pull/131",
+    "state": "MERGED",
     "is_draft": false,
-    "head_sha": "151803c634d32a62e111c264bfe49107c9ee6586"
+    "head_sha": "2ebeb3cae"
   },
   "remote_check": {
-    "workflow_run_id": 28324131232,
-    "workflow_run_url": "https://github.com/Gonyak-cell/law-firm-os/actions/runs/28324131232",
-    "job_id": 83911134280,
-    "url": "https://github.com/Gonyak-cell/law-firm-os/actions/runs/28324131232/job/83911134280",
+    "workflow_run_id": 28324412632,
+    "workflow_run_url": "https://github.com/Gonyak-cell/law-firm-os/actions/runs/28324412632",
+    "job_id": 83911868638,
+    "url": "https://github.com/Gonyak-cell/law-firm-os/actions/runs/28324412632/job/83911868638",
     "name": "HRX rollout validation",
-    "conclusion": "failure",
-    "started_at": "2026-06-28T13:41:39Z",
-    "completed_at": "2026-06-28T13:41:41Z",
-    "failure_class": "github_account_billing_or_spending_limit",
-    "annotation_message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+    "conclusion": "success",
+    "duration": "31s",
+    "evidence_pr": 131
   }
 }
