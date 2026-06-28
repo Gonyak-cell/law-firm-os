@@ -3,22 +3,25 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Building2,
   ChevronDown,
+  CircleDollarSign,
   CircleUserRound,
-  Clock3,
   FileText,
   Filter,
   GitBranch,
   LockKeyhole,
+  Mail,
+  Scale,
   Search,
   SlidersHorizontal,
-  UserPlus
+  UserPlus,
+  UsersRound
 } from "lucide-react";
 import { fetchHrxEmployees, fetchHrxLifecycleBoard } from "../hrxApiClient.ts";
 
 const STATUS_TABS = [
-  { id: "active", label: "재직" },
-  { id: "onboarding", label: "입사 예정" },
-  { id: "offboarding", label: "퇴사 예정" },
+  { id: "active", label: "현재 재직" },
+  { id: "onboarding", label: "입사예정" },
+  { id: "offboarding", label: "퇴사예정" },
   { id: "dismissed", label: "퇴사" },
   { id: "collaborators", label: "계약직" }
 ];
@@ -34,9 +37,9 @@ type WorkforceRow = {
   jobTitle: string;
   workerType: string;
   country: string;
-  owner: string;
-  lastEdited: string;
-  lastVisited: string;
+  affiliation: string;
+  organizationGroup: string;
+  email: string;
   employeeId?: string;
   muted?: boolean;
 };
@@ -44,7 +47,8 @@ type WorkforceDirectoryProps = {
   initialTab?: string;
   initialView?: ViewMode;
   refreshKey?: number;
-  onSelectEmployee?: (employeeId: string) => void;
+  selectedEmployeeId?: string | null;
+  onSelectEmployee?: (employeeId: string | null) => void;
 };
 type LocalAction = {
   title: string;
@@ -58,7 +62,10 @@ function stringField(record: HrxRecord, key: string) {
 }
 
 function roleLabel(value: unknown) {
-  const normalized = String(value ?? "").toLowerCase();
+  const text = String(value ?? "").trim();
+  if (!text) return "미등록";
+  if (/[가-힣]/.test(text)) return text;
+  const normalized = text.toLowerCase();
   if (normalized.includes("partner")) return "파트너";
   if (normalized.includes("associate")) return "어소시에이트";
   if (normalized.includes("paralegal")) return "실무 지원";
@@ -66,17 +73,19 @@ function roleLabel(value: unknown) {
   if (normalized.includes("contractor")) return "계약직";
   if (normalized.includes("admin")) return "관리";
   if (normalized.includes("hr")) return "인사 담당";
-  return value ? "담당자" : "미등록";
+  return "담당자";
 }
 
 function departmentLabel(value: unknown) {
   const text = String(value ?? "").trim();
   if (!text) return "미등록";
+  const normalized = text.toLowerCase();
+  if (text === "법무" || normalized.includes("legal")) return "Legal";
+  if (text === "재무" || normalized.includes("finance")) return "Finance";
+  if (text === "경영지원실" || normalized.includes("staff")) return "Staff";
   if (/[가-힣]/.test(text)) return text;
-  if (text.toLowerCase().includes("product")) return "제품";
-  if (text.toLowerCase().includes("legal")) return "법무";
-  if (text.toLowerCase().includes("finance")) return "재무";
-  if (text.toLowerCase().includes("people") || text.toLowerCase().includes("hr")) return "인사";
+  if (normalized.includes("product")) return "제품";
+  if (normalized.includes("people") || normalized.includes("hr")) return "인사";
   return "운영";
 }
 
@@ -96,6 +105,10 @@ function workerTypeLabel(employee: HrxRecord) {
   if (source.includes("intern")) return "인턴";
   if (source.includes("part")) return "파트타임";
   return "정규";
+}
+
+function affiliationLabel(employee: HrxRecord) {
+  return stringField(employee, "affiliation") || stringField(employee, "organization") || "AMIC Law";
 }
 
 function employeeStatus(employee: HrxRecord) {
@@ -118,14 +131,10 @@ function initials(name: unknown) {
   return text.slice(0, 1) || "구";
 }
 
-function recencyLabel(index: number) {
-  if (index === 0) return "방금 전";
-  if (index < 4) return `${index * 12 + 11}분 전`;
-  if (index < 8) return `${index - 2}시간 전`;
-  return "1주 전";
-}
-
 function sourceIcon(source: string) {
+  if (source === "Legal") return <Scale size={15} />;
+  if (source === "Finance") return <CircleDollarSign size={15} />;
+  if (source === "Staff") return <UsersRound size={15} />;
   return source === "미등록" || source === "확인 필요" ? <LockKeyhole size={15} /> : <Building2 size={15} />;
 }
 
@@ -149,9 +158,9 @@ function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycle
       jobTitle: "입사 준비",
       workerType: "입사 예정",
       country: "확인 필요",
-      owner: "인사",
-      lastEdited: recencyLabel(index),
-      lastVisited: "확인 필요",
+      affiliation: "AMIC Law",
+      organizationGroup: "인사",
+      email: "확인 필요",
       muted: true
     }));
   }
@@ -164,26 +173,30 @@ function rowsForTab(activeTab: string, employeeResult: EmployeeResult, lifecycle
       jobTitle: "퇴사 정리",
       workerType: stringField(caseItem, "state") === "closed" ? "종료" : "퇴사 예정",
       country: "확인 필요",
-      owner: "인사",
-      lastEdited: stringField(caseItem, "state") === "closed" ? "완료됨" : recencyLabel(index),
-      lastVisited: "확인 필요",
+      affiliation: "AMIC Law",
+      organizationGroup: "인사",
+      email: "확인 필요",
       muted: true
     }));
   }
   return employees
     .filter((employee) => employeeStatus(employee) === activeTab)
-    .map((employee, index) => ({
-      key: stringField(employee, "employee_id") || `employee-${index}`,
-      name: stringField(employee, "display_name") || `구성원 ${index + 1}`,
-      department: departmentLabel(stringField(employee, "department") || stringField(employee, "department_label") || stringField(employee, "organization_label")),
-      jobTitle: roleLabel(stringField(employee, "title") || stringField(employee, "role")),
-      workerType: workerTypeLabel(employee),
-      country: countryLabel(stringField(employee, "country") || stringField(employee, "country_label")),
-      owner: "인사",
-      lastEdited: recencyLabel(index),
-      lastVisited: countryLabel(stringField(employee, "country") || stringField(employee, "country_label")),
-      employeeId: stringField(employee, "employee_id") || undefined
-    }));
+    .map((employee, index) => {
+      const name = stringField(employee, "display_name") || `구성원 ${index + 1}`;
+      const department = departmentLabel(stringField(employee, "department") || stringField(employee, "department_label") || stringField(employee, "organization_label"));
+      return {
+        key: stringField(employee, "employee_id") || `employee-${index}`,
+        name,
+        department,
+        jobTitle: roleLabel(stringField(employee, "title") || stringField(employee, "role")),
+        workerType: workerTypeLabel(employee),
+        country: countryLabel(stringField(employee, "country") || stringField(employee, "country_label")),
+        affiliation: affiliationLabel(employee),
+        organizationGroup: stringField(employee, "organization_group") || organizationGroupLabel(department),
+        email: stringField(employee, "work_email") || stringField(employee, "email") || "확인 필요",
+        employeeId: stringField(employee, "employee_id") || undefined
+      };
+    });
 }
 
 function statusForTab(activeTab: string, employeeResult: EmployeeResult, lifecycleResult: LifecycleResult) {
@@ -207,15 +220,21 @@ function statusForTab(activeTab: string, employeeResult: EmployeeResult, lifecyc
   return null;
 }
 
-function groupByDepartment(rows: WorkforceRow[]) {
+function groupByOrganization(rows: WorkforceRow[]) {
   return rows.reduce((groups, row) => {
-    const key = row.department || "미등록";
+    const key = row.organizationGroup || row.department || "미등록";
     groups.set(key, [...(groups.get(key) ?? []), row]);
     return groups;
   }, new Map<string, WorkforceRow[]>());
 }
 
-export function PeopleWorkforceDirectory({ initialTab = "active", initialView = "table", refreshKey = 0, onSelectEmployee }: WorkforceDirectoryProps) {
+function organizationGroupLabel(department: string) {
+  if (department === "Legal") return "AMIC";
+  if (department === "Finance") return "PETRA BRIDGE";
+  return department;
+}
+
+export function PeopleWorkforceDirectory({ initialTab = "active", initialView = "table", refreshKey = 0, selectedEmployeeId = null, onSelectEmployee }: WorkforceDirectoryProps) {
   const [employeeResult, setEmployeeResult] = useState<EmployeeResult>(null);
   const [lifecycleResult, setLifecycleResult] = useState<LifecycleResult>(null);
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -258,19 +277,19 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) return allRows;
     return allRows.filter((row) =>
-      [row.name, row.department, row.jobTitle, row.workerType, row.country].some((value) =>
+      [row.name, row.department, row.jobTitle, row.workerType, row.country, row.affiliation, row.email].some((value) =>
         String(value ?? "").toLowerCase().includes(normalizedQuery)
       )
     );
   }, [allRows, query]);
   const status = statusForTab(activeTab, employeeResult, lifecycleResult);
   const orgStatus = statusForTab("active", employeeResult, lifecycleResult);
-  const orgGroups = groupByDepartment(rowsForTab("active", employeeResult, lifecycleResult));
+  const orgGroups = groupByOrganization(rowsForTab("active", employeeResult, lifecycleResult));
   const showLocalAction = (title: string, body: string) => setLocalAction({ title, body });
   const handleRowSelect = (row: WorkforceRow) => {
     if (row.employeeId) {
       onSelectEmployee?.(row.employeeId);
-      showLocalAction("구성원 상세", `${row.name} 상세 패널을 열었습니다.`);
+      setLocalAction(null);
       return;
     }
     showLocalAction(`${row.name} 선택됨`, `${row.jobTitle} 항목은 아래 입퇴사 관리 보드에서 확인합니다.`);
@@ -327,6 +346,8 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
               onClick={() => {
                 setActiveTab(tab.id);
                 setViewMode("table");
+                setLocalAction(null);
+                onSelectEmployee?.(null);
               }}
             >
               {tab.label}
@@ -352,7 +373,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
             className="icon-button"
             aria-label="속성 조정"
             data-hr-workforce-property-options="true"
-            onClick={() => showLocalAction("속성 조정", "부서, 담당자, 최근 변경, 최근 확인 열을 기준으로 목록 속성을 확인했습니다.")}
+            onClick={() => showLocalAction("속성 조정", "직위, 구성원, 소속, 부서, 이메일 열을 기준으로 목록 속성을 확인했습니다.")}
           >
             <SlidersHorizontal size={16} />
           </button>
@@ -370,13 +391,20 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
         <div className="hr-roster-library" data-hr-library-table="true">
           <div className="hr-roster-table-wrap">
             <table className="hr-roster-table">
+              <colgroup>
+                <col className="hr-roster-col-member" />
+                <col className="hr-roster-col-title" />
+                <col className="hr-roster-col-affiliation" />
+                <col className="hr-roster-col-department" />
+                <col className="hr-roster-col-email" />
+              </colgroup>
               <thead>
                 <tr>
                   <th><HeaderCell icon={FileText}>구성원</HeaderCell></th>
-                  <th><HeaderCell icon={CircleUserRound}>작성자</HeaderCell></th>
-                  <th><HeaderCell icon={Building2}>소스</HeaderCell></th>
-                  <th><HeaderCell icon={Clock3}>마지막 변경</HeaderCell></th>
-                  <th><HeaderCell icon={Clock3}>최근 확인</HeaderCell></th>
+                  <th><HeaderCell icon={CircleUserRound}>직위</HeaderCell></th>
+                  <th><HeaderCell icon={CircleUserRound}>소속</HeaderCell></th>
+                  <th><HeaderCell icon={Building2}>부서</HeaderCell></th>
+                  <th><HeaderCell icon={Mail}>이메일</HeaderCell></th>
                 </tr>
               </thead>
               <tbody>
@@ -395,33 +423,35 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                     </td>
                   </tr>
                 )}
-                {!status && visibleRows.map((row) => (
-                  <tr key={row.key} className={row.muted ? "muted" : ""}>
-                    <td>
-                      <button type="button" className="hr-roster-person" onClick={() => handleRowSelect(row)}>
-                        <FileText className="hr-roster-page-icon" size={17} />
-                        <span>
-                          <strong>{row.name}</strong>
-                          <small>{row.jobTitle}</small>
+                {!status && visibleRows.map((row) => {
+                  const isSelected = Boolean(row.employeeId && row.employeeId === selectedEmployeeId);
+                  return (
+                    <tr key={row.key} className={[row.muted ? "muted" : "", isSelected ? "selected" : ""].filter(Boolean).join(" ")}>
+                      <td>
+                        <button type="button" className="hr-roster-person" aria-pressed={isSelected ? "true" : "false"} onClick={() => handleRowSelect(row)}>
+                          <FileText className="hr-roster-page-icon" size={17} />
+                          <span>
+                            <strong>{row.name}</strong>
+                          </span>
+                        </button>
+                      </td>
+                      <td>{row.jobTitle}</td>
+                      <td>
+                        <span className="hr-roster-owner">
+                          <span className="hr-roster-avatar">{initials(row.affiliation)}</span>
+                          {row.affiliation}
                         </span>
-                      </button>
-                    </td>
-                    <td>
-                      <span className="hr-roster-owner">
-                        <span className="hr-roster-avatar">{initials(row.owner)}</span>
-                        {row.owner}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="hr-roster-source">
-                        {sourceIcon(row.department)}
-                        {row.department}
-                      </span>
-                    </td>
-                    <td>{row.workerType} · {row.lastEdited}</td>
-                    <td>{row.lastVisited}</td>
-                  </tr>
-                ))}
+                      </td>
+                      <td>
+                        <span className="hr-roster-source">
+                          {sourceIcon(row.department)}
+                          {row.department}
+                        </span>
+                      </td>
+                      <td>{row.email}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -431,7 +461,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
           <div className="hr-org-root">
             <GitBranch size={18} />
             <strong>조직</strong>
-            <span>재직 구성원을 부서 기준으로 표시합니다.</span>
+            <span>재직 구성원을 소속 기준으로 표시합니다.</span>
           </div>
           {orgStatus ? (
             <div className={`live-data-state ${orgStatus.kind === "error" ? "live-data-error" : "live-data-loading"}`}>
@@ -440,10 +470,10 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
             </div>
           ) : (
             <div className="hr-org-grid">
-              {[...orgGroups.entries()].map(([department, rows]) => (
-                <article key={department} className="hr-org-group">
+              {[...orgGroups.entries()].map(([organization, rows]) => (
+                <article key={organization} className="hr-org-group">
                   <header>
-                    <strong>{department}</strong>
+                    <strong>{organization}</strong>
                     <span>{rows.length}명</span>
                   </header>
                   {rows.map((row) => (

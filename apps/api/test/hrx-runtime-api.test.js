@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { startApiServer } from "../src/server.js";
+import {
+  HRX_MEMBER_ROSTER_SOURCE_REF,
+  listHrxMemberRosterRows,
+} from "../src/hrx-member-roster-registry.js";
 
 let server;
 let baseUrl;
@@ -51,19 +55,68 @@ test.before(async () => {
 
 test.after(() => new Promise((resolve) => server.close(resolve)));
 
+test("HRX member roster source of truth preserves the registered AMIC and PETRA roster", () => {
+  const roster = listHrxMemberRosterRows();
+  assert.equal(roster.length, 9);
+  assert.ok(roster.every((member) => member.source_ref === HRX_MEMBER_ROSTER_SOURCE_REF));
+  const membersByName = new Map(roster.map((member) => [member.display_name, member]));
+  assert.equal(membersByName.get("김양태")?.title, "대표이사");
+  for (const displayName of ["박서영", "조우상", "김양태"]) {
+    const member = membersByName.get(displayName);
+    assert.equal(member?.affiliation, "PETRA BRIDGE PARTNERS");
+    assert.equal(member?.department, "Finance");
+    assert.equal(member?.organization_group, "PETRA BRIDGE");
+  }
+  for (const displayName of ["박병준", "조성민", "임영훈", "서지원"]) {
+    const member = membersByName.get(displayName);
+    assert.equal(member?.affiliation, "AMIC Law");
+    assert.equal(member?.department, "Legal");
+    assert.equal(member?.organization_group, "AMIC");
+  }
+  for (const displayName of ["윤태리", "이예진"]) {
+    const member = membersByName.get(displayName);
+    assert.equal(member?.affiliation, "AMIC Law");
+    assert.equal(member?.department, "Staff");
+    assert.equal(member?.organization_group, "Staff");
+  }
+});
+
 test("GET /api/hrx/employees returns synthetic API-backed employee rows", async () => {
   const { status, body } = await json("/api/hrx/employees");
   assert.equal(status, 200);
   assert.equal(body.outcome, "ok");
   assert.equal(body.employees.length, 9);
   assert.equal(body.employees[0].tenant_id, "tenant_amic_matter_vault");
+  assert.ok(body.employees.every((employee) => employee.source_ref === HRX_MEMBER_ROSTER_SOURCE_REF));
   assert.ok(body.employees.some((employee) => employee.work_email === "jwsuh@amic.kr"));
+  assert.ok(body.employees.some((employee) => employee.display_name === "김양태" && employee.title === "대표이사"));
+  assert.ok(body.employees.some((employee) => employee.display_name === "이예진" && employee.title === "대리"));
+  const employeesByName = new Map(body.employees.map((employee) => [employee.display_name, employee]));
+  for (const displayName of ["박서영", "조우상", "김양태"]) {
+    assert.equal(employeesByName.get(displayName)?.affiliation, "PETRA BRIDGE PARTNERS");
+    assert.equal(employeesByName.get(displayName)?.department, "Finance");
+    assert.equal(employeesByName.get(displayName)?.organization_group, "PETRA BRIDGE");
+  }
+  for (const displayName of ["박병준", "조성민", "임영훈", "서지원"]) {
+    assert.equal(employeesByName.get(displayName)?.affiliation, "AMIC Law");
+    assert.equal(employeesByName.get(displayName)?.department, "Legal");
+    assert.equal(employeesByName.get(displayName)?.organization_group, "AMIC");
+  }
+  for (const displayName of ["윤태리", "이예진"]) {
+    assert.equal(employeesByName.get(displayName)?.affiliation, "AMIC Law");
+    assert.equal(employeesByName.get(displayName)?.department, "Staff");
+    assert.equal(employeesByName.get(displayName)?.organization_group, "Staff");
+  }
+  assert.ok(body.employees.every((employee) => employee.country === "대한민국"));
 });
 
 test("GET /api/hrx/employees/:id returns profile with compensation masked", async () => {
   const { status, body } = await json("/api/hrx/employees/emp_amic_ytkim");
   assert.equal(status, 200);
   assert.equal(body.employee.employee_id, "emp_amic_ytkim");
+  assert.equal(body.employee.affiliation, "PETRA BRIDGE PARTNERS");
+  assert.equal(body.employee.department, "Finance");
+  assert.equal(body.employee.organization_group, "PETRA BRIDGE");
   assert.equal(body.employment_profile.employee_id, "emp_amic_ytkim");
   assert.equal(body.masked_compensation_ref, null);
 });

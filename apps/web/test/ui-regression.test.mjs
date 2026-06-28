@@ -49,6 +49,8 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
     assert.match(navSource, new RegExp(`id: "${view}"`));
     assert.match(appSource, new RegExp(`view === "${view}"`));
   }
+  assert.match(navSource, /id: "people", label: "People"/);
+  assert.match(shellSource, /aria-label="Home Client Matter People Vault"/);
   assert.match(appSource, /view === "home"/);
   assert.match(appSource, /view === "auth"/);
   for (const view of removedViews) {
@@ -307,6 +309,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   const importPanelSource = await readWebFile("src/components/ImportDataMappingPanel.jsx");
   const dataCloudSource = await readWebFile("src/components/DataCloudEnrichmentPanel.jsx");
   const permissionAdminSource = await readWebFile("src/people/admin/PermissionAdminPanel.jsx");
+  const workforceDirectorySource = await readWebFile("src/people/employees/PeopleWorkforceDirectory.tsx");
   const openingSource = await readWebFile("src/components/MatterOpeningWizard.jsx");
   const rosterSource = await readWebFile("src/components/MatterTeamRoster.jsx");
   const vaultSource = await readWebFile("src/components/VaultSurface.jsx");
@@ -314,6 +317,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   const apiClientSource = await readWebFile("src/data/apiClient.js");
   const peopleSource = await readWebFile("src/people/PeopleHome.tsx");
   const peopleApiSource = await readWebFile("src/people/hrxApiClient.ts");
+  const stylesSource = await readWebFile("src/styles.css");
 
   for (const section of [
     "client-leads",
@@ -726,6 +730,58 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /\/api\/analytics\/exports/);
   assert.doesNotMatch(apiClientSource, /mergeCrmContact|deleteCrmContact|postCrmContactMerge/);
   assert.match(peopleSource, /data-hrx-api-backed="true"/);
+  assert.match(peopleSource, /data-people-work-layer="white"/);
+  assert.doesNotMatch(peopleSource, /PageHeader|peopleTitle|구성원 관리/);
+  assert.match(peopleSource, /data-people-detail-open=\{selectedEmployeeId \? "true" : "false"\}/);
+  assert.match(peopleSource, /data-people-detail-overlay="open"/);
+  assert.match(peopleSource, /data-people-detail-panel="open"/);
+  assert.match(peopleSource, /role="dialog"/);
+  assert.match(peopleSource, /aria-modal="true"/);
+  assert.match(peopleSource, /people-detail-backdrop/);
+  assert.match(peopleSource, /setSelectedEmployeeId\(null\)/);
+  assert.doesNotMatch(peopleSource, /people-directory-grid detail-open/);
+  assert.match(peopleSource, /selectedEmployeeId=\{selectedEmployeeId\}/);
+  assert.match(stylesSource, /\.people-detail-overlay\s*\{[\s\S]*position: fixed;[\s\S]*z-index: 160;/);
+  assert.match(stylesSource, /\.people-detail-backdrop\s*\{[\s\S]*background: rgba\(15, 23, 42, 0\.56\);/);
+  assert.match(stylesSource, /\.people-detail-panel\s*\{[\s\S]*height: 100vh;[\s\S]*background: var\(--am-surface\);/);
+  assert.match(workforceDirectorySource, /현재 재직/);
+  assert.match(workforceDirectorySource, /입사예정/);
+  assert.match(workforceDirectorySource, /퇴사예정/);
+  assert.match(workforceDirectorySource, /<HeaderCell icon=\{FileText\}>구성원<\/HeaderCell>[\s\S]*<HeaderCell icon=\{CircleUserRound\}>직위<\/HeaderCell>[\s\S]*<HeaderCell icon=\{CircleUserRound\}>소속<\/HeaderCell>[\s\S]*<HeaderCell icon=\{Building2\}>부서<\/HeaderCell>[\s\S]*<HeaderCell icon=\{Mail\}>이메일<\/HeaderCell>/);
+  assert.match(workforceDirectorySource, /<HeaderCell icon=\{CircleUserRound\}>소속<\/HeaderCell>/);
+  assert.doesNotMatch(workforceDirectorySource, />소스</);
+  assert.doesNotMatch(workforceDirectorySource, />작성자</);
+  assert.doesNotMatch(workforceDirectorySource, /PETRA_AFFILIATION_NAMES/);
+  assert.match(workforceDirectorySource, /affiliationLabel\(employee\)/);
+  assert.match(workforceDirectorySource, /stringField\(employee, "affiliation"\)/);
+  assert.match(workforceDirectorySource, /stringField\(employee, "organization_group"\)/);
+  assert.match(workforceDirectorySource, /<col className="hr-roster-col-affiliation" \/>/);
+  assert.match(workforceDirectorySource, /<HeaderCell icon=\{Mail\}>이메일<\/HeaderCell>/);
+  assert.doesNotMatch(workforceDirectorySource, />마지막 변경</);
+  assert.doesNotMatch(workforceDirectorySource, />최근 확인</);
+  assert.match(workforceDirectorySource, /<button type="button" className="hr-roster-person"[\s\S]*<strong>\{row\.name\}<\/strong>[\s\S]*<\/button>[\s\S]*<td>\{row\.jobTitle\}<\/td>/);
+  assert.doesNotMatch(workforceDirectorySource, /className="hr-roster-person"[\s\S]*?<small>\{row\.jobTitle\}<\/small>[\s\S]*?<\/button>/);
+  assert.match(workforceDirectorySource, /stringField\(employee, "work_email"\)/);
+  assert.match(workforceDirectorySource, /function organizationGroupLabel\(department: string\)/);
+  assert.match(workforceDirectorySource, /text === "법무" \|\| normalized\.includes\("legal"\)[\s\S]*return "Legal"/);
+  assert.match(workforceDirectorySource, /text === "재무" \|\| normalized\.includes\("finance"\)[\s\S]*return "Finance"/);
+  assert.match(workforceDirectorySource, /text === "경영지원실" \|\| normalized\.includes\("staff"\)[\s\S]*return "Staff"/);
+  assert.doesNotMatch(workforceDirectorySource, /departmentDisplayLabel|\u2696\uFE0F|\uD83D\uDCB0|\uD83D\uDC65/);
+  assert.match(workforceDirectorySource, /if \(source === "Legal"\) return <Scale size=\{15\} \/>/);
+  assert.match(workforceDirectorySource, /if \(source === "Finance"\) return <CircleDollarSign size=\{15\} \/>/);
+  assert.match(workforceDirectorySource, /if \(source === "Staff"\) return <UsersRound size=\{15\} \/>/);
+  assert.match(workforceDirectorySource, /if \(department === "Legal"\) return "AMIC"/);
+  assert.match(workforceDirectorySource, /if \(department === "Finance"\) return "PETRA BRIDGE"/);
+  assert.match(workforceDirectorySource, /const key = row\.organizationGroup \|\| row\.department \|\| "미등록";/);
+  assert.match(workforceDirectorySource, /<strong>\{organization\}<\/strong>/);
+  assert.match(workforceDirectorySource, /className="hr-roster-source"[\s\S]*\{row\.department\}/);
+  assert.match(stylesSource, /\.hr-roster-owner,\s*[\r\n]+\.hr-roster-source\s*\{[\s\S]*font-weight: 400;/);
+  assert.match(stylesSource, /\.hr-roster-table\s*\{[\s\S]*min-width: 1040px;[\s\S]*table-layout: fixed;/);
+  assert.match(stylesSource, /\.hr-roster-col-affiliation\s*\{[\s\S]*width: 20%;/);
+  assert.match(stylesSource, /\.hr-roster-col-email\s*\{[\s\S]*width: 22%;/);
+  assert.match(workforceDirectorySource, /\/\[가-힣\]\/\.test\(text\)/);
+  assert.match(workforceDirectorySource, /onSelectEmployee\?\.\(null\)/);
+  assert.match(workforceDirectorySource, /aria-pressed=\{isSelected \? "true" : "false"\}/);
   assert.match(peopleSource, /PermissionAdminPanel/);
   assert.match(peopleSource, /people-admin/);
   assert.match(peopleApiSource, /\/api\/hrx\/employees/);
