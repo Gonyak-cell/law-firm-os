@@ -1,0 +1,109 @@
+{
+  "schema_version": "matter.lcx8.launch-claim-copy-review.p7-t04.v1",
+  "generated_at": "2026-06-25T14:24:32.576Z",
+  "status": "LAUNCH_CLAIM_REVIEW_COMPLETE_NO_OVERCLAIM_FINDINGS",
+  "tuw": "P7-T04",
+  "source_artifacts": [
+    "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa-result.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-screen-qa-p6-t02.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-external-persistence-classification-p5-t07.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-external-runtime-blockers-p6-t07.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-korean-copy-review-p7-t03.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-mobile-overflow-focus-smoke-p3-t11.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/live-data-verification.json"
+  ],
+  "reviewed_rows": 10,
+  "reviewed_pass_rows": [
+    "LCX8-ACTION-0059",
+    "LCX8-ACTION-0060",
+    "LCX8-ACTION-0091",
+    "LCX8-ACTION-0244",
+    "LCX8-ACTION-0250",
+    "LCX8-ACTION-0251",
+    "LCX8-ACTION-0252",
+    "LCX8-ACTION-0253",
+    "LCX8-ACTION-0254",
+    "LCX8-ACTION-0255"
+  ],
+  "direct_launch_claim_hits": 0,
+  "direct_launch_claim_terms_checked": [
+    "production",
+    "go-live",
+    "public release",
+    "owner approved",
+    "실고객",
+    "실제 고객",
+    "마이그레이션 완료",
+    "공개 배포",
+    "출시 완료"
+  ],
+  "readiness_terms_observed_not_overclaims": [
+    "작업공간 준비됨",
+    "작업공간 연결됨",
+    "검증됨",
+    "통과",
+    "사용 중"
+  ],
+  "release_claim_receipt": {
+    "source": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa-result.json",
+    "production_go_live": false,
+    "public_release": false,
+    "owner_final_approval": false
+  },
+  "boundary_receipts": {
+    "p5_external_receipts_complete": false,
+    "p6_packaged_screen_qa_is_public_release": false,
+    "p6_owner_final_approval_recorded": false,
+    "real_client_data_migration": false
+  },
+  "positive_observations": [
+    {
+      "id": "P7-CLAIM-PASS-001",
+      "row_ids": [
+        "LCX8-ACTION-0059",
+        "LCX8-ACTION-0060"
+      ],
+      "evidence": "P5-T04/P5-T05 Matter write PASS rows include local safe fixture read-back/audit proof and production_ready_claim=false; no UI or artifact text converts that proof into production go-live."
+    },
+    {
+      "id": "P7-CLAIM-PASS-002",
+      "row_ids": [
+        "LCX8-ACTION-0091"
+      ],
+      "evidence": "Vault read PASS remains API/local read proof. P7-T03 separately records the synthetic fixture title as launch-boundary copy, not real client migration evidence."
+    },
+    {
+      "id": "P7-CLAIM-PASS-003",
+      "row_ids": [
+        "LCX8-ACTION-0244",
+        "LCX8-ACTION-0250",
+        "LCX8-ACTION-0251",
+        "LCX8-ACTION-0252",
+        "LCX8-ACTION-0253",
+        "LCX8-ACTION-0254",
+        "LCX8-ACTION-0255"
+      ],
+      "evidence": "Desktop screen QA explicitly records release_claims.production_go_live=false, public_release=false, owner_final_approval=false; P6-T07 keeps public release, OS protocol, native notification, updater/notarization, and active shell file bridge blockers separate."
+    }
+  ],
+  "findings": [],
+  "status_changes": 0,
+  "next_tuw": "P7-T05",
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  },
+  "non_claims_preserved": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "external_receipt_completion": false,
+    "real_client_data_migration": false
+  }
+}

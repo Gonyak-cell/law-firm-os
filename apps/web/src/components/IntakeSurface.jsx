@@ -23,7 +23,7 @@ function intakeRows(items) {
     `상담 ${index + 1}`,
     intakeStatus(item.status),
     item.requesting_party_id ? "요청자 등록" : "미등록",
-    item.creates_matter === false ? "충돌 확인 전" : "검토 필요"
+    item.creates_matter === false ? "이해상충 확인 전" : "검토 필요"
   ]);
 }
 
@@ -48,7 +48,7 @@ function LiveState({ result, noun }) {
     return (
       <div className="live-data-state live-data-error">
         <strong>{noun}를 불러올 수 없습니다</strong>
-        잠시 후 다시 시도하세요.
+        새로고침하거나 연결 상태를 확인하세요.
       </div>
     );
   }
@@ -121,7 +121,7 @@ export function IntakeSurface({ labels, liveCtx = "allow" }) {
       <PageHeader
         eyebrow="접수"
         title={labels.intakeTitle}
-        subtitle="상담 건은 이해충돌 확인과 담당자 검토를 거쳐 Matter로 전환됩니다."
+        subtitle="상담 건은 이해상충 확인과 담당자 검토를 거쳐 Matter로 전환됩니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />
@@ -135,7 +135,7 @@ export function IntakeSurface({ labels, liveCtx = "allow" }) {
             <div className="intake-live-stack">
               <div className="intake-safe-strip">
                 <ShieldCheck size={15} />
-                <span>이해충돌 확인 전에는 Matter 생성으로 바로 이어지지 않습니다.</span>
+                <span>이해상충 확인 전에는 Matter 생성으로 바로 이어지지 않습니다.</span>
               </div>
               <DataTable
                 columns={["접수번호", "이름", "단계", "당사자", "Matter 전환"]}
@@ -154,10 +154,10 @@ export function IntakeSurface({ labels, liveCtx = "allow" }) {
             </div>
           )}
         </Panel>
-        <Panel className="intake-panel" title="이해충돌 확인" meta="민감 정보 보호">
+        <Panel className="intake-panel" title="이해상충 확인" meta="민감 정보 보호">
           <div className="matter-boundary-card">
             <ClipboardCheck size={20} />
-            <strong>메모 본문은 목록에 표시하지 않습니다</strong>
+            <strong>메모 본문은 목록에서 숨깁니다</strong>
             <span>상세 내용은 권한이 있는 담당자 화면에서만 확인합니다.</span>
           </div>
         </Panel>

@@ -1,0 +1,84 @@
+{
+  "id": "lcx8-post-closeout-people-refresh-2026-06-27",
+  "generated_at": "2026-06-27T00:48:27.216Z",
+  "status": "PASS",
+  "batch": "LCX8-ALL-10",
+  "resolved_row": {
+    "id": "LCX8-ACTION-0093",
+    "status_before": "BLOCKED",
+    "status_after": "PASS",
+    "surface": "people-directory",
+    "section": "people-header",
+    "label": "새로고침",
+    "route": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+    "selector": "#people-home .page-header .secondary-button"
+  },
+  "status_counts_before": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 35,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 104,
+    "fail": 35
+  },
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 36,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 103,
+    "fail": 35
+  },
+  "source_changes": [
+    "apps/api/src/hrx-runtime-context.js: added employee read permission-context guard response.",
+    "apps/api/test/hrx/route-authz.test.js: added denied/review regression coverage for /api/hrx/employees."
+  ],
+  "proof_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0093-people-refresh-api-read-proof.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0093-people-refresh-api-read-proof.md",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-people-refresh-2026-06-27.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-people-refresh-2026-06-27.md",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0093-people-refresh-allow-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0093-people-refresh-denied-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0093-people-refresh-review-proof.png"
+  ],
+  "proof_summary": {
+    "observed_expected_endpoints": [
+      "/api/hrx/employees",
+      "/api/hrx/legal-people/search",
+      "/api/hrx/legal-people/:personId",
+      "/api/hrx/legal-people/relationships",
+      "/api/hrx/legal-people/ethics"
+    ],
+    "selected_person_id": "person_arbitrator_001",
+    "refresh_response_summary": {
+      "response_count": 5,
+      "api_4xx_count": 0,
+      "api_5xx_count": 0,
+      "runtime_headers_present_on_expected_responses": true
+    },
+    "direct_api_probe_count": 15,
+    "guarded_browser_proofs": [
+      {
+        "ctx": "denied",
+        "protected_grid_count": 0,
+        "hrx_request_count_after_guard_route_and_refresh": 0
+      },
+      {
+        "ctx": "review",
+        "protected_grid_count": 0,
+        "hrx_request_count_after_guard_route_and_refresh": 0
+      }
+    ]
+  },
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0093 verification: browser People refresh proof PASS (5/5 active endpoints observed with HRX runtime headers, API 4xx=0, API 5xx=0); denied/review browser routes guarded with protected_grid_count=0 and HRX request count=0; direct API allow/denied/review probes PASS for employees/search/detail/relationships/ethics with count_leak_prevented on guarded responses; node --test apps/api/test/hrx/route-authz.test.js apps/api/test/hrx-runtime-api.test.js PASS 23/23; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS. Status moved BLOCKED -> PASS.",
+  "non_claims": [
+    "This is read-only People directory refresh proof; no HRX write persistence is claimed.",
+    "Browser denied/review route short-circuits protected HRX reads behind a guard state.",
+    "No production go-live or external approval is claimed."
+  ]
+}

@@ -5,6 +5,7 @@ import { PageHeader } from "../components/primitives.jsx";
 import { fetchHrxPeopleOverview } from "./hrxApiClient.ts";
 import { EmployeeList } from "./employees/EmployeeList.tsx";
 import { EmployeeProfile } from "./employees/EmployeeProfile.tsx";
+import { PeopleWorkforceDirectory } from "./employees/PeopleWorkforceDirectory.tsx";
 import { HRDocumentWorkspace } from "./documents/HRDocumentWorkspace.tsx";
 import { LeaveRequestPage } from "./leave/LeaveRequestPage.tsx";
 import { ManagerApprovalQueue } from "./approvals/ManagerApprovalQueue.tsx";
@@ -24,7 +25,9 @@ const PEOPLE_SECTIONS = new Set([
   "people-relationships",
   "people-conflicts",
   "people-members",
+  "people-org-chart",
   "people-documents",
+  "people-certificates",
   "people-leave",
   "people-approvals",
   "people-recruiting",
@@ -37,28 +40,56 @@ const PEOPLE_SECTIONS = new Set([
   "people-admin"
 ]);
 
-export function PeopleHome({ labels, activeSection = "" }) {
+const WORKFORCE_SECTIONS = new Set(["people-members", "people-org-chart", "people-lifecycle"]);
+
+function peopleGuardState(liveCtx) {
+  if (liveCtx === "denied") {
+    return {
+      className: "live-data-denied",
+      title: "접근 권한이 없습니다",
+      body: "권한이 있는 People 정보만 표시합니다."
+    };
+  }
+  if (liveCtx === "review") {
+    return {
+      className: "live-data-review",
+      title: "검토가 필요합니다",
+      body: "검토가 끝나면 People 정보를 확인할 수 있습니다."
+    };
+  }
+  return null;
+}
+
+export function PeopleHome({ labels, activeSection = "", liveCtx = "allow" }) {
   const [overview, setOverview] = useState(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const currentSection = PEOPLE_SECTIONS.has(activeSection) ? activeSection : "people-directory";
+  const currentSection = PEOPLE_SECTIONS.has(activeSection) ? activeSection : "people-members";
+  const guardedState = peopleGuardState(liveCtx);
 
   useEffect(() => {
     let cancelled = false;
     setOverview(null);
+    if (guardedState) {
+      setSelectedEmployeeId(null);
+      setOverview({ kind: liveCtx });
+      return () => {
+        cancelled = true;
+      };
+    }
     fetchHrxPeopleOverview().then((result) => {
       if (!cancelled) setOverview(result);
     });
     return () => {
       cancelled = true;
     };
-  }, [refreshKey]);
+  }, [liveCtx, refreshKey]);
 
   return (
     <section id="people-home" className="surface stack people-surface" data-hrx-api-backed="true">
       <PageHeader
         title={labels.peopleTitle}
-        subtitle="Client, Matter, 조직, 외부 참여자, 충돌/윤리벽 관계망을 중심으로 People을 운영하고 HRX 직원 관리는 하위 영역으로 유지합니다."
+        subtitle="구성원, 조직, 휴가관리, 요청 관리, 입퇴사 관리, 회사방침, 급여정산과 리포트를 확인합니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshKey((key) => key + 1)}>
             <RefreshCw size={15} />
@@ -67,92 +98,110 @@ export function PeopleHome({ labels, activeSection = "" }) {
         }
       />
 
-      {overview?.kind === "error" && (
+      {overview?.kind === "error" && !WORKFORCE_SECTIONS.has(currentSection) && (
         <div className="live-data-state live-data-error">
-          <strong>구성원 정보를 불러오지 못했습니다</strong>
-          잠시 후 다시 시도해주세요.
+          <strong>구성원 현황을 불러오지 못했습니다</strong>
+          새로고침하거나 연결 상태를 확인하세요.
         </div>
       )}
 
-      {currentSection === "people-directory" && <LegalPeopleWorkspace mode="directory" refreshKey={refreshKey} />}
+      {guardedState && (
+        <div className={`live-data-state ${guardedState.className}`} data-lcx8-people-guard-state="true">
+          <strong>{guardedState.title}</strong>
+          {guardedState.body}
+        </div>
+      )}
 
-      {currentSection === "people-relationships" && <LegalPeopleWorkspace mode="relationships" refreshKey={refreshKey} />}
+      {!guardedState && currentSection === "people-directory" && <LegalPeopleWorkspace mode="directory" refreshKey={refreshKey} liveCtx={liveCtx} />}
 
-      {currentSection === "people-conflicts" && <LegalPeopleWorkspace mode="conflicts" refreshKey={refreshKey} />}
+      {!guardedState && currentSection === "people-relationships" && <LegalPeopleWorkspace mode="relationships" refreshKey={refreshKey} liveCtx={liveCtx} />}
 
-      {currentSection === "people-members" && (
+      {!guardedState && currentSection === "people-conflicts" && <LegalPeopleWorkspace mode="conflicts" refreshKey={refreshKey} liveCtx={liveCtx} />}
+
+      {!guardedState && currentSection === "people-members" && (
         <div className="people-runtime-grid">
-          <EmployeeList selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} refreshKey={refreshKey} />
+          <PeopleWorkforceDirectory initialTab="active" refreshKey={refreshKey} onSelectEmployee={setSelectedEmployeeId} />
           <EmployeeProfile employeeId={selectedEmployeeId} refreshKey={refreshKey} />
         </div>
       )}
 
-      {currentSection === "people-documents" && (
+      {!guardedState && currentSection === "people-org-chart" && (
+        <PeopleWorkforceDirectory initialTab="active" initialView="org" refreshKey={refreshKey} onSelectEmployee={setSelectedEmployeeId} />
+      )}
+
+      {!guardedState && currentSection === "people-documents" && (
         <div className="people-runtime-grid">
-          <EmployeeList selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} refreshKey={refreshKey} />
-          <HRDocumentWorkspace employeeId={selectedEmployeeId} refreshKey={refreshKey} />
+          <HRDocumentWorkspace refreshKey={refreshKey} mode="regulations" />
         </div>
       )}
 
-      {currentSection === "people-leave" && (
+      {!guardedState && currentSection === "people-certificates" && (
+        <div className="people-runtime-grid">
+          <EmployeeList selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} refreshKey={refreshKey} />
+          <HRDocumentWorkspace employeeId={selectedEmployeeId} refreshKey={refreshKey} mode="certificates" />
+        </div>
+      )}
+
+      {!guardedState && currentSection === "people-leave" && (
         <div className="people-runtime-grid">
           <EmployeeList selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} refreshKey={refreshKey} />
           <LeaveRequestPage employeeId={selectedEmployeeId} refreshKey={refreshKey} onSubmitted={() => setRefreshKey((key) => key + 1)} />
         </div>
       )}
 
-      {currentSection === "people-approvals" && (
+      {!guardedState && currentSection === "people-approvals" && (
         <div className="people-runtime-grid">
-          <ManagerApprovalQueue />
+          <ManagerApprovalQueue key={refreshKey} />
         </div>
       )}
 
-      {currentSection === "people-recruiting" && (
+      {!guardedState && currentSection === "people-recruiting" && (
         <div className="people-runtime-grid">
-          <RecruitingPipeline />
-          <CandidatePortal />
+          <RecruitingPipeline key={`recruiting-${refreshKey}`} />
+          <CandidatePortal key={`candidate-${refreshKey}`} />
         </div>
       )}
 
-      {currentSection === "people-lifecycle" && (
+      {!guardedState && currentSection === "people-lifecycle" && (
         <div className="people-runtime-grid">
+          <PeopleWorkforceDirectory initialTab="onboarding" refreshKey={refreshKey} onSelectEmployee={setSelectedEmployeeId} />
           <LifecycleBoard />
         </div>
       )}
 
-      {currentSection === "people-policy" && (
+      {!guardedState && currentSection === "people-policy" && (
         <div className="people-runtime-grid">
-          <HRXPolicyConsole />
+          <HRXPolicyConsole key={refreshKey} />
         </div>
       )}
 
-      {currentSection === "people-audit" && (
+      {!guardedState && currentSection === "people-audit" && (
         <div className="people-runtime-grid">
-          <HRXAuditViewer />
+          <HRXAuditViewer key={refreshKey} />
         </div>
       )}
 
-      {currentSection === "people-analytics" && (
+      {!guardedState && currentSection === "people-analytics" && (
         <div className="people-runtime-grid">
-          <HRAnalytics />
+          <HRAnalytics key={refreshKey} />
         </div>
       )}
 
-      {currentSection === "people-ai" && (
+      {!guardedState && currentSection === "people-ai" && (
         <div className="people-runtime-grid">
-          <HRAIAssistant />
+          <HRAIAssistant key={refreshKey} />
         </div>
       )}
 
-      {currentSection === "people-payroll" && (
+      {!guardedState && currentSection === "people-payroll" && (
         <div className="people-runtime-grid">
-          <PayrollBoundaryPanel />
+          <PayrollBoundaryPanel key={refreshKey} />
         </div>
       )}
 
-      {currentSection === "people-admin" && (
+      {!guardedState && currentSection === "people-admin" && (
         <div className="people-runtime-grid">
-          <PermissionAdminPanel />
+          <PermissionAdminPanel key={refreshKey} />
         </div>
       )}
     </section>

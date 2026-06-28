@@ -1,0 +1,2311 @@
+{
+  "schema_version": "matter.lcx8.safe-fixture-definition.p5-t01.v1",
+  "generated_at": "2026-06-25T13:45:16.960Z",
+  "status": "SAFE_FIXTURE_DEFINED_NO_WRITE_EXECUTED",
+  "tuw": "P5-T01",
+  "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
+  "source_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-persistence-row-identification-p5-t00.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+    "apps/web/src/data/apiClient.js",
+    "apps/web/src/people/hrxApiClient.ts",
+    "apps/api/src/server.js",
+    "apps/api/src/matter-runtime-context.js",
+    "apps/api/test/cmp-r4-g4-matter.test.js"
+  ],
+  "fixture_boundary": {
+    "no_real_client_data_required": true,
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "external_receipt_completion": false,
+    "write_execution_in_this_tuw": false,
+    "local_runtime_only": true
+  },
+  "execution_policy_for_p5_t02": {
+    "selected_row_ids": [
+      "LCX8-ACTION-0059",
+      "LCX8-ACTION-0060"
+    ],
+    "selected_write_count": 2,
+    "run_against": "local synthetic API runtime only; capture before, write response, reload/read-back, and audit receipt before any PASS promotion",
+    "stop_conditions": [
+      "API health is not synthetic_only",
+      "permission context cannot be attached",
+      "baseline read shows non-synthetic or unexpected tenant data",
+      "write response lacks audit_event or state_idempotent flag",
+      "read-back route cannot observe the persisted field"
+    ]
+  },
+  "fixture_families": {
+    "matter_runtime": {
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "principal": {
+        "user_id": "matter_matter_operator",
+        "tenant_id": "tenant_rp05_synthetic",
+        "role_ids": [
+          "matter_runtime_user"
+        ]
+      },
+      "permission_context": {
+        "principal": {
+          "user_id": "matter_matter_operator",
+          "tenant_id": "tenant_rp05_synthetic",
+          "role_ids": [
+            "matter_runtime_user"
+          ]
+        },
+        "rules": [
+          {
+            "id": "rule_matter_allow",
+            "effect": "allow",
+            "action": "*"
+          }
+        ],
+        "object_acl": []
+      },
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "seed_refs": {
+        "matter_id": "matter_rp05_synthetic_opening",
+        "owner_employee_id": "emp-001",
+        "alternate_employee_id": "emp-002"
+      },
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "source_refs": [
+        "apps/web/src/data/apiClient.js:48",
+        "apps/web/src/data/apiClient.js:138",
+        "apps/api/src/matter-runtime-context.js:85",
+        "apps/api/src/matter-runtime-context.js:196",
+        "apps/api/test/cmp-r4-g4-matter.test.js:370"
+      ]
+    },
+    "matter_record_actions": {
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "principal": {
+        "user_id": "matter_matter_operator",
+        "tenant_id": "tenant_rp05_synthetic",
+        "role_ids": [
+          "matter_runtime_user"
+        ]
+      },
+      "permission_context": {
+        "principal": {
+          "user_id": "matter_matter_operator",
+          "tenant_id": "tenant_rp05_synthetic",
+          "role_ids": [
+            "matter_runtime_user"
+          ]
+        },
+        "rules": [
+          {
+            "id": "rule_matter_allow",
+            "effect": "allow",
+            "action": "*"
+          }
+        ],
+        "object_acl": []
+      },
+      "store_policy": "local Matter record-action runtime only; deferred until P5-T02/T04 can pair action output with read-back",
+      "seed_refs": {
+        "record_id": "matter_rp05_synthetic_opening"
+      },
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "source_refs": [
+        "apps/web/src/data/apiClient.js:1281",
+        "apps/api/src/record-actions-runtime-context.js"
+      ]
+    },
+    "client_record_actions": {
+      "tenant_id": "tenant_rp04_synthetic",
+      "actor_id": "matter_client_operator",
+      "principal": {
+        "user_id": "matter_client_operator",
+        "tenant_id": "tenant_rp04_synthetic",
+        "role_ids": [
+          "master_data_reader"
+        ]
+      },
+      "permission_context": {
+        "principal": {
+          "user_id": "matter_client_operator",
+          "tenant_id": "tenant_rp04_synthetic",
+          "role_ids": [
+            "master_data_reader"
+          ]
+        },
+        "rules": [
+          {
+            "id": "rule_client_record_actions_allow",
+            "effect": "allow",
+            "action": "*"
+          }
+        ],
+        "object_acl": []
+      },
+      "store_policy": "local master-data/record-action runtime only; no client production data",
+      "seed_refs": {
+        "tenant_id": "tenant_rp04_synthetic"
+      },
+      "readback_routes": [
+        "GET /master-data/records",
+        "record-action audit route when applicable"
+      ],
+      "source_refs": [
+        "apps/web/src/data/apiClient.js:42",
+        "apps/web/src/data/apiClient.js:1292"
+      ]
+    },
+    "crm_intake_runtime": {
+      "tenant_id": "tenant_cmp_g6_synthetic",
+      "actor_id": "matter_client_intake_operator",
+      "principal": {
+        "user_id": "matter_client_intake_operator",
+        "tenant_id": "tenant_cmp_g6_synthetic",
+        "role_ids": [
+          "crm_intake_user",
+          "conflict_reviewer"
+        ]
+      },
+      "permission_context": {
+        "principal": {
+          "user_id": "matter_client_intake_operator",
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "role_ids": [
+            "crm_intake_user",
+            "conflict_reviewer"
+          ]
+        },
+        "rules": [
+          {
+            "id": "rule_crm_intake_allow",
+            "effect": "allow",
+            "action": "*"
+          }
+        ],
+        "object_acl": []
+      },
+      "store_policy": "local CRM/intake runtime repositories only; no real client data",
+      "seed_refs": {
+        "tenant_id": "tenant_cmp_g6_synthetic"
+      },
+      "readback_routes": [
+        "GET /api/crm/accounts",
+        "GET /api/crm/contacts",
+        "GET /api/intake/conflict-checks or related read routes"
+      ],
+      "source_refs": [
+        "apps/web/src/data/apiClient.js:60",
+        "apps/api/src/crm-intake-runtime-context.js"
+      ]
+    },
+    "data_cloud_runtime": {
+      "tenant_id": "tenant_sf_b_w07_synthetic",
+      "actor_id": "matter_data_cloud_operator",
+      "principal": {
+        "user_id": "matter_data_cloud_operator",
+        "tenant_id": "tenant_sf_b_w07_synthetic",
+        "role_ids": [
+          "data_cloud_operator"
+        ]
+      },
+      "permission_context": {
+        "principal": {
+          "user_id": "matter_data_cloud_operator",
+          "tenant_id": "tenant_sf_b_w07_synthetic",
+          "role_ids": [
+            "data_cloud_operator"
+          ]
+        },
+        "rules": [
+          {
+            "id": "rule_data_cloud_allow",
+            "effect": "allow",
+            "action": "*"
+          }
+        ],
+        "object_acl": []
+      },
+      "store_policy": "local data-cloud enrichment runtime only; external provider receipts remain separate",
+      "seed_refs": {
+        "tenant_id": "tenant_sf_b_w07_synthetic"
+      },
+      "readback_routes": [
+        "GET /api/data-cloud/providers",
+        "GET /api/data-cloud/enrichment-results",
+        "GET /api/data-cloud/audit"
+      ],
+      "source_refs": [
+        "apps/web/src/data/apiClient.js:108",
+        "apps/api/src/data-cloud-runtime-context.js"
+      ]
+    },
+    "import_data_mapping_runtime": {
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "principal": {
+        "user_id": "matter_matter_operator",
+        "tenant_id": "tenant_rp05_synthetic",
+        "role_ids": [
+          "matter_runtime_user"
+        ]
+      },
+      "permission_context": {
+        "principal": {
+          "user_id": "matter_matter_operator",
+          "tenant_id": "tenant_rp05_synthetic",
+          "role_ids": [
+            "matter_runtime_user"
+          ]
+        },
+        "rules": [
+          {
+            "id": "rule_import_data_allow",
+            "effect": "allow",
+            "action": "*"
+          }
+        ],
+        "object_acl": []
+      },
+      "store_policy": "local import-data mapping runtime backed by Matter repository import records",
+      "seed_refs": {
+        "tenant_id": "tenant_rp05_synthetic"
+      },
+      "readback_routes": [
+        "GET /api/import-jobs",
+        "GET /api/import-jobs/:job_id/preview"
+      ],
+      "source_refs": [
+        "apps/web/src/data/apiClient.js:1100",
+        "apps/api/src/import-data-mapping-runtime-context.js"
+      ]
+    },
+    "finance_runtime": {
+      "tenant_id": "tenant_cmp_g7_synthetic",
+      "actor_id": "matter_finance_operator",
+      "principal": {
+        "user_id": "matter_finance_operator",
+        "tenant_id": "tenant_cmp_g7_synthetic",
+        "role_ids": [
+          "finance_user"
+        ]
+      },
+      "permission_context": {
+        "principal": {
+          "user_id": "matter_finance_operator",
+          "tenant_id": "tenant_cmp_g7_synthetic",
+          "role_ids": [
+            "finance_user"
+          ]
+        },
+        "rules": [
+          {
+            "id": "rule_finance_allow",
+            "effect": "allow",
+            "action": "*"
+          }
+        ],
+        "object_acl": []
+      },
+      "store_policy": "local finance runtime repository only; no payment rails or production settlement claim",
+      "seed_refs": {
+        "tenant_id": "tenant_cmp_g7_synthetic"
+      },
+      "readback_routes": [
+        "GET /api/finance/audit or relevant finance read route"
+      ],
+      "source_refs": [
+        "apps/web/src/data/apiClient.js:66",
+        "apps/api/src/finance-runtime-context.js"
+      ]
+    },
+    "analytics_report_runtime": {
+      "tenant_id": "tenant_cmp_g8_synthetic",
+      "actor_id": "matter_report_builder_operator",
+      "principal": {
+        "user_id": "matter_report_builder_operator",
+        "tenant_id": "tenant_cmp_g8_synthetic",
+        "role_ids": [
+          "report_builder",
+          "analytics_user"
+        ]
+      },
+      "permission_context": {
+        "principal": {
+          "user_id": "matter_report_builder_operator",
+          "tenant_id": "tenant_cmp_g8_synthetic",
+          "role_ids": [
+            "report_builder",
+            "analytics_user"
+          ]
+        },
+        "rules": [
+          {
+            "id": "rule_report_allow",
+            "effect": "allow",
+            "action": "*"
+          }
+        ],
+        "object_acl": []
+      },
+      "store_policy": "local analytics/report runtime repository only; no external BI publication claim",
+      "seed_refs": {
+        "tenant_id": "tenant_cmp_g8_synthetic"
+      },
+      "readback_routes": [
+        "GET /api/reports",
+        "GET /api/analytics/*",
+        "GET /api/reports/audit when applicable"
+      ],
+      "source_refs": [
+        "apps/web/src/data/apiClient.js:72",
+        "apps/web/src/data/apiClient.js:114",
+        "apps/api/src/reports-runtime-context.js"
+      ]
+    },
+    "hrx_runtime": {
+      "tenant_id": "tenant_amic_matter_vault",
+      "actor_id": "user_amic_jwsuh",
+      "principal": {
+        "user_id": "user_amic_jwsuh",
+        "tenant_id": "tenant_amic_matter_vault",
+        "role_ids": [
+          "security_admin",
+          "hr_admin",
+          "people_ops"
+        ]
+      },
+      "permission_context": {
+        "headers": {
+          "x-lawos-tenant-id": "tenant_amic_matter_vault",
+          "x-lawos-actor-id": "user_amic_jwsuh",
+          "x-lawos-actor-role": "security_admin,hr_admin,people_ops",
+          "x-lawos-hrx-step-up": "synthetic step-up context from hrxApiClient.ts"
+        }
+      },
+      "store_policy": "local HRX durable runtime only; step-up and audit headers required; no payroll execution or external HRIS claim",
+      "seed_refs": {
+        "tenant_id": "tenant_amic_matter_vault"
+      },
+      "readback_routes": [
+        "GET /api/hrx/leave",
+        "GET /api/hrx/approvals",
+        "GET /api/hrx/audit",
+        "GET /api/hrx/payroll/* as applicable"
+      ],
+      "source_refs": [
+        "apps/web/src/people/hrxApiClient.ts:1",
+        "apps/web/src/people/hrxApiClient.ts:35"
+      ]
+    },
+    "admin_permission_runtime": {
+      "tenant_id": "tenant_sf_b_w06_synthetic",
+      "actor_id": "matter_admin_operator",
+      "principal": {
+        "user_id": "matter_admin_operator",
+        "tenant_id": "tenant_sf_b_w06_synthetic",
+        "role_ids": [
+          "security_admin",
+          "people_admin"
+        ]
+      },
+      "permission_context": {
+        "principal": {
+          "user_id": "matter_admin_operator",
+          "tenant_id": "tenant_sf_b_w06_synthetic",
+          "role_ids": [
+            "security_admin",
+            "people_admin"
+          ]
+        },
+        "rules": [
+          {
+            "id": "rule_admin_permission_allow",
+            "effect": "allow",
+            "action": "*"
+          }
+        ],
+        "object_acl": []
+      },
+      "store_policy": "local admin-permission runtime only; no production permission broadening claim",
+      "seed_refs": {
+        "tenant_id": "tenant_sf_b_w06_synthetic",
+        "permission_set_id": "permission_set_client_matter_reviewer"
+      },
+      "readback_routes": [
+        "GET /api/admin/permission-sets",
+        "GET /api/admin/permission-assignments",
+        "GET /api/admin/audit when applicable"
+      ],
+      "source_refs": [
+        "apps/web/src/data/apiClient.js:102",
+        "apps/web/src/people/admin/PermissionAdminPanel.jsx:109"
+      ]
+    }
+  },
+  "rows_reviewed": 83,
+  "selected_for_p5_t02": 2,
+  "safe_fixture_eligible_deferred_rows": 70,
+  "precondition_gap_excluded_rows": 11,
+  "rows_by_fixture_family": {
+    "admin_permission_runtime": 7,
+    "analytics_report_runtime": 8,
+    "client_record_actions": 4,
+    "crm_intake_runtime": 9,
+    "data_cloud_runtime": 6,
+    "finance_runtime": 3,
+    "hrx_runtime": 10,
+    "import_data_mapping_runtime": 12,
+    "matter_record_actions": 2,
+    "matter_runtime": 22
+  },
+  "applicability_counts": {
+    "P5_PRECONDITION_GAP_EXCLUDED_FROM_SAFE_WRITE": 11,
+    "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED": 70,
+    "P5_SELECTED_FOR_SAFE_WRITE": 2
+  },
+  "selected_entries": [
+    {
+      "id": "LCX8-ACTION-0059",
+      "surface": "matter",
+      "section": "matter-right-panel-actions",
+      "label": "저장",
+      "api_route": "PATCH /api/matters/:matter_id",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SELECTED_FOR_SAFE_WRITE",
+      "p5_t02_selected": true,
+      "p5_t02_selection_reason": "Low-risk allowlisted Matter inline field patch with detail read-back and audit route proof.",
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0060",
+      "surface": "matter",
+      "section": "matter-right-panel-actions",
+      "label": "변경",
+      "api_route": "POST /api/matters/:matter_id/owner-change",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SELECTED_FOR_SAFE_WRITE",
+      "p5_t02_selected": true,
+      "p5_t02_selection_reason": "Employee-backed Matter owner change with detail read-back and audit route proof.",
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    }
+  ],
+  "entries": [
+    {
+      "id": "LCX8-ACTION-0054",
+      "surface": "matter",
+      "section": "saved-list-views",
+      "label": "개시 저장",
+      "api_route": "POST /api/matters/list-views",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_PRECONDITION_GAP_EXCLUDED_FROM_SAFE_WRITE",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITION_GAP_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0055",
+      "surface": "matter",
+      "section": "bulk-actions",
+      "label": "선택 완료",
+      "api_route": "POST /api/matters/bulk/status-transitions",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0059",
+      "surface": "matter",
+      "section": "matter-right-panel-actions",
+      "label": "저장",
+      "api_route": "PATCH /api/matters/:matter_id",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SELECTED_FOR_SAFE_WRITE",
+      "p5_t02_selected": true,
+      "p5_t02_selection_reason": "Low-risk allowlisted Matter inline field patch with detail read-back and audit route proof.",
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0060",
+      "surface": "matter",
+      "section": "matter-right-panel-actions",
+      "label": "변경",
+      "api_route": "POST /api/matters/:matter_id/owner-change",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SELECTED_FOR_SAFE_WRITE",
+      "p5_t02_selected": true,
+      "p5_t02_selection_reason": "Employee-backed Matter owner change with detail read-back and audit route proof.",
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0061",
+      "surface": "matter",
+      "section": "matter-right-panel-actions",
+      "label": "필드 작업",
+      "api_route": "POST /api/record-actions/matter/:record_id/field-update",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_record_actions",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local Matter record-action runtime only; deferred until P5-T02/T04 can pair action output with read-back",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0062",
+      "surface": "matter",
+      "section": "matter-right-panel-actions",
+      "label": "승인 확인",
+      "api_route": "POST /api/record-actions/matter/bulk-updates",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_record_actions",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local Matter record-action runtime only; deferred until P5-T02/T04 can pair action output with read-back",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0063",
+      "surface": "matter",
+      "section": "matter-command",
+      "label": "완료",
+      "api_route": "POST /api/matters/:matter_id/status-transitions",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0065",
+      "surface": "matter",
+      "section": "matter-vault",
+      "label": "문서 연결",
+      "api_route": "POST /api/matters/:matter_id/documents",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0066",
+      "surface": "matter",
+      "section": "matter-vault",
+      "label": "초안 생성",
+      "api_route": "POST /api/matters/:matter_id/builder-drafts; GET /api/matters/:matter_id/builder-drafts/:draft_id/preview",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0067",
+      "surface": "matter",
+      "section": "matter-vault",
+      "label": "검토 준비",
+      "api_route": "PATCH /api/matters/:matter_id/builder-drafts/:draft_id",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0068",
+      "surface": "matter",
+      "section": "matter-vault",
+      "label": "승인 요청",
+      "api_route": "POST /api/matters/:matter_id/builder-drafts/:draft_id/approval-requests",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0069",
+      "surface": "matter",
+      "section": "matter-vault",
+      "label": "Vault 등록 요청",
+      "api_route": "POST /api/matters/:matter_id/builder-drafts/:draft_id/publish-to-vault",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_PRECONDITION_GAP_EXCLUDED_FROM_SAFE_WRITE",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITION_GAP_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0070",
+      "surface": "matter",
+      "section": "matter-vault",
+      "label": "이메일 초안 생성",
+      "api_route": "POST /api/matters/:matter_id/email-drafts",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0071",
+      "surface": "matter",
+      "section": "matter-vault",
+      "label": "내용 정리",
+      "api_route": "PATCH /api/matters/:matter_id/email-drafts/:draft_id",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0072",
+      "surface": "matter",
+      "section": "matter-vault",
+      "label": "발송 요청",
+      "api_route": "POST /api/matters/:matter_id/email-drafts/:draft_id/send",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_PRECONDITION_GAP_EXCLUDED_FROM_SAFE_WRITE",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITION_GAP_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0073",
+      "surface": "matter",
+      "section": "matter-timeline",
+      "label": "작업 추가",
+      "api_route": "POST /api/matters/:matter_id/activities",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0074",
+      "surface": "matter",
+      "section": "matter-timeline",
+      "label": "상태 저장",
+      "api_route": "PATCH /api/matters/:matter_id/activities/:activity_id",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0075",
+      "surface": "matter",
+      "section": "matter-calendar",
+      "label": "일정 추가",
+      "api_route": "POST /api/matters/:matter_id/calendar-events",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0076",
+      "surface": "matter",
+      "section": "matter-calendar",
+      "label": "변경 요청",
+      "api_route": "PATCH /api/matters/:matter_id/calendar-events/:event_id",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0077",
+      "surface": "matter",
+      "section": "matter-calendar",
+      "label": "확인",
+      "api_route": "POST /api/matters/:matter_id/deadlines/:deadline_id/confirm-change",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0078",
+      "surface": "matter",
+      "section": "matter-channel",
+      "label": "메시지 기록",
+      "api_route": "POST /api/matters/:matter_id/channel/messages",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0079",
+      "surface": "matter",
+      "section": "matter-channel",
+      "label": "상태 확인",
+      "api_route": "POST /api/matters/:matter_id/channel/provider-sync",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_PRECONDITION_GAP_EXCLUDED_FROM_SAFE_WRITE",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITION_GAP_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0090",
+      "surface": "matter",
+      "section": "matter-opening-form",
+      "label": "개시",
+      "api_route": "POST /api/matters/openings",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0116",
+      "surface": "client",
+      "section": "client-right-panel-actions",
+      "label": "필드 업데이트",
+      "api_route": "POST /api/record-actions/client/:record_id/field-update",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "client_record_actions",
+      "tenant_id": "tenant_rp04_synthetic",
+      "actor_id": "matter_client_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /master-data/records",
+        "record-action audit route when applicable"
+      ],
+      "store_policy": "local master-data/record-action runtime only; no client production data",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0117",
+      "surface": "client",
+      "section": "client-right-panel-actions",
+      "label": "승인 확인",
+      "api_route": "POST /api/record-actions/client/bulk-updates",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "client_record_actions",
+      "tenant_id": "tenant_rp04_synthetic",
+      "actor_id": "matter_client_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /master-data/records",
+        "record-action audit route when applicable"
+      ],
+      "store_policy": "local master-data/record-action runtime only; no client production data",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0118",
+      "surface": "client",
+      "section": "client-opportunities",
+      "label": "전환",
+      "api_route": "POST /api/crm/opportunities/:opportunity_id/handoff",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "crm_intake_runtime",
+      "tenant_id": "tenant_cmp_g6_synthetic",
+      "actor_id": "matter_client_intake_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/crm/accounts",
+        "GET /api/crm/contacts",
+        "GET /api/intake/conflict-checks or related read routes"
+      ],
+      "store_policy": "local CRM/intake runtime repositories only; no real client data",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0119",
+      "surface": "client",
+      "section": "client-intake",
+      "label": "충돌 검토",
+      "api_route": "POST /api/intake/conflict-checks",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "crm_intake_runtime",
+      "tenant_id": "tenant_cmp_g6_synthetic",
+      "actor_id": "matter_client_intake_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/crm/accounts",
+        "GET /api/crm/contacts",
+        "GET /api/intake/conflict-checks or related read routes"
+      ],
+      "store_policy": "local CRM/intake runtime repositories only; no real client data",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0120",
+      "surface": "client",
+      "section": "client-intake",
+      "label": "통과 처리",
+      "api_route": "POST /api/intake/clearance-tokens",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "crm_intake_runtime",
+      "tenant_id": "tenant_cmp_g6_synthetic",
+      "actor_id": "matter_client_intake_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/crm/accounts",
+        "GET /api/crm/contacts",
+        "GET /api/intake/conflict-checks or related read routes"
+      ],
+      "store_policy": "local CRM/intake runtime repositories only; no real client data",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0121",
+      "surface": "client",
+      "section": "client-accounts",
+      "label": "계정 생성",
+      "api_route": "POST /api/crm/accounts",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "crm_intake_runtime",
+      "tenant_id": "tenant_cmp_g6_synthetic",
+      "actor_id": "matter_client_intake_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/crm/accounts",
+        "GET /api/crm/contacts",
+        "GET /api/intake/conflict-checks or related read routes"
+      ],
+      "store_policy": "local CRM/intake runtime repositories only; no real client data",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0122",
+      "surface": "client",
+      "section": "client-accounts",
+      "label": "계정 검토 표시",
+      "api_route": "PATCH /api/crm/accounts/:account_id",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "crm_intake_runtime",
+      "tenant_id": "tenant_cmp_g6_synthetic",
+      "actor_id": "matter_client_intake_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/crm/accounts",
+        "GET /api/crm/contacts",
+        "GET /api/intake/conflict-checks or related read routes"
+      ],
+      "store_policy": "local CRM/intake runtime repositories only; no real client data",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0123",
+      "surface": "client",
+      "section": "client-accounts",
+      "label": "계정 레코드 작업",
+      "api_route": "POST /api/record-actions/account/:record_id/field-update",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "client_record_actions",
+      "tenant_id": "tenant_rp04_synthetic",
+      "actor_id": "matter_client_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /master-data/records",
+        "record-action audit route when applicable"
+      ],
+      "store_policy": "local master-data/record-action runtime only; no client production data",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0124",
+      "surface": "client",
+      "section": "client-contacts",
+      "label": "연락처 생성",
+      "api_route": "POST /api/crm/contacts",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "crm_intake_runtime",
+      "tenant_id": "tenant_cmp_g6_synthetic",
+      "actor_id": "matter_client_intake_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/crm/accounts",
+        "GET /api/crm/contacts",
+        "GET /api/intake/conflict-checks or related read routes"
+      ],
+      "store_policy": "local CRM/intake runtime repositories only; no real client data",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0125",
+      "surface": "client",
+      "section": "client-contacts",
+      "label": "연락처 검토 표시",
+      "api_route": "PATCH /api/crm/contacts/:contact_id",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "crm_intake_runtime",
+      "tenant_id": "tenant_cmp_g6_synthetic",
+      "actor_id": "matter_client_intake_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/crm/accounts",
+        "GET /api/crm/contacts",
+        "GET /api/intake/conflict-checks or related read routes"
+      ],
+      "store_policy": "local CRM/intake runtime repositories only; no real client data",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0126",
+      "surface": "client",
+      "section": "client-contacts",
+      "label": "연락처 레코드 작업",
+      "api_route": "POST /api/record-actions/contact/:record_id/field-update",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "client_record_actions",
+      "tenant_id": "tenant_rp04_synthetic",
+      "actor_id": "matter_client_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /master-data/records",
+        "record-action audit route when applicable"
+      ],
+      "store_policy": "local master-data/record-action runtime only; no client production data",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0127",
+      "surface": "client",
+      "section": "client-contacts",
+      "label": "검토 생성",
+      "api_route": "POST /api/crm/duplicate-merge-proposals",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "crm_intake_runtime",
+      "tenant_id": "tenant_cmp_g6_synthetic",
+      "actor_id": "matter_client_intake_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/crm/accounts",
+        "GET /api/crm/contacts",
+        "GET /api/intake/conflict-checks or related read routes"
+      ],
+      "store_policy": "local CRM/intake runtime repositories only; no real client data",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0128",
+      "surface": "client",
+      "section": "client-contacts",
+      "label": "병합 실행",
+      "api_route": "POST /api/crm/duplicate-merge-proposals/:proposal_id/execute",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "crm_intake_runtime",
+      "tenant_id": "tenant_cmp_g6_synthetic",
+      "actor_id": "matter_client_intake_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/crm/accounts",
+        "GET /api/crm/contacts",
+        "GET /api/intake/conflict-checks or related read routes"
+      ],
+      "store_policy": "local CRM/intake runtime repositories only; no real client data",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0129",
+      "surface": "client",
+      "section": "client-data",
+      "label": "연동 요청",
+      "api_route": "POST /api/data-cloud/providers",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "data_cloud_runtime",
+      "tenant_id": "tenant_sf_b_w07_synthetic",
+      "actor_id": "matter_data_cloud_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/data-cloud/providers",
+        "GET /api/data-cloud/enrichment-results",
+        "GET /api/data-cloud/audit"
+      ],
+      "store_policy": "local data-cloud enrichment runtime only; external provider receipts remain separate",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0130",
+      "surface": "client",
+      "section": "client-data",
+      "label": "승인 확인",
+      "api_route": "POST /api/data-cloud/consent-records",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "data_cloud_runtime",
+      "tenant_id": "tenant_sf_b_w07_synthetic",
+      "actor_id": "matter_data_cloud_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/data-cloud/providers",
+        "GET /api/data-cloud/enrichment-results",
+        "GET /api/data-cloud/audit"
+      ],
+      "store_policy": "local data-cloud enrichment runtime only; external provider receipts remain separate",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0131",
+      "surface": "client",
+      "section": "client-data",
+      "label": "미리보기",
+      "api_route": "POST /api/data-cloud/enrichment-jobs; GET /api/data-cloud/enrichment-jobs/:job_id/preview",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "data_cloud_runtime",
+      "tenant_id": "tenant_sf_b_w07_synthetic",
+      "actor_id": "matter_data_cloud_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/data-cloud/providers",
+        "GET /api/data-cloud/enrichment-results",
+        "GET /api/data-cloud/audit"
+      ],
+      "store_policy": "local data-cloud enrichment runtime only; external provider receipts remain separate",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0132",
+      "surface": "client",
+      "section": "client-data",
+      "label": "실행 확인",
+      "api_route": "POST /api/data-cloud/enrichment-jobs/:job_id/execute; GET /api/data-cloud/enrichment-results",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "data_cloud_runtime",
+      "tenant_id": "tenant_sf_b_w07_synthetic",
+      "actor_id": "matter_data_cloud_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/data-cloud/providers",
+        "GET /api/data-cloud/enrichment-results",
+        "GET /api/data-cloud/audit"
+      ],
+      "store_policy": "local data-cloud enrichment runtime only; external provider receipts remain separate",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0133",
+      "surface": "client",
+      "section": "client-data",
+      "label": "후보 생성",
+      "api_route": "POST /api/data-cloud/identity-resolution",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "data_cloud_runtime",
+      "tenant_id": "tenant_sf_b_w07_synthetic",
+      "actor_id": "matter_data_cloud_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/data-cloud/providers",
+        "GET /api/data-cloud/enrichment-results",
+        "GET /api/data-cloud/audit"
+      ],
+      "store_policy": "local data-cloud enrichment runtime only; external provider receipts remain separate",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0134",
+      "surface": "client",
+      "section": "client-data",
+      "label": "활성화 확인",
+      "api_route": "POST /api/data-cloud/segment-activations",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "data_cloud_runtime",
+      "tenant_id": "tenant_sf_b_w07_synthetic",
+      "actor_id": "matter_data_cloud_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/data-cloud/providers",
+        "GET /api/data-cloud/enrichment-results",
+        "GET /api/data-cloud/audit"
+      ],
+      "store_policy": "local data-cloud enrichment runtime only; external provider receipts remain separate",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0135",
+      "surface": "client",
+      "section": "client-reports",
+      "label": "보고서 생성",
+      "api_route": "POST /api/reports",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "analytics_report_runtime",
+      "tenant_id": "tenant_cmp_g8_synthetic",
+      "actor_id": "matter_report_builder_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/reports",
+        "GET /api/analytics/*",
+        "GET /api/reports/audit when applicable"
+      ],
+      "store_policy": "local analytics/report runtime repository only; no external BI publication claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0136",
+      "surface": "client",
+      "section": "client-reports",
+      "label": "보고서 조정",
+      "api_route": "PATCH /api/reports/:report_id",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "analytics_report_runtime",
+      "tenant_id": "tenant_cmp_g8_synthetic",
+      "actor_id": "matter_report_builder_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/reports",
+        "GET /api/analytics/*",
+        "GET /api/reports/audit when applicable"
+      ],
+      "store_policy": "local analytics/report runtime repository only; no external BI publication claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0137",
+      "surface": "client",
+      "section": "client-reports",
+      "label": "Client 손익 새로고침",
+      "api_route": "POST /api/analytics/client-profitability",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "analytics_report_runtime",
+      "tenant_id": "tenant_cmp_g8_synthetic",
+      "actor_id": "matter_report_builder_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/reports",
+        "GET /api/analytics/*",
+        "GET /api/reports/audit when applicable"
+      ],
+      "store_policy": "local analytics/report runtime repository only; no external BI publication claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0138",
+      "surface": "client",
+      "section": "client-reports",
+      "label": "보고서 실행",
+      "api_route": "POST /api/reports/:report_id/run",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "analytics_report_runtime",
+      "tenant_id": "tenant_cmp_g8_synthetic",
+      "actor_id": "matter_report_builder_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/reports",
+        "GET /api/analytics/*",
+        "GET /api/reports/audit when applicable"
+      ],
+      "store_policy": "local analytics/report runtime repository only; no external BI publication claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0139",
+      "surface": "client",
+      "section": "client-reports",
+      "label": "공유 요청",
+      "api_route": "POST /api/reports/:report_id/share",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "analytics_report_runtime",
+      "tenant_id": "tenant_cmp_g8_synthetic",
+      "actor_id": "matter_report_builder_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/reports",
+        "GET /api/analytics/*",
+        "GET /api/reports/audit when applicable"
+      ],
+      "store_policy": "local analytics/report runtime repository only; no external BI publication claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0140",
+      "surface": "client",
+      "section": "client-import",
+      "label": "작업 생성",
+      "api_route": "POST /api/import-jobs",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "import_data_mapping_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/import-jobs",
+        "GET /api/import-jobs/:job_id/preview"
+      ],
+      "store_policy": "local import-data mapping runtime backed by Matter repository import records",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0141",
+      "surface": "client",
+      "section": "client-import",
+      "label": "원본 준비",
+      "api_route": "POST /api/import-jobs/:job_id/source-files",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "import_data_mapping_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/import-jobs",
+        "GET /api/import-jobs/:job_id/preview"
+      ],
+      "store_policy": "local import-data mapping runtime backed by Matter repository import records",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0142",
+      "surface": "client",
+      "section": "client-import",
+      "label": "매핑 저장",
+      "api_route": "POST /api/import-jobs/:job_id/field-mappings",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "import_data_mapping_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/import-jobs",
+        "GET /api/import-jobs/:job_id/preview"
+      ],
+      "store_policy": "local import-data mapping runtime backed by Matter repository import records",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0143",
+      "surface": "client",
+      "section": "client-import",
+      "label": "검증 실행",
+      "api_route": "POST /api/import-jobs/:job_id/dry-run; GET /api/import-jobs/:job_id/preview",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "import_data_mapping_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/import-jobs",
+        "GET /api/import-jobs/:job_id/preview"
+      ],
+      "store_policy": "local import-data mapping runtime backed by Matter repository import records",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0144",
+      "surface": "client",
+      "section": "client-import",
+      "label": "실행 요청",
+      "api_route": "POST /api/import-jobs/:job_id/execute",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "import_data_mapping_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/import-jobs",
+        "GET /api/import-jobs/:job_id/preview"
+      ],
+      "store_policy": "local import-data mapping runtime backed by Matter repository import records",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0145",
+      "surface": "client",
+      "section": "client-import",
+      "label": "확인",
+      "api_route": "POST /api/import-jobs/:job_id/rollback; GET /api/import-jobs/:job_id/error-report",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "import_data_mapping_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/import-jobs",
+        "GET /api/import-jobs/:job_id/preview"
+      ],
+      "store_policy": "local import-data mapping runtime backed by Matter repository import records",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0201",
+      "surface": "people-leave",
+      "section": "people-leave-form",
+      "label": "신청",
+      "api_route": "POST /api/hrx/leave; follow-up GET /api/hrx/employees and GET /api/hrx/leave?employee_id=:employee_id&policy_id=pto-us via refreshKey",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "hrx_runtime",
+      "tenant_id": "tenant_amic_matter_vault",
+      "actor_id": "user_amic_jwsuh",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/hrx/leave",
+        "GET /api/hrx/approvals",
+        "GET /api/hrx/audit",
+        "GET /api/hrx/payroll/* as applicable"
+      ],
+      "store_policy": "local HRX durable runtime only; step-up and audit headers required; no payroll execution or external HRIS claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0202",
+      "surface": "people-approvals",
+      "section": "people-approvals",
+      "label": "반려",
+      "api_route": "POST /api/hrx/approvals/:approvalId/reject; follow-up GET /api/hrx/approvals and GET /api/hrx/audit",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "hrx_runtime",
+      "tenant_id": "tenant_amic_matter_vault",
+      "actor_id": "user_amic_jwsuh",
+      "fixture_applicability": "P5_PRECONDITION_GAP_EXCLUDED_FROM_SAFE_WRITE",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITION_GAP_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/hrx/leave",
+        "GET /api/hrx/approvals",
+        "GET /api/hrx/audit",
+        "GET /api/hrx/payroll/* as applicable"
+      ],
+      "store_policy": "local HRX durable runtime only; step-up and audit headers required; no payroll execution or external HRIS claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0203",
+      "surface": "people-approvals",
+      "section": "people-approvals",
+      "label": "승인",
+      "api_route": "POST /api/hrx/approvals/:approvalId/approve; follow-up GET /api/hrx/approvals and GET /api/hrx/audit",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "hrx_runtime",
+      "tenant_id": "tenant_amic_matter_vault",
+      "actor_id": "user_amic_jwsuh",
+      "fixture_applicability": "P5_PRECONDITION_GAP_EXCLUDED_FROM_SAFE_WRITE",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITION_GAP_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/hrx/leave",
+        "GET /api/hrx/approvals",
+        "GET /api/hrx/audit",
+        "GET /api/hrx/payroll/* as applicable"
+      ],
+      "store_policy": "local HRX durable runtime only; step-up and audit headers required; no payroll execution or external HRIS claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0204",
+      "surface": "people-recruiting",
+      "section": "people-recruiting",
+      "label": "다음 단계",
+      "api_route": "POST /api/hrx/recruiting/applications/:applicationId/stage; follow-up GET /api/hrx/recruiting/pipeline",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "hrx_runtime",
+      "tenant_id": "tenant_amic_matter_vault",
+      "actor_id": "user_amic_jwsuh",
+      "fixture_applicability": "P5_PRECONDITION_GAP_EXCLUDED_FROM_SAFE_WRITE",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITION_GAP_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/hrx/leave",
+        "GET /api/hrx/approvals",
+        "GET /api/hrx/audit",
+        "GET /api/hrx/payroll/* as applicable"
+      ],
+      "store_policy": "local HRX durable runtime only; step-up and audit headers required; no payroll execution or external HRIS claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0208",
+      "surface": "people-policy",
+      "section": "people-policy-form",
+      "label": "정책 버전 생성",
+      "api_route": "POST /api/hrx/policies; follow-up GET /api/hrx/policies",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "hrx_runtime",
+      "tenant_id": "tenant_amic_matter_vault",
+      "actor_id": "user_amic_jwsuh",
+      "fixture_applicability": "P5_PRECONDITION_GAP_EXCLUDED_FROM_SAFE_WRITE",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITION_GAP_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/hrx/leave",
+        "GET /api/hrx/approvals",
+        "GET /api/hrx/audit",
+        "GET /api/hrx/payroll/* as applicable"
+      ],
+      "store_policy": "local HRX durable runtime only; step-up and audit headers required; no payroll execution or external HRIS claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0209",
+      "surface": "people-ai",
+      "section": "people-ai",
+      "label": "문의",
+      "api_route": "POST /api/hrx/ai/assistant; background GET /api/hrx/ai/reviews after result changes",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "hrx_runtime",
+      "tenant_id": "tenant_amic_matter_vault",
+      "actor_id": "user_amic_jwsuh",
+      "fixture_applicability": "P5_PRECONDITION_GAP_EXCLUDED_FROM_SAFE_WRITE",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITION_GAP_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/hrx/leave",
+        "GET /api/hrx/approvals",
+        "GET /api/hrx/audit",
+        "GET /api/hrx/payroll/* as applicable"
+      ],
+      "store_policy": "local HRX durable runtime only; step-up and audit headers required; no payroll execution or external HRIS claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0210",
+      "surface": "people-ai",
+      "section": "people-ai",
+      "label": "검토",
+      "api_route": "POST /api/hrx/ai/assistant; background GET /api/hrx/ai/reviews after result changes",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "hrx_runtime",
+      "tenant_id": "tenant_amic_matter_vault",
+      "actor_id": "user_amic_jwsuh",
+      "fixture_applicability": "P5_PRECONDITION_GAP_EXCLUDED_FROM_SAFE_WRITE",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITION_GAP_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/hrx/leave",
+        "GET /api/hrx/approvals",
+        "GET /api/hrx/audit",
+        "GET /api/hrx/payroll/* as applicable"
+      ],
+      "store_policy": "local HRX durable runtime only; step-up and audit headers required; no payroll execution or external HRIS claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0215",
+      "surface": "people-payroll",
+      "section": "people-payroll-actions",
+      "label": "미리보기 생성",
+      "api_route": "POST /api/hrx/payroll/preview",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "hrx_runtime",
+      "tenant_id": "tenant_amic_matter_vault",
+      "actor_id": "user_amic_jwsuh",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/hrx/leave",
+        "GET /api/hrx/approvals",
+        "GET /api/hrx/audit",
+        "GET /api/hrx/payroll/* as applicable"
+      ],
+      "store_policy": "local HRX durable runtime only; step-up and audit headers required; no payroll execution or external HRIS claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0216",
+      "surface": "people-payroll",
+      "section": "people-payroll-actions",
+      "label": "검토 승인 기록",
+      "api_route": "POST /api/hrx/payroll/approve",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "hrx_runtime",
+      "tenant_id": "tenant_amic_matter_vault",
+      "actor_id": "user_amic_jwsuh",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/hrx/leave",
+        "GET /api/hrx/approvals",
+        "GET /api/hrx/audit",
+        "GET /api/hrx/payroll/* as applicable"
+      ],
+      "store_policy": "local HRX durable runtime only; step-up and audit headers required; no payroll execution or external HRIS claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0217",
+      "surface": "people-payroll",
+      "section": "people-payroll-actions",
+      "label": "내보내기 파일 생성",
+      "api_route": "POST /api/hrx/payroll/export",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "hrx_runtime",
+      "tenant_id": "tenant_amic_matter_vault",
+      "actor_id": "user_amic_jwsuh",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/hrx/leave",
+        "GET /api/hrx/approvals",
+        "GET /api/hrx/audit",
+        "GET /api/hrx/payroll/* as applicable"
+      ],
+      "store_policy": "local HRX durable runtime only; step-up and audit headers required; no payroll execution or external HRIS claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0220",
+      "surface": "people-admin",
+      "section": "people-admin-actions",
+      "label": "세트 요청",
+      "api_route": "POST /api/admin/permission-sets",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "admin_permission_runtime",
+      "tenant_id": "tenant_sf_b_w06_synthetic",
+      "actor_id": "matter_admin_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/admin/permission-sets",
+        "GET /api/admin/permission-assignments",
+        "GET /api/admin/audit when applicable"
+      ],
+      "store_policy": "local admin-permission runtime only; no production permission broadening claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0221",
+      "surface": "people-admin",
+      "section": "people-admin-actions",
+      "label": "변경 요청",
+      "api_route": "PATCH /api/admin/permission-sets/:permissionSetId",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "admin_permission_runtime",
+      "tenant_id": "tenant_sf_b_w06_synthetic",
+      "actor_id": "matter_admin_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/admin/permission-sets",
+        "GET /api/admin/permission-assignments",
+        "GET /api/admin/audit when applicable"
+      ],
+      "store_policy": "local admin-permission runtime only; no production permission broadening claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0222",
+      "surface": "people-admin",
+      "section": "people-admin-actions",
+      "label": "배정 요청",
+      "api_route": "POST /api/admin/permission-assignments",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "admin_permission_runtime",
+      "tenant_id": "tenant_sf_b_w06_synthetic",
+      "actor_id": "matter_admin_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/admin/permission-sets",
+        "GET /api/admin/permission-assignments",
+        "GET /api/admin/audit when applicable"
+      ],
+      "store_policy": "local admin-permission runtime only; no production permission broadening claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0223",
+      "surface": "people-admin",
+      "section": "people-admin-actions",
+      "label": "회수 요청",
+      "api_route": "DELETE /api/admin/permission-assignments/:assignmentId",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "admin_permission_runtime",
+      "tenant_id": "tenant_sf_b_w06_synthetic",
+      "actor_id": "matter_admin_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/admin/permission-sets",
+        "GET /api/admin/permission-assignments",
+        "GET /api/admin/audit when applicable"
+      ],
+      "store_policy": "local admin-permission runtime only; no production permission broadening claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0224",
+      "surface": "people-admin",
+      "section": "people-admin-actions",
+      "label": "정책 변경",
+      "api_route": "PATCH /api/admin/object-manager/objects/:objectName/fields/:fieldName",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "admin_permission_runtime",
+      "tenant_id": "tenant_sf_b_w06_synthetic",
+      "actor_id": "matter_admin_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/admin/permission-sets",
+        "GET /api/admin/permission-assignments",
+        "GET /api/admin/audit when applicable"
+      ],
+      "store_policy": "local admin-permission runtime only; no production permission broadening claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0225",
+      "surface": "people-admin",
+      "section": "people-admin-actions",
+      "label": "연결 요청",
+      "api_route": "POST /api/admin/connected-apps",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "admin_permission_runtime",
+      "tenant_id": "tenant_sf_b_w06_synthetic",
+      "actor_id": "matter_admin_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/admin/permission-sets",
+        "GET /api/admin/permission-assignments",
+        "GET /api/admin/audit when applicable"
+      ],
+      "store_policy": "local admin-permission runtime only; no production permission broadening claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0226",
+      "surface": "people-admin",
+      "section": "people-admin-actions",
+      "label": "중지 요청",
+      "api_route": "POST /api/admin/connected-apps/:appId/disable",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "admin_permission_runtime",
+      "tenant_id": "tenant_sf_b_w06_synthetic",
+      "actor_id": "matter_admin_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/admin/permission-sets",
+        "GET /api/admin/permission-assignments",
+        "GET /api/admin/audit when applicable"
+      ],
+      "store_policy": "local admin-permission runtime only; no production permission broadening claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0307",
+      "surface": "matter",
+      "section": "matter-team-form",
+      "label": "추가 / 책임자 지정",
+      "api_route": "POST /api/matters/:matter_id/team-members",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "matter_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_PRECONDITION_GAP_EXCLUDED_FROM_SAFE_WRITE",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITION_GAP_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/matters/:matter_id",
+        "GET /api/matters/audit"
+      ],
+      "store_policy": "local file-backed Matter runtime only; use existing 127.0.0.1:4180 synthetic runtime or LAWOS_MATTER_STORE_PATH when an isolated restart proof is required",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0308",
+      "surface": "matter",
+      "section": "matter-billing",
+      "label": "시간 기록",
+      "api_route": "POST /api/finance/time-entries",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "finance_runtime",
+      "tenant_id": "tenant_cmp_g7_synthetic",
+      "actor_id": "matter_finance_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/finance/audit or relevant finance read route"
+      ],
+      "store_policy": "local finance runtime repository only; no payment rails or production settlement claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0309",
+      "surface": "matter",
+      "section": "matter-billing",
+      "label": "청구 준비",
+      "api_route": "POST /api/finance/wip",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "finance_runtime",
+      "tenant_id": "tenant_cmp_g7_synthetic",
+      "actor_id": "matter_finance_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/finance/audit or relevant finance read route"
+      ],
+      "store_policy": "local finance runtime repository only; no payment rails or production settlement claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0310",
+      "surface": "matter",
+      "section": "matter-billing",
+      "label": "수납 기록",
+      "api_route": "POST /api/finance/payments",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "finance_runtime",
+      "tenant_id": "tenant_cmp_g7_synthetic",
+      "actor_id": "matter_finance_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/finance/audit or relevant finance read route"
+      ],
+      "store_policy": "local finance runtime repository only; no payment rails or production settlement claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0311",
+      "surface": "matter",
+      "section": "matter-analytics",
+      "label": "새로고침",
+      "api_route": "POST /api/analytics/refresh",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "analytics_report_runtime",
+      "tenant_id": "tenant_cmp_g8_synthetic",
+      "actor_id": "matter_report_builder_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/reports",
+        "GET /api/analytics/*",
+        "GET /api/reports/audit when applicable"
+      ],
+      "store_policy": "local analytics/report runtime repository only; no external BI publication claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0312",
+      "surface": "matter",
+      "section": "matter-analytics",
+      "label": "내보내기",
+      "api_route": "POST /api/analytics/exports",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "analytics_report_runtime",
+      "tenant_id": "tenant_cmp_g8_synthetic",
+      "actor_id": "matter_report_builder_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/reports",
+        "GET /api/analytics/*",
+        "GET /api/reports/audit when applicable"
+      ],
+      "store_policy": "local analytics/report runtime repository only; no external BI publication claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0313",
+      "surface": "matter",
+      "section": "matter-analytics",
+      "label": "손익 갱신",
+      "api_route": "POST /api/analytics/matter-profitability",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "analytics_report_runtime",
+      "tenant_id": "tenant_cmp_g8_synthetic",
+      "actor_id": "matter_report_builder_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/reports",
+        "GET /api/analytics/*",
+        "GET /api/reports/audit when applicable"
+      ],
+      "store_policy": "local analytics/report runtime repository only; no external BI publication claim",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0314",
+      "surface": "matter",
+      "section": "matter-import",
+      "label": "작업 생성",
+      "api_route": "POST /api/import-jobs",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "import_data_mapping_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/import-jobs",
+        "GET /api/import-jobs/:job_id/preview"
+      ],
+      "store_policy": "local import-data mapping runtime backed by Matter repository import records",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0315",
+      "surface": "matter",
+      "section": "matter-import",
+      "label": "원본 준비",
+      "api_route": "POST /api/import-jobs/:job_id/source-files",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "import_data_mapping_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/import-jobs",
+        "GET /api/import-jobs/:job_id/preview"
+      ],
+      "store_policy": "local import-data mapping runtime backed by Matter repository import records",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0316",
+      "surface": "matter",
+      "section": "matter-import",
+      "label": "매핑 저장",
+      "api_route": "POST /api/import-jobs/:job_id/field-mappings",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "import_data_mapping_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/import-jobs",
+        "GET /api/import-jobs/:job_id/preview"
+      ],
+      "store_policy": "local import-data mapping runtime backed by Matter repository import records",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0317",
+      "surface": "matter",
+      "section": "matter-import",
+      "label": "검증 실행",
+      "api_route": "POST /api/import-jobs/:job_id/dry-run; GET /api/import-jobs/:job_id/preview",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "import_data_mapping_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/import-jobs",
+        "GET /api/import-jobs/:job_id/preview"
+      ],
+      "store_policy": "local import-data mapping runtime backed by Matter repository import records",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0318",
+      "surface": "matter",
+      "section": "matter-import",
+      "label": "실행 요청",
+      "api_route": "POST /api/import-jobs/:job_id/execute",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "import_data_mapping_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/import-jobs",
+        "GET /api/import-jobs/:job_id/preview"
+      ],
+      "store_policy": "local import-data mapping runtime backed by Matter repository import records",
+      "no_write_executed_in_p5_t01": true
+    },
+    {
+      "id": "LCX8-ACTION-0319",
+      "surface": "matter",
+      "section": "matter-import",
+      "label": "확인",
+      "api_route": "POST /api/import-jobs/:job_id/rollback; GET /api/import-jobs/:job_id/error-report",
+      "status_before_p5_t01": "BLOCKED",
+      "fixture_family": "import_data_mapping_runtime",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "fixture_applicability": "P5_SAFE_FIXTURE_ELIGIBLE_DEFERRED",
+      "p5_t02_selected": false,
+      "p5_t02_selection_reason": null,
+      "precondition_status": "PRECONDITIONS_KNOWN_WRITE_PROOF_DEFERRED",
+      "readback_routes": [
+        "GET /api/import-jobs",
+        "GET /api/import-jobs/:job_id/preview"
+      ],
+      "store_policy": "local import-data mapping runtime backed by Matter repository import records",
+      "no_write_executed_in_p5_t01": true
+    }
+  ],
+  "next_tuw": "P5-T02"
+}

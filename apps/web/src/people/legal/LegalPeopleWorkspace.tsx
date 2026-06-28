@@ -15,19 +15,19 @@ const TYPE_FILTERS = [
 
 const MODE_META = {
   directory: {
-    title: "법률 People 디렉터리",
-    meta: "Client-Matter-People",
-    kicker: "Client, Matter, 조직, 충돌 관계를 함께 탐색합니다."
+    title: "Matter 참여자 확인",
+    meta: "Client·Matter 관련 기록",
+    kicker: "권한 범위 안에서 Matter 참여자와 이해상충 검토 상태를 확인합니다."
   },
   relationships: {
-    title: "People 관계망",
-    meta: "관계 피벗",
-    kicker: "선택한 사람의 Client, Matter, 조직 연결을 권한 경계와 함께 봅니다."
+    title: "관련 기록",
+    meta: "Client·Matter",
+    kicker: "선택한 참여자의 Client, Matter, 조직 관련 기록을 권한 범위 안에서 봅니다."
   },
   conflicts: {
-    title: "충돌/윤리벽",
+    title: "이해상충 검토",
     meta: "검토 필요",
-    kicker: "충돌과 윤리벽은 최종 판단이 아니라 검토 상태로만 표시됩니다."
+    kicker: "이해상충과 접근 제한은 최종 판단이 아니라 검토 상태로만 표시됩니다."
   }
 };
 
@@ -44,10 +44,10 @@ function relationshipLabel(value) {
     person_to_organization_affiliation: "조직 소속",
     person_to_client_contact: "Client 연락처",
     person_to_matter_participation: "Matter 참여",
-    person_to_person_relationship: "사람 관계",
+    person_to_person_relationship: "참여자 관련 기록",
     person_to_document_reference: "문서 참조",
-    person_to_conflict_subject: "충돌 대상",
-    person_to_ethical_wall_membership: "윤리벽"
+    person_to_conflict_subject: "이해상충 대상",
+    person_to_ethical_wall_membership: "접근 제한"
   };
   return labels[value] ?? value ?? "관계";
 }
@@ -61,8 +61,8 @@ function reviewStateLabel(value) {
 }
 
 function reviewTypeLabel(value) {
-  if (value === "conflict_check") return "충돌";
-  if (value === "ethical_wall") return "윤리벽";
+  if (value === "conflict_check") return "이해상충";
+  if (value === "ethical_wall") return "접근 제한";
   return value ?? "검토";
 }
 
@@ -89,7 +89,7 @@ function modeFilters(mode) {
   return null;
 }
 
-export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
+export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveCtx = "allow" }) {
   const [query, setQuery] = useState("");
   const [typeId, setTypeId] = useState("");
   const [searchResult, setSearchResult] = useState(null);
@@ -104,7 +104,7 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
   useEffect(() => {
     let cancelled = false;
     setSearchResult(null);
-    fetchLegalPeopleSearch(filters).then((next) => {
+    fetchLegalPeopleSearch({ ...filters, ctx: liveCtx }).then((next) => {
       if (cancelled) return;
       const allowedTypes = modeFilters(mode);
       const people = next.kind === "data" && allowedTypes
@@ -120,40 +120,40 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
     return () => {
       cancelled = true;
     };
-  }, [filters, mode, refreshKey]);
+  }, [filters, liveCtx, mode, refreshKey]);
 
   useEffect(() => {
     let cancelled = false;
     setDetailResult(null);
-    fetchLegalPersonDetail(selectedPersonId).then((next) => {
+    fetchLegalPersonDetail(selectedPersonId, { ctx: liveCtx }).then((next) => {
       if (!cancelled) setDetailResult(next);
     });
     return () => {
       cancelled = true;
     };
-  }, [selectedPersonId, refreshKey]);
+  }, [liveCtx, selectedPersonId, refreshKey]);
 
   useEffect(() => {
     let cancelled = false;
     setRelationshipResult(null);
-    fetchLegalPeopleRelationships(selectedPersonId ? { person_id: selectedPersonId } : {}).then((next) => {
+    fetchLegalPeopleRelationships({ ...(selectedPersonId ? { person_id: selectedPersonId } : {}), ctx: liveCtx }).then((next) => {
       if (!cancelled) setRelationshipResult(next);
     });
     return () => {
       cancelled = true;
     };
-  }, [selectedPersonId, refreshKey]);
+  }, [liveCtx, selectedPersonId, refreshKey]);
 
   useEffect(() => {
     let cancelled = false;
     setEthicsResult(null);
-    fetchLegalPeopleEthics(selectedPersonId ? { person_id: selectedPersonId } : {}).then((next) => {
+    fetchLegalPeopleEthics({ ...(selectedPersonId ? { person_id: selectedPersonId } : {}), ctx: liveCtx }).then((next) => {
       if (!cancelled) setEthicsResult(next);
     });
     return () => {
       cancelled = true;
     };
-  }, [selectedPersonId, refreshKey]);
+  }, [liveCtx, selectedPersonId, refreshKey]);
 
   const people = searchResult?.kind === "data" ? searchResult.people : [];
   const detail = detailResult?.kind === "data" ? detailResult : null;
@@ -175,7 +175,7 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
           <Search size={15} />
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="이름, 역할, 조직 검색" />
         </label>
-        <div className="segmented wrap legal-people-type-tabs" aria-label="People 유형 필터">
+        <div className="segmented wrap legal-people-type-tabs" aria-label="참여자 유형 필터">
           {TYPE_FILTERS.map(({ id, label, icon: Icon }) => (
             <button key={id || "all"} className={typeId === id ? "active" : ""} onClick={() => setTypeId(id)} type="button">
               <Icon size={14} />
@@ -183,9 +183,9 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
             </button>
           ))}
         </div>
-        {searchResult === null && <div className="live-data-state live-data-loading">법률 People 디렉터리를 불러오는 중입니다</div>}
-        {searchResult?.kind === "error" && <div className="live-data-state live-data-error">법률 People 디렉터리를 불러오지 못했습니다.</div>}
-        {searchResult?.kind === "data" && people.length === 0 && <div className="live-data-state live-data-empty">조건에 맞는 People 기록이 없습니다.</div>}
+        {searchResult === null && <div className="live-data-state live-data-loading">참여자 정보를 불러오는 중입니다</div>}
+        {searchResult?.kind === "error" && <div className="live-data-state live-data-error">참여자 정보를 불러오지 못했습니다.</div>}
+        {searchResult?.kind === "data" && people.length === 0 && <div className="live-data-state live-data-empty">조건에 맞는 참여자 기록이 없습니다.</div>}
         {people.length > 0 && (
           <div className="people-row-list legal-people-row-list">
             {people.map((person) => (
@@ -207,14 +207,14 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
         )}
       </Panel>
 
-      <Panel id="people-detail-workspace" className="people-panel legal-people-detail" title="People 상세" meta={selectedPersonId ? "선택됨" : "미선택"}>
+      <Panel id="people-detail-workspace" className="people-panel legal-people-detail" title="참여자 상세" meta={selectedPersonId ? "선택됨" : "미선택"}>
         <div className="people-panel-kicker">
           <LockKeyhole size={15} />
           민감한 관계 정보는 권한에 따라 축약됩니다.
         </div>
-        {!selectedPersonId && <div className="live-data-state live-data-empty">People 기록을 선택해주세요.</div>}
-        {selectedPersonId && detailResult === null && <div className="live-data-state live-data-loading">People 상세를 불러오는 중입니다</div>}
-        {detailResult?.kind === "error" && <div className="live-data-state live-data-error">People 상세를 불러오지 못했습니다.</div>}
+        {!selectedPersonId && <div className="live-data-state live-data-empty">참여자 기록을 선택하세요.</div>}
+        {selectedPersonId && detailResult === null && <div className="live-data-state live-data-loading">참여자 상세를 불러오는 중입니다</div>}
+        {detailResult?.kind === "error" && <div className="live-data-state live-data-error">참여자 상세를 불러오지 못했습니다.</div>}
         {detail && (
           <div className="legal-people-detail-stack">
             <div className="legal-people-identity">
@@ -238,13 +238,13 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
                 {detail.conflict_references.map((item) => (
                   <span key={item.conflict_ref_id}>
                     <ShieldAlert size={13} />
-                    충돌 {statusLabel(item.status)}
+                    이해상충 {statusLabel(item.status)}
                   </span>
                 ))}
                 {detail.ethical_wall_references.map((item) => (
                   <span key={item.wall_ref_id}>
                     <LockKeyhole size={13} />
-                    윤리벽 {statusLabel(item.wall_status)}
+                    접근 제한 {statusLabel(item.wall_status)}
                   </span>
                 ))}
               </div>
@@ -253,14 +253,14 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
         )}
       </Panel>
 
-      <Panel id="people-relationship-panel" className="people-panel legal-people-relationships" title="관계 패널" meta={`${relationships.length}개`}>
+      <Panel id="people-relationship-panel" className="people-panel legal-people-relationships" title="Client·Matter 관련 기록" meta={`${relationships.length}개`}>
         <div className="people-panel-kicker">
           <Link2 size={15} />
-          Client, Matter, 조직 연결과 권한 상태를 함께 표시합니다.
+          Client, Matter, 조직 관련 기록과 권한 상태를 함께 보여줍니다.
         </div>
-        {relationshipResult === null && <div className="live-data-state live-data-loading">관계 정보를 불러오는 중입니다</div>}
-        {relationshipResult?.kind === "error" && <div className="live-data-state live-data-error">관계 정보를 불러오지 못했습니다.</div>}
-        {relationships.length === 0 && relationshipResult?.kind === "data" && <div className="live-data-state live-data-empty">표시할 관계가 없습니다.</div>}
+        {relationshipResult === null && <div className="live-data-state live-data-loading">Client·Matter 관련 기록을 불러오는 중입니다</div>}
+        {relationshipResult?.kind === "error" && <div className="live-data-state live-data-error">Client·Matter 관련 기록을 불러오지 못했습니다.</div>}
+        {relationships.length === 0 && relationshipResult?.kind === "data" && <div className="live-data-state live-data-empty">표시할 관련 기록이 없습니다.</div>}
         {relationships.length > 0 && (
           <div className="legal-relationship-list">
             {relationships.map((relationship) => (
@@ -278,13 +278,13 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
       </Panel>
 
       {mode === "conflicts" && (
-        <Panel id="people-conflict-review-queue" className="people-panel legal-people-conflicts" title="충돌 검토 큐" meta={`${reviewQueue.length}건`}>
+        <Panel id="people-conflict-review-queue" className="people-panel legal-people-conflicts" title="이해상충 검토" meta={`${reviewQueue.length}건`}>
           <div className="people-panel-kicker" data-lcx-ppl-06-conflict-review-queue="true">
             <ShieldAlert size={15} />
             자동 신호는 참고 상태로만 보관됩니다.
           </div>
-          {ethicsResult === null && <div className="live-data-state live-data-loading">충돌 검토 큐를 불러오는 중입니다</div>}
-          {ethicsResult?.kind === "error" && <div className="live-data-state live-data-error">충돌 검토 큐를 불러오지 못했습니다.</div>}
+          {ethicsResult === null && <div className="live-data-state live-data-loading">이해상충 검토 목록을 불러오는 중입니다</div>}
+          {ethicsResult?.kind === "error" && <div className="live-data-state live-data-error">이해상충 검토 목록을 불러오지 못했습니다.</div>}
           {reviewQueue.length > 0 && (
             <div className="legal-relationship-list">
               {reviewQueue.map((item) => (
@@ -303,12 +303,12 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
       )}
 
       {mode === "conflicts" && (
-        <Panel id="people-ethical-wall-surface" className="people-panel legal-people-walls" title="윤리벽" meta={`${ethicalWalls.length}건`}>
+        <Panel id="people-ethical-wall-surface" className="people-panel legal-people-walls" title="접근 제한" meta={`${ethicalWalls.length}건`}>
           <div className="people-panel-kicker" data-lcx-ppl-06-ethical-wall-ui="true">
             <LockKeyhole size={15} />
-            벽 상태는 이유와 receipt 참조로 표시합니다.
+            제한 상태는 사유와 검토 기록으로 표시합니다.
           </div>
-          {ethicalWalls.length === 0 && ethicsResult?.kind === "data" && <div className="live-data-state live-data-empty">표시할 윤리벽이 없습니다.</div>}
+          {ethicalWalls.length === 0 && ethicsResult?.kind === "data" && <div className="live-data-state live-data-empty">표시할 접근 제한이 없습니다.</div>}
           {ethicalWalls.length > 0 && (
             <div className="legal-relationship-list">
               {ethicalWalls.map((wall) => (
@@ -318,7 +318,7 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
                     <small>{wall.matter_id} · {wall.reason_code}</small>
                   </div>
                   <span>{wall.access_effect}</span>
-                  <em>{wall.reviewer_receipt_id ? "receipt" : "대기"}</em>
+                  <em>{wall.reviewer_receipt_id ? "검토 기록" : "대기"}</em>
                 </div>
               ))}
             </div>
@@ -327,12 +327,12 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
       )}
 
       {mode === "conflicts" && (
-        <Panel id="people-reviewer-receipts" className="people-panel legal-people-receipts" title="Reviewer Receipts" meta={`${reviewerReceipts.length}건`}>
+        <Panel id="people-reviewer-receipts" className="people-panel legal-people-receipts" title="검토 기록" meta={`${reviewerReceipts.length}건`}>
           <div className="people-panel-kicker" data-lcx-ppl-06-reviewer-receipts="true">
             <Scale size={15} />
-            결정, notes, rollback 포인터는 권한 경계에 따라 표시됩니다.
+            결정, 메모, 되돌림 기준은 권한 경계에 따라 표시됩니다.
           </div>
-          {reviewerReceipts.length === 0 && ethicsResult?.kind === "data" && <div className="live-data-state live-data-empty">표시할 receipt가 없습니다.</div>}
+          {reviewerReceipts.length === 0 && ethicsResult?.kind === "data" && <div className="live-data-state live-data-empty">표시할 검토 기록이 없습니다.</div>}
           {reviewerReceipts.length > 0 && (
             <div className="legal-relationship-list">
               {reviewerReceipts.map((receipt) => (
@@ -341,8 +341,8 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0 }) {
                     <strong>{receipt.decision}</strong>
                     <small>{receipt.reviewer_role} · {receipt.review_item_id}</small>
                   </div>
-                  <span>{receipt.rollback_ref ? "rollback" : "제한"}</span>
-                  <em>{receipt.ai_final_decision_allowed ? "확인 필요" : "AI false"}</em>
+                  <span>{receipt.rollback_ref ? "되돌림 기준" : "제한"}</span>
+                  <em>{receipt.ai_final_decision_allowed ? "확인 필요" : "사람 검토"}</em>
                 </div>
               ))}
             </div>

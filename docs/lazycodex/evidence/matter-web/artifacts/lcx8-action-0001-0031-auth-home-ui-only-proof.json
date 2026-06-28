@@ -1,0 +1,1803 @@
+{
+  "proof_id": "lcx8-action-0001-0031-auth-home-ui-only-proof",
+  "generated_at": "2026-06-28T03:01:39.345Z",
+  "status": "PASS",
+  "target_ids": [
+    "LCX8-ACTION-0001",
+    "LCX8-ACTION-0002",
+    "LCX8-ACTION-0003",
+    "LCX8-ACTION-0006",
+    "LCX8-ACTION-0007",
+    "LCX8-ACTION-0008",
+    "LCX8-ACTION-0009",
+    "LCX8-ACTION-0010",
+    "LCX8-ACTION-0011",
+    "LCX8-ACTION-0012",
+    "LCX8-ACTION-0013",
+    "LCX8-ACTION-0014",
+    "LCX8-ACTION-0015",
+    "LCX8-ACTION-0016",
+    "LCX8-ACTION-0018",
+    "LCX8-ACTION-0019",
+    "LCX8-ACTION-0020",
+    "LCX8-ACTION-0021",
+    "LCX8-ACTION-0022",
+    "LCX8-ACTION-0023",
+    "LCX8-ACTION-0024",
+    "LCX8-ACTION-0025",
+    "LCX8-ACTION-0026",
+    "LCX8-ACTION-0029",
+    "LCX8-ACTION-0030",
+    "LCX8-ACTION-0031"
+  ],
+  "route_only_ui_only_rows": [
+    "LCX8-ACTION-0001",
+    "LCX8-ACTION-0002",
+    "LCX8-ACTION-0003",
+    "LCX8-ACTION-0006",
+    "LCX8-ACTION-0007",
+    "LCX8-ACTION-0008",
+    "LCX8-ACTION-0010",
+    "LCX8-ACTION-0011",
+    "LCX8-ACTION-0012",
+    "LCX8-ACTION-0014",
+    "LCX8-ACTION-0015",
+    "LCX8-ACTION-0016",
+    "LCX8-ACTION-0018",
+    "LCX8-ACTION-0019",
+    "LCX8-ACTION-0020",
+    "LCX8-ACTION-0021",
+    "LCX8-ACTION-0022",
+    "LCX8-ACTION-0024",
+    "LCX8-ACTION-0025",
+    "LCX8-ACTION-0026",
+    "LCX8-ACTION-0029",
+    "LCX8-ACTION-0030",
+    "LCX8-ACTION-0031"
+  ],
+  "api_write_side_effect_rows": [
+    "LCX8-ACTION-0009",
+    "LCX8-ACTION-0013",
+    "LCX8-ACTION-0023"
+  ],
+  "classification": {
+    "LCX8-ACTION-0001": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0002": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0003": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0006": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0007": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0008": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0009": "PASS_ROUTE_NAVIGATION_WITH_SAFE_RECENTLY_VIEWED_WRITE",
+    "LCX8-ACTION-0010": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0011": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0012": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0013": "PASS_ROUTE_NAVIGATION_WITH_SAFE_RECENTLY_VIEWED_WRITE",
+    "LCX8-ACTION-0014": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0015": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0016": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0018": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0019": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0020": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0021": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0022": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0023": "PASS_ROUTE_NAVIGATION_WITH_SAFE_RECENTLY_VIEWED_WRITE",
+    "LCX8-ACTION-0024": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0025": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0026": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0029": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0030": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0031": "UI_ONLY_FINAL_ROUTE_NAVIGATION"
+  },
+  "current_product_copy_updates": {
+    "LCX8-ACTION-0014": {
+      "ledger_label_before": "구성원 초대",
+      "observed_button_label": "합류코드 전송",
+      "selector": "Topbar labels.invite"
+    }
+  },
+  "source_trace": {
+    "auth": "apps/web/src/components/AuthSurface.jsx AuthSurface/AuthForm -> setAuthStep/setLoginEmail/setLoginPassword/onLogin",
+    "navigation": "apps/web/src/App.jsx navigateToView -> setView/setActiveSection/pushState(routeUrl)",
+    "topbar": "apps/web/src/components/Shell.jsx Topbar -> setQuery/onCreate/onInvite/onProfile/onToggleNotifications/setTheme/setLocale",
+    "global_search": "apps/web/src/components/Shell.jsx GlobalSearch -> setView(view); setQuery(\"\")",
+    "sidebar": "apps/web/src/components/Shell.jsx Sidebar home actions -> setView(\"home\", section)",
+    "matter_side_effect": "apps/web/src/components/MattersSurface.jsx mount -> markMatterRecentlyViewed -> /api/matters/:matter_id/recently-viewed"
+  },
+  "observations": [
+    {
+      "id": "LCX8-ACTION-0001",
+      "label": "Sign up now",
+      "observedLabel": "Sign up now",
+      "className": "ui_state_only",
+      "state": {
+        "view": "auth",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=auth&authStep=login&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "authStepVisible": "signup",
+      "urlStillAuthLogin": true
+    },
+    {
+      "id": "LCX8-ACTION-0002",
+      "label": "Email",
+      "observedLabel": "Email",
+      "className": "ui_state_only",
+      "state": {
+        "view": "auth",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=auth&authStep=login&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "value": "lcx8-auth@example.test"
+    },
+    {
+      "id": "LCX8-ACTION-0003",
+      "label": "Password",
+      "observedLabel": "Password",
+      "className": "ui_state_only",
+      "state": {
+        "view": "auth",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=auth&authStep=login&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "valueLength": 13
+    },
+    {
+      "id": "LCX8-ACTION-0006",
+      "label": "Log in",
+      "observedLabel": "Log in",
+      "className": "route_navigation",
+      "state": {
+        "view": "home",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=home&authStep=login&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": []
+    },
+    {
+      "id": "LCX8-ACTION-0007",
+      "label": "Home",
+      "observedLabel": "Home",
+      "className": "route_navigation",
+      "state": {
+        "view": "home",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetView": "home"
+    },
+    {
+      "id": "LCX8-ACTION-0008",
+      "label": "Client",
+      "observedLabel": "Client",
+      "className": "route_navigation",
+      "state": {
+        "view": "clients",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=clients&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetView": "clients"
+    },
+    {
+      "id": "LCX8-ACTION-0009",
+      "label": "Matter",
+      "observedLabel": "Matter",
+      "className": "route_with_recent_write",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        }
+      ],
+      "recentWrites": [
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        }
+      ],
+      "nonRecentMutations": [],
+      "targetView": "matters"
+    },
+    {
+      "id": "LCX8-ACTION-0010",
+      "label": "People",
+      "observedLabel": "People",
+      "className": "route_navigation",
+      "state": {
+        "view": "people",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=people&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetView": "people"
+    },
+    {
+      "id": "LCX8-ACTION-0011",
+      "label": "Vault",
+      "observedLabel": "Vault",
+      "className": "route_navigation",
+      "state": {
+        "view": "vault",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetView": "vault"
+    },
+    {
+      "id": "LCX8-ACTION-0012",
+      "label": "검색",
+      "observedLabel": "검색",
+      "className": "ui_state_only",
+      "state": {
+        "view": "home",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "queryValue": "계약",
+      "resultCount": 5
+    },
+    {
+      "id": "LCX8-ACTION-0013",
+      "label": "새로 만들기",
+      "observedLabel": "새로 만들기",
+      "className": "route_with_recent_write",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-opening",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-opening"
+      },
+      "surfaceVisible": true,
+      "mutations": [
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        }
+      ],
+      "recentWrites": [
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        }
+      ],
+      "nonRecentMutations": []
+    },
+    {
+      "id": "LCX8-ACTION-0014",
+      "label": "구성원 초대",
+      "observedLabel": "합류코드 전송",
+      "className": "route_navigation",
+      "state": {
+        "view": "people",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "people-members",
+        "pathSearchHash": "/?locale=ko&view=people&data=live&ctx=allow#people-members"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": []
+    },
+    {
+      "id": "LCX8-ACTION-0015",
+      "label": "내 프로필",
+      "observedLabel": "내 프로필",
+      "className": "route_navigation",
+      "state": {
+        "view": "profile",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=profile&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": []
+    },
+    {
+      "id": "LCX8-ACTION-0016",
+      "label": "알림",
+      "observedLabel": "알림",
+      "className": "ui_state_only",
+      "state": {
+        "view": "home",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": []
+    },
+    {
+      "id": "LCX8-ACTION-0018",
+      "label": "테마",
+      "observedLabel": "테마",
+      "className": "ui_state_only",
+      "state": {
+        "view": "home",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "theme": "dark"
+    },
+    {
+      "id": "LCX8-ACTION-0019",
+      "label": "한국어",
+      "observedLabel": "한국어",
+      "className": "ui_state_only",
+      "state": {
+        "view": "home",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "locale": "en",
+      "lang": "en"
+    },
+    {
+      "id": "LCX8-ACTION-0020",
+      "label": "검색 닫기",
+      "observedLabel": "검색 닫기",
+      "className": "ui_state_only",
+      "state": {
+        "view": "home",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "queryValue": ""
+    },
+    {
+      "id": "LCX8-ACTION-0021",
+      "label": "홈에서 검색",
+      "observedLabel": "홈에서 검색",
+      "className": "route_navigation",
+      "state": {
+        "view": "home",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetView": "home",
+      "searchPopoverOpen": 0
+    },
+    {
+      "id": "LCX8-ACTION-0022",
+      "label": "Client에서 검색",
+      "observedLabel": "Client에서 검색",
+      "className": "route_navigation",
+      "state": {
+        "view": "clients",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=clients&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetView": "clients",
+      "searchPopoverOpen": 0
+    },
+    {
+      "id": "LCX8-ACTION-0023",
+      "label": "Matter에서 검색",
+      "observedLabel": "Matter에서 검색",
+      "className": "route_with_recent_write",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        }
+      ],
+      "recentWrites": [
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        }
+      ],
+      "nonRecentMutations": [],
+      "targetView": "matters",
+      "searchPopoverOpen": 0
+    },
+    {
+      "id": "LCX8-ACTION-0024",
+      "label": "People에서 검색",
+      "observedLabel": "People에서 검색",
+      "className": "route_navigation",
+      "state": {
+        "view": "people",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=people&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetView": "people",
+      "searchPopoverOpen": 0
+    },
+    {
+      "id": "LCX8-ACTION-0025",
+      "label": "Vault에서 검색",
+      "observedLabel": "Vault에서 검색",
+      "className": "route_navigation",
+      "state": {
+        "view": "vault",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetView": "vault",
+      "searchPopoverOpen": 0
+    },
+    {
+      "id": "LCX8-ACTION-0026",
+      "label": "알림 닫기",
+      "observedLabel": "알림 닫기",
+      "className": "ui_state_only",
+      "state": {
+        "view": "home",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": []
+    },
+    {
+      "id": "LCX8-ACTION-0029",
+      "label": "최근 작업",
+      "observedLabel": "최근 작업",
+      "className": "route_navigation",
+      "state": {
+        "view": "home",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "home-recent",
+        "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow#home-recent"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetHash": "home-recent"
+    },
+    {
+      "id": "LCX8-ACTION-0030",
+      "label": "대시보드",
+      "observedLabel": "대시보드",
+      "className": "route_navigation",
+      "state": {
+        "view": "home",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "home-dashboard",
+        "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow#home-dashboard"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetHash": "home-dashboard"
+    },
+    {
+      "id": "LCX8-ACTION-0031",
+      "label": "검토함",
+      "observedLabel": "검토함",
+      "className": "route_navigation",
+      "state": {
+        "view": "home",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "home-review",
+        "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow#home-review"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetHash": "home-review"
+    }
+  ],
+  "direct_api_probes": [
+    {
+      "name": "recently viewed mark",
+      "pathname": "/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+      "method": "POST",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_15c95f77-135d-4a45-a1fc-14e5ab21ca49",
+        "outcome": "updated",
+        "item": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "resource_id": "matter_recent:matter_rp05_synthetic_opening",
+          "matter_id": "matter_rp05_synthetic_opening",
+          "object_type": "Matter",
+          "title": "RP05 synthetic matter opening",
+          "matter_number": "M-TENANT-RP05-0001",
+          "status": "opening",
+          "viewed_at": "2026-06-28T03:00:00.000Z",
+          "viewer_scoped": true,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "matter.recently_viewed.mark:tenant_rp05_synthetic:matter_rp05_synthetic_opening:user_rp05_owner",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "user_rp05_owner",
+          "action": "matter.recently_viewed.mark",
+          "object_type": "Matter",
+          "object_id": "matter_rp05_synthetic_opening",
+          "decision": "allow",
+          "reason": "matter_record_recently_viewed",
+          "occurred_at": "2026-06-28T03:00:00.000Z",
+          "metadata": {
+            "viewer_scoped": true,
+            "permission_ref": "ui_lcx8_auth_home_recent_write"
+          },
+          "event_hash": "6d126ad9ea287e4f5c8b500fec06b902197fba9fcb5bcc77a2c1df9ed8ef2199"
+        },
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_auth_home_recent_write",
+        "state_idempotent": true,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "name": "recently viewed readback",
+      "pathname": "/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_lcx8_auth_home_recent_readback&audit_hint_ref=audit_lcx8_auth_home_recent_readback",
+      "method": "GET",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_e526f5dc-0d64-4180-9dee-819a4bcb5f53",
+        "outcome": "passed",
+        "items": [
+          {
+            "tenant_id": "tenant_rp05_synthetic",
+            "resource_id": "matter_recent:matter_rp05_synthetic_opening",
+            "matter_id": "matter_rp05_synthetic_opening",
+            "object_type": "Matter",
+            "title": "RP05 synthetic matter opening",
+            "matter_number": "M-TENANT-RP05-0001",
+            "status": "opening",
+            "viewed_at": "2026-06-28T03:00:00.000Z",
+            "viewer_scoped": true,
+            "production_ready_claim": false
+          }
+        ],
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_auth_home_recent_readback",
+        "ui_state": null,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "name": "recently viewed audit",
+      "pathname": "/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_lcx8_auth_home_recent_audit&audit_hint_ref=audit_lcx8_auth_home_recent_audit",
+      "method": "GET",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_3682c314-ba3e-4a59-bb7a-4a0e96556475",
+        "outcome": "passed",
+        "items": [
+          {
+            "event_id": "matter.recently_viewed.mark:tenant_rp05_synthetic:matter_rp05_synthetic_opening:user_rp05_owner",
+            "tenant_id": "tenant_rp05_synthetic",
+            "actor_id": "user_rp05_owner",
+            "action": "matter.recently_viewed.mark",
+            "object_type": "Matter",
+            "object_id": "matter_rp05_synthetic_opening",
+            "decision": "allow",
+            "reason": "matter_record_recently_viewed",
+            "occurred_at": "2026-06-28T03:00:00.000Z",
+            "metadata": {
+              "viewer_scoped": true,
+              "permission_ref": "ui_lcx8_auth_home_recent_write"
+            },
+            "event_hash": "6d126ad9ea287e4f5c8b500fec06b902197fba9fcb5bcc77a2c1df9ed8ef2199"
+          }
+        ],
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_auth_home_recent_audit",
+        "ui_state": null,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "name": "recently viewed denied guard",
+      "pathname": "/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+      "method": "POST",
+      "effect": "deny",
+      "status": 403,
+      "body": {
+        "request_id": "req_11d04aea-903b-45b9-ad25-98f5438d37c2",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_UNAUTHORIZED_OMISSION"
+        ],
+        "audit_hint_ref": "audit_lcx8_auth_home_recent_denied",
+        "ui_state": "denied",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "name": "recently viewed review guard",
+      "pathname": "/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+      "method": "POST",
+      "effect": "review_required",
+      "status": 200,
+      "body": {
+        "request_id": "req_3ee8e072-8396-4886-8129-59fdf617c3d0",
+        "outcome": "review_required",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_REVIEW_REQUIRED"
+        ],
+        "audit_hint_ref": "audit_lcx8_auth_home_recent_review",
+        "ui_state": "review_required",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    }
+  ],
+  "browser_events": {
+    "api_event_count": 401,
+    "mutation_event_count": 3,
+    "console_errors": []
+  },
+  "screenshots": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0001-0031-auth-login-start.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0001-0031-auth-home-after-checks.png"
+  ],
+  "assertions": [
+    {
+      "name": "LCX8-ACTION-0001 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0001",
+        "label": "Sign up now",
+        "observedLabel": "Sign up now",
+        "className": "ui_state_only",
+        "state": {
+          "view": "auth",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=auth&authStep=login&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "authStepVisible": "signup",
+        "urlStillAuthLogin": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0001 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0001 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0002 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0002",
+        "label": "Email",
+        "observedLabel": "Email",
+        "className": "ui_state_only",
+        "state": {
+          "view": "auth",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=auth&authStep=login&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "value": "lcx8-auth@example.test"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0002 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0002 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0003 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0003",
+        "label": "Password",
+        "observedLabel": "Password",
+        "className": "ui_state_only",
+        "state": {
+          "view": "auth",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=auth&authStep=login&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "valueLength": 13
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0003 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0003 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0006 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0006",
+        "label": "Log in",
+        "observedLabel": "Log in",
+        "className": "route_navigation",
+        "state": {
+          "view": "home",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=home&authStep=login&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0006 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0006 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0007 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0007",
+        "label": "Home",
+        "observedLabel": "Home",
+        "className": "route_navigation",
+        "state": {
+          "view": "home",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetView": "home"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0007 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0007 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0008 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0008",
+        "label": "Client",
+        "observedLabel": "Client",
+        "className": "route_navigation",
+        "state": {
+          "view": "clients",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=clients&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetView": "clients"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0008 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0008 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0009 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0009",
+        "label": "Matter",
+        "observedLabel": "Matter",
+        "className": "route_with_recent_write",
+        "state": {
+          "view": "matters",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ],
+        "recentWrites": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ],
+        "nonRecentMutations": [],
+        "targetView": "matters"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0009 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0009 observed recently-viewed write",
+      "status": "PASS",
+      "detail": {
+        "recentWrites": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0010 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0010",
+        "label": "People",
+        "observedLabel": "People",
+        "className": "route_navigation",
+        "state": {
+          "view": "people",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=people&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetView": "people"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0010 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0010 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0011 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0011",
+        "label": "Vault",
+        "observedLabel": "Vault",
+        "className": "route_navigation",
+        "state": {
+          "view": "vault",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetView": "vault"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0011 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0011 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0012 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0012",
+        "label": "검색",
+        "observedLabel": "검색",
+        "className": "ui_state_only",
+        "state": {
+          "view": "home",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "queryValue": "계약",
+        "resultCount": 5
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0012 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0012 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0013 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0013",
+        "label": "새로 만들기",
+        "observedLabel": "새로 만들기",
+        "className": "route_with_recent_write",
+        "state": {
+          "view": "matters",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "matter-opening",
+          "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-opening"
+        },
+        "surfaceVisible": true,
+        "mutations": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ],
+        "recentWrites": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ],
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0013 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0013 observed recently-viewed write",
+      "status": "PASS",
+      "detail": {
+        "recentWrites": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0014 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0014",
+        "label": "구성원 초대",
+        "observedLabel": "합류코드 전송",
+        "className": "route_navigation",
+        "state": {
+          "view": "people",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "people-members",
+          "pathSearchHash": "/?locale=ko&view=people&data=live&ctx=allow#people-members"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0014 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0014 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0015 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0015",
+        "label": "내 프로필",
+        "observedLabel": "내 프로필",
+        "className": "route_navigation",
+        "state": {
+          "view": "profile",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=profile&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0015 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0015 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0016 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0016",
+        "label": "알림",
+        "observedLabel": "알림",
+        "className": "ui_state_only",
+        "state": {
+          "view": "home",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0016 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0016 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0018 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0018",
+        "label": "테마",
+        "observedLabel": "테마",
+        "className": "ui_state_only",
+        "state": {
+          "view": "home",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "theme": "dark"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0018 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0018 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0019 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0019",
+        "label": "한국어",
+        "observedLabel": "한국어",
+        "className": "ui_state_only",
+        "state": {
+          "view": "home",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "locale": "en",
+        "lang": "en"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0019 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0019 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0020 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0020",
+        "label": "검색 닫기",
+        "observedLabel": "검색 닫기",
+        "className": "ui_state_only",
+        "state": {
+          "view": "home",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "queryValue": ""
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0020 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0020 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0021 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0021",
+        "label": "홈에서 검색",
+        "observedLabel": "홈에서 검색",
+        "className": "route_navigation",
+        "state": {
+          "view": "home",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetView": "home",
+        "searchPopoverOpen": 0
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0021 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0021 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0022 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0022",
+        "label": "Client에서 검색",
+        "observedLabel": "Client에서 검색",
+        "className": "route_navigation",
+        "state": {
+          "view": "clients",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=clients&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetView": "clients",
+        "searchPopoverOpen": 0
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0022 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0022 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0023 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0023",
+        "label": "Matter에서 검색",
+        "observedLabel": "Matter에서 검색",
+        "className": "route_with_recent_write",
+        "state": {
+          "view": "matters",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ],
+        "recentWrites": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ],
+        "nonRecentMutations": [],
+        "targetView": "matters",
+        "searchPopoverOpen": 0
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0023 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0023 observed recently-viewed write",
+      "status": "PASS",
+      "detail": {
+        "recentWrites": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0024 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0024",
+        "label": "People에서 검색",
+        "observedLabel": "People에서 검색",
+        "className": "route_navigation",
+        "state": {
+          "view": "people",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=people&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetView": "people",
+        "searchPopoverOpen": 0
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0024 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0024 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0025 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0025",
+        "label": "Vault에서 검색",
+        "observedLabel": "Vault에서 검색",
+        "className": "route_navigation",
+        "state": {
+          "view": "vault",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetView": "vault",
+        "searchPopoverOpen": 0
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0025 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0025 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0026 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0026",
+        "label": "알림 닫기",
+        "observedLabel": "알림 닫기",
+        "className": "ui_state_only",
+        "state": {
+          "view": "home",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0026 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0026 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0029 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0029",
+        "label": "최근 작업",
+        "observedLabel": "최근 작업",
+        "className": "route_navigation",
+        "state": {
+          "view": "home",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "home-recent",
+          "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow#home-recent"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetHash": "home-recent"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0029 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0029 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0030 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0030",
+        "label": "대시보드",
+        "observedLabel": "대시보드",
+        "className": "route_navigation",
+        "state": {
+          "view": "home",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "home-dashboard",
+          "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow#home-dashboard"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetHash": "home-dashboard"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0030 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0030 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0031 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0031",
+        "label": "검토함",
+        "observedLabel": "검토함",
+        "className": "route_navigation",
+        "state": {
+          "view": "home",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "home-review",
+          "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow#home-review"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetHash": "home-review"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0031 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0031 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "browser console has no errors",
+      "status": "PASS",
+      "detail": {
+        "console_errors": []
+      }
+    },
+    {
+      "name": "direct recently-viewed mark PASS",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "outcome": "updated"
+      }
+    },
+    {
+      "name": "direct recently-viewed readback PASS",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "count": 1
+      }
+    },
+    {
+      "name": "direct recently-viewed audit PASS",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "count": 1
+      }
+    },
+    {
+      "name": "direct recently-viewed denied guard PASS",
+      "status": "PASS",
+      "detail": {
+        "status": 403,
+        "outcome": "blocked",
+        "ui_state": "denied"
+      }
+    },
+    {
+      "name": "direct recently-viewed review guard PASS",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "outcome": "review_required",
+        "ui_state": "review_required"
+      }
+    }
+  ],
+  "non_claims": [
+    "Rows without observed recently-viewed writes remain UI_ONLY final because they only update local React state, route/history, locale/theme, query, or drawer state.",
+    "Rows with Matter navigation do not remain UI_ONLY: current Matter surface mount writes viewer-scoped recently-viewed state and reads/audits it back.",
+    "No non-recent Matter mutation, Client/People/Vault write, auth credential validation, password reset, notification persistence, provider execution, or production launch claim is made.",
+    "This proof does not resolve FAIL rows LCX8-ACTION-0004/0005/0017/0027/0028/0032 or Lazyweb-gated profile-sidebar rows LCX8-ACTION-0233..0236."
+  ]
+}

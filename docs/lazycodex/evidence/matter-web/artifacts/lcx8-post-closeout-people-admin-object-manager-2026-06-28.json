@@ -1,0 +1,49 @@
+{
+  "schema_version": "lawos.lazycodex.post_closeout_resolution.v0.1",
+  "generated_at": "2026-06-28T02:23:58.169Z",
+  "status": "PASS",
+  "target_ids": [
+    "LCX8-ACTION-0218",
+    "LCX8-ACTION-0219"
+  ],
+  "status_before": "BLOCKED",
+  "status_after": "PASS",
+  "batch": "LCX8-ALL-10",
+  "proof_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0218-0219-people-admin-object-manager-proof.json",
+  "markdown_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0218-0219-people-admin-object-manager-proof.md",
+  "summary": "Post-closeout LCX8-ACTION-0218/0219 verification: People admin object-manager Client/Matter tab read/fail-closed proof PASS (browser observed Client and Matter tab activation plus admin collection/object-field/HRX ethics reads, denied/review People guard routes with no protected admin or HRX ethics requests, direct admin allow/denied/review API probes PASS for permission sets, assignments, objects, connected apps, audit, Client fields, Matter fields, and direct HRX ethics probes); node --test apps/api/test/hrx/route-authz.test.js apps/api/test/hrx-runtime-api.test.js apps/api/test/hrx/legal-people-api.test.js PASS 32/32; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS. Status moved BLOCKED -> PASS for 2 rows.",
+  "verification": {
+    "browser_assertions": 15,
+    "direct_admin_probes": 21,
+    "direct_hrx_ethics_probes": 3,
+    "screenshots": 4,
+    "focused_api_tests": "PASS 32/32",
+    "web_ui_tests": "PASS 17/17",
+    "build": "PASS (existing Vite chunk-size warning only)",
+    "live_verifier": "PASS 13/13",
+    "flow_verifier": "PASS 9/9",
+    "sloplint": "PASS"
+  },
+  "status_counts_after": {
+    "PASS": 64,
+    "GUARDED": 20,
+    "UI_ONLY": 128,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 75,
+    "FAIL": 35,
+    "UNKNOWN": 0
+  },
+  "next_row": "LCX8-ACTION-0220",
+  "non_claims": [
+    "This is read-only object-manager tab switch proof; no admin permission write action is claimed.",
+    "LCX8-ACTION-0218/0219 proof does not claim production schema mutation, connected-app provider execution, or final launch readiness."
+  ],
+  "artifacts_updated": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-run.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.md",
+    "docs/lazycodex/lcx8-remaining-ui-action-remediation-plan-2026-06-27.md"
+  ]
+}

@@ -18,5 +18,10 @@ test("HR document workspace renders protected document registration state withou
   assert.match(api, /\/api\/hrx\/documents/);
   assert.match(documents, /등록 상태/);
   assert.match(documents, /document\.source_ref/);
+  assert.match(documents, /회사방침/);
+  assert.match(documents, /증명서 발급 요청/);
+  assert.match(documents, /재직증명서/);
+  assert.match(documents, /경력증명서/);
+  assert.doesNotMatch(documents, /문서·증명서|인사 문서|인사규정/);
   assert.doesNotMatch(documents, /document\.body|document_body|content_text|Source Ref|source_ref rendered/);
 });

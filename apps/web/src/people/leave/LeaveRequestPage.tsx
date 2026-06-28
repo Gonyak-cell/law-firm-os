@@ -39,11 +39,11 @@ export function LeaveRequestPage({ employeeId, refreshKey, onSubmitted }) {
 
   let stateBody;
   if (!employeeId) {
-    stateBody = <div className="live-data-state live-data-empty">구성원을 선택해주세요.</div>;
+    stateBody = <div className="live-data-state live-data-empty">구성원을 선택하세요.</div>;
   } else if (result === null) {
     stateBody = <div className="live-data-state live-data-loading">휴가 정보를 불러오는 중입니다</div>;
   } else if (result.kind === "empty") {
-    stateBody = <div className="live-data-state live-data-empty">구성원을 선택해주세요.</div>;
+    stateBody = <div className="live-data-state live-data-empty">구성원을 선택하세요.</div>;
   } else if (result.kind === "error") {
     stateBody = <div className="live-data-state live-data-error">휴가 정보를 불러오지 못했습니다.</div>;
   } else {
@@ -62,7 +62,7 @@ export function LeaveRequestPage({ employeeId, refreshKey, onSubmitted }) {
   }
 
   return (
-    <Panel id="people-leave" className="people-panel span-2" title="휴가 신청" meta="휴가 현황">
+    <Panel id="people-leave" className="people-panel span-2" title="휴가관리" meta="휴가 현황">
       <div className="people-panel-kicker">
         <CalendarCheck size={15} />
         휴가를 신청하고 잔여 휴가를 확인합니다

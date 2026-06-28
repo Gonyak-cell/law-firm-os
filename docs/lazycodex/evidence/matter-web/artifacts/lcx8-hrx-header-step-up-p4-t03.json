@@ -1,0 +1,1665 @@
+{
+  "schema_version": "matter.lcx8.hrx-header-step-up.p4-t03.v1",
+  "generated_at": "2026-06-25T13:26:37.892Z",
+  "status": "complete_hrx_header_step_up_confirmed_with_existing_people_ctx_gap",
+  "tuw": "P4-T03",
+  "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
+  "source_artifacts": [
+    "apps/web/src/people/hrxApiClient.ts",
+    "apps/api/src/middleware/hrx-step-up.js",
+    "apps/api/src/middleware/hrx-step-up-context.js",
+    "apps/api/src/routes/hrx/route-policy-map.js",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-read-fail-closed-p4-t01.json"
+  ],
+  "validator": {
+    "command": "npm run hrx:ui:validate",
+    "status": "PASS",
+    "output_summary": "HRX UI API-backed validation passed; scope portal_api_hardening."
+  },
+  "hrx_rows_reviewed": 75,
+  "hrx_api_rows_reviewed": 49,
+  "header_source_rows": 75,
+  "required_header_count": 5,
+  "step_up_api_cases_reviewed": 4,
+  "step_up_required_cases": 2,
+  "step_up_satisfied_cases": 1,
+  "tenant_context_fail_closed_cases": 1,
+  "people_ctx_gap_rows": 1,
+  "rows_by_classification": {
+    "HRX_HEADER_SOURCE_CONFIRMED": 70,
+    "HRX_STEP_UP_API_CONFIRMED": 4,
+    "HRX_HEADER_SOURCE_CONFIRMED_WITH_PEOPLE_CTX_GAP": 1
+  },
+  "rows_by_trace_depth": {
+    "api_read": 32,
+    "ui_state_only": 26,
+    "api_write": 17
+  },
+  "api_step_up_cases": [
+    {
+      "name": "no-headers",
+      "status": 400,
+      "safe_error_code": "HRX_TENANT_CONTEXT_REQUIRED",
+      "step_up_required": null,
+      "fail_closed": true,
+      "result": "FAIL_CLOSED_TENANT_CONTEXT_REQUIRED"
+    },
+    {
+      "name": "runtime-headers-no-step-up",
+      "status": 403,
+      "safe_error_code": "HRX_STEP_UP_REQUIRED",
+      "step_up_required": true,
+      "fail_closed": true,
+      "result": "STEP_UP_REQUIRED_CONFIRMED"
+    },
+    {
+      "name": "runtime-headers-weak-step-up",
+      "status": 403,
+      "safe_error_code": "HRX_STEP_UP_REQUIRED",
+      "step_up_required": true,
+      "fail_closed": true,
+      "result": "STEP_UP_REQUIRED_CONFIRMED"
+    },
+    {
+      "name": "runtime-headers-full-step-up",
+      "status": 200,
+      "safe_error_code": null,
+      "step_up_required": null,
+      "fail_closed": false,
+      "result": "STEP_UP_SATISFIED_CONFIRMED",
+      "events_count": 171
+    }
+  ],
+  "entries": [
+    {
+      "id": "LCX8-ACTION-0036",
+      "surface": "home",
+      "label": "새로고침",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /master-data/records; GET /api/crm/opportunities; GET /api/intake/requests; GET /api/portal/dashboard; GET /api/portal/rfi; GET /api/matters; GET /api/finance/time-entries; GET /api/finance/invoices; GET /api/finance/ar-aging; GET /api/analytics/dashboards; GET /api/ai/review-queue; GET /api/hrx/employees; GET /api/vault/documents; GET /api/data-room/projections",
+      "source_file": "apps/web/src/components/HomeSurface.jsx",
+      "permission_boundary": "liveCtx forwarded as ctx to Client/Matter/Vault fetchers; People overview does not accept ctx in current HomeSurface source",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0044",
+      "surface": "matter",
+      "label": "새로고침",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/matters; GET /api/matters/list-views; GET /api/record-actions/matter/fields; GET /api/record-actions/matter/:record_id/audit; GET /api/hrx/legal-people/search?matter_id=:matter_id; GET /api/matters/:matter_id/command-center; GET /api/matters/:matter_id/timeline; GET /api/matters/audit; GET /api/matters/recently-viewed; GET /api/finance/time-entries; GET /api/finance/invoices; GET /api/finance/ar-aging; GET /api/finance/audit; GET /api/analytics/dashboards; GET /api/analytics/matter-profitability",
+      "source_file": "apps/web/src/components/MattersSurface.jsx; apps/web/src/data/apiClient.js; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "Matter/Finance/Analytics/HRX permission contexts",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0093",
+      "surface": "people-directory",
+      "label": "새로고침",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/employees; wired active sections also re-run GET /api/hrx/legal-people/search, GET /api/hrx/legal-people/:personId, GET /api/hrx/legal-people/relationships, GET /api/hrx/legal-people/ethics, GET /api/hrx/lifecycle/onboarding, GET /api/hrx/lifecycle/offboarding, GET /api/hrx/documents?employee_id=:employee_id, GET /api/hrx/leave?employee_id=:employee_id&policy_id=pto-us",
+      "source_file": "apps/web/src/people/PeopleHome.tsx; apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/employees/PeopleWorkforceDirectory.tsx; apps/web/src/people/employees/EmployeeList.tsx; apps/web/src/people/documents/HRDocumentWorkspace.tsx; apps/web/src/people/leave/LeaveRequestPage.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0095",
+      "surface": "people-directory",
+      "label": "이름, 역할, 조직 검색",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0096",
+      "surface": "people-directory",
+      "label": "전체",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0097",
+      "surface": "people-directory",
+      "label": "내부 변호사",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0098",
+      "surface": "people-directory",
+      "label": "Client",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0099",
+      "surface": "people-directory",
+      "label": "상대 대리인",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0100",
+      "surface": "people-directory",
+      "label": "전문가",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0101",
+      "surface": "people-directory",
+      "label": "규제기관",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0102",
+      "surface": "people-directory",
+      "label": "Legal person row",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/:personId; GET /api/hrx/legal-people/relationships?person_id=:personId; GET /api/hrx/legal-people/ethics?person_id=:personId",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0114",
+      "surface": "client",
+      "label": "새로고침",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /master-data/records; GET /api/hrx/legal-people/search?client_id=client_lcx_001; GET /api/crm/leads; GET /api/crm/opportunities; GET /api/intake/requests; GET /api/intake/audit; GET /api/crm/accounts; GET /api/crm/contacts; GET /api/crm/duplicate-merge-proposals; GET /api/crm/accounts/:account_id/contacts; GET /api/record-actions/client/fields; GET /api/record-actions/client/:record_id/audit",
+      "source_file": "apps/web/src/components/ClientsSurface.jsx; apps/web/src/data/apiClient.js; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "CLIENTS_PERMISSION_REF; CRM_INTAKE permission context; record-action client context; legal-people search boundary",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0166",
+      "surface": "people-relationships",
+      "label": "이름, 역할, 조직 검색",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0167",
+      "surface": "people-relationships",
+      "label": "전체",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0168",
+      "surface": "people-relationships",
+      "label": "내부 변호사",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0169",
+      "surface": "people-relationships",
+      "label": "Client",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0170",
+      "surface": "people-relationships",
+      "label": "상대 대리인",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0171",
+      "surface": "people-relationships",
+      "label": "전문가",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0172",
+      "surface": "people-relationships",
+      "label": "규제기관",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0173",
+      "surface": "people-relationships",
+      "label": "Legal person row",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/:personId; GET /api/hrx/legal-people/relationships?person_id=:personId; GET /api/hrx/legal-people/ethics?person_id=:personId",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0174",
+      "surface": "people-conflicts",
+      "label": "이름, 역할, 조직 검색",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0175",
+      "surface": "people-conflicts",
+      "label": "전체",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0176",
+      "surface": "people-conflicts",
+      "label": "내부 변호사",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0177",
+      "surface": "people-conflicts",
+      "label": "Client",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0178",
+      "surface": "people-conflicts",
+      "label": "상대 대리인",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0179",
+      "surface": "people-conflicts",
+      "label": "전문가",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0180",
+      "surface": "people-conflicts",
+      "label": "규제기관",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0181",
+      "surface": "people-conflicts",
+      "label": "Legal person row",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/legal-people/:personId; GET /api/hrx/legal-people/relationships?person_id=:personId; GET /api/hrx/legal-people/ethics?person_id=:personId",
+      "source_file": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0183",
+      "surface": "people-workforce",
+      "label": "더보기",
+      "status_before_p4_t03": "FAIL",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0184",
+      "surface": "people-workforce",
+      "label": "조직도",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0185",
+      "surface": "people-workforce",
+      "label": "구성원 추가",
+      "status_before_p4_t03": "FAIL",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0186",
+      "surface": "people-workforce",
+      "label": "추가 메뉴",
+      "status_before_p4_t03": "FAIL",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0187",
+      "surface": "people-workforce",
+      "label": "재직",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0188",
+      "surface": "people-workforce",
+      "label": "입사 예정",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0189",
+      "surface": "people-workforce",
+      "label": "퇴사 예정",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0190",
+      "surface": "people-workforce",
+      "label": "종료",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0191",
+      "surface": "people-workforce",
+      "label": "외부 협업",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0192",
+      "surface": "people-workforce",
+      "label": "표 보기 옵션",
+      "status_before_p4_t03": "FAIL",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0193",
+      "surface": "people-workforce",
+      "label": "구성원 검색",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0194",
+      "surface": "people-workforce",
+      "label": "속성 조정",
+      "status_before_p4_t03": "FAIL",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0195",
+      "surface": "people-workforce",
+      "label": "Workforce employee row",
+      "status_before_p4_t03": "FAIL",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx; apps/web/src/people/PeopleHome.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0196",
+      "surface": "people-workforce",
+      "label": "Lifecycle onboarding row",
+      "status_before_p4_t03": "FAIL",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx; apps/web/src/people/PeopleHome.tsx; apps/web/src/people/lifecycle/LifecycleBoard.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0197",
+      "surface": "people-documents-leave",
+      "label": "Employee list row",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/employees; GET /api/hrx/documents?employee_id=:employee_id; GET /api/hrx/leave?employee_id=:employee_id&policy_id=pto-us",
+      "source_file": "apps/web/src/people/employees/EmployeeList.tsx; apps/web/src/people/documents/HRDocumentWorkspace.tsx; apps/web/src/people/leave/LeaveRequestPage.tsx; apps/web/src/people/PeopleHome.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0198",
+      "surface": "people-leave",
+      "label": "시간",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/leave/LeaveRequestPage.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0199",
+      "surface": "people-leave",
+      "label": "시작일",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/leave/LeaveRequestPage.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0200",
+      "surface": "people-leave",
+      "label": "종료일",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/leave/LeaveRequestPage.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0201",
+      "surface": "people-leave",
+      "label": "신청",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "POST /api/hrx/leave; follow-up GET /api/hrx/employees and GET /api/hrx/leave?employee_id=:employee_id&policy_id=pto-us via refreshKey",
+      "source_file": "apps/web/src/people/leave/LeaveRequestPage.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0202",
+      "surface": "people-approvals",
+      "label": "반려",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "POST /api/hrx/approvals/:approvalId/reject; follow-up GET /api/hrx/approvals and GET /api/hrx/audit",
+      "source_file": "apps/web/src/people/approvals/ManagerApprovalQueue.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STEP_UP_REQUIRED_FOR_AUDIT_READ",
+      "classification": "HRX_STEP_UP_API_CONFIRMED",
+      "blockers": [
+        "P4-T02 idempotency gap remains before write PASS"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0203",
+      "surface": "people-approvals",
+      "label": "승인",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "POST /api/hrx/approvals/:approvalId/approve; follow-up GET /api/hrx/approvals and GET /api/hrx/audit",
+      "source_file": "apps/web/src/people/approvals/ManagerApprovalQueue.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STEP_UP_REQUIRED_FOR_AUDIT_READ",
+      "classification": "HRX_STEP_UP_API_CONFIRMED",
+      "blockers": [
+        "P4-T02 idempotency gap remains before write PASS"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0204",
+      "surface": "people-recruiting",
+      "label": "다음 단계",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "POST /api/hrx/recruiting/applications/:applicationId/stage; follow-up GET /api/hrx/recruiting/pipeline",
+      "source_file": "apps/web/src/people/recruiting/RecruitingPipeline.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": [
+        "P4-T02 idempotency gap remains before write PASS"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0205",
+      "surface": "people-policy",
+      "label": "정책 이름",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/admin/hrx/HRXPolicyConsole.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0206",
+      "surface": "people-policy",
+      "label": "유형",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/admin/hrx/HRXPolicyConsole.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0207",
+      "surface": "people-policy",
+      "label": "버전",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/admin/hrx/HRXPolicyConsole.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0208",
+      "surface": "people-policy",
+      "label": "정책 버전 생성",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "POST /api/hrx/policies; follow-up GET /api/hrx/policies",
+      "source_file": "apps/web/src/admin/hrx/HRXPolicyConsole.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": [
+        "P4-T02 idempotency gap remains before write PASS"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0209",
+      "surface": "people-ai",
+      "label": "문의",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "POST /api/hrx/ai/assistant; background GET /api/hrx/ai/reviews after result changes",
+      "source_file": "apps/web/src/people/ai/HRAIAssistant.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": [
+        "P4-T02 idempotency gap remains before write PASS"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0210",
+      "surface": "people-ai",
+      "label": "검토",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "POST /api/hrx/ai/assistant; background GET /api/hrx/ai/reviews after result changes",
+      "source_file": "apps/web/src/people/ai/HRAIAssistant.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": [
+        "P4-T02 idempotency gap remains before write PASS"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0211",
+      "surface": "people-payroll",
+      "label": "기간",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0212",
+      "surface": "people-payroll",
+      "label": "구성원",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0213",
+      "surface": "people-payroll",
+      "label": "외부 급여 서비스",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0214",
+      "surface": "people-payroll",
+      "label": "문서 참조",
+      "status_before_p4_t03": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx",
+      "permission_boundary": "none",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0215",
+      "surface": "people-payroll",
+      "label": "미리보기 생성",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "POST /api/hrx/payroll/preview",
+      "source_file": "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0216",
+      "surface": "people-payroll",
+      "label": "검토 승인 기록",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "POST /api/hrx/payroll/approve",
+      "source_file": "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0217",
+      "surface": "people-payroll",
+      "label": "내보내기 파일 생성",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "POST /api/hrx/payroll/export",
+      "source_file": "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0218",
+      "surface": "people-admin",
+      "label": "Client",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/admin/permission-sets; GET /api/admin/permission-assignments; GET /api/admin/object-manager/objects; GET /api/admin/connected-apps; GET /api/admin/audit; GET /api/admin/object-manager/objects/:objectName/fields; GET /api/hrx/legal-people/ethics",
+      "source_file": "apps/web/src/people/admin/PermissionAdminPanel.jsx; apps/web/src/data/apiClient.js",
+      "permission_boundary": "x-lawos-permission-context admin allow context plus HRX runtime headers for ethics linkage",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0219",
+      "surface": "people-admin",
+      "label": "Matter",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/admin/permission-sets; GET /api/admin/permission-assignments; GET /api/admin/object-manager/objects; GET /api/admin/connected-apps; GET /api/admin/audit; GET /api/admin/object-manager/objects/:objectName/fields; GET /api/hrx/legal-people/ethics",
+      "source_file": "apps/web/src/people/admin/PermissionAdminPanel.jsx; apps/web/src/data/apiClient.js",
+      "permission_boundary": "x-lawos-permission-context admin allow context plus HRX runtime headers for ethics linkage",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0220",
+      "surface": "people-admin",
+      "label": "세트 요청",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "POST /api/admin/permission-sets",
+      "source_file": "apps/web/src/people/admin/PermissionAdminPanel.jsx; apps/web/src/data/apiClient.js",
+      "permission_boundary": "x-lawos-permission-context admin allow context with tenant_id, permission_ref, audit_hint_ref, actor_id payload",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0221",
+      "surface": "people-admin",
+      "label": "변경 요청",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "PATCH /api/admin/permission-sets/:permissionSetId",
+      "source_file": "apps/web/src/people/admin/PermissionAdminPanel.jsx; apps/web/src/data/apiClient.js",
+      "permission_boundary": "x-lawos-permission-context admin allow context with tenant_id, permission_ref, audit_hint_ref, actor_id payload",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0222",
+      "surface": "people-admin",
+      "label": "배정 요청",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "POST /api/admin/permission-assignments",
+      "source_file": "apps/web/src/people/admin/PermissionAdminPanel.jsx; apps/web/src/data/apiClient.js",
+      "permission_boundary": "x-lawos-permission-context admin allow context with tenant_id, permission_ref, audit_hint_ref, actor_id payload",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0223",
+      "surface": "people-admin",
+      "label": "회수 요청",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "DELETE /api/admin/permission-assignments/:assignmentId",
+      "source_file": "apps/web/src/people/admin/PermissionAdminPanel.jsx; apps/web/src/data/apiClient.js",
+      "permission_boundary": "x-lawos-permission-context admin allow context with tenant_id, permission_ref, audit_hint_ref, actor_id payload",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0224",
+      "surface": "people-admin",
+      "label": "정책 변경",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "PATCH /api/admin/object-manager/objects/:objectName/fields/:fieldName",
+      "source_file": "apps/web/src/people/admin/PermissionAdminPanel.jsx; apps/web/src/data/apiClient.js",
+      "permission_boundary": "x-lawos-permission-context admin allow context with tenant_id, permission_ref, audit_hint_ref, actor_id payload",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0225",
+      "surface": "people-admin",
+      "label": "연결 요청",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "POST /api/admin/connected-apps",
+      "source_file": "apps/web/src/people/admin/PermissionAdminPanel.jsx; apps/web/src/data/apiClient.js",
+      "permission_boundary": "x-lawos-permission-context admin allow context with tenant_id, permission_ref, audit_hint_ref, actor_id payload",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0226",
+      "surface": "people-admin",
+      "label": "중지 요청",
+      "status_before_p4_t03": "BLOCKED",
+      "trace_depth": "api_write",
+      "api_route": "POST /api/admin/connected-apps/:appId/disable",
+      "source_file": "apps/web/src/people/admin/PermissionAdminPanel.jsx; apps/web/src/data/apiClient.js",
+      "permission_boundary": "x-lawos-permission-context admin allow context with tenant_id, permission_ref, audit_hint_ref, actor_id payload",
+      "header_source": "HRX_LINKAGE_OR_ADMIN_CONTEXT_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0280",
+      "surface": "people-guarded-state",
+      "label": "People directory denied/review state",
+      "status_before_p4_t03": "FAIL",
+      "trace_depth": "ui_state_only",
+      "api_route": null,
+      "source_file": "apps/web/src/people/PeopleHome.tsx; apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "denied/review context should fail closed for People directory",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STANDARD_HRX_RUNTIME_HEADERS",
+      "classification": "HRX_HEADER_SOURCE_CONFIRMED_WITH_PEOPLE_CTX_GAP",
+      "blockers": [
+        "People directory denied/review ctx is not wired to HRX runtime guard; see P4-T01"
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0323",
+      "surface": "people-audit",
+      "label": "HRX audit step-up retry",
+      "status_before_p4_t03": "GUARDED",
+      "trace_depth": "api_read",
+      "api_route": "GET /api/hrx/audit with HRX step-up headers; conditional response body { step_up_required: true } renders retry state",
+      "source_file": "apps/web/src/admin/hrx/HRXAuditViewer.tsx; apps/web/src/people/security/HrxStepUpChallenge.tsx; apps/web/src/people/hrxApiClient.ts",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STEP_UP_REQUIRED_FOR_AUDIT_READ",
+      "classification": "HRX_STEP_UP_API_CONFIRMED",
+      "blockers": []
+    },
+    {
+      "id": "LCX8-ACTION-0324",
+      "surface": "people-hrx",
+      "label": "People header refresh on standalone HRX panels",
+      "status_before_p4_t03": "FAIL",
+      "trace_depth": "ui_state_only",
+      "api_route": "GET /api/hrx/employees only; missing refresh propagation to GET /api/hrx/approvals, GET /api/hrx/recruiting/pipeline, GET /api/hrx/policies, GET /api/hrx/audit, GET /api/hrx/analytics, GET /api/hrx/ai/reviews, POST/read payroll sequence state, and admin collection reads",
+      "source_file": "apps/web/src/people/PeopleHome.tsx; apps/web/src/people/approvals/ManagerApprovalQueue.tsx; apps/web/src/people/recruiting/RecruitingPipeline.tsx; apps/web/src/admin/hrx/HRXPolicyConsole.tsx; apps/web/src/admin/hrx/HRXAuditViewer.tsx; apps/web/src/people/analytics/HRAnalytics.tsx; apps/web/src/people/ai/HRAIAssistant.tsx; apps/web/src/people/payroll/PayrollBoundaryPanel.tsx; apps/web/src/people/admin/PermissionAdminPanel.jsx",
+      "permission_boundary": "HRX runtime headers: x-lawos-tenant-id, x-lawos-actor-id, x-lawos-actor-role, x-lawos-hrx-scopes, x-lawos-hrx-step-up",
+      "header_source": "HRX_RUNTIME_HEADERS_SOURCE_TRACED",
+      "required_headers": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "step_up_relevance": "STEP_UP_REQUIRED_FOR_AUDIT_READ",
+      "classification": "HRX_STEP_UP_API_CONFIRMED",
+      "blockers": []
+    }
+  ],
+  "next_tuw": "P4-T04 Verify Matter/Vault permission trimming"
+}

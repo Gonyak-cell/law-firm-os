@@ -1,0 +1,347 @@
+{
+  "id": "lcx8-post-closeout-panel-overflow-removal-2026-06-27",
+  "generated_at": "2026-06-27T00:37:30.007Z",
+  "status": "PASS",
+  "batch": "LCX8-ALL-02",
+  "resolved_rows": [
+    {
+      "id": "LCX8-ACTION-0050",
+      "status_before": "FAIL",
+      "status_after": "PASS",
+      "surface": "matter",
+      "section": "panel-header",
+      "label": "Matter panel overflow menu",
+      "route": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "selector": "#matters-home .panel-head .icon-button",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0050.png"
+    },
+    {
+      "id": "LCX8-ACTION-0092",
+      "status_before": "FAIL",
+      "status_after": "PASS",
+      "surface": "vault",
+      "section": "vault-documents-panel",
+      "label": "Vault panel overflow menu",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "selector": "#vault-documents .panel-head .icon-button",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0092.png"
+    },
+    {
+      "id": "LCX8-ACTION-0094",
+      "status_before": "FAIL",
+      "status_after": "PASS",
+      "surface": "people-directory",
+      "section": "legal-people-panels",
+      "label": "Legal People panel overflow menu",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "selector": ".legal-people-runtime-grid .panel-head .icon-button",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0094.png"
+    },
+    {
+      "id": "LCX8-ACTION-0115",
+      "status_before": "FAIL",
+      "status_after": "PASS",
+      "surface": "client",
+      "section": "client-panels",
+      "label": "Client panel overflow menu",
+      "route": "/?locale=ko&view=clients&data=live&ctx=allow#clients-list",
+      "selector": ".clients-surface .panel-head .icon-button",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0115.png"
+    },
+    {
+      "id": "LCX8-ACTION-0182",
+      "status_before": "FAIL",
+      "status_after": "PASS",
+      "surface": "people-hrx",
+      "section": "people-hrx-panels",
+      "label": "HRX panel overflow menu",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-admin",
+      "selector": "#people-home .people-panel .panel-head .icon-button, #people-home .people-admin-panel .panel-head .icon-button",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0182.png"
+    },
+    {
+      "id": "LCX8-ACTION-0320",
+      "status_before": "FAIL",
+      "status_after": "PASS",
+      "surface": "vault",
+      "section": "vault-detail-panel",
+      "label": "Vault detail panel overflow menus",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-detail",
+      "selector": "#vault-detail .panel-head .icon-button, [data-mv-vault-document-detail=\"true\"] .panel-head .icon-button",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0320.png"
+    },
+    {
+      "id": "LCX8-ACTION-0321",
+      "status_before": "FAIL",
+      "status_after": "PASS",
+      "surface": "vault",
+      "section": "vault-email-panel",
+      "label": "Vault email panel overflow menu",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-email",
+      "selector": "#vault-email .panel-head .icon-button",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0321.png"
+    }
+  ],
+  "status_counts_before": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 28,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 104,
+    "fail": 42
+  },
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 35,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 104,
+    "fail": 35
+  },
+  "proof_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0050-0092-0094-0115-0182-0320-0321-panel-overflow-removal-proof.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0050-0092-0094-0115-0182-0320-0321-panel-overflow-removal-proof.md",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-panel-overflow-removal-2026-06-27.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-panel-overflow-removal-2026-06-27.md",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0050.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0092.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0094.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0115.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0182.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0320.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0321.png"
+  ],
+  "source_change": {
+    "file": "apps/web/src/components/primitives.jsx",
+    "summary": "Removed the default MoreHorizontal icon button from shared Panel headers because it had no handler, type, label, or menu wiring."
+  },
+  "route_proofs": [
+    {
+      "id": "LCX8-ACTION-0050",
+      "label": "Matter panel overflow menu",
+      "route": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "final_url": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "selector": "#matters-home .panel-head .icon-button",
+      "selector_count_after_removal": 0,
+      "panel_head_count": 1,
+      "visible_operational_button_count_sample": 4,
+      "api_5xx_count": 0,
+      "console_error_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0050.png"
+    },
+    {
+      "id": "LCX8-ACTION-0092",
+      "label": "Vault panel overflow menu",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "final_url": "http://127.0.0.1:5173/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "selector": "#vault-documents .panel-head .icon-button",
+      "selector_count_after_removal": 0,
+      "panel_head_count": 1,
+      "visible_operational_button_count_sample": 1,
+      "api_5xx_count": 0,
+      "console_error_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0092.png"
+    },
+    {
+      "id": "LCX8-ACTION-0094",
+      "label": "Legal People panel overflow menu",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "final_url": "http://127.0.0.1:5173/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "selector": ".legal-people-runtime-grid .panel-head .icon-button",
+      "selector_count_after_removal": 0,
+      "panel_head_count": 3,
+      "visible_operational_button_count_sample": 1,
+      "api_5xx_count": 0,
+      "console_error_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0094.png"
+    },
+    {
+      "id": "LCX8-ACTION-0115",
+      "label": "Client panel overflow menu",
+      "route": "/?locale=ko&view=clients&data=live&ctx=allow#clients-list",
+      "final_url": "http://127.0.0.1:5173/?locale=ko&view=clients&data=live&ctx=allow#clients-list",
+      "selector": ".clients-surface .panel-head .icon-button",
+      "selector_count_after_removal": 0,
+      "panel_head_count": 1,
+      "visible_operational_button_count_sample": 3,
+      "api_5xx_count": 0,
+      "console_error_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0115.png"
+    },
+    {
+      "id": "LCX8-ACTION-0182",
+      "label": "HRX panel overflow menu",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-admin",
+      "final_url": "http://127.0.0.1:5173/?locale=ko&view=people&data=live&ctx=allow#people-admin",
+      "selector": "#people-home .people-panel .panel-head .icon-button, #people-home .people-admin-panel .panel-head .icon-button",
+      "selector_count_after_removal": 0,
+      "panel_head_count": 6,
+      "visible_operational_button_count_sample": 1,
+      "api_5xx_count": 0,
+      "console_error_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0182.png"
+    },
+    {
+      "id": "LCX8-ACTION-0320",
+      "label": "Vault detail panel overflow menus",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-detail",
+      "final_url": "http://127.0.0.1:5173/?locale=ko&view=vault&data=live&ctx=allow#vault-detail",
+      "selector": "#vault-detail .panel-head .icon-button, [data-mv-vault-document-detail=\"true\"] .panel-head .icon-button",
+      "selector_count_after_removal": 0,
+      "panel_head_count": 2,
+      "visible_operational_button_count_sample": 1,
+      "api_5xx_count": 0,
+      "console_error_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0320.png"
+    },
+    {
+      "id": "LCX8-ACTION-0321",
+      "label": "Vault email panel overflow menu",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-email",
+      "final_url": "http://127.0.0.1:5173/?locale=ko&view=vault&data=live&ctx=allow#vault-email",
+      "selector": "#vault-email .panel-head .icon-button",
+      "selector_count_after_removal": 0,
+      "panel_head_count": 1,
+      "visible_operational_button_count_sample": 1,
+      "api_5xx_count": 0,
+      "console_error_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-panel-overflow-removal-LCX8-ACTION-0321.png"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "primitives_no_more_horizontal_import",
+      "pass": true
+    },
+    {
+      "name": "primitives_panel_no_default_icon_button",
+      "pass": true
+    },
+    {
+      "name": "primitives_panel_still_renders_panel_head",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0050 targeted selector absent",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0092 targeted selector absent",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0094 targeted selector absent",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0115 targeted selector absent",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0182 targeted selector absent",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0320 targeted selector absent",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0321 targeted selector absent",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0050 screen rendered panel headers",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0092 screen rendered panel headers",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0094 screen rendered panel headers",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0115 screen rendered panel headers",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0182 screen rendered panel headers",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0320 screen rendered panel headers",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0321 screen rendered panel headers",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0050 no API 5xx",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0092 no API 5xx",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0094 no API 5xx",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0115 no API 5xx",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0182 no API 5xx",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0320 no API 5xx",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0321 no API 5xx",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0050 no console errors",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0092 no console errors",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0094 no console errors",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0115 no console errors",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0182 no console errors",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0320 no console errors",
+      "pass": true
+    },
+    {
+      "name": "LCX8-ACTION-0321 no console errors",
+      "pass": true
+    }
+  ],
+  "non_claims": [
+    "This remediation does not claim a new overflow menu exists.",
+    "The acceptance path is removal of a false/no-op affordance until an operational menu is implemented.",
+    "No production go-live or external approval is claimed."
+  ],
+  "latest_verification_summary": "Post-closeout LCX8-ALL-02 panel overflow verification: browser proof PASS (7/7 targeted selectors absent; API 5xx=0; console_errors=0); npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS. Status moved FAIL -> PASS for LCX8-ACTION-0050/0092/0094/0115/0182/0320/0321."
+}

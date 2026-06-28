@@ -1,0 +1,10 @@
+# LCX8-ACTION-0272/0273 Client Guarded Copy Remediation
+
+Generated at: 2026-06-25T15:35:22.830Z
+
+Overall result: PASS
+
+| Check | URL | Result | Detail |
+| --- | --- | --- | --- |
+| client-denied-copy | `/?locale=ko&view=clients&data=live&ctx=denied#clients-list` | PASS | {"state_text":"접근 권한이 없습니다 권한이 있는 의뢰인만 표시합니다.","expected_text":"권한이 있는 의뢰인만 표시합니다.","forbidden_copy_hits":[],"record_action_panel_count":0,"record_action_strip_count":0,"enabled_mutation_button_count":0,"record_action_fetch_count":0,"api_5xx_count":0,"network_response_count":72,"console_errors_recorded_not_gated":["Failed to load resource: the server responded with a status of 403 (Forbidden)","Failed to load resource: the server responded with a status of 403 (Forbidden)","Failed to load resource: the server responded with a status of 403 (Forbidden)","Failed to load resource: the server responded with a status of 403 (Forbidden)","Failed to load resource: the server responded with a status of 403 (Forbidden)","Failed to load resource: the server responded with a status of 403 (Forbidden)","Failed to load resource: the server responded with a status of 403 (Forbidden)","Failed to load resource: the server responded with a status of 403 (Forbidden)"]} |
+| client-review-copy | `/?locale=ko&view=clients&data=live&ctx=review#clients-list` | PASS | {"state_text":"검토가 필요합니다 검토가 끝나면 의뢰인 정보를 확인할 수 있습니다.","expected_text":"검토가 끝나면 의뢰인 정보를 확인할 수 있습니다.","forbidden_copy_hits":[],"record_action_panel_count":0,"record_action_strip_count":0,"enabled_mutation_button_count":0,"record_action_fetch_count":0,"api_5xx_count":0,"network_response_count":72,"console_errors_recorded_not_gated":[]} |

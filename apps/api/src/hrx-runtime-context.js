@@ -22,6 +22,7 @@ import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repositor
 import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
 import {
   createLegalPeopleApiSeed,
+  LCX_PPL_API_BOUNDARY,
   createLegalPeoplePermissionContext,
   createLegalPeopleReadModel,
 } from "../../../packages/hrx/src/legal-people-api.js";
@@ -37,6 +38,7 @@ import {
   MATTER_VAULT_REGISTERED_TENANT_ID,
   listRegisteredAccounts,
 } from "./matter-vault-account-registry.js";
+import { evaluateRouteDecision } from "./permission-gate.js";
 
 const SYNTHETIC_TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
 export const HRX_RUNTIME_SEED_TENANT_ID = SYNTHETIC_TENANT;
@@ -466,6 +468,150 @@ function response(status, body) {
   return { status, body };
 }
 
+function legalPeopleGuardResponse({ permissionContext, actorContext, action, resourceId, shape }) {
+  if (!permissionContext) return null;
+  const decision = evaluateRouteDecision({
+    context: permissionContext,
+    resource: {
+      tenant_id: actorContext.tenant_id,
+      resource_type: "LegalPerson",
+      resource_id: resourceId ?? "legal_people",
+      matter_id: null,
+    },
+    action,
+  });
+  if (decision.effect === "allow") return null;
+
+  const isReview = decision.effect === "review_required" || decision.effect === "approval_required";
+  const uiState = isReview ? "review_required" : "denied";
+  const body = {
+    schema_version: "lawos.lcx_ppl.guarded_response.v0.1",
+    outcome: uiState,
+    ui_state: uiState,
+    safe_error_codes: [isReview ? "HRX_LEGAL_PEOPLE_REVIEW_REQUIRED" : "HRX_LEGAL_PEOPLE_ACCESS_DENIED"],
+    fail_closed: !isReview,
+    review_required: isReview,
+    count_leak_prevented: true,
+    permission_summary: {
+      actor_id: actorContext.actor_id,
+      can_view_sensitive_relationship_details: false,
+      raw_contact_values_included: false,
+      provider_payload_included: false,
+      ai_final_decision_allowed: false,
+    },
+    claim_boundary: LCX_PPL_API_BOUNDARY,
+  };
+
+  if (shape === "search") {
+    return response(isReview ? 200 : 403, { ...body, people: [], facets: {} });
+  }
+  if (shape === "relationships") {
+    return response(isReview ? 200 : 403, { ...body, pivot: {}, relationships: [], relationships_grouped: {} });
+  }
+  if (shape === "ethics") {
+    return response(isReview ? 200 : 403, {
+      ...body,
+      review_queue: [],
+      ethical_walls: [],
+      permission_links: [],
+      reviewer_receipts: [],
+      state_counts: {},
+    });
+  }
+  return response(isReview ? 200 : 403, {
+    ...body,
+    person: null,
+    affiliations: [],
+    clients: [],
+    matters: [],
+    relationships: [],
+    relationships_grouped: {},
+    conflict_references: [],
+    ethical_wall_references: [],
+    audit_summary: null,
+  });
+}
+
+function employeeGuardResponse({ permissionContext, actorContext }) {
+  if (!permissionContext) return null;
+  const decision = evaluateRouteDecision({
+    context: permissionContext,
+    resource: {
+      tenant_id: actorContext.tenant_id,
+      resource_type: "HrxEmployee",
+      resource_id: "employees",
+      matter_id: null,
+    },
+    action: "hrx.employee.read",
+  });
+  if (decision.effect === "allow") return null;
+
+  const isReview = decision.effect === "review_required" || decision.effect === "approval_required";
+  const uiState = isReview ? "review_required" : "denied";
+  return response(isReview ? 200 : 403, {
+    schema_version: "lawos.hrx.employee.guarded_response.v0.1",
+    outcome: uiState,
+    ui_state: uiState,
+    safe_error_codes: [isReview ? "HRX_EMPLOYEE_REVIEW_REQUIRED" : "HRX_EMPLOYEE_ACCESS_DENIED"],
+    fail_closed: !isReview,
+    review_required: isReview,
+    count_leak_prevented: true,
+    employees: [],
+    permission_summary: {
+      actor_id: actorContext.actor_id,
+      employee_records_visible: false,
+      raw_contact_values_included: false,
+      provider_payload_included: false,
+    },
+    claim_boundary: "hrx.employee.read_guarded",
+  });
+}
+
+function hrxReadGuardResponse({
+  permissionContext,
+  actorContext,
+  action,
+  resourceType,
+  resourceId,
+  schemaVersion,
+  deniedCode,
+  reviewCode,
+  claimBoundary,
+  emptyBody,
+  permissionSummary,
+}) {
+  if (!permissionContext) return null;
+  const decision = evaluateRouteDecision({
+    context: permissionContext,
+    resource: {
+      tenant_id: actorContext.tenant_id,
+      resource_type: resourceType,
+      resource_id: resourceId,
+      matter_id: null,
+    },
+    action,
+  });
+  if (decision.effect === "allow") return null;
+
+  const isReview = decision.effect === "review_required" || decision.effect === "approval_required";
+  const uiState = isReview ? "review_required" : "denied";
+  return response(isReview ? 200 : 403, {
+    schema_version: schemaVersion,
+    outcome: uiState,
+    ui_state: uiState,
+    safe_error_codes: [isReview ? reviewCode : deniedCode],
+    fail_closed: !isReview,
+    review_required: isReview,
+    count_leak_prevented: true,
+    ...emptyBody,
+    permission_summary: {
+      actor_id: actorContext.actor_id,
+      ...permissionSummary,
+    },
+    claim_boundary: claimBoundary,
+  });
+}
+
 function requireTrustedRequestContext(requestContext = {}) {
   const tenantId = typeof requestContext.tenant_id === "string" ? requestContext.tenant_id.trim() : "";
   const actorId = typeof requestContext.actor_id === "string" ? requestContext.actor_id.trim() : "";
@@ -686,12 +832,14 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
   });
 }
 
-export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, context, requestContext }) {
+export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, context, requestContext, permissionContext = null }) {
   try {
     const actorContext = requireTrustedRequestContext(requestContext);
     const tenantId = actorContext.tenant_id;
 
     if (pathname === "/api/hrx/employees" && method === "GET") {
+      const guarded = employeeGuardResponse({ permissionContext, actorContext });
+      if (guarded) return guarded;
       return response(200, { outcome: "ok", employees: context.repository.listEmployees({ tenant_id: tenantId }) });
     }
 
@@ -742,8 +890,16 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
     }
 
     if (pathname === "/api/hrx/legal-people/search" && method === "GET") {
-      const permissionContext = createLegalPeoplePermissionContext(actorContext);
-      const result = context.legalPeopleReadModel.searchPeople({ ...query, tenant_id: tenantId }, permissionContext);
+      const guarded = legalPeopleGuardResponse({
+        permissionContext,
+        actorContext,
+        action: "hrx.legal_people.read",
+        resourceId: "search",
+        shape: "search",
+      });
+      if (guarded) return guarded;
+      const legalPermissionContext = createLegalPeoplePermissionContext(actorContext);
+      const result = context.legalPeopleReadModel.searchPeople({ ...query, tenant_id: tenantId }, legalPermissionContext);
       appendRuntimeAudit(context.audit, {
         ...actorContext,
         action: "hrx.legal_people.search",
@@ -752,15 +908,23 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         reason: "legal_people_search_listed",
         metadata: {
           result_count: result.people.length,
-          sensitive_fields_visible: permissionContext.can_view_sensitive_relationship_details,
+          sensitive_fields_visible: legalPermissionContext.can_view_sensitive_relationship_details,
         },
       });
       return response(200, result);
     }
 
     if (pathname === "/api/hrx/legal-people/relationships" && method === "GET") {
-      const permissionContext = createLegalPeoplePermissionContext(actorContext);
-      const result = context.legalPeopleReadModel.listRelationships({ ...query, tenant_id: tenantId }, permissionContext);
+      const guarded = legalPeopleGuardResponse({
+        permissionContext,
+        actorContext,
+        action: "hrx.legal_people.relationships.read",
+        resourceId: query.person_id ?? query.target_id ?? "relationships",
+        shape: "relationships",
+      });
+      if (guarded) return guarded;
+      const legalPermissionContext = createLegalPeoplePermissionContext(actorContext);
+      const result = context.legalPeopleReadModel.listRelationships({ ...query, tenant_id: tenantId }, legalPermissionContext);
       appendRuntimeAudit(context.audit, {
         ...actorContext,
         action: "hrx.legal_people.relationships.read",
@@ -769,15 +933,23 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         reason: "legal_people_relationships_listed",
         metadata: {
           result_count: result.relationships.length,
-          sensitive_fields_visible: permissionContext.can_view_sensitive_relationship_details,
+          sensitive_fields_visible: legalPermissionContext.can_view_sensitive_relationship_details,
         },
       });
       return response(200, result);
     }
 
     if (pathname === "/api/hrx/legal-people/ethics" && method === "GET") {
-      const permissionContext = createLegalPeoplePermissionContext(actorContext);
-      const result = context.legalPeopleEthicsReadModel.getEthicsOverview({ ...query, tenant_id: tenantId }, permissionContext);
+      const guarded = legalPeopleGuardResponse({
+        permissionContext,
+        actorContext,
+        action: "hrx.legal_people.ethics.read",
+        resourceId: query.person_id ?? query.matter_id ?? "ethics",
+        shape: "ethics",
+      });
+      if (guarded) return guarded;
+      const legalPermissionContext = createLegalPeoplePermissionContext(actorContext);
+      const result = context.legalPeopleEthicsReadModel.getEthicsOverview({ ...query, tenant_id: tenantId }, legalPermissionContext);
       appendRuntimeAudit(context.audit, {
         ...actorContext,
         action: "hrx.legal_people.ethics.read",
@@ -796,8 +968,16 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
     const legalPeopleDetailMatch = pathname.match(/^\/api\/hrx\/legal-people\/([^/]+)$/);
     if (legalPeopleDetailMatch && method === "GET") {
       const personId = decodeURIComponent(legalPeopleDetailMatch[1]);
-      const permissionContext = createLegalPeoplePermissionContext(actorContext);
-      const result = context.legalPeopleReadModel.getPersonDetail({ tenant_id: tenantId, person_id: personId }, permissionContext);
+      const guarded = legalPeopleGuardResponse({
+        permissionContext,
+        actorContext,
+        action: "hrx.legal_people.detail.read",
+        resourceId: personId,
+        shape: "detail",
+      });
+      if (guarded) return guarded;
+      const legalPermissionContext = createLegalPeoplePermissionContext(actorContext);
+      const result = context.legalPeopleReadModel.getPersonDetail({ tenant_id: tenantId, person_id: personId }, legalPermissionContext);
       if (!result) return response(404, { outcome: "not_found", safe_error_code: "HRX_LEGAL_PERSON_NOT_FOUND" });
       appendRuntimeAudit(context.audit, {
         ...actorContext,
@@ -807,7 +987,7 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         reason: "legal_people_detail_read",
         metadata: {
           relationship_count: result.relationships.length,
-          sensitive_fields_visible: permissionContext.can_view_sensitive_relationship_details,
+          sensitive_fields_visible: legalPermissionContext.can_view_sensitive_relationship_details,
         },
       });
       return response(200, result);
@@ -828,6 +1008,24 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
     }
 
     if (pathname === "/api/hrx/documents" && method === "GET") {
+      const guarded = hrxReadGuardResponse({
+        permissionContext,
+        actorContext,
+        action: "hrx.document.read",
+        resourceType: "HrxDocument",
+        resourceId: query.employee_id ?? query.document_id ?? "documents",
+        schemaVersion: "lawos.hrx.document.guarded_response.v0.1",
+        deniedCode: "HRX_DOCUMENT_ACCESS_DENIED",
+        reviewCode: "HRX_DOCUMENT_REVIEW_REQUIRED",
+        claimBoundary: "hrx.document.read_guarded",
+        emptyBody: { documents: [] },
+        permissionSummary: {
+          document_metadata_visible: false,
+          source_refs_visible: false,
+          provider_payload_included: false,
+        },
+      });
+      if (guarded) return guarded;
       return response(200, {
         outcome: "ok",
         documents: context.documents.list({ tenant_id: tenantId, employee_id: query.employee_id }),
@@ -835,6 +1033,24 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
     }
 
     if (pathname === "/api/hrx/leave" && method === "GET") {
+      const guarded = hrxReadGuardResponse({
+        permissionContext,
+        actorContext,
+        action: "hrx.leave.read",
+        resourceType: "HrxLeaveState",
+        resourceId: query.employee_id ?? "leave",
+        schemaVersion: "lawos.hrx.leave.guarded_response.v0.1",
+        deniedCode: "HRX_LEAVE_ACCESS_DENIED",
+        reviewCode: "HRX_LEAVE_REVIEW_REQUIRED",
+        claimBoundary: "hrx.leave.read_guarded",
+        emptyBody: { balance: null, requests: [] },
+        permissionSummary: {
+          leave_balance_visible: false,
+          leave_requests_visible: false,
+          policy_payload_included: false,
+        },
+      });
+      if (guarded) return guarded;
       return response(200, {
         outcome: "ok",
         balance: context.leaveLedger.balance({

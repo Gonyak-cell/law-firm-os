@@ -1,0 +1,338 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-25T10:45:00.000Z",
+  "tuw": "P2-T01",
+  "status": "complete_validated",
+  "title": "LCX8 P2-T01 Shell.jsx action/source trace",
+  "scope": "Trace Shell.jsx ProductAxisNav, Topbar, NotificationDrawer, Sidebar, GlobalSearch, sidebar utilities, and profileSidebarItems into the LCX8 action ledger. Backfill Matter/Vault contextual sidebar actions found in Shell source but absent from the P1 ledger.",
+  "lazyweb_reference": {
+    "query": "enterprise app topbar sidebar search notifications",
+    "platform": "desktop",
+    "coverage_strength": "strong",
+    "use": "Light reference only; local source and ledger evidence drive all classifications."
+  },
+  "source_files": [
+    {
+      "path": "apps/web/src/components/Shell.jsx",
+      "anchors": [
+        {
+          "lines": "47-64",
+          "description": "ProductAxisNav maps navItems to setView(id)"
+        },
+        {
+          "lines": "100-155",
+          "description": "Topbar search, create, invite, profile, notifications, help, theme, and locale controls"
+        },
+        {
+          "lines": "157-209",
+          "description": "NotificationDrawer escape/scrim/close handlers and footer buttons without handlers"
+        },
+        {
+          "lines": "211-259",
+          "description": "sidebarMeta utilities for home/client/matter/people/vault/profile"
+        },
+        {
+          "lines": "261-464",
+          "description": "Sidebar subnav, group toggles, child/flat item setView handlers, and utility buttons without onClick"
+        },
+        {
+          "lines": "466-497",
+          "description": "GlobalSearch result list from navItems, close button, route result click handlers"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/UserProfileSurface.jsx",
+      "anchors": [
+        {
+          "lines": "115-126",
+          "description": "profileSidebarItems consumed by Shell Sidebar when view=profile"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/MattersSurface.jsx",
+      "anchors": [
+        {
+          "lines": "56-66",
+          "description": "MATTER_SECTIONS includes Matter sidebar backfill hash targets"
+        },
+        {
+          "lines": "2212-2356",
+          "description": "currentSection renders Matter list/command/vault/timeline/calendar/channel/team/billing/analytics/import branches"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/VaultSurface.jsx",
+      "anchors": [
+        {
+          "lines": "52-57",
+          "description": "VAULT_SECTIONS accepts vault-documents, vault-detail, and vault-email"
+        },
+        {
+          "lines": "132-138",
+          "description": "currentSection renders Vault documents/detail/email branches"
+        }
+      ]
+    }
+  ],
+  "existing_shell_rows_traced": 72,
+  "added_backfill_rows": 21,
+  "added_backfill_row_ids": [
+    "LCX8-ACTION-0282",
+    "LCX8-ACTION-0283",
+    "LCX8-ACTION-0284",
+    "LCX8-ACTION-0285",
+    "LCX8-ACTION-0286",
+    "LCX8-ACTION-0287",
+    "LCX8-ACTION-0288",
+    "LCX8-ACTION-0289",
+    "LCX8-ACTION-0290",
+    "LCX8-ACTION-0291",
+    "LCX8-ACTION-0292",
+    "LCX8-ACTION-0293",
+    "LCX8-ACTION-0294",
+    "LCX8-ACTION-0295",
+    "LCX8-ACTION-0296",
+    "LCX8-ACTION-0297",
+    "LCX8-ACTION-0298",
+    "LCX8-ACTION-0299",
+    "LCX8-ACTION-0300",
+    "LCX8-ACTION-0301",
+    "LCX8-ACTION-0302"
+  ],
+  "missing_handler_rows": [
+    "LCX8-ACTION-0017",
+    "LCX8-ACTION-0027",
+    "LCX8-ACTION-0028",
+    "LCX8-ACTION-0032",
+    "LCX8-ACTION-0033",
+    "LCX8-ACTION-0034",
+    "LCX8-ACTION-0112",
+    "LCX8-ACTION-0113",
+    "LCX8-ACTION-0164",
+    "LCX8-ACTION-0165",
+    "LCX8-ACTION-0237",
+    "LCX8-ACTION-0238",
+    "LCX8-ACTION-0296",
+    "LCX8-ACTION-0297",
+    "LCX8-ACTION-0301",
+    "LCX8-ACTION-0302"
+  ],
+  "trace_depth_normalized_to_missing_handler": 10,
+  "current_status_counts": {
+    "inventory_rows": 302,
+    "unknown": 0,
+    "pass": 0,
+    "guarded": 19,
+    "ui_only": 127,
+    "descriptor_only": 0,
+    "blocked": 117,
+    "fail": 39
+  },
+  "families": [
+    {
+      "family": "product_axis_nav",
+      "row_count": 5,
+      "row_ids": [
+        "LCX8-ACTION-0007",
+        "LCX8-ACTION-0008",
+        "LCX8-ACTION-0009",
+        "LCX8-ACTION-0010",
+        "LCX8-ACTION-0011"
+      ]
+    },
+    {
+      "family": "topbar_controls",
+      "row_count": 8,
+      "row_ids": [
+        "LCX8-ACTION-0012",
+        "LCX8-ACTION-0013",
+        "LCX8-ACTION-0014",
+        "LCX8-ACTION-0015",
+        "LCX8-ACTION-0016",
+        "LCX8-ACTION-0017",
+        "LCX8-ACTION-0018",
+        "LCX8-ACTION-0019"
+      ]
+    },
+    {
+      "family": "global_search",
+      "row_count": 6,
+      "row_ids": [
+        "LCX8-ACTION-0020",
+        "LCX8-ACTION-0021",
+        "LCX8-ACTION-0022",
+        "LCX8-ACTION-0023",
+        "LCX8-ACTION-0024",
+        "LCX8-ACTION-0025"
+      ]
+    },
+    {
+      "family": "notification_drawer",
+      "row_count": 4,
+      "row_ids": [
+        "LCX8-ACTION-0026",
+        "LCX8-ACTION-0027",
+        "LCX8-ACTION-0028",
+        "LCX8-ACTION-0035"
+      ]
+    },
+    {
+      "family": "home_sidebar",
+      "row_count": 6,
+      "row_ids": [
+        "LCX8-ACTION-0029",
+        "LCX8-ACTION-0030",
+        "LCX8-ACTION-0031",
+        "LCX8-ACTION-0032",
+        "LCX8-ACTION-0033",
+        "LCX8-ACTION-0034"
+      ]
+    },
+    {
+      "family": "client_sidebar",
+      "row_count": 11,
+      "row_ids": [
+        "LCX8-ACTION-0103",
+        "LCX8-ACTION-0104",
+        "LCX8-ACTION-0105",
+        "LCX8-ACTION-0106",
+        "LCX8-ACTION-0107",
+        "LCX8-ACTION-0108",
+        "LCX8-ACTION-0109",
+        "LCX8-ACTION-0110",
+        "LCX8-ACTION-0111",
+        "LCX8-ACTION-0112",
+        "LCX8-ACTION-0113"
+      ]
+    },
+    {
+      "family": "people_sidebar",
+      "row_count": 20,
+      "row_ids": [
+        "LCX8-ACTION-0146",
+        "LCX8-ACTION-0147",
+        "LCX8-ACTION-0148",
+        "LCX8-ACTION-0149",
+        "LCX8-ACTION-0150",
+        "LCX8-ACTION-0151",
+        "LCX8-ACTION-0152",
+        "LCX8-ACTION-0153",
+        "LCX8-ACTION-0154",
+        "LCX8-ACTION-0155",
+        "LCX8-ACTION-0156",
+        "LCX8-ACTION-0157",
+        "LCX8-ACTION-0158",
+        "LCX8-ACTION-0159",
+        "LCX8-ACTION-0160",
+        "LCX8-ACTION-0161",
+        "LCX8-ACTION-0162",
+        "LCX8-ACTION-0163",
+        "LCX8-ACTION-0164",
+        "LCX8-ACTION-0165"
+      ]
+    },
+    {
+      "family": "profile_sidebar",
+      "row_count": 12,
+      "row_ids": [
+        "LCX8-ACTION-0227",
+        "LCX8-ACTION-0228",
+        "LCX8-ACTION-0229",
+        "LCX8-ACTION-0230",
+        "LCX8-ACTION-0231",
+        "LCX8-ACTION-0232",
+        "LCX8-ACTION-0233",
+        "LCX8-ACTION-0234",
+        "LCX8-ACTION-0235",
+        "LCX8-ACTION-0236",
+        "LCX8-ACTION-0237",
+        "LCX8-ACTION-0238"
+      ]
+    },
+    {
+      "family": "matter_sidebar_backfill",
+      "row_count": 16,
+      "row_ids": [
+        "LCX8-ACTION-0282",
+        "LCX8-ACTION-0283",
+        "LCX8-ACTION-0284",
+        "LCX8-ACTION-0285",
+        "LCX8-ACTION-0286",
+        "LCX8-ACTION-0287",
+        "LCX8-ACTION-0288",
+        "LCX8-ACTION-0289",
+        "LCX8-ACTION-0290",
+        "LCX8-ACTION-0291",
+        "LCX8-ACTION-0292",
+        "LCX8-ACTION-0293",
+        "LCX8-ACTION-0294",
+        "LCX8-ACTION-0295",
+        "LCX8-ACTION-0296",
+        "LCX8-ACTION-0297"
+      ]
+    },
+    {
+      "family": "vault_sidebar_backfill",
+      "row_count": 5,
+      "row_ids": [
+        "LCX8-ACTION-0298",
+        "LCX8-ACTION-0299",
+        "LCX8-ACTION-0300",
+        "LCX8-ACTION-0301",
+        "LCX8-ACTION-0302"
+      ]
+    }
+  ],
+  "known_gaps_preserved": [
+    {
+      "row_ids": [
+        "LCX8-ACTION-0017",
+        "LCX8-ACTION-0027",
+        "LCX8-ACTION-0028",
+        "LCX8-ACTION-0032",
+        "LCX8-ACTION-0033",
+        "LCX8-ACTION-0034",
+        "LCX8-ACTION-0112",
+        "LCX8-ACTION-0113",
+        "LCX8-ACTION-0164",
+        "LCX8-ACTION-0165",
+        "LCX8-ACTION-0237",
+        "LCX8-ACTION-0238",
+        "LCX8-ACTION-0296",
+        "LCX8-ACTION-0297",
+        "LCX8-ACTION-0301",
+        "LCX8-ACTION-0302"
+      ],
+      "status": "FAIL",
+      "reason": "Visible Shell buttons render without an onClick handler."
+    },
+    {
+      "row_ids": [
+        "LCX8-ACTION-0233",
+        "LCX8-ACTION-0234",
+        "LCX8-ACTION-0235",
+        "LCX8-ACTION-0236"
+      ],
+      "status": "FAIL",
+      "reason": "Shell/Profile route can set profile hash, but UserProfileSurface still ignores activeSection."
+    }
+  ],
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "api_write_operational": false,
+    "browser_click_runtime_pass": false
+  },
+  "next_tuw": "P2-T02 Trace HomeSurface command-center actions.",
+  "browser_qa_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-shell-browser-qa-p2-t01.json",
+  "browser_qa_summary": {
+    "status": "pass",
+    "observation_count": 27,
+    "console_event_count": 36,
+    "console_event_note": "API 500 console events were observed while API server was not running; P2-T01 validates Shell route/local/missing-handler behavior only."
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "schema_version": "matter.lcx8.desktop-file-bridge.p6-t01.v1",
+  "generated_at": "2026-06-25T14:01:34.093Z",
+  "status": "DESKTOP_FILE_BRIDGE_PASS_NO_STATUS_PROMOTION",
+  "tuw": "P6-T01",
+  "command": "npm --workspace apps/desktop run test:file-bridge",
+  "result": "PASS",
+  "exit_code": 0,
+  "test_runner": "node --test test/file-bridge.test.mjs test/file-picker-gesture.test.mjs test/file-upload-bridge.test.mjs test/file-save-as.test.mjs test/temp-preview-cleanup.test.mjs",
+  "tests": {
+    "total": 17,
+    "pass": 17,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "duration_ms": 57.348
+  },
+  "validators": [
+    {
+      "command": "node scripts/validate-desktop-file-bridge-contract.mjs",
+      "verdict": "PASS",
+      "allowed_actions": [
+        "choose_file_for_upload",
+        "save_document_as",
+        "open_temp_preview",
+        "clear_temp_cache"
+      ],
+      "exact_allowlist": true,
+      "forbidden_actions_checked": 8,
+      "renderer_raw_path_visible": false,
+      "implementation_complete_claim": false
+    },
+    {
+      "command": "node scripts/validate-matter-desktop-file-bridge.mjs",
+      "verdict": "PASS",
+      "checked_files": 17,
+      "findings": [],
+      "probes_detected": [
+        "directory_watch",
+        "recursive_scan",
+        "arbitrary_path_read",
+        "arbitrary_path_write",
+        "renderer_file_bytes",
+        "path_retention"
+      ]
+    }
+  ],
+  "reviewed_rows": 7,
+  "status_changes": 0,
+  "non_claims": {
+    "active_shell_file_bridge_wired": false,
+    "packaged_file_dialog_clicked": false,
+    "real_user_selected_file_persisted": false,
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false
+  },
+  "next_tuw": "P6-T02",
+  "rows": [
+    {
+      "id": "LCX8-ACTION-0256",
+      "status": "BLOCKED",
+      "surface": "desktop-file-bridge",
+      "label": "Choose file for upload",
+      "persistence_boundary": "backend ingest proof pending; renderer never receives file bytes/path",
+      "audit_boundary": "file_bridge.upload permission/picker events exist in controller; active shell receipt missing",
+      "remediation_lane": "P6/Lane B"
+    },
+    {
+      "id": "LCX8-ACTION-0257",
+      "status": "BLOCKED",
+      "surface": "desktop-file-bridge",
+      "label": "Save document as",
+      "persistence_boundary": "user-selected file write proof pending; renderer never supplies document bytes",
+      "audit_boundary": "file_bridge.download precheck/save events exist in controller; active shell receipt missing",
+      "remediation_lane": "P6/Lane B"
+    },
+    {
+      "id": "LCX8-ACTION-0258",
+      "status": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "File picker without trusted gesture",
+      "persistence_boundary": "no file action without gesture",
+      "audit_boundary": "guard proof is local unit/contract evidence",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0259",
+      "status": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "Renderer-supplied file/document bytes",
+      "persistence_boundary": "no renderer-supplied file/document bytes accepted",
+      "audit_boundary": "guard proof is local unit/contract evidence",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0260",
+      "status": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "File bridge denied permission",
+      "persistence_boundary": "no dialog/write when permission precheck denies",
+      "audit_boundary": "precheckDenied audit event recorded in controller",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0261",
+      "status": "BLOCKED",
+      "surface": "desktop-file-bridge",
+      "label": "Open temp preview",
+      "persistence_boundary": "scoped temp file with TTL; active shell open proof pending",
+      "audit_boundary": "file_bridge.preview.opened event exists in manager; active shell receipt missing",
+      "remediation_lane": "P6/Lane B"
+    },
+    {
+      "id": "LCX8-ACTION-0262",
+      "status": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "Temp preview cache cleanup",
+      "persistence_boundary": "removes scoped temp files on TTL/logout/tenant switch/app quit hooks when manager is wired",
+      "audit_boundary": "cache_wipe audit event recorded by temp preview manager",
+      "remediation_lane": null
+    }
+  ]
+}

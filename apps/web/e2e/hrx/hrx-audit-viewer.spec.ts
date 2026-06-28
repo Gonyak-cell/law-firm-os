@@ -21,6 +21,8 @@ test("People audit viewer fetches workspace audit events through API only", asyn
   assert.match(component, /step_up_required/);
   assert.match(api, /\/api\/hrx\/audit/);
   assert.match(api, /body\?\.step_up_required === true/);
-  assert.match(component, /중요한 활동은 추가 확인 후 표시됩니다/);
+  assert.match(component, /인사기록/);
+  assert.match(component, /조직 변경 이력/);
+  assert.doesNotMatch(component, /활동 기록|인사 변경 이력|title="변경 이력"/);
   assert.doesNotMatch(component, /mockData|profileRows|matters/);
 });

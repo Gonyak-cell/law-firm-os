@@ -1,0 +1,1670 @@
+{
+  "schema_version": "law-firm-os.lcx8.browser-proof.v1",
+  "generated_at": "2026-06-28T04:49:27.569Z",
+  "batch": "LCX8-ALL-14",
+  "slice": "client-account-contact-merge-flow",
+  "url": "http://127.0.0.1:5173/?locale=ko&view=clients&data=live&ctx=allow#client-accounts and #client-contacts",
+  "rows": [
+    "LCX8-ACTION-0121",
+    "LCX8-ACTION-0122",
+    "LCX8-ACTION-0123",
+    "LCX8-ACTION-0124",
+    "LCX8-ACTION-0125",
+    "LCX8-ACTION-0126",
+    "LCX8-ACTION-0127",
+    "LCX8-ACTION-0128"
+  ],
+  "status": "PASS",
+  "summary": "LCX8-ACTION-0121..0128 Client account/contact/merge proof: current UI account/contact create, patch, record-action, merge review, and merge execute actions operated through browser/API with safe fixture writes, idempotency, read-back, audit proof, validation blocks, fail-closed probes, and clean browser network/console.",
+  "screenshots": {
+    "accounts": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0121-0128-client-accounts-after-actions.png",
+    "contacts": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0121-0128-client-contacts-after-actions.png"
+  },
+  "browser_setup": {
+    "account_id": "account_lcx8_browser_0128",
+    "contact_id": "contact_lcx8_browser_0128",
+    "approved_merge_proposal_status": 201,
+    "proposal_id": "dup_merge_lcx8_browser_0128",
+    "synthetic_owner_approval_ref_only": true
+  },
+  "browser_action_results": {
+    "accounts_text": "계정 생성\n새 Client 계정 레코드를 추가합니다.\n계정이 생성되었습니다.\n생성\n계정 생성과 기준 데이터 동기화가 기록되었습니다.\n계정 검토 표시\n계정 작업 검토\n계정이 업데이트되었습니다.\n검토 표시\n계정 상태가 반영되었습니다.\n계정 필드 작업\n계정 작업 검토\n계정 필드 작업이 기록되었습니다.\n레코드 작업\n계정 필드 작업이 완료되었습니다.\n계정\t상태\t기준 데이터\tClient 그룹\t식별자\n계정 작업 검토\t검토 필요\t동기화됨\t연결됨\t보호됨\nLCX8 browser account\t사용 중\t동기화됨\t연결됨\t보호됨\n계정 3\t사용 중\t동기화됨\t연결됨\t보호됨\n관련 연락처\n권한이 허용한 관계만 표시됩니다.\n연락처\t관계\t상태\t연락값\nLCX8 browser contact\tcrm_runtime_contact\t사용 중\t보호됨",
+    "contacts_text": "연락처 생성\n새 담당자를 Client 레코드에 추가합니다.\n연락처가 생성되었습니다.\n생성\n연락처와 기준 데이터 담당자 정보가 등록되었습니다.\n연락처 검토 표시\n연락처 작업 검토\n연락처가 업데이트되었습니다.\n검토 표시\n연락처 상태가 반영되었습니다.\n연락처 필드 작업\n연락처 작업 검토\n연락처 필드 작업이 기록되었습니다.\n레코드 작업\n연락처 필드 작업이 완료되었습니다.\n연락처\t상태\t기준 데이터\t기본 연락처\t연락값\n연락처 작업 검토\t검토 필요\t동기화됨\temail\t보호됨\nLCX8 browser contact\t사용 중\t동기화됨\temail\t보호됨\n연락처 3\t사용 중\t동기화됨\temail\t보호됨\n관련 인물 연결\nClient 연락처와 연결된 인물 기록을 함께 확인합니다.\nAri Kim\n내부 변호사\nCounterparty A\n상대방\nJin Lee\n고객 담당자\n병합 검토\n실행됨\n병합 검토가 생성되었습니다.\n검토 생성\n병합 실행\n담당자 승인 필요\n병합 실행 상태가 기록되었습니다.\n병합 실행\n제안\t상태\t후보\t승인\t실행\n제안 1\t실행됨\t0건\t있음\t보류\n제안 2\t승인 필요\t7건\t필요\t보류"
+  },
+  "direct_api_results": {
+    "account_create": {
+      "status": 201,
+      "outcome": "created",
+      "audit_action": "crm.account.created",
+      "replay_status": 200,
+      "replay_outcome": "idempotent_replay",
+      "read_back_after_restart": true
+    },
+    "account_patch": {
+      "status": 200,
+      "outcome": "updated",
+      "audit_action": "crm.account.patched",
+      "unsafe_patch_status": 400
+    },
+    "account_record_action": {
+      "status": 200,
+      "audit_action": "record_action.field_updated",
+      "audit_read_status": 200
+    },
+    "contact_create": {
+      "status": 201,
+      "outcome": "created",
+      "audit_action": "crm.contact.created",
+      "replay_status": 200,
+      "replay_outcome": "idempotent_replay",
+      "read_back_after_restart": true,
+      "raw_email_block_status": 400
+    },
+    "contact_patch": {
+      "status": 200,
+      "outcome": "updated",
+      "audit_action": "crm.contact.patched"
+    },
+    "contact_record_action": {
+      "status": 200,
+      "audit_action": "record_action.field_updated",
+      "audit_read_status": 200
+    },
+    "merge": {
+      "review_status": 201,
+      "review_state": "owner_decision_required",
+      "approved_status": 201,
+      "execute_status": 200,
+      "execute_outcome": "executed",
+      "execute_replay_outcome": "idempotent_replay",
+      "denied_status": 403,
+      "denied_ui_state": "denied",
+      "read_back_after_restart": true
+    },
+    "fail_closed": {
+      "merge_denied_status": 403,
+      "merge_denied_ui_state": "denied",
+      "record_action_review_status": 200,
+      "record_action_review_ui_state": "review_required"
+    }
+  },
+  "network": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/accounts/account_lcx8_browser_0128/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/crm/accounts",
+      "status": 201
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:5173/api/crm/accounts/account_ui_1782622168946",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/record-actions/account/account_ui_1782622168946/field-update",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/crm/contacts",
+      "status": 201
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:5173/api/crm/contacts/contact_ui_1782622169152",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/record-actions/contact/contact_ui_1782622169152/field-update",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals/dup_merge_lcx8_browser_0128/execute",
+      "status": 200
+    }
+  ],
+  "network_summary": {
+    "api_responses": 19,
+    "api_4xx": 0,
+    "api_5xx": 0
+  },
+  "console_messages": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    }
+  ],
+  "assertions": [
+    {
+      "name": "browser setup account status",
+      "status": "PASS",
+      "detail": {
+        "actual": 201,
+        "expected": 201
+      }
+    },
+    {
+      "name": "browser setup contact status",
+      "status": "PASS",
+      "detail": {
+        "actual": 201,
+        "expected": 201
+      }
+    },
+    {
+      "name": "browser setup approved merge proposal status",
+      "status": "PASS",
+      "detail": {
+        "actual": 201,
+        "expected": 201
+      }
+    },
+    {
+      "name": "browser setup proposal executable",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0121 account create visible",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0122 account patch visible",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0123 account record action visible",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0128 merge execute enabled for synthetic approved proposal",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0124 contact create visible",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0125 contact patch visible",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0126 contact record action visible",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0127 merge create visible",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0128 merge execute visible",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "browser body omits raw owner id",
+      "status": "PASS",
+      "detail": {
+        "needle": "user_cmp_g6_owner"
+      }
+    },
+    {
+      "name": "browser body omits raw contact fingerprint",
+      "status": "PASS",
+      "detail": {
+        "needle": "lcx8-contact-fingerprint"
+      }
+    },
+    {
+      "name": "browser body omits raw email",
+      "status": "PASS",
+      "detail": {
+        "needle": "@example"
+      }
+    },
+    {
+      "name": "direct account create status",
+      "status": "PASS",
+      "detail": {
+        "actual": 201,
+        "expected": 201
+      }
+    },
+    {
+      "name": "direct account audit action",
+      "status": "PASS",
+      "detail": {
+        "actual": "crm.account.created",
+        "expected": "crm.account.created"
+      }
+    },
+    {
+      "name": "direct account no registration number flag",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct account registration_number absent",
+      "status": "PASS",
+      "detail": {
+        "key": "registration_number"
+      }
+    },
+    {
+      "name": "direct account matter_id absent",
+      "status": "PASS",
+      "detail": {
+        "key": "matter_id"
+      }
+    },
+    {
+      "name": "direct account production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct account replay status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct account replay outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "idempotent_replay",
+        "expected": "idempotent_replay"
+      }
+    },
+    {
+      "name": "direct account patch status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct account patch state",
+      "status": "PASS",
+      "detail": {
+        "actual": "review_required",
+        "expected": "review_required"
+      }
+    },
+    {
+      "name": "direct account patch audit action",
+      "status": "PASS",
+      "detail": {
+        "actual": "crm.account.patched",
+        "expected": "crm.account.patched"
+      }
+    },
+    {
+      "name": "direct account unsafe patch blocked",
+      "status": "PASS",
+      "detail": {
+        "actual": 400,
+        "expected": 400
+      }
+    },
+    {
+      "name": "direct contact create status",
+      "status": "PASS",
+      "detail": {
+        "actual": 201,
+        "expected": 201
+      }
+    },
+    {
+      "name": "direct contact audit action",
+      "status": "PASS",
+      "detail": {
+        "actual": "crm.contact.created",
+        "expected": "crm.contact.created"
+      }
+    },
+    {
+      "name": "direct contact email hidden",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct contact value hidden",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct contact email absent",
+      "status": "PASS",
+      "detail": {
+        "key": "email"
+      }
+    },
+    {
+      "name": "direct contact point absent",
+      "status": "PASS",
+      "detail": {
+        "key": "contact_point_value"
+      }
+    },
+    {
+      "name": "direct contact replay status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct contact replay outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "idempotent_replay",
+        "expected": "idempotent_replay"
+      }
+    },
+    {
+      "name": "direct contact patch status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct contact patch state",
+      "status": "PASS",
+      "detail": {
+        "actual": "review_required",
+        "expected": "review_required"
+      }
+    },
+    {
+      "name": "direct contact patch audit action",
+      "status": "PASS",
+      "detail": {
+        "actual": "crm.contact.patched",
+        "expected": "crm.contact.patched"
+      }
+    },
+    {
+      "name": "direct contact raw email blocked",
+      "status": "PASS",
+      "detail": {
+        "actual": 400,
+        "expected": 400
+      }
+    },
+    {
+      "name": "direct account contacts read status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct account contacts includes created contact",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "direct account record action status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct account record action audit",
+      "status": "PASS",
+      "detail": {
+        "actual": "record_action.field_updated",
+        "expected": "record_action.field_updated"
+      }
+    },
+    {
+      "name": "direct account record raw registration absent",
+      "status": "PASS",
+      "detail": {
+        "key": "registration_number"
+      }
+    },
+    {
+      "name": "direct contact record action status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct contact record action audit",
+      "status": "PASS",
+      "detail": {
+        "actual": "record_action.field_updated",
+        "expected": "record_action.field_updated"
+      }
+    },
+    {
+      "name": "direct contact record raw value hidden",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct account record audit status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct account record audit includes update",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "direct contact record audit status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct contact record audit includes update",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "direct merge review create status",
+      "status": "PASS",
+      "detail": {
+        "actual": 201,
+        "expected": 201
+      }
+    },
+    {
+      "name": "direct merge review state",
+      "status": "PASS",
+      "detail": {
+        "actual": "owner_decision_required",
+        "expected": "owner_decision_required"
+      }
+    },
+    {
+      "name": "direct merge review executable false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct merge approved create status",
+      "status": "PASS",
+      "detail": {
+        "actual": 201,
+        "expected": 201
+      }
+    },
+    {
+      "name": "direct merge approved executable",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct merge execute status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct merge execute outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "executed",
+        "expected": "executed"
+      }
+    },
+    {
+      "name": "direct merge automatic executed",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct merge rollback metadata present",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct merge execute replay status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct merge execute replay outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "idempotent_replay",
+        "expected": "idempotent_replay"
+      }
+    },
+    {
+      "name": "direct merge denied status",
+      "status": "PASS",
+      "detail": {
+        "actual": 403,
+        "expected": 403
+      }
+    },
+    {
+      "name": "direct merge denied ui_state",
+      "status": "PASS",
+      "detail": {
+        "actual": "denied",
+        "expected": "denied"
+      }
+    },
+    {
+      "name": "direct record action review status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct record action review ui_state",
+      "status": "PASS",
+      "detail": {
+        "actual": "review_required",
+        "expected": "review_required"
+      }
+    },
+    {
+      "name": "direct account read-back after restart",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "direct contact read-back after restart",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "direct proposal read-back after restart",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "browser API 4xx count",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser API 5xx count",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser console error count",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser observed account create",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "network": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_lcx8_browser_0128/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/accounts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_ui_1782622168946",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/account/account_ui_1782622168946/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/contacts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/contacts/contact_ui_1782622169152",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/contact/contact_ui_1782622169152/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals",
+            "status": 201
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals/dup_merge_lcx8_browser_0128/execute",
+            "status": 200
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser observed account patch",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "network": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_lcx8_browser_0128/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/accounts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_ui_1782622168946",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/account/account_ui_1782622168946/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/contacts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/contacts/contact_ui_1782622169152",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/contact/contact_ui_1782622169152/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals",
+            "status": 201
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals/dup_merge_lcx8_browser_0128/execute",
+            "status": 200
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser observed account record action",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "network": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_lcx8_browser_0128/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/accounts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_ui_1782622168946",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/account/account_ui_1782622168946/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/contacts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/contacts/contact_ui_1782622169152",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/contact/contact_ui_1782622169152/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals",
+            "status": 201
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals/dup_merge_lcx8_browser_0128/execute",
+            "status": 200
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser observed contact create",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "network": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_lcx8_browser_0128/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/accounts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_ui_1782622168946",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/account/account_ui_1782622168946/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/contacts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/contacts/contact_ui_1782622169152",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/contact/contact_ui_1782622169152/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals",
+            "status": 201
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals/dup_merge_lcx8_browser_0128/execute",
+            "status": 200
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser observed contact patch",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "network": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_lcx8_browser_0128/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/accounts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_ui_1782622168946",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/account/account_ui_1782622168946/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/contacts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/contacts/contact_ui_1782622169152",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/contact/contact_ui_1782622169152/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals",
+            "status": 201
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals/dup_merge_lcx8_browser_0128/execute",
+            "status": 200
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser observed contact record action",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "network": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_lcx8_browser_0128/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/accounts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_ui_1782622168946",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/account/account_ui_1782622168946/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/contacts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/contacts/contact_ui_1782622169152",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/contact/contact_ui_1782622169152/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals",
+            "status": 201
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals/dup_merge_lcx8_browser_0128/execute",
+            "status": 200
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser observed merge create",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "network": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_lcx8_browser_0128/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/accounts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_ui_1782622168946",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/account/account_ui_1782622168946/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/contacts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/contacts/contact_ui_1782622169152",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/contact/contact_ui_1782622169152/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals",
+            "status": 201
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals/dup_merge_lcx8_browser_0128/execute",
+            "status": 200
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser observed merge execute",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "network": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_lcx8_browser_0128/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/accounts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/account_ui_1782622168946",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/account/account_ui_1782622168946/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/contacts",
+            "status": 201
+          },
+          {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:5173/api/crm/contacts/contact_ui_1782622169152",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/record-actions/contact/contact_ui_1782622169152/field-update",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals",
+            "status": 201
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals/dup_merge_lcx8_browser_0128/execute",
+            "status": 200
+          }
+        ]
+      }
+    }
+  ],
+  "assertion_summary": {
+    "total": 81,
+    "pass": 81,
+    "fail": 0
+  },
+  "classification": {
+    "LCX8-ACTION-0121": "PASS api_write CRM account create safe write/audit/idempotency/read-back/raw registration suppression",
+    "LCX8-ACTION-0122": "PASS api_write CRM account patch safe write/audit/idempotency/unsafe-field block",
+    "LCX8-ACTION-0123": "PASS api_write account record-action field update safe write/audit/read-back/fail-closed",
+    "LCX8-ACTION-0124": "PASS api_write CRM contact create safe write/audit/idempotency/read-back/raw contact suppression",
+    "LCX8-ACTION-0125": "PASS api_write CRM contact patch safe write/audit/idempotency/raw contact suppression",
+    "LCX8-ACTION-0126": "PASS api_write contact record-action field update safe write/audit/read-back/fail-closed",
+    "LCX8-ACTION-0127": "PASS api_write duplicate merge proposal create safe write/audit/review-required boundary",
+    "LCX8-ACTION-0128": "PASS api_write duplicate merge execute safe synthetic-approved fixture/rollback metadata/idempotency"
+  },
+  "non_claims": [
+    "No direct Matter creation claim",
+    "No real owner approval claim; merge execute used a synthetic approved fixture",
+    "No production merge approval claim",
+    "No external receipt claim",
+    "No raw registration/contact/email/fingerprint exposure claim"
+  ]
+}

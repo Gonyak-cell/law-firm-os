@@ -1,0 +1,144 @@
+{
+  "schema_version": "law-firm-os.lcx8.final-blocker-descriptor-proof.v0.1",
+  "generated_at": "2026-06-28T07:46:36.485Z",
+  "result": "PASS",
+  "action_ids": [
+    "LCX8-ACTION-0062",
+    "LCX8-ACTION-0281",
+    "LCX8-ACTION-0318",
+    "LCX8-ACTION-0322"
+  ],
+  "status_decision": "final BLOCKED/DESCRIPTOR_ONLY classification",
+  "assertions": {
+    "passed": 17,
+    "failed": 0
+  },
+  "source_observations": {
+    "matter_write_blockers": "MattersSurface handler/API boundary exists; ledger P5/P8 records owner/approval receipt missing, so status remains BLOCKED.",
+    "profile_descriptor": "UserProfileSurface renders unavailable panels with no profile API client/runtime read.",
+    "vault_email_descriptor": "EmailFilingView renders external provider unavailable state with no submit/provider API handler."
+  },
+  "tests": [
+    {
+      "command": "npm --workspace apps/api run test",
+      "started_at": "2026-06-28T07:46:34.620Z",
+      "finished_at": "2026-06-28T07:46:36.485Z",
+      "exit_code": 0,
+      "summary": {
+        "tests": 191,
+        "pass": 191,
+        "fail": 0
+      },
+      "output_excerpt": [
+        "> @law-firm-os/api@0.1.0 test",
+        "> node --test test/*.test.js test/hrx/*.test.js",
+        "",
+        "TAP version 13",
+        "# Subtest: G1 tenant and actor context fail closed and compose request context",
+        "ok 1 - G1 tenant and actor context fail closed and compose request context",
+        "  ---",
+        "  duration_ms: 1.080708",
+        "  type: 'test'",
+        "  ...",
+        "# Subtest: G1 audit middleware, correlation, and safe error envelopes do not leak counts",
+        "ok 2 - G1 audit middleware, correlation, and safe error envelopes do not leak counts",
+        "  ---",
+        "  duration_ms: 0.2125",
+        "  type: 'test'",
+        "  ...",
+        "# Subtest: G1 permission simulator stays read-only while evaluating runtime permission",
+        "ok 3 - G1 permission simulator stays read-only while evaluating runtime permission",
+        "  ---",
+        "  duration_ms: 0.266375",
+        "  type: 'test'",
+        "  ...",
+        "# Subtest: G1 audit export and verify helpers use tenant-scoped API shapes",
+        "ok 4 - G1 audit export and verify helpers use tenant-scoped API shapes",
+        "  ---",
+        "  duration_ms: 0.191459",
+        "  type: 'test'",
+        "  ...",
+        "# Subtest: G1 secret guard blocks secret-shaped payloads before evidence export",
+        "ok 5 - G1 secret guard blocks secret-shaped payloads before evidence export",
+        "  ---",
+        "  duration_ms: 0.330583",
+        "  type: 'test'",
+        "  ...",
+        "# Subtest: G10 Portal/Data Room API health descriptor exposes runtime write-ready without production claim",
+        "...",
+        "  type: 'test'",
+        "  ...",
+        "# Subtest: SF-B-W08R health descriptor exposes report builder and client profitability routes",
+        "ok 188 - SF-B-W08R health descriptor exposes report builder and client profitability routes",
+        "  ---",
+        "  duration_ms: 105.664",
+        "  type: 'test'",
+        "  ...",
+        "# Subtest: SF-B-W08R report definition routes are mounted, allowlisted, idempotent, and safe",
+        "ok 189 - SF-B-W08R report definition routes are mounted, allowlisted, idempotent, and safe",
+        "  ---",
+        "  duration_ms: 95.0645",
+        "  type: 'test'",
+        "  ...",
+        "# Subtest: SF-B-W08R client profitability refresh/read and report run return bounded aggregate results",
+        "ok 190 - SF-B-W08R client profitability refresh/read and report run return bounded aggregate results",
+        "  ---",
+        "  duration_ms: 86.934167",
+        "  type: 'test'",
+        "  ...",
+        "# Subtest: SF-B-W08R report sharing is owner-blocked and audit/denied envelopes stay safe",
+        "ok 191 - SF-B-W08R report sharing is owner-blocked and audit/denied envelopes stay safe",
+        "  ---",
+        "  duration_ms: 45.87325",
+        "  type: 'test'",
+        "  ...",
+        "1..191",
+        "# tests 191",
+        "# suites 0",
+        "# pass 191",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 1638.556083"
+      ]
+    }
+  ],
+  "rowProofs": [
+    {
+      "id": "LCX8-ACTION-0062",
+      "status_decision": "BLOCKED final / owner approval receipt required",
+      "proof_type": "ledger_source_api_test",
+      "observed": "Matter owner-change bulk record action handler/API boundary exists, but ledger P5/P8 classify owner/approval receipt as missing and no safe write/read-back/audit receipt is captured.",
+      "missing_receipt": "owner/approval write execution, durable read-back, and audit event receipt"
+    },
+    {
+      "id": "LCX8-ACTION-0281",
+      "status_decision": "DESCRIPTOR_ONLY final / runtime profile API missing",
+      "proof_type": "descriptor_source",
+      "observed": "UserProfileSurface renders profile data unavailable panels and intentionally avoids a profile API client/runtime read.",
+      "missing_receipt": "profile runtime API/read integration"
+    },
+    {
+      "id": "LCX8-ACTION-0318",
+      "status_decision": "BLOCKED final / owner approval receipt required",
+      "proof_type": "ledger_source_api_test",
+      "observed": "Import execution request source surface exists, but ledger P5/P8 classify owner/approval receipt as missing and no safe write/read-back/audit receipt is captured.",
+      "missing_receipt": "owner/approval write execution, durable read-back, and audit event receipt"
+    },
+    {
+      "id": "LCX8-ACTION-0322",
+      "status_decision": "DESCRIPTOR_ONLY final / external provider unavailable",
+      "proof_type": "descriptor_source",
+      "observed": "EmailFilingView renders provider-unavailable copy with no form submit/provider API handler.",
+      "missing_receipt": "email filing provider integration and external receipt"
+    }
+  ],
+  "non_claims": [
+    "no owner/approval write execution was performed",
+    "no durable read-back or audit write receipt is claimed for blocked write rows",
+    "descriptor-only rows are not runtime/PASS claims",
+    "no external email provider receipt is claimed",
+    "no production-ready or go-live claim"
+  ]
+}

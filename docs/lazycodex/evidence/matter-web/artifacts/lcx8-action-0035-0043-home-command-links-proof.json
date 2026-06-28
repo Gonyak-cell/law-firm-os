@@ -1,0 +1,807 @@
+{
+  "proof_id": "lcx8-action-0035-0043-home-command-links-proof",
+  "generated_at": "2026-06-28T03:07:05.065Z",
+  "status": "PASS",
+  "target_ids": [
+    "LCX8-ACTION-0035",
+    "LCX8-ACTION-0037",
+    "LCX8-ACTION-0038",
+    "LCX8-ACTION-0039",
+    "LCX8-ACTION-0040",
+    "LCX8-ACTION-0041",
+    "LCX8-ACTION-0042",
+    "LCX8-ACTION-0043"
+  ],
+  "route_only_ui_only_rows": [
+    "LCX8-ACTION-0035",
+    "LCX8-ACTION-0038",
+    "LCX8-ACTION-0039",
+    "LCX8-ACTION-0040",
+    "LCX8-ACTION-0042",
+    "LCX8-ACTION-0043"
+  ],
+  "api_write_side_effect_rows": [
+    "LCX8-ACTION-0037",
+    "LCX8-ACTION-0041"
+  ],
+  "classification": {
+    "LCX8-ACTION-0035": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0037": "PASS_ROUTE_NAVIGATION_WITH_SAFE_RECENTLY_VIEWED_WRITE",
+    "LCX8-ACTION-0038": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0039": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0040": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0041": "PASS_ROUTE_NAVIGATION_WITH_SAFE_RECENTLY_VIEWED_WRITE",
+    "LCX8-ACTION-0042": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0043": "UI_ONLY_FINAL_ROUTE_NAVIGATION"
+  },
+  "source_trace": {
+    "notification": "apps/web/src/components/Shell.jsx NotificationDrawer keydown Escape -> onClose",
+    "home_queue": "apps/web/src/components/HomeSurface.jsx QueueRow -> onOpen(capability.route) -> App.navigateToView",
+    "home_quick_links": "apps/web/src/components/HomeSurface.jsx WorkAreaRow -> onOpen(capability.route) -> App.navigateToView",
+    "matter_side_effect": "apps/web/src/components/MattersSurface.jsx mount -> markMatterRecentlyViewed -> /api/matters/:matter_id/recently-viewed"
+  },
+  "observations": [
+    {
+      "id": "LCX8-ACTION-0035",
+      "label": "Escape closes notification drawer",
+      "className": "ui_state_only",
+      "state": {
+        "view": "home",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "drawerOpen": 0
+    },
+    {
+      "id": "LCX8-ACTION-0037",
+      "label": "Matter 목록",
+      "className": "route_with_recent_write",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        }
+      ],
+      "recentWrites": [
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        }
+      ],
+      "nonRecentMutations": [],
+      "targetView": "matters"
+    },
+    {
+      "id": "LCX8-ACTION-0038",
+      "label": "승인·구성원 확인",
+      "className": "route_navigation",
+      "state": {
+        "view": "people",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=people&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetView": "people"
+    },
+    {
+      "id": "LCX8-ACTION-0039",
+      "label": "최근 문서 확인",
+      "className": "route_navigation",
+      "state": {
+        "view": "vault",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetView": "vault"
+    },
+    {
+      "id": "LCX8-ACTION-0040",
+      "label": "Client 열기",
+      "className": "route_navigation",
+      "state": {
+        "view": "clients",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=clients&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetCapability": "client",
+      "targetView": "clients"
+    },
+    {
+      "id": "LCX8-ACTION-0041",
+      "label": "Matter 열기",
+      "className": "route_with_recent_write",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        }
+      ],
+      "recentWrites": [
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        }
+      ],
+      "nonRecentMutations": [],
+      "targetCapability": "matter",
+      "targetView": "matters"
+    },
+    {
+      "id": "LCX8-ACTION-0042",
+      "label": "People 열기",
+      "className": "route_navigation",
+      "state": {
+        "view": "people",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=people&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetCapability": "people",
+      "targetView": "people"
+    },
+    {
+      "id": "LCX8-ACTION-0043",
+      "label": "Vault 열기",
+      "className": "route_navigation",
+      "state": {
+        "view": "vault",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "mutations": [],
+      "recentWrites": [],
+      "nonRecentMutations": [],
+      "targetCapability": "vault",
+      "targetView": "vault"
+    }
+  ],
+  "direct_api_probes": [
+    {
+      "name": "recently viewed mark",
+      "pathname": "/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+      "method": "POST",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_b68b5b6c-411e-484e-aa08-ba3cac4c4229",
+        "outcome": "updated",
+        "item": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "resource_id": "matter_recent:matter_rp05_synthetic_opening",
+          "matter_id": "matter_rp05_synthetic_opening",
+          "object_type": "Matter",
+          "title": "RP05 synthetic matter opening",
+          "matter_number": "M-TENANT-RP05-0001",
+          "status": "opening",
+          "viewed_at": "2026-06-28T03:20:00.000Z",
+          "viewer_scoped": true,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "matter.recently_viewed.mark:tenant_rp05_synthetic:matter_rp05_synthetic_opening:user_rp05_owner",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "user_rp05_owner",
+          "action": "matter.recently_viewed.mark",
+          "object_type": "Matter",
+          "object_id": "matter_rp05_synthetic_opening",
+          "decision": "allow",
+          "reason": "matter_record_recently_viewed",
+          "occurred_at": "2026-06-28T03:20:00.000Z",
+          "metadata": {
+            "viewer_scoped": true,
+            "permission_ref": "ui_lcx8_home_links_recent_write"
+          },
+          "event_hash": "adbf96548f53e1b297c49c1e27a3c76a14bef57f3e0bb74604ef1aafc1f5bd19"
+        },
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_home_links_recent_write",
+        "state_idempotent": true,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "name": "recently viewed readback",
+      "pathname": "/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_lcx8_home_links_recent_readback&audit_hint_ref=audit_lcx8_home_links_recent_readback",
+      "method": "GET",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_1f99179b-b416-4ba8-8233-00d99a6d5dfc",
+        "outcome": "passed",
+        "items": [
+          {
+            "tenant_id": "tenant_rp05_synthetic",
+            "resource_id": "matter_recent:matter_rp05_synthetic_opening",
+            "matter_id": "matter_rp05_synthetic_opening",
+            "object_type": "Matter",
+            "title": "RP05 synthetic matter opening",
+            "matter_number": "M-TENANT-RP05-0001",
+            "status": "opening",
+            "viewed_at": "2026-06-28T03:20:00.000Z",
+            "viewer_scoped": true,
+            "production_ready_claim": false
+          }
+        ],
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_home_links_recent_readback",
+        "ui_state": null,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "name": "recently viewed audit",
+      "pathname": "/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_lcx8_home_links_recent_audit&audit_hint_ref=audit_lcx8_home_links_recent_audit",
+      "method": "GET",
+      "effect": "allow",
+      "status": 200,
+      "body": {
+        "request_id": "req_a8d94896-c880-4fa4-b530-0eb4519e565e",
+        "outcome": "passed",
+        "items": [
+          {
+            "event_id": "matter.command_center.viewed:tenant_rp05_synthetic:matter_rp05_synthetic_opening:req_c08ca74e-c140-4426-80fd-894b9d43f150",
+            "tenant_id": "tenant_rp05_synthetic",
+            "actor_id": "matter_matter_operator",
+            "action": "matter.command_center.viewed",
+            "object_type": "Matter",
+            "object_id": "matter_rp05_synthetic_opening",
+            "decision": "allow",
+            "reason": "permission_gated_command_center_read",
+            "occurred_at": "2026-06-28T03:06:53.170Z",
+            "metadata": {
+              "permission_ref": "ui_mv_matter_command_center"
+            },
+            "event_hash": "2275a274c15211ed5c0f1f8f939caa6353a5bc97ebcd9ee8c1c495b250626b13"
+          },
+          {
+            "event_id": "matter.timeline.viewed:tenant_rp05_synthetic:matter_rp05_synthetic_opening:req_826f7e64-9888-4a7f-8318-bb69e9e69d3f",
+            "tenant_id": "tenant_rp05_synthetic",
+            "actor_id": "matter_matter_operator",
+            "action": "matter.timeline.viewed",
+            "object_type": "MatterTimeline",
+            "object_id": "matter_rp05_synthetic_opening",
+            "decision": "allow",
+            "reason": "permission_gated_timeline_read",
+            "occurred_at": "2026-06-28T03:06:53.171Z",
+            "metadata": {
+              "permission_ref": "ui_mv_matter_timeline"
+            },
+            "event_hash": "f05a3abb262bcacdf1c8f7dee95e064379ebf52d1184822697b6a00ca39e4ace"
+          },
+          {
+            "event_id": "matter.recently_viewed.mark:tenant_rp05_synthetic:matter_rp05_synthetic_opening:matter_matter_operator",
+            "tenant_id": "tenant_rp05_synthetic",
+            "actor_id": "matter_matter_operator",
+            "action": "matter.recently_viewed.mark",
+            "object_type": "Matter",
+            "object_id": "matter_rp05_synthetic_opening",
+            "decision": "allow",
+            "reason": "matter_record_recently_viewed",
+            "occurred_at": "2026-06-28T03:07:00.485Z",
+            "metadata": {
+              "viewer_scoped": true,
+              "permission_ref": "ui_sf_b_w02_recently_viewed"
+            },
+            "event_hash": "6cdf56de63b2bdd57ff3ef697a21c9a294059a7566517a7c62f1badd0955025e"
+          },
+          {
+            "event_id": "matter.command_center.viewed:tenant_rp05_synthetic:matter_rp05_synthetic_opening:req_a9419635-c085-4884-9021-f8880eecf207",
+            "tenant_id": "tenant_rp05_synthetic",
+            "actor_id": "matter_matter_operator",
+            "action": "matter.command_center.viewed",
+            "object_type": "Matter",
+            "object_id": "matter_rp05_synthetic_opening",
+            "decision": "allow",
+            "reason": "permission_gated_command_center_read",
+            "occurred_at": "2026-06-28T03:07:00.488Z",
+            "metadata": {
+              "permission_ref": "ui_mv_matter_command_center"
+            },
+            "event_hash": "598a93b259f564b0e0d23eed3303ae691b739b5d2592fdd86cfebc42bb3313b7"
+          },
+          {
+            "event_id": "matter.timeline.viewed:tenant_rp05_synthetic:matter_rp05_synthetic_opening:req_e8551f0a-9dcd-45c5-9c1d-56359c05df8a",
+            "tenant_id": "tenant_rp05_synthetic",
+            "actor_id": "matter_matter_operator",
+            "action": "matter.timeline.viewed",
+            "object_type": "MatterTimeline",
+            "object_id": "matter_rp05_synthetic_opening",
+            "decision": "allow",
+            "reason": "permission_gated_timeline_read",
+            "occurred_at": "2026-06-28T03:07:00.489Z",
+            "metadata": {
+              "permission_ref": "ui_mv_matter_timeline"
+            },
+            "event_hash": "e2fc597f2d03a3d30627546f3610ea38c374b4879d27224f57bda299b1521531"
+          },
+          {
+            "event_id": "matter.recently_viewed.mark:tenant_rp05_synthetic:matter_rp05_synthetic_opening:user_rp05_owner",
+            "tenant_id": "tenant_rp05_synthetic",
+            "actor_id": "user_rp05_owner",
+            "action": "matter.recently_viewed.mark",
+            "object_type": "Matter",
+            "object_id": "matter_rp05_synthetic_opening",
+            "decision": "allow",
+            "reason": "matter_record_recently_viewed",
+            "occurred_at": "2026-06-28T03:20:00.000Z",
+            "metadata": {
+              "viewer_scoped": true,
+              "permission_ref": "ui_lcx8_home_links_recent_write"
+            },
+            "event_hash": "adbf96548f53e1b297c49c1e27a3c76a14bef57f3e0bb74604ef1aafc1f5bd19"
+          }
+        ],
+        "safe_error_codes": [],
+        "audit_hint_ref": "audit_lcx8_home_links_recent_audit",
+        "ui_state": null,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "name": "recently viewed denied guard",
+      "pathname": "/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+      "method": "POST",
+      "effect": "deny",
+      "status": 403,
+      "body": {
+        "request_id": "req_d6489902-dc7f-45bf-9897-3387faecc0df",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_UNAUTHORIZED_OMISSION"
+        ],
+        "audit_hint_ref": "audit_lcx8_home_links_recent_denied",
+        "ui_state": "denied",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "name": "recently viewed review guard",
+      "pathname": "/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+      "method": "POST",
+      "effect": "review_required",
+      "status": 200,
+      "body": {
+        "request_id": "req_ab78850b-895b-4a21-9e06-b14ca6422c8a",
+        "outcome": "review_required",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_REVIEW_REQUIRED"
+        ],
+        "audit_hint_ref": "audit_lcx8_home_links_recent_review",
+        "ui_state": "review_required",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    }
+  ],
+  "browser_events": {
+    "api_event_count": 182,
+    "mutation_event_count": 2,
+    "console_errors": []
+  },
+  "screenshots": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0035-0043-home-start.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0035-0043-home-after-checks.png"
+  ],
+  "assertions": [
+    {
+      "name": "LCX8-ACTION-0035 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0035",
+        "label": "Escape closes notification drawer",
+        "className": "ui_state_only",
+        "state": {
+          "view": "home",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "drawerOpen": 0
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0035 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0035 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0037 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0037",
+        "label": "Matter 목록",
+        "className": "route_with_recent_write",
+        "state": {
+          "view": "matters",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ],
+        "recentWrites": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ],
+        "nonRecentMutations": [],
+        "targetView": "matters"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0037 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0037 observed recently-viewed write",
+      "status": "PASS",
+      "detail": {
+        "recentWrites": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0038 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0038",
+        "label": "승인·구성원 확인",
+        "className": "route_navigation",
+        "state": {
+          "view": "people",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=people&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetView": "people"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0038 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0038 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0039 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0039",
+        "label": "최근 문서 확인",
+        "className": "route_navigation",
+        "state": {
+          "view": "vault",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetView": "vault"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0039 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0039 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0040 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0040",
+        "label": "Client 열기",
+        "className": "route_navigation",
+        "state": {
+          "view": "clients",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=clients&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetCapability": "client",
+        "targetView": "clients"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0040 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0040 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0041 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0041",
+        "label": "Matter 열기",
+        "className": "route_with_recent_write",
+        "state": {
+          "view": "matters",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ],
+        "recentWrites": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ],
+        "nonRecentMutations": [],
+        "targetCapability": "matter",
+        "targetView": "matters"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0041 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0041 observed recently-viewed write",
+      "status": "PASS",
+      "detail": {
+        "recentWrites": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0042 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0042",
+        "label": "People 열기",
+        "className": "route_navigation",
+        "state": {
+          "view": "people",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=people&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetCapability": "people",
+        "targetView": "people"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0042 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0042 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0043 surface/state visible",
+      "status": "PASS",
+      "detail": {
+        "id": "LCX8-ACTION-0043",
+        "label": "Vault 열기",
+        "className": "route_navigation",
+        "state": {
+          "view": "vault",
+          "ctx": "allow",
+          "locale": "ko",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "mutations": [],
+        "recentWrites": [],
+        "nonRecentMutations": [],
+        "targetCapability": "vault",
+        "targetView": "vault"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0043 no non-recent mutation",
+      "status": "PASS",
+      "detail": {
+        "nonRecentMutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0043 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "direct recently-viewed mark PASS",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "outcome": "updated"
+      }
+    },
+    {
+      "name": "direct recently-viewed readback PASS",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "count": 1
+      }
+    },
+    {
+      "name": "direct recently-viewed audit PASS",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "count": 6
+      }
+    },
+    {
+      "name": "direct recently-viewed denied guard PASS",
+      "status": "PASS",
+      "detail": {
+        "status": 403,
+        "outcome": "blocked",
+        "ui_state": "denied"
+      }
+    },
+    {
+      "name": "direct recently-viewed review guard PASS",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "outcome": "review_required",
+        "ui_state": "review_required"
+      }
+    },
+    {
+      "name": "browser console has no errors",
+      "status": "PASS",
+      "detail": {
+        "console_errors": []
+      }
+    }
+  ],
+  "non_claims": [
+    "Rows without observed recently-viewed writes remain UI_ONLY final because they only update modal state or route/history state.",
+    "Rows with Matter navigation do not remain UI_ONLY: current Matter surface mount writes viewer-scoped recently-viewed state and reads/audits it back.",
+    "No non-recent Matter mutation, Client/People/Vault write, notification persistence, provider execution, or production launch claim is made.",
+    "This proof does not resolve FAIL rows or Lazyweb-gated profile-sidebar rows LCX8-ACTION-0233..0236."
+  ]
+}

@@ -28,9 +28,9 @@ export function EmployeeList({ selectedEmployeeId, onSelectEmployee, refreshKey 
 
   let body;
   if (result === null) {
-    body = <div className="live-data-state live-data-loading">구성원 정보를 불러오는 중입니다</div>;
+    body = <div className="live-data-state live-data-loading">구성원 목록을 불러오는 중입니다</div>;
   } else if (result.kind === "error") {
-    body = <div className="live-data-state live-data-error">구성원 정보를 불러오지 못했습니다.</div>;
+    body = <div className="live-data-state live-data-error">구성원 목록을 불러오지 못했습니다.</div>;
   } else if (result.employees.length === 0) {
     body = <div className="live-data-state live-data-empty">표시할 구성원이 없습니다.</div>;
   } else {
@@ -55,7 +55,7 @@ export function EmployeeList({ selectedEmployeeId, onSelectEmployee, refreshKey 
   }
 
   return (
-    <Panel id="people-members" className="people-panel people-list-panel" title="구성원 목록" meta="권한 적용">
+    <Panel id="people-members" className="people-panel people-list-panel" title="구성원 목록" meta="권한 기준 적용">
       <div className="people-panel-kicker">
         <UsersRound size={15} />
         권한이 있는 구성원 정보만 표시됩니다

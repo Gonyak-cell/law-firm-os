@@ -1,0 +1,88 @@
+{
+  "schema_version": "matter.lcx8.post-closeout.profile-sidebar-route.v1",
+  "generated_at": "2026-06-28T02:51:14.337Z",
+  "status": "PASS_WITH_MIXED_CLASSIFICATION",
+  "target_ids": [
+    "LCX8-ACTION-0227",
+    "LCX8-ACTION-0228",
+    "LCX8-ACTION-0229",
+    "LCX8-ACTION-0230",
+    "LCX8-ACTION-0231",
+    "LCX8-ACTION-0232"
+  ],
+  "route_only_ui_only_rows": [
+    "LCX8-ACTION-0227",
+    "LCX8-ACTION-0230",
+    "LCX8-ACTION-0231"
+  ],
+  "api_write_side_effect_rows": [
+    "LCX8-ACTION-0228",
+    "LCX8-ACTION-0229",
+    "LCX8-ACTION-0232"
+  ],
+  "batch": "LCX8-ALL-17",
+  "status_before": "UI_ONLY",
+  "status_after": "mixed: UI_ONLY final for 0227/0230/0231; PASS for 0228/0229/0232",
+  "proof_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0227-0232-profile-sidebar-route-proof.json",
+  "markdown_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0227-0232-profile-sidebar-route-proof.md",
+  "summary": "Post-closeout LCX8-ACTION-0227..0232 verification: profile sidebar route proof PASS 33/33. LCX8-ACTION-0227/0230/0231 remain UI_ONLY final route/history navigation. LCX8-ACTION-0228/0229/0232 moved UI_ONLY -> PASS because current Matter route mount writes viewer-scoped recently-viewed state with direct API write/read-back/audit and denied/review fail-closed proof. Verification PASS: Matter API 11/11, web UI tests 17/17, npm run build PASS with existing Vite chunk-size warning only, ui:flows:verify PASS 9/9, ui:live:verify PASS 13/13, sloplint PASS, git diff --check PASS. No non-recent Matter mutation, payment/provider execution, or production launch claim is made.",
+  "classification": {
+    "LCX8-ACTION-0227": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0228": "PASS_ROUTE_NAVIGATION_WITH_SAFE_RECENTLY_VIEWED_WRITE",
+    "LCX8-ACTION-0229": "PASS_ROUTE_NAVIGATION_WITH_SAFE_RECENTLY_VIEWED_WRITE",
+    "LCX8-ACTION-0230": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0231": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0232": "PASS_ROUTE_NAVIGATION_WITH_SAFE_RECENTLY_VIEWED_WRITE"
+  },
+  "source_trace": {
+    "profile_items": "apps/web/src/components/UserProfileSurface.jsx profileSidebarItems",
+    "shell_handler": "apps/web/src/components/Shell.jsx .sidebar .sidebar-item onClick -> setView(item.view, item.section ?? )",
+    "app_navigation": "apps/web/src/App.jsx navigateToView -> setView/setActiveSection/window.history.pushState(routeUrl(...))",
+    "matter_side_effect": "apps/web/src/components/MattersSurface.jsx useEffect(activeMatterId) -> markMatterRecentlyViewed -> fetchMatterRecentlyViewed",
+    "api_handler": "apps/api/src/matter-runtime-context.js handleMatterRecentlyViewedMark"
+  },
+  "verification": {
+    "proof_assertions": "PASS 33/33 docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0227-0232-profile-sidebar-route-proof.json",
+    "browser_rows": 6,
+    "route_only_rows": 3,
+    "api_write_side_effect_rows": 3,
+    "direct_api_probes": 5,
+    "screenshots": 2,
+    "direct_api_routes": "POST /api/matters/:matter_id/recently-viewed; GET /api/matters/recently-viewed; GET /api/matters/audit",
+    "denied_review_guard": "PASS: denied/review fail closed without item/audit event leak; count_leak_prevented=true",
+    "focused_api_tests": "PASS 11/11 node --test apps/api/test/cmp-r4-g4-matter.test.js",
+    "web_ui_tests": "PASS 17/17 npm --workspace apps/web run test:ui",
+    "build": "PASS npm run build (existing Vite chunk-size warning only)",
+    "flow_verifier": "PASS 9/9 npm run ui:flows:verify",
+    "live_verifier": "PASS 13/13 npm run ui:live:verify",
+    "sloplint": "PASS python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+    "diff_check": "PASS git diff --check"
+  },
+  "status_counts_before": {
+    "PASS": 71,
+    "GUARDED": 20,
+    "UI_ONLY": 128,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 68,
+    "FAIL": 35,
+    "UNKNOWN": 0
+  },
+  "status_counts_after": {
+    "PASS": 74,
+    "GUARDED": 20,
+    "UI_ONLY": 125,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 68,
+    "FAIL": 35,
+    "UNKNOWN": 0
+  },
+  "next_row": "LCX8-ACTION-0233",
+  "non_claims": [
+    "LCX8-ACTION-0227/0230/0231 remain UI_ONLY because they only update route/history state and active view/section.",
+    "LCX8-ACTION-0228/0229/0232 do not remain UI_ONLY: current Matter surface mount writes viewer-scoped recently-viewed state and reads it back.",
+    "No non-recent Matter mutation, permission mutation, payment execution, provider execution, or production launch claim is made.",
+    "This proof does not resolve following FAIL rows LCX8-ACTION-0233..0244."
+  ],
+  "latest_note": "Post-closeout LCX8-ACTION-0227..0232 verification: profile sidebar route proof PASS 33/33. LCX8-ACTION-0227/0230/0231 remain UI_ONLY final route/history navigation. LCX8-ACTION-0228/0229/0232 moved UI_ONLY -> PASS because current Matter route mount writes viewer-scoped recently-viewed state with direct API write/read-back/audit and denied/review fail-closed proof. Verification PASS: Matter API 11/11, web UI tests 17/17, npm run build PASS with existing Vite chunk-size warning only, ui:flows:verify PASS 9/9, ui:live:verify PASS 13/13, sloplint PASS, git diff --check PASS. No non-recent Matter mutation, payment/provider execution, or production launch claim is made.",
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0227..0232 verification: profile sidebar route proof PASS 33/33. LCX8-ACTION-0227/0230/0231 remain UI_ONLY final route/history navigation. LCX8-ACTION-0228/0229/0232 moved UI_ONLY -> PASS because current Matter route mount writes viewer-scoped recently-viewed state with direct API write/read-back/audit and denied/review fail-closed proof. Verification PASS: Matter API 11/11, web UI tests 17/17, npm run build PASS with existing Vite chunk-size warning only, ui:flows:verify PASS 9/9, ui:live:verify PASS 13/13, sloplint PASS, git diff --check PASS. No non-recent Matter mutation, payment/provider execution, or production launch claim is made."
+}

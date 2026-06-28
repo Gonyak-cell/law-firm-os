@@ -1,0 +1,583 @@
+{
+  "schema_version": "matter.lcx8.matter-vault-permission-trimming.p4-t04.v1",
+  "generated_at": "2026-06-25T13:31:03.868Z",
+  "status": "MATTER_VAULT_PERMISSION_TRIMMING_CONFIRMED_WRITE_PROOF_DEFERRED",
+  "tuw": "P4-T04",
+  "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
+  "source_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-guarded-state-browser-check-p3-t10.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-read-fail-closed-p4-t01.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-api-route-coverage-p4-t00.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-write-preconditions-p4-t02.json"
+  ],
+  "rows_reviewed": 16,
+  "guarded_rows_reviewed": 6,
+  "linked_api_rows_reviewed": 10,
+  "linked_api_read_rows": 2,
+  "linked_api_write_rows_deferred": 8,
+  "browser_contexts_reviewed": 8,
+  "guarded_confirmed_contexts": 8,
+  "fail_closed_confirmed_contexts": 8,
+  "denied_contexts_reviewed": 4,
+  "review_contexts_reviewed": 4,
+  "mutation_trim_contexts": 6,
+  "enabled_mutation_controls_in_guarded_contexts": 0,
+  "unique_http_403_responses": 4,
+  "unique_http_5xx_responses": 0,
+  "protected_token_hit_contexts": 0,
+  "source_proofs": [
+    {
+      "id": "matter_context_acl",
+      "file": "apps/web/src/data/apiClient.js:138",
+      "detail": "Matter allow, denied, and review contexts are separated with rules and object_acl fields before requests are sent."
+    },
+    {
+      "id": "vault_context_acl",
+      "file": "apps/web/src/data/apiClient.js:156",
+      "detail": "Vault allow, denied, and review contexts are separated with rules and object_acl fields before requests are sent."
+    },
+    {
+      "id": "matter_silent_identifier",
+      "file": "apps/web/src/components/MattersSurface.jsx:90",
+      "detail": "Synthetic or internal-looking Matter titles are rendered as generic Matter labels instead of raw ids."
+    },
+    {
+      "id": "matter_review_ethical_wall",
+      "file": "apps/web/src/components/MattersSurface.jsx:96",
+      "detail": "Matter review_required is labeled review-needed and billing ethical_wall is labeled restricted."
+    },
+    {
+      "id": "matter_denied_review_render",
+      "file": "apps/web/src/components/MattersSurface.jsx:351",
+      "detail": "Matter denied renders DesktopDeniedState, and review_required renders a live-data-review guard panel."
+    },
+    {
+      "id": "matter_read_boundary_strip",
+      "file": "apps/web/src/components/MattersSurface.jsx:901",
+      "detail": "Matter activity read surfaces carry an explicit permission-boundary strip."
+    },
+    {
+      "id": "vault_denied_review_render",
+      "file": "apps/web/src/components/VaultSurface.jsx:90",
+      "detail": "Vault denied renders DesktopDeniedState, and review_required renders a live-data-review guard panel."
+    },
+    {
+      "id": "vault_body_hidden_and_badges",
+      "file": "apps/web/src/components/VaultSurface.jsx:107",
+      "detail": "Vault body content is only rendered in the data branch, after denied/review guards, with copy stating hidden body access."
+    },
+    {
+      "id": "vault_legal_hold_privilege_badges",
+      "file": "apps/web/src/components/VaultSecurityBadges.jsx:4",
+      "detail": "Vault documents render legal hold and privilege/permission labels through security badges."
+    }
+  ],
+  "contexts": [
+    {
+      "row_id": "LCX8-ACTION-0274",
+      "label": "Matter list denied state",
+      "context_name": "matter-denied",
+      "path": "/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+      "expected": "guard_visible",
+      "observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "guard_state_visible",
+      "p4_result": "FAIL_CLOSED_CONFIRMED",
+      "p4_reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "guard_text": [
+        "접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
+      ],
+      "mutation_button_count": 4,
+      "enabled_mutation_button_count": 0,
+      "live_data_state_count": 1,
+      "horizontal_overflow": false,
+      "network_response_count": 4,
+      "api_5xx_count": 0,
+      "http_403_count": 3,
+      "network": [
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        }
+      ],
+      "protected_token_hits": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0274-matter-denied.png",
+      "body_text_sample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어MatterMatter 운영Matter 목록18진행 현황Matter 개시업무 진행청구·분석Matter 설정태그 관리MatterMatter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다.새로고침현황문서활동일정대화Matter 목록권한 기준 적용접근 권한이 없습니다권한이 있는 정보만 표시됩니다.레코드Matter 1상태대기청구대기책임자미지정팀0문서0활동0기한0대화0청구0분석0청구 상태대기저장책임자미지정변경레코드 필드허용 필드 확인 중필드 작업책임자 일괄 변경승인 조건 확인승인 확인최근 작업 0건내부 대화 준비권한 기준에 맞춰 표시됩니다."
+    },
+    {
+      "row_id": "LCX8-ACTION-0275",
+      "label": "Matter list review-required state",
+      "context_name": "matter-review",
+      "path": "/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+      "expected": "guard_visible",
+      "observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "guard_state_visible",
+      "p4_result": "FAIL_CLOSED_CONFIRMED",
+      "p4_reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "guard_text": [
+        "검토가 필요합니다검토가 끝나면 Matter 목록을 확인할 수 있습니다."
+      ],
+      "mutation_button_count": 4,
+      "enabled_mutation_button_count": 0,
+      "live_data_state_count": 1,
+      "horizontal_overflow": false,
+      "network_response_count": 4,
+      "api_5xx_count": 0,
+      "http_403_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        }
+      ],
+      "protected_token_hits": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0275-matter-review.png",
+      "body_text_sample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어MatterMatter 운영Matter 목록18진행 현황Matter 개시업무 진행청구·분석Matter 설정태그 관리MatterMatter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다.새로고침현황문서활동일정대화Matter 목록권한 기준 적용검토가 필요합니다검토가 끝나면 Matter 목록을 확인할 수 있습니다.레코드Matter 1상태대기청구대기책임자미지정팀0문서0활동0기한0대화0청구0분석0청구 상태대기저장책임자미지정변경레코드 필드허용 필드 확인 중필드 작업책임자 일괄 변경승인 조건 확인승인 확인최근 작업 0건내부 대화 준비권한 기준에 맞춰 표시됩니다."
+    },
+    {
+      "row_id": "LCX8-ACTION-0276",
+      "label": "Vault documents denied state",
+      "context_name": "vault-denied",
+      "path": "/?locale=ko&view=vault&data=live&ctx=denied#vault-documents",
+      "expected": "guard_visible",
+      "observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "guard_state_visible",
+      "p4_result": "FAIL_CLOSED_CONFIRMED",
+      "p4_reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "guard_text": [
+        "접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
+      ],
+      "mutation_button_count": 0,
+      "enabled_mutation_button_count": 0,
+      "live_data_state_count": 1,
+      "horizontal_overflow": false,
+      "network_response_count": 1,
+      "api_5xx_count": 0,
+      "http_403_count": 1,
+      "network": [
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+        }
+      ],
+      "protected_token_hits": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0276-vault-denied.png",
+      "body_text_sample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어Vault문서함24문서 상세메일 보관함Vault 설정문서 태그VaultVault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다.새로고침Vault 문서함권한 기준 적용접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
+    },
+    {
+      "row_id": "LCX8-ACTION-0277",
+      "label": "Vault documents review-required state",
+      "context_name": "vault-review",
+      "path": "/?locale=ko&view=vault&data=live&ctx=review#vault-documents",
+      "expected": "guard_visible",
+      "observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "guard_state_visible",
+      "p4_result": "FAIL_CLOSED_CONFIRMED",
+      "p4_reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "guard_text": [
+        "검토가 필요합니다검토가 끝나면 Vault 문서를 확인할 수 있습니다."
+      ],
+      "mutation_button_count": 0,
+      "enabled_mutation_button_count": 0,
+      "live_data_state_count": 1,
+      "horizontal_overflow": false,
+      "network_response_count": 1,
+      "api_5xx_count": 0,
+      "http_403_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+        }
+      ],
+      "protected_token_hits": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0277-vault-review.png",
+      "body_text_sample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어Vault문서함24문서 상세메일 보관함Vault 설정문서 태그VaultVault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다.새로고침Vault 문서함권한 기준 적용검토가 필요합니다검토가 끝나면 Vault 문서를 확인할 수 있습니다."
+    },
+    {
+      "row_id": "LCX8-ACTION-0278",
+      "label": "Matter record action strip disabled under denied/review",
+      "context_name": "matter-record-actions-denied",
+      "path": "/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+      "expected": "controls_hidden_or_disabled",
+      "observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "mutation_controls_hidden_or_disabled(count=4)",
+      "p4_result": "FAIL_CLOSED_CONFIRMED",
+      "p4_reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "guard_text": [
+        "접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
+      ],
+      "mutation_button_count": 4,
+      "enabled_mutation_button_count": 0,
+      "live_data_state_count": 1,
+      "horizontal_overflow": false,
+      "network_response_count": 4,
+      "api_5xx_count": 0,
+      "http_403_count": 3,
+      "network": [
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        }
+      ],
+      "protected_token_hits": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0278-matter-record-actions-denied.png",
+      "body_text_sample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어MatterMatter 운영Matter 목록18진행 현황Matter 개시업무 진행청구·분석Matter 설정태그 관리MatterMatter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다.새로고침현황문서활동일정대화Matter 목록권한 기준 적용접근 권한이 없습니다권한이 있는 정보만 표시됩니다.레코드Matter 1상태대기청구대기책임자미지정팀0문서0활동0기한0대화0청구0분석0청구 상태대기저장책임자미지정변경레코드 필드허용 필드 확인 중필드 작업책임자 일괄 변경승인 조건 확인승인 확인최근 작업 0건내부 대화 준비권한 기준에 맞춰 표시됩니다."
+    },
+    {
+      "row_id": "LCX8-ACTION-0278",
+      "label": "Matter record action strip disabled under denied/review",
+      "context_name": "matter-record-actions-review",
+      "path": "/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+      "expected": "controls_hidden_or_disabled",
+      "observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "mutation_controls_hidden_or_disabled(count=4)",
+      "p4_result": "FAIL_CLOSED_CONFIRMED",
+      "p4_reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "guard_text": [
+        "검토가 필요합니다검토가 끝나면 Matter 목록을 확인할 수 있습니다."
+      ],
+      "mutation_button_count": 4,
+      "enabled_mutation_button_count": 0,
+      "live_data_state_count": 1,
+      "horizontal_overflow": false,
+      "network_response_count": 4,
+      "api_5xx_count": 0,
+      "http_403_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        }
+      ],
+      "protected_token_hits": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0278-matter-record-actions-review.png",
+      "body_text_sample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어MatterMatter 운영Matter 목록18진행 현황Matter 개시업무 진행청구·분석Matter 설정태그 관리MatterMatter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다.새로고침현황문서활동일정대화Matter 목록권한 기준 적용검토가 필요합니다검토가 끝나면 Matter 목록을 확인할 수 있습니다.레코드Matter 1상태대기청구대기책임자미지정팀0문서0활동0기한0대화0청구0분석0청구 상태대기저장책임자미지정변경레코드 필드허용 필드 확인 중필드 작업책임자 일괄 변경승인 조건 확인승인 확인최근 작업 0건내부 대화 준비권한 기준에 맞춰 표시됩니다."
+    },
+    {
+      "row_id": "LCX8-ACTION-0279",
+      "label": "Matter Vault action strip disabled under denied/review",
+      "context_name": "matter-vault-actions-denied",
+      "path": "/?locale=ko&view=matters&data=live&ctx=denied#matter-vault",
+      "expected": "controls_hidden_or_disabled",
+      "observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "mutation_controls_hidden_or_disabled(count=5)",
+      "p4_result": "FAIL_CLOSED_CONFIRMED",
+      "p4_reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "guard_text": [
+        "Matter Vault를 불러오는 중입니다"
+      ],
+      "mutation_button_count": 5,
+      "enabled_mutation_button_count": 0,
+      "live_data_state_count": 1,
+      "horizontal_overflow": false,
+      "network_response_count": 4,
+      "api_5xx_count": 0,
+      "http_403_count": 3,
+      "network": [
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        }
+      ],
+      "protected_token_hits": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0279-matter-vault-actions-denied.png",
+      "body_text_sample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어MatterMatter 운영Matter 목록18진행 현황Matter 개시업무 진행문서활동일정대화2구성원청구·분석Matter 설정태그 관리MatterMatter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다.새로고침현황문서활동일정대화Matter Vault문서 연결Vault 미연결Matter 선택 후 문서 기록을 확인할 수 있습니다새로고침문서 연결Matter Vault를 불러오는 중입니다레코드Matter 1상태대기청구대기책임자미지정팀0문서0활동0기한0대화0청구0분석0청구 상태대기저장책임자미지정변경레코드 필드허용 필드 확인 중필드 작업책임자 일괄 변경승인 조건 확인승인 확인최근 작업 0건내부 대화 준비권한 기준에 맞춰 표"
+    },
+    {
+      "row_id": "LCX8-ACTION-0279",
+      "label": "Matter Vault action strip disabled under denied/review",
+      "context_name": "matter-vault-actions-review",
+      "path": "/?locale=ko&view=matters&data=live&ctx=review#matter-vault",
+      "expected": "controls_hidden_or_disabled",
+      "observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "mutation_controls_hidden_or_disabled(count=5)",
+      "p4_result": "FAIL_CLOSED_CONFIRMED",
+      "p4_reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "guard_text": [
+        "Matter Vault를 불러오는 중입니다"
+      ],
+      "mutation_button_count": 5,
+      "enabled_mutation_button_count": 0,
+      "live_data_state_count": 1,
+      "horizontal_overflow": false,
+      "network_response_count": 4,
+      "api_5xx_count": 0,
+      "http_403_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        }
+      ],
+      "protected_token_hits": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t10-guarded-LCX8-ACTION-0279-matter-vault-actions-review.png",
+      "body_text_sample": "matterHomeClientMatter구성원Vault/새로 만들기구성원 초대서3한국어MatterMatter 운영Matter 목록18진행 현황Matter 개시업무 진행문서활동일정대화2구성원청구·분석Matter 설정태그 관리MatterMatter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다.새로고침현황문서활동일정대화Matter Vault문서 연결Vault 미연결Matter 선택 후 문서 기록을 확인할 수 있습니다새로고침문서 연결Matter Vault를 불러오는 중입니다레코드Matter 1상태대기청구대기책임자미지정팀0문서0활동0기한0대화0청구0분석0청구 상태대기저장책임자미지정변경레코드 필드허용 필드 확인 중필드 작업책임자 일괄 변경승인 조건 확인승인 확인최근 작업 0건내부 대화 준비권한 기준에 맞춰 표"
+    }
+  ],
+  "touched_rows": [
+    {
+      "id": "LCX8-ACTION-0274",
+      "label": "Matter list denied state",
+      "surface": "matter-guarded-state",
+      "status_before": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "permission_boundary": "Matter denied context",
+      "audit_boundary": "guarded state must not leak protected Matter data",
+      "persistence_boundary": "not applicable for denied state panel"
+    },
+    {
+      "id": "LCX8-ACTION-0275",
+      "label": "Matter list review-required state",
+      "surface": "matter-guarded-state",
+      "status_before": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "permission_boundary": "Matter review-required context",
+      "audit_boundary": "guarded state must not leak protected Matter data",
+      "persistence_boundary": "not applicable for review-required state panel"
+    },
+    {
+      "id": "LCX8-ACTION-0276",
+      "label": "Vault documents denied state",
+      "surface": "vault-guarded-state",
+      "status_before": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "permission_boundary": "Vault denied context",
+      "audit_boundary": "guarded state must not leak protected Vault data",
+      "persistence_boundary": "not applicable for denied state panel"
+    },
+    {
+      "id": "LCX8-ACTION-0277",
+      "label": "Vault documents review-required state",
+      "surface": "vault-guarded-state",
+      "status_before": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "permission_boundary": "Vault review-required context",
+      "audit_boundary": "guarded state must not leak protected Vault data",
+      "persistence_boundary": "not applicable for review-required state panel"
+    },
+    {
+      "id": "LCX8-ACTION-0278",
+      "label": "Matter record action strip disabled under denied/review",
+      "surface": "matter-guarded-state",
+      "status_before": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "permission_boundary": "Matter denied/review context",
+      "audit_boundary": "guarded disabled state must not submit writes",
+      "persistence_boundary": "not applicable for disabled guarded state"
+    },
+    {
+      "id": "LCX8-ACTION-0279",
+      "label": "Matter Vault action strip disabled under denied/review",
+      "surface": "matter-guarded-state",
+      "status_before": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "permission_boundary": "Matter Vault denied/review context",
+      "audit_boundary": "guarded disabled state must not submit writes",
+      "persistence_boundary": "not applicable for disabled guarded state"
+    },
+    {
+      "id": "LCX8-ACTION-0064",
+      "label": "새로고침",
+      "surface": "matter",
+      "status_before": "BLOCKED",
+      "trace_depth": "api_read",
+      "permission_boundary": "Matter/Vault permission contexts",
+      "audit_boundary": "read audit expected for protected Matter Vault surfaces",
+      "persistence_boundary": "read-only refresh; P3/P4 response proof required before PASS"
+    },
+    {
+      "id": "LCX8-ACTION-0065",
+      "label": "문서 연결",
+      "surface": "matter",
+      "status_before": "BLOCKED",
+      "trace_depth": "api_write",
+      "permission_boundary": "Matter document facade permission context",
+      "audit_boundary": "document facade write audit expected by API",
+      "persistence_boundary": "repository write expected; Vault document read-back required in P4/P5"
+    },
+    {
+      "id": "LCX8-ACTION-0066",
+      "label": "초안 생성",
+      "surface": "matter",
+      "status_before": "BLOCKED",
+      "trace_depth": "api_write",
+      "permission_boundary": "Matter builder draft permission context",
+      "audit_boundary": "builder draft create audit expected by API",
+      "persistence_boundary": "draft write expected; preview/read-back required in P4/P5"
+    },
+    {
+      "id": "LCX8-ACTION-0067",
+      "label": "검토 준비",
+      "surface": "matter",
+      "status_before": "BLOCKED",
+      "trace_depth": "api_write",
+      "permission_boundary": "Matter builder draft patch permission context",
+      "audit_boundary": "builder draft patch audit expected by API",
+      "persistence_boundary": "draft write expected; preview/read-back required in P4/P5"
+    },
+    {
+      "id": "LCX8-ACTION-0068",
+      "label": "승인 요청",
+      "surface": "matter",
+      "status_before": "BLOCKED",
+      "trace_depth": "api_write",
+      "permission_boundary": "Matter builder approval permission context",
+      "audit_boundary": "approval request audit expected by API",
+      "persistence_boundary": "approval request write expected; approval list read-back required in P4/P5"
+    },
+    {
+      "id": "LCX8-ACTION-0069",
+      "label": "Vault 등록 요청",
+      "surface": "matter",
+      "status_before": "BLOCKED",
+      "trace_depth": "api_write",
+      "permission_boundary": "Matter builder publish permission context and owner approval boundary",
+      "audit_boundary": "publish request audit expected by API",
+      "persistence_boundary": "publish is expected blocked before approval; P4 guard proof required before status change"
+    },
+    {
+      "id": "LCX8-ACTION-0070",
+      "label": "이메일 초안 생성",
+      "surface": "matter",
+      "status_before": "BLOCKED",
+      "trace_depth": "api_write",
+      "permission_boundary": "Matter email draft permission context",
+      "audit_boundary": "email draft create audit expected by API",
+      "persistence_boundary": "draft write expected; read-back required in P4/P5"
+    },
+    {
+      "id": "LCX8-ACTION-0071",
+      "label": "내용 정리",
+      "surface": "matter",
+      "status_before": "BLOCKED",
+      "trace_depth": "api_write",
+      "permission_boundary": "Matter email draft patch permission context",
+      "audit_boundary": "email draft patch audit expected by API",
+      "persistence_boundary": "draft write expected; read-back required in P4/P5"
+    },
+    {
+      "id": "LCX8-ACTION-0072",
+      "label": "발송 요청",
+      "surface": "matter",
+      "status_before": "BLOCKED",
+      "trace_depth": "api_write",
+      "permission_boundary": "Matter email send boundary and provider-blocked context",
+      "audit_boundary": "email send boundary audit expected by API",
+      "persistence_boundary": "external provider send is expected blocked until provider receipt; P4/P5 proof required"
+    },
+    {
+      "id": "LCX8-ACTION-0091",
+      "label": "새로고침",
+      "surface": "vault",
+      "status_before": "BLOCKED",
+      "trace_depth": "api_read",
+      "permission_boundary": "Vault permission context via x-permission-context and ui_cmp_g5_vault_live",
+      "audit_boundary": "Vault read audit expected by API response audit_hint_ref",
+      "persistence_boundary": "read-only refresh; P3/P4 API response proof required before PASS"
+    }
+  ],
+  "classification": {
+    "no_pass_promotions": true,
+    "write_execution": "not_executed_in_p4_t04",
+    "next_required_proof": "P4-T05 audit write requirements before any API-backed PASS; P5 read-back/reload before durable write PASS."
+  },
+  "next_tuw": "P4-T05"
+}

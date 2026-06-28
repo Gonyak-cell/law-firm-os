@@ -1,0 +1,102 @@
+{
+  "schema_version": "matter.lcx8.api-read-model-proof.p5-t04.v1",
+  "generated_at": "2026-06-25T13:51:12.104Z",
+  "status": "API_READ_MODEL_CONFIRMED_NO_PASS_PROMOTION",
+  "tuw": "P5-T04",
+  "source_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-safe-write-execution-p5-t02.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-reload-ui-proof-p5-t03.json"
+  ],
+  "runtime": {
+    "base_url": "http://127.0.0.1:4180",
+    "synthetic_only": true,
+    "uses_real_client_data": false,
+    "production_ready_claim": false
+  },
+  "expected_from_p5_t02": {
+    "matter_id": "matter_rp05_synthetic_opening",
+    "wip_status": "review_required",
+    "owner_employee_id": "emp-001",
+    "inline_audit_event": "matter.inline.patch:tenant_rp05_synthetic:matter_rp05_synthetic_opening:wip_status",
+    "owner_audit_event": "matter.owner.change:tenant_rp05_synthetic:matter_rp05_synthetic_opening:emp-001"
+  },
+  "read_results": {
+    "detail": {
+      "http_status": 200,
+      "matter": {
+        "matter_id": "matter_rp05_synthetic_opening",
+        "matter_number": "M-TENANT-RP05-0001",
+        "status": "opening",
+        "wip_status": "review_required",
+        "risk_level": "standard",
+        "owner_employee_id": "emp-001",
+        "owner_display_name": "Synthetic Responsible Attorney",
+        "owner_module": "MatterCore",
+        "updated_by": null,
+        "updated_at": null,
+        "production_ready_claim": false
+      }
+    },
+    "list": {
+      "http_status": 200,
+      "count": 1,
+      "count_leak_prevented": true,
+      "selected_matter": {
+        "matter_id": "matter_rp05_synthetic_opening",
+        "matter_number": "M-TENANT-RP05-0001",
+        "status": "opening",
+        "wip_status": "review_required",
+        "risk_level": "standard",
+        "owner_employee_id": "emp-001",
+        "owner_display_name": "Synthetic Responsible Attorney",
+        "owner_module": "MatterCore",
+        "updated_by": null,
+        "updated_at": null,
+        "production_ready_claim": false
+      }
+    },
+    "command_center": {
+      "http_status": 200,
+      "outcome": "passed",
+      "matter": {
+        "matter_id": "matter_rp05_synthetic_opening",
+        "matter_number": "M-TENANT-RP05-0001",
+        "status": "opening",
+        "wip_status": "review_required",
+        "risk_level": "standard",
+        "owner_employee_id": "emp-001",
+        "owner_display_name": "Synthetic Responsible Attorney",
+        "owner_module": "MatterCore",
+        "updated_by": null,
+        "updated_at": null,
+        "production_ready_claim": false
+      }
+    }
+  },
+  "row_readback": [
+    {
+      "row_id": "LCX8-ACTION-0059",
+      "read_path": "GET /api/matters/:matter_id and GET /api/matters",
+      "expected_field": "wip_status",
+      "expected_value": "review_required",
+      "observed_detail_value": "review_required",
+      "observed_list_value": "review_required",
+      "readback_confirmed": true
+    },
+    {
+      "row_id": "LCX8-ACTION-0060",
+      "read_path": "GET /api/matters/:matter_id",
+      "expected_field": "owner_employee_id",
+      "expected_value": "emp-001",
+      "observed_detail_value": "emp-001",
+      "observed_owner_display_name": "Synthetic Responsible Attorney",
+      "readback_confirmed": true
+    }
+  ],
+  "status_policy": {
+    "pass_promotions_in_p5_t04": 0,
+    "reason": "P5-T04 confirms API/domain read model only. P5-T05 audit closeout remains required before selected rows can be considered for PASS."
+  },
+  "failures": [],
+  "next_tuw": "P5-T05"
+}

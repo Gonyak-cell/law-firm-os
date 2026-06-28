@@ -78,9 +78,9 @@ export function LifecycleBoard() {
 
   let body;
   if (result === null) {
-    body = <div className="live-data-state live-data-loading">입퇴사 업무를 불러오는 중입니다</div>;
+    body = <div className="live-data-state live-data-loading">입퇴사 관리 업무를 불러오는 중입니다</div>;
   } else if (result.kind === "error") {
-    body = <div className="live-data-state live-data-error">입퇴사 업무를 불러오지 못했습니다.</div>;
+    body = <div className="live-data-state live-data-error">입퇴사 관리 업무를 불러오지 못했습니다.</div>;
   } else {
     body = (
       <>
@@ -132,10 +132,10 @@ export function LifecycleBoard() {
   }
 
   return (
-    <Panel id="people-lifecycle" className="people-panel span-2" title="입퇴사 업무" meta="구성원 변경">
+    <Panel id="people-lifecycle" className="people-panel span-2" title="입퇴사 관리" meta="구성원 변경">
       <div className="people-panel-kicker">
         <RefreshCw size={13} />
-        입사와 퇴사 업무를 관리합니다
+        입퇴사 관리 업무를 확인합니다
       </div>
       {body}
     </Panel>

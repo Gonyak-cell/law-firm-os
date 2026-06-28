@@ -1,0 +1,3686 @@
+{
+  "schema_version": "law-firm-os.lcx8.refresh-api-read-proof.v0.1",
+  "generated_at": "2026-06-28T05:15:14.560Z",
+  "rows": [
+    "LCX8-ACTION-0036",
+    "LCX8-ACTION-0044",
+    "LCX8-ACTION-0064"
+  ],
+  "scope": {
+    "local_browser_runtime": true,
+    "api_base_url": "http://127.0.0.1:4180",
+    "web_origin": "http://127.0.0.1:5174",
+    "production_ready_claim": false,
+    "go_live_claim": false,
+    "product_write_claim": false
+  },
+  "source_trace": {
+    "home": "apps/web/src/components/HomeSurface.jsx refreshToken -> command-center read probes",
+    "matter": "apps/web/src/components/MattersSurface.jsx refreshToken -> matter/finance/analytics reads",
+    "matter_vault": "apps/web/src/components/MatterVaultPanel.jsx refreshToken -> vault read probes"
+  },
+  "allowProofs": [
+    {
+      "id": "LCX8-ACTION-0036",
+      "label": "Home refresh",
+      "url": "http://127.0.0.1:5174/?view=home&ctx=allow",
+      "selector": ".lcx-web-command-center .page-header .secondary-button",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0036-home-refresh-api-read-proof.png",
+      "expected_responses": [
+        {
+          "method": "GET",
+          "path": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_r4_master_data_live&audit_hint_ref=ui_cmp_r4_master_data_probe&limit=10&model_type=ClientGroup",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/portal/dashboard?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 0,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/portal/rfi?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 0,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 2,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/ai/review-queue?tenant_id=matter-runtime-tenant&permission_ref=ui_cmp_g9_ai_live&audit_hint_ref=ui_cmp_g9_ai_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 0,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/hrx/employees",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "ok",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/data-room/projections?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 0,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        }
+      ],
+      "matched": [
+        {
+          "expected": "GET /^\\/master-data\\/records\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/crm\\/opportunities\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/intake\\/requests\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/portal\\/dashboard\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/portal\\/rfi\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/matters\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/finance\\/time-entries\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/finance\\/invoices\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/finance\\/ar-aging\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/analytics\\/dashboards\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/ai\\/review-queue\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/hrx\\/employees\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/vault\\/documents\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/data-room\\/projections\\b/",
+          "observed": true
+        }
+      ],
+      "all_expected_observed": true,
+      "events": [
+        {
+          "method": "GET",
+          "path": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_r4_master_data_live&audit_hint_ref=ui_cmp_r4_master_data_probe&limit=10&model_type=ClientGroup",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/portal/dashboard?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 0,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/portal/rfi?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 0,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 2,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/ai/review-queue?tenant_id=matter-runtime-tenant&permission_ref=ui_cmp_g9_ai_live&audit_hint_ref=ui_cmp_g9_ai_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 0,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/hrx/employees",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "ok",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/data-room/projections?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 0,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        }
+      ],
+      "api4xx5xx": [],
+      "non_get_events": []
+    },
+    {
+      "id": "LCX8-ACTION-0044",
+      "label": "Matter header refresh",
+      "url": "http://127.0.0.1:5174/?view=matters&ctx=allow#matters-list",
+      "selector": "#matters-home .page-header .secondary-button",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0044-matter-refresh-api-read-proof.png",
+      "expected_responses": [
+        {
+          "method": "GET",
+          "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 3,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 0,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "ok",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "empty",
+            "item_count": null,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 35,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 2,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        }
+      ],
+      "matched": [
+        {
+          "expected": "GET /^\\/api\\/matters\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/matters\\/list-views\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/record-actions\\/matter\\/fields\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/record-actions\\/matter\\/[^/]+\\/audit\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/hrx\\/legal-people\\/search\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/matters\\/[^/]+\\/command-center\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/matters\\/[^/]+\\/timeline\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/matters\\/audit\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/matters\\/recently-viewed\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/finance\\/time-entries\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/finance\\/invoices\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/finance\\/ar-aging\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/finance\\/audit\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/analytics\\/dashboards\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/analytics\\/matter-profitability\\b/",
+          "observed": true
+        }
+      ],
+      "all_expected_observed": true,
+      "events": [
+        {
+          "method": "GET",
+          "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 3,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 0,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "ok",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "empty",
+            "item_count": null,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "empty",
+            "item_count": 0,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "empty",
+            "item_count": 0,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "empty",
+            "item_count": null,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 35,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 2,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "updated",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "ok",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 0,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "ok",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "empty",
+            "item_count": null,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "empty",
+            "item_count": 0,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "empty",
+            "item_count": 0,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "empty",
+            "item_count": null,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 37,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 2,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "updated",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        }
+      ],
+      "api4xx5xx": [],
+      "non_get_events": [
+        {
+          "method": "POST",
+          "path": "/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "updated",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "updated",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0064",
+      "label": "Matter Vault refresh",
+      "url": "http://127.0.0.1:5174/?view=matters&ctx=allow#matter-vault",
+      "selector": "#matter-vault .matter-vault-actions .secondary-button",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0064-matter-vault-refresh-api-read-proof.png",
+      "expected_responses": [
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/vault-summary?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_vault_summary&audit_hint_ref=ui_mv_matter_vault_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "empty",
+            "item_count": null,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "empty",
+            "item_count": null,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_documents&audit_hint_ref=ui_mv_matter_vault_documents_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/vault/search?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_search&audit_hint_ref=ui_mv_matter_vault_search_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/vault/audit?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_audit&audit_hint_ref=ui_mv_matter_vault_audit_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 0,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/document-templates?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w04_document_template_read&audit_hint_ref=ui_sf_b_w04_document_template_read_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 2,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/builder-approval-requests?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w04_builder_approval_read&audit_hint_ref=ui_sf_b_w04_builder_approval_read_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "empty",
+            "item_count": 0,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        }
+      ],
+      "matched": [
+        {
+          "expected": "GET /^\\/api\\/matters\\/[^/]+\\/vault-summary\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/matters\\/[^/]+\\/timeline\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/vault\\/documents\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/vault\\/search\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/vault\\/audit\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/matters\\/[^/]+\\/document-templates\\b/",
+          "observed": true
+        },
+        {
+          "expected": "GET /^\\/api\\/matters\\/[^/]+\\/builder-approval-requests\\b/",
+          "observed": true
+        }
+      ],
+      "all_expected_observed": true,
+      "events": [
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/vault-summary?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_vault_summary&audit_hint_ref=ui_mv_matter_vault_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "empty",
+            "item_count": null,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "empty",
+            "item_count": null,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_documents&audit_hint_ref=ui_mv_matter_vault_documents_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/vault/search?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_search&audit_hint_ref=ui_mv_matter_vault_search_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 1,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/vault/audit?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_audit&audit_hint_ref=ui_mv_matter_vault_audit_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 0,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/document-templates?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w04_document_template_read&audit_hint_ref=ui_sf_b_w04_document_template_read_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": null,
+            "item_count": 2,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/builder-approval-requests?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w04_builder_approval_read&audit_hint_ref=ui_sf_b_w04_builder_approval_read_probe",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "passed",
+            "ui_state": "empty",
+            "item_count": 0,
+            "count_leak_prevented": true,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        }
+      ],
+      "api4xx5xx": [],
+      "non_get_events": []
+    }
+  ],
+  "guardProofs": [
+    {
+      "id": "LCX8-ACTION-0036",
+      "denied": {
+        "mode": "denied",
+        "url": "http://127.0.0.1:5174/?view=home&ctx=denied",
+        "text_excerpt": "오늘의 운영 대기열 처리할 Matter, 승인 대기, 최근 문서, 동기화 상태를 먼저 확인합니다. 새로고침 오늘 처리할 Matter 0 Matter 접근 권한이 없습니다. 권한 요청 또는 사용자 컨텍스트를 확인하세요. 승인 대기 0 현재 검토 대기 신호가 없습니다. 최근 문서 0 Vault 접근 권한이 없습니다. 권한 요청 또는 사용자 컨텍스트를 확인하세요. 실패한 동기화 0 연결 실패 신호가 없습니다. Matter 작업 큐 실패, 권한 없음, 빈 상태를 구분해 표시합니다. Matter 목록 Matter 접근 권한이 없습니다. 권한 요청 또는 사용자 컨텍스트를 확인하세요. 권한 없음 승인·구성원 확인 구성원 접근 권한이 없습니다. 권한 요청 또는 사용자 컨텍스트를 확인하세요. 권한 없음 최근 문서 확인 Vault 접근 권한이 없습니다. 권한 요청 또는 사용자 컨텍스트를 확인하세요. 권한 없음 권한·감사 요약 Client 권한 없음 Matter 권한 없음 구성원 권한 없음 Vault 권한 없음 Client Client 정보와 연결된 Matter를 권한 범위 안에서 확인합니다. 접근 권한 필요 열기 Matter Matter 진행 상황, 팀, 문서, 청구 흐름을 확인합니다. 접근 권한 필요 열기 구성원 구성원, 근태관리, 전자결재를 한곳에서 확인합니다. 접근 권한 필요 열기 Vault Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다. 접근 권한 필요 열기",
+        "guard_text_observed": true,
+        "events": [
+          {
+            "method": "GET",
+            "path": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_r4_master_data_live&audit_hint_ref=ui_cmp_r4_master_data_probe&limit=10&model_type=ClientGroup",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": false,
+              "safe_error_codes": [
+                "MASTER_DATA_API_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/portal/dashboard?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "PORTAL_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/portal/rfi?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "PORTAL_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "MATTER_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "FINANCE_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "FINANCE_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "FINANCE_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "ANALYTICS_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/ai/review-queue?tenant_id=matter-runtime-tenant&permission_ref=ui_cmp_g9_ai_live&audit_hint_ref=ui_cmp_g9_ai_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "AI_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/hrx/employees",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "denied",
+              "ui_state": "denied",
+              "item_count": null,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "HRX_EMPLOYEE_ACCESS_DENIED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "VAULT_DMS_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/data-room/projections?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "PORTAL_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          }
+        ],
+        "api4xx5xx": [
+          {
+            "method": "GET",
+            "path": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_r4_master_data_live&audit_hint_ref=ui_cmp_r4_master_data_probe&limit=10&model_type=ClientGroup",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": false,
+              "safe_error_codes": [
+                "MASTER_DATA_API_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "CRM_INTAKE_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/portal/dashboard?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "PORTAL_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/portal/rfi?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "PORTAL_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "MATTER_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "FINANCE_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "FINANCE_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "FINANCE_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "ANALYTICS_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/ai/review-queue?tenant_id=matter-runtime-tenant&permission_ref=ui_cmp_g9_ai_live&audit_hint_ref=ui_cmp_g9_ai_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "AI_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/hrx/employees",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "denied",
+              "ui_state": "denied",
+              "item_count": null,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "HRX_EMPLOYEE_ACCESS_DENIED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "VAULT_DMS_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/data-room/projections?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "PORTAL_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          }
+        ],
+        "unsafe_success_events": []
+      },
+      "review": {
+        "mode": "review",
+        "url": "http://127.0.0.1:5174/?view=home&ctx=review",
+        "text_excerpt": "오늘의 운영 대기열 처리할 Matter, 승인 대기, 최근 문서, 동기화 상태를 먼저 확인합니다. 새로고침 오늘 처리할 Matter 0 Matter 검토가 필요합니다. 담당자 승인 대기열을 확인하세요. 승인 대기 3 검토가 필요한 항목이 있습니다. 최근 문서 0 Vault 검토가 필요합니다. 담당자 승인 대기열을 확인하세요. 실패한 동기화 0 연결 실패 신호가 없습니다. Matter 작업 큐 실패, 권한 없음, 빈 상태를 구분해 표시합니다. Matter 목록 Matter 검토가 필요합니다. 담당자 승인 대기열을 확인하세요. 검토 승인·구성원 확인 1개 항목을 확인했습니다. 정상 최근 문서 확인 Vault 검토가 필요합니다. 담당자 승인 대기열을 확인하세요. 검토 권한·감사 요약 Client 검토 Matter 검토 구성원 정상 Vault 검토 Client Client 정보와 연결된 Matter를 권한 범위 안에서 확인합니다. 검토 필요 열기 Matter Matter 진행 상황, 팀, 문서, 청구 흐름을 확인합니다. 검토 필요 열기 구성원 구성원, 근태관리, 전자결재를 한곳에서 확인합니다. 열기 Vault Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다. 검토 필요 열기",
+        "guard_text_observed": true,
+        "events": [
+          {
+            "method": "GET",
+            "path": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_r4_master_data_live&audit_hint_ref=ui_cmp_r4_master_data_probe&limit=10&model_type=ClientGroup",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": false,
+              "safe_error_codes": [
+                "MASTER_DATA_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "CRM_INTAKE_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "CRM_INTAKE_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/portal/dashboard?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "PORTAL_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/portal/rfi?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "PORTAL_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "MATTER_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "FINANCE_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "FINANCE_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "FINANCE_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "ANALYTICS_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/ai/review-queue?tenant_id=matter-runtime-tenant&permission_ref=ui_cmp_g9_ai_live&audit_hint_ref=ui_cmp_g9_ai_probe",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "AI_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/hrx/employees",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": null,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "HRX_EMPLOYEE_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "VAULT_DMS_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/data-room/projections?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "PORTAL_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          }
+        ],
+        "api4xx5xx": [],
+        "unsafe_success_events": []
+      }
+    },
+    {
+      "id": "LCX8-ACTION-0044",
+      "denied": {
+        "mode": "denied",
+        "url": "http://127.0.0.1:5174/?view=matters&ctx=denied#matters-list",
+        "text_excerpt": "Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 목록 권한 기준 적용 접근 권한이 없습니다 권한이 있는 정보만 표시됩니다. 레코드 Matter 1 상태 대기 청구 대기 책임자 미지정 팀 0 문서 0 활동 0 기한 0 대화 0 청구 0 분석 0 청구 상태 대기 저장 책임자 미지정 변경 레코드 필드 허용 필드 확인 중 필드 작업 책임자 일괄 변경 승인 조건 확인 승인 확인 최근 작업 0건 내부 대화 준비 권한 기준에 맞춰 표시됩니다.",
+        "guard_text_observed": true,
+        "events": [
+          {
+            "method": "GET",
+            "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "MATTER_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "MATTER_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "denied",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "RECORD_ACTIONS_PERMISSION_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "ok",
+              "ui_state": null,
+              "item_count": null,
+              "count_leak_prevented": false,
+              "safe_error_codes": [],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          }
+        ],
+        "api4xx5xx": [
+          {
+            "method": "GET",
+            "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "MATTER_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "MATTER_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "denied",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "RECORD_ACTIONS_PERMISSION_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          }
+        ],
+        "unsafe_success_events": []
+      },
+      "review": {
+        "mode": "review",
+        "url": "http://127.0.0.1:5174/?view=matters&ctx=review#matters-list",
+        "text_excerpt": "Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 목록 권한 기준 적용 검토가 필요합니다 검토가 끝나면 Matter 목록을 확인할 수 있습니다. 레코드 Matter 1 상태 대기 청구 대기 책임자 미지정 팀 0 문서 0 활동 0 기한 0 대화 0 청구 0 분석 0 청구 상태 대기 저장 책임자 미지정 변경 레코드 필드 허용 필드 확인 중 필드 작업 책임자 일괄 변경 승인 조건 확인 승인 확인 최근 작업 0건 내부 대화 준비 권한 기준에 맞춰 표시됩니다.",
+        "guard_text_observed": true,
+        "events": [
+          {
+            "method": "GET",
+            "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "MATTER_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "MATTER_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "RECORD_ACTIONS_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "ok",
+              "ui_state": null,
+              "item_count": null,
+              "count_leak_prevented": false,
+              "safe_error_codes": [],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          }
+        ],
+        "api4xx5xx": [],
+        "unsafe_success_events": []
+      }
+    },
+    {
+      "id": "LCX8-ACTION-0064",
+      "denied": {
+        "mode": "denied",
+        "url": "http://127.0.0.1:5174/?view=matters&ctx=denied#matter-vault",
+        "text_excerpt": "Vault 미연결 Matter 선택 후 문서 기록을 확인할 수 있습니다 새로고침 문서 연결 접근 권한이 없습니다 권한이 있는 Matter Vault 정보만 표시됩니다.",
+        "guard_text_observed": true,
+        "events": [
+          {
+            "method": "GET",
+            "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "MATTER_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "MATTER_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "denied",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "RECORD_ACTIONS_PERMISSION_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "ok",
+              "ui_state": null,
+              "item_count": null,
+              "count_leak_prevented": false,
+              "safe_error_codes": [],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          }
+        ],
+        "api4xx5xx": [
+          {
+            "method": "GET",
+            "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "MATTER_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "blocked",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "MATTER_UNAUTHORIZED_OMISSION"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+            "status": 403,
+            "ok": false,
+            "body": {
+              "outcome": "denied",
+              "ui_state": "denied",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "RECORD_ACTIONS_PERMISSION_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          }
+        ],
+        "unsafe_success_events": []
+      },
+      "review": {
+        "mode": "review",
+        "url": "http://127.0.0.1:5174/?view=matters&ctx=review#matter-vault",
+        "text_excerpt": "Vault 미연결 Matter 선택 후 문서 기록을 확인할 수 있습니다 새로고침 문서 연결 검토가 필요합니다 검토가 끝나면 Matter Vault 정보를 확인할 수 있습니다.",
+        "guard_text_observed": true,
+        "events": [
+          {
+            "method": "GET",
+            "path": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "MATTER_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "MATTER_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "review_required",
+              "ui_state": "review_required",
+              "item_count": 0,
+              "count_leak_prevented": true,
+              "safe_error_codes": [
+                "RECORD_ACTIONS_REVIEW_REQUIRED"
+              ],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+            "status": 200,
+            "ok": true,
+            "body": {
+              "outcome": "ok",
+              "ui_state": null,
+              "item_count": null,
+              "count_leak_prevented": false,
+              "safe_error_codes": [],
+              "production_ready_claim": false,
+              "provider_payload_included": false,
+              "raw_text_included": false,
+              "document_bytes_included": false,
+              "storage_pointer_ref_included": false
+            }
+          }
+        ],
+        "api4xx5xx": [],
+        "unsafe_success_events": []
+      }
+    }
+  ],
+  "rowDecisions": [
+    {
+      "id": "LCX8-ACTION-0036",
+      "status_decision": "PASS",
+      "reason": "api_read_refresh_browser_and_guard_proof_complete",
+      "all_expected_observed": true,
+      "denied_guard_text_observed": true,
+      "review_guard_text_observed": true,
+      "unsafe_guard_success_count": 0,
+      "non_get_events": []
+    },
+    {
+      "id": "LCX8-ACTION-0044",
+      "status_decision": "PASS",
+      "reason": "api_read_refresh_browser_and_guard_proof_complete",
+      "all_expected_observed": true,
+      "denied_guard_text_observed": true,
+      "review_guard_text_observed": true,
+      "unsafe_guard_success_count": 0,
+      "non_get_events": [
+        {
+          "method": "POST",
+          "path": "/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "updated",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "outcome": "updated",
+            "ui_state": null,
+            "item_count": null,
+            "count_leak_prevented": false,
+            "safe_error_codes": [],
+            "production_ready_claim": false,
+            "provider_payload_included": false,
+            "raw_text_included": false,
+            "document_bytes_included": false,
+            "storage_pointer_ref_included": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0064",
+      "status_decision": "PASS",
+      "reason": "api_read_refresh_browser_and_guard_proof_complete",
+      "all_expected_observed": true,
+      "denied_guard_text_observed": true,
+      "review_guard_text_observed": true,
+      "unsafe_guard_success_count": 0,
+      "non_get_events": []
+    }
+  ],
+  "assertions": [
+    {
+      "name": "LCX8-ACTION-0036 expected read endpoints observed",
+      "passed": true,
+      "details": {
+        "missing": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0036 allow refresh has no API 5xx",
+      "passed": true,
+      "details": {
+        "api4xx5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0044 expected read endpoints observed",
+      "passed": true,
+      "details": {
+        "missing": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0044 allow refresh has no API 5xx",
+      "passed": true,
+      "details": {
+        "api4xx5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0064 expected read endpoints observed",
+      "passed": true,
+      "details": {
+        "missing": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0064 allow refresh has no API 5xx",
+      "passed": true,
+      "details": {
+        "api4xx5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0036 denied guard text observed",
+      "passed": true,
+      "details": {
+        "text": "오늘의 운영 대기열 처리할 Matter, 승인 대기, 최근 문서, 동기화 상태를 먼저 확인합니다. 새로고침 오늘 처리할 Matter 0 Matter 접근 권한이 없습니다. 권한 요청 또는 사용자 컨텍스트를 확인하세요. 승인 대기 0 현재 검토 대기 신호가 없습니다. 최근 문서 0 Vault 접근 권한이 없습니다. 권한 요청 또는 사용자 컨텍스트를 확인하세요. 실패한 동기화 0 연결 실패 신호가 없습니다. Matter 작업 큐 실패, 권한 없음, 빈 상태를 구분해 표시합니다. Matter 목록 Matter 접근 권한이 없습니다. 권한 요청 또는 사용자 컨텍스트를 확인하세요. 권한 없음 승인·구성원 확인 구성원 접근 권한이 없습니다. 권한 요청 또는 사용자 컨텍스트를 확인하세요. 권한 없음 최근 문서 확인 Vault 접근 권한이 없습니다. 권한 요청 또는 사용자 컨텍스트를 확인하세요. 권한 없음 권한·감사 요약 Client 권한 없음 Matter 권한 없음 구성원 권한 없음 Vault 권한 없음 Client Client 정보와 연결된 Matter를 권한 범위 안에서 확인합니다. 접근 권한 필요 열기 Matter Matter 진행 상황, 팀, 문서, 청구 흐름을 확인합니다. 접근 권한 필요 열기 구성원 구성원, 근태관리, 전자결재를 한곳에서 확인합니다. 접근 권한 필요 열기 Vault Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다. 접근 권한 필요 열기"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0036 review guard text observed",
+      "passed": true,
+      "details": {
+        "text": "오늘의 운영 대기열 처리할 Matter, 승인 대기, 최근 문서, 동기화 상태를 먼저 확인합니다. 새로고침 오늘 처리할 Matter 0 Matter 검토가 필요합니다. 담당자 승인 대기열을 확인하세요. 승인 대기 3 검토가 필요한 항목이 있습니다. 최근 문서 0 Vault 검토가 필요합니다. 담당자 승인 대기열을 확인하세요. 실패한 동기화 0 연결 실패 신호가 없습니다. Matter 작업 큐 실패, 권한 없음, 빈 상태를 구분해 표시합니다. Matter 목록 Matter 검토가 필요합니다. 담당자 승인 대기열을 확인하세요. 검토 승인·구성원 확인 1개 항목을 확인했습니다. 정상 최근 문서 확인 Vault 검토가 필요합니다. 담당자 승인 대기열을 확인하세요. 검토 권한·감사 요약 Client 검토 Matter 검토 구성원 정상 Vault 검토 Client Client 정보와 연결된 Matter를 권한 범위 안에서 확인합니다. 검토 필요 열기 Matter Matter 진행 상황, 팀, 문서, 청구 흐름을 확인합니다. 검토 필요 열기 구성원 구성원, 근태관리, 전자결재를 한곳에서 확인합니다. 열기 Vault Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다. 검토 필요 열기"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0036 denied/review has no API 5xx",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "LCX8-ACTION-0044 denied guard text observed",
+      "passed": true,
+      "details": {
+        "text": "Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 목록 권한 기준 적용 접근 권한이 없습니다 권한이 있는 정보만 표시됩니다. 레코드 Matter 1 상태 대기 청구 대기 책임자 미지정 팀 0 문서 0 활동 0 기한 0 대화 0 청구 0 분석 0 청구 상태 대기 저장 책임자 미지정 변경 레코드 필드 허용 필드 확인 중 필드 작업 책임자 일괄 변경 승인 조건 확인 승인 확인 최근 작업 0건 내부 대화 준비 권한 기준에 맞춰 표시됩니다."
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0044 review guard text observed",
+      "passed": true,
+      "details": {
+        "text": "Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 목록 권한 기준 적용 검토가 필요합니다 검토가 끝나면 Matter 목록을 확인할 수 있습니다. 레코드 Matter 1 상태 대기 청구 대기 책임자 미지정 팀 0 문서 0 활동 0 기한 0 대화 0 청구 0 분석 0 청구 상태 대기 저장 책임자 미지정 변경 레코드 필드 허용 필드 확인 중 필드 작업 책임자 일괄 변경 승인 조건 확인 승인 확인 최근 작업 0건 내부 대화 준비 권한 기준에 맞춰 표시됩니다."
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0044 denied/review has no API 5xx",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "LCX8-ACTION-0064 denied guard text observed",
+      "passed": true,
+      "details": {
+        "text": "Vault 미연결 Matter 선택 후 문서 기록을 확인할 수 있습니다 새로고침 문서 연결 접근 권한이 없습니다 권한이 있는 Matter Vault 정보만 표시됩니다."
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0064 review guard text observed",
+      "passed": true,
+      "details": {
+        "text": "Vault 미연결 Matter 선택 후 문서 기록을 확인할 수 있습니다 새로고침 문서 연결 검토가 필요합니다 검토가 끝나면 Matter Vault 정보를 확인할 수 있습니다."
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0064 denied/review has no API 5xx",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "browser console has no unexpected errors",
+      "passed": true,
+      "details": {
+        "consoleMessages": [
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+          }
+        ]
+      }
+    }
+  ],
+  "consoleMessages": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    }
+  ],
+  "result": "PASS"
+}

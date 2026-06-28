@@ -26,7 +26,7 @@ function timelineRows(entries = []) {
     `활동 ${index + 1}`,
     timelineTypeLabel(entry.type),
     timelineTitleLabel(entry.title, index),
-    entry.source_ref ? "권한 적용" : "일반"
+    entry.source_ref ? "권한 기준 적용" : "일반"
   ]);
 }
 
@@ -63,14 +63,14 @@ function renderVaultCollectionState(result, noun) {
   if (result === null) {
     return (
       <div className="live-data-state live-data-loading">
-        <strong>{noun} 정보를 불러오는 중입니다</strong>
+        <strong>{noun} 목록을 불러오는 중입니다</strong>
       </div>
     );
   }
   if (result.kind === "error") {
     return (
       <div className="live-data-state live-data-error">
-        <strong>{noun} 정보를 불러오지 못했습니다</strong>
+        <strong>{noun} 목록을 불러오지 못했습니다</strong>
       </div>
     );
   }
@@ -331,7 +331,21 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
   }
 
   let body;
-  if (!matterId || summary === null || timeline === null) {
+  if (!matterId && liveCtx === "denied") {
+    body = (
+      <div className="live-data-state live-data-denied">
+        <strong>접근 권한이 없습니다</strong>
+        권한이 있는 Matter Vault 정보만 표시됩니다.
+      </div>
+    );
+  } else if (!matterId && liveCtx === "review") {
+    body = (
+      <div className="live-data-state live-data-review">
+        <strong>검토가 필요합니다</strong>
+        검토가 끝나면 Matter Vault 정보를 확인할 수 있습니다.
+      </div>
+    );
+  } else if (!matterId || summary === null || timeline === null) {
     body = (
       <div className="live-data-state live-data-loading">
         <strong>Matter Vault를 불러오는 중입니다</strong>
@@ -341,7 +355,7 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
     body = (
       <div className="live-data-state live-data-error">
         <strong>Matter Vault를 불러오지 못했습니다</strong>
-        잠시 후 다시 시도해주세요.
+        새로고침하거나 연결 상태를 확인하세요.
       </div>
     );
   } else if (summary.uiState === "denied") {
@@ -427,7 +441,7 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
           {builderDraftResult && (
             <div className="live-data-state live-data-review" data-sf-b-w04-builder-draft-result="true">
               <strong>{builderMessage(builderDraftResult)}</strong>
-              <span>본문과 병합 값은 표시하지 않습니다.</span>
+              <span>본문과 병합 값은 숨깁니다.</span>
             </div>
           )}
           {builderPatchResult && (
@@ -445,13 +459,13 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
           {builderApprovalResult && (
             <div className="live-data-state live-data-review" data-sf-b-w04-builder-approval-result="true">
               <strong>{builderMessage(builderApprovalResult)}</strong>
-              <span>승인자 식별값은 표시하지 않습니다.</span>
+              <span>승인자 식별값은 숨깁니다.</span>
             </div>
           )}
           {builderPublishResult && (
             <div className="live-data-state live-data-denied" data-sf-b-w04-builder-publish-blocked-result="true">
               <strong>{builderMessage(builderPublishResult)}</strong>
-              <span>승인 완료 전에는 문서가 새로 생성되지 않습니다.</span>
+              <span>승인이 끝나기 전에는 문서를 만들지 않습니다.</span>
             </div>
           )}
           <VaultCollectionTable
@@ -485,7 +499,7 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
           {emailDraftResult && (
             <div className="live-data-state live-data-review" data-sf-b-w04-email-draft-result="true">
               <strong>{emailMessage(emailDraftResult)}</strong>
-              <span>수신자와 본문 원문은 표시하지 않습니다.</span>
+              <span>수신자와 본문 원문은 숨깁니다.</span>
             </div>
           )}
           {emailPatchResult && (
@@ -497,7 +511,7 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
           {emailSendResult && (
             <div className="live-data-state live-data-denied" data-sf-b-w04-email-send-provider-blocked="true">
               <strong>{emailMessage(emailSendResult)}</strong>
-              <span>발송 성공으로 표시하지 않습니다.</span>
+              <span>발송 성공 상태로 처리하지 않습니다.</span>
             </div>
           )}
         </div>
@@ -542,7 +556,7 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
         {documentMessage && (
           <div className="live-data-state live-data-review" data-matter-document-facade-result="true">
             <strong>{documentMessage}</strong>
-            <span>문서 내용과 원본 저장 경로는 표시하지 않습니다.</span>
+            <span>문서 내용과 원본 저장 경로는 숨깁니다.</span>
           </div>
         )}
         {body}

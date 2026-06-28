@@ -1,0 +1,115 @@
+{
+  "schema_version": "matter.lcx8.desktop-file-actions.p6-t04.v1",
+  "generated_at": "2026-06-25T14:07:01.574Z",
+  "status": "DESKTOP_FILE_ACTIONS_MAPPED_ACTIVE_SHELL_BLOCKERS_PRESERVED",
+  "tuw": "P6-T04",
+  "p6_t01_receipt": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-file-bridge-p6-t01.json",
+  "source_trace": {
+    "active_main_file": "apps/desktop/src/main/main.js",
+    "active_preload": "apps/desktop/src/preload/session.cjs",
+    "desktopSkeletonStatus_fileBridgeExposed": false,
+    "desktopPreloadPath": "session.cjs"
+  },
+  "reviewed_rows": 7,
+  "category_counts": {
+    "allow_action_controller_proven_active_shell_blocked": 2,
+    "deny_guard_confirmed": 3,
+    "allow_action_manager_proven_active_shell_blocked": 1,
+    "cleanup_guard_confirmed": 1
+  },
+  "status_changes": 0,
+  "allow_actions_blocked_until_active_shell_wiring": [
+    "LCX8-ACTION-0256",
+    "LCX8-ACTION-0257",
+    "LCX8-ACTION-0261"
+  ],
+  "guard_rows_confirmed": [
+    "LCX8-ACTION-0258",
+    "LCX8-ACTION-0259",
+    "LCX8-ACTION-0260",
+    "LCX8-ACTION-0262"
+  ],
+  "next_tuw": "P6-T05",
+  "rows": [
+    {
+      "id": "LCX8-ACTION-0256",
+      "status_before": "BLOCKED",
+      "status_after": "BLOCKED",
+      "surface": "desktop-file-bridge",
+      "label": "Choose file for upload",
+      "category": "allow_action_controller_proven_active_shell_blocked",
+      "reason": "choose-file upload controller and contract tests pass, but active shell preload is session.cjs and fileBridgeExposed=false",
+      "remediation_lane": "P6/Lane B"
+    },
+    {
+      "id": "LCX8-ACTION-0257",
+      "status_before": "BLOCKED",
+      "status_after": "BLOCKED",
+      "surface": "desktop-file-bridge",
+      "label": "Save document as",
+      "category": "allow_action_controller_proven_active_shell_blocked",
+      "reason": "save-as controller and contract tests pass, but active shell preload is session.cjs and fileBridgeExposed=false",
+      "remediation_lane": "P6/Lane B"
+    },
+    {
+      "id": "LCX8-ACTION-0258",
+      "status_before": "GUARDED",
+      "status_after": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "File picker without trusted gesture",
+      "category": "deny_guard_confirmed",
+      "reason": "file picker without trusted gesture is denied by tests and contract evidence",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0259",
+      "status_before": "GUARDED",
+      "status_after": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "Renderer-supplied file/document bytes",
+      "category": "deny_guard_confirmed",
+      "reason": "renderer-supplied file/document bytes are rejected before bridge action",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0260",
+      "status_before": "GUARDED",
+      "status_after": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "File bridge denied permission",
+      "category": "deny_guard_confirmed",
+      "reason": "permission-denied file bridge path does not open dialog or write path",
+      "remediation_lane": null
+    },
+    {
+      "id": "LCX8-ACTION-0261",
+      "status_before": "BLOCKED",
+      "status_after": "BLOCKED",
+      "surface": "desktop-file-bridge",
+      "label": "Open temp preview",
+      "category": "allow_action_manager_proven_active_shell_blocked",
+      "reason": "temp preview manager tests pass, but active shell has no proven visible trigger or loaded file bridge IPC",
+      "remediation_lane": "P6/Lane B"
+    },
+    {
+      "id": "LCX8-ACTION-0262",
+      "status_before": "GUARDED",
+      "status_after": "GUARDED",
+      "surface": "desktop-file-bridge",
+      "label": "Temp preview cache cleanup",
+      "category": "cleanup_guard_confirmed",
+      "reason": "temp preview cache cleanup is source/test proven for TTL/logout/tenant switch/app quit hooks when manager is wired",
+      "remediation_lane": null
+    }
+  ],
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 9,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 123,
+    "fail": 43
+  }
+}

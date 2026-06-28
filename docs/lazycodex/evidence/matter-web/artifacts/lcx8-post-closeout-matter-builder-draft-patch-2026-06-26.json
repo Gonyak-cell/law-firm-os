@@ -1,0 +1,113 @@
+{
+  "id": "lcx8-post-closeout-matter-builder-draft-patch-2026-06-26",
+  "action_id": "LCX8-ACTION-0067",
+  "status": "PASS",
+  "completed_at": "2026-06-26T12:57:07.326Z",
+  "proof_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0067-matter-builder-draft-patch-proof.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0067-matter-builder-draft-patch-proof.md",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0067-matter-builder-draft-patch-proof.png"
+  ],
+  "fixture": {
+    "tenant_id": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "matter_id": "matter_lcx8_0067_patch_1782478170369",
+    "matter_number": "M-LCX8-0067-78170369",
+    "title": "LCX8 builder patch proof 1782478170369",
+    "draft_id": "builder_draft_matter_lcx8_0067_patch_1782478170369_1782478627221",
+    "safe_fixture_family": "matter_runtime_builder_draft_patch",
+    "existing_seed_mutated": false
+  },
+  "assertions": {
+    "fixture_created": true,
+    "fixture_read_safe": true,
+    "ui_precondition_create_status_201": true,
+    "ui_precondition_create_outcome_created": true,
+    "ui_patch_status_200": true,
+    "ui_patch_outcome_updated": true,
+    "ui_patch_ready_for_review": true,
+    "ui_patch_no_raw_body": true,
+    "audit_event_patched": true,
+    "replay_idempotent": true,
+    "preview_readback_passed": true,
+    "preview_safe": true,
+    "audit_contains_patch": true,
+    "timeline_readback_contains_draft": true,
+    "result_message_observed": true,
+    "selected_matter_observed": true,
+    "denied_fail_closed": true,
+    "review_fail_closed": true,
+    "missing_draft_blocked": true,
+    "guards_did_not_mutate": true,
+    "no_request_failures": true,
+    "no_console_errors": true,
+    "production_ready_claim_false": true
+  },
+  "validation": {
+    "browser_runtime_proof": "PASS",
+    "api_write_proof": "PASS",
+    "preview_readback_proof": "PASS",
+    "audit_proof": "PASS",
+    "denied_review_invalid_guard_proof": "PASS",
+    "console_network": "PASS",
+    "focused_api_tests": "PASS 16/16 (sf-b-w04 document email builder, matter-vault integration, cmp-r4-g4-matter)",
+    "web_ui_tests": "PASS 17/17",
+    "web_build": "PASS (existing Vite chunk-size warning only)",
+    "live_verifier": "PASS 13/13",
+    "flow_verifier": "PASS 9/9",
+    "sloplint": "PASS no auto-detectable AI slop signals",
+    "ledger_count_invariant": "PASS 324 rows; PASS 17; BLOCKED 115; UNKNOWN 0",
+    "git_diff_check": "PASS"
+  },
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 17,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 115,
+    "fail": 42
+  },
+  "resolution": {
+    "row_id": "LCX8-ACTION-0067",
+    "status_before": "BLOCKED",
+    "status_after": "PASS",
+    "resolved_at": "2026-06-26T12:57:07.326Z",
+    "evidence_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0067-matter-builder-draft-patch-proof.json",
+    "status_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-builder-draft-patch-2026-06-26.json",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0067-matter-builder-draft-patch-proof.png",
+    "proof_summary": {
+      "write_http_status": 200,
+      "write_outcome": "updated",
+      "matter_id": "matter_lcx8_0067_patch_1782478170369",
+      "draft_id": "builder_draft_matter_lcx8_0067_patch_1782478170369_1782478627221",
+      "draft_title": "위임계약서 초안",
+      "draft_status": "ready_for_review",
+      "approval_state": "approval_required",
+      "publish_state": "owner_blocked",
+      "replay_outcome": "idempotent_replay",
+      "preview_http_status": 200,
+      "preview_outcome": "passed",
+      "preview_sections": [
+        "표지",
+        "핵심 조항",
+        "승인 필요 항목"
+      ],
+      "timeline_event_type": "matter.builder.draft",
+      "audit_event_action": "matter.builder.draft.patched",
+      "audit_event_id": "matter.builder.draft.patched:tenant_rp05_synthetic:matter_lcx8_0067_patch_1782478170369:builder_draft_matter_lcx8_0067_patch_1782478170369_1782478627221:2026-06-26T12:57:07.256Z",
+      "denied_write_outcome": "403/blocked",
+      "review_write_outcome": "200/review_required",
+      "invalid_draft_outcome": "404/blocked",
+      "production_ready_claim": false
+    },
+    "non_claims": [
+      "local synthetic runtime proof only",
+      "fixture Matter builder draft was created only to drive the UI surface",
+      "no production readiness or go-live approval claimed",
+      "no external receipt claimed"
+    ]
+  },
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0067 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+}

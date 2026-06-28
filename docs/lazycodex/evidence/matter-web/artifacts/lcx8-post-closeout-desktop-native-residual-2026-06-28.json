@@ -1,0 +1,186 @@
+{
+  "schema_version": "law-firm-os.lcx8.post-closeout.desktop-native-residual.v0.1",
+  "generated_at": "2026-06-28T07:40:25.920Z",
+  "batch_id": "LCX8-ALL-33",
+  "action_ids": [
+    "LCX8-ACTION-0245",
+    "LCX8-ACTION-0246",
+    "LCX8-ACTION-0258",
+    "LCX8-ACTION-0259",
+    "LCX8-ACTION-0260",
+    "LCX8-ACTION-0262",
+    "LCX8-ACTION-0263",
+    "LCX8-ACTION-0264",
+    "LCX8-ACTION-0265",
+    "LCX8-ACTION-0266",
+    "LCX8-ACTION-0267",
+    "LCX8-ACTION-0268",
+    "LCX8-ACTION-0269",
+    "LCX8-ACTION-0270",
+    "LCX8-ACTION-0271"
+  ],
+  "status_before": "mixed GUARDED/BLOCKED",
+  "status_after": "mixed GUARDED/BLOCKED",
+  "status_decision": "native residual rows retain guarded/blocked final classification",
+  "reason": "native_guard_source_confirmed_or_external_runtime_receipt_missing",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0245-0246-0258-0271-desktop-native-residual-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0245-0246-0258-0271-desktop-native-residual-proof.md",
+  "counts_before": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "counts_after": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "evidence": [
+    {
+      "id": "LCX8-ACTION-0245",
+      "status_decision": "GUARDED final / source guard confirmed",
+      "proof_type": "origin_policy",
+      "observed": "Approved local dev renderer target and packaged file renderer are allowlisted.",
+      "missing_runtime_receipt": null
+    },
+    {
+      "id": "LCX8-ACTION-0246",
+      "status_decision": "GUARDED final / source guard confirmed",
+      "proof_type": "origin_policy_navigation_guard",
+      "observed": "Unapproved renderer, navigation, and window-open are denied by origin-policy guards.",
+      "missing_runtime_receipt": null
+    },
+    {
+      "id": "LCX8-ACTION-0258",
+      "status_decision": "GUARDED final / source guard confirmed",
+      "proof_type": "file_bridge_user_gesture",
+      "observed": "File picker without trusted gesture throws USER_GESTURE_REQUIRED.",
+      "missing_runtime_receipt": null
+    },
+    {
+      "id": "LCX8-ACTION-0259",
+      "status_decision": "GUARDED final / source guard confirmed",
+      "proof_type": "renderer_byte_policy",
+      "observed": "Renderer-supplied file/document bytes throw RENDERER_FILE_BYTES_FORBIDDEN before dialog/write.",
+      "missing_runtime_receipt": null
+    },
+    {
+      "id": "LCX8-ACTION-0260",
+      "status_decision": "GUARDED final / source guard confirmed",
+      "proof_type": "file_bridge_permission_precheck",
+      "observed": "Denied permission precheck throws PERMISSION_DENIED and records denied audit event.",
+      "missing_runtime_receipt": null
+    },
+    {
+      "id": "LCX8-ACTION-0262",
+      "status_decision": "GUARDED final / source guard confirmed",
+      "proof_type": "temp_preview_cache_cleanup",
+      "observed": "Temp preview cache cleanup removed scoped preview on logout and recorded cleanup audit.",
+      "missing_runtime_receipt": null
+    },
+    {
+      "id": "LCX8-ACTION-0263",
+      "status_decision": "BLOCKED remains BLOCKED / external desktop runtime receipt required",
+      "proof_type": "deep_link_route_parser",
+      "observed": "Matter/document/task deep links parse to routeOnly intents with no action execution.",
+      "missing_runtime_receipt": "OS protocol registration and packaged app route-open receipt"
+    },
+    {
+      "id": "LCX8-ACTION-0264",
+      "status_decision": "BLOCKED remains BLOCKED / external auth runtime receipt required",
+      "proof_type": "auth_callback_deep_link_parser",
+      "observed": "Auth callback deep link parses only when code, state, and issuer are present.",
+      "missing_runtime_receipt": "real IdP callback/OS protocol receipt"
+    },
+    {
+      "id": "LCX8-ACTION-0265",
+      "status_decision": "GUARDED final / source guard confirmed",
+      "proof_type": "deep_link_forbidden_action_guard",
+      "observed": "Forbidden action deep link throws FORBIDDEN_ACTION_LINK.",
+      "missing_runtime_receipt": null
+    },
+    {
+      "id": "LCX8-ACTION-0266",
+      "status_decision": "GUARDED final / source guard confirmed",
+      "proof_type": "deep_link_invalid_route_guard",
+      "observed": "Invalid deep link route/query/id throws INVALID_IDENTIFIER.",
+      "missing_runtime_receipt": null
+    },
+    {
+      "id": "LCX8-ACTION-0267",
+      "status_decision": "BLOCKED remains BLOCKED / external desktop notification receipt required",
+      "proof_type": "notification_route_intent",
+      "observed": "Notification click converts a payload routeUrl into a routeOnly deep-link intent.",
+      "missing_runtime_receipt": "OS notification click receipt from packaged desktop app"
+    },
+    {
+      "id": "LCX8-ACTION-0268",
+      "status_decision": "GUARDED final / source guard confirmed",
+      "proof_type": "notification_action_sensitive_payload_guard",
+      "observed": "Notification forbidden action route throws FORBIDDEN_ACTION_LINK; payload keys are body, id, routeUrl, templateId, title.",
+      "missing_runtime_receipt": null
+    },
+    {
+      "id": "LCX8-ACTION-0269",
+      "status_decision": "BLOCKED remains BLOCKED / external updater runtime receipt required",
+      "proof_type": "signed_internal_update_controller",
+      "observed": "Signed internal update metadata applies after signature verification in source controller.",
+      "missing_runtime_receipt": "packaged updater apply/install receipt"
+    },
+    {
+      "id": "LCX8-ACTION-0270",
+      "status_decision": "BLOCKED remains BLOCKED / external updater runtime receipt required",
+      "proof_type": "signed_internal_rollback_controller",
+      "observed": "Signed rollback returns to the previous verified internal version in source controller.",
+      "missing_runtime_receipt": "packaged updater rollback receipt"
+    },
+    {
+      "id": "LCX8-ACTION-0271",
+      "status_decision": "GUARDED final / source guard confirmed",
+      "proof_type": "public_update_channel_guard",
+      "observed": "Public update channel returns denied/public_channel_disabled.",
+      "missing_runtime_receipt": null
+    }
+  ],
+  "tests": [
+    {
+      "command": "npm --workspace apps/desktop run test:smoke",
+      "summary": {
+        "tests": 59,
+        "pass": 59,
+        "fail": 0
+      }
+    },
+    {
+      "command": "npm --workspace apps/desktop run test:file-bridge",
+      "summary": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0
+      }
+    },
+    {
+      "command": "npm --workspace apps/desktop run test:update",
+      "summary": {
+        "tests": 3,
+        "pass": 3,
+        "fail": 0
+      }
+    }
+  ],
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0245/0246/0258..0271 desktop native residual proof PASS. Source/runtime assertions confirmed approved renderer origin guard, unapproved navigation/window-open denial, file bridge trusted gesture and renderer-byte guard, denied permission audit, temp preview cleanup, deep-link route-only and invalid/action guards, notification route-intent guard, signed internal update/rollback source controller, and public update channel denial. Desktop tests passed: test:smoke 59/59, test:file-bridge 17/17 plus validators, test:update 3/3. Guarded rows remain GUARDED; external OS/runtime receipt rows remain BLOCKED.",
+  "non_claims": [
+    "desktop source/test proof only for guarded rows",
+    "blocked rows remain blocked where packaged OS/runtime/provider receipt is missing",
+    "no OS file dialog, OS protocol, OS notification, or packaged updater receipt is claimed",
+    "no production-ready, public release, or go-live claim"
+  ]
+}

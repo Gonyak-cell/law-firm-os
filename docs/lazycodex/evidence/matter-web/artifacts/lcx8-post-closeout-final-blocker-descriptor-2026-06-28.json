@@ -1,0 +1,83 @@
+{
+  "schema_version": "law-firm-os.lcx8.post-closeout.final-blocker-descriptor.v0.1",
+  "generated_at": "2026-06-28T07:46:40.635Z",
+  "batch_id": "LCX8-ALL-34",
+  "action_ids": [
+    "LCX8-ACTION-0062",
+    "LCX8-ACTION-0281",
+    "LCX8-ACTION-0318",
+    "LCX8-ACTION-0322"
+  ],
+  "status_before": "mixed BLOCKED/DESCRIPTOR_ONLY",
+  "status_after": "mixed BLOCKED/DESCRIPTOR_ONLY",
+  "status_decision": "final BLOCKED/DESCRIPTOR_ONLY classification",
+  "reason": "owner_approval_receipt_missing_or_descriptor_runtime_missing",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0062-0281-0318-0322-final-blocker-descriptor-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0062-0281-0318-0322-final-blocker-descriptor-proof.md",
+  "counts_before": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "counts_after": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "evidence": [
+    {
+      "id": "LCX8-ACTION-0062",
+      "status_decision": "BLOCKED final / owner approval receipt required",
+      "proof_type": "ledger_source_api_test",
+      "observed": "Matter owner-change bulk record action handler/API boundary exists, but ledger P5/P8 classify owner/approval receipt as missing and no safe write/read-back/audit receipt is captured.",
+      "missing_receipt": "owner/approval write execution, durable read-back, and audit event receipt"
+    },
+    {
+      "id": "LCX8-ACTION-0281",
+      "status_decision": "DESCRIPTOR_ONLY final / runtime profile API missing",
+      "proof_type": "descriptor_source",
+      "observed": "UserProfileSurface renders profile data unavailable panels and intentionally avoids a profile API client/runtime read.",
+      "missing_receipt": "profile runtime API/read integration"
+    },
+    {
+      "id": "LCX8-ACTION-0318",
+      "status_decision": "BLOCKED final / owner approval receipt required",
+      "proof_type": "ledger_source_api_test",
+      "observed": "Import execution request source surface exists, but ledger P5/P8 classify owner/approval receipt as missing and no safe write/read-back/audit receipt is captured.",
+      "missing_receipt": "owner/approval write execution, durable read-back, and audit event receipt"
+    },
+    {
+      "id": "LCX8-ACTION-0322",
+      "status_decision": "DESCRIPTOR_ONLY final / external provider unavailable",
+      "proof_type": "descriptor_source",
+      "observed": "EmailFilingView renders provider-unavailable copy with no form submit/provider API handler.",
+      "missing_receipt": "email filing provider integration and external receipt"
+    }
+  ],
+  "tests": [
+    {
+      "command": "npm --workspace apps/api run test",
+      "summary": {
+        "tests": 191,
+        "pass": 191,
+        "fail": 0
+      }
+    }
+  ],
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0062/0281/0318/0322 final blocker/descriptor proof PASS. API tests passed 191/191. Matter write rows 0062 and 0318 remain BLOCKED because owner/approval write execution, durable read-back, and audit receipt are not captured. Profile row 0281 remains DESCRIPTOR_ONLY because UserProfileSurface renders unavailable panels without a profile API runtime. Vault row 0322 remains DESCRIPTOR_ONLY because EmailFilingView renders external provider unavailable state with no submit/provider API handler.",
+  "non_claims": [
+    "no owner/approval write execution was performed",
+    "no durable read-back or audit write receipt is claimed for blocked write rows",
+    "descriptor-only rows are not runtime/PASS claims",
+    "no external email provider receipt is claimed",
+    "no production-ready or go-live claim"
+  ]
+}

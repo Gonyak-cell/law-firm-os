@@ -1,0 +1,124 @@
+{
+  "schema_version": "law-firm-os.lcx8.desktop-renderer-login-fields-proof.v0.1",
+  "generated_at": "2026-06-28T07:36:00.057Z",
+  "result": "PASS",
+  "rows": [
+    "LCX8-ACTION-0248",
+    "LCX8-ACTION-0249"
+  ],
+  "scope": {
+    "local_browser_runtime": true,
+    "desktop_renderer_surface": true,
+    "web_origin": "http://127.0.0.1:5174",
+    "route": "?view=auth&authStep=login",
+    "trace_depths": [
+      "ui_state_only"
+    ],
+    "status_decision": "UI_ONLY final classification; status remains UI_ONLY",
+    "persistence_claim": false,
+    "api_write_claim": false,
+    "native_bridge_claim": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "source_trace": {
+    "auth_form": "apps/web/src/components/AuthSurface.jsx AuthForm loginEmail/loginPassword React state; submit handler owns onLogin/native bridge boundary",
+    "desktop_auth": "apps/desktop/src/main/auth.js MainProcessAuthCoordinator.login sanitizes renderer payload and strips password/token material from returned session payloads"
+  },
+  "rowProofs": [
+    {
+      "id": "LCX8-ACTION-0248",
+      "label": "Desktop login email",
+      "selector": "[data-login-email]",
+      "observed_state": "email field value desktop.operator@example.test",
+      "raw_value_recorded": true,
+      "input_type": "email",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0248-desktop-renderer-login-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "native_bridge_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0249",
+      "label": "Desktop login password",
+      "selector": "[data-login-password]",
+      "observed_state": "password field accepted masked local input length 21",
+      "raw_value_recorded": false,
+      "input_type": "password",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0249-desktop-renderer-login-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "native_bridge_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    }
+  ],
+  "assertions": [
+    {
+      "name": "LCX8-ACTION-0248 login field local state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "email field value desktop.operator@example.test",
+        "input_type": "email"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0249 login field local state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "password field accepted masked local input length 21",
+        "input_type": "password"
+      }
+    },
+    {
+      "name": "login proof performs no submit/API write",
+      "passed": true,
+      "details": {
+        "apiWrites": []
+      }
+    },
+    {
+      "name": "browser has no page errors",
+      "passed": true,
+      "details": {
+        "pageErrors": []
+      }
+    },
+    {
+      "name": "browser has no unexpected console errors",
+      "passed": true,
+      "details": {
+        "consoleMessages": [],
+        "unexpectedConsoleMessages": []
+      }
+    },
+    {
+      "name": "proof observes no API 5xx",
+      "passed": true,
+      "details": {
+        "api5xx": []
+      }
+    }
+  ],
+  "consoleMessages": [],
+  "pageErrors": [],
+  "apiRequests": [],
+  "apiResponses": [],
+  "apiWrites": [],
+  "api5xx": [],
+  "non_claims": [
+    "UI_ONLY local renderer field-state proof only",
+    "no login submit was performed",
+    "no API write or native bridge call was performed",
+    "no password value is recorded in proof output",
+    "no persistence, production-ready, or go-live claim is made"
+  ]
+}

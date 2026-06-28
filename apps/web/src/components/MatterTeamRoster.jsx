@@ -95,14 +95,14 @@ export function MatterTeamRoster({ matters = [], liveCtx = "allow", onMatterUpda
           ? "책임자가 지정되었습니다"
           : "팀원이 추가되었습니다"
       : result?.kind === "error"
-        ? "다시 확인해주세요"
+        ? "입력값과 연결 상태를 확인하세요"
         : activeMatter
           ? "팀원과 책임자를 지정할 수 있습니다"
-          : "Matter를 먼저 선택해주세요";
+          : "Matter를 먼저 선택하세요";
   const canSubmit = Boolean(activeMatter && form.memberId.trim() && form.role.trim() && (form.employeeId.trim() || form.userId.trim()));
 
   return (
-    <Panel id="matter-team" className="matter-runtime-panel" title="Matter 구성원" meta="권한 적용">
+    <Panel id="matter-team" className="matter-runtime-panel" title="Matter 구성원" meta="권한 기준 적용">
       <div
         className="matter-team-roster"
         data-cmp-g4-team-roster="true"

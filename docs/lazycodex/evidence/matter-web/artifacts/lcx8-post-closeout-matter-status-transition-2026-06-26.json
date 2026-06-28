@@ -1,0 +1,107 @@
+{
+  "schema_version": "matter.lcx8.post-closeout-matter-status-transition.v1",
+  "generated_at": "2026-06-26T05:36:42.543Z",
+  "status": "POST_CLOSEOUT_MATTER_STATUS_TRANSITION_RECORDED",
+  "resolved_rows": [
+    {
+      "id": "LCX8-ACTION-0063",
+      "status_before": "BLOCKED",
+      "status_after": "PASS",
+      "surface": "matter",
+      "section": "matter-command-status",
+      "label": "완료",
+      "evidence": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0063-matter-status-transition-proof.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0063-matter-status-transition-proof.md",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0063-matter-status-transition-proof.png"
+      ],
+      "proof_summary": {
+        "write_http_status": 200,
+        "write_outcome": "updated",
+        "matter_id": "matter_lcx8_0063_status_1782452202543",
+        "before_status": "opening",
+        "after_status": "closed",
+        "before_wip_status": "not_started",
+        "after_wip_status": "completed",
+        "transition_previous_status": "opening",
+        "transition_target_status": "closed",
+        "state_idempotent": true,
+        "read_back_found": true,
+        "audit_event_action": "matter.status.transitioned",
+        "audit_event_id": "matter.status.transitioned:tenant_rp05_synthetic:matter_lcx8_0063_status_1782452202543:closed",
+        "denied_write_outcome": "403/blocked",
+        "review_write_outcome": "200/review_required",
+        "invalid_status_outcome": "400/blocked",
+        "production_ready_claim": false
+      }
+    }
+  ],
+  "status_counts_before": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 13,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 119,
+    "fail": 42
+  },
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 14,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 118,
+    "fail": 42
+  },
+  "commands": [
+    {
+      "command": "Playwright LCX8-ACTION-0063 Matter status transition UI/API/read-back/audit/fail-closed proof",
+      "result": "PASS 200/updated",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0063-matter-status-transition-proof.json"
+    },
+    {
+      "command": "node --test apps/api/test/cmp-r4-g4-matter.test.js",
+      "result": "PASS 11/11"
+    },
+    {
+      "command": "npm --workspace apps/web run test:ui",
+      "result": "PASS 17/17"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS vite build"
+    },
+    {
+      "command": "npm run ui:live:verify",
+      "result": "PASS 13/13"
+    },
+    {
+      "command": "npm run ui:flows:verify",
+      "result": "PASS 9/9"
+    },
+    {
+      "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+      "result": "PASS no auto-detectable AI slop signals"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "JSON parse and LCX8 ledger count invariant",
+      "result": "PASS 324 rows; PASS 14; BLOCKED 118; UNKNOWN 0; LCX8-ACTION-0063 PASS"
+    }
+  ],
+  "non_claims": {
+    "local_synthetic_runtime_only": true,
+    "fixture_matter_created_only_for_ui_proof": true,
+    "production_ready": false,
+    "go_live_approved": false,
+    "external_receipt_claimed": false,
+    "historical_p8_artifacts_are_closeout_snapshots": true
+  },
+  "verification_summary": "Post-closeout LCX8-ACTION-0063 verification: node --test apps/api/test/cmp-r4-g4-matter.test.js PASS 11/11; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS; npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+}

@@ -1,0 +1,354 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-06-25T11:58:12.930Z",
+  "tuw": "P2-T09",
+  "status": "complete_validated",
+  "title": "LCX8 P2-T09 descriptor-only family classification",
+  "scope": "Review visible state/descriptor families so unavailable provider/data copy is separated from executable runtime actions and guard proof.",
+  "reviewed_candidate_count": 12,
+  "descriptor_only_row_count": 2,
+  "descriptor_only_rows": [
+    "LCX8-ACTION-0281",
+    "LCX8-ACTION-0322"
+  ],
+  "retained_guarded_state_rows": [
+    "LCX8-ACTION-0272",
+    "LCX8-ACTION-0273",
+    "LCX8-ACTION-0274",
+    "LCX8-ACTION-0275",
+    "LCX8-ACTION-0276",
+    "LCX8-ACTION-0277",
+    "LCX8-ACTION-0278",
+    "LCX8-ACTION-0279"
+  ],
+  "retained_fail_rows": [
+    "LCX8-ACTION-0280"
+  ],
+  "before_status_counts": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 0,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 0,
+    "blocked": 133,
+    "fail": 43
+  },
+  "status_counts_after_classification": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 0,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 131,
+    "fail": 43
+  },
+  "reviewed_rows": [
+    {
+      "id": "LCX8-ACTION-0272",
+      "surface": "client-guarded-state",
+      "route": "/?locale=ko&view=clients&data=live&ctx=denied#clients-list",
+      "section": "client-list-denied-state",
+      "label": "Client list denied state",
+      "previous_status": "GUARDED",
+      "status": "GUARDED",
+      "action_type": "state_panel",
+      "trace_depth": "ui_state_only",
+      "classification": "guarded_denied_state_not_descriptor_only",
+      "remediation_lane": null,
+      "source_file": "apps/web/src/components/ClientsSurface.jsx; apps/web/src/data/apiClient.js",
+      "handler": "fetchMasterDataRecords(ctx=denied) -> renderLiveState(result, \"Client\") -> live-data-denied panel",
+      "expected_user_outcome": "Blocks Client list visibility when the runtime context is denied.",
+      "evidence_tail": [
+        "P1-T11 DOM sweep observed Client denied panel: 접근 권한이 없습니다 권한이 있는 Client만 표시합니다.",
+        "P2-T03 Client source trace: ClientsSurface renderLiveState lines 134-173 maps denied/review uiState to guarded panels; status remains GUARDED pending P4 API proof.",
+        "P2-T09 descriptor-only classification: descriptor/status surfaces reviewed; descriptor-only rows are not runtime/PASS claims."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0273",
+      "surface": "client-guarded-state",
+      "route": "/?locale=ko&view=clients&data=live&ctx=review#clients-list",
+      "section": "client-list-review-state",
+      "label": "Client list review-required state",
+      "previous_status": "GUARDED",
+      "status": "GUARDED",
+      "action_type": "state_panel",
+      "trace_depth": "ui_state_only",
+      "classification": "guarded_review_state_not_descriptor_only",
+      "remediation_lane": null,
+      "source_file": "apps/web/src/components/ClientsSurface.jsx; apps/web/src/data/apiClient.js",
+      "handler": "fetchMasterDataRecords(ctx=review) -> renderLiveState(result, \"Client\") -> live-data-review panel",
+      "expected_user_outcome": "Blocks Client list visibility until review is complete.",
+      "evidence_tail": [
+        "P1-T11 DOM sweep observed Client review panel: 검토가 필요합니다 검토가 끝나면 Client 정보를 확인할 수 있습니다.",
+        "P2-T03 Client source trace: ClientsSurface renderLiveState lines 134-173 maps denied/review uiState to guarded panels; status remains GUARDED pending P4 API proof.",
+        "P2-T09 descriptor-only classification: descriptor/status surfaces reviewed; descriptor-only rows are not runtime/PASS claims."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0274",
+      "surface": "matter-guarded-state",
+      "route": "/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+      "section": "matter-list-denied-state",
+      "label": "Matter list denied state",
+      "previous_status": "GUARDED",
+      "status": "GUARDED",
+      "action_type": "state_panel",
+      "trace_depth": "ui_state_only",
+      "classification": "guarded_denied_state_not_descriptor_only",
+      "remediation_lane": null,
+      "source_file": "apps/web/src/components/MattersSurface.jsx",
+      "handler": "renderCollectionState(result, \"Matter\") maps result.uiState === \"denied\" to DesktopDeniedState",
+      "expected_user_outcome": "Blocks Matter list visibility when the runtime context is denied.",
+      "evidence_tail": [
+        "P1-T11 DOM sweep observed Matter denied panel: 접근 권한이 없습니다 권한이 있는 정보만 표시됩니다.",
+        "P2-T04 Matter source trace: denied/review or disabled guarded state maps to Matter collection/Vault rendering logic; guarded proof remains pre-P4.",
+        "P2-T09 descriptor-only classification: descriptor/status surfaces reviewed; descriptor-only rows are not runtime/PASS claims."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0275",
+      "surface": "matter-guarded-state",
+      "route": "/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+      "section": "matter-list-review-state",
+      "label": "Matter list review-required state",
+      "previous_status": "GUARDED",
+      "status": "GUARDED",
+      "action_type": "state_panel",
+      "trace_depth": "ui_state_only",
+      "classification": "guarded_review_state_not_descriptor_only",
+      "remediation_lane": null,
+      "source_file": "apps/web/src/components/MattersSurface.jsx",
+      "handler": "renderCollectionState(result, \"Matter\") maps result.uiState === \"review_required\" to live-data-review state panel",
+      "expected_user_outcome": "Blocks Matter list visibility until review is complete.",
+      "evidence_tail": [
+        "P1-T11 DOM sweep observed Matter review panel: 검토가 필요합니다 검토가 끝나면 Matter 목록을 확인할 수 있습니다.",
+        "P2-T04 Matter source trace: denied/review or disabled guarded state maps to Matter collection/Vault rendering logic; guarded proof remains pre-P4.",
+        "P2-T09 descriptor-only classification: descriptor/status surfaces reviewed; descriptor-only rows are not runtime/PASS claims."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0276",
+      "surface": "vault-guarded-state",
+      "route": "/?locale=ko&view=vault&data=live&ctx=denied#vault-documents",
+      "section": "vault-documents-denied-state",
+      "label": "Vault documents denied state",
+      "previous_status": "GUARDED",
+      "status": "GUARDED",
+      "action_type": "state_panel",
+      "trace_depth": "ui_state_only",
+      "classification": "guarded_denied_state_not_descriptor_only",
+      "remediation_lane": null,
+      "source_file": "apps/web/src/components/VaultSurface.jsx; apps/web/src/components/DesktopDeniedState.jsx; apps/web/src/data/apiClient.js",
+      "handler": "VaultSurface maps result.uiState === \"denied\" to DesktopDeniedState",
+      "expected_user_outcome": "Blocks Vault document visibility when the runtime context is denied.",
+      "evidence_tail": [
+        "P1-T11 DOM sweep observed Vault denied panel: 접근 권한이 없습니다 권한이 있는 정보만 표시됩니다.",
+        "P2-T05 Vault source trace: denied/review guarded state maps to VaultSurface fetch result rendering; P4 API response proof remains required.",
+        "P2-T09 descriptor-only classification: descriptor/status surfaces reviewed; descriptor-only rows are not runtime/PASS claims."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0277",
+      "surface": "vault-guarded-state",
+      "route": "/?locale=ko&view=vault&data=live&ctx=review#vault-documents",
+      "section": "vault-documents-review-state",
+      "label": "Vault documents review-required state",
+      "previous_status": "GUARDED",
+      "status": "GUARDED",
+      "action_type": "state_panel",
+      "trace_depth": "ui_state_only",
+      "classification": "guarded_review_state_not_descriptor_only",
+      "remediation_lane": null,
+      "source_file": "apps/web/src/components/VaultSurface.jsx; apps/web/src/data/apiClient.js",
+      "handler": "VaultSurface maps result.uiState === \"review_required\" or outcome === \"review_required\" to live-data-review state panel",
+      "expected_user_outcome": "Blocks Vault documents until review is complete.",
+      "evidence_tail": [
+        "P1-T11 DOM sweep observed Vault review panel: 검토가 필요합니다 검토가 끝나면 Vault 문서를 확인할 수 있습니다.",
+        "P2-T05 Vault source trace: denied/review guarded state maps to VaultSurface fetch result rendering; P4 API response proof remains required.",
+        "P2-T09 descriptor-only classification: descriptor/status surfaces reviewed; descriptor-only rows are not runtime/PASS claims."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0278",
+      "surface": "matter-guarded-state",
+      "route": "/?locale=ko&view=matters&data=live&ctx=denied#matters-list; /?locale=ko&view=matters&data=live&ctx=review#matters-list",
+      "section": "matter-record-action-strip-disabled",
+      "label": "Matter record action strip disabled under denied/review",
+      "previous_status": "GUARDED",
+      "status": "GUARDED",
+      "action_type": "disabled_action_group",
+      "trace_depth": "ui_state_only",
+      "classification": "guarded_disabled_action_group_not_descriptor_only",
+      "remediation_lane": null,
+      "source_file": "apps/web/src/components/MattersSurface.jsx",
+      "handler": "MatterRecordPanel disables mutation buttons when selected matter or required record-action state is unavailable under guarded contexts",
+      "expected_user_outcome": "Keeps record mutation controls disabled while the Matter list is denied or review-gated.",
+      "evidence_tail": [
+        "P1-T11 DOM sweep observed 저장/변경/필드 작업/승인 확인 disabled on Matter denied and review routes.",
+        "P2-T04 Matter source trace: denied/review or disabled guarded state maps to Matter collection/Vault rendering logic; guarded proof remains pre-P4.",
+        "P2-T08 missing/no-op classification: source and prior DOM evidence reviewed; row remains FAIL/BLOCKED/GUARDED/UI_ONLY as classified, with no operational PASS inferred.",
+        "P2-T09 descriptor-only classification: descriptor/status surfaces reviewed; descriptor-only rows are not runtime/PASS claims."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0279",
+      "surface": "matter-guarded-state",
+      "route": "/?locale=ko&view=matters&data=live&ctx=denied#matter-vault; /?locale=ko&view=matters&data=live&ctx=review#matter-vault",
+      "section": "matter-vault-action-strip-disabled",
+      "label": "Matter Vault action strip disabled under denied/review",
+      "previous_status": "GUARDED",
+      "status": "GUARDED",
+      "action_type": "disabled_action_group",
+      "trace_depth": "ui_state_only",
+      "classification": "guarded_disabled_action_group_not_descriptor_only",
+      "remediation_lane": null,
+      "source_file": "apps/web/src/components/MattersSurface.jsx; apps/web/src/components/MatterVaultPanel.jsx",
+      "handler": "MatterVaultPanel and MatterRecordPanel disable document/record controls while guarded context prevents a usable item/draft",
+      "expected_user_outcome": "Keeps Matter Vault document and record mutation controls disabled while the context is denied or review-gated.",
+      "evidence_tail": [
+        "P1-T11 DOM sweep observed 문서 연결 plus record action buttons disabled on Matter Vault denied and review routes.",
+        "P2-T04 Matter source trace: denied/review or disabled guarded state maps to Matter collection/Vault rendering logic; guarded proof remains pre-P4.",
+        "P2-T09 descriptor-only classification: descriptor/status surfaces reviewed; descriptor-only rows are not runtime/PASS claims."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0280",
+      "surface": "people-guarded-state",
+      "route": "/?locale=ko&view=people&data=live&ctx=denied#people-directory; /?locale=ko&view=people&data=live&ctx=review#people-directory",
+      "section": "people-directory-guard-missing",
+      "label": "People directory denied/review state",
+      "previous_status": "FAIL",
+      "status": "FAIL",
+      "action_type": "state_panel",
+      "trace_depth": "ui_state_only",
+      "classification": "failed_missing_guard_state_not_descriptor_only",
+      "remediation_lane": "Lane B/P4",
+      "source_file": "apps/web/src/people/PeopleHome.tsx; apps/web/src/people/legal/LegalPeopleWorkspace.tsx; apps/web/src/people/hrxApiClient.ts",
+      "handler": "PeopleHome does not accept or forward liveCtx/ctx to LegalPeopleWorkspace; hrxApiClient uses fixed allow-style HRX runtime headers and cannot render ctx=denied/review People directory state from route params",
+      "expected_user_outcome": "Shows denied or review-required People directory state when ctx=denied or ctx=review.",
+      "evidence_tail": [
+        "Source trace: PeopleHome({ labels, activeSection }) fetches overview without liveCtx and renders LegalPeopleWorkspace without ctx.",
+        "P2-T06 source trace: PeopleHome, People/HRX components, hrxApiClient.ts, admin apiClient.js, and conditional step-up state mapped to handler/API/runtime boundary; no P3/P4 API PASS claimed.",
+        "P2-T08 missing/no-op classification: source and prior DOM evidence reviewed; row remains FAIL/BLOCKED/GUARDED/UI_ONLY as classified, with no operational PASS inferred.",
+        "P2-T09 descriptor-only classification: descriptor/status surfaces reviewed; descriptor-only rows are not runtime/PASS claims."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0281",
+      "surface": "profile-unavailable-state",
+      "route": "/?locale=ko&view=profile&data=live&ctx=allow",
+      "section": "profile-data-unavailable",
+      "label": "Profile data unavailable state",
+      "previous_status": "BLOCKED",
+      "status": "DESCRIPTOR_ONLY",
+      "action_type": "state_panel",
+      "trace_depth": "ui_state_only",
+      "classification": "descriptor_profile_api_unavailable_state",
+      "remediation_lane": "Lane C/P4",
+      "source_file": "apps/web/src/components/UserProfileSurface.jsx",
+      "handler": "static live-data-empty profile panels",
+      "expected_user_outcome": "Explains that profile contract/account/progress data is unavailable until session/profile API data is connected.",
+      "evidence_tail": [
+        "P2-T08 missing/no-op classification: source and prior DOM evidence reviewed; row remains FAIL/BLOCKED/GUARDED/UI_ONLY as classified, with no operational PASS inferred.",
+        "P2-T09 descriptor-only classification: descriptor/status surfaces reviewed; descriptor-only rows are not runtime/PASS claims.",
+        "apps/web/src/components/UserProfileSurface.jsx:40-108 renders profile-empty live-data panels for missing session/profile API data.",
+        "P2-T09 policy: static unavailable data panels are descriptor-only until a runtime read/API surface exists."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0300",
+      "surface": "vault",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-email",
+      "section": "vault-sidebar",
+      "label": "메일 보관함",
+      "previous_status": "UI_ONLY",
+      "status": "UI_ONLY",
+      "action_type": "button",
+      "trace_depth": "route_navigation",
+      "classification": "route_navigation_to_descriptor_surface_not_descriptor_only",
+      "remediation_lane": null,
+      "source_file": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx; apps/web/src/components/VaultSurface.jsx; apps/web/src/components/EmailFilingView.jsx",
+      "handler": "Sidebar item onClick -> setView(\"vault\", \"vault-email\") -> VaultSurface renders EmailFilingView unavailable integration state",
+      "expected_user_outcome": "Navigates the Vault sidebar to the email filing surface.",
+      "evidence_tail": [
+        "P2-T01 browser QA: Shell topbar/sidebar controls were driven on http://127.0.0.1:5174 and matched source-traced route/local/missing-handler outcomes.",
+        "P2-T05 Vault source trace: local Vault route or read-only detail/security state confirmed; no API operation PASS claimed.",
+        "P2-T08 missing/no-op classification: source and prior DOM evidence reviewed; row remains FAIL/BLOCKED/GUARDED/UI_ONLY as classified, with no operational PASS inferred.",
+        "P2-T09 descriptor-only classification: descriptor/status surfaces reviewed; descriptor-only rows are not runtime/PASS claims."
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0322",
+      "surface": "vault",
+      "route": "/?locale=ko&view=vault&data=live&ctx=allow#vault-email",
+      "section": "vault-email-unavailable-state",
+      "label": "Vault email filing unavailable state",
+      "previous_status": "BLOCKED",
+      "status": "DESCRIPTOR_ONLY",
+      "action_type": "state_panel",
+      "trace_depth": "external_receipt_required",
+      "classification": "descriptor_external_email_provider_unavailable_state",
+      "remediation_lane": "Lane C/Lane D",
+      "source_file": "apps/web/src/components/EmailFilingView.jsx",
+      "handler": "EmailFilingView renders static provider-unavailable state; no submit or provider API handler exists",
+      "expected_user_outcome": "Shows that Matter email filing is unavailable until email provider integration is connected.",
+      "evidence_tail": [
+        "P2-T08 missing/no-op classification: source and prior DOM evidence reviewed; row remains FAIL/BLOCKED/GUARDED/UI_ONLY as classified, with no operational PASS inferred.",
+        "P2-T09 descriptor-only classification: descriptor/status surfaces reviewed; descriptor-only rows are not runtime/PASS claims.",
+        "apps/web/src/components/EmailFilingView.jsx:5-21 renders email filing provider-unavailable copy with no submit/provider API handler.",
+        "P2-T09 policy: external provider unavailable panels are descriptor-only until provider integration and external receipt evidence exist."
+      ]
+    }
+  ],
+  "descriptor_policy": {
+    "descriptor_only": "Use DESCRIPTOR_ONLY only when the visible surface describes a missing runtime/provider/API layer and exposes no executable operation to validate.",
+    "guarded": "Keep denied/review panels and disabled mutation strips as GUARDED because they represent fail-closed access behavior that still needs P4 proof.",
+    "blocked": "Keep executable buttons with API/native/provider handlers as BLOCKED until P3/P4/P6 evidence proves the operation.",
+    "fail": "Keep missing guarded-state rendering as FAIL because the expected fail-closed state is absent."
+  },
+  "source_evidence": {
+    "profile_unavailable": [
+      "apps/web/src/components/UserProfileSurface.jsx:40-108 renders static profile empty/connection-needed panels without profile API execution."
+    ],
+    "vault_email_unavailable": [
+      "apps/web/src/components/EmailFilingView.jsx:5-21 renders provider-unavailable copy without submit/provider API handler."
+    ]
+  },
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "api_operation_pass_claimed": false,
+    "external_provider_receipt_complete": false,
+    "descriptor_rows_promoted_to_runtime": false
+  },
+  "next_tuw": "P2-T10 Assign trace depth to every row",
+  "validation": {
+    "result": "PASS",
+    "commands": [
+      {
+        "command": "JSON/CSV consistency check for ledger, inventory, CSV, and P2-T09 artifact",
+        "result": "PASS",
+        "summary": "324 ledger rows, 324 CSV rows, 12 reviewed candidates, 2 DESCRIPTOR_ONLY rows, status counts updated as expected, UNKNOWN 0."
+      },
+      {
+        "command": "npm --workspace apps/web run test:ui",
+        "result": "PASS",
+        "summary": "17 tests, 17 pass, 0 fail."
+      },
+      {
+        "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+        "result": "PASS",
+        "summary": "No auto-detectable AI slop signals found."
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS",
+        "summary": "No whitespace errors."
+      }
+    ]
+  }
+}

@@ -1,0 +1,254 @@
+{
+  "schema_version": "matter.lcx8.final-status-count.p8-t00.v1",
+  "generated_at": "2026-06-28T07:46:40.635Z",
+  "status": "FINAL_STATUS_COUNTS_RECORDED",
+  "tuw": "P8-T00",
+  "ledger_rows": 324,
+  "csv_lines_expected": 325,
+  "status_counts": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "by_status": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "by_trace_depth": {
+    "ui_state_only": 103,
+    "route_navigation": 77,
+    "api_read": 34,
+    "api_write": 83,
+    "native_bridge": 26,
+    "external_receipt_required": 1
+  },
+  "by_surface_status": {
+    "auth": {
+      "UI_ONLY": 4,
+      "FAIL": 2
+    },
+    "home": {
+      "UI_ONLY": 30,
+      "FAIL": 6,
+      "BLOCKED": 1
+    },
+    "matter": {
+      "BLOCKED": 36,
+      "UI_ONLY": 39,
+      "FAIL": 3,
+      "PASS": 2
+    },
+    "vault": {
+      "PASS": 1,
+      "FAIL": 5,
+      "UI_ONLY": 3,
+      "DESCRIPTOR_ONLY": 1
+    },
+    "people-directory": {
+      "BLOCKED": 9,
+      "FAIL": 1
+    },
+    "client": {
+      "UI_ONLY": 9,
+      "FAIL": 3,
+      "BLOCKED": 31
+    },
+    "people-sidebar": {
+      "UI_ONLY": 18,
+      "FAIL": 2
+    },
+    "people-relationships": {
+      "BLOCKED": 8
+    },
+    "people-conflicts": {
+      "BLOCKED": 8
+    },
+    "people-hrx": {
+      "FAIL": 2
+    },
+    "people-workforce": {
+      "FAIL": 7,
+      "UI_ONLY": 7
+    },
+    "people-documents-leave": {
+      "BLOCKED": 1
+    },
+    "people-leave": {
+      "UI_ONLY": 3,
+      "BLOCKED": 1
+    },
+    "people-approvals": {
+      "BLOCKED": 2
+    },
+    "people-recruiting": {
+      "BLOCKED": 1
+    },
+    "people-policy": {
+      "UI_ONLY": 3,
+      "BLOCKED": 1
+    },
+    "people-ai": {
+      "BLOCKED": 2
+    },
+    "people-payroll": {
+      "UI_ONLY": 4,
+      "BLOCKED": 3
+    },
+    "people-admin": {
+      "BLOCKED": 9
+    },
+    "profile-sidebar": {
+      "UI_ONLY": 6,
+      "FAIL": 6
+    },
+    "profile-surface": {
+      "FAIL": 5
+    },
+    "desktop-shell": {
+      "PASS": 1,
+      "GUARDED": 2
+    },
+    "desktop-runtime": {
+      "BLOCKED": 1
+    },
+    "desktop-renderer": {
+      "UI_ONLY": 2,
+      "PASS": 4
+    },
+    "desktop-session": {
+      "PASS": 2
+    },
+    "desktop-file-bridge": {
+      "BLOCKED": 3,
+      "GUARDED": 4
+    },
+    "desktop-deep-links": {
+      "BLOCKED": 2,
+      "GUARDED": 2
+    },
+    "desktop-notifications": {
+      "BLOCKED": 1,
+      "GUARDED": 1
+    },
+    "desktop-updates": {
+      "BLOCKED": 2,
+      "GUARDED": 1
+    },
+    "client-guarded-state": {
+      "GUARDED": 2
+    },
+    "matter-guarded-state": {
+      "GUARDED": 4
+    },
+    "vault-guarded-state": {
+      "GUARDED": 2
+    },
+    "people-guarded-state": {
+      "FAIL": 1
+    },
+    "profile-unavailable-state": {
+      "DESCRIPTOR_ONLY": 1
+    },
+    "people-audit": {
+      "GUARDED": 1
+    }
+  },
+  "status_changes": 8,
+  "next_tuw": "P8-T01",
+  "non_claims_preserved": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "external_receipts_complete": false
+  },
+  "status_counts_after": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "latest_note": "Post-closeout final blocker/descriptor proof closed the remaining evidence gap: Matter write rows stay BLOCKED pending owner/approval receipts; Profile/Vault unavailable states stay DESCRIPTOR_ONLY.",
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0062/0281/0318/0322 final blocker/descriptor proof PASS. API tests passed 191/191. Matter write rows 0062 and 0318 remain BLOCKED because owner/approval write execution, durable read-back, and audit receipt are not captured. Profile row 0281 remains DESCRIPTOR_ONLY because UserProfileSurface renders unavailable panels without a profile API runtime. Vault row 0322 remains DESCRIPTOR_ONLY because EmailFilingView renders external provider unavailable state with no submit/provider API handler.",
+  "post_closeout_ui_only_final_lcx8_action_0184_0187_0193_0198_0214_people_hrx_local_fields": {
+    "batch_id": "LCX8-ALL-31",
+    "action_ids": [
+      "LCX8-ACTION-0184",
+      "LCX8-ACTION-0187",
+      "LCX8-ACTION-0188",
+      "LCX8-ACTION-0189",
+      "LCX8-ACTION-0190",
+      "LCX8-ACTION-0191",
+      "LCX8-ACTION-0193",
+      "LCX8-ACTION-0198",
+      "LCX8-ACTION-0199",
+      "LCX8-ACTION-0200",
+      "LCX8-ACTION-0205",
+      "LCX8-ACTION-0206",
+      "LCX8-ACTION-0207",
+      "LCX8-ACTION-0211",
+      "LCX8-ACTION-0212",
+      "LCX8-ACTION-0213",
+      "LCX8-ACTION-0214"
+    ],
+    "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0184-0187-0193-0198-0214-people-hrx-local-fields-proof.json",
+    "closeout": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-people-hrx-local-fields-2026-06-28.json",
+    "status_decision": "UI_ONLY final classification; status remains UI_ONLY"
+  },
+  "post_closeout_ui_only_final_lcx8_action_0248_0249_desktop_renderer_login_fields": {
+    "batch_id": "LCX8-ALL-32",
+    "action_ids": [
+      "LCX8-ACTION-0248",
+      "LCX8-ACTION-0249"
+    ],
+    "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0248-0249-desktop-renderer-login-fields-proof.json",
+    "closeout": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-desktop-renderer-login-fields-2026-06-28.json",
+    "status_decision": "UI_ONLY final classification; status remains UI_ONLY"
+  },
+  "post_closeout_native_residual_lcx8_action_0245_0246_0258_0271": {
+    "batch_id": "LCX8-ALL-33",
+    "action_ids": [
+      "LCX8-ACTION-0245",
+      "LCX8-ACTION-0246",
+      "LCX8-ACTION-0258",
+      "LCX8-ACTION-0259",
+      "LCX8-ACTION-0260",
+      "LCX8-ACTION-0262",
+      "LCX8-ACTION-0263",
+      "LCX8-ACTION-0264",
+      "LCX8-ACTION-0265",
+      "LCX8-ACTION-0266",
+      "LCX8-ACTION-0267",
+      "LCX8-ACTION-0268",
+      "LCX8-ACTION-0269",
+      "LCX8-ACTION-0270",
+      "LCX8-ACTION-0271"
+    ],
+    "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0245-0246-0258-0271-desktop-native-residual-proof.json",
+    "closeout": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-desktop-native-residual-2026-06-28.json",
+    "status_decision": "native residual rows retain guarded/blocked final classification"
+  },
+  "post_closeout_final_blocker_descriptor_lcx8_action_0062_0281_0318_0322": {
+    "batch_id": "LCX8-ALL-34",
+    "action_ids": [
+      "LCX8-ACTION-0062",
+      "LCX8-ACTION-0281",
+      "LCX8-ACTION-0318",
+      "LCX8-ACTION-0322"
+    ],
+    "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0062-0281-0318-0322-final-blocker-descriptor-proof.json",
+    "closeout": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-final-blocker-descriptor-2026-06-28.json",
+    "status_decision": "final BLOCKED/DESCRIPTOR_ONLY classification"
+  }
+}

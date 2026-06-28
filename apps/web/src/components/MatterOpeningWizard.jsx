@@ -92,8 +92,8 @@ export function MatterOpeningWizard({ liveCtx = "allow", onCreated }) {
     result?.kind === "data"
       ? result.productionReadyClaim ? "승인 검토 필요" : "Matter가 개시되었습니다"
       : result?.kind === "error"
-        ? "다시 확인해주세요"
-        : "필수 정보를 입력해주세요";
+        ? "입력값과 연결 상태를 확인하세요"
+        : "필수 정보를 입력하세요";
 
   return (
     <Panel id="matter-opening" className="matter-runtime-panel" title="Matter 개시" meta="승인 필요">

@@ -1,0 +1,609 @@
+{
+  "id": "lcx8-action-0093-people-refresh-api-read-proof",
+  "generated_at": "2026-06-27T00:47:15.432Z",
+  "status": "PASS",
+  "target_id": "LCX8-ACTION-0093",
+  "base_url": "http://127.0.0.1:5173",
+  "api_base_url": "http://127.0.0.1:4180",
+  "route": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+  "selector": "#people-home .page-header .secondary-button",
+  "selected_person_id": "person_arbitrator_001",
+  "expected_active_endpoints": [
+    "/api/hrx/employees",
+    "/api/hrx/legal-people/search",
+    "/api/hrx/legal-people/:personId",
+    "/api/hrx/legal-people/relationships",
+    "/api/hrx/legal-people/ethics"
+  ],
+  "observed_endpoint_keys_after_refresh": [
+    "/api/hrx/employees",
+    "/api/hrx/legal-people/:personId",
+    "/api/hrx/legal-people/ethics",
+    "/api/hrx/legal-people/relationships",
+    "/api/hrx/legal-people/search"
+  ],
+  "observed_expected_endpoints": [
+    "/api/hrx/employees",
+    "/api/hrx/legal-people/search",
+    "/api/hrx/legal-people/:personId",
+    "/api/hrx/legal-people/relationships",
+    "/api/hrx/legal-people/ethics"
+  ],
+  "refresh_response_summary": {
+    "response_count": 5,
+    "api_4xx_count": 0,
+    "api_5xx_count": 0,
+    "runtime_headers_present_on_expected_responses": true
+  },
+  "refresh_responses": [
+    {
+      "method": "GET",
+      "status": 200,
+      "endpoint_key": "/api/hrx/legal-people/search",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/search",
+      "runtime_header_names_present": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "permission_context_present": true
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "endpoint_key": "/api/hrx/legal-people/:personId",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/person_arbitrator_001",
+      "runtime_header_names_present": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "permission_context_present": true
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "endpoint_key": "/api/hrx/legal-people/relationships",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/relationships?person_id=person_arbitrator_001",
+      "runtime_header_names_present": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "permission_context_present": true
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "endpoint_key": "/api/hrx/legal-people/ethics",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/ethics?person_id=person_arbitrator_001",
+      "runtime_header_names_present": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "permission_context_present": true
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "endpoint_key": "/api/hrx/employees",
+      "url": "http://127.0.0.1:5173/api/hrx/employees",
+      "runtime_header_names_present": [
+        "x-lawos-tenant-id",
+        "x-lawos-actor-id",
+        "x-lawos-actor-role",
+        "x-lawos-hrx-scopes",
+        "x-lawos-hrx-step-up"
+      ],
+      "permission_context_present": false
+    }
+  ],
+  "guarded_browser_proofs": [
+    {
+      "ctx": "denied",
+      "guard_visible": true,
+      "guard_text": "접근 권한이 없습니다\n권한이 있는 People 정보만 표시합니다.",
+      "protected_grid_count": 0,
+      "hrx_request_count_after_guard_route_and_refresh": 0,
+      "api_5xx_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0093-people-refresh-denied-proof.png"
+    },
+    {
+      "ctx": "review",
+      "guard_visible": true,
+      "guard_text": "검토가 필요합니다\n검토가 끝나면 People 정보를 확인할 수 있습니다.",
+      "protected_grid_count": 0,
+      "hrx_request_count_after_guard_route_and_refresh": 0,
+      "api_5xx_count": 0,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0093-people-refresh-review-proof.png"
+    }
+  ],
+  "direct_api_probes": [
+    {
+      "endpoint": "/api/hrx/employees",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "safe_error_code": null,
+      "count_leak_prevented": null,
+      "employees_count": 9,
+      "shape": [
+        "employees",
+        "outcome",
+        "request_id"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/employees",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "safe_error_code": null,
+      "count_leak_prevented": true,
+      "employees_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "employees",
+        "fail_closed",
+        "outcome",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/employees",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "safe_error_code": null,
+      "count_leak_prevented": true,
+      "employees_count": 0,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "employees",
+        "fail_closed",
+        "outcome",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "safe_error_code": null,
+      "count_leak_prevented": null,
+      "employees_count": null,
+      "shape": [
+        "claim_boundary",
+        "facets",
+        "filters",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "schema_version"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "safe_error_code": null,
+      "count_leak_prevented": true,
+      "employees_count": null,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/search",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "safe_error_code": null,
+      "count_leak_prevented": true,
+      "employees_count": null,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "facets",
+        "fail_closed",
+        "outcome",
+        "people",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/person_arbitrator_001",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "safe_error_code": null,
+      "count_leak_prevented": null,
+      "employees_count": null,
+      "shape": [
+        "affiliations",
+        "audit_summary",
+        "claim_boundary",
+        "clients",
+        "conflict_references",
+        "ethical_wall_references",
+        "matters",
+        "outcome",
+        "permission_summary",
+        "person",
+        "relationships",
+        "relationships_grouped",
+        "request_id",
+        "schema_version"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/person_arbitrator_001",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "safe_error_code": null,
+      "count_leak_prevented": true,
+      "employees_count": null,
+      "shape": [
+        "affiliations",
+        "audit_summary",
+        "claim_boundary",
+        "clients",
+        "conflict_references",
+        "count_leak_prevented",
+        "ethical_wall_references",
+        "fail_closed",
+        "matters",
+        "outcome",
+        "permission_summary",
+        "person",
+        "relationships",
+        "relationships_grouped",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/person_arbitrator_001",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "safe_error_code": null,
+      "count_leak_prevented": true,
+      "employees_count": null,
+      "shape": [
+        "affiliations",
+        "audit_summary",
+        "claim_boundary",
+        "clients",
+        "conflict_references",
+        "count_leak_prevented",
+        "ethical_wall_references",
+        "fail_closed",
+        "matters",
+        "outcome",
+        "permission_summary",
+        "person",
+        "relationships",
+        "relationships_grouped",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/relationships?person_id=person_arbitrator_001",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "safe_error_code": null,
+      "count_leak_prevented": null,
+      "employees_count": null,
+      "shape": [
+        "claim_boundary",
+        "outcome",
+        "permission_summary",
+        "pivot",
+        "relationships",
+        "relationships_grouped",
+        "request_id",
+        "schema_version"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/relationships?person_id=person_arbitrator_001",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "safe_error_code": null,
+      "count_leak_prevented": true,
+      "employees_count": null,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "fail_closed",
+        "outcome",
+        "permission_summary",
+        "pivot",
+        "relationships",
+        "relationships_grouped",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/relationships?person_id=person_arbitrator_001",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "safe_error_code": null,
+      "count_leak_prevented": true,
+      "employees_count": null,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "fail_closed",
+        "outcome",
+        "permission_summary",
+        "pivot",
+        "relationships",
+        "relationships_grouped",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/ethics?person_id=person_arbitrator_001",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "safe_error_code": null,
+      "count_leak_prevented": null,
+      "employees_count": null,
+      "shape": [
+        "claim_boundary",
+        "ethical_walls",
+        "filters",
+        "outcome",
+        "permission_links",
+        "permission_summary",
+        "request_id",
+        "review_queue",
+        "reviewer_receipts",
+        "schema_version",
+        "state_counts"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/ethics?person_id=person_arbitrator_001",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "safe_error_code": null,
+      "count_leak_prevented": true,
+      "employees_count": null,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "ethical_walls",
+        "fail_closed",
+        "outcome",
+        "permission_links",
+        "permission_summary",
+        "request_id",
+        "review_queue",
+        "review_required",
+        "reviewer_receipts",
+        "safe_error_codes",
+        "schema_version",
+        "state_counts",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/legal-people/ethics?person_id=person_arbitrator_001",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "safe_error_code": null,
+      "count_leak_prevented": true,
+      "employees_count": null,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "ethical_walls",
+        "fail_closed",
+        "outcome",
+        "permission_links",
+        "permission_summary",
+        "request_id",
+        "review_queue",
+        "review_required",
+        "reviewer_receipts",
+        "safe_error_codes",
+        "schema_version",
+        "state_counts",
+        "ui_state"
+      ]
+    }
+  ],
+  "console_events": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    }
+  ],
+  "screenshots": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0093-people-refresh-allow-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0093-people-refresh-denied-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0093-people-refresh-review-proof.png"
+  ],
+  "assertions": [
+    {
+      "name": "refresh button visible and clicked on People directory",
+      "pass": true
+    },
+    {
+      "name": "all active People directory refresh endpoints observed",
+      "pass": true
+    },
+    {
+      "name": "detail endpoint selected a concrete legal person id",
+      "pass": true
+    },
+    {
+      "name": "refresh responses have HRX runtime headers",
+      "pass": true
+    },
+    {
+      "name": "refresh responses have no API 4xx",
+      "pass": true
+    },
+    {
+      "name": "refresh responses have no API 5xx",
+      "pass": true
+    },
+    {
+      "name": "no console errors during proof",
+      "pass": true
+    },
+    {
+      "name": "denied browser state is guarded and does not render protected grid",
+      "pass": true
+    },
+    {
+      "name": "review browser state is guarded and does not render protected grid",
+      "pass": true
+    },
+    {
+      "name": "direct allow API probes return success",
+      "pass": true
+    },
+    {
+      "name": "direct denied API probes fail closed without counts",
+      "pass": true
+    },
+    {
+      "name": "direct review API probes fail closed without counts",
+      "pass": true
+    }
+  ],
+  "non_claims": [
+    "This is read-only People directory refresh proof; no HRX write persistence is claimed.",
+    "Browser denied/review route short-circuits protected HRX reads behind a guard state.",
+    "No production go-live or external approval is claimed."
+  ]
+}

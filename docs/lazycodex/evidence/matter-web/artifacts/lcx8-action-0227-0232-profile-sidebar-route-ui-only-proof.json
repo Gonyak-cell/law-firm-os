@@ -1,0 +1,5158 @@
+{
+  "proof_id": "lcx8-action-0227-0232-profile-sidebar-route-ui-only-proof",
+  "generated_at": "2026-06-28T02:43:14.217Z",
+  "status": "FAIL",
+  "target_ids": [
+    "LCX8-ACTION-0227",
+    "LCX8-ACTION-0228",
+    "LCX8-ACTION-0229",
+    "LCX8-ACTION-0230",
+    "LCX8-ACTION-0231",
+    "LCX8-ACTION-0232"
+  ],
+  "classification": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+  "route_start": "http://127.0.0.1:5173/?locale=ko&view=profile&data=live&ctx=allow",
+  "source_trace": {
+    "profile_items": "apps/web/src/components/UserProfileSurface.jsx profileSidebarItems",
+    "shell_handler": "apps/web/src/components/Shell.jsx .sidebar .sidebar-item onClick -> setView(item.view, item.section ?? )",
+    "app_navigation": "apps/web/src/App.jsx navigateToView -> setView/setActiveSection/window.history.pushState(routeUrl(...))"
+  },
+  "observations": [
+    {
+      "id": "LCX8-ACTION-0227",
+      "label": "홈",
+      "expectedUrl": "/?locale=ko&view=home&data=live&ctx=allow",
+      "expectedSurface": "home",
+      "visibleText": "홈",
+      "state": {
+        "view": "home",
+        "ctx": "allow",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+      },
+      "surfaceVisible": false,
+      "apiResponseCount": 13,
+      "mutationRequests": []
+    },
+    {
+      "id": "LCX8-ACTION-0228",
+      "label": "새 계약 만들기",
+      "expectedUrl": "/?locale=ko&view=matters&data=live&ctx=allow#matter-opening",
+      "expectedSurface": "matters",
+      "expectedHash": "matter-opening",
+      "visibleText": "새 계약 만들기",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "hash": "matter-opening",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-opening"
+      },
+      "surfaceVisible": true,
+      "apiResponseCount": 22,
+      "mutationRequests": [
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0229",
+      "label": "계약 관리",
+      "expectedUrl": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "expectedSurface": "matters",
+      "expectedHash": "matters-list",
+      "visibleText": "계약 관리",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "hash": "matters-list",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list"
+      },
+      "surfaceVisible": true,
+      "apiResponseCount": 22,
+      "mutationRequests": [
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        }
+      ]
+    },
+    {
+      "id": "LCX8-ACTION-0230",
+      "label": "내 프로필",
+      "expectedUrl": "/?locale=ko&view=profile&data=live&ctx=allow",
+      "expectedSurface": "profile",
+      "visibleText": "내 프로필",
+      "state": {
+        "view": "profile",
+        "ctx": "allow",
+        "hash": "",
+        "pathSearchHash": "/?locale=ko&view=profile&data=live&ctx=allow"
+      },
+      "surfaceVisible": true,
+      "apiResponseCount": 0,
+      "mutationRequests": []
+    },
+    {
+      "id": "LCX8-ACTION-0231",
+      "label": "문서",
+      "expectedUrl": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "expectedSurface": "vault",
+      "expectedHash": "vault-documents",
+      "visibleText": "문서",
+      "state": {
+        "view": "vault",
+        "ctx": "allow",
+        "hash": "vault-documents",
+        "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents"
+      },
+      "surfaceVisible": true,
+      "apiResponseCount": 1,
+      "mutationRequests": []
+    },
+    {
+      "id": "LCX8-ACTION-0232",
+      "label": "청구 관리",
+      "expectedUrl": "/?locale=ko&view=matters&data=live&ctx=allow#matter-billing",
+      "expectedSurface": "matters",
+      "expectedHash": "matter-billing",
+      "visibleText": "청구 관리",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "hash": "matter-billing",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-billing"
+      },
+      "surfaceVisible": true,
+      "apiResponseCount": 22,
+      "mutationRequests": [
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        }
+      ]
+    }
+  ],
+  "browser_events": {
+    "console": [],
+    "pageErrors": [],
+    "requests": [
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/?locale=ko&view=profile&data=live&ctx=allow"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/@vite/client"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/main.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/@fs/Users/jws/Documents/Codex/Law%20Firm%20OS/node_modules/vite/dist/client/env.mjs"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/App.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/styles.css"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-IGEOVZNX.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/i18n.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/nav.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/Shell.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/AuthSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/HomeSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ClientsSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MattersSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/UserProfileSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/PeopleHome.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/brand/brand.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/lucide-react.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/parnas-tower-login.jpg?import"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterSplash.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterLogo.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/primitives.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/apiClient.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DesktopDeniedState.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/EmailFilingView.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultBreadcrumb.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultDocumentDetail.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultSecurityBadges.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/capabilityMap.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/hrxApiClient.ts"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ImportDataMappingPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DataCloudEnrichmentPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ReportBuilderPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterOpeningWizard.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterTeamRoster.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterVaultPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg?import"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DocumentDetail.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/employees/EmployeeList.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/employees/PeopleWorkforceDirectory.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/documents/HRDocumentWorkspace.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/leave/LeaveRequestPage.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/approvals/ManagerApprovalQueue.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/recruiting/RecruitingPipeline.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/candidate/CandidatePortal.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/admin/hrx/HRXPolicyConsole.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/admin/hrx/HRXAuditViewer.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/analytics/HRAnalytics.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/ai/HRAIAssistant.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/payroll/PayrollBoundaryPanel.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/admin/PermissionAdminPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/legal/LegalPeopleWorkspace.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/security/HrxStepUpChallenge.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-SemiBold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Regular.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Bold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/suite/SUITE-Bold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/?locale=ko&view=profile&data=live&ctx=allow"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/@vite/client"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/main.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/@fs/Users/jws/Documents/Codex/Law%20Firm%20OS/node_modules/vite/dist/client/env.mjs"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/App.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/styles.css"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-IGEOVZNX.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/i18n.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/nav.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/Shell.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/AuthSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/HomeSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ClientsSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MattersSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/UserProfileSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/PeopleHome.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/brand/brand.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/lucide-react.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterSplash.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterLogo.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/parnas-tower-login.jpg?import"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/primitives.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/capabilityMap.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/apiClient.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/hrxApiClient.ts"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/employees/EmployeeList.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/employees/PeopleWorkforceDirectory.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/documents/HRDocumentWorkspace.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/leave/LeaveRequestPage.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/approvals/ManagerApprovalQueue.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/recruiting/RecruitingPipeline.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/candidate/CandidatePortal.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/admin/hrx/HRXPolicyConsole.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/admin/hrx/HRXAuditViewer.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/analytics/HRAnalytics.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/ai/HRAIAssistant.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/payroll/PayrollBoundaryPanel.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/admin/PermissionAdminPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/legal/LegalPeopleWorkspace.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ImportDataMappingPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DataCloudEnrichmentPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ReportBuilderPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DesktopDeniedState.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterOpeningWizard.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterTeamRoster.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterVaultPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/EmailFilingView.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultBreadcrumb.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultDocumentDetail.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultSecurityBadges.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg?import"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/security/HrxStepUpChallenge.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DocumentDetail.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-SemiBold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Regular.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Bold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/suite/SUITE-Bold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_r4_master_data_live&audit_hint_ref=ui_cmp_r4_master_data_probe&limit=10&model_type=ClientGroup"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/portal/dashboard?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/portal/rfi?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/ai/review-queue?tenant_id=matter-runtime-tenant&permission_ref=ui_cmp_g9_ai_live&audit_hint_ref=ui_cmp_g9_ai_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/hrx/employees"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/data-room/projections?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/?locale=ko&view=profile&data=live&ctx=allow"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/@vite/client"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/main.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/@fs/Users/jws/Documents/Codex/Law%20Firm%20OS/node_modules/vite/dist/client/env.mjs"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/App.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/styles.css"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-IGEOVZNX.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/i18n.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/nav.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/Shell.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/AuthSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/HomeSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ClientsSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MattersSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/UserProfileSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/PeopleHome.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/brand/brand.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/lucide-react.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterSplash.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterLogo.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/parnas-tower-login.jpg?import"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/primitives.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/hrxApiClient.ts"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/employees/EmployeeList.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/employees/PeopleWorkforceDirectory.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/documents/HRDocumentWorkspace.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/leave/LeaveRequestPage.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/approvals/ManagerApprovalQueue.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/recruiting/RecruitingPipeline.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/candidate/CandidatePortal.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/admin/hrx/HRXPolicyConsole.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/admin/hrx/HRXAuditViewer.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/analytics/HRAnalytics.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/ai/HRAIAssistant.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/payroll/PayrollBoundaryPanel.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/admin/PermissionAdminPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/legal/LegalPeopleWorkspace.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/capabilityMap.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/apiClient.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ImportDataMappingPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DataCloudEnrichmentPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ReportBuilderPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg?import"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DesktopDeniedState.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterOpeningWizard.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterTeamRoster.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterVaultPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/EmailFilingView.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultBreadcrumb.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultDocumentDetail.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultSecurityBadges.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/security/HrxStepUpChallenge.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DocumentDetail.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-SemiBold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Regular.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Bold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/suite/SUITE-Bold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/?locale=ko&view=profile&data=live&ctx=allow"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/@vite/client"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/main.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/@fs/Users/jws/Documents/Codex/Law%20Firm%20OS/node_modules/vite/dist/client/env.mjs"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/App.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/styles.css"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-IGEOVZNX.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/i18n.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/nav.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/Shell.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/AuthSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/HomeSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ClientsSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MattersSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/UserProfileSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/PeopleHome.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/brand/brand.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/lucide-react.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterSplash.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterLogo.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/capabilityMap.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/apiClient.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/hrxApiClient.ts"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/primitives.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ImportDataMappingPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DataCloudEnrichmentPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ReportBuilderPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/parnas-tower-login.jpg?import"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DesktopDeniedState.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterOpeningWizard.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterTeamRoster.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterVaultPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg?import"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/employees/EmployeeList.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/employees/PeopleWorkforceDirectory.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/documents/HRDocumentWorkspace.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/leave/LeaveRequestPage.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/approvals/ManagerApprovalQueue.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/recruiting/RecruitingPipeline.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/candidate/CandidatePortal.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/admin/hrx/HRXPolicyConsole.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/admin/hrx/HRXAuditViewer.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/analytics/HRAnalytics.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/ai/HRAIAssistant.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/payroll/PayrollBoundaryPanel.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/admin/PermissionAdminPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/legal/LegalPeopleWorkspace.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/EmailFilingView.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultBreadcrumb.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultDocumentDetail.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultSecurityBadges.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/security/HrxStepUpChallenge.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DocumentDetail.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-SemiBold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Regular.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Bold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/suite/SUITE-Bold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/?locale=ko&view=profile&data=live&ctx=allow"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/@vite/client"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/main.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/@fs/Users/jws/Documents/Codex/Law%20Firm%20OS/node_modules/vite/dist/client/env.mjs"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/App.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/styles.css"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-IGEOVZNX.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/i18n.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/nav.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/Shell.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/AuthSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/HomeSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ClientsSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MattersSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/UserProfileSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/PeopleHome.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/brand/brand.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/lucide-react.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterSplash.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterLogo.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/capabilityMap.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/apiClient.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/hrxApiClient.ts"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/primitives.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ImportDataMappingPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DataCloudEnrichmentPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ReportBuilderPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/parnas-tower-login.jpg?import"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DesktopDeniedState.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterOpeningWizard.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterTeamRoster.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterVaultPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/EmailFilingView.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultBreadcrumb.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultDocumentDetail.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultSecurityBadges.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/employees/EmployeeList.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/employees/PeopleWorkforceDirectory.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/documents/HRDocumentWorkspace.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/leave/LeaveRequestPage.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/approvals/ManagerApprovalQueue.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/recruiting/RecruitingPipeline.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/candidate/CandidatePortal.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/admin/hrx/HRXPolicyConsole.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/admin/hrx/HRXAuditViewer.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/analytics/HRAnalytics.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/ai/HRAIAssistant.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/payroll/PayrollBoundaryPanel.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/admin/PermissionAdminPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/legal/LegalPeopleWorkspace.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg?import"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DocumentDetail.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/security/HrxStepUpChallenge.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-SemiBold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Regular.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Bold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/suite/SUITE-Bold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/?locale=ko&view=profile&data=live&ctx=allow"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/@vite/client"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/main.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/@fs/Users/jws/Documents/Codex/Law%20Firm%20OS/node_modules/vite/dist/client/env.mjs"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/App.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/styles.css"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-IGEOVZNX.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/i18n.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/nav.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/Shell.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/AuthSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/HomeSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ClientsSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MattersSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/UserProfileSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/PeopleHome.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/brand/brand.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/lucide-react.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterSplash.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterLogo.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/apiClient.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/primitives.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DesktopDeniedState.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterOpeningWizard.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterTeamRoster.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterVaultPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ImportDataMappingPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/hrxApiClient.ts"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/EmailFilingView.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultBreadcrumb.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultDocumentDetail.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultSecurityBadges.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/parnas-tower-login.jpg?import"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/capabilityMap.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DataCloudEnrichmentPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ReportBuilderPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/employees/EmployeeList.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/employees/PeopleWorkforceDirectory.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/documents/HRDocumentWorkspace.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/leave/LeaveRequestPage.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/approvals/ManagerApprovalQueue.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/recruiting/RecruitingPipeline.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/candidate/CandidatePortal.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/admin/hrx/HRXPolicyConsole.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/admin/hrx/HRXAuditViewer.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/analytics/HRAnalytics.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/ai/HRAIAssistant.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/payroll/PayrollBoundaryPanel.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/admin/PermissionAdminPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/legal/LegalPeopleWorkspace.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg?import"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DocumentDetail.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/security/HrxStepUpChallenge.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-SemiBold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Regular.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Bold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/suite/SUITE-Bold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/?locale=ko&view=profile&data=live&ctx=allow"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/@vite/client"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/main.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/@fs/Users/jws/Documents/Codex/Law%20Firm%20OS/node_modules/vite/dist/client/env.mjs"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/App.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/styles.css"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-IGEOVZNX.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/i18n.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/nav.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/Shell.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/AuthSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/HomeSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ClientsSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MattersSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/UserProfileSurface.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/PeopleHome.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/brand/brand.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/node_modules/.vite/deps/lucide-react.js?v=72f9d66f"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterSplash.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterLogo.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/parnas-tower-login.jpg?import"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/primitives.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/capabilityMap.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/data/apiClient.js"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/hrxApiClient.ts"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ImportDataMappingPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DataCloudEnrichmentPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/ReportBuilderPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DesktopDeniedState.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterOpeningWizard.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterTeamRoster.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/MatterVaultPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/employees/EmployeeList.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/employees/PeopleWorkforceDirectory.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/documents/HRDocumentWorkspace.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/leave/LeaveRequestPage.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/approvals/ManagerApprovalQueue.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/recruiting/RecruitingPipeline.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/candidate/CandidatePortal.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/admin/hrx/HRXPolicyConsole.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/admin/hrx/HRXAuditViewer.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/analytics/HRAnalytics.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/ai/HRAIAssistant.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/payroll/PayrollBoundaryPanel.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/admin/PermissionAdminPanel.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/legal/LegalPeopleWorkspace.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/EmailFilingView.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultBreadcrumb.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultDocumentDetail.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/VaultSecurityBadges.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg?import"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/people/security/HrxStepUpChallenge.tsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/components/DocumentDetail.jsx"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-SemiBold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Regular.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Bold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/fonts/suite/SUITE-Bold.otf"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+      }
+    ],
+    "responses": [
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/portal/dashboard?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/portal/rfi?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/ai/review-queue?tenant_id=matter-runtime-tenant&permission_ref=ui_cmp_g9_ai_live&audit_hint_ref=ui_cmp_g9_ai_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/hrx/employees"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/data-room/projections?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+      }
+    ]
+  },
+  "screenshots": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0227-0232-profile-sidebar-start.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0227-0232-profile-sidebar-after-route-checks.png"
+  ],
+  "assertions": [
+    {
+      "name": "LCX8-ACTION-0227 sidebar label visible",
+      "status": "PASS",
+      "details": {
+        "visibleText": "홈"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0227 route path/search/hash",
+      "status": "PASS",
+      "details": {
+        "observed": "/?locale=ko&view=home&data=live&ctx=allow",
+        "expected": "/?locale=ko&view=home&data=live&ctx=allow"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0227 target surface visible",
+      "status": "FAIL",
+      "details": {
+        "id": "LCX8-ACTION-0227",
+        "label": "홈",
+        "expectedUrl": "/?locale=ko&view=home&data=live&ctx=allow",
+        "expectedSurface": "home",
+        "visibleText": "홈",
+        "state": {
+          "view": "home",
+          "ctx": "allow",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=home&data=live&ctx=allow"
+        },
+        "surfaceVisible": false,
+        "apiResponseCount": 13,
+        "mutationRequests": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0227 no mutation network",
+      "status": "PASS",
+      "details": {
+        "mutationRequests": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0228 sidebar label visible",
+      "status": "PASS",
+      "details": {
+        "visibleText": "새 계약 만들기"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0228 route path/search/hash",
+      "status": "PASS",
+      "details": {
+        "observed": "/?locale=ko&view=matters&data=live&ctx=allow#matter-opening",
+        "expected": "/?locale=ko&view=matters&data=live&ctx=allow#matter-opening"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0228 target surface visible",
+      "status": "PASS",
+      "details": {
+        "id": "LCX8-ACTION-0228",
+        "label": "새 계약 만들기",
+        "expectedUrl": "/?locale=ko&view=matters&data=live&ctx=allow#matter-opening",
+        "expectedSurface": "matters",
+        "expectedHash": "matter-opening",
+        "visibleText": "새 계약 만들기",
+        "state": {
+          "view": "matters",
+          "ctx": "allow",
+          "hash": "matter-opening",
+          "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-opening"
+        },
+        "surfaceVisible": true,
+        "apiResponseCount": 22,
+        "mutationRequests": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0228 no mutation network",
+      "status": "FAIL",
+      "details": {
+        "mutationRequests": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0229 sidebar label visible",
+      "status": "PASS",
+      "details": {
+        "visibleText": "계약 관리"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0229 route path/search/hash",
+      "status": "PASS",
+      "details": {
+        "observed": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+        "expected": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0229 target surface visible",
+      "status": "PASS",
+      "details": {
+        "id": "LCX8-ACTION-0229",
+        "label": "계약 관리",
+        "expectedUrl": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+        "expectedSurface": "matters",
+        "expectedHash": "matters-list",
+        "visibleText": "계약 관리",
+        "state": {
+          "view": "matters",
+          "ctx": "allow",
+          "hash": "matters-list",
+          "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list"
+        },
+        "surfaceVisible": true,
+        "apiResponseCount": 22,
+        "mutationRequests": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0229 no mutation network",
+      "status": "FAIL",
+      "details": {
+        "mutationRequests": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0230 sidebar label visible",
+      "status": "PASS",
+      "details": {
+        "visibleText": "내 프로필"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0230 route path/search/hash",
+      "status": "PASS",
+      "details": {
+        "observed": "/?locale=ko&view=profile&data=live&ctx=allow",
+        "expected": "/?locale=ko&view=profile&data=live&ctx=allow"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0230 target surface visible",
+      "status": "PASS",
+      "details": {
+        "id": "LCX8-ACTION-0230",
+        "label": "내 프로필",
+        "expectedUrl": "/?locale=ko&view=profile&data=live&ctx=allow",
+        "expectedSurface": "profile",
+        "visibleText": "내 프로필",
+        "state": {
+          "view": "profile",
+          "ctx": "allow",
+          "hash": "",
+          "pathSearchHash": "/?locale=ko&view=profile&data=live&ctx=allow"
+        },
+        "surfaceVisible": true,
+        "apiResponseCount": 0,
+        "mutationRequests": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0230 no mutation network",
+      "status": "PASS",
+      "details": {
+        "mutationRequests": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0231 sidebar label visible",
+      "status": "PASS",
+      "details": {
+        "visibleText": "문서"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0231 route path/search/hash",
+      "status": "PASS",
+      "details": {
+        "observed": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+        "expected": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0231 target surface visible",
+      "status": "PASS",
+      "details": {
+        "id": "LCX8-ACTION-0231",
+        "label": "문서",
+        "expectedUrl": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+        "expectedSurface": "vault",
+        "expectedHash": "vault-documents",
+        "visibleText": "문서",
+        "state": {
+          "view": "vault",
+          "ctx": "allow",
+          "hash": "vault-documents",
+          "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents"
+        },
+        "surfaceVisible": true,
+        "apiResponseCount": 1,
+        "mutationRequests": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0231 no mutation network",
+      "status": "PASS",
+      "details": {
+        "mutationRequests": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0232 sidebar label visible",
+      "status": "PASS",
+      "details": {
+        "visibleText": "청구 관리"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0232 route path/search/hash",
+      "status": "PASS",
+      "details": {
+        "observed": "/?locale=ko&view=matters&data=live&ctx=allow#matter-billing",
+        "expected": "/?locale=ko&view=matters&data=live&ctx=allow#matter-billing"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0232 target surface visible",
+      "status": "PASS",
+      "details": {
+        "id": "LCX8-ACTION-0232",
+        "label": "청구 관리",
+        "expectedUrl": "/?locale=ko&view=matters&data=live&ctx=allow#matter-billing",
+        "expectedSurface": "matters",
+        "expectedHash": "matter-billing",
+        "visibleText": "청구 관리",
+        "state": {
+          "view": "matters",
+          "ctx": "allow",
+          "hash": "matter-billing",
+          "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-billing"
+        },
+        "surfaceVisible": true,
+        "apiResponseCount": 22,
+        "mutationRequests": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0232 no mutation network",
+      "status": "FAIL",
+      "details": {
+        "mutationRequests": [
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser console/page errors empty",
+      "status": "PASS",
+      "details": {
+        "console": [],
+        "pageErrors": [],
+        "requests": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/?locale=ko&view=profile&data=live&ctx=allow"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/@vite/client"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/main.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/@fs/Users/jws/Documents/Codex/Law%20Firm%20OS/node_modules/vite/dist/client/env.mjs"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/App.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/styles.css"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-IGEOVZNX.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/i18n.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/nav.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/Shell.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/AuthSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/HomeSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ClientsSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MattersSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/UserProfileSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/PeopleHome.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/brand/brand.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/lucide-react.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/parnas-tower-login.jpg?import"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterSplash.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterLogo.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/primitives.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/apiClient.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DesktopDeniedState.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/EmailFilingView.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultBreadcrumb.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultDocumentDetail.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultSecurityBadges.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/capabilityMap.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/hrxApiClient.ts"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ImportDataMappingPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DataCloudEnrichmentPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ReportBuilderPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterOpeningWizard.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterTeamRoster.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterVaultPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg?import"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DocumentDetail.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/employees/EmployeeList.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/employees/PeopleWorkforceDirectory.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/documents/HRDocumentWorkspace.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/leave/LeaveRequestPage.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/approvals/ManagerApprovalQueue.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/recruiting/RecruitingPipeline.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/candidate/CandidatePortal.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/admin/hrx/HRXPolicyConsole.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/admin/hrx/HRXAuditViewer.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/analytics/HRAnalytics.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/ai/HRAIAssistant.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/payroll/PayrollBoundaryPanel.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/admin/PermissionAdminPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/legal/LegalPeopleWorkspace.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/security/HrxStepUpChallenge.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-SemiBold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Regular.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Bold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/suite/SUITE-Bold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/?locale=ko&view=profile&data=live&ctx=allow"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/@vite/client"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/main.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/@fs/Users/jws/Documents/Codex/Law%20Firm%20OS/node_modules/vite/dist/client/env.mjs"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/App.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/styles.css"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-IGEOVZNX.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/i18n.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/nav.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/Shell.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/AuthSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/HomeSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ClientsSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MattersSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/UserProfileSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/PeopleHome.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/brand/brand.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/lucide-react.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterSplash.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterLogo.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/parnas-tower-login.jpg?import"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/primitives.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/capabilityMap.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/apiClient.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/hrxApiClient.ts"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/employees/EmployeeList.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/employees/PeopleWorkforceDirectory.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/documents/HRDocumentWorkspace.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/leave/LeaveRequestPage.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/approvals/ManagerApprovalQueue.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/recruiting/RecruitingPipeline.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/candidate/CandidatePortal.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/admin/hrx/HRXPolicyConsole.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/admin/hrx/HRXAuditViewer.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/analytics/HRAnalytics.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/ai/HRAIAssistant.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/payroll/PayrollBoundaryPanel.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/admin/PermissionAdminPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/legal/LegalPeopleWorkspace.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ImportDataMappingPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DataCloudEnrichmentPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ReportBuilderPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DesktopDeniedState.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterOpeningWizard.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterTeamRoster.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterVaultPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/EmailFilingView.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultBreadcrumb.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultDocumentDetail.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultSecurityBadges.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg?import"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/security/HrxStepUpChallenge.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DocumentDetail.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-SemiBold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Regular.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Bold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/suite/SUITE-Bold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_r4_master_data_live&audit_hint_ref=ui_cmp_r4_master_data_probe&limit=10&model_type=ClientGroup"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/portal/dashboard?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/portal/rfi?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/ai/review-queue?tenant_id=matter-runtime-tenant&permission_ref=ui_cmp_g9_ai_live&audit_hint_ref=ui_cmp_g9_ai_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/employees"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/data-room/projections?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/?locale=ko&view=profile&data=live&ctx=allow"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/@vite/client"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/main.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/@fs/Users/jws/Documents/Codex/Law%20Firm%20OS/node_modules/vite/dist/client/env.mjs"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/App.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/styles.css"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-IGEOVZNX.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/i18n.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/nav.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/Shell.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/AuthSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/HomeSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ClientsSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MattersSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/UserProfileSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/PeopleHome.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/brand/brand.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/lucide-react.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterSplash.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterLogo.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/parnas-tower-login.jpg?import"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/primitives.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/hrxApiClient.ts"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/employees/EmployeeList.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/employees/PeopleWorkforceDirectory.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/documents/HRDocumentWorkspace.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/leave/LeaveRequestPage.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/approvals/ManagerApprovalQueue.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/recruiting/RecruitingPipeline.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/candidate/CandidatePortal.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/admin/hrx/HRXPolicyConsole.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/admin/hrx/HRXAuditViewer.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/analytics/HRAnalytics.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/ai/HRAIAssistant.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/payroll/PayrollBoundaryPanel.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/admin/PermissionAdminPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/legal/LegalPeopleWorkspace.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/capabilityMap.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/apiClient.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ImportDataMappingPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DataCloudEnrichmentPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ReportBuilderPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg?import"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DesktopDeniedState.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterOpeningWizard.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterTeamRoster.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterVaultPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/EmailFilingView.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultBreadcrumb.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultDocumentDetail.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultSecurityBadges.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/security/HrxStepUpChallenge.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DocumentDetail.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-SemiBold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Regular.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Bold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/suite/SUITE-Bold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/?locale=ko&view=profile&data=live&ctx=allow"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/@vite/client"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/main.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/@fs/Users/jws/Documents/Codex/Law%20Firm%20OS/node_modules/vite/dist/client/env.mjs"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/App.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/styles.css"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-IGEOVZNX.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/i18n.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/nav.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/Shell.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/AuthSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/HomeSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ClientsSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MattersSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/UserProfileSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/PeopleHome.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/brand/brand.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/lucide-react.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterSplash.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterLogo.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/capabilityMap.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/apiClient.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/hrxApiClient.ts"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/primitives.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ImportDataMappingPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DataCloudEnrichmentPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ReportBuilderPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/parnas-tower-login.jpg?import"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DesktopDeniedState.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterOpeningWizard.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterTeamRoster.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterVaultPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg?import"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/employees/EmployeeList.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/employees/PeopleWorkforceDirectory.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/documents/HRDocumentWorkspace.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/leave/LeaveRequestPage.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/approvals/ManagerApprovalQueue.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/recruiting/RecruitingPipeline.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/candidate/CandidatePortal.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/admin/hrx/HRXPolicyConsole.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/admin/hrx/HRXAuditViewer.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/analytics/HRAnalytics.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/ai/HRAIAssistant.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/payroll/PayrollBoundaryPanel.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/admin/PermissionAdminPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/legal/LegalPeopleWorkspace.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/EmailFilingView.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultBreadcrumb.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultDocumentDetail.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultSecurityBadges.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/security/HrxStepUpChallenge.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DocumentDetail.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-SemiBold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Regular.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Bold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/suite/SUITE-Bold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/?locale=ko&view=profile&data=live&ctx=allow"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/@vite/client"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/main.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/@fs/Users/jws/Documents/Codex/Law%20Firm%20OS/node_modules/vite/dist/client/env.mjs"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/App.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/styles.css"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-IGEOVZNX.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/i18n.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/nav.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/Shell.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/AuthSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/HomeSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ClientsSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MattersSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/UserProfileSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/PeopleHome.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/brand/brand.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/lucide-react.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterSplash.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterLogo.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/capabilityMap.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/apiClient.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/hrxApiClient.ts"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/primitives.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ImportDataMappingPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DataCloudEnrichmentPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ReportBuilderPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/parnas-tower-login.jpg?import"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DesktopDeniedState.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterOpeningWizard.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterTeamRoster.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterVaultPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/EmailFilingView.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultBreadcrumb.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultDocumentDetail.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultSecurityBadges.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/employees/EmployeeList.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/employees/PeopleWorkforceDirectory.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/documents/HRDocumentWorkspace.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/leave/LeaveRequestPage.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/approvals/ManagerApprovalQueue.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/recruiting/RecruitingPipeline.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/candidate/CandidatePortal.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/admin/hrx/HRXPolicyConsole.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/admin/hrx/HRXAuditViewer.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/analytics/HRAnalytics.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/ai/HRAIAssistant.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/payroll/PayrollBoundaryPanel.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/admin/PermissionAdminPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/legal/LegalPeopleWorkspace.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg?import"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DocumentDetail.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/security/HrxStepUpChallenge.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-SemiBold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Regular.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Bold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/suite/SUITE-Bold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/?locale=ko&view=profile&data=live&ctx=allow"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/@vite/client"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/main.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/@fs/Users/jws/Documents/Codex/Law%20Firm%20OS/node_modules/vite/dist/client/env.mjs"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/App.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/styles.css"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-IGEOVZNX.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/i18n.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/nav.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/Shell.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/AuthSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/HomeSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ClientsSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MattersSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/UserProfileSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/PeopleHome.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/brand/brand.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/lucide-react.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterSplash.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterLogo.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/apiClient.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/primitives.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DesktopDeniedState.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterOpeningWizard.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterTeamRoster.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterVaultPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ImportDataMappingPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/hrxApiClient.ts"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/EmailFilingView.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultBreadcrumb.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultDocumentDetail.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultSecurityBadges.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/parnas-tower-login.jpg?import"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/capabilityMap.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DataCloudEnrichmentPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ReportBuilderPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/employees/EmployeeList.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/employees/PeopleWorkforceDirectory.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/documents/HRDocumentWorkspace.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/leave/LeaveRequestPage.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/approvals/ManagerApprovalQueue.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/recruiting/RecruitingPipeline.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/candidate/CandidatePortal.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/admin/hrx/HRXPolicyConsole.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/admin/hrx/HRXAuditViewer.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/analytics/HRAnalytics.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/ai/HRAIAssistant.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/payroll/PayrollBoundaryPanel.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/admin/PermissionAdminPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/legal/LegalPeopleWorkspace.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg?import"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DocumentDetail.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/security/HrxStepUpChallenge.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-SemiBold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Regular.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Bold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/suite/SUITE-Bold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/?locale=ko&view=profile&data=live&ctx=allow"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/@vite/client"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/main.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/@fs/Users/jws/Documents/Codex/Law%20Firm%20OS/node_modules/vite/dist/client/env.mjs"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/App.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/styles.css"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-IGEOVZNX.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/i18n.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/nav.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/Shell.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/AuthSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/HomeSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ClientsSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MattersSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/UserProfileSurface.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/PeopleHome.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/brand/brand.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/node_modules/.vite/deps/lucide-react.js?v=72f9d66f"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterSplash.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterLogo.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/parnas-tower-login.jpg?import"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/primitives.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/capabilityMap.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/data/apiClient.js"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/hrxApiClient.ts"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ImportDataMappingPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DataCloudEnrichmentPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/ReportBuilderPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DesktopDeniedState.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterOpeningWizard.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterTeamRoster.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/MatterVaultPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/employees/EmployeeList.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/employees/PeopleWorkforceDirectory.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/documents/HRDocumentWorkspace.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/leave/LeaveRequestPage.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/approvals/ManagerApprovalQueue.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/recruiting/RecruitingPipeline.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/candidate/CandidatePortal.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/admin/hrx/HRXPolicyConsole.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/admin/hrx/HRXAuditViewer.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/analytics/HRAnalytics.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/ai/HRAIAssistant.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/payroll/PayrollBoundaryPanel.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/admin/PermissionAdminPanel.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/legal/LegalPeopleWorkspace.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/EmailFilingView.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultBreadcrumb.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultDocumentDetail.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/VaultSecurityBadges.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg?import"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/people/security/HrxStepUpChallenge.tsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/components/DocumentDetail.jsx"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/src/assets/matter-mark.svg"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-SemiBold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Regular.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/pretendard/Pretendard-Bold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/fonts/suite/SUITE-Bold.otf"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+          }
+        ],
+        "responses": [
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/portal/dashboard?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/portal/rfi?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/ai/review-queue?tenant_id=matter-runtime-tenant&permission_ref=ui_cmp_g9_ai_live&audit_hint_ref=ui_cmp_g9_ai_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/hrx/employees"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/data-room/projections?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+          },
+          {
+            "status": 200,
+            "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+          }
+        ]
+      }
+    }
+  ],
+  "non_claims": [
+    "Rows remain UI_ONLY because they only update route/history state and active view/section.",
+    "No API write, durable persistence, audit write, permission mutation, or production launch claim is made.",
+    "This proof does not resolve following FAIL rows LCX8-ACTION-0233..0244."
+  ]
+}

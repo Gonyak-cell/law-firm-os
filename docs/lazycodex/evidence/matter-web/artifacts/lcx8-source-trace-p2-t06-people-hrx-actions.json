@@ -1,0 +1,1373 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-25T11:18:23.785Z",
+  "tuw": "P2-T06",
+  "status": "complete_validated",
+  "title": "LCX8 P2-T06 People/HRX component/API action source trace",
+  "scope": "Trace PeopleHome route wiring, legal People workspace, workforce directory, HR documents/leave/approvals/recruiting/policy/audit/analytics/AI/payroll/admin components, HRX runtime headers, admin permission API context, and source-visible guarded/unwired People/HRX actions. Home/Client/Matter rows that merely reference HRX APIs remain covered by P2-T02/P2-T03/P2-T04.",
+  "lazyweb_reference": {
+    "query": "HR people directory admin dashboard",
+    "platform": "desktop",
+    "coverage_strength": "moderate",
+    "use": "Reference only; local People/HRX source/API trace drives classifications."
+  },
+  "required_headers": {
+    "hrxApiClient": [
+      "x-lawos-tenant-id",
+      "x-lawos-actor-id",
+      "x-lawos-actor-role",
+      "x-lawos-hrx-scopes",
+      "x-lawos-hrx-step-up"
+    ],
+    "adminPermissionApi": [
+      "x-lawos-permission-context"
+    ]
+  },
+  "source_files": [
+    {
+      "path": "apps/web/src/people/PeopleHome.tsx",
+      "anchors": [
+        {
+          "lines": "23-40",
+          "description": "People section route allowlist"
+        },
+        {
+          "lines": "50-59",
+          "description": "People overview refresh effect"
+        },
+        {
+          "lines": "63-71",
+          "description": "shared People PageHeader refresh button"
+        },
+        {
+          "lines": "81-160",
+          "description": "active section component routing and refreshKey propagation gaps"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/people/legal/LegalPeopleWorkspace.tsx",
+      "anchors": [
+        {
+          "lines": "101-156",
+          "description": "legal People search/detail/relationship/ethics fetch effects"
+        },
+        {
+          "lines": "174-184",
+          "description": "search input and type filter buttons"
+        },
+        {
+          "lines": "190-205",
+          "description": "legal person row selection"
+        },
+        {
+          "lines": "280-351",
+          "description": "conflict/ethical-wall/reviewer receipt panels are display surfaces, not extra actions"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "anchors": [
+        {
+          "lines": "229-249",
+          "description": "employees/lifecycle read effects"
+        },
+        {
+          "lines": "271-286",
+          "description": "workforce header actions including missing handlers"
+        },
+        {
+          "lines": "291-317",
+          "description": "status tabs/search/tools"
+        },
+        {
+          "lines": "349-358",
+          "description": "workforce row click only sets selectedEmployeeId and is not rendered on members route"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/people/employees/EmployeeList.tsx",
+      "anchors": [
+        {
+          "lines": "14-27",
+          "description": "employee list read effect"
+        },
+        {
+          "lines": "37-52",
+          "description": "employee row selection for documents/leave flows"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/people/documents/HRDocumentWorkspace.tsx",
+      "anchors": [
+        {
+          "lines": "18-27",
+          "description": "documents read effect keyed by employeeId/refreshKey"
+        },
+        {
+          "lines": "42-50",
+          "description": "document metadata table without body/source bytes action"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/people/leave/LeaveRequestPage.tsx",
+      "anchors": [
+        {
+          "lines": "20-38",
+          "description": "leave read/write handlers"
+        },
+        {
+          "lines": "70-85",
+          "description": "leave form inputs and submit button"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/people/approvals/ManagerApprovalQueue.tsx",
+      "anchors": [
+        {
+          "lines": "43-61",
+          "description": "approval/audit read effects and resolve write handler"
+        },
+        {
+          "lines": "78-86",
+          "description": "reject/approve buttons"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/people/recruiting/RecruitingPipeline.tsx",
+      "anchors": [
+        {
+          "lines": "31-48",
+          "description": "pipeline read and stage update handler"
+        },
+        {
+          "lines": "80-91",
+          "description": "next-stage button"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/candidate/CandidatePortal.tsx",
+      "anchors": [
+        {
+          "lines": "32-42",
+          "description": "candidate portal is read-only and gated by candidateId"
+        },
+        {
+          "lines": "77-84",
+          "description": "rendered panel has no visible action controls"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/admin/hrx/HRXPolicyConsole.tsx",
+      "anchors": [
+        {
+          "lines": "24-44",
+          "description": "policy list read and create policy handler"
+        },
+        {
+          "lines": "71-85",
+          "description": "policy form inputs and submit button"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/admin/hrx/HRXAuditViewer.tsx",
+      "anchors": [
+        {
+          "lines": "29-38",
+          "description": "audit read effect"
+        },
+        {
+          "lines": "43-48",
+          "description": "step-up-required branch renders HrxStepUpChallenge"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/people/security/HrxStepUpChallenge.tsx",
+      "anchors": [
+        {
+          "lines": "15-23",
+          "description": "conditional step-up retry button"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/people/analytics/HRAnalytics.tsx",
+      "anchors": [
+        {
+          "lines": "14-23",
+          "description": "analytics read effect; no visible actions"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/people/ai/HRAIAssistant.tsx",
+      "anchors": [
+        {
+          "lines": "46-69",
+          "description": "AI review read and advisory/final-decision request handlers"
+        },
+        {
+          "lines": "87-95",
+          "description": "ask/advisory and blocked-review buttons"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx",
+      "anchors": [
+        {
+          "lines": "29-64",
+          "description": "payroll preview/approve/export handlers"
+        },
+        {
+          "lines": "90-118",
+          "description": "payroll form and action buttons"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/people/admin/PermissionAdminPanel.jsx",
+      "anchors": [
+        {
+          "lines": "79-120",
+          "description": "admin read effect and runAction wrapper"
+        },
+        {
+          "lines": "138-156",
+          "description": "permission set actions"
+        },
+        {
+          "lines": "178-196",
+          "description": "assignment actions"
+        },
+        {
+          "lines": "228-263",
+          "description": "object manager tabs and field policy action"
+        },
+        {
+          "lines": "280-297",
+          "description": "connected app actions"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/people/hrxApiClient.ts",
+      "anchors": [
+        {
+          "lines": "1-41",
+          "description": "required HRX tenant/actor/role/scopes/step-up headers"
+        },
+        {
+          "lines": "52-81",
+          "description": "requestJson error and step-up-required mapping"
+        },
+        {
+          "lines": "83-399",
+          "description": "HRX read/write endpoint wrappers"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/data/apiClient.js",
+      "anchors": [
+        {
+          "lines": "693-766",
+          "description": "admin permission payload, context header, read/write runtime wrappers"
+        },
+        {
+          "lines": "768-910",
+          "description": "admin permission/object/connected-app endpoint wrappers"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/people/lifecycle/LifecycleBoard.tsx",
+      "anchors": [
+        {
+          "lines": "67-77",
+          "description": "complete/close handlers exist in source but current PeopleHome lifecycle route does not render LifecycleBoard"
+        }
+      ]
+    }
+  ],
+  "updated_row_count": 92,
+  "added_backfill_rows": 2,
+  "row_scope": [
+    "LCX8-ACTION-0093",
+    "LCX8-ACTION-0094",
+    "LCX8-ACTION-0095",
+    "LCX8-ACTION-0096",
+    "LCX8-ACTION-0097",
+    "LCX8-ACTION-0098",
+    "LCX8-ACTION-0099",
+    "LCX8-ACTION-0100",
+    "LCX8-ACTION-0101",
+    "LCX8-ACTION-0102",
+    "LCX8-ACTION-0146",
+    "LCX8-ACTION-0147",
+    "LCX8-ACTION-0148",
+    "LCX8-ACTION-0149",
+    "LCX8-ACTION-0150",
+    "LCX8-ACTION-0151",
+    "LCX8-ACTION-0152",
+    "LCX8-ACTION-0153",
+    "LCX8-ACTION-0154",
+    "LCX8-ACTION-0155",
+    "LCX8-ACTION-0156",
+    "LCX8-ACTION-0157",
+    "LCX8-ACTION-0158",
+    "LCX8-ACTION-0159",
+    "LCX8-ACTION-0160",
+    "LCX8-ACTION-0161",
+    "LCX8-ACTION-0162",
+    "LCX8-ACTION-0163",
+    "LCX8-ACTION-0164",
+    "LCX8-ACTION-0165",
+    "LCX8-ACTION-0166",
+    "LCX8-ACTION-0167",
+    "LCX8-ACTION-0168",
+    "LCX8-ACTION-0169",
+    "LCX8-ACTION-0170",
+    "LCX8-ACTION-0171",
+    "LCX8-ACTION-0172",
+    "LCX8-ACTION-0173",
+    "LCX8-ACTION-0174",
+    "LCX8-ACTION-0175",
+    "LCX8-ACTION-0176",
+    "LCX8-ACTION-0177",
+    "LCX8-ACTION-0178",
+    "LCX8-ACTION-0179",
+    "LCX8-ACTION-0180",
+    "LCX8-ACTION-0181",
+    "LCX8-ACTION-0182",
+    "LCX8-ACTION-0183",
+    "LCX8-ACTION-0184",
+    "LCX8-ACTION-0185",
+    "LCX8-ACTION-0186",
+    "LCX8-ACTION-0187",
+    "LCX8-ACTION-0188",
+    "LCX8-ACTION-0189",
+    "LCX8-ACTION-0190",
+    "LCX8-ACTION-0191",
+    "LCX8-ACTION-0192",
+    "LCX8-ACTION-0193",
+    "LCX8-ACTION-0194",
+    "LCX8-ACTION-0195",
+    "LCX8-ACTION-0196",
+    "LCX8-ACTION-0197",
+    "LCX8-ACTION-0198",
+    "LCX8-ACTION-0199",
+    "LCX8-ACTION-0200",
+    "LCX8-ACTION-0201",
+    "LCX8-ACTION-0202",
+    "LCX8-ACTION-0203",
+    "LCX8-ACTION-0204",
+    "LCX8-ACTION-0205",
+    "LCX8-ACTION-0206",
+    "LCX8-ACTION-0207",
+    "LCX8-ACTION-0208",
+    "LCX8-ACTION-0209",
+    "LCX8-ACTION-0210",
+    "LCX8-ACTION-0211",
+    "LCX8-ACTION-0212",
+    "LCX8-ACTION-0213",
+    "LCX8-ACTION-0214",
+    "LCX8-ACTION-0215",
+    "LCX8-ACTION-0216",
+    "LCX8-ACTION-0217",
+    "LCX8-ACTION-0218",
+    "LCX8-ACTION-0219",
+    "LCX8-ACTION-0220",
+    "LCX8-ACTION-0221",
+    "LCX8-ACTION-0222",
+    "LCX8-ACTION-0223",
+    "LCX8-ACTION-0224",
+    "LCX8-ACTION-0225",
+    "LCX8-ACTION-0226",
+    "LCX8-ACTION-0280",
+    "LCX8-ACTION-0323",
+    "LCX8-ACTION-0324"
+  ],
+  "backfill_rows": [
+    "LCX8-ACTION-0323",
+    "LCX8-ACTION-0324"
+  ],
+  "excluded_rows": [
+    "LCX8-ACTION-0010, LCX8-ACTION-0014, LCX8-ACTION-0024, LCX8-ACTION-0038, LCX8-ACTION-0042: Home/Shell People navigation rows already traced in P2-T01/P2-T02",
+    "LCX8-ACTION-0036: Home command-center refresh probe already traced in P2-T02",
+    "LCX8-ACTION-0044 and LCX8-ACTION-0114: Matter/Client refresh rows that reference HRX backlink APIs remain covered by P2-T04/P2-T03",
+    "LifecycleBoard 완료/종료 source-only buttons are excluded because current PeopleHome #people-lifecycle renders PeopleWorkforceDirectory, not LifecycleBoard",
+    "CandidatePortal has no visible action controls on current PeopleHome recruiting route because candidateId is not wired from RecruitingPipeline selection",
+    "EmployeeProfile is imported but not rendered by current PeopleHome routes, so its source-only content is not counted as visible action surface"
+  ],
+  "row_updates": [
+    {
+      "id": "LCX8-ACTION-0093",
+      "label": "새로고침",
+      "section": "people-header",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "PageHeader onClick -> setRefreshKey(key + 1); PeopleHome useEffect -> fetchHrxPeopleOverview -> fetchHrxEmployees; refreshKey is passed to LegalPeopleWorkspace, PeopleWorkforceDirectory, EmployeeList, HRDocumentWorkspace, and LeaveRequestPage only",
+      "api_route": "GET /api/hrx/employees; wired active sections also re-run GET /api/hrx/legal-people/search, GET /api/hrx/legal-people/:personId, GET /api/hrx/legal-people/relationships, GET /api/hrx/legal-people/ethics, GET /api/hrx/lifecycle/onboarding, GET /api/hrx/lifecycle/offboarding, GET /api/hrx/documents?employee_id=:employee_id, GET /api/hrx/leave?employee_id=:employee_id&policy_id=pto-us",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0094",
+      "label": "Legal People panel overflow menu",
+      "section": "legal-people-panels",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "Panel overflow icon button is visible but has no onClick handler or menu wiring",
+      "api_route": null,
+      "outcome": "missing/no-effect/unwired behavior remains FAIL until remediated"
+    },
+    {
+      "id": "LCX8-ACTION-0095",
+      "label": "이름, 역할, 조직 검색",
+      "section": "legal-people-search",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "input onChange -> setQuery(event.target.value); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0096",
+      "label": "전체",
+      "section": "legal-people-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0097",
+      "label": "내부 변호사",
+      "section": "legal-people-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0098",
+      "label": "Client",
+      "section": "legal-people-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0099",
+      "label": "상대 대리인",
+      "section": "legal-people-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0100",
+      "label": "전문가",
+      "section": "legal-people-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0101",
+      "label": "규제기관",
+      "section": "legal-people-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0102",
+      "label": "Legal person row",
+      "section": "legal-people-row-list",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "onClick -> setSelectedPersonId(person.person_id); detail/relationship/ethics effects re-run with selectedPersonId",
+      "api_route": "GET /api/hrx/legal-people/:personId; GET /api/hrx/legal-people/relationships?person_id=:personId; GET /api/hrx/legal-people/ethics?person_id=:personId",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0146",
+      "label": "법률 People",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "toggleGroup(item, index)",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0147",
+      "label": "구성원 운영",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "toggleGroup(item, index)",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0148",
+      "label": "관리",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "toggleGroup(item, index)",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0149",
+      "label": "디렉터리",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "setView('people', 'people-directory')",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0150",
+      "label": "관계망",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "setView('people', 'people-relationships')",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0151",
+      "label": "충돌·윤리벽",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "setView('people', 'people-conflicts')",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0152",
+      "label": "구성원",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "setView('people', 'people-members')",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0153",
+      "label": "조직도",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "setView('people', 'people-org-chart')",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0154",
+      "label": "휴가",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "setView('people', 'people-leave')",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0155",
+      "label": "승인",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "setView('people', 'people-approvals')",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0156",
+      "label": "입사·퇴사",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "setView('people', 'people-lifecycle')",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0157",
+      "label": "채용",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "setView('people', 'people-recruiting')",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0158",
+      "label": "인사 문서",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "setView('people', 'people-documents')",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0159",
+      "label": "인사 정책",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "setView('people', 'people-policy')",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0160",
+      "label": "활동 기록",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "setView('people', 'people-audit')",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0161",
+      "label": "권한 관리",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "setView('people', 'people-admin')",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0162",
+      "label": "급여 정산",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "setView('people', 'people-payroll')",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0163",
+      "label": "인사 현황",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "handler": "setView('people', 'people-analytics')",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0164",
+      "label": "People 설정",
+      "section": "people-sidebar-utilities",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "none",
+      "api_route": null,
+      "outcome": "missing/no-effect/unwired behavior remains FAIL until remediated"
+    },
+    {
+      "id": "LCX8-ACTION-0165",
+      "label": "권한 정책",
+      "section": "people-sidebar-utilities",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "none",
+      "api_route": null,
+      "outcome": "missing/no-effect/unwired behavior remains FAIL until remediated"
+    },
+    {
+      "id": "LCX8-ACTION-0166",
+      "label": "이름, 역할, 조직 검색",
+      "section": "people-relationships-search",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "input onChange -> setQuery(event.target.value); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0167",
+      "label": "전체",
+      "section": "people-relationships-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0168",
+      "label": "내부 변호사",
+      "section": "people-relationships-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0169",
+      "label": "Client",
+      "section": "people-relationships-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0170",
+      "label": "상대 대리인",
+      "section": "people-relationships-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0171",
+      "label": "전문가",
+      "section": "people-relationships-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0172",
+      "label": "규제기관",
+      "section": "people-relationships-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0173",
+      "label": "Legal person row",
+      "section": "people-relationships-person-row",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "onClick -> setSelectedPersonId(person.person_id); detail/relationship/ethics effects re-run with selectedPersonId",
+      "api_route": "GET /api/hrx/legal-people/:personId; GET /api/hrx/legal-people/relationships?person_id=:personId; GET /api/hrx/legal-people/ethics?person_id=:personId",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0174",
+      "label": "이름, 역할, 조직 검색",
+      "section": "people-conflicts-search",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "input onChange -> setQuery(event.target.value); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0175",
+      "label": "전체",
+      "section": "people-conflicts-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0176",
+      "label": "내부 변호사",
+      "section": "people-conflicts-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0177",
+      "label": "Client",
+      "section": "people-conflicts-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0178",
+      "label": "상대 대리인",
+      "section": "people-conflicts-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0179",
+      "label": "전문가",
+      "section": "people-conflicts-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0180",
+      "label": "규제기관",
+      "section": "people-conflicts-type-tabs",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "button onClick -> setTypeId(id); filters useMemo -> fetchLegalPeopleSearch(filters)",
+      "api_route": "GET /api/hrx/legal-people/search?query=:query&type_id=:type_id",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0181",
+      "label": "Legal person row",
+      "section": "people-conflicts-person-row",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "onClick -> setSelectedPersonId(person.person_id); detail/relationship/ethics effects re-run with selectedPersonId",
+      "api_route": "GET /api/hrx/legal-people/:personId; GET /api/hrx/legal-people/relationships?person_id=:personId; GET /api/hrx/legal-people/ethics?person_id=:personId",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0182",
+      "label": "HRX panel overflow menu",
+      "section": "people-hrx-panels",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "Panel overflow icon button is visible but has no onClick handler or menu wiring",
+      "api_route": null,
+      "outcome": "missing/no-effect/unwired behavior remains FAIL until remediated"
+    },
+    {
+      "id": "LCX8-ACTION-0183",
+      "label": "더보기",
+      "section": "people-members-roster-actions",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "visible button renders without onClick handler",
+      "api_route": null,
+      "outcome": "missing/no-effect/unwired behavior remains FAIL until remediated"
+    },
+    {
+      "id": "LCX8-ACTION-0184",
+      "label": "조직도",
+      "section": "people-members-roster-actions",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onClick -> setViewMode(table|org)",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0185",
+      "label": "구성원 추가",
+      "section": "people-members-roster-actions",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "visible button renders without onClick handler",
+      "api_route": null,
+      "outcome": "missing/no-effect/unwired behavior remains FAIL until remediated"
+    },
+    {
+      "id": "LCX8-ACTION-0186",
+      "label": "추가 메뉴",
+      "section": "people-members-roster-actions",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "visible button renders without onClick handler",
+      "api_route": null,
+      "outcome": "missing/no-effect/unwired behavior remains FAIL until remediated"
+    },
+    {
+      "id": "LCX8-ACTION-0187",
+      "label": "재직",
+      "section": "people-members-status-tabs",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onClick -> setActiveTab(tab.id); setViewMode(\"table\")",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0188",
+      "label": "입사 예정",
+      "section": "people-members-status-tabs",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onClick -> setActiveTab(tab.id); setViewMode(\"table\")",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0189",
+      "label": "퇴사 예정",
+      "section": "people-members-status-tabs",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onClick -> setActiveTab(tab.id); setViewMode(\"table\")",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0190",
+      "label": "종료",
+      "section": "people-members-status-tabs",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onClick -> setActiveTab(tab.id); setViewMode(\"table\")",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0191",
+      "label": "외부 협업",
+      "section": "people-members-status-tabs",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onClick -> setActiveTab(tab.id); setViewMode(\"table\")",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0192",
+      "label": "표 보기 옵션",
+      "section": "people-members-roster-tools",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "visible icon button renders without onClick handler",
+      "api_route": null,
+      "outcome": "missing/no-effect/unwired behavior remains FAIL until remediated"
+    },
+    {
+      "id": "LCX8-ACTION-0193",
+      "label": "구성원 검색",
+      "section": "people-members-roster-tools",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "onChange -> setQuery(event.target.value)",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0194",
+      "label": "속성 조정",
+      "section": "people-members-roster-tools",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "visible icon button renders without onClick handler",
+      "api_route": null,
+      "outcome": "missing/no-effect/unwired behavior remains FAIL until remediated"
+    },
+    {
+      "id": "LCX8-ACTION-0195",
+      "label": "Workforce employee row",
+      "section": "people-members-roster-tools",
+      "status": "FAIL",
+      "trace_depth": "no_effect_visible_row",
+      "handler": "onClick -> row.employeeId && onSelectEmployee(row.employeeId); PeopleHome stores selectedEmployeeId but people-members route does not render EmployeeProfile or another selected-row detail state",
+      "api_route": null,
+      "outcome": "missing/no-effect/unwired behavior remains FAIL until remediated"
+    },
+    {
+      "id": "LCX8-ACTION-0196",
+      "label": "Lifecycle onboarding row",
+      "section": "people-lifecycle",
+      "status": "FAIL",
+      "trace_depth": "no_effect_visible_row",
+      "handler": "people-lifecycle route renders PeopleWorkforceDirectory initialTab=\"onboarding\"; onboarding rows do not carry employeeId, so row.employeeId && onSelectEmployee short-circuits; LifecycleBoard complete/close handlers are imported but not rendered on the route",
+      "api_route": null,
+      "outcome": "missing/no-effect/unwired behavior remains FAIL until remediated"
+    },
+    {
+      "id": "LCX8-ACTION-0197",
+      "label": "Employee list row",
+      "section": "people-employee-list",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "EmployeeList row onClick -> onSelectEmployee(employee_id); selectedEmployeeId flows into HRDocumentWorkspace and LeaveRequestPage effects",
+      "api_route": "GET /api/hrx/employees; GET /api/hrx/documents?employee_id=:employee_id; GET /api/hrx/leave?employee_id=:employee_id&policy_id=pto-us",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0198",
+      "label": "시간",
+      "section": "people-leave-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "input onChange -> setForm({ amount: value })",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0199",
+      "label": "시작일",
+      "section": "people-leave-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "input onChange -> setForm({ start_date: value })",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0200",
+      "label": "종료일",
+      "section": "people-leave-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "input onChange -> setForm({ end_date: value })",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0201",
+      "label": "신청",
+      "section": "people-leave-form",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "form onSubmit -> handleSubmit -> submitHrxLeaveRequest(employeeId, form); on success onSubmitted -> PeopleHome refreshKey++",
+      "api_route": "POST /api/hrx/leave; follow-up GET /api/hrx/employees and GET /api/hrx/leave?employee_id=:employee_id&policy_id=pto-us via refreshKey",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0202",
+      "label": "반려",
+      "section": "people-approvals",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "resolve(approvalId, \"reject\") -> resolveHrxApproval -> setRefreshKey(key + 1)",
+      "api_route": "POST /api/hrx/approvals/:approvalId/reject; follow-up GET /api/hrx/approvals and GET /api/hrx/audit",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0203",
+      "label": "승인",
+      "section": "people-approvals",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "resolve(approvalId, \"approve\") -> resolveHrxApproval -> setRefreshKey(key + 1)",
+      "api_route": "POST /api/hrx/approvals/:approvalId/approve; follow-up GET /api/hrx/approvals and GET /api/hrx/audit",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0204",
+      "label": "다음 단계",
+      "section": "people-recruiting",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "advance(application) -> updateHrxApplicationStage(application_id, NEXT_STAGE[stage]); on success refreshKey++",
+      "api_route": "POST /api/hrx/recruiting/applications/:applicationId/stage; follow-up GET /api/hrx/recruiting/pipeline",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0205",
+      "label": "정책 이름",
+      "section": "people-policy-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "input onChange -> setForm({ policy_id: value })",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0206",
+      "label": "유형",
+      "section": "people-policy-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "input onChange -> setForm({ policy_type: value })",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0207",
+      "label": "버전",
+      "section": "people-policy-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "input onChange -> setForm({ policy_version: value })",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0208",
+      "label": "정책 버전 생성",
+      "section": "people-policy-form",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "form onSubmit -> submit -> createHrxPolicyVersion(form); on success fetchHrxPolicies()",
+      "api_route": "POST /api/hrx/policies; follow-up GET /api/hrx/policies",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0209",
+      "label": "문의",
+      "section": "people-ai",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "askAdvisory -> askHrxAiAssistant(question, { decision_mode: \"advisory\" })",
+      "api_route": "POST /api/hrx/ai/assistant; background GET /api/hrx/ai/reviews after result changes",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0210",
+      "label": "검토",
+      "section": "people-ai",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "askBlockedDecision -> askHrxAiAssistant(question, { decision_mode: \"final\", decision_domain: \"hire\", final_decision: true })",
+      "api_route": "POST /api/hrx/ai/assistant; background GET /api/hrx/ai/reviews after result changes",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0211",
+      "label": "기간",
+      "section": "people-payroll-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "input onChange -> setForm({ payroll_period: value })",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0212",
+      "label": "구성원",
+      "section": "people-payroll-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "input onChange -> setForm({ employee_ids: value })",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0213",
+      "label": "외부 급여 서비스",
+      "section": "people-payroll-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "input onChange -> setForm({ external_provider: value })",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0214",
+      "label": "문서 참조",
+      "section": "people-payroll-form",
+      "status": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "handler": "input onChange -> setForm({ export_artifact_ref: value })",
+      "api_route": null,
+      "outcome": "local UI state or route behavior; no API PASS claimed"
+    },
+    {
+      "id": "LCX8-ACTION-0215",
+      "label": "미리보기 생성",
+      "section": "people-payroll-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "form onSubmit -> handlePreview -> createHrxPayrollPreview(form)",
+      "api_route": "POST /api/hrx/payroll/preview",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0216",
+      "label": "검토 승인 기록",
+      "section": "people-payroll-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleApprove -> approveHrxPayrollPreview(preview.preview_id)",
+      "api_route": "POST /api/hrx/payroll/approve",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0217",
+      "label": "내보내기 파일 생성",
+      "section": "people-payroll-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleExport -> exportHrxPayrollArtifact(preview.preview_id, form.export_artifact_ref)",
+      "api_route": "POST /api/hrx/payroll/export",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0218",
+      "label": "Client",
+      "section": "people-admin-object-manager",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "onClick -> setActiveObject(\"Client\"); PermissionAdminPanel useEffect([refreshKey, activeObject]) re-runs admin collection fetches and fetchObjectManagerFields({ objectName: activeObject })",
+      "api_route": "GET /api/admin/permission-sets; GET /api/admin/permission-assignments; GET /api/admin/object-manager/objects; GET /api/admin/connected-apps; GET /api/admin/audit; GET /api/admin/object-manager/objects/:objectName/fields; GET /api/hrx/legal-people/ethics",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0219",
+      "label": "Matter",
+      "section": "people-admin-object-manager",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "onClick -> setActiveObject(\"Matter\"); PermissionAdminPanel useEffect([refreshKey, activeObject]) re-runs admin collection fetches and fetchObjectManagerFields({ objectName: activeObject })",
+      "api_route": "GET /api/admin/permission-sets; GET /api/admin/permission-assignments; GET /api/admin/object-manager/objects; GET /api/admin/connected-apps; GET /api/admin/audit; GET /api/admin/object-manager/objects/:objectName/fields; GET /api/hrx/legal-people/ethics",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0220",
+      "label": "세트 요청",
+      "section": "people-admin-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "runAction -> createPermissionSet",
+      "api_route": "POST /api/admin/permission-sets",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0221",
+      "label": "변경 요청",
+      "section": "people-admin-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "runAction -> patchPermissionSet",
+      "api_route": "PATCH /api/admin/permission-sets/:permissionSetId",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0222",
+      "label": "배정 요청",
+      "section": "people-admin-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "runAction -> assignPermissionSet",
+      "api_route": "POST /api/admin/permission-assignments",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0223",
+      "label": "회수 요청",
+      "section": "people-admin-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "runAction -> revokePermissionSetAssignment",
+      "api_route": "DELETE /api/admin/permission-assignments/:assignmentId",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0224",
+      "label": "정책 변경",
+      "section": "people-admin-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "runAction -> patchObjectFieldPolicy",
+      "api_route": "PATCH /api/admin/object-manager/objects/:objectName/fields/:fieldName",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0225",
+      "label": "연결 요청",
+      "section": "people-admin-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "runAction -> createConnectedApp",
+      "api_route": "POST /api/admin/connected-apps",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0226",
+      "label": "중지 요청",
+      "section": "people-admin-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "runAction -> disableConnectedApp",
+      "api_route": "POST /api/admin/connected-apps/:appId/disable",
+      "outcome": "API/runtime-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0280",
+      "label": "People directory denied/review state",
+      "section": "people-directory-guard-missing",
+      "status": "FAIL",
+      "trace_depth": "ui_state_only",
+      "handler": "PeopleHome does not accept or forward liveCtx/ctx to LegalPeopleWorkspace; hrxApiClient uses fixed allow-style HRX runtime headers and cannot render ctx=denied/review People directory state from route params",
+      "api_route": null,
+      "outcome": "missing/no-effect/unwired behavior remains FAIL until remediated"
+    },
+    {
+      "id": "LCX8-ACTION-0323",
+      "label": "HRX audit step-up retry",
+      "section": "people-audit-step-up",
+      "status": "GUARDED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "fetchHrxAuditEvents returns kind === \"step_up_required\" -> render HrxStepUpChallenge; retry button onClick -> onRetry -> setRefreshKey(key + 1) -> fetchHrxAuditEvents()",
+      "api_route": "GET /api/hrx/audit with HRX step-up headers; conditional response body { step_up_required: true } renders retry state",
+      "outcome": "guarded/step-up state mapped; proof still required before launch claim"
+    },
+    {
+      "id": "LCX8-ACTION-0324",
+      "label": "People header refresh on standalone HRX panels",
+      "section": "people-header-refresh-unwired-hrx-panels",
+      "status": "FAIL",
+      "trace_depth": "no_effect_visible_row",
+      "handler": "PageHeader onClick -> setRefreshKey(key + 1), but standalone HRX panels are rendered without refreshKey/onRefresh props, so active panel data does not re-fetch; only PeopleHome overview fetchHrxEmployees runs",
+      "api_route": "GET /api/hrx/employees only; missing refresh propagation to GET /api/hrx/approvals, GET /api/hrx/recruiting/pipeline, GET /api/hrx/policies, GET /api/hrx/audit, GET /api/hrx/analytics, GET /api/hrx/ai/reviews, POST/read payroll sequence state, and admin collection reads",
+      "outcome": "missing/no-effect/unwired behavior remains FAIL until remediated"
+    }
+  ],
+  "status_counts_after_trace": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 0,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 0,
+    "blocked": 133,
+    "fail": 43
+  },
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "external_receipts_complete": false,
+    "api_pass_claimed": false
+  },
+  "next_tuw": "P2-T07"
+}

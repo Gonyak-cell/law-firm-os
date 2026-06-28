@@ -32,7 +32,7 @@ export const backendCapabilities = Object.freeze([
       "POST /api/portal/projections"
     ],
     auditEndpoints: ["GET /api/intake/audit", "GET /api/portal/audit"],
-    boundary: "Client 정보와 연결된 Matter를 접근 권한에 맞게 확인합니다."
+    boundary: "Client 정보와 연결된 Matter를 권한 범위 안에서 확인합니다."
   },
   {
     id: "matter",
@@ -69,11 +69,11 @@ export const backendCapabilities = Object.freeze([
       "POST /api/ai/exports"
     ],
     auditEndpoints: ["GET /api/matters/audit", "GET /api/finance/audit", "GET /api/analytics/audit", "GET /api/ai/audit"],
-    boundary: "Matter 진행, 팀, 문서, 청구 업무를 관리합니다."
+    boundary: "Matter 진행 상황, 팀, 문서, 청구 흐름을 확인합니다."
   },
   {
     id: "people",
-    label: "People",
+    label: "구성원",
     route: "people",
     owner: "people",
     readEndpoints: [
@@ -104,7 +104,7 @@ export const backendCapabilities = Object.freeze([
       "POST /api/hrx/ai/assistant"
     ],
     auditEndpoints: ["GET /api/hrx/audit"],
-    boundary: "People 구성원, 근태, 승인 업무를 관리합니다."
+    boundary: "구성원, 근태관리, 전자결재를 한곳에서 확인합니다."
   },
   {
     id: "vault",
@@ -132,7 +132,7 @@ export const backendCapabilities = Object.freeze([
       "POST /api/data-room/projections"
     ],
     auditEndpoints: ["GET /api/vault/audit"],
-    boundary: "Vault 문서와 권한 정보를 관리합니다. 문서 내용은 권한이 있을 때만 표시됩니다."
+    boundary: "Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다."
   }
 ]);
 

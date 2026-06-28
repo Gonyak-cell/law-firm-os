@@ -1,0 +1,628 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-25T10:53:06.705Z",
+  "tuw": "P2-T03",
+  "status": "complete_validated",
+  "title": "LCX8 P2-T03 Client component/API action source trace",
+  "scope": "Trace ClientsSurface, Client data/import/report subpanels, and their apiClient/hrxApiClient boundaries into existing LCX8 Client rows. No new visible action rows were added; statuses remain pre-P3/P4 classifications.",
+  "lazyweb_reference": {
+    "query": "enterprise command center quick actions dashboard; enterprise app topbar sidebar search notifications",
+    "platform": "desktop",
+    "coverage_strength": "light",
+    "use": "Reference only; local Client source/API trace drives classifications."
+  },
+  "source_files": [
+    {
+      "path": "apps/web/src/components/ClientsSurface.jsx",
+      "anchors": [
+        {
+          "lines": "34-46",
+          "description": "CLIENTS_PERMISSION_REF and CLIENT_SECTIONS define Client route/permission scope"
+        },
+        {
+          "lines": "134-173",
+          "description": "renderLiveState maps loading/error/denied/review/empty states"
+        },
+        {
+          "lines": "831-900",
+          "description": "refreshToken effects fetch Client master data, legal people backlinks, CRM/intake, account/contact, merge proposal, and account-contact reads"
+        },
+        {
+          "lines": "918-933",
+          "description": "record-action field registry and audit reads for selected Client"
+        },
+        {
+          "lines": "935-1239",
+          "description": "Client write handlers for opportunity handoff, conflict/clearance, accounts, contacts, merge, and record actions"
+        },
+        {
+          "lines": "1247-1361",
+          "description": "PageHeader refresh and currentSection rendering for Client list/leads/opportunities/intake/accounts/contacts/data/reports/import panels"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/ImportDataMappingPanel.jsx",
+      "anchors": [
+        {
+          "lines": "76-159",
+          "description": "Import read effects and write handlers for job creation, source staging, mapping, dry-run, execute, rollback/error report"
+        },
+        {
+          "lines": "161-288",
+          "description": "Visible import action buttons and guarded result states"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/DataCloudEnrichmentPanel.jsx",
+      "anchors": [
+        {
+          "lines": "87-108",
+          "description": "Data Cloud provider/profile/results/audit read effect"
+        },
+        {
+          "lines": "117-169",
+          "description": "Provider, consent, enrichment job, execute, identity, and segment handlers"
+        },
+        {
+          "lines": "171-324",
+          "description": "Visible Client data/enrichment action buttons and guarded results"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/ReportBuilderPanel.jsx",
+      "anchors": [
+        {
+          "lines": "92-110",
+          "description": "Report definitions, Client profitability, and report audit read effect"
+        },
+        {
+          "lines": "122-183",
+          "description": "Report create/patch/profitability/run/share handlers"
+        },
+        {
+          "lines": "185-326",
+          "description": "Visible report, profitability, run, share, and audit controls"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/components/primitives.jsx",
+      "anchors": [
+        {
+          "lines": "17-28",
+          "description": "Panel renders shared overflow icon-button without onClick handler"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/data/apiClient.js",
+      "anchors": [
+        {
+          "lines": "368-419",
+          "description": "fetchMasterDataRecords Client master-data read"
+        },
+        {
+          "lines": "988-1095",
+          "description": "Data Cloud provider/consent/enrichment/profile/identity/segment API clients"
+        },
+        {
+          "lines": "1120-1264",
+          "description": "Import data targets/jobs/create/stage/preview/mapping/dry-run/execute/rollback/error-report API clients"
+        },
+        {
+          "lines": "1276-1420",
+          "description": "Record-action runtime, fields/audit reads, field-update and bulk-update writes"
+        },
+        {
+          "lines": "2279-2673",
+          "description": "CRM/intake collection reads and account/contact/merge/opportunity/conflict/clearance writes"
+        },
+        {
+          "lines": "2940-3055",
+          "description": "Client profitability analytics read/write API clients"
+        },
+        {
+          "lines": "3112-3208",
+          "description": "Report runtime read/write API clients"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/people/hrxApiClient.ts",
+      "anchors": [
+        {
+          "lines": "101-111",
+          "description": "fetchLegalPeopleSearch for Client contact backlink read"
+        }
+      ]
+    }
+  ],
+  "updated_row_count": 34,
+  "added_backfill_rows": 0,
+  "row_scope": [
+    "LCX8-ACTION-0114",
+    "LCX8-ACTION-0115",
+    "LCX8-ACTION-0116",
+    "LCX8-ACTION-0117",
+    "LCX8-ACTION-0118",
+    "LCX8-ACTION-0119",
+    "LCX8-ACTION-0120",
+    "LCX8-ACTION-0121",
+    "LCX8-ACTION-0122",
+    "LCX8-ACTION-0123",
+    "LCX8-ACTION-0124",
+    "LCX8-ACTION-0125",
+    "LCX8-ACTION-0126",
+    "LCX8-ACTION-0127",
+    "LCX8-ACTION-0128",
+    "LCX8-ACTION-0129",
+    "LCX8-ACTION-0130",
+    "LCX8-ACTION-0131",
+    "LCX8-ACTION-0132",
+    "LCX8-ACTION-0133",
+    "LCX8-ACTION-0134",
+    "LCX8-ACTION-0135",
+    "LCX8-ACTION-0136",
+    "LCX8-ACTION-0137",
+    "LCX8-ACTION-0138",
+    "LCX8-ACTION-0139",
+    "LCX8-ACTION-0140",
+    "LCX8-ACTION-0141",
+    "LCX8-ACTION-0142",
+    "LCX8-ACTION-0143",
+    "LCX8-ACTION-0144",
+    "LCX8-ACTION-0145",
+    "LCX8-ACTION-0272",
+    "LCX8-ACTION-0273"
+  ],
+  "row_updates": [
+    {
+      "id": "LCX8-ACTION-0114",
+      "label": "새로고침",
+      "section": "clients-header",
+      "status": "BLOCKED",
+      "trace_depth": "api_read_pending_p3",
+      "handler": "onClick -> setRefreshToken(value + 1); ClientsSurface useEffect fetchers re-run Client, legal-people backlink, CRM/intake, account/contact, merge, and record-action reads",
+      "api_route": "GET /master-data/records; GET /api/hrx/legal-people/search?client_id=client_lcx_001; GET /api/crm/leads; GET /api/crm/opportunities; GET /api/intake/requests; GET /api/intake/audit; GET /api/crm/accounts; GET /api/crm/contacts; GET /api/crm/duplicate-merge-proposals; GET /api/crm/accounts/:account_id/contacts; GET /api/record-actions/client/fields; GET /api/record-actions/client/:record_id/audit",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0115",
+      "label": "Client panel overflow menu",
+      "section": "client-panels",
+      "status": "FAIL",
+      "trace_depth": "missing_handler",
+      "handler": "Panel renders .icon-button with MoreHorizontal icon and no onClick/type/aria-label",
+      "api_route": null,
+      "outcome": "missing handler remains FAIL"
+    },
+    {
+      "id": "LCX8-ACTION-0116",
+      "label": "필드 업데이트",
+      "section": "client-right-panel-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleClientRecordActionFieldUpdate -> updateRecordActionField({ objectName: \"client\" })",
+      "api_route": "POST /api/record-actions/client/:record_id/field-update",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0117",
+      "label": "승인 확인",
+      "section": "client-right-panel-actions",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleClientOwnerBlockedAction -> bulkUpdateRecordActions({ objectName: \"client\", actionType: \"owner_change\" })",
+      "api_route": "POST /api/record-actions/client/bulk-updates",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0118",
+      "label": "전환",
+      "section": "client-opportunities",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleOpportunityHandoff -> handoffCrmOpportunityToIntake",
+      "api_route": "POST /api/crm/opportunities/:opportunity_id/handoff",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0119",
+      "label": "충돌 검토",
+      "section": "client-intake",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleConflictCheck -> createIntakeConflictCheck",
+      "api_route": "POST /api/intake/conflict-checks",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0120",
+      "label": "통과 처리",
+      "section": "client-intake",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleClearance -> issueIntakeClearanceToken",
+      "api_route": "POST /api/intake/clearance-tokens",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0121",
+      "label": "계정 생성",
+      "section": "client-accounts",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleCreateAccount -> createCrmAccount",
+      "api_route": "POST /api/crm/accounts",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0122",
+      "label": "계정 검토 표시",
+      "section": "client-accounts",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handlePatchAccount -> patchCrmAccount",
+      "api_route": "PATCH /api/crm/accounts/:account_id",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0123",
+      "label": "계정 레코드 작업",
+      "section": "client-accounts",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleAccountRecordActionFieldUpdate -> updateRecordActionField({ objectName: \"account\" })",
+      "api_route": "POST /api/record-actions/account/:record_id/field-update",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0124",
+      "label": "연락처 생성",
+      "section": "client-contacts",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleCreateContact -> createCrmContact",
+      "api_route": "POST /api/crm/contacts",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0125",
+      "label": "연락처 검토 표시",
+      "section": "client-contacts",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handlePatchContact -> patchCrmContact",
+      "api_route": "PATCH /api/crm/contacts/:contact_id",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0126",
+      "label": "연락처 레코드 작업",
+      "section": "client-contacts",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleContactRecordActionFieldUpdate -> updateRecordActionField({ objectName: \"contact\" })",
+      "api_route": "POST /api/record-actions/contact/:record_id/field-update",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0127",
+      "label": "검토 생성",
+      "section": "client-contacts",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleCreateMergeProposal -> createCrmMergeProposal",
+      "api_route": "POST /api/crm/duplicate-merge-proposals",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0128",
+      "label": "병합 실행",
+      "section": "client-contacts",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleExecuteMergeProposal -> executeCrmMergeProposal",
+      "api_route": "POST /api/crm/duplicate-merge-proposals/:proposal_id/execute",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0129",
+      "label": "연동 요청",
+      "section": "client-data",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleProvider -> createDataCloudProvider",
+      "api_route": "POST /api/data-cloud/providers",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0130",
+      "label": "승인 확인",
+      "section": "client-data",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleConsent -> createDataCloudConsentRecord",
+      "api_route": "POST /api/data-cloud/consent-records",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0131",
+      "label": "미리보기",
+      "section": "client-data",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleCreateJob -> createEnrichmentJob + fetchEnrichmentPreview",
+      "api_route": "POST /api/data-cloud/enrichment-jobs; GET /api/data-cloud/enrichment-jobs/:job_id/preview",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0132",
+      "label": "실행 확인",
+      "section": "client-data",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleExecuteJob -> executeEnrichmentJob + fetchEnrichmentResults",
+      "api_route": "POST /api/data-cloud/enrichment-jobs/:job_id/execute; GET /api/data-cloud/enrichment-results",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0133",
+      "label": "후보 생성",
+      "section": "client-data",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleIdentity -> runIdentityResolution",
+      "api_route": "POST /api/data-cloud/identity-resolution",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0134",
+      "label": "활성화 확인",
+      "section": "client-data",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleSegment -> activateDataCloudSegment",
+      "api_route": "POST /api/data-cloud/segment-activations",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0135",
+      "label": "보고서 생성",
+      "section": "client-reports",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleCreateReport -> createReportDefinition",
+      "api_route": "POST /api/reports",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0136",
+      "label": "보고서 조정",
+      "section": "client-reports",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handlePatchReport -> patchReportDefinition",
+      "api_route": "PATCH /api/reports/:report_id",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0137",
+      "label": "Client 손익 새로고침",
+      "section": "client-reports",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleRefreshProfitability -> refreshClientProfitability",
+      "api_route": "POST /api/analytics/client-profitability",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0138",
+      "label": "보고서 실행",
+      "section": "client-reports",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleRunReport -> runReportQuery",
+      "api_route": "POST /api/reports/:report_id/run",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0139",
+      "label": "공유 요청",
+      "section": "client-reports",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleShareReport -> shareReportDefinition",
+      "api_route": "POST /api/reports/:report_id/share",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0140",
+      "label": "작업 생성",
+      "section": "client-import",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleCreateJob -> createClientMatterImportJob",
+      "api_route": "POST /api/import-jobs",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0141",
+      "label": "원본 준비",
+      "section": "client-import",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleStageSource -> stageImportSourceFile",
+      "api_route": "POST /api/import-jobs/:job_id/source-files",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0142",
+      "label": "매핑 저장",
+      "section": "client-import",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleMapping -> saveImportFieldMapping",
+      "api_route": "POST /api/import-jobs/:job_id/field-mappings",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0143",
+      "label": "검증 실행",
+      "section": "client-import",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleDryRun -> dryRunClientMatterImport + fetchClientMatterImportPreview",
+      "api_route": "POST /api/import-jobs/:job_id/dry-run; GET /api/import-jobs/:job_id/preview",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0144",
+      "label": "실행 요청",
+      "section": "client-import",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleExecute -> executeClientMatterImport",
+      "api_route": "POST /api/import-jobs/:job_id/execute",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0145",
+      "label": "확인",
+      "section": "client-import",
+      "status": "BLOCKED",
+      "trace_depth": "api_write_pending_p4",
+      "handler": "handleRollbackAndReport -> rollbackClientMatterImport + fetchClientMatterImportErrorReport",
+      "api_route": "POST /api/import-jobs/:job_id/rollback; GET /api/import-jobs/:job_id/error-report",
+      "outcome": "API-backed action remains BLOCKED pending P3/P4 proof"
+    },
+    {
+      "id": "LCX8-ACTION-0272",
+      "label": "Client list denied state",
+      "section": "client-list-denied-state",
+      "status": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "handler": "fetchMasterDataRecords(ctx=denied) -> renderLiveState(result, \"Client\") -> live-data-denied panel",
+      "api_route": "GET /master-data/records",
+      "outcome": "guarded UI state remains GUARDED pending API permission proof"
+    },
+    {
+      "id": "LCX8-ACTION-0273",
+      "label": "Client list review-required state",
+      "section": "client-list-review-state",
+      "status": "GUARDED",
+      "trace_depth": "ui_state_only",
+      "handler": "fetchMasterDataRecords(ctx=review) -> renderLiveState(result, \"Client\") -> live-data-review panel",
+      "api_route": "GET /master-data/records",
+      "outcome": "guarded UI state remains GUARDED pending API permission proof"
+    }
+  ],
+  "current_status_counts": {
+    "inventory_rows": 302,
+    "unknown": 0,
+    "pass": 0,
+    "guarded": 19,
+    "ui_only": 127,
+    "descriptor_only": 0,
+    "blocked": 117,
+    "fail": 39
+  },
+  "families": [
+    {
+      "family": "client_refresh_read_probe",
+      "row_count": 1,
+      "row_ids": [
+        "LCX8-ACTION-0114"
+      ]
+    },
+    {
+      "family": "shared_panel_missing_handler",
+      "row_count": 1,
+      "row_ids": [
+        "LCX8-ACTION-0115"
+      ]
+    },
+    {
+      "family": "record_actions",
+      "row_count": 4,
+      "row_ids": [
+        "LCX8-ACTION-0116",
+        "LCX8-ACTION-0117",
+        "LCX8-ACTION-0123",
+        "LCX8-ACTION-0126"
+      ]
+    },
+    {
+      "family": "crm_intake_and_merge",
+      "row_count": 9,
+      "row_ids": [
+        "LCX8-ACTION-0118",
+        "LCX8-ACTION-0119",
+        "LCX8-ACTION-0120",
+        "LCX8-ACTION-0121",
+        "LCX8-ACTION-0122",
+        "LCX8-ACTION-0124",
+        "LCX8-ACTION-0125",
+        "LCX8-ACTION-0127",
+        "LCX8-ACTION-0128"
+      ]
+    },
+    {
+      "family": "data_cloud",
+      "row_count": 6,
+      "row_ids": [
+        "LCX8-ACTION-0129",
+        "LCX8-ACTION-0130",
+        "LCX8-ACTION-0131",
+        "LCX8-ACTION-0132",
+        "LCX8-ACTION-0133",
+        "LCX8-ACTION-0134"
+      ]
+    },
+    {
+      "family": "reports_and_analytics",
+      "row_count": 5,
+      "row_ids": [
+        "LCX8-ACTION-0135",
+        "LCX8-ACTION-0136",
+        "LCX8-ACTION-0137",
+        "LCX8-ACTION-0138",
+        "LCX8-ACTION-0139"
+      ]
+    },
+    {
+      "family": "import_data_mapping",
+      "row_count": 6,
+      "row_ids": [
+        "LCX8-ACTION-0140",
+        "LCX8-ACTION-0141",
+        "LCX8-ACTION-0142",
+        "LCX8-ACTION-0143",
+        "LCX8-ACTION-0144",
+        "LCX8-ACTION-0145"
+      ]
+    },
+    {
+      "family": "client_guarded_states",
+      "row_count": 2,
+      "row_ids": [
+        "LCX8-ACTION-0272",
+        "LCX8-ACTION-0273"
+      ]
+    }
+  ],
+  "known_gaps_preserved": [
+    "No Client row was promoted to PASS during P2-T03.",
+    "LCX8-ACTION-0115 remains FAIL because the shared Panel overflow icon has no handler.",
+    "API read/write rows remain BLOCKED until P3/P4 browser/API/audit proof exists.",
+    "Guarded UI states remain GUARDED but still require API response trimming proof in P4."
+  ],
+  "non_claims": [
+    "This trace does not prove live API success, writes, audit persistence, production readiness, public launch approval, or owner approval.",
+    "No external provider/Data Cloud/report/share/import execution receipt is claimed."
+  ],
+  "next_tuw": "P2-T04"
+}

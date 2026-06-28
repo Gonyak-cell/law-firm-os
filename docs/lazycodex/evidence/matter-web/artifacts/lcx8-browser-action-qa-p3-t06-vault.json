@@ -1,0 +1,469 @@
+{
+  "schema_version": "matter.lcx8.browser-action-qa.p3-t06.vault.v1",
+  "generated_at": "2026-06-25T12:51:50.782Z",
+  "status": "complete_mixed_observed",
+  "tuw": "P3-T06",
+  "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
+  "web_base_url": "http://127.0.0.1:5174",
+  "api_base_url": "http://127.0.0.1:4180 via Vite proxy",
+  "runtime_restart_note": "API/web sessions were restarted before P3-T06 after earlier Codex exec sessions ended; preflight health/root checks returned 200.",
+  "rows_reviewed": 9,
+  "pass_observed": 4,
+  "fail_confirmed": 5,
+  "fail_observed": 0,
+  "unexpected_effect_observed": 0,
+  "api_response_count": 1,
+  "api_5xx_count": 0,
+  "console_error_count": 0,
+  "skipped_non_click_state_rows": [
+    "LCX8-ACTION-0276",
+    "LCX8-ACTION-0277",
+    "LCX8-ACTION-0322"
+  ],
+  "note": "Vault browser click QA records safe click behavior only. Known FAIL overflow and utility rows are clicked only to confirm no effect; state panels are observed in other P3/P7 steps, not clicked.",
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "external_receipts_complete": false
+  },
+  "results": [
+    {
+      "id": "LCX8-ACTION-0091",
+      "label": "새로고침",
+      "selector": "#vault-home .page-header .secondary-button",
+      "status_before_qa": "BLOCKED",
+      "trace_depth": "api_read",
+      "expected_kind": "api_refresh",
+      "expected_hash": null,
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "after_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "before_metrics": {
+        "view": "vault",
+        "hash": "#vault-documents",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 1,
+        "emailUnavailable": 0,
+        "visiblePanels": [
+          "문서 본문은 권한이 있을 때만 표시합니다.",
+          "Matter 선택됨 / Vault / 작업공간 준비됨",
+          "보존 설정 없음 / 권한 기준 적용"
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "vault",
+        "hash": "#vault-documents",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 1,
+        "emailUnavailable": 0,
+        "visiblePanels": [
+          "문서 본문은 권한이 있을 때만 표시합니다.",
+          "Matter 선택됨 / Vault / 작업공간 준비됨",
+          "보존 설정 없음 / 권한 기준 적용"
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 1,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0091",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0091.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "api_refresh_network_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0092",
+      "label": "Vault panel overflow menu",
+      "selector": "#vault-documents .panel-head .icon-button",
+      "status_before_qa": "FAIL",
+      "trace_depth": "ui_state_only",
+      "expected_kind": "expected_no_effect_fail",
+      "expected_hash": null,
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "after_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "before_metrics": {
+        "view": "vault",
+        "hash": "#vault-documents",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 1,
+        "emailUnavailable": 0,
+        "visiblePanels": [
+          "문서 본문은 권한이 있을 때만 표시합니다.",
+          "Matter 선택됨 / Vault / 작업공간 준비됨",
+          "보존 설정 없음 / 권한 기준 적용"
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "vault",
+        "hash": "#vault-documents",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 1,
+        "emailUnavailable": 0,
+        "visiblePanels": [
+          "문서 본문은 권한이 있을 때만 표시합니다.",
+          "Matter 선택됨 / Vault / 작업공간 준비됨",
+          "보존 설정 없음 / 권한 기준 적용"
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0092.png",
+      "click_error": null,
+      "observed_result": "FAIL_CONFIRMED",
+      "reason": "known_missing_handler_no_effect_confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0298",
+      "label": "문서함",
+      "selector": ".sidebar .sidebar-item:has-text(\"문서함\")",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route_hash",
+      "expected_hash": "#vault-documents",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "after_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "before_metrics": {
+        "view": "vault",
+        "hash": "#vault-documents",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 1,
+        "emailUnavailable": 0,
+        "visiblePanels": [
+          "문서 본문은 권한이 있을 때만 표시합니다.",
+          "Matter 선택됨 / Vault / 작업공간 준비됨",
+          "보존 설정 없음 / 권한 기준 적용"
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "vault",
+        "hash": "#vault-documents",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 1,
+        "emailUnavailable": 0,
+        "visiblePanels": [
+          "문서 본문은 권한이 있을 때만 표시합니다.",
+          "Matter 선택됨 / Vault / 작업공간 준비됨",
+          "보존 설정 없음 / 권한 기준 적용"
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0298.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "expected_hash_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0299",
+      "label": "문서 상세",
+      "selector": ".sidebar .sidebar-item:has-text(\"문서 상세\")",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route_hash",
+      "expected_hash": "#vault-detail",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "after_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-detail",
+      "before_metrics": {
+        "view": "vault",
+        "hash": "#vault-documents",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 1,
+        "emailUnavailable": 0,
+        "visiblePanels": [
+          "문서 본문은 권한이 있을 때만 표시합니다.",
+          "Matter 선택됨 / Vault / 작업공간 준비됨",
+          "보존 설정 없음 / 권한 기준 적용"
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "vault",
+        "hash": "#vault-detail",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 1,
+        "emailUnavailable": 0,
+        "visiblePanels": [
+          "문서 내용은 권한이 있을 때만 표시됩니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0299.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "expected_hash_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0300",
+      "label": "메일 보관함",
+      "selector": ".sidebar .sidebar-item:has-text(\"메일 보관함\")",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route_hash",
+      "expected_hash": "#vault-email",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "after_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-email",
+      "before_metrics": {
+        "view": "vault",
+        "hash": "#vault-documents",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 1,
+        "emailUnavailable": 0,
+        "visiblePanels": [
+          "문서 본문은 권한이 있을 때만 표시합니다.",
+          "Matter 선택됨 / Vault / 작업공간 준비됨",
+          "보존 설정 없음 / 권한 기준 적용"
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "vault",
+        "hash": "#vault-email",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 0,
+        "emailUnavailable": 1,
+        "visiblePanels": [
+          "연동 정보가 연결되지 않았습니다"
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0300.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "expected_hash_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0301",
+      "label": "Vault 설정",
+      "selector": ".sidebar-utility:has-text(\"Vault 설정\")",
+      "status_before_qa": "FAIL",
+      "trace_depth": "ui_state_only",
+      "expected_kind": "expected_no_effect_fail",
+      "expected_hash": null,
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "after_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "before_metrics": {
+        "view": "vault",
+        "hash": "#vault-documents",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 1,
+        "emailUnavailable": 0,
+        "visiblePanels": [
+          "문서 본문은 권한이 있을 때만 표시합니다.",
+          "Matter 선택됨 / Vault / 작업공간 준비됨",
+          "보존 설정 없음 / 권한 기준 적용"
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "vault",
+        "hash": "#vault-documents",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 1,
+        "emailUnavailable": 0,
+        "visiblePanels": [
+          "문서 본문은 권한이 있을 때만 표시합니다.",
+          "Matter 선택됨 / Vault / 작업공간 준비됨",
+          "보존 설정 없음 / 권한 기준 적용"
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0301.png",
+      "click_error": null,
+      "observed_result": "FAIL_CONFIRMED",
+      "reason": "known_missing_handler_no_effect_confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0302",
+      "label": "문서 태그",
+      "selector": ".sidebar-utility:has-text(\"문서 태그\")",
+      "status_before_qa": "FAIL",
+      "trace_depth": "ui_state_only",
+      "expected_kind": "expected_no_effect_fail",
+      "expected_hash": null,
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "after_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+      "before_metrics": {
+        "view": "vault",
+        "hash": "#vault-documents",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 1,
+        "emailUnavailable": 0,
+        "visiblePanels": [
+          "문서 본문은 권한이 있을 때만 표시합니다.",
+          "Matter 선택됨 / Vault / 작업공간 준비됨",
+          "보존 설정 없음 / 권한 기준 적용"
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "vault",
+        "hash": "#vault-documents",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 1,
+        "emailUnavailable": 0,
+        "visiblePanels": [
+          "문서 본문은 권한이 있을 때만 표시합니다.",
+          "Matter 선택됨 / Vault / 작업공간 준비됨",
+          "보존 설정 없음 / 권한 기준 적용"
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0302.png",
+      "click_error": null,
+      "observed_result": "FAIL_CONFIRMED",
+      "reason": "known_missing_handler_no_effect_confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0320",
+      "label": "Vault detail panel overflow menus",
+      "selector": "#vault-detail .panel-head .icon-button, [data-mv-vault-document-detail=\"true\"] .panel-head .icon-button",
+      "status_before_qa": "FAIL",
+      "trace_depth": "ui_state_only",
+      "expected_kind": "expected_no_effect_fail",
+      "expected_hash": null,
+      "selector_count": 2,
+      "before_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-detail",
+      "after_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-detail",
+      "before_metrics": {
+        "view": "vault",
+        "hash": "#vault-detail",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 1,
+        "emailUnavailable": 0,
+        "visiblePanels": [
+          "문서 내용은 권한이 있을 때만 표시됩니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "vault",
+        "hash": "#vault-detail",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 1,
+        "emailUnavailable": 0,
+        "visiblePanels": [
+          "문서 내용은 권한이 있을 때만 표시됩니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0320.png",
+      "click_error": null,
+      "observed_result": "FAIL_CONFIRMED",
+      "reason": "known_missing_handler_no_effect_confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0321",
+      "label": "Vault email panel overflow menu",
+      "selector": "#vault-email .panel-head .icon-button",
+      "status_before_qa": "FAIL",
+      "trace_depth": "ui_state_only",
+      "expected_kind": "expected_no_effect_fail",
+      "expected_hash": null,
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-email",
+      "after_url": "/?locale=ko&view=vault&data=live&ctx=allow#vault-email",
+      "before_metrics": {
+        "view": "vault",
+        "hash": "#vault-email",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 0,
+        "emailUnavailable": 1,
+        "visiblePanels": [
+          "연동 정보가 연결되지 않았습니다"
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "vault",
+        "hash": "#vault-email",
+        "title": "matter",
+        "vaultSurface": 1,
+        "documentRows": 0,
+        "emailUnavailable": 1,
+        "visiblePanels": [
+          "연동 정보가 연결되지 않았습니다"
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0321.png",
+      "click_error": null,
+      "observed_result": "FAIL_CONFIRMED",
+      "reason": "known_missing_handler_no_effect_confirmed"
+    }
+  ],
+  "next_tuw": "P3-T07 Click first-slice people directory actions"
+}

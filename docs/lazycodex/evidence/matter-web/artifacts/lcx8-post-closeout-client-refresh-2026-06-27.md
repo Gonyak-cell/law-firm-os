@@ -1,0 +1,17 @@
+# LCX8-ACTION-0114 Client Refresh Status
+
+Status: PASS
+
+Batch: LCX8-ALL-10
+
+Resolved rows: LCX8-ACTION-0114
+
+Proof: docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0114-client-refresh-api-read-proof.json
+
+Summary: Post-closeout LCX8-ACTION-0114 verification: Client header refresh proof PASS (12/12 expected read endpoints observed after refresh click; Client legal-people backlink forwards liveCtx after ClientsSurface fix; denied/review browser guards prevent protected account-contact and record-action follow-up reads; direct allow/denied/review API probes PASS for master-data, legal-people, CRM/intake, account/contact, merge, and record-action reads with guarded empty collections on denied/review); node --test apps/api/test/cmp-r4-g2-party.test.js apps/api/test/cmp-r4-g6-crm-intake.test.js apps/api/test/sf-b-w02-record-actions.test.js apps/api/test/hrx/legal-people-api.test.js apps/api/test/hrx/route-authz.test.js apps/api/test/hrx-runtime-api.test.js PASS 46/46; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS. Status moved BLOCKED -> PASS.
+
+Counts after: PASS 45, GUARDED 20, UI_ONLY 128, DESCRIPTOR_ONLY 2, BLOCKED 94, FAIL 35, UNKNOWN 0
+
+Non-claims:
+- This is read-only Client header refresh proof; no Client write persistence is claimed.
+- No production go-live, external approval, or real customer data claim is made.

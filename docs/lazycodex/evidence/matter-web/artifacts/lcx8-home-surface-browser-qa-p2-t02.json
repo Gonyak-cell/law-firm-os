@@ -1,0 +1,258 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-25T11:15:00.000Z",
+  "tuw": "P2-T02",
+  "status": "pass_with_api_console_noise",
+  "base_url": "http://127.0.0.1:5174",
+  "browser": "chromium-headless",
+  "observations": [
+    {
+      "family": "home-load",
+      "result": "PASS",
+      "detail": "HomeSurface command center rendered.",
+      "request_count": 14
+    },
+    {
+      "family": "home-refresh",
+      "row_id": "LCX8-ACTION-0036",
+      "result": "PASS_WITH_API_CONSOLE_NOISE",
+      "detail": "Refresh button was clickable and issued additional HomeSurface probe requests; API operation remains unproven because API server was not running.",
+      "before_requests": 14,
+      "after_requests": 28
+    },
+    {
+      "family": "home-queue-route",
+      "row_id": "LCX8-ACTION-0037",
+      "label": "Matter 목록",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&desktop=1&data=live&ctx=allow"
+    },
+    {
+      "family": "home-queue-route",
+      "row_id": "LCX8-ACTION-0038",
+      "label": "승인·구성원 확인",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&desktop=1&data=live&ctx=allow"
+    },
+    {
+      "family": "home-queue-route",
+      "row_id": "LCX8-ACTION-0039",
+      "label": "최근 문서 확인",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=vault&desktop=1&data=live&ctx=allow"
+    },
+    {
+      "family": "home-work-area-route",
+      "row_id": "LCX8-ACTION-0040",
+      "capabilityId": "client",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=clients&desktop=1&data=live&ctx=allow"
+    },
+    {
+      "family": "home-work-area-route",
+      "row_id": "LCX8-ACTION-0041",
+      "capabilityId": "matter",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=matters&desktop=1&data=live&ctx=allow"
+    },
+    {
+      "family": "home-work-area-route",
+      "row_id": "LCX8-ACTION-0042",
+      "capabilityId": "people",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=people&desktop=1&data=live&ctx=allow"
+    },
+    {
+      "family": "home-work-area-route",
+      "row_id": "LCX8-ACTION-0043",
+      "capabilityId": "vault",
+      "result": "PASS",
+      "url": "http://127.0.0.1:5174/?locale=ko&view=vault&desktop=1&data=live&ctx=allow"
+    }
+  ],
+  "observation_count": 9,
+  "api_request_count": 154,
+  "api_request_sample": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_r4_master_data_live&audit_hint_ref=ui_cmp_r4_master_data_probe&limit=10&model_type=ClientGroup"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/portal/dashboard?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/portal/rfi?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/ai/review-queue?tenant_id=matter-runtime-tenant&permission_ref=ui_cmp_g9_ai_live&audit_hint_ref=ui_cmp_g9_ai_probe"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/employees"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/data-room/projections?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_r4_master_data_live&audit_hint_ref=ui_cmp_r4_master_data_probe&limit=10&model_type=ClientGroup"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/portal/dashboard?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/portal/rfi?tenant_id=matter-client-tenant&permission_ref=ui_cmp_g10_portal_live&audit_hint_ref=ui_cmp_g10_portal_probe"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+    }
+  ],
+  "console_event_count": 154,
+  "console_events": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    }
+  ],
+  "ledger_rows_updated_with_browser_evidence": [
+    "LCX8-ACTION-0036",
+    "LCX8-ACTION-0037",
+    "LCX8-ACTION-0038",
+    "LCX8-ACTION-0039",
+    "LCX8-ACTION-0040",
+    "LCX8-ACTION-0041",
+    "LCX8-ACTION-0042",
+    "LCX8-ACTION-0043"
+  ],
+  "console_event_note": "API 500/connection errors are expected because HomeSurface browser QA ran only the web server. This verifies UI handler behavior, not API operation.",
+  "non_claims": {
+    "api_read_operational": false,
+    "api_write_operational": false,
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false
+  }
+}

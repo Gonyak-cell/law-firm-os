@@ -1,0 +1,425 @@
+{
+  "schema_version": "law-firm-os.lcx8.shell-auth-local-actions-proof.v0.1",
+  "generated_at": "2026-06-28T05:30:09.753Z",
+  "result": "PASS",
+  "rows": [
+    "LCX8-ACTION-0004",
+    "LCX8-ACTION-0005",
+    "LCX8-ACTION-0017",
+    "LCX8-ACTION-0027",
+    "LCX8-ACTION-0028",
+    "LCX8-ACTION-0034",
+    "LCX8-ACTION-0032",
+    "LCX8-ACTION-0033",
+    "LCX8-ACTION-0112",
+    "LCX8-ACTION-0113",
+    "LCX8-ACTION-0164",
+    "LCX8-ACTION-0165",
+    "LCX8-ACTION-0296",
+    "LCX8-ACTION-0297",
+    "LCX8-ACTION-0301",
+    "LCX8-ACTION-0302"
+  ],
+  "scope": {
+    "local_browser_runtime": true,
+    "web_origin": "http://127.0.0.1:5174",
+    "trace_depth": "ui_state_only",
+    "persistence_claim": false,
+    "api_write_claim": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "source_trace": {
+    "auth": "apps/web/src/components/AuthSurface.jsx AuthForm local remember/recovery state",
+    "shell": "apps/web/src/components/Shell.jsx Topbar, NotificationDrawer, Sidebar local state panels"
+  },
+  "rowProofs": [
+    {
+      "id": "LCX8-ACTION-0004",
+      "url": "http://127.0.0.1:5174/?view=auth&authStep=login",
+      "selector": "[data-login-remember]",
+      "dom_label": null,
+      "expected_state_selector": "[data-login-remember-state]",
+      "expected_text": "/로그인 이메일을 기억/",
+      "observed_text": "이 기기에서 로그인 이메일을 기억합니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0004-remember-me-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0005",
+      "url": "http://127.0.0.1:5174/?view=auth&authStep=login",
+      "selector": "[data-login-forgot-password]",
+      "dom_label": null,
+      "expected_state_selector": "[data-login-recovery-state]",
+      "expected_text": "/비밀번호 재설정 안내/",
+      "observed_text": "비밀번호 재설정 안내를 보낼 계정을 확인합니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0005-forgot-password-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0017",
+      "url": "http://127.0.0.1:5174/?view=home&ctx=allow",
+      "selector": "[data-topbar-help-trigger]",
+      "dom_label": null,
+      "expected_state_selector": "[data-topbar-help-panel]",
+      "expected_text": "/도움말.*운영 상태/s",
+      "observed_text": "도움말 현재 화면의 운영 상태와 권한 경계를 확인합니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0017-help-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0027",
+      "url": "http://127.0.0.1:5174/?view=home&ctx=allow",
+      "selector": "[data-notification-mark-read]",
+      "dom_label": null,
+      "expected_state_selector": "[data-notification-read-state]",
+      "expected_text": "/모든 알림을 읽음/",
+      "observed_text": "모든 알림을 읽음으로 표시했습니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0027-notifications-read-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0028",
+      "url": "http://127.0.0.1:5174/?view=home&ctx=allow",
+      "selector": "[data-notification-settings]",
+      "dom_label": null,
+      "expected_state_selector": "[data-notification-settings-state]",
+      "expected_text": "/알림 설정은 이 기기/",
+      "observed_text": "알림 설정은 이 기기에서만 표시됩니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0028-notification-settings-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0034",
+      "url": "http://127.0.0.1:5174/?view=home&ctx=allow",
+      "selector": "[data-workspace-menu-trigger]",
+      "dom_label": null,
+      "expected_state_selector": "[data-sidebar-utility-panel]",
+      "expected_text": "/Home 작업공간/",
+      "observed_text": "Home 작업공간 작업공간 전환 메뉴를 이 화면에서 확인합니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0034-workspace-menu-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0032",
+      "url": "http://127.0.0.1:5174/?view=home&ctx=allow",
+      "selector": "[data-sidebar-utility='작업공간 설정']",
+      "dom_label": null,
+      "expected_state_selector": "[data-sidebar-utility-panel]",
+      "expected_text": "/작업공간 설정/",
+      "observed_text": "작업공간 설정 Home 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0032-workspace-settings-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0033",
+      "url": "http://127.0.0.1:5174/?view=home&ctx=allow",
+      "selector": "[data-sidebar-utility='태그 관리']",
+      "dom_label": null,
+      "expected_state_selector": "[data-sidebar-utility-panel]",
+      "expected_text": "/태그 관리/",
+      "observed_text": "태그 관리 Home 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0033-tag-management-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0112",
+      "url": "http://127.0.0.1:5174/?view=clients&ctx=allow",
+      "selector": "[data-sidebar-utility='Client 설정']",
+      "dom_label": null,
+      "expected_state_selector": "[data-sidebar-utility-panel]",
+      "expected_text": "/Client 설정/",
+      "observed_text": "Client 설정 Client 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0112-client-settings-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0113",
+      "url": "http://127.0.0.1:5174/?view=clients&ctx=allow",
+      "selector": "[data-sidebar-utility='태그 관리']",
+      "dom_label": null,
+      "expected_state_selector": "[data-sidebar-utility-panel]",
+      "expected_text": "/태그 관리/",
+      "observed_text": "태그 관리 Client 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0113-client-tags-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0164",
+      "url": "http://127.0.0.1:5174/?view=people&ctx=allow",
+      "selector": "[data-sidebar-utility='회사 설정']",
+      "dom_label": "회사 설정",
+      "expected_state_selector": "[data-sidebar-utility-panel]",
+      "expected_text": "/회사 설정/",
+      "observed_text": "회사 설정 구성원 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0164-people-settings-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0165",
+      "url": "http://127.0.0.1:5174/?view=people&ctx=allow",
+      "selector": "[data-sidebar-utility='권한']",
+      "dom_label": "권한",
+      "expected_state_selector": "[data-sidebar-utility-panel]",
+      "expected_text": "/권한/",
+      "observed_text": "권한 구성원 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0165-people-permissions-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0296",
+      "url": "http://127.0.0.1:5174/?view=matters&ctx=allow",
+      "selector": "[data-sidebar-utility='Matter 설정']",
+      "dom_label": null,
+      "expected_state_selector": "[data-sidebar-utility-panel]",
+      "expected_text": "/Matter 설정/",
+      "observed_text": "Matter 설정 Matter 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0296-matter-settings-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0297",
+      "url": "http://127.0.0.1:5174/?view=matters&ctx=allow",
+      "selector": "[data-sidebar-utility='태그 관리']",
+      "dom_label": null,
+      "expected_state_selector": "[data-sidebar-utility-panel]",
+      "expected_text": "/태그 관리/",
+      "observed_text": "태그 관리 Matter 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0297-matter-tags-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0301",
+      "url": "http://127.0.0.1:5174/?view=vault&ctx=allow",
+      "selector": "[data-sidebar-utility='Vault 설정']",
+      "dom_label": null,
+      "expected_state_selector": "[data-sidebar-utility-panel]",
+      "expected_text": "/Vault 설정/",
+      "observed_text": "Vault 설정 Vault 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0301-vault-settings-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0302",
+      "url": "http://127.0.0.1:5174/?view=vault&ctx=allow",
+      "selector": "[data-sidebar-utility='문서 태그']",
+      "dom_label": null,
+      "expected_state_selector": "[data-sidebar-utility-panel]",
+      "expected_text": "/문서 태그/",
+      "observed_text": "문서 태그 Vault 설정은 현재 세션에서만 열립니다.",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0302-vault-tags-proof.png",
+      "status_decision": "PASS",
+      "trace_depth": "ui_state_only",
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "production_ready_claim": false
+    }
+  ],
+  "assertions": [
+    {
+      "name": "LCX8-ACTION-0004 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "이 기기에서 로그인 이메일을 기억합니다.",
+        "selector": "[data-login-remember-state]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0005 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "비밀번호 재설정 안내를 보낼 계정을 확인합니다.",
+        "selector": "[data-login-recovery-state]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0017 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "도움말 현재 화면의 운영 상태와 권한 경계를 확인합니다.",
+        "selector": "[data-topbar-help-panel]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0027 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "모든 알림을 읽음으로 표시했습니다.",
+        "selector": "[data-notification-read-state]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0028 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "알림 설정은 이 기기에서만 표시됩니다.",
+        "selector": "[data-notification-settings-state]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0034 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "Home 작업공간 작업공간 전환 메뉴를 이 화면에서 확인합니다.",
+        "selector": "[data-sidebar-utility-panel]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0032 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "작업공간 설정 Home 설정은 현재 세션에서만 열립니다.",
+        "selector": "[data-sidebar-utility-panel]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0033 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "태그 관리 Home 설정은 현재 세션에서만 열립니다.",
+        "selector": "[data-sidebar-utility-panel]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0112 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "Client 설정 Client 설정은 현재 세션에서만 열립니다.",
+        "selector": "[data-sidebar-utility-panel]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0113 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "태그 관리 Client 설정은 현재 세션에서만 열립니다.",
+        "selector": "[data-sidebar-utility-panel]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0164 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "회사 설정 구성원 설정은 현재 세션에서만 열립니다.",
+        "selector": "[data-sidebar-utility-panel]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0165 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "권한 구성원 설정은 현재 세션에서만 열립니다.",
+        "selector": "[data-sidebar-utility-panel]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0296 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "Matter 설정 Matter 설정은 현재 세션에서만 열립니다.",
+        "selector": "[data-sidebar-utility-panel]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0297 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "태그 관리 Matter 설정은 현재 세션에서만 열립니다.",
+        "selector": "[data-sidebar-utility-panel]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0301 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "Vault 설정 Vault 설정은 현재 세션에서만 열립니다.",
+        "selector": "[data-sidebar-utility-panel]"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0302 local state observed",
+      "passed": true,
+      "details": {
+        "observed_text": "문서 태그 Vault 설정은 현재 세션에서만 열립니다.",
+        "selector": "[data-sidebar-utility-panel]"
+      }
+    },
+    {
+      "name": "browser has no page errors",
+      "passed": true,
+      "details": {
+        "pageErrors": []
+      }
+    },
+    {
+      "name": "browser has no unexpected console errors",
+      "passed": true,
+      "details": {
+        "consoleMessages": [],
+        "unexpectedConsoleMessages": []
+      }
+    }
+  ],
+  "consoleMessages": [],
+  "pageErrors": []
+}

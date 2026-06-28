@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.lcx8.post-closeout-resolution.v1",
+  "generated_at": "2026-06-28T04:21:30.111Z",
+  "status": "PASS",
+  "batch": "LCX8-ALL-14",
+  "rows": [
+    "LCX8-ACTION-0116",
+    "LCX8-ACTION-0117"
+  ],
+  "status_before": "BLOCKED",
+  "status_after": "PASS",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0116-0117-client-record-actions-proof.json",
+  "proof_markdown": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0116-0117-client-record-actions-proof.md",
+  "summary": "Post-closeout LCX8-ACTION-0116/0117 verification: Client right-panel record actions proof PASS 65/65. Browser clicked current-product Client field update and owner approval-check controls; direct API probes covered field update write/read-back/audit/idempotency, invalid owner_user_id block, owner-change owner_blocked no-apply state, denied/review fail-closed envelopes, and safe audit redaction. Status moved BLOCKED -> PASS for 2 rows. No owner change was applied; no production approval, external receipt, or raw owner/user id exposure claim is made.",
+  "counts_after": {
+    "PASS": 102,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 50,
+    "FAIL": 35,
+    "UNKNOWN": 0
+  },
+  "non_claims": [
+    "No owner change was applied",
+    "No raw owner/user id exposure claim",
+    "No production approval claim",
+    "No external receipt claim"
+  ],
+  "updated_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-ledger.csv",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-run.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-lane-assignment-p8-t02-t06.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-blocker-risk-ranking-p8-t07.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-ready-issues-p8-t08.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-backlog.md",
+    "docs/lazycodex/lcx8-remaining-ui-action-remediation-plan-2026-06-27.md"
+  ],
+  "latest_verification_summary": {
+    "status": "PASS",
+    "batch": "LCX8-ALL-14",
+    "rows": [
+      "LCX8-ACTION-0116",
+      "LCX8-ACTION-0117"
+    ],
+    "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0116-0117-client-record-actions-proof.json",
+    "browser_proof": "65/65 PASS; browser API 4xx=0; browser API 5xx=0; console_errors=0",
+    "focused_api": "node --test apps/api/test/sf-b-w02-record-actions.test.js PASS 4/4",
+    "web_ui": "npm --workspace apps/web run test:ui PASS 17/17",
+    "build": "npm run build PASS (existing Vite chunk-size warning only)",
+    "runtime_flows": "npm run ui:flows:verify PASS 9/9",
+    "runtime_live": "npm run ui:live:verify PASS 13/13",
+    "sloplint": "PASS no auto-detectable AI slop signals",
+    "diff_check": "git diff --check PASS",
+    "non_claims": [
+      "no owner change was applied",
+      "no raw owner/user id exposure claim",
+      "no production approval claim",
+      "no external receipt claim"
+    ]
+  }
+}

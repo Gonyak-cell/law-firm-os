@@ -1,0 +1,1260 @@
+{
+  "proof_id": "lcx8-action-0282-0306-matter-vault-sidebar-team-proof",
+  "generated_at": "2026-06-28T03:34:42.297Z",
+  "status": "PASS",
+  "target_ids": [
+    "LCX8-ACTION-0282",
+    "LCX8-ACTION-0286",
+    "LCX8-ACTION-0292",
+    "LCX8-ACTION-0283",
+    "LCX8-ACTION-0284",
+    "LCX8-ACTION-0285",
+    "LCX8-ACTION-0287",
+    "LCX8-ACTION-0288",
+    "LCX8-ACTION-0289",
+    "LCX8-ACTION-0290",
+    "LCX8-ACTION-0291",
+    "LCX8-ACTION-0293",
+    "LCX8-ACTION-0294",
+    "LCX8-ACTION-0295",
+    "LCX8-ACTION-0298",
+    "LCX8-ACTION-0299",
+    "LCX8-ACTION-0300",
+    "LCX8-ACTION-0303",
+    "LCX8-ACTION-0304",
+    "LCX8-ACTION-0305",
+    "LCX8-ACTION-0306"
+  ],
+  "route_only_ui_only_rows": [
+    "LCX8-ACTION-0283",
+    "LCX8-ACTION-0284",
+    "LCX8-ACTION-0285",
+    "LCX8-ACTION-0288",
+    "LCX8-ACTION-0289",
+    "LCX8-ACTION-0290",
+    "LCX8-ACTION-0291",
+    "LCX8-ACTION-0293",
+    "LCX8-ACTION-0294",
+    "LCX8-ACTION-0298",
+    "LCX8-ACTION-0299",
+    "LCX8-ACTION-0300"
+  ],
+  "ui_state_only_rows": [
+    "LCX8-ACTION-0282",
+    "LCX8-ACTION-0286",
+    "LCX8-ACTION-0292",
+    "LCX8-ACTION-0303",
+    "LCX8-ACTION-0304",
+    "LCX8-ACTION-0305",
+    "LCX8-ACTION-0306"
+  ],
+  "api_read_side_effect_rows": [
+    "LCX8-ACTION-0287",
+    "LCX8-ACTION-0295"
+  ],
+  "api_write_side_effect_rows": [],
+  "classification": {
+    "LCX8-ACTION-0282": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0286": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0292": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0283": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0284": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0285": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0287": "PASS_ROUTE_NAVIGATION_WITH_API_READ_PANEL_MOUNT",
+    "LCX8-ACTION-0288": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0289": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0290": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0291": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0293": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0294": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0295": "PASS_ROUTE_NAVIGATION_WITH_API_READ_PANEL_MOUNT",
+    "LCX8-ACTION-0298": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0299": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0300": "UI_ONLY_FINAL_ROUTE_NAVIGATION",
+    "LCX8-ACTION-0303": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0304": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0305": "UI_ONLY_FINAL_UI_STATE_ONLY",
+    "LCX8-ACTION-0306": "UI_ONLY_FINAL_UI_STATE_ONLY"
+  },
+  "api_routes_by_row": {
+    "LCX8-ACTION-0282": [],
+    "LCX8-ACTION-0286": [],
+    "LCX8-ACTION-0292": [],
+    "LCX8-ACTION-0283": [],
+    "LCX8-ACTION-0284": [],
+    "LCX8-ACTION-0285": [],
+    "LCX8-ACTION-0287": [
+      "GET /api/matters/matter_rp05_synthetic_opening/vault-summary",
+      "GET /api/matters/matter_rp05_synthetic_opening/timeline",
+      "GET /api/vault/documents",
+      "GET /api/vault/search",
+      "GET /api/vault/audit",
+      "GET /api/matters/matter_rp05_synthetic_opening/document-templates",
+      "GET /api/matters/matter_rp05_synthetic_opening/builder-approval-requests"
+    ],
+    "LCX8-ACTION-0288": [],
+    "LCX8-ACTION-0289": [],
+    "LCX8-ACTION-0290": [],
+    "LCX8-ACTION-0291": [],
+    "LCX8-ACTION-0293": [],
+    "LCX8-ACTION-0294": [],
+    "LCX8-ACTION-0295": [
+      "GET /api/import-targets",
+      "GET /api/import-jobs"
+    ],
+    "LCX8-ACTION-0303": [],
+    "LCX8-ACTION-0304": [],
+    "LCX8-ACTION-0305": [],
+    "LCX8-ACTION-0306": [],
+    "LCX8-ACTION-0298": [],
+    "LCX8-ACTION-0299": [],
+    "LCX8-ACTION-0300": []
+  },
+  "source_trace": {
+    "sidebar": "apps/web/src/components/Shell.jsx Sidebar group toggles local openGroups and child buttons call setView(view, section).",
+    "app": "apps/web/src/App.jsx navigateToView sets activeSection and pushState(routeUrl).",
+    "matters": "apps/web/src/components/MattersSurface.jsx currentSection renders Matter panels; MatterTeamRoster fields update local form state until submit.",
+    "vault": "apps/web/src/components/VaultSurface.jsx currentSection renders Vault documents/detail/email panels."
+  },
+  "observations": [
+    {
+      "id": "LCX8-ACTION-0282",
+      "label": "Matter 운영",
+      "kind": "matter_group_toggle",
+      "beforeExpanded": "true",
+      "afterExpanded": "false",
+      "requests_after_click": [],
+      "responses_after_click": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": true
+    },
+    {
+      "id": "LCX8-ACTION-0286",
+      "label": "업무 진행",
+      "kind": "matter_group_toggle",
+      "beforeExpanded": "false",
+      "afterExpanded": "true",
+      "requests_after_click": [],
+      "responses_after_click": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": false
+    },
+    {
+      "id": "LCX8-ACTION-0292",
+      "label": "청구·분석",
+      "kind": "matter_group_toggle",
+      "beforeExpanded": "false",
+      "afterExpanded": "true",
+      "requests_after_click": [],
+      "responses_after_click": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": true
+    },
+    {
+      "id": "LCX8-ACTION-0283",
+      "label": "Matter 목록",
+      "kind": "matter_sidebar_route",
+      "expected_section": "matters-list",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matters-list",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list"
+      },
+      "surfaceVisible": true,
+      "activeText": "Matter 목록 18",
+      "panelText": "Matter 목록 권한 기준 적용 새 Matter 개시는 승인 후 반영됩니다. 전체 Matter 개시 중 종료 개시 저장 0개 선택 선택 완료 Matter 제목 진행 상태 청구 상태 Matter 1 Matter 1 개시 중 청구 준비 가능 개인 작업 기록 최근 본 항목 제목 상태 일시 Matter 1 Matter 1 개시 중 06. 28. 오후 12:34",
+      "requests_after_click": [],
+      "responses_after_click": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": false
+    },
+    {
+      "id": "LCX8-ACTION-0284",
+      "label": "진행 현황",
+      "kind": "matter_sidebar_route",
+      "expected_section": "matter-command",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-command",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-command"
+      },
+      "surfaceVisible": true,
+      "activeText": "진행 현황",
+      "panelText": "Matter 현황 진행 관리 신규 이해상충 계약 수행 청구 상태 다음 단계로 완료 처리 완료 제목 Matter 1 Client 연결됨 위험도 표준 Vault 연결됨 구분 값 표시 이벤트 대상 상태 기록됨 Matter 기록됨 기록됨 MatterTimeline 기록됨",
+      "requests_after_click": [],
+      "responses_after_click": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": true
+    },
+    {
+      "id": "LCX8-ACTION-0285",
+      "label": "Matter 개시",
+      "kind": "matter_sidebar_route",
+      "expected_section": "matter-opening",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-opening",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-opening"
+      },
+      "surfaceVisible": true,
+      "activeText": "Matter 개시",
+      "panelText": "Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 개시 승인 필요 MATTER 등록번호 제목 MATTER 번호 법률 CLIENT 청구 CLIENT 이해상충 확인 번호 접수 번호 검토 번호 위임 계약 번호 확인 번호 필수 정보를 입력하세요 개시",
+      "requests_after_click": [],
+      "responses_after_click": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": false
+    },
+    {
+      "id": "LCX8-ACTION-0287",
+      "label": "문서",
+      "kind": "matter_sidebar_route",
+      "expected_section": "matter-vault",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-vault",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-vault"
+      },
+      "surfaceVisible": true,
+      "activeText": "문서",
+      "panelText": "Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter Vault 문서 연결 Vault 미리보기 등록 Vault 저장소 새로고침 문서 연결 문서 내용은 권한이 있을 때만 표시됩니다. 활동 유형 제목 표시 범위 문서 상태 계정 보호 Synthetic engagement letter 사용 중 jwsuh@amic.kr 보호됨 문서 버전 색인 보안 doc_rp07_synthetic_001 version_doc_rp07_synthetic_001_1 title, matter_id, version_id 보호됨 표시할 감사 정보가 없습니다 문서 초안 템플릿 유형 필드 승인 위임계약서 문서 3개 승인 필요 진행상황 안내 메일 이메일 3개 승인 필요 템플릿 선택 후 초안을 만들 수 있습니다 초안 생성 검토 준비 승인 요청 Vault 등록 요청 표시할 승인 요청 정보가 없습니다 이메일 초안 초안 작성 후 발송 경계를 확인할 수 있습니다 초안 생성 내용 정리 발송 요청 레코드 Matter 1 상태 개시 중 청구 청구 준비 가능 책임자 미지정 팀 1 문서 0 활동 0 기한 0 대화 0 청구 2 분석 2 청구 상태 청구 준비 가능 저장 책임자 미지정 변경 레코드 필드 Matter 제목 / 청구 준비 상태 / 위험도 필드 작업 책임자 일괄 변경 승인 조건 확인 승인 확인 최근 작업 0건 외부 연동 승인 대기 권한 기준에 맞춰 표시됩니다.",
+      "requests_after_click": [
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/vault-summary?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_vault_summary&audit_hint_ref=ui_mv_matter_vault_probe"
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+        },
+        {
+          "method": "GET",
+          "path": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_documents&audit_hint_ref=ui_mv_matter_vault_documents_probe"
+        },
+        {
+          "method": "GET",
+          "path": "/api/vault/search?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_search&audit_hint_ref=ui_mv_matter_vault_search_probe"
+        },
+        {
+          "method": "GET",
+          "path": "/api/vault/audit?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_audit&audit_hint_ref=ui_mv_matter_vault_audit_probe"
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/document-templates?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w04_document_template_read&audit_hint_ref=ui_sf_b_w04_document_template_read_probe"
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/builder-approval-requests?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w04_builder_approval_read&audit_hint_ref=ui_sf_b_w04_builder_approval_read_probe"
+        }
+      ],
+      "responses_after_click": [
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/vault-summary?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_vault_summary&audit_hint_ref=ui_mv_matter_vault_probe",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_documents&audit_hint_ref=ui_mv_matter_vault_documents_probe",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/vault/search?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_search&audit_hint_ref=ui_mv_matter_vault_search_probe",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/vault/audit?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_audit&audit_hint_ref=ui_mv_matter_vault_audit_probe",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/document-templates?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w04_document_template_read&audit_hint_ref=ui_sf_b_w04_document_template_read_probe",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/matters/matter_rp05_synthetic_opening/builder-approval-requests?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w04_builder_approval_read&audit_hint_ref=ui_sf_b_w04_builder_approval_read_probe",
+          "status": 200
+        }
+      ],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": false
+    },
+    {
+      "id": "LCX8-ACTION-0288",
+      "label": "활동",
+      "kind": "matter_sidebar_route",
+      "expected_section": "matter-timeline",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-timeline",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline"
+      },
+      "surfaceVisible": true,
+      "activeText": "활동",
+      "panelText": "활동 활동 이력 작업 예정 작업 추가 상태 예정 상태 저장 표시할 활동이 없습니다 활동 상태 일시 전송 Matter 개시 체크리스트 확인 예정 시각 미정 내부 준비",
+      "requests_after_click": [],
+      "responses_after_click": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": false
+    },
+    {
+      "id": "LCX8-ACTION-0289",
+      "label": "일정",
+      "kind": "matter_sidebar_route",
+      "expected_section": "matter-calendar",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-calendar",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-calendar"
+      },
+      "surfaceVisible": true,
+      "activeText": "일정",
+      "panelText": "일정 일정 관리 일정 기한 추가 일정 추가 기한 변경 이중 확인 변경 요청 확인 대기 확인 일정 기한 중요도 연동 기한 일시 확인 상태",
+      "requests_after_click": [],
+      "responses_after_click": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": false
+    },
+    {
+      "id": "LCX8-ACTION-0290",
+      "label": "대화",
+      "kind": "matter_sidebar_route",
+      "expected_section": "matter-channel",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-channel",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-channel"
+      },
+      "surfaceVisible": true,
+      "activeText": "대화 2",
+      "panelText": "대화 메시지 메시지 내부 기록 메시지 기록 외부 연동 연동 승인 대기 상태 확인 외부 연동은 승인과 설정이 필요합니다. 메시지 작성 상태",
+      "requests_after_click": [],
+      "responses_after_click": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": false
+    },
+    {
+      "id": "LCX8-ACTION-0291",
+      "label": "구성원",
+      "kind": "matter_sidebar_route",
+      "expected_section": "matter-team",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-team",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-team"
+      },
+      "surfaceVisible": true,
+      "activeText": "구성원",
+      "panelText": "Matter 구성원 권한 기준 적용 팀원 번호 구성원 계정 로그인 계정 역할 담당 변호사 책임 변호사 패러리걸 청구 검토자 팀원과 책임자를 지정할 수 있습니다 추가 팀원 구성원 로그인 계정 역할 상태",
+      "requests_after_click": [],
+      "responses_after_click": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": false
+    },
+    {
+      "id": "LCX8-ACTION-0293",
+      "label": "청구",
+      "kind": "matter_sidebar_route",
+      "expected_section": "matter-billing",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-billing",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-billing"
+      },
+      "surfaceVisible": true,
+      "activeText": "청구",
+      "panelText": "청구 청구 관리 시간 Matter 작업 시간 기록 청구 준비 승인 시간 기준 청구 준비 수납 청구 잔액 기준 수납 기록 시간 일자 상태 분 시간 1 2026-06-20 진행 중 60 청구서 상태 금액 통화 청구서 1 진행 중 KRW 400,000 KRW 이벤트 대상 상태 기록됨 ARAgingSnapshot 기록됨",
+      "requests_after_click": [],
+      "responses_after_click": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": false
+    },
+    {
+      "id": "LCX8-ACTION-0294",
+      "label": "분석",
+      "kind": "matter_sidebar_route",
+      "expected_section": "matter-analytics",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-analytics",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-analytics"
+      },
+      "surfaceVisible": true,
+      "activeText": "분석",
+      "panelText": "분석 분석 관리 대시보드 게시 지표 새로고침 내보내기 안전 내보내기 내보내기 손익 청구 준비/수납 필요 손익 갱신 대시보드 유형 지표 상태 AR Aging 미수금 현황 KRW 400,000 게시됨 Client Health Client 상태 87% 게시됨 Matter 표준 수금 손익 M-TENANT-RP05-0001 KRW 400,000 KRW 0 KRW -400,000",
+      "requests_after_click": [],
+      "responses_after_click": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": false
+    },
+    {
+      "id": "LCX8-ACTION-0295",
+      "label": "자료 가져오기",
+      "kind": "matter_sidebar_route",
+      "expected_section": "matter-import",
+      "state": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-import",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-import"
+      },
+      "surfaceVisible": true,
+      "activeText": "자료 가져오기",
+      "panelText": "Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 가져오기 필드 매핑 대상 선택 계정 / 연락처 / Matter / 결제 작업 생성 원본 준비 CSV 구조와 열 정보만 저장합니다. 원본 준비 필드 매핑 허용된 대상 필드만 저장합니다. 매핑 저장 사전 검증 대상 레코드는 변경하지 않습니다. 검증 실행 실행 요청 승인 전에는 실제 가져오기를 실행하지 않습니다. 실행 요청 되돌리기와 오류 승인 기록과 안전한 오류 보고서만 표시합니다. 확인 현재 작업 대기 상태 대기 사전 검증 대기 실행 대기 항목 상태 조치 검증 요약 대기 사전 검증 후 확인 레코드 Matter 1 상태 개시 중 청구 청구 준비 가능 책임자 미지정 팀 1 문서 0 활동 0 기한 0 대화 0 청구 2 분석 2 청구 상태 청구 준비 가능 저장 책임자 미지정 변경 레코드 필드 Matter 제목 / 청구 준비 상태 / 위험도 필드 작업 책임자 일괄 변경 승인 조건 확인 승인 확인 최근 작업 0건 외부 연동 승인 대기 권한 기준에 맞춰 표시됩니다.",
+      "requests_after_click": [
+        {
+          "method": "GET",
+          "path": "/api/import-targets?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe"
+        },
+        {
+          "method": "GET",
+          "path": "/api/import-jobs?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe"
+        }
+      ],
+      "responses_after_click": [
+        {
+          "method": "GET",
+          "path": "/api/import-targets?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/import-jobs?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+          "status": 200
+        }
+      ],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": false
+    },
+    {
+      "id": "LCX8-ACTION-0303",
+      "label": "팀원 번호",
+      "kind": "matter_team_form_local_state",
+      "value": "team-ui-only-0303",
+      "requests_after_change": [],
+      "responses_after_change": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": []
+    },
+    {
+      "id": "LCX8-ACTION-0304",
+      "label": "구성원 계정",
+      "kind": "matter_team_form_local_state",
+      "value": "employee-ui-only-0304",
+      "requests_after_change": [],
+      "responses_after_change": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": []
+    },
+    {
+      "id": "LCX8-ACTION-0305",
+      "label": "로그인 계정",
+      "kind": "matter_team_form_local_state",
+      "value": "user-ui-only-0305",
+      "requests_after_change": [],
+      "responses_after_change": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": []
+    },
+    {
+      "id": "LCX8-ACTION-0306",
+      "label": "역할",
+      "kind": "matter_team_form_local_state",
+      "value": "responsible_attorney",
+      "requests_after_change": [],
+      "responses_after_change": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": []
+    },
+    {
+      "id": "LCX8-ACTION-0298",
+      "label": "문서함",
+      "kind": "vault_sidebar_route",
+      "expected_section": "vault-documents",
+      "state": {
+        "view": "vault",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "vault-documents",
+        "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents"
+      },
+      "surfaceVisible": true,
+      "activeText": "문서함 24",
+      "panelText": "Vault 문서함 권한 기준 적용 문서 본문은 권한이 있을 때만 표시합니다. Matter 선택됨 / Vault / 작업공간 준비됨 보존 설정 없음 / 권한 기준 적용 문서 제목 등록 계정 상태 버전 권한 보존 문서 1 Synthetic engagement letter 서지원 사용 중 현재 버전 기본 없음",
+      "requests_after_click": [],
+      "responses_after_click": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": false
+    },
+    {
+      "id": "LCX8-ACTION-0299",
+      "label": "문서 상세",
+      "kind": "vault_sidebar_route",
+      "expected_section": "vault-detail",
+      "state": {
+        "view": "vault",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "vault-detail",
+        "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow#vault-detail"
+      },
+      "surfaceVisible": true,
+      "activeText": "문서 상세",
+      "panelText": "Vault Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다. 새로고침 문서 상세 권한 기준 적용 Synthetic engagement letter 버전 정보 있음 권한 기본 권한 보존 없음 등록 계정 서지원 담당자 서지원 저장 위치 숨김 문서 내용 숨김 문서 내용은 권한이 있을 때만 표시됩니다. 버전 기록 변경 이력 버전 상태 버전 1 현재 버전",
+      "requests_after_click": [],
+      "responses_after_click": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": false
+    },
+    {
+      "id": "LCX8-ACTION-0300",
+      "label": "메일 보관함",
+      "kind": "vault_sidebar_route",
+      "expected_section": "vault-email",
+      "state": {
+        "view": "vault",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "vault-email",
+        "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow#vault-email"
+      },
+      "surfaceVisible": true,
+      "activeText": "메일 보관함",
+      "panelText": "Vault Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다. 새로고침 메일 보관 연동 필요 Matter 메일 보관 메일 연동 후 사용할 수 있습니다 연동 정보가 연결되지 않았습니다",
+      "requests_after_click": [],
+      "responses_after_click": [],
+      "mutations": [],
+      "api_4xx": [],
+      "api_5xx": [],
+      "lane_e_backlog_preserved": true
+    }
+  ],
+  "browser_events": {
+    "console_errors": [],
+    "total_api_responses": 32,
+    "total_api_mutation_requests": 1
+  },
+  "screenshots": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0282-0306-matter-start.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0282-0306-matter-after-checks.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0282-0306-vault-after-checks.png"
+  ],
+  "assertions": [
+    {
+      "name": "LCX8-ACTION-0282 group toggle changed expanded state",
+      "status": "PASS",
+      "detail": {
+        "beforeExpanded": "true",
+        "afterExpanded": "false"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0282 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0282 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0286 group toggle changed expanded state",
+      "status": "PASS",
+      "detail": {
+        "beforeExpanded": "false",
+        "afterExpanded": "true"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0286 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0286 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0292 group toggle changed expanded state",
+      "status": "PASS",
+      "detail": {
+        "beforeExpanded": "false",
+        "afterExpanded": "true"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0292 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0292 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0283 hash route observed",
+      "status": "PASS",
+      "detail": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matters-list",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0283 surface visible",
+      "status": "PASS",
+      "detail": {
+        "activeText": "Matter 목록 18",
+        "panelText": "Matter 목록 권한 기준 적용 새 Matter 개시는 승인 후 반영됩니다. 전체 Matter 개시 중 종료 개시 저장 0개 선택 선택 완료 Matter 제목 진행 상태 청구 상태 Matter 1 Matter 1 개시 중 청구 준비 가능 개인 작업 기록 최근 본 항목 제목 상태 일시 Matter 1 Matter 1 개시 중 06. 28. 오후 12:34"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0283 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0283 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0284 hash route observed",
+      "status": "PASS",
+      "detail": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-command",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-command"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0284 surface visible",
+      "status": "PASS",
+      "detail": {
+        "activeText": "진행 현황",
+        "panelText": "Matter 현황 진행 관리 신규 이해상충 계약 수행 청구 상태 다음 단계로 완료 처리 완료 제목 Matter 1 Client 연결됨 위험도 표준 Vault 연결됨 구분 값 표시 이벤트 대상 상태 기록됨 Matter 기록됨 기록됨 MatterTimeline 기록됨"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0284 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0284 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0285 hash route observed",
+      "status": "PASS",
+      "detail": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-opening",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-opening"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0285 surface visible",
+      "status": "PASS",
+      "detail": {
+        "activeText": "Matter 개시",
+        "panelText": "Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 개시 승인 필요 MATTER 등록번호 제목 MATTER 번호 법률 CLIENT 청구 CLIENT 이해상충 확인 번호 접수 번호 검토 번호 위임 계약 번호 확인 번호 필수 정보를 입력하세요 개시"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0285 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0285 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0287 hash route observed",
+      "status": "PASS",
+      "detail": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-vault",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-vault"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0287 surface visible",
+      "status": "PASS",
+      "detail": {
+        "activeText": "문서",
+        "panelText": "Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter Vault 문서 연결 Vault 미리보기 등록 Vault 저장소 새로고침 문서 연결 문서 내용은 권한이 있을 때만 표시됩니다. 활동 유형 제목 표시 범위 문서 상태 계정 보호 Synthetic engagement letter 사용 중 jwsuh@amic.kr 보호됨 문서 버전 색인 보안 doc_rp07_synthetic_001 vers"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0287 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0287 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0288 hash route observed",
+      "status": "PASS",
+      "detail": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-timeline",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0288 surface visible",
+      "status": "PASS",
+      "detail": {
+        "activeText": "활동",
+        "panelText": "활동 활동 이력 작업 예정 작업 추가 상태 예정 상태 저장 표시할 활동이 없습니다 활동 상태 일시 전송 Matter 개시 체크리스트 확인 예정 시각 미정 내부 준비"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0288 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0288 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0289 hash route observed",
+      "status": "PASS",
+      "detail": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-calendar",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-calendar"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0289 surface visible",
+      "status": "PASS",
+      "detail": {
+        "activeText": "일정",
+        "panelText": "일정 일정 관리 일정 기한 추가 일정 추가 기한 변경 이중 확인 변경 요청 확인 대기 확인 일정 기한 중요도 연동 기한 일시 확인 상태"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0289 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0289 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0290 hash route observed",
+      "status": "PASS",
+      "detail": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-channel",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-channel"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0290 surface visible",
+      "status": "PASS",
+      "detail": {
+        "activeText": "대화 2",
+        "panelText": "대화 메시지 메시지 내부 기록 메시지 기록 외부 연동 연동 승인 대기 상태 확인 외부 연동은 승인과 설정이 필요합니다. 메시지 작성 상태"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0290 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0290 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0291 hash route observed",
+      "status": "PASS",
+      "detail": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-team",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-team"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0291 surface visible",
+      "status": "PASS",
+      "detail": {
+        "activeText": "구성원",
+        "panelText": "Matter 구성원 권한 기준 적용 팀원 번호 구성원 계정 로그인 계정 역할 담당 변호사 책임 변호사 패러리걸 청구 검토자 팀원과 책임자를 지정할 수 있습니다 추가 팀원 구성원 로그인 계정 역할 상태"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0291 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0291 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0293 hash route observed",
+      "status": "PASS",
+      "detail": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-billing",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-billing"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0293 surface visible",
+      "status": "PASS",
+      "detail": {
+        "activeText": "청구",
+        "panelText": "청구 청구 관리 시간 Matter 작업 시간 기록 청구 준비 승인 시간 기준 청구 준비 수납 청구 잔액 기준 수납 기록 시간 일자 상태 분 시간 1 2026-06-20 진행 중 60 청구서 상태 금액 통화 청구서 1 진행 중 KRW 400,000 KRW 이벤트 대상 상태 기록됨 ARAgingSnapshot 기록됨"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0293 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0293 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0294 hash route observed",
+      "status": "PASS",
+      "detail": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-analytics",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-analytics"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0294 surface visible",
+      "status": "PASS",
+      "detail": {
+        "activeText": "분석",
+        "panelText": "분석 분석 관리 대시보드 게시 지표 새로고침 내보내기 안전 내보내기 내보내기 손익 청구 준비/수납 필요 손익 갱신 대시보드 유형 지표 상태 AR Aging 미수금 현황 KRW 400,000 게시됨 Client Health Client 상태 87% 게시됨 Matter 표준 수금 손익 M-TENANT-RP05-0001 KRW 400,000 KRW 0 KRW -400,000"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0294 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0294 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0295 hash route observed",
+      "status": "PASS",
+      "detail": {
+        "view": "matters",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "matter-import",
+        "pathSearchHash": "/?locale=ko&view=matters&data=live&ctx=allow#matter-import"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0295 surface visible",
+      "status": "PASS",
+      "detail": {
+        "activeText": "자료 가져오기",
+        "panelText": "Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 가져오기 필드 매핑 대상 선택 계정 / 연락처 / Matter / 결제 작업 생성 원본 준비 CSV 구조와 열 정보만 저장합니다. 원본 준비 필드 매핑 허용된 대상 필드만 저장합니다. 매핑 저장 사전 검증 대상 레코드는 변경하지 않습니다. 검증 실행 실행 요청 승인 전에는 실제 가져오기를 실행하지 않습니다. 실행 요청 되돌리기와 오류 승인 기록과 "
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0295 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0295 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0303 local value observed",
+      "status": "PASS",
+      "detail": {
+        "value": "team-ui-only-0303",
+        "expected": "team-ui-only-0303"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0303 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0303 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0304 local value observed",
+      "status": "PASS",
+      "detail": {
+        "value": "employee-ui-only-0304",
+        "expected": "employee-ui-only-0304"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0304 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0304 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0305 local value observed",
+      "status": "PASS",
+      "detail": {
+        "value": "user-ui-only-0305",
+        "expected": "user-ui-only-0305"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0305 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0305 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0306 local value observed",
+      "status": "PASS",
+      "detail": {
+        "value": "responsible_attorney",
+        "expected": "responsible_attorney"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0306 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0306 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0298 hash route observed",
+      "status": "PASS",
+      "detail": {
+        "view": "vault",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "vault-documents",
+        "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0298 surface visible",
+      "status": "PASS",
+      "detail": {
+        "activeText": "문서함 24",
+        "panelText": "Vault 문서함 권한 기준 적용 문서 본문은 권한이 있을 때만 표시합니다. Matter 선택됨 / Vault / 작업공간 준비됨 보존 설정 없음 / 권한 기준 적용 문서 제목 등록 계정 상태 버전 권한 보존 문서 1 Synthetic engagement letter 서지원 사용 중 현재 버전 기본 없음"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0298 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0298 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0299 hash route observed",
+      "status": "PASS",
+      "detail": {
+        "view": "vault",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "vault-detail",
+        "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow#vault-detail"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0299 surface visible",
+      "status": "PASS",
+      "detail": {
+        "activeText": "문서 상세",
+        "panelText": "Vault Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다. 새로고침 문서 상세 권한 기준 적용 Synthetic engagement letter 버전 정보 있음 권한 기본 권한 보존 없음 등록 계정 서지원 담당자 서지원 저장 위치 숨김 문서 내용 숨김 문서 내용은 권한이 있을 때만 표시됩니다. 버전 기록 변경 이력 버전 상태 버전 1 현재 버전"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0299 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0299 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0300 hash route observed",
+      "status": "PASS",
+      "detail": {
+        "view": "vault",
+        "ctx": "allow",
+        "locale": "ko",
+        "hash": "vault-email",
+        "pathSearchHash": "/?locale=ko&view=vault&data=live&ctx=allow#vault-email"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0300 surface visible",
+      "status": "PASS",
+      "detail": {
+        "activeText": "메일 보관함",
+        "panelText": "Vault Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다. 새로고침 메일 보관 연동 필요 Matter 메일 보관 메일 연동 후 사용할 수 있습니다 연동 정보가 연결되지 않았습니다"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0300 no mutation request",
+      "status": "PASS",
+      "detail": {
+        "mutations": []
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0300 no API 4xx/5xx",
+      "status": "PASS",
+      "detail": {
+        "api4xx": [],
+        "api5xx": []
+      }
+    },
+    {
+      "name": "browser console has no errors",
+      "status": "PASS",
+      "detail": {
+        "console_errors": []
+      }
+    }
+  ],
+  "non_claims": [
+    "Group toggle and form-field rows remain UI_ONLY final; no submit action is claimed for Matter team writes.",
+    "Route rows remain UI_ONLY final unless browser proof observed read-only panel mount APIs after click.",
+    "API read rows are promoted only for successful read-only GET responses observed after navigation, with no mutation requests and no API 4xx/5xx.",
+    "Lane E visual/focus/mobile backlog rows keep their Lane E backlog; this proof does not claim UX remediation.",
+    "No Matter/Client/People/Vault write, provider execution, external receipt, audit write, or production launch claim is made."
+  ]
+}

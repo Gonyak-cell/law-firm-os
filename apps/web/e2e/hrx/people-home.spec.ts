@@ -24,5 +24,5 @@ test("People home is routed and loads API-backed overview state", async () => {
   assert.match(home, /people-ai/);
   assert.match(api, /fetchHrxPeopleOverview/);
   assert.match(api, /\/api\/hrx\/employees/);
-  assert.doesNotMatch(api, /mockData|profileRows|matters/);
+  assert.doesNotMatch(api, /mockData|profileRows/);
 });

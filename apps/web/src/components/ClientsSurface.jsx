@@ -135,15 +135,15 @@ function renderLiveState(result, noun) {
   if (result === null) {
     return (
       <div className="live-data-state live-data-loading">
-        <strong>{noun} 정보를 불러오는 중입니다</strong>
+        <strong>{noun} 목록을 불러오는 중입니다</strong>
       </div>
     );
   }
   if (result.kind === "error") {
     return (
       <div className="live-data-state live-data-unavailable live-data-error">
-        <strong>{noun} 정보를 불러오지 못했습니다</strong>
-        잠시 후 다시 시도해주세요.
+        <strong>{noun} 목록을 불러오지 못했습니다</strong>
+        새로고침하거나 연결 상태를 확인하세요.
       </div>
     );
   }
@@ -151,7 +151,7 @@ function renderLiveState(result, noun) {
     return (
       <div className="live-data-state live-data-denied">
         <strong>접근 권한이 없습니다</strong>
-        권한이 있는 {noun} 정보만 표시됩니다.
+        권한이 있는 {noun}만 표시합니다.
       </div>
     );
   }
@@ -286,7 +286,7 @@ function RecordActionSummary({ fieldsResult, auditResult, updateResult, ownerRes
 }
 
 function ClientsTable({ result }) {
-  const state = renderLiveState(result, "Client");
+  const state = renderLiveState(result, "의뢰인");
   if (state) return state;
   const items = resultItems(result);
   const reviewCount = items.filter((item) => item.status === "review_required").length;
@@ -534,16 +534,16 @@ function ContactsTable({
       />
       <div className="record-action-strip legal-people-backlink-strip" data-lcx-ppl-client-backlink="true">
         <div>
-          <strong>법률 People 연결</strong>
-          <span>Client 연락처를 Client-Matter-People 런타임 People 레코드와 함께 확인합니다.</span>
-          {legalPeopleResult === null && <em>법률 People 조회 중</em>}
-          {legalPeopleResult?.kind === "error" && <em>법률 People 조회 실패</em>}
+          <strong>관련 인물 연결</strong>
+          <span>Client 연락처와 연결된 인물 기록을 함께 확인합니다.</span>
+          {legalPeopleResult === null && <em>인물 기록 조회 중</em>}
+          {legalPeopleResult?.kind === "error" && <em>인물 기록 조회 실패</em>}
         </div>
-        <div className="legal-people-backlink-list" aria-label="Client 연결 People">
+        <div className="legal-people-backlink-list" aria-label="Client 연결 인물">
           {legalPeople.slice(0, 4).map((person) => (
             <span key={person.person_id} className="legal-people-backlink-row">
               <Link2 size={13} />
-              <strong>{businessLabel(person.display_name, "People")}</strong>
+              <strong>{businessLabel(person.display_name, "인물")}</strong>
               <small>{person.korean_label ?? person.type_id}</small>
             </span>
           ))}
@@ -701,12 +701,12 @@ function IntakeActionPanel({ intakeRequest, auditCount, conflictResult, clearanc
           <ActionNotice
             pending={conflictPending}
             result={conflictResult}
-            pendingText="충돌 검토 중입니다."
-            successText="충돌 스냅샷이 기록되었습니다."
+            pendingText="이해상충 검토 중입니다."
+            successText="이해상충 스냅샷이 기록되었습니다."
           />
         </div>
         <button className="secondary-button" type="button" disabled={!intakeRequest || conflictPending} onClick={onConflictCheck}>
-          충돌 검토
+          이해상충 검토
         </button>
       </div>
       <div className="record-action-strip">
@@ -847,7 +847,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   useEffect(() => {
     let cancelled = false;
     setLegalPeopleClientResult(null);
-    fetchLegalPeopleSearch({ client_id: "client_lcx_001" }).then((next) => {
+    fetchLegalPeopleSearch({ client_id: "client_lcx_001", ctx: liveCtx }).then((next) => {
       if (!cancelled) setLegalPeopleClientResult(next);
     });
     return () => {
@@ -914,14 +914,27 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   const leadCount = resultItems(leadsResult).length;
   const opportunityCount = opportunities.length;
   const intakeCount = intakes.length;
+  const clientGuardedState =
+    liveCtx === "denied" ||
+    liveCtx === "review" ||
+    clientsResult?.uiState === "denied" ||
+    clientsResult?.uiState === "review_required" ||
+    clientsResult?.outcome === "review_required";
 
   useEffect(() => {
     let cancelled = false;
     setClientRecordActionFieldsResult(null);
     setClientRecordActionAuditResult(null);
+    setClientRecordActionUpdateResult(null);
+    setClientRecordActionOwnerResult(null);
+    if (clientGuardedState || !selectedClientId) {
+      return () => {
+        cancelled = true;
+      };
+    }
     Promise.all([
       fetchRecordActionFields({ objectName: "client", ctx: liveCtx }),
-      selectedClientId ? fetchRecordActionAudit({ objectName: "client", recordId: selectedClientId, ctx: liveCtx }) : Promise.resolve({ kind: "data", items: [] })
+      fetchRecordActionAudit({ objectName: "client", recordId: selectedClientId, ctx: liveCtx })
     ]).then(([fields, audit]) => {
       if (cancelled) return;
       setClientRecordActionFieldsResult(fields);
@@ -930,7 +943,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     return () => {
       cancelled = true;
     };
-  }, [liveCtx, refreshToken, selectedClientId]);
+  }, [clientGuardedState, liveCtx, refreshToken, selectedClientId]);
 
   async function handleOpportunityHandoff() {
     if (!selectedOpportunity?.opportunity_id) return;
@@ -1246,7 +1259,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     >
       <PageHeader
         title={labels.clientsTitle}
-        subtitle="Client, 잠재 Client, 기회, 접수를 한 화면에서 확인합니다."
+        subtitle="Client와 상담 접수, 영업 기회를 한 화면에서 확인합니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />
@@ -1256,7 +1269,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
       />
       <div className="clients-runtime-grid record-workspace" data-salesforce-client-workspace="list-detail-right-panel">
         {currentSection === "clients-list" && (
-          <Panel id="clients-list" className="record-list-panel" title="Client 목록" meta="권한 적용">
+          <Panel id="clients-list" className="record-list-panel" title="Client 목록" meta="권한 기준 적용">
             <ClientsTable result={clientsResult} />
           </Panel>
         )}
@@ -1349,16 +1362,18 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
           mergeProposalCount={mergeProposalCount}
           executableMergeCount={executableMergeCount}
         />
-        <RecordActionSummary
-          fieldsResult={clientRecordActionFieldsResult}
-          auditResult={clientRecordActionAuditResult}
-          updateResult={clientRecordActionUpdateResult}
-          ownerResult={clientRecordActionOwnerResult}
-          pending={clientRecordActionPending}
-          ownerPending={clientRecordActionOwnerPending}
-          onFieldUpdate={handleClientRecordActionFieldUpdate}
-          onOwnerBlocked={handleClientOwnerBlockedAction}
-        />
+        {!clientGuardedState && selectedClientId && (
+          <RecordActionSummary
+            fieldsResult={clientRecordActionFieldsResult}
+            auditResult={clientRecordActionAuditResult}
+            updateResult={clientRecordActionUpdateResult}
+            ownerResult={clientRecordActionOwnerResult}
+            pending={clientRecordActionPending}
+            ownerPending={clientRecordActionOwnerPending}
+            onFieldUpdate={handleClientRecordActionFieldUpdate}
+            onOwnerBlocked={handleClientOwnerBlockedAction}
+          />
+        )}
       </div>
     </section>
   );

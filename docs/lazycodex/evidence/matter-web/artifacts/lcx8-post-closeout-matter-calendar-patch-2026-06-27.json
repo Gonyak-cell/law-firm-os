@@ -1,0 +1,59 @@
+{
+  "schema_version": "matter.lcx8.post_closeout.single_action_status.v1",
+  "generated_at": "2026-06-26T23:58:57.936Z",
+  "action_id": "LCX8-ACTION-0076",
+  "status": "POST_CLOSEOUT_ACTION_RESOLVED",
+  "status_before": "BLOCKED",
+  "status_after": "PASS",
+  "batch_id": "LCX8-ALL-11",
+  "surface": "matter",
+  "label": "변경 요청",
+  "api_route": "PATCH /api/matters/:matter_id/calendar-events/:event_id",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0076-matter-calendar-patch-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0076-matter-calendar-patch-proof.md",
+  "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0076-matter-calendar-patch-proof.png",
+  "fixture": {
+    "tenant_id": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "matter_id": "matter_lcx8_0076_patch_1782518290434",
+    "matter_number": "M-LCX8-0076-18290434",
+    "title": "LCX8 calendar patch proof 1782518290434",
+    "event_id": "calendar_matter_lcx8_0076_patch_1782518290434_1782518290434",
+    "safe_fixture_family": "matter_runtime_calendar_patch_approval_required",
+    "existing_seed_mutated": false
+  },
+  "evidence": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0076-matter-calendar-patch-proof.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0076-matter-calendar-patch-proof.md",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-calendar-patch-2026-06-27.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-calendar-patch-2026-06-27.md",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0076-matter-calendar-patch-proof.png"
+  ],
+  "counts_before": {
+    "pass": 24,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 108,
+    "fail": 42,
+    "unknown": 0
+  },
+  "counts_after": {
+    "pass": 25,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 107,
+    "fail": 42,
+    "unknown": 0
+  },
+  "validation": {
+    "browser_ui_api_proof": "PASS 22/22 assertions",
+    "focused_api_test": "PASS 4/4 node --test apps/api/test/sf-b-w03-activity-calendar-channel.test.js",
+    "read_back": "PASS calendar/deadline remain unchanged while approval_required request is pending confirmation",
+    "audit": "PASS matter.deadline.change_requested audit event with dual_control_required metadata and requester ref hidden",
+    "fail_closed": "PASS denied 403, review_required 200, missing event 404/empty",
+    "non_claim": "local synthetic runtime proof only; approval_required request only; no final deadline confirmation, external calendar provider receipt, production go-live, or owner approval claimed"
+  },
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0076 verification: UI/API calendar patch proof PASS (22/22 assertions); node --test apps/api/test/sf-b-w03-activity-calendar-channel.test.js PASS 4/4; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+}

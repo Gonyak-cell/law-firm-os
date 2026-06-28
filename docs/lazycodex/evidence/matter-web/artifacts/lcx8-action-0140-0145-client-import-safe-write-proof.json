@@ -1,0 +1,1411 @@
+{
+  "schema_version": "law-firm-os.lcx8.action-proof.v1",
+  "generated_at": "2026-06-28T03:56:35.065Z",
+  "batch": "LCX8-ALL-15",
+  "slice": "client_import_safe_write_proof",
+  "url": "http://127.0.0.1:5173/?locale=ko&view=clients&data=live&ctx=allow#client-import",
+  "rows": [
+    "LCX8-ACTION-0140",
+    "LCX8-ACTION-0141",
+    "LCX8-ACTION-0142",
+    "LCX8-ACTION-0143",
+    "LCX8-ACTION-0144",
+    "LCX8-ACTION-0145"
+  ],
+  "status": "PASS",
+  "summary": "LCX8-ACTION-0140..0145 Client import lifecycle browser/API proof: job creation, source manifest, allowlisted mapping, dry-run preview, execute owner-blocked request, and rollback/error-report all operated through current UI/API with audit events, read-back, raw-row redaction, denied/review fail-closed probes, blocked target rejection, and no production import execution claim.",
+  "screenshots": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0140-0145-client-import-start.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0140-0145-client-import-after-actions.png"
+  ],
+  "action_results": [
+    {
+      "row_id": "LCX8-ACTION-0140",
+      "label": "작업 생성",
+      "request_path": "/api/import-jobs",
+      "status": 201,
+      "response": {
+        "request_id": "req_bc414147-fd9c-499b-9b10-b42950b22855",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "created",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_client",
+          "target_object": "crm_account_facade",
+          "target_label": "CRM Account",
+          "source_type": "csv_manifest",
+          "status": "created",
+          "created_at": "2026-06-28T03:56:34.842Z",
+          "updated_at": "2026-06-28T03:56:34.842Z",
+          "source_file_staged": false,
+          "mapping_saved": false,
+          "dry_run_status": "not_started",
+          "execution_state": "not_started",
+          "rollback_state": "not_started",
+          "safe_counts_only": true,
+          "raw_file_bytes_included": false,
+          "raw_rows_included": false,
+          "direct_personal_contact_identifier_included": false,
+          "storage_pointer_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "import_audit_047a30f0-2976-4f0c-994e-5571e801d4de",
+          "action": "import.job.created",
+          "object_type": "ClientMatterImportJob",
+          "object_id": "import_job_ui_sf_b_w05_client",
+          "actor_ref_included": false,
+          "raw_values_included": false
+        },
+        "state_idempotent": true,
+        "idempotent_replay": false
+      },
+      "follow_up": null,
+      "read_back_job": {
+        "job_id": "import_job_ui_sf_b_w05_client",
+        "target_object": "crm_account_facade",
+        "target_label": "CRM Account",
+        "source_type": "csv_manifest",
+        "status": "created",
+        "created_at": "2026-06-28T03:56:34.842Z",
+        "updated_at": "2026-06-28T03:56:34.842Z",
+        "source_file_staged": false,
+        "mapping_saved": false,
+        "dry_run_status": "not_started",
+        "execution_state": "not_started",
+        "rollback_state": "not_started",
+        "safe_counts_only": true,
+        "raw_file_bytes_included": false,
+        "raw_rows_included": false,
+        "direct_personal_contact_identifier_included": false,
+        "storage_pointer_included": false,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "row_id": "LCX8-ACTION-0141",
+      "label": "원본 준비",
+      "request_path": "/api/import-jobs/import_job_ui_sf_b_w05_client/source-files",
+      "status": 201,
+      "response": {
+        "request_id": "req_1f169e19-ce39-4a7e-abe0-28f5da7f85cc",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "staged",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_client",
+          "source_id": "import_source:import_job_ui_sf_b_w05_client",
+          "file_name": "client-matter-import.csv",
+          "mime_type": "text/csv",
+          "row_count_bucket": "11-100",
+          "column_count": 2,
+          "columns": [
+            {
+              "source_field": "company_name",
+              "label": "회사명",
+              "ordinal": 1,
+              "sample_value_state": "redacted"
+            },
+            {
+              "source_field": "account_status",
+              "label": "상태",
+              "ordinal": 2,
+              "sample_value_state": "redacted"
+            }
+          ],
+          "source_profile_hash": "64bf1cfe0ee02533",
+          "source_manifest_ref": "source_manifest:import_job_ui_sf_b_w05_client:64bf1cfe0ee02533",
+          "raw_file_bytes_included": false,
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "storage_pointer_included": false
+        },
+        "preview": {
+          "job_id": "import_job_ui_sf_b_w05_client",
+          "target_object": "crm_account_facade",
+          "row_count_bucket": "11-100",
+          "sampled_row_count": 3,
+          "sample_rows": [
+            {
+              "row_label": "Row 1",
+              "cells": [
+                {
+                  "source_field": "company_name",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "account_status",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 2",
+              "cells": [
+                {
+                  "source_field": "company_name",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "account_status",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 3",
+              "cells": [
+                {
+                  "source_field": "company_name",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "account_status",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            }
+          ],
+          "validation_summary": {
+            "mapped_field_count": 0,
+            "missing_required_fields": [
+              "display_name"
+            ],
+            "issue_count": 1,
+            "duplicate_policy": "review_required",
+            "count_leak_prevented": true
+          },
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "storage_pointer_included": false
+        },
+        "audit_event": {
+          "event_id": "import_audit_98d27e9c-b964-47b0-a0d2-7dee7517e5e8",
+          "action": "import.source.staged",
+          "object_type": "ClientMatterImportJob",
+          "object_id": "import_job_ui_sf_b_w05_client",
+          "actor_ref_included": false,
+          "raw_values_included": false
+        },
+        "state_idempotent": true,
+        "idempotent_replay": false
+      },
+      "follow_up": null,
+      "read_back_job": {
+        "job_id": "import_job_ui_sf_b_w05_client",
+        "target_object": "crm_account_facade",
+        "target_label": "CRM Account",
+        "source_type": "csv_manifest",
+        "status": "source_staged",
+        "created_at": "2026-06-28T03:56:34.842Z",
+        "updated_at": "2026-06-28T03:56:34.891Z",
+        "source_file_staged": true,
+        "mapping_saved": false,
+        "dry_run_status": "not_started",
+        "execution_state": "not_started",
+        "rollback_state": "not_started",
+        "safe_counts_only": true,
+        "raw_file_bytes_included": false,
+        "raw_rows_included": false,
+        "direct_personal_contact_identifier_included": false,
+        "storage_pointer_included": false,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "row_id": "LCX8-ACTION-0142",
+      "label": "매핑 저장",
+      "request_path": "/api/import-jobs/import_job_ui_sf_b_w05_client/field-mappings",
+      "status": 200,
+      "response": {
+        "request_id": "req_5b97844b-c7e0-4dc1-ad68-d104f8af3362",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "mapped",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_client",
+          "mapping_id": "import_mapping:import_job_ui_sf_b_w05_client",
+          "target_object": "crm_account_facade",
+          "field_mappings": [
+            {
+              "source_field": "company_name",
+              "target_field": "display_name",
+              "transform": "copy",
+              "validation_state": "mapped",
+              "raw_value_included": false
+            },
+            {
+              "source_field": "account_status",
+              "target_field": "status",
+              "transform": "copy",
+              "validation_state": "mapped",
+              "raw_value_included": false
+            }
+          ],
+          "required_fields_satisfied": true,
+          "blocked_target_rejected": true,
+          "raw_values_included": false
+        },
+        "preview": {
+          "job_id": "import_job_ui_sf_b_w05_client",
+          "target_object": "crm_account_facade",
+          "row_count_bucket": "11-100",
+          "sampled_row_count": 3,
+          "sample_rows": [
+            {
+              "row_label": "Row 1",
+              "cells": [
+                {
+                  "source_field": "company_name",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "account_status",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 2",
+              "cells": [
+                {
+                  "source_field": "company_name",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "account_status",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 3",
+              "cells": [
+                {
+                  "source_field": "company_name",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "account_status",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            }
+          ],
+          "validation_summary": {
+            "mapped_field_count": 2,
+            "missing_required_fields": [],
+            "issue_count": 0,
+            "duplicate_policy": "review_required",
+            "count_leak_prevented": true
+          },
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "storage_pointer_included": false
+        },
+        "audit_event": {
+          "event_id": "import_audit_5d65bc1f-3136-47a6-bc45-d6b31bb94d03",
+          "action": "import.mapping.saved",
+          "object_type": "ClientMatterImportJob",
+          "object_id": "import_job_ui_sf_b_w05_client",
+          "actor_ref_included": false,
+          "raw_values_included": false
+        },
+        "state_idempotent": true,
+        "idempotent_replay": false
+      },
+      "follow_up": null,
+      "read_back_job": {
+        "job_id": "import_job_ui_sf_b_w05_client",
+        "target_object": "crm_account_facade",
+        "target_label": "CRM Account",
+        "source_type": "csv_manifest",
+        "status": "mapping_saved",
+        "created_at": "2026-06-28T03:56:34.842Z",
+        "updated_at": "2026-06-28T03:56:34.923Z",
+        "source_file_staged": true,
+        "mapping_saved": true,
+        "dry_run_status": "not_started",
+        "execution_state": "not_started",
+        "rollback_state": "not_started",
+        "safe_counts_only": true,
+        "raw_file_bytes_included": false,
+        "raw_rows_included": false,
+        "direct_personal_contact_identifier_included": false,
+        "storage_pointer_included": false,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "row_id": "LCX8-ACTION-0143",
+      "label": "검증 실행",
+      "request_path": "/api/import-jobs/import_job_ui_sf_b_w05_client/dry-run",
+      "status": 200,
+      "response": {
+        "request_id": "req_58003662-3d0d-4baf-8469-386ce5202cae",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "ui_state": "ready_for_owner_approval",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_client",
+          "dry_run_id": "import_dry_run:import_job_ui_sf_b_w05_client",
+          "outcome": "passed",
+          "ui_state": "ready_for_owner_approval",
+          "mutation_count": 0,
+          "planned_create_count": 12,
+          "planned_update_count": 0,
+          "warning_count": 0,
+          "rollback_plan_ref": "rollback_plan:import_job_ui_sf_b_w05_client:7ca65bf146971e29",
+          "duplicate_policy": "review_required",
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "import_audit_067d76cb-a346-450f-8f1a-ed0916f3095a",
+          "action": "import.dry_run.completed",
+          "object_type": "ClientMatterImportJob",
+          "object_id": "import_job_ui_sf_b_w05_client",
+          "actor_ref_included": false,
+          "raw_values_included": false
+        },
+        "state_idempotent": true,
+        "idempotent_replay": false
+      },
+      "follow_up": {
+        "request_id": "req_6b26dded-a095-4caf-8517-b769584b6784",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_client",
+          "target_object": "crm_account_facade",
+          "row_count_bucket": "11-100",
+          "sampled_row_count": 3,
+          "sample_rows": [
+            {
+              "row_label": "Row 1",
+              "cells": [
+                {
+                  "source_field": "company_name",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "account_status",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 2",
+              "cells": [
+                {
+                  "source_field": "company_name",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "account_status",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 3",
+              "cells": [
+                {
+                  "source_field": "company_name",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "account_status",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            }
+          ],
+          "validation_summary": {
+            "mapped_field_count": 2,
+            "missing_required_fields": [],
+            "issue_count": 0,
+            "duplicate_policy": "review_required",
+            "count_leak_prevented": true
+          },
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "storage_pointer_included": false
+        }
+      },
+      "read_back_job": {
+        "job_id": "import_job_ui_sf_b_w05_client",
+        "target_object": "crm_account_facade",
+        "target_label": "CRM Account",
+        "source_type": "csv_manifest",
+        "status": "dry_run_passed",
+        "created_at": "2026-06-28T03:56:34.842Z",
+        "updated_at": "2026-06-28T03:56:34.959Z",
+        "source_file_staged": true,
+        "mapping_saved": true,
+        "dry_run_status": "passed",
+        "execution_state": "not_started",
+        "rollback_state": "not_started",
+        "safe_counts_only": true,
+        "raw_file_bytes_included": false,
+        "raw_rows_included": false,
+        "direct_personal_contact_identifier_included": false,
+        "storage_pointer_included": false,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "row_id": "LCX8-ACTION-0144",
+      "label": "실행 요청",
+      "request_path": "/api/import-jobs/import_job_ui_sf_b_w05_client/execute",
+      "status": 200,
+      "response": {
+        "request_id": "req_915fbd6a-27d0-4f58-a83a-0fc8d2e0e13d",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "owner_blocked",
+        "ui_state": "owner_blocked",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_client",
+          "execution_id": "import_execution:import_job_ui_sf_b_w05_client",
+          "outcome": "owner_blocked",
+          "ui_state": "owner_blocked",
+          "owner_approval_required": true,
+          "target_records_mutated": false,
+          "created_count": 0,
+          "updated_count": 0,
+          "audit_event_ids": [
+            "import_audit_34ad9edc-6d9d-4216-9d2a-4b3c1deaeaef"
+          ],
+          "idempotent_replay": false,
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "import_audit_34ad9edc-6d9d-4216-9d2a-4b3c1deaeaef",
+          "action": "import.execution.owner_blocked",
+          "object_type": "ClientMatterImportJob",
+          "object_id": "import_job_ui_sf_b_w05_client",
+          "actor_ref_included": false,
+          "raw_values_included": false
+        },
+        "state_idempotent": true,
+        "idempotent_replay": false
+      },
+      "follow_up": null,
+      "read_back_job": {
+        "job_id": "import_job_ui_sf_b_w05_client",
+        "target_object": "crm_account_facade",
+        "target_label": "CRM Account",
+        "source_type": "csv_manifest",
+        "status": "execution_owner_blocked",
+        "created_at": "2026-06-28T03:56:34.842Z",
+        "updated_at": "2026-06-28T03:56:34.992Z",
+        "source_file_staged": true,
+        "mapping_saved": true,
+        "dry_run_status": "passed",
+        "execution_state": "owner_blocked",
+        "rollback_state": "not_started",
+        "safe_counts_only": true,
+        "raw_file_bytes_included": false,
+        "raw_rows_included": false,
+        "direct_personal_contact_identifier_included": false,
+        "storage_pointer_included": false,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "row_id": "LCX8-ACTION-0145",
+      "label": "확인",
+      "request_path": "/api/import-jobs/import_job_ui_sf_b_w05_client/rollback",
+      "status": 200,
+      "response": {
+        "request_id": "req_907244bc-9683-4114-a013-e8aefbbad758",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "blocked",
+        "ui_state": "blocked",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_client",
+          "rollback_id": "import_rollback:import_job_ui_sf_b_w05_client",
+          "outcome": "blocked",
+          "ui_state": "blocked",
+          "rollback_state": "execution_not_applied",
+          "target_records_reverted": 0,
+          "compensation_receipt_required": false,
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "import_audit_0d603b17-84ad-4f54-9b27-023bbb7443ed",
+          "action": "import.rollback.blocked",
+          "object_type": "ClientMatterImportJob",
+          "object_id": "import_job_ui_sf_b_w05_client",
+          "actor_ref_included": false,
+          "raw_values_included": false
+        },
+        "state_idempotent": true,
+        "idempotent_replay": false
+      },
+      "follow_up": {
+        "request_id": "req_ad782fe8-3a16-48d4-80c9-4501d3c96806",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_client",
+          "status": "rollback_blocked",
+          "items": [
+            {
+              "row_label": "Validation summary",
+              "issue_category": "no_blocking_errors",
+              "target_field": null,
+              "remediation_hint": "Dry-run can be reviewed by an owner before execution.",
+              "raw_row_included": false,
+              "raw_personal_identifier_included": false
+            }
+          ],
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "storage_pointer_included": false
+        },
+        "items": [
+          {
+            "row_label": "Validation summary",
+            "issue_category": "no_blocking_errors",
+            "target_field": null,
+            "remediation_hint": "Dry-run can be reviewed by an owner before execution.",
+            "raw_row_included": false,
+            "raw_personal_identifier_included": false
+          }
+        ]
+      },
+      "read_back_job": {
+        "job_id": "import_job_ui_sf_b_w05_client",
+        "target_object": "crm_account_facade",
+        "target_label": "CRM Account",
+        "source_type": "csv_manifest",
+        "status": "rollback_blocked",
+        "created_at": "2026-06-28T03:56:34.842Z",
+        "updated_at": "2026-06-28T03:56:35.015Z",
+        "source_file_staged": true,
+        "mapping_saved": true,
+        "dry_run_status": "passed",
+        "execution_state": "owner_blocked",
+        "rollback_state": "execution_not_applied",
+        "safe_counts_only": true,
+        "raw_file_bytes_included": false,
+        "raw_rows_included": false,
+        "direct_personal_contact_identifier_included": false,
+        "storage_pointer_included": false,
+        "production_ready_claim": false
+      }
+    }
+  ],
+  "direct_api_probes": {
+    "deniedTargets": {
+      "status": 403,
+      "body": {
+        "request_id": "req_70cc9711-715c-4d95-86c9-ee8591dd4594",
+        "outcome": "denied",
+        "items": [],
+        "safe_error_codes": [
+          "IMPORT_DATA_PERMISSION_REQUIRED"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "denied",
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe_denied"
+      }
+    },
+    "reviewTargets": {
+      "status": 200,
+      "body": {
+        "request_id": "req_3c09827d-2fe0-4141-9f72-467064f92c9c",
+        "outcome": "review_required",
+        "items": [],
+        "safe_error_codes": [
+          "IMPORT_DATA_REVIEW_REQUIRED"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "review_required",
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe_review"
+      }
+    },
+    "blockedTarget": {
+      "status": 400,
+      "body": {
+        "request_id": "req_41109b7d-e6e4-463f-88c2-b34755927223",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "IMPORT_DATA_VALIDATION_ERROR"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "blocked",
+        "message": "blocked import target",
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe"
+      }
+    }
+  },
+  "network": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-targets?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-targets",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/import-jobs",
+      "path": "/api/import-jobs",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/import-jobs/import_job_ui_sf_b_w05_client/source-files",
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_client/source-files",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/import-jobs/import_job_ui_sf_b_w05_client/field-mappings",
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_client/field-mappings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/import-jobs/import_job_ui_sf_b_w05_client/dry-run",
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_client/dry-run",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs/import_job_ui_sf_b_w05_client/preview?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_client/preview",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/import-jobs/import_job_ui_sf_b_w05_client/execute",
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_client/execute",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/import-jobs/import_job_ui_sf_b_w05_client/rollback",
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_client/rollback",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs/import_job_ui_sf_b_w05_client/error-report?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_client/error-report",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/import-jobs?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w05_import_data_mapping&audit_hint_ref=ui_sf_b_w05_import_data_mapping_probe",
+      "path": "/api/import-jobs",
+      "status": 200
+    }
+  ],
+  "network_summary": {
+    "responses": 16,
+    "api_4xx": 0,
+    "api_5xx": 0,
+    "direct_denied_review_probes_recorded_separately": true
+  },
+  "console_messages": [],
+  "assertions": [
+    {
+      "name": "client_import_wizard_visible_after_load",
+      "url": "http://127.0.0.1:5173/?locale=ko&view=clients&data=live&ctx=allow#client-import",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0140_http_success",
+      "observed_status": 201,
+      "path": "/api/import-jobs",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0140_expected_outcome",
+      "outcome": "created",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0140_no_production_ready_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0140_audit_event_action",
+      "audit_event": {
+        "event_id": "import_audit_047a30f0-2976-4f0c-994e-5571e801d4de",
+        "action": "import.job.created",
+        "object_type": "ClientMatterImportJob",
+        "object_id": "import_job_ui_sf_b_w05_client",
+        "actor_ref_included": false,
+        "raw_values_included": false
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0140_audit_safe_actor_ref",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0140_client_target_object",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0140_raw_rows_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0140_contact_identifier_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0140_dom_result_visible",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0140_job_list_read_back_status",
+      "observed_status": 200,
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0140_job_list_contains_fixture",
+      "job_status": "created",
+      "execution_state": "not_started",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0140_read_back_no_production_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0141_http_success",
+      "observed_status": 201,
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_client/source-files",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0141_expected_outcome",
+      "outcome": "staged",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0141_no_production_ready_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0141_audit_event_action",
+      "audit_event": {
+        "event_id": "import_audit_98d27e9c-b964-47b0-a0d2-7dee7517e5e8",
+        "action": "import.source.staged",
+        "object_type": "ClientMatterImportJob",
+        "object_id": "import_job_ui_sf_b_w05_client",
+        "actor_ref_included": false,
+        "raw_values_included": false
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0141_audit_safe_actor_ref",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0141_source_raw_rows_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0141_source_storage_pointer_hidden",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0141_preview_raw_rows_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0141_dom_result_visible",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0141_job_list_read_back_status",
+      "observed_status": 200,
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0141_job_list_contains_fixture",
+      "job_status": "source_staged",
+      "execution_state": "not_started",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0141_read_back_no_production_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0142_http_success",
+      "observed_status": 200,
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_client/field-mappings",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0142_expected_outcome",
+      "outcome": "mapped",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0142_no_production_ready_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0142_audit_event_action",
+      "audit_event": {
+        "event_id": "import_audit_5d65bc1f-3136-47a6-bc45-d6b31bb94d03",
+        "action": "import.mapping.saved",
+        "object_type": "ClientMatterImportJob",
+        "object_id": "import_job_ui_sf_b_w05_client",
+        "actor_ref_included": false,
+        "raw_values_included": false
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0142_audit_safe_actor_ref",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0142_mapping_client_target_object",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0142_required_fields_satisfied",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0142_raw_values_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0142_dom_result_visible",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0142_job_list_read_back_status",
+      "observed_status": 200,
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0142_job_list_contains_fixture",
+      "job_status": "mapping_saved",
+      "execution_state": "not_started",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0142_read_back_no_production_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0143_http_success",
+      "observed_status": 200,
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_client/dry-run",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0143_expected_outcome",
+      "outcome": "passed",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0143_no_production_ready_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0143_audit_event_action",
+      "audit_event": {
+        "event_id": "import_audit_067d76cb-a346-450f-8f1a-ed0916f3095a",
+        "action": "import.dry_run.completed",
+        "object_type": "ClientMatterImportJob",
+        "object_id": "import_job_ui_sf_b_w05_client",
+        "actor_ref_included": false,
+        "raw_values_included": false
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0143_audit_safe_actor_ref",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0143_dry_run_zero_mutation",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0143_dry_run_ready_for_owner_approval",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0143_dry_run_raw_identifiers_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0143_preview_read_back_response",
+      "observed_status": 200,
+      "body": {
+        "request_id": "req_6b26dded-a095-4caf-8517-b769584b6784",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_client",
+          "target_object": "crm_account_facade",
+          "row_count_bucket": "11-100",
+          "sampled_row_count": 3,
+          "sample_rows": [
+            {
+              "row_label": "Row 1",
+              "cells": [
+                {
+                  "source_field": "company_name",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "account_status",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 2",
+              "cells": [
+                {
+                  "source_field": "company_name",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "account_status",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            },
+            {
+              "row_label": "Row 3",
+              "cells": [
+                {
+                  "source_field": "company_name",
+                  "value_state": "redacted"
+                },
+                {
+                  "source_field": "account_status",
+                  "value_state": "redacted"
+                }
+              ],
+              "raw_row_included": false
+            }
+          ],
+          "validation_summary": {
+            "mapped_field_count": 2,
+            "missing_required_fields": [],
+            "issue_count": 0,
+            "duplicate_policy": "review_required",
+            "count_leak_prevented": true
+          },
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "storage_pointer_included": false
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0143_preview_read_back_raw_rows_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0143_dom_result_visible",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0143_safe_preview_visible",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0143_job_list_read_back_status",
+      "observed_status": 200,
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0143_job_list_contains_fixture",
+      "job_status": "dry_run_passed",
+      "execution_state": "not_started",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0143_read_back_no_production_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0144_http_success",
+      "observed_status": 200,
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_client/execute",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0144_expected_outcome",
+      "outcome": "owner_blocked",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0144_no_production_ready_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0144_audit_event_action",
+      "audit_event": {
+        "event_id": "import_audit_34ad9edc-6d9d-4216-9d2a-4b3c1deaeaef",
+        "action": "import.execution.owner_blocked",
+        "object_type": "ClientMatterImportJob",
+        "object_id": "import_job_ui_sf_b_w05_client",
+        "actor_ref_included": false,
+        "raw_values_included": false
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0144_audit_safe_actor_ref",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0144_execute_ui_state_owner_blocked",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0144_execute_no_target_mutation",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0144_execute_created_count_zero",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0144_execute_owner_approval_required",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0144_execute_raw_rows_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0144_dom_result_visible",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0144_job_list_read_back_status",
+      "observed_status": 200,
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0144_job_list_contains_fixture",
+      "job_status": "execution_owner_blocked",
+      "execution_state": "owner_blocked",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0144_read_back_no_production_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0145_http_success",
+      "observed_status": 200,
+      "path": "/api/import-jobs/import_job_ui_sf_b_w05_client/rollback",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0145_expected_outcome",
+      "outcome": "blocked",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0145_no_production_ready_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0145_audit_event_action",
+      "audit_event": {
+        "event_id": "import_audit_0d603b17-84ad-4f54-9b27-023bbb7443ed",
+        "action": "import.rollback.blocked",
+        "object_type": "ClientMatterImportJob",
+        "object_id": "import_job_ui_sf_b_w05_client",
+        "actor_ref_included": false,
+        "raw_values_included": false
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0145_audit_safe_actor_ref",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0145_rollback_zero_reverted",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0145_rollback_execution_not_applied",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0145_rollback_raw_rows_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0145_error_report_read_back_response",
+      "observed_status": 200,
+      "body": {
+        "request_id": "req_ad782fe8-3a16-48d4-80c9-4501d3c96806",
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+        "production_ready_claim": false,
+        "outcome": "passed",
+        "item": {
+          "job_id": "import_job_ui_sf_b_w05_client",
+          "status": "rollback_blocked",
+          "items": [
+            {
+              "row_label": "Validation summary",
+              "issue_category": "no_blocking_errors",
+              "target_field": null,
+              "remediation_hint": "Dry-run can be reviewed by an owner before execution.",
+              "raw_row_included": false,
+              "raw_personal_identifier_included": false
+            }
+          ],
+          "raw_rows_included": false,
+          "raw_personal_identifiers_included": false,
+          "storage_pointer_included": false
+        },
+        "items": [
+          {
+            "row_label": "Validation summary",
+            "issue_category": "no_blocking_errors",
+            "target_field": null,
+            "remediation_hint": "Dry-run can be reviewed by an owner before execution.",
+            "raw_row_included": false,
+            "raw_personal_identifier_included": false
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0145_error_report_raw_row_not_returned",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0145_dom_result_visible",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0145_safe_error_report_visible",
+      "errorReportText": "항목\t상태\t조치\nValidation summary\t차단 없음\t담당자 검토 후 실행 요청 가능",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0145_job_list_read_back_status",
+      "observed_status": 200,
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0145_job_list_contains_fixture",
+      "job_status": "rollback_blocked",
+      "execution_state": "owner_blocked",
+      "status": "PASS"
+    },
+    {
+      "name": "LCX8-ACTION-0145_read_back_no_production_claim",
+      "status": "PASS"
+    },
+    {
+      "name": "direct_denied_import_targets_403",
+      "observed_status": 403,
+      "body": {
+        "request_id": "req_70cc9711-715c-4d95-86c9-ee8591dd4594",
+        "outcome": "denied",
+        "items": [],
+        "safe_error_codes": [
+          "IMPORT_DATA_PERMISSION_REQUIRED"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "denied",
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe_denied"
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "direct_denied_count_leak_prevented",
+      "status": "PASS"
+    },
+    {
+      "name": "direct_review_import_targets_200",
+      "observed_status": 200,
+      "body": {
+        "request_id": "req_3c09827d-2fe0-4141-9f72-467064f92c9c",
+        "outcome": "review_required",
+        "items": [],
+        "safe_error_codes": [
+          "IMPORT_DATA_REVIEW_REQUIRED"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "review_required",
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe_review"
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "direct_review_ui_state_review_required",
+      "status": "PASS"
+    },
+    {
+      "name": "blocked_target_rejected_status",
+      "observed_status": 400,
+      "body": {
+        "request_id": "req_41109b7d-e6e4-463f-88c2-b34755927223",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "IMPORT_DATA_VALIDATION_ERROR"
+        ],
+        "count_leak_prevented": true,
+        "production_ready_claim": false,
+        "ui_state": "blocked",
+        "message": "blocked import target",
+        "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe"
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "blocked_target_ui_state_blocked",
+      "status": "PASS"
+    },
+    {
+      "name": "browser_network_no_api_4xx",
+      "api4xx": [],
+      "status": "PASS"
+    },
+    {
+      "name": "browser_network_no_api_5xx",
+      "api5xx": [],
+      "status": "PASS"
+    },
+    {
+      "name": "browser_console_no_errors",
+      "consoleMessages": [],
+      "status": "PASS"
+    }
+  ],
+  "assertion_summary": {
+    "total": 90,
+    "pass": 90,
+    "fail": 0
+  },
+  "classification": {
+    "LCX8-ACTION-0140": {
+      "before": "BLOCKED",
+      "after": "PASS",
+      "trace_depth": "api_write"
+    },
+    "LCX8-ACTION-0141": {
+      "before": "BLOCKED",
+      "after": "PASS",
+      "trace_depth": "api_write"
+    },
+    "LCX8-ACTION-0142": {
+      "before": "BLOCKED",
+      "after": "PASS",
+      "trace_depth": "api_write"
+    },
+    "LCX8-ACTION-0143": {
+      "before": "BLOCKED",
+      "after": "PASS",
+      "trace_depth": "api_write"
+    },
+    "LCX8-ACTION-0144": {
+      "before": "BLOCKED",
+      "after": "PASS",
+      "trace_depth": "api_write"
+    },
+    "LCX8-ACTION-0145": {
+      "before": "BLOCKED",
+      "after": "PASS",
+      "trace_depth": "api_write"
+    }
+  }
+}

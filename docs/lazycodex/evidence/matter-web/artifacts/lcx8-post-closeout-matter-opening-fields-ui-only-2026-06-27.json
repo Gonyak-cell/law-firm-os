@@ -1,0 +1,205 @@
+{
+  "schema_version": "lcx8.post_closeout.ui_only_classification_batch.v1",
+  "generated_at": "2026-06-27T00:24:28.530Z",
+  "action_ids": [
+    "LCX8-ACTION-0081",
+    "LCX8-ACTION-0082",
+    "LCX8-ACTION-0083",
+    "LCX8-ACTION-0084",
+    "LCX8-ACTION-0085",
+    "LCX8-ACTION-0086",
+    "LCX8-ACTION-0087",
+    "LCX8-ACTION-0088",
+    "LCX8-ACTION-0089"
+  ],
+  "status": "ui_only_final_classification",
+  "status_before": "UI_ONLY",
+  "status_after": "UI_ONLY",
+  "batch_id": "LCX8-ALL-12",
+  "surface": "matter",
+  "section": "matter-opening-form",
+  "api_route": null,
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0081-0089-matter-opening-fields-ui-only-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0081-0089-matter-opening-fields-ui-only-proof.md",
+  "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0081-0089-matter-opening-fields-ui-only-proof.png",
+  "fixture": {
+    "safe_fixture_family": "matter_opening_local_form_state_batch",
+    "stamp": 1782519868531,
+    "existing_seed_mutated": false,
+    "persisted": false,
+    "api_write_executed": false,
+    "fields": [
+      {
+        "id": "LCX8-ACTION-0081",
+        "label": "제목",
+        "field": "title",
+        "input_value": "LCX8 제목_1782519868531"
+      },
+      {
+        "id": "LCX8-ACTION-0082",
+        "label": "Matter 번호",
+        "field": "matterNumberSeed",
+        "input_value": "M-LCX8-0082_1782519868531"
+      },
+      {
+        "id": "LCX8-ACTION-0083",
+        "label": "법률 Client",
+        "field": "legalClientPartyId",
+        "input_value": "party_lcx8_0083_1782519868531"
+      },
+      {
+        "id": "LCX8-ACTION-0084",
+        "label": "청구 Client",
+        "field": "billingClientPartyId",
+        "input_value": "party_lcx8_0084_1782519868531"
+      },
+      {
+        "id": "LCX8-ACTION-0085",
+        "label": "이해상충 확인 번호",
+        "field": "clearanceTokenId",
+        "input_value": "clearance_lcx8_0085_1782519868531"
+      },
+      {
+        "id": "LCX8-ACTION-0086",
+        "label": "접수 번호",
+        "field": "intakeRequestId",
+        "input_value": "intake_lcx8_0086_1782519868531"
+      },
+      {
+        "id": "LCX8-ACTION-0087",
+        "label": "검토 번호",
+        "field": "conflictCheckId",
+        "input_value": "conflict_lcx8_0087_1782519868531"
+      },
+      {
+        "id": "LCX8-ACTION-0088",
+        "label": "위임 계약 번호",
+        "field": "engagementId",
+        "input_value": "engagement_lcx8_0088_1782519868531"
+      },
+      {
+        "id": "LCX8-ACTION-0089",
+        "label": "확인 번호",
+        "field": "snapshotHash",
+        "input_value": "snapshot_lcx8_0089_1782519868531"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "id": "LCX8-ACTION-0081",
+      "label": "제목",
+      "field": "title",
+      "status_before": "UI_ONLY",
+      "status_after": "UI_ONLY",
+      "input_value_after_fill": "LCX8 제목_1782519868531",
+      "mutation_network_after_input": 0
+    },
+    {
+      "id": "LCX8-ACTION-0082",
+      "label": "Matter 번호",
+      "field": "matterNumberSeed",
+      "status_before": "UI_ONLY",
+      "status_after": "UI_ONLY",
+      "input_value_after_fill": "M-LCX8-0082_1782519868531",
+      "mutation_network_after_input": 0
+    },
+    {
+      "id": "LCX8-ACTION-0083",
+      "label": "법률 Client",
+      "field": "legalClientPartyId",
+      "status_before": "UI_ONLY",
+      "status_after": "UI_ONLY",
+      "input_value_after_fill": "party_lcx8_0083_1782519868531",
+      "mutation_network_after_input": 0
+    },
+    {
+      "id": "LCX8-ACTION-0084",
+      "label": "청구 Client",
+      "field": "billingClientPartyId",
+      "status_before": "UI_ONLY",
+      "status_after": "UI_ONLY",
+      "input_value_after_fill": "party_lcx8_0084_1782519868531",
+      "mutation_network_after_input": 0
+    },
+    {
+      "id": "LCX8-ACTION-0085",
+      "label": "이해상충 확인 번호",
+      "field": "clearanceTokenId",
+      "status_before": "UI_ONLY",
+      "status_after": "UI_ONLY",
+      "input_value_after_fill": "clearance_lcx8_0085_1782519868531",
+      "mutation_network_after_input": 0
+    },
+    {
+      "id": "LCX8-ACTION-0086",
+      "label": "접수 번호",
+      "field": "intakeRequestId",
+      "status_before": "UI_ONLY",
+      "status_after": "UI_ONLY",
+      "input_value_after_fill": "intake_lcx8_0086_1782519868531",
+      "mutation_network_after_input": 0
+    },
+    {
+      "id": "LCX8-ACTION-0087",
+      "label": "검토 번호",
+      "field": "conflictCheckId",
+      "status_before": "UI_ONLY",
+      "status_after": "UI_ONLY",
+      "input_value_after_fill": "conflict_lcx8_0087_1782519868531",
+      "mutation_network_after_input": 0
+    },
+    {
+      "id": "LCX8-ACTION-0088",
+      "label": "위임 계약 번호",
+      "field": "engagementId",
+      "status_before": "UI_ONLY",
+      "status_after": "UI_ONLY",
+      "input_value_after_fill": "engagement_lcx8_0088_1782519868531",
+      "mutation_network_after_input": 0
+    },
+    {
+      "id": "LCX8-ACTION-0089",
+      "label": "확인 번호",
+      "field": "snapshotHash",
+      "status_before": "UI_ONLY",
+      "status_after": "UI_ONLY",
+      "input_value_after_fill": "snapshot_lcx8_0089_1782519868531",
+      "mutation_network_after_input": 0
+    }
+  ],
+  "counts_before": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 27,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 105,
+    "fail": 42
+  },
+  "counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 27,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 105,
+    "fail": 42
+  },
+  "validation": {
+    "browser_ui_only_proof": "PASS 10/10 assertions",
+    "api_write_executed": false,
+    "mutation_network_after_input_batch": 0,
+    "opening_post_network": 0,
+    "status_decision": "UI_ONLY remains UI_ONLY for LCX8-ACTION-0081..0089"
+  },
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0081..0089 verification: UI-only Matter opening field proof PASS (10/10 assertions); node --test apps/api/test/cmp-r4-g4-matter.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/sf-b-w03-activity-calendar-channel.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS. Browser inputs accepted local values for nine Matter opening fields; no mutation network and no POST /api/matters/openings fired. Status remains UI_ONLY for all nine rows.",
+  "non_claims": [
+    "no API write executed for LCX8-ACTION-0081 through LCX8-ACTION-0089",
+    "no Matter opening persistence claimed for these field rows",
+    "submit action is LCX8-ACTION-0090 and is not exercised in this proof",
+    "local browser proof only; no production go-live claim"
+  ]
+}

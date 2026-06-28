@@ -1,0 +1,1114 @@
+{
+  "schema_version": "matter.lcx8.browser-action-qa.p3-t05.matter.v1",
+  "generated_at": "2026-06-25T12:26:06.006Z",
+  "status": "complete_mixed_observed",
+  "tuw": "P3-T05",
+  "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
+  "web_base_url": "http://127.0.0.1:5174",
+  "api_base_url": "http://127.0.0.1:4180 via Vite proxy",
+  "rows_reviewed": 14,
+  "pass_observed": 13,
+  "fail_confirmed": 1,
+  "fail_observed": 0,
+  "unexpected_effect_observed": 0,
+  "api_response_count": 56,
+  "api_5xx_count": 0,
+  "console_error_count": 0,
+  "skipped_unsafe_write_rows": [
+    "LCX8-ACTION-0054",
+    "LCX8-ACTION-0055",
+    "LCX8-ACTION-0059",
+    "LCX8-ACTION-0060",
+    "LCX8-ACTION-0061",
+    "LCX8-ACTION-0062",
+    "LCX8-ACTION-0063"
+  ],
+  "note": "Matter browser click QA excludes unsafe POST/PATCH mutation rows until P4/P5 write precondition, permission, audit, and persistence proof. Known FAIL overflow row is clicked only to confirm no effect. Each row runs in a fresh browser context to avoid list-view state contamination.",
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "external_receipts_complete": false
+  },
+  "results": [
+    {
+      "id": "LCX8-ACTION-0044",
+      "label": "새로고침",
+      "selector": "#matters-home .page-header .secondary-button",
+      "status_before_qa": "BLOCKED",
+      "trace_depth": "api_read",
+      "expected_kind": "api_refresh",
+      "expected_hash": null,
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "after_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "before_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 40,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "POST",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "POST",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+        },
+        {
+          "action_id": "LCX8-ACTION-0044",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0044.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "api_refresh_network_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0045",
+      "label": "현황",
+      "selector": ".matter-section-tabs button:has-text(\"현황\")",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route_hash",
+      "expected_hash": "#matter-command",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "after_url": "/?locale=ko&view=matters&data=live&ctx=allow#matter-command",
+      "before_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "#matter-command",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": null,
+        "rowChecks": 0,
+        "recordRows": 0,
+        "activeListView": null,
+        "selectedMatterTitle": null,
+        "visiblePanels": [
+          "현황"
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0045.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "expected_hash_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0046",
+      "label": "문서",
+      "selector": ".matter-section-tabs button:has-text(\"문서\")",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route_hash",
+      "expected_hash": "#matter-vault",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "after_url": "/?locale=ko&view=matters&data=live&ctx=allow#matter-vault",
+      "before_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "#matter-vault",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": null,
+        "rowChecks": 0,
+        "recordRows": 0,
+        "activeListView": null,
+        "selectedMatterTitle": null,
+        "visiblePanels": [
+          "문서",
+          "표시할 감사 정보가 없습니다",
+          "표시할 승인 요청 정보가 없습니다"
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 7,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0046",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/vault-summary?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_vault_summary&audit_hint_ref=ui_mv_matter_vault_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0046",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0046",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_documents&audit_hint_ref=ui_mv_matter_vault_documents_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0046",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/vault/search?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_search&audit_hint_ref=ui_mv_matter_vault_search_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0046",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/vault/audit?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_audit&audit_hint_ref=ui_mv_matter_vault_audit_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0046",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/document-templates?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w04_document_template_read&audit_hint_ref=ui_sf_b_w04_document_template_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0046",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/builder-approval-requests?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w04_builder_approval_read&audit_hint_ref=ui_sf_b_w04_builder_approval_read_probe"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0046.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "expected_hash_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0047",
+      "label": "활동",
+      "selector": ".matter-section-tabs button:has-text(\"활동\")",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route_hash",
+      "expected_hash": "#matter-timeline",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "after_url": "/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline",
+      "before_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "#matter-timeline",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": null,
+        "rowChecks": 0,
+        "recordRows": 0,
+        "activeListView": null,
+        "selectedMatterTitle": null,
+        "visiblePanels": [
+          "활동",
+          "표시할 활동이 없습니다"
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0047.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "expected_hash_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0048",
+      "label": "일정",
+      "selector": ".matter-section-tabs button:has-text(\"일정\")",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route_hash",
+      "expected_hash": "#matter-calendar",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "after_url": "/?locale=ko&view=matters&data=live&ctx=allow#matter-calendar",
+      "before_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "#matter-calendar",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": null,
+        "rowChecks": 0,
+        "recordRows": 0,
+        "activeListView": null,
+        "selectedMatterTitle": null,
+        "visiblePanels": [
+          "일정"
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0048.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "expected_hash_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0049",
+      "label": "대화",
+      "selector": ".matter-section-tabs button:has-text(\"대화\")",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route_hash",
+      "expected_hash": "#matter-channel",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "after_url": "/?locale=ko&view=matters&data=live&ctx=allow#matter-channel",
+      "before_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "#matter-channel",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": null,
+        "rowChecks": 0,
+        "recordRows": 0,
+        "activeListView": null,
+        "selectedMatterTitle": null,
+        "visiblePanels": [
+          "대화"
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0049.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "expected_hash_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0050",
+      "label": "Matter panel overflow menu",
+      "selector": "#matters-home .panel-head .icon-button",
+      "status_before_qa": "FAIL",
+      "trace_depth": "ui_state_only",
+      "expected_kind": "expected_no_effect_fail",
+      "expected_hash": null,
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "after_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "before_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0050.png",
+      "click_error": null,
+      "observed_result": "FAIL_CONFIRMED",
+      "reason": "known_missing_handler_no_effect_confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0051",
+      "label": "전체 Matter",
+      "selector": ".matter-list-view-option:has-text(\"전체 Matter\")",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "expected_kind": "local_state",
+      "expected_hash": null,
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "after_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "before_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0051.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "active_list_view_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0052",
+      "label": "개시 중",
+      "selector": ".matter-list-view-option:has-text(\"개시 중\")",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "expected_kind": "local_state",
+      "expected_hash": null,
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "after_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "before_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "개시 중",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0052.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "active_list_view_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0053",
+      "label": "종료",
+      "selector": ".matter-list-view-option:has-text(\"종료\")",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "expected_kind": "local_state",
+      "expected_hash": null,
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "after_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "before_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": true,
+        "rowChecks": 0,
+        "recordRows": 0,
+        "activeListView": "종료",
+        "selectedMatterTitle": null,
+        "visiblePanels": [
+          "조건에 맞는 Matter가 없습니다",
+          "최근 본 Matter를 불러오는 중입니다"
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 2,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0053",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0053",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0053.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "active_list_view_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0056",
+      "label": "표시된 Matter 전체 선택",
+      "selector": "[data-matter-bulk-select-all=\"true\"]",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "expected_kind": "selection_state",
+      "expected_hash": null,
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "after_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "before_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 1,
+        "bulkSelected": true,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0056.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "selection_state_changed"
+    },
+    {
+      "id": "LCX8-ACTION-0057",
+      "label": "Matter row 선택 체크박스",
+      "selector": "[data-matter-bulk-select-row=\"true\"]",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "expected_kind": "selection_state",
+      "expected_hash": null,
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "after_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "before_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 1,
+        "bulkSelected": true,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0057.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "selection_state_changed"
+    },
+    {
+      "id": "LCX8-ACTION-0058",
+      "label": "Matter record row",
+      "selector": ".matter-selectable-record-button",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "ui_state_only",
+      "expected_kind": "record_selection",
+      "expected_hash": null,
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "after_url": "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+      "before_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "#matters-list",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": false,
+        "rowChecks": 1,
+        "recordRows": 1,
+        "activeListView": "전체 Matter",
+        "selectedMatterTitle": null,
+        "visiblePanels": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0058.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "record_selection_click_kept_matter_detail_surface"
+    },
+    {
+      "id": "LCX8-ACTION-0064",
+      "label": "새로고침",
+      "selector": "#matter-vault .matter-vault-actions .secondary-button",
+      "status_before_qa": "BLOCKED",
+      "trace_depth": "api_read",
+      "expected_kind": "api_refresh_or_disabled",
+      "expected_hash": null,
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=matters&data=live&ctx=allow#matter-vault",
+      "after_url": "/?locale=ko&view=matters&data=live&ctx=allow#matter-vault",
+      "before_metrics": {
+        "view": "matters",
+        "hash": "#matter-vault",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": null,
+        "rowChecks": 0,
+        "recordRows": 0,
+        "activeListView": null,
+        "selectedMatterTitle": null,
+        "visiblePanels": [
+          "문서",
+          "표시할 감사 정보가 없습니다",
+          "표시할 승인 요청 정보가 없습니다"
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "matters",
+        "hash": "#matter-vault",
+        "title": "matter",
+        "matterSurface": 1,
+        "selectedRows": 0,
+        "bulkSelected": false,
+        "bulkDisabled": null,
+        "rowChecks": 0,
+        "recordRows": 0,
+        "activeListView": null,
+        "selectedMatterTitle": null,
+        "visiblePanels": [
+          "문서",
+          "표시할 감사 정보가 없습니다",
+          "표시할 승인 요청 정보가 없습니다"
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 7,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0064",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/vault-summary?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_vault_summary&audit_hint_ref=ui_mv_matter_vault_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0064",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0064",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_documents&audit_hint_ref=ui_mv_matter_vault_documents_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0064",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/vault/search?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_search&audit_hint_ref=ui_mv_matter_vault_search_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0064",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/vault/audit?tenant_id=tenant_amic_matter_vault&permission_ref=ui_mv_matter_vault_audit&audit_hint_ref=ui_mv_matter_vault_audit_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0064",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/document-templates?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w04_document_template_read&audit_hint_ref=ui_sf_b_w04_document_template_read_probe"
+        },
+        {
+          "action_id": "LCX8-ACTION-0064",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/matter_rp05_synthetic_opening/builder-approval-requests?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w04_builder_approval_read&audit_hint_ref=ui_sf_b_w04_builder_approval_read_probe"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0064.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "api_refresh_network_observed"
+    }
+  ],
+  "next_tuw": "P3-T06 Click first-slice vault actions"
+}

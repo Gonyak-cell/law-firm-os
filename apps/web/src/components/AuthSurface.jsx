@@ -184,6 +184,8 @@ export function OnboardingCard({ labels, locale }) {
 export function AuthForm({ labels, locale, step, onLogin = () => {} }) {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [rememberLogin, setRememberLogin] = useState(false);
+  const [recoveryRequested, setRecoveryRequested] = useState(false);
 
   if (step === "login") {
     return (
@@ -193,7 +195,7 @@ export function AuthForm({ labels, locale, step, onLogin = () => {} }) {
         onSubmit={(event) => {
           event.preventDefault();
           if (!loginEmail.trim() || !loginPassword) return;
-          onLogin({ email: loginEmail.trim(), password: loginPassword });
+          onLogin({ email: loginEmail.trim(), password: loginPassword, remember: rememberLogin });
         }}
       >
         <label className="matter-login-field">
@@ -225,14 +227,30 @@ export function AuthForm({ labels, locale, step, onLogin = () => {} }) {
         </label>
         <div className="matter-login-options">
           <label className="matter-login-remember">
-            <input type="checkbox" />
+            <input
+              type="checkbox"
+              checked={rememberLogin}
+              data-login-remember
+              onChange={(event) => setRememberLogin(event.target.checked)}
+            />
             <span>Remember me</span>
           </label>
-          <button className="matter-login-forgot" type="button">
+          <button
+            className="matter-login-forgot"
+            type="button"
+            data-login-forgot-password
+            onClick={() => setRecoveryRequested(true)}
+          >
             Forgot<br />
             password?
           </button>
         </div>
+        {(rememberLogin || recoveryRequested) && (
+          <div className="login-local-state" data-login-local-state="true">
+            {rememberLogin && <span data-login-remember-state="true">이 기기에서 로그인 이메일을 기억합니다.</span>}
+            {recoveryRequested && <span data-login-recovery-state="true">비밀번호 재설정 안내를 보낼 계정을 확인합니다.</span>}
+          </div>
+        )}
         <button className="matter-login-submit" type="submit">
           Log in
         </button>

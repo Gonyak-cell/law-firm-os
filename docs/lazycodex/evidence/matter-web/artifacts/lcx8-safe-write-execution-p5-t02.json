@@ -1,0 +1,149 @@
+{
+  "schema_version": "matter.lcx8.safe-write-execution.p5-t02.v1",
+  "generated_at": "2026-06-25T13:47:32.383Z",
+  "status": "SAFE_WRITES_EXECUTED_AUDIT_HINTS_CAPTURED_NO_PASS_PROMOTION",
+  "tuw": "P5-T02",
+  "source_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-safe-fixture-definition-p5-t01.json"
+  ],
+  "runtime": {
+    "base_url": "http://127.0.0.1:4180",
+    "api_health_status": 200,
+    "synthetic_only": true,
+    "uses_real_client_data": false,
+    "matter_runtime_persistence": "file_backed_repository",
+    "matter_runtime_write_ready": true,
+    "production_ready_claim": false
+  },
+  "fixture": {
+    "run_id": "lcx8-p5-t02-20260625134732",
+    "tenant_id": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "matter_id": "matter_rp05_synthetic_opening",
+    "permission_context_header_attached": true,
+    "real_client_data_required": false
+  },
+  "baseline": {
+    "http_status": 200,
+    "matter": {
+      "matter_id": "matter_rp05_synthetic_opening",
+      "status": "opening",
+      "wip_status": "opening_wip_clear",
+      "risk_level": "standard",
+      "owner_employee_id": null,
+      "owner_display_name": null,
+      "production_ready_claim": false
+    }
+  },
+  "write_results": [
+    {
+      "row_id": "LCX8-ACTION-0059",
+      "label": "Matter inline patch",
+      "method": "PATCH",
+      "path": "/api/matters/matter_rp05_synthetic_opening",
+      "http_status": 200,
+      "ok": true,
+      "outcome": "updated",
+      "request_id": "req_5f830c50-8e80-4792-b1d4-7733f76beaa8",
+      "idempotency_key": "lcx8-p5-t02-20260625134732:inline",
+      "state_idempotent": true,
+      "idempotent_replay": false,
+      "safe_error_codes": [],
+      "audit_event": {
+        "event_id": "matter.inline.patch:tenant_rp05_synthetic:matter_rp05_synthetic_opening:wip_status",
+        "action": "matter.inline.patch",
+        "object_type": "Matter",
+        "object_id": "matter_rp05_synthetic_opening",
+        "reason": "inline_field_edit",
+        "occurred_at": "2026-06-25T13:47:32.359Z",
+        "permission_ref": "ui_sf_b_w02_matter_inline_patch"
+      },
+      "field_patch": {
+        "changed_fields": [
+          "wip_status"
+        ],
+        "edited_at": "2026-06-25T13:47:32.359Z",
+        "field_level_allowlist": true
+      },
+      "owner_assignment": null,
+      "item": {
+        "matter_id": "matter_rp05_synthetic_opening",
+        "status": "opening",
+        "wip_status": "review_required",
+        "risk_level": "standard",
+        "owner_employee_id": null,
+        "owner_display_name": null,
+        "production_ready_claim": false
+      }
+    },
+    {
+      "row_id": "LCX8-ACTION-0060",
+      "label": "Matter owner change",
+      "method": "POST",
+      "path": "/api/matters/matter_rp05_synthetic_opening/owner-change",
+      "http_status": 200,
+      "ok": true,
+      "outcome": "updated",
+      "request_id": "req_9b935b18-4ea9-4418-994e-90f6272e3a23",
+      "idempotency_key": "lcx8-p5-t02-20260625134732:owner",
+      "state_idempotent": true,
+      "idempotent_replay": false,
+      "safe_error_codes": [],
+      "audit_event": {
+        "event_id": "matter.owner.change:tenant_rp05_synthetic:matter_rp05_synthetic_opening:emp-001",
+        "action": "matter.owner.change",
+        "object_type": "Matter",
+        "object_id": "matter_rp05_synthetic_opening",
+        "reason": "record_owner_changed",
+        "occurred_at": "2026-06-25T13:47:32.359Z",
+        "permission_ref": "ui_sf_b_w02_matter_owner_change"
+      },
+      "field_patch": null,
+      "owner_assignment": {
+        "owner_employee_id": "emp-001",
+        "owner_display_name": "Synthetic Responsible Attorney",
+        "assigned_at": "2026-06-25T13:47:32.359Z"
+      },
+      "item": {
+        "matter_id": "matter_rp05_synthetic_opening",
+        "status": "opening",
+        "wip_status": "review_required",
+        "risk_level": "standard",
+        "owner_employee_id": "emp-001",
+        "owner_display_name": "Synthetic Responsible Attorney",
+        "production_ready_claim": false
+      }
+    }
+  ],
+  "after_write_detail": {
+    "http_status": 200,
+    "matter": {
+      "matter_id": "matter_rp05_synthetic_opening",
+      "status": "opening",
+      "wip_status": "review_required",
+      "risk_level": "standard",
+      "owner_employee_id": "emp-001",
+      "owner_display_name": "Synthetic Responsible Attorney",
+      "production_ready_claim": false
+    }
+  },
+  "audit_route_check": {
+    "http_status": 200,
+    "total_events_returned": 7,
+    "expected_event_ids": [
+      "matter.inline.patch:tenant_rp05_synthetic:matter_rp05_synthetic_opening:wip_status",
+      "matter.owner.change:tenant_rp05_synthetic:matter_rp05_synthetic_opening:emp-001"
+    ],
+    "matched_event_ids": [
+      "matter.inline.patch:tenant_rp05_synthetic:matter_rp05_synthetic_opening:wip_status",
+      "matter.owner.change:tenant_rp05_synthetic:matter_rp05_synthetic_opening:emp-001"
+    ],
+    "matched_count": 2
+  },
+  "status_policy": {
+    "pass_promotions_in_p5_t02": 0,
+    "reason": "P5-T02 records write receipts only. P5-T03 reload proof, P5-T04 read-model proof, and P5-T05 audit proof must complete before selected rows can be considered for PASS."
+  },
+  "failures": [],
+  "next_tuw": "P5-T03"
+}

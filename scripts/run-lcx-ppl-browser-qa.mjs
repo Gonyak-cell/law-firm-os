@@ -208,7 +208,7 @@ async function run() {
   try {
     await visit(page, routes, "/?view=people&ctx=allow#people-directory", "People Directory");
     checks.push(await expectAttribute(page, ".app-frame", "data-sidebar-state", "expanded", "Sidebar defaults expanded"));
-    checks.push(await expectVisible(page, '[data-product-axis-nav="top-header"]', "Top Client/Matter/People/Vault axis nav visible"));
+    checks.push(await expectVisible(page, '[data-product-axis-nav="top-header"]', "Top product axis nav visible"));
     checks.push(await expectVisible(page, '[data-lcx-ppl-05-ui="true"]', "Legal People runtime workspace visible"));
     checks.push(await expectVisible(page, "#people-directory", "People directory panel visible"));
     checks.push(await expectVisible(page, ".legal-people-type-tabs", "People type filters visible"));
@@ -222,7 +222,7 @@ async function run() {
 
     await visit(page, routes, "/?view=people&ctx=allow#people-relationships", "People Relationships");
     checks.push(await expectVisible(page, '[data-lcx-ppl-05-ui="true"]', "Relationship workspace visible"));
-    checks.push(await expectTextMatch(page, "#people-directory", /People 관계망|관계 피벗/, "People relationship mode title visible"));
+    checks.push(await expectTextMatch(page, "#people-directory", /관련 기록|Client·Matter/, "Relationship mode title visible"));
     checks.push(await expectCountAtLeast(page, ".legal-people-row", 2, "Relationship mode People rows visible"));
     await page.locator(".legal-people-row").nth(1).click();
     checks.push(await expectVisible(page, "#people-relationship-panel", "Relationship panel visible in relationship mode"));
@@ -249,14 +249,14 @@ async function run() {
     checks.push(await expectVisible(page, '[data-crm-contacts-read="true"]', "Client contacts route-backed section visible"));
     checks.push(await expectVisible(page, '[data-lcx-ppl-client-backlink="true"]', "Client People backlink surface visible"));
     checks.push(await expectCountAtLeast(page, ".legal-people-backlink-row", 1, "Client backlink People rows visible"));
-    checks.push(await expectTextMatch(page, '[data-lcx-ppl-client-backlink="true"]', /법률 People 연결|Client 연락처/, "Client backlink copy visible"));
+    checks.push(await expectTextMatch(page, '[data-lcx-ppl-client-backlink="true"]', /관련 인물 연결|Client 연락처/, "Client backlink copy visible"));
     await page.screenshot({ path: join(ROOT, screenshots.clientBacklinks), fullPage: true });
 
     await visit(page, routes, "/?view=matters&ctx=allow#matter-team", "Matter People Backlinks");
     checks.push(await expectVisible(page, "#matter-team", "Matter team section visible"));
     checks.push(await expectVisible(page, '[data-lcx-ppl-matter-backlink="true"]', "Matter People backlink surface visible"));
     checks.push(await expectCountAtLeast(page, ".legal-people-backlink-row", 1, "Matter backlink People rows visible"));
-    checks.push(await expectTextMatch(page, '[data-lcx-ppl-matter-backlink="true"]', /Matter 참여자|외부 관계자/, "Matter backlink copy visible"));
+    checks.push(await expectTextMatch(page, '[data-lcx-ppl-matter-backlink="true"]', /Matter 참여자|관련 인물/, "Matter backlink copy visible"));
     await page.screenshot({ path: join(ROOT, screenshots.matterBacklinks), fullPage: true });
 
     for (const path of Object.values(screenshots)) {

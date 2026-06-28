@@ -1,0 +1,164 @@
+{
+  "schema_version": "law-firm-os.lcx8.post-closeout.people-sidebar-current-ui.v0.1",
+  "generated_at": "2026-06-28T07:28:08.519Z",
+  "batch_id": "LCX8-ALL-30",
+  "action_ids": [
+    "LCX8-ACTION-0148",
+    "LCX8-ACTION-0152",
+    "LCX8-ACTION-0153",
+    "LCX8-ACTION-0154",
+    "LCX8-ACTION-0155",
+    "LCX8-ACTION-0156",
+    "LCX8-ACTION-0157",
+    "LCX8-ACTION-0158",
+    "LCX8-ACTION-0159",
+    "LCX8-ACTION-0160",
+    "LCX8-ACTION-0161",
+    "LCX8-ACTION-0162",
+    "LCX8-ACTION-0163"
+  ],
+  "deferred_legacy_rows": [
+    "LCX8-ACTION-0146",
+    "LCX8-ACTION-0147",
+    "LCX8-ACTION-0149",
+    "LCX8-ACTION-0150",
+    "LCX8-ACTION-0151"
+  ],
+  "status_before": "UI_ONLY",
+  "status_after": "UI_ONLY",
+  "status_decision": "UI_ONLY final classification; status remains UI_ONLY",
+  "reason": "current_product_sidebar_route_navigation_local_state_only",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0148-0152-0163-people-sidebar-current-ui-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0148-0152-0163-people-sidebar-current-ui-proof.md",
+  "counts_before": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "counts_after": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "evidence": [
+    {
+      "id": "LCX8-ACTION-0148",
+      "product_label": "관리",
+      "expected_section": null,
+      "reconciliation": null,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0148-group-toggle.png",
+      "status_decision": "UI_ONLY final"
+    },
+    {
+      "id": "LCX8-ACTION-0152",
+      "product_label": "구성원",
+      "expected_section": "people-members",
+      "reconciliation": null,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0152-route.png",
+      "status_decision": "UI_ONLY final"
+    },
+    {
+      "id": "LCX8-ACTION-0153",
+      "product_label": "조직",
+      "expected_section": "people-org-chart",
+      "reconciliation": "current label for ledger label 조직도",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0153-route.png",
+      "status_decision": "UI_ONLY final"
+    },
+    {
+      "id": "LCX8-ACTION-0154",
+      "product_label": "휴가관리",
+      "expected_section": "people-leave",
+      "reconciliation": "current label for ledger label 휴가",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0154-route.png",
+      "status_decision": "UI_ONLY final"
+    },
+    {
+      "id": "LCX8-ACTION-0155",
+      "product_label": "요청 관리",
+      "expected_section": "people-approvals",
+      "reconciliation": "current label for ledger label 승인",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0155-route.png",
+      "status_decision": "UI_ONLY final"
+    },
+    {
+      "id": "LCX8-ACTION-0156",
+      "product_label": "입퇴사 관리",
+      "expected_section": "people-lifecycle",
+      "reconciliation": "current label for ledger label 입사·퇴사",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0156-route.png",
+      "status_decision": "UI_ONLY final"
+    },
+    {
+      "id": "LCX8-ACTION-0157",
+      "product_label": "구성원 등록",
+      "expected_section": "people-recruiting",
+      "reconciliation": "current label for ledger label 채용",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0157-route.png",
+      "status_decision": "UI_ONLY final"
+    },
+    {
+      "id": "LCX8-ACTION-0158",
+      "product_label": "회사방침",
+      "expected_section": "people-documents",
+      "reconciliation": "current label for ledger label 인사 문서",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0158-route.png",
+      "status_decision": "UI_ONLY final"
+    },
+    {
+      "id": "LCX8-ACTION-0159",
+      "product_label": "승인 규칙",
+      "expected_section": "people-policy",
+      "reconciliation": "current label for ledger label 인사 정책",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0159-route.png",
+      "status_decision": "UI_ONLY final"
+    },
+    {
+      "id": "LCX8-ACTION-0160",
+      "product_label": "인사기록",
+      "expected_section": "people-audit",
+      "reconciliation": "current label for ledger label 활동 기록",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0160-route.png",
+      "status_decision": "UI_ONLY final"
+    },
+    {
+      "id": "LCX8-ACTION-0161",
+      "product_label": "권한",
+      "expected_section": "people-admin",
+      "reconciliation": "current label for ledger label 권한 관리",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0161-route.png",
+      "status_decision": "UI_ONLY final"
+    },
+    {
+      "id": "LCX8-ACTION-0162",
+      "product_label": "급여정산",
+      "expected_section": "people-payroll",
+      "reconciliation": "current label for ledger label 급여 정산",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0162-route.png",
+      "status_decision": "UI_ONLY final"
+    },
+    {
+      "id": "LCX8-ACTION-0163",
+      "product_label": "리포트",
+      "expected_section": "people-analytics",
+      "reconciliation": "current label for ledger label 인사 현황",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0163-route.png",
+      "status_decision": "UI_ONLY final"
+    }
+  ],
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0148/0152..0163 People sidebar current-UI proof PASS. Browser proof clicked the current People sidebar group and route items, confirmed hash routing into PeopleHome sections, active sidebar state, no API writes, no API 5xx, and product-label reconciliation for labels that changed in the current UI. Status remains UI_ONLY as final local route/navigation classification. LCX8-ACTION-0146/0147/0149/0150/0151 are deferred because their legacy Legal People/sidebar labels are no longer current visible sidebar actions.",
+  "non_claims": [
+    "current product UI route/navigation proof only",
+    "no API write or persistence claim",
+    "no external provider, production-ready, or go-live claim",
+    "LCX8-ACTION-0146/0147/0149/0150/0151 are excluded because their legacy Legal People/sidebar labels are not current visible sidebar actions"
+  ]
+}

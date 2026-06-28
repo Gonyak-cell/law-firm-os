@@ -1,0 +1,1451 @@
+{
+  "schema_version": "law-firm-os.lcx8.browser-proof.v1",
+  "generated_at": "2026-06-28T04:30:52.022Z",
+  "batch": "LCX8-ALL-14",
+  "slice": "client-intake-flow",
+  "url": "http://127.0.0.1:5173/?locale=ko&view=clients&data=live&ctx=allow#client-opportunities",
+  "rows": [
+    "LCX8-ACTION-0118",
+    "LCX8-ACTION-0119",
+    "LCX8-ACTION-0120"
+  ],
+  "status": "PASS",
+  "summary": "LCX8-ACTION-0118/0119/0120 Client opportunity-to-intake flow proof: current UI handoff, conflict snapshot, and clearance token actions operated through browser/API with safe fixture write, idempotency replay, restart read-back, audit read-back, missing snapshot block, denied/review fail-closed probes, and clean browser network/console.",
+  "screenshots": {
+    "start": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0118-0120-client-intake-flow-start.png",
+    "after_handoff": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0118-0120-client-intake-flow-after-handoff.png",
+    "after_actions": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0118-0120-client-intake-flow-after-actions.png"
+  },
+  "browser_action_results": {
+    "handoff_disabled_before": false,
+    "handoff_result_text": "기회 상태가 접수 요청됨 단계로 갱신되고 접수 레코드와 연결되었습니다.",
+    "conflict_result_text": "접수 1\n감사 기록 있음\n이해상충 스냅샷이 기록되었습니다.\n이해상충 검토\n통과 검토\n스냅샷 확인됨\n통과 처리",
+    "clearance_result_text": "접수 1\n감사 기록 있음\n이해상충 스냅샷이 기록되었습니다.\n이해상충 검토\n통과\n스냅샷 확인됨\n통과 처리되었습니다.\n통과 처리"
+  },
+  "direct_api_results": {
+    "handoff": {
+      "status": 201,
+      "outcome": "created",
+      "intake_request_id": "intake_lcx8_0118_001",
+      "opportunity_stage": "intake_requested",
+      "direct_matter_reference_included": false,
+      "audit_action": "intake.request.create",
+      "replay_status": 200,
+      "replay_outcome": "idempotent_replay",
+      "read_back_after_restart": true
+    },
+    "conflict_check": {
+      "status": 201,
+      "outcome": "created",
+      "conflict_check_id": "conflict_lcx8_0119_001",
+      "intake_request_id": "intake_lcx8_0118_001",
+      "snapshot_hash_present": true,
+      "raw_conflict_memo_included": false,
+      "audit_action": "conflict.check.create",
+      "replay_status": 200,
+      "replay_outcome": "idempotent_replay"
+    },
+    "clearance_token": {
+      "status": 201,
+      "outcome": "created",
+      "clearance_token_id": "clearance_lcx8_0120_001",
+      "validation_valid": true,
+      "audit_action": "clearance.token.issue",
+      "replay_status": 200,
+      "replay_outcome": "idempotent_replay",
+      "invalid_missing_snapshot_status": 400,
+      "invalid_missing_snapshot_ui_state": "blocked"
+    },
+    "fail_closed": {
+      "denied_conflict_status": 403,
+      "denied_conflict_ui_state": "denied",
+      "denied_count_leak_prevented": true,
+      "review_clearance_status": 200,
+      "review_clearance_ui_state": "review_required",
+      "review_count_leak_prevented": true
+    },
+    "audit": {
+      "status": 200,
+      "actions": [
+        "intake.request.create",
+        "conflict.check.create",
+        "clearance.token.issue"
+      ],
+      "read_back_after_restart": true
+    }
+  },
+  "network": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/crm/opportunities/opp_cmp_g6_synthetic_001/handoff",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/intake/conflict-checks",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/intake/clearance-tokens",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+      "status": 200
+    }
+  ],
+  "network_summary": {
+    "api_responses": 40,
+    "api_4xx": 0,
+    "api_5xx": 0
+  },
+  "console_messages": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    }
+  ],
+  "assertions": [
+    {
+      "name": "LCX8-ACTION-0118 handoff button enabled before click",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0118 handoff result visible",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "handoffText": "기회 상태가 접수 요청됨 단계로 갱신되고 접수 레코드와 연결되었습니다."
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0119 conflict button enabled",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0120 clearance button disabled before conflict",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0119 conflict result visible",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "afterConflictPanelText": "접수 1\n감사 기록 있음\n이해상충 스냅샷이 기록되었습니다.\n이해상충 검토\n통과 검토\n스냅샷 확인됨\n통과 처리"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0120 clearance button enabled after conflict",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0120 clearance result visible",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "afterClearancePanelText": "접수 1\n감사 기록 있음\n이해상충 스냅샷이 기록되었습니다.\n이해상충 검토\n통과\n스냅샷 확인됨\n통과 처리되었습니다.\n통과 처리"
+      }
+    },
+    {
+      "name": "browser body omits raw actor id",
+      "status": "PASS",
+      "detail": {
+        "needle": "user_cmp_g6_owner"
+      }
+    },
+    {
+      "name": "browser body omits raw conflict memo",
+      "status": "PASS",
+      "detail": {
+        "needle": "raw_conflict_memo"
+      }
+    },
+    {
+      "name": "browser body contains current Client intake labels",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "direct handoff status",
+      "status": "PASS",
+      "detail": {
+        "actual": 201,
+        "expected": 201
+      }
+    },
+    {
+      "name": "direct handoff intake id",
+      "status": "PASS",
+      "detail": {
+        "actual": "intake_lcx8_0118_001",
+        "expected": "intake_lcx8_0118_001"
+      }
+    },
+    {
+      "name": "direct handoff creates matter false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct handoff opportunity linked",
+      "status": "PASS",
+      "detail": {
+        "actual": "intake_lcx8_0118_001",
+        "expected": "intake_lcx8_0118_001"
+      }
+    },
+    {
+      "name": "direct handoff stage",
+      "status": "PASS",
+      "detail": {
+        "actual": "intake_requested",
+        "expected": "intake_requested"
+      }
+    },
+    {
+      "name": "direct handoff no Matter shortcut",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct handoff production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct handoff audit event present",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "action": "intake.request.create"
+      }
+    },
+    {
+      "name": "direct handoff replay status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct handoff replay outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "idempotent_replay",
+        "expected": "idempotent_replay"
+      }
+    },
+    {
+      "name": "direct handoff read-back status after restart",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct handoff read-back includes intake",
+      "status": "PASS",
+      "detail": {
+        "value": true
+      }
+    },
+    {
+      "name": "direct conflict status",
+      "status": "PASS",
+      "detail": {
+        "actual": 201,
+        "expected": 201
+      }
+    },
+    {
+      "name": "direct conflict intake id",
+      "status": "PASS",
+      "detail": {
+        "actual": "intake_lcx8_0118_001",
+        "expected": "intake_lcx8_0118_001"
+      }
+    },
+    {
+      "name": "direct conflict snapshot hash present",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "snapshot_hash": "53d3571bccd00cb2fe81c3131d2ed2ebdb5a143f37846b4165462d64cbcd08ad"
+      }
+    },
+    {
+      "name": "direct conflict raw memo flag false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct conflict production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct conflict audit event present",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "action": "conflict.check.create"
+      }
+    },
+    {
+      "name": "direct conflict replay status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct conflict replay outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "idempotent_replay",
+        "expected": "idempotent_replay"
+      }
+    },
+    {
+      "name": "direct clearance status",
+      "status": "PASS",
+      "detail": {
+        "actual": 201,
+        "expected": 201
+      }
+    },
+    {
+      "name": "direct clearance validation valid",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct clearance token id",
+      "status": "PASS",
+      "detail": {
+        "actual": "clearance_lcx8_0120_001",
+        "expected": "clearance_lcx8_0120_001"
+      }
+    },
+    {
+      "name": "direct clearance production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct clearance audit event present",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "action": "clearance.token.issue"
+      }
+    },
+    {
+      "name": "direct clearance replay status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct clearance replay outcome",
+      "status": "PASS",
+      "detail": {
+        "actual": "idempotent_replay",
+        "expected": "idempotent_replay"
+      }
+    },
+    {
+      "name": "direct invalid clearance status",
+      "status": "PASS",
+      "detail": {
+        "actual": 400,
+        "expected": 400
+      }
+    },
+    {
+      "name": "direct invalid clearance ui_state",
+      "status": "PASS",
+      "detail": {
+        "actual": "blocked",
+        "expected": "blocked"
+      }
+    },
+    {
+      "name": "direct invalid clearance production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "direct denied conflict status",
+      "status": "PASS",
+      "detail": {
+        "actual": 403,
+        "expected": 403
+      }
+    },
+    {
+      "name": "direct denied conflict ui_state",
+      "status": "PASS",
+      "detail": {
+        "actual": "denied",
+        "expected": "denied"
+      }
+    },
+    {
+      "name": "direct denied conflict count leak prevented",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct review clearance status",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct review clearance ui_state",
+      "status": "PASS",
+      "detail": {
+        "actual": "review_required",
+        "expected": "review_required"
+      }
+    },
+    {
+      "name": "direct review clearance items empty",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "direct review clearance count leak prevented",
+      "status": "PASS",
+      "detail": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "direct audit read-back status after restart",
+      "status": "PASS",
+      "detail": {
+        "actual": 200,
+        "expected": 200
+      }
+    },
+    {
+      "name": "direct audit includes handoff/intake create",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "auditActions": [
+          "intake.request.create",
+          "conflict.check.create",
+          "clearance.token.issue"
+        ]
+      }
+    },
+    {
+      "name": "direct audit includes conflict check",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "auditActions": [
+          "intake.request.create",
+          "conflict.check.create",
+          "clearance.token.issue"
+        ]
+      }
+    },
+    {
+      "name": "direct audit includes clearance issue",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "auditActions": [
+          "intake.request.create",
+          "conflict.check.create",
+          "clearance.token.issue"
+        ]
+      }
+    },
+    {
+      "name": "direct audit production claim false",
+      "status": "PASS",
+      "detail": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "browser API 4xx count",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser API 5xx count",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser console error count",
+      "status": "PASS",
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser observed handoff POST",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "network": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities/opp_cmp_g6_synthetic_001/handoff",
+            "status": 201
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/intake/conflict-checks",
+            "status": 201
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/intake/clearance-tokens",
+            "status": 201
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser observed conflict POST",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "network": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities/opp_cmp_g6_synthetic_001/handoff",
+            "status": 201
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/intake/conflict-checks",
+            "status": 201
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/intake/clearance-tokens",
+            "status": 201
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          }
+        ]
+      }
+    },
+    {
+      "name": "browser observed clearance POST",
+      "status": "PASS",
+      "detail": {
+        "value": true,
+        "network": [
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities/opp_cmp_g6_synthetic_001/handoff",
+            "status": 201
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/intake/conflict-checks",
+            "status": 201
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "POST",
+            "url": "http://127.0.0.1:5173/api/intake/clearance-tokens",
+            "status": 201
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/hrx/legal-people/search?client_id=client_lcx_001",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/record-actions/client/client_group_rp04_amic/audit?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "url": "http://127.0.0.1:5173/api/crm/accounts/org_cmp_g6_account_001/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe",
+            "status": 200
+          }
+        ]
+      }
+    }
+  ],
+  "assertion_summary": {
+    "total": 58,
+    "pass": 58,
+    "fail": 0
+  },
+  "classification": {
+    "LCX8-ACTION-0118": "PASS api_write CRM opportunity handoff safe fixture write/read-back/audit/idempotency/no Matter shortcut",
+    "LCX8-ACTION-0119": "PASS api_write intake conflict snapshot safe fixture write/audit/idempotency/raw memo suppressed",
+    "LCX8-ACTION-0120": "PASS api_write clearance token safe fixture write/audit/idempotency/missing-snapshot block/fail-closed"
+  },
+  "non_claims": [
+    "No Matter was created directly from CRM opportunity",
+    "No production approval claim",
+    "No external receipt claim",
+    "No raw conflict memo exposure claim"
+  ]
+}

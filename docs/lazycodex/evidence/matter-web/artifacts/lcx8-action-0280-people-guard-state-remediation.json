@@ -1,0 +1,53 @@
+{
+  "schema_version": "lawos.lcx8.people_guard_state_remediation.v1",
+  "generated_at": "2026-06-25T15:17:31.586Z",
+  "action_id": "LCX8-ACTION-0280",
+  "source_of_truth": "apps/web PeopleHome + apps/api HRX legal people routes",
+  "base_url": "http://127.0.0.1:5173",
+  "passed": true,
+  "console_errors_recorded_not_gated": [],
+  "results": [
+    {
+      "name": "people-directory-denied",
+      "url": "/?locale=ko&view=people&data=live&ctx=denied#people-directory",
+      "passed": true,
+      "detail": {
+        "guard_count": 1,
+        "state_text": "접근 권한이 없습니다 권한이 있는 People 정보만 표시합니다.",
+        "legal_rows": 0,
+        "forbidden_tokens_in_dom": [],
+        "legal_people_api_statuses": [],
+        "legal_people_api_response_count": 0,
+        "api_payload_leak_detected": false
+      }
+    },
+    {
+      "name": "people-directory-review",
+      "url": "/?locale=ko&view=people&data=live&ctx=review#people-directory",
+      "passed": true,
+      "detail": {
+        "guard_count": 1,
+        "state_text": "검토가 필요합니다 검토가 끝나면 People 정보를 확인할 수 있습니다.",
+        "legal_rows": 0,
+        "forbidden_tokens_in_dom": [],
+        "legal_people_api_statuses": [],
+        "legal_people_api_response_count": 0,
+        "api_payload_leak_detected": false
+      }
+    },
+    {
+      "name": "people-members-denied",
+      "url": "/?locale=ko&view=people&data=live&ctx=denied#people-members",
+      "passed": true,
+      "detail": {
+        "guard_count": 1,
+        "state_text": "접근 권한이 없습니다 권한이 있는 People 정보만 표시합니다.",
+        "legal_rows": 0,
+        "forbidden_tokens_in_dom": [],
+        "legal_people_api_statuses": [],
+        "legal_people_api_response_count": 0,
+        "api_payload_leak_detected": false
+      }
+    }
+  ]
+}

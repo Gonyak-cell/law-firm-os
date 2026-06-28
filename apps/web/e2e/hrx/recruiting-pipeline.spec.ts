@@ -19,7 +19,8 @@ test("Recruiting pipeline reads pipeline data and updates stages through API", a
   assert.match(component, /fetchRecruitingPipeline/);
   assert.match(component, /updateHrxApplicationStage/);
   assert.match(component, /면접/);
-  assert.match(component, /채용 제안/);
+  assert.match(component, /구성원 등록/);
+  assert.match(component, /합격자/);
   assert.match(api, /offers: result\.body\.offers \?\? \[\]/);
   assert.match(api, /\/api\/hrx\/recruiting\/pipeline/);
   assert.match(api, /\/api\/hrx\/recruiting\/applications\/\$\{encodeURIComponent\(applicationId\)\}\/stage/);

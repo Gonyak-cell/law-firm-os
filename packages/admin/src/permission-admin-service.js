@@ -135,20 +135,23 @@ function seedTenant(repository, tenantId) {
       production_ready_claim: false,
     });
     for (const fieldName of object.field_names) {
-      upsertRecord(repository, {
-        tenant_id: tenantId,
-        model_type: ADMIN_PERMISSION_MODEL.fieldPolicy,
-        resource_id: `${object.object_name}:${fieldName}`,
-        object_name: object.object_name,
-        field_name: fieldName,
-        label: fieldName.replace(/_/g, " "),
-        visibility: "visible",
-        permission_ref: `${object.object_name.toLowerCase()}:${fieldName}:read`,
-        owner_approval_required: false,
-        physical_schema_mutated: false,
-        restricted_fields_exposed: false,
-        production_ready_claim: false,
-      });
+      const resourceId = `${object.object_name}:${fieldName}`;
+      if (!getRecord(repository, tenantId, ADMIN_PERMISSION_MODEL.fieldPolicy, resourceId)) {
+        upsertRecord(repository, {
+          tenant_id: tenantId,
+          model_type: ADMIN_PERMISSION_MODEL.fieldPolicy,
+          resource_id: resourceId,
+          object_name: object.object_name,
+          field_name: fieldName,
+          label: fieldName.replace(/_/g, " "),
+          visibility: "visible",
+          permission_ref: `${object.object_name.toLowerCase()}:${fieldName}:read`,
+          owner_approval_required: false,
+          physical_schema_mutated: false,
+          restricted_fields_exposed: false,
+          production_ready_claim: false,
+        });
+      }
     }
   }
   if (listRecords(repository, tenantId, ADMIN_PERMISSION_MODEL.connectedApp).length === 0) {

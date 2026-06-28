@@ -1,0 +1,151 @@
+{
+  "schema_version": "matter.lcx8.runtime.p3-t00.api-server.v1",
+  "generated_at": "2026-06-25T12:13:59.523Z",
+  "status": "complete_validated",
+  "tuw": "P3-T00",
+  "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
+  "api_base_url": "http://127.0.0.1:4180",
+  "health_url": "http://127.0.0.1:4180/api/health",
+  "codex_exec_session_id": 79079,
+  "listen_pid": 3065,
+  "listen_lsof": "COMMAND  PID USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nnode    3065  jws   14u  IPv4 0x15558c5f8968f83c      0t0  TCP 127.0.0.1:4180 (LISTEN)",
+  "start_command": "npm run api:start",
+  "start_mode": "Codex exec session kept alive for P3 runtime QA; detached background process was not retained by the shell environment.",
+  "health_status_code": 200,
+  "health_elapsed_ms": 3,
+  "health_summary": {
+    "status": "ok",
+    "service": "@law-firm-os/api",
+    "version": "0.1.0",
+    "synthetic_only": true,
+    "uses_real_client_data": false,
+    "bounded_context_count": 15,
+    "endpoint_count": 158,
+    "permission_gate": {
+      "context_header": "x-lawos-permission-context",
+      "default_decision": "deny",
+      "fail_closed": true,
+      "decision_order_count": 9
+    },
+    "bounded_contexts": [
+      {
+        "bounded_context": "master-data",
+        "fail_closed": true,
+        "production_ready_claim": null,
+        "runtime_write_ready": null,
+        "uses_real_client_data": false
+      },
+      {
+        "bounded_context": "matter-core",
+        "fail_closed": true,
+        "production_ready_claim": false,
+        "runtime_write_ready": true,
+        "uses_real_client_data": null
+      },
+      {
+        "bounded_context": "vault-dms",
+        "fail_closed": true,
+        "production_ready_claim": false,
+        "runtime_write_ready": true,
+        "uses_real_client_data": null
+      },
+      {
+        "bounded_context": "crm-intake",
+        "fail_closed": true,
+        "production_ready_claim": false,
+        "runtime_write_ready": true,
+        "uses_real_client_data": null
+      },
+      {
+        "bounded_context": "record-actions",
+        "fail_closed": true,
+        "production_ready_claim": false,
+        "runtime_write_ready": true,
+        "uses_real_client_data": null
+      },
+      {
+        "bounded_context": "import-data-mapping",
+        "fail_closed": true,
+        "production_ready_claim": false,
+        "runtime_write_ready": true,
+        "uses_real_client_data": null
+      },
+      {
+        "bounded_context": "admin-permission-setup",
+        "fail_closed": true,
+        "production_ready_claim": false,
+        "runtime_write_ready": true,
+        "uses_real_client_data": null
+      },
+      {
+        "bounded_context": "data-cloud-enrichment",
+        "fail_closed": true,
+        "production_ready_claim": false,
+        "runtime_write_ready": true,
+        "uses_real_client_data": null
+      },
+      {
+        "bounded_context": "report-builder",
+        "fail_closed": true,
+        "production_ready_claim": false,
+        "runtime_write_ready": true,
+        "uses_real_client_data": null
+      },
+      {
+        "bounded_context": "finance",
+        "fail_closed": true,
+        "production_ready_claim": false,
+        "runtime_write_ready": true,
+        "uses_real_client_data": null
+      },
+      {
+        "bounded_context": "analytics",
+        "fail_closed": true,
+        "production_ready_claim": false,
+        "runtime_write_ready": true,
+        "uses_real_client_data": null
+      },
+      {
+        "bounded_context": "ai-governance",
+        "fail_closed": true,
+        "production_ready_claim": false,
+        "runtime_write_ready": true,
+        "uses_real_client_data": null
+      },
+      {
+        "bounded_context": "client-portal-data-room",
+        "fail_closed": true,
+        "production_ready_claim": false,
+        "runtime_write_ready": true,
+        "uses_real_client_data": null
+      },
+      {
+        "bounded_context": "cmp-ui-readiness",
+        "fail_closed": true,
+        "production_ready_claim": false,
+        "runtime_write_ready": true,
+        "uses_real_client_data": null
+      },
+      {
+        "bounded_context": "enterprise-readiness",
+        "fail_closed": true,
+        "production_ready_claim": false,
+        "runtime_write_ready": true,
+        "uses_real_client_data": null
+      }
+    ]
+  },
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "external_receipts_complete": false,
+    "real_client_data_migration": false
+  },
+  "validation_commands": [
+    "lsof -nP -iTCP:4180 -sTCP:LISTEN",
+    "GET http://127.0.0.1:4180/api/health",
+    "node artifact consistency check after write"
+  ],
+  "next_tuw": "P3-T01 Start or attach to web server"
+}

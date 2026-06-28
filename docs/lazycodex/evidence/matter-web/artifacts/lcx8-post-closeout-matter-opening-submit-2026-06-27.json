@@ -1,0 +1,59 @@
+{
+  "schema_version": "lcx8.post_closeout.matter_opening_submit.v1",
+  "generated_at": "2026-06-27T00:27:40.674Z",
+  "action_id": "LCX8-ACTION-0090",
+  "status": "pass",
+  "status_before": "BLOCKED",
+  "status_after": "PASS",
+  "batch_id": "LCX8-ALL-12",
+  "surface": "matter",
+  "label": "개시",
+  "api_route": "POST /api/matters/openings",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0090-matter-opening-submit-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0090-matter-opening-submit-proof.md",
+  "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0090-matter-opening-submit-proof.png",
+  "fixture": {
+    "tenant_id": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "direct_matter_id": "matter_lcx8_0090_opening_1782520060675",
+    "browser_matter_id": "matter_lcx8_0090_browser_1782520060675",
+    "safe_fixture_family": "matter_runtime_opening_submit",
+    "existing_seed_mutated": false
+  },
+  "counts_before": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 27,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 105,
+    "fail": 42
+  },
+  "counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 28,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 104,
+    "fail": 42
+  },
+  "validation": {
+    "browser_ui_api_proof": "PASS 22/22 assertions",
+    "direct_api_write": "PASS 201/created",
+    "idempotent_replay": "PASS 200/idempotent_replay",
+    "read_back": "PASS",
+    "audit_read_back": "PASS matter.open and matter.vault_link.created",
+    "guard_checks": "PASS denied/review/invalid fail closed",
+    "production_ready_claim": false
+  },
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0090 verification: UI/API Matter opening submit proof PASS (22/22 assertions); node --test apps/api/test/cmp-r4-g4-matter.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/sf-b-w03-activity-calendar-channel.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS. Direct POST /api/matters/openings returned 201/created, replay returned 200/idempotent_replay, read-back and audit/vault-link proof passed, guards fail-closed, and browser form submit created a synthetic Matter. Status moved BLOCKED -> PASS.",
+  "non_claims": [
+    "local synthetic runtime proof only",
+    "no production go-live claim",
+    "no owner launch approval claimed",
+    "no real client matter data used"
+  ]
+}

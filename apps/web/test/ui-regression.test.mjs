@@ -64,7 +64,9 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
   assert.match(shellSource, /client-import/);
   assert.match(shellSource, /matter-import/);
   assert.match(shellSource, /people-members/);
+  assert.match(shellSource, /people-org-chart/);
   assert.match(shellSource, /people-documents/);
+  assert.match(shellSource, /people-certificates/);
   assert.match(shellSource, /people-leave/);
   assert.match(shellSource, /people-approvals/);
   assert.match(shellSource, /people-recruiting/);
@@ -146,7 +148,9 @@ test("desktop post-login route docks logo before five-axis contextual shell", as
   assert.match(shellSource, /<MatterLogo \/>/);
   assert.doesNotMatch(shellSource, /export function Rail|<nav className="rail-nav"|nav-toggle|sidebarExpanded/);
   assert.doesNotMatch(appSource, /<Rail \/>|sidebarExpanded|initialSidebarExpanded/);
-  assert.match(homeSource, /title="Client Matter People Vault"/);
+  assert.match(homeSource, /title="오늘의 운영 대기열"/);
+  assert.match(homeSource, /data-home-ops-queue="true"/);
+  assert.match(homeSource, /실패한 동기화/);
   assert.doesNotMatch(homeSource, /endpoint-strip|endpoint coverage|\$\{endpoint\}/);
   assert.doesNotMatch(homeSource, /MetricCard|metric-grid|Product axes|Record views|Protected actions|Release status|visible records|record views|safeguards|capability-card|capability-counts|boundary-ledger/);
   assert.doesNotMatch(stylesSource, /metric-grid|clients-metric-grid|people-metric-grid|command-center-grid|pill-blue|pill-green|recipient-chip|report-chip/);
@@ -200,7 +204,6 @@ test("avatar profile opens a matter-consistent personal profile surface without 
   assert.match(appSource, /<UserProfileSurface \/>/);
   assert.match(appSource, /onProfile=\{\(\) => navigateToView\("profile"\)\}/);
   assert.match(shellSource, /data-profile-trigger="true"/);
-  assert.match(shellSource, /<span>서<\/span>/);
   assert.match(shellSource, /profileSidebarItems/);
   assert.match(shellSource, /data-context-sidebar=\{view\}/);
   assert.doesNotMatch(shellSource, /\{labels\.upgrade\}/);
@@ -209,15 +212,14 @@ test("avatar profile opens a matter-consistent personal profile surface without 
   assert.match(profileSource, /비용·정산 내역/);
   assert.match(profileSource, /개인정보 관리/);
   assert.match(profileSource, /부재 일정/);
-  assert.match(profileSource, /시작 설정/);
-  assert.match(profileSource, />80%<\/strong>/);
   assert.match(profileSource, /내 프로필/);
-  assert.match(profileSource, /계정 정리 중/);
-  assert.doesNotMatch(profileSource, /Contracts \/ Agreements|Expenses and claims overview|Personal Information|Time off|My Onboarding|Your Profile|Help & Feedback|계약 \/ 약정|비용 및 청구 현황|오프보딩|유연 지급|출금 방법|MessageCircle/);
+  assert.match(profileSource, /프로필 데이터 없음/);
+  assert.match(profileSource, /연결 필요/);
+  assert.match(profileSource, /실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다/);
+  assert.doesNotMatch(profileSource, /서지원|jws@matter\.local|법무 운영 매니저|외부 협업자|월 정액 자문|2024년 4월 15일|월 \$30\.00|계정 정리 중|진행 중|>80%<\/strong>|Contracts \/ Agreements|Expenses and claims overview|Personal Information|Time off|My Onboarding|Your Profile|Help & Feedback|계약 \/ 약정|비용 및 청구 현황|오프보딩|유연 지급|출금 방법|MessageCircle/);
   assert.doesNotMatch(profileSource, /deel-/);
   assert.match(stylesSource, /\.matter-profile-surface[\s\S]*background:\s*var\(--am-canvas\)/);
   assert.match(stylesSource, /\.matter-profile-grid[\s\S]*grid-template-columns:\s*minmax\(520px, 1fr\) minmax\(320px, 0\.58fr\)/);
-  assert.match(stylesSource, /\.matter-profile-progress-meter span[\s\S]*width:\s*80%/);
   assert.doesNotMatch(stylesSource, /deel-|#f7f6f2|\.matter-profile-progress-card\s*\{[^}]*position:\s*fixed/);
   assert.doesNotMatch(navSource, /id: "profile"/);
 });
@@ -407,6 +409,8 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /fetchRecordActionAudit/);
   assert.match(clientsSource, /updateRecordActionField/);
   assert.match(clientsSource, /bulkUpdateRecordActions/);
+  assert.match(clientsSource, /clientGuardedState/);
+  assert.match(clientsSource, /!clientGuardedState && selectedClientId/);
   assert.match(clientsSource, /ImportDataMappingPanel/);
   assert.match(clientsSource, /client-import/);
   assert.match(clientsSource, /data-intake-clearance-action="true"/);
@@ -613,7 +617,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(permissionAdminSource, /disableConnectedApp/);
   assert.match(permissionAdminSource, /fetchAdminPermissionAudit/);
   assert.match(openingSource, /createMatterOpening/);
-  assert.match(openingSource, /필수 정보를 입력해주세요/);
+  assert.match(openingSource, /필수 정보를 입력하세요/);
   assert.match(rosterSource, /addMatterTeamMember/);
   assert.match(rosterSource, /data-matter-owner-assignment-action="true"/);
   assert.match(rosterSource, /data-matter-owner-assignment-result="true"/);
@@ -871,7 +875,7 @@ test("HRX lifecycle board stays API-backed from People runtime", async () => {
   assert.match(lifecycleSource, /closeHrxOffboardingCase/);
   assert.match(lifecycleSource, /taskTitleLabel/);
   assert.match(lifecycleSource, /documentSummary/);
-  assert.match(lifecycleSource, /입퇴사 업무를 불러오지 못했습니다/);
+  assert.match(lifecycleSource, /입퇴사 관리 업무를 불러오지 못했습니다/);
   assert.doesNotMatch(lifecycleSource, /<strong>{task\.title}<\/strong>|plan\.employee_id|plan\.document_refs\?\.join|<strong>{caseItem\.offboarding_id}<\/strong>|caseItem\.employee_id/);
   assert.match(peopleApiSource, /\/api\/hrx\/lifecycle\/onboarding/);
   assert.match(peopleApiSource, /\/api\/hrx\/lifecycle\/offboarding/);

@@ -1,0 +1,815 @@
+{
+  "schema_version": "matter.lcx8.browser-action-qa.p3-t07.people-directory.v1",
+  "generated_at": "2026-06-25T12:54:52.755Z",
+  "status": "complete_fail_observed",
+  "tuw": "P3-T07",
+  "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
+  "web_base_url": "http://127.0.0.1:5174",
+  "api_base_url": "http://127.0.0.1:4180 via Vite proxy",
+  "rows_reviewed": 11,
+  "pass_observed": 9,
+  "fail_confirmed": 1,
+  "fail_observed": 1,
+  "unexpected_effect_observed": 0,
+  "api_response_count": 29,
+  "api_5xx_count": 0,
+  "console_error_count": 0,
+  "skipped_non_click_state_rows": [
+    "LCX8-ACTION-0280"
+  ],
+  "note": "People directory browser click QA records safe read/filter/search behavior only. Known FAIL overflow row is clicked only to confirm no effect; denied/review missing state row is non-click evidence.",
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "external_receipts_complete": false
+  },
+  "results": [
+    {
+      "id": "LCX8-ACTION-0093",
+      "label": "새로고침",
+      "selector": "#people-home .page-header .secondary-button",
+      "status_before_qa": "BLOCKED",
+      "trace_depth": "api_read",
+      "expected_kind": "api_refresh",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "after_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "before_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 5,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0093",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search"
+        },
+        {
+          "action_id": "LCX8-ACTION-0093",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/person_arbitrator_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0093",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/relationships?person_id=person_arbitrator_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0093",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/ethics?person_id=person_arbitrator_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0093",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/employees"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0093.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "api_refresh_network_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0094",
+      "label": "Legal People panel overflow menu",
+      "selector": ".legal-people-runtime-grid .panel-head .icon-button",
+      "status_before_qa": "FAIL",
+      "trace_depth": "ui_state_only",
+      "expected_kind": "expected_no_effect_fail",
+      "selector_count": 3,
+      "before_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "after_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "before_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0094.png",
+      "click_error": null,
+      "observed_result": "FAIL_CONFIRMED",
+      "reason": "known_missing_handler_no_effect_confirmed"
+    },
+    {
+      "id": "LCX8-ACTION-0095",
+      "label": "이름, 역할, 조직 검색",
+      "selector": ".legal-people-search input",
+      "status_before_qa": "BLOCKED",
+      "trace_depth": "api_read",
+      "expected_kind": "search_input",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "after_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "before_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "Kim",
+        "activeTab": "전체",
+        "legalRows": 1,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AAri Kim내부 변호사 · LCX Litigation Group활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AAri Kim내부 변호사 · Responsible attorney상세 권한조직LCX Litigation Group상태활성ClientLCX ClientMatterLCX Litigation Matter감사 요약1건제한 관계0건접근 제한 검토 필요",
+          "연결 관계1개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.조직 소속organization:org_internal_firm_unit_001활성표시"
+        ],
+        "visibleStates": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 4,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0095",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?query=Kim"
+        },
+        {
+          "action_id": "LCX8-ACTION-0095",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/person_internal_lawyer_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0095",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/relationships?person_id=person_internal_lawyer_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0095",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/ethics?person_id=person_internal_lawyer_001"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0095.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "search_query_state_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0096",
+      "label": "전체",
+      "selector": ".legal-people-type-tabs button:has-text(\"전체\")",
+      "status_before_qa": "BLOCKED",
+      "trace_depth": "api_read",
+      "expected_kind": "filter_tab",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "after_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "before_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0096.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "active_filter_tab_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0097",
+      "label": "내부 변호사",
+      "selector": ".legal-people-type-tabs button:has-text(\"내부 변호사\")",
+      "status_before_qa": "BLOCKED",
+      "trace_depth": "api_read",
+      "expected_kind": "filter_tab",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "after_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "before_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "내부 변호사",
+        "legalRows": 1,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AAri Kim내부 변호사 · LCX Litigation Group활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AAri Kim내부 변호사 · Responsible attorney상세 권한조직LCX Litigation Group상태활성ClientLCX ClientMatterLCX Litigation Matter감사 요약1건제한 관계0건접근 제한 검토 필요",
+          "연결 관계1개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.조직 소속organization:org_internal_firm_unit_001활성표시"
+        ],
+        "visibleStates": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 4,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0097",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?type_id=internal_lawyer"
+        },
+        {
+          "action_id": "LCX8-ACTION-0097",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/person_internal_lawyer_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0097",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/relationships?person_id=person_internal_lawyer_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0097",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/ethics?person_id=person_internal_lawyer_001"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0097.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "active_filter_tab_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0098",
+      "label": "Client",
+      "selector": ".legal-people-type-tabs button:has-text(\"Client\")",
+      "status_before_qa": "BLOCKED",
+      "trace_depth": "api_read",
+      "expected_kind": "filter_tab",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "after_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "before_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "Client",
+        "legalRows": 1,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관JJin Lee고객 담당자 · LCX Client Organization활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.JJin Lee고객 담당자 · Client decision maker상세 권한조직LCX Client Organization상태활성ClientLCX ClientMatterLCX Litigation Matter감사 요약1건제한 관계0건",
+          "연결 관계1개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.Client 연락처client:client_lcx_001검토 필요검토 필요"
+        ],
+        "visibleStates": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 4,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0098",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?type_id=client_contact"
+        },
+        {
+          "action_id": "LCX8-ACTION-0098",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/person_client_contact_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0098",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/relationships?person_id=person_client_contact_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0098",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/ethics?person_id=person_client_contact_001"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0098.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "active_filter_tab_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0099",
+      "label": "상대 대리인",
+      "selector": ".legal-people-type-tabs button:has-text(\"상대 대리인\")",
+      "status_before_qa": "BLOCKED",
+      "trace_depth": "api_read",
+      "expected_kind": "filter_tab",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "after_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "before_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "상대 대리인",
+        "legalRows": 1,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관NNoah Choi상대방 대리인 · Opposing Counsel Firm활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.NNoah Choi상대방 대리인 · Opposing counsel상세 권한조직Opposing Counsel Firm상태활성Client없음MatterLCX Litigation Matter감사 요약1건제한 관계0건",
+          "연결 관계1개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.Matter 참여matter:matter_lcx_001검토 필요검토 필요"
+        ],
+        "visibleStates": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 4,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0099",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?type_id=opposing_counsel"
+        },
+        {
+          "action_id": "LCX8-ACTION-0099",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/person_opposing_counsel_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0099",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/relationships?person_id=person_opposing_counsel_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0099",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/ethics?person_id=person_opposing_counsel_001"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0099.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "active_filter_tab_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0100",
+      "label": "전문가",
+      "selector": ".legal-people-type-tabs button:has-text(\"전문가\")",
+      "status_before_qa": "BLOCKED",
+      "trace_depth": "api_read",
+      "expected_kind": "filter_tab",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "after_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "before_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전문가",
+        "legalRows": 1,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관DDr. Seo전문가/증인 · Expert Witness Group활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.DDr. Seo전문가/증인 · Expert witness상세 권한조직Expert Witness Group상태활성Client없음MatterLCX Litigation Matter감사 요약1건제한 관계0건",
+          "연결 관계1개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.문서 참조document:document_lcx_expert_report_001활성표시"
+        ],
+        "visibleStates": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 4,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0100",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?type_id=expert_witness"
+        },
+        {
+          "action_id": "LCX8-ACTION-0100",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/person_expert_witness_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0100",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/relationships?person_id=person_expert_witness_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0100",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/ethics?person_id=person_expert_witness_001"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0100.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "active_filter_tab_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0101",
+      "label": "규제기관",
+      "selector": ".legal-people-type-tabs button:has-text(\"규제기관\")",
+      "status_before_qa": "BLOCKED",
+      "trace_depth": "api_read",
+      "expected_kind": "filter_tab",
+      "selector_count": 1,
+      "before_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "after_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "before_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "규제기관",
+        "legalRows": 1,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관FFSC Reviewer규제기관 담당자 · Financial Services Commission활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.FFSC Reviewer규제기관 담당자 · Regulatory reviewer상세 권한조직Financial Services Commission상태활성Client없음MatterLCX Regulatory Matter감사 요약1건제한 관계0건",
+          "연결 관계1개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.Matter 참여matter:matter_lcx_regulatory_001활성검토 필요"
+        ],
+        "visibleStates": [],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 4,
+      "api_5xx_count": 0,
+      "network": [
+        {
+          "action_id": "LCX8-ACTION-0101",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?type_id=regulator_contact"
+        },
+        {
+          "action_id": "LCX8-ACTION-0101",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/person_regulator_contact_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0101",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/relationships?person_id=person_regulator_contact_001"
+        },
+        {
+          "action_id": "LCX8-ACTION-0101",
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/ethics?person_id=person_regulator_contact_001"
+        }
+      ],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0101.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "active_filter_tab_observed"
+    },
+    {
+      "id": "LCX8-ACTION-0102",
+      "label": "Legal person row",
+      "selector": ".people-row.legal-people-row",
+      "status_before_qa": "BLOCKED",
+      "trace_depth": "api_read",
+      "expected_kind": "record_selection",
+      "selector_count": 9,
+      "before_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "after_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "before_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0102.png",
+      "click_error": null,
+      "observed_result": "PASS_OBSERVED",
+      "reason": "record_selection_click_kept_people_detail_surface"
+    },
+    {
+      "id": "LCX8-ACTION-0149",
+      "label": "디렉터리",
+      "selector": ".sidebar-item.sidebar-child:has-text(\"디렉터리\")",
+      "status_before_qa": "UI_ONLY",
+      "trace_depth": "route_navigation",
+      "expected_kind": "route_hash",
+      "selector_count": 0,
+      "before_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "after_url": "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+      "before_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "after_metrics": {
+        "view": "people",
+        "hash": "#people-directory",
+        "title": "matter",
+        "peopleSurface": 1,
+        "queryValue": "",
+        "activeTab": "전체",
+        "legalRows": 9,
+        "detailText": [
+          "관계자 목록Client·Matter 관계Client, Matter, 조직과 이해상충 관련 여부를 함께 확인합니다.전체내부 변호사Client상대 대리인전문가규제기관AArbitrator Han중재인 · Arbitration Institution활성AAri Kim내부 변호사 · LCX Litigation Group활성CCounterparty A상대방 · Counterparty Organization활성DDr. Seo전문가/증인 · Expert Witness Group활성FFSC Reviewer규제기관 담당자 · Financial Services Commission활성JJin Lee고객 담당자 · LCX Client Organization활성MMina Park스태프/패러리걸 · LCX Litigation Group활성NNoah Choi상대방 대리인 · Opposing Counsel Firm활성SSeoul Central Court Clerk재판부/법원 관계자 · Seoul Central Court활성",
+          "인물 상세선택됨민감한 관계 정보는 권한에 따라 축약됩니다.AArbitrator Han중재인 · Arbitrator상세 권한조직Arbitration Institution상태활성Client없음MatterLCX Arbitration Matter감사 요약0건제한 관계0건",
+          "연결 관계0개Client, Matter, 조직 연결과 권한 상태를 함께 보여줍니다.표시할 관계가 없습니다."
+        ],
+        "visibleStates": [
+          "표시할 관계가 없습니다."
+        ],
+        "horizontalOverflow": false
+      },
+      "network_response_count": 0,
+      "api_5xx_count": 0,
+      "network": [],
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0149.png",
+      "click_error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.sidebar-item.sidebar-child:has-text(\"디렉터리\")').first()\u001b[22m\n",
+      "observed_result": "FAIL_OBSERVED",
+      "reason": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.sidebar-item.sidebar-child:has-text(\"디렉터리\")').first()\u001b[22m\n"
+    }
+  ],
+  "next_tuw": "P3-T08 Record console errors per action"
+}

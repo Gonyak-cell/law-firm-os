@@ -1,0 +1,1367 @@
+{
+  "schema_version": "matter.lcx8.action-inventory.v1",
+  "generated_at": "2026-06-25T15:37:28.085930Z",
+  "status": "lcx8_closed_current_product_flow_pass_pending_go_live_decision",
+  "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
+  "first_execution_slice": "P1-T05: Client visible action inventory",
+  "audited_routes": [
+    "/?locale=ko&view=home&desktop=1&data=live&ctx=allow",
+    "/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+    "/?locale=ko&view=matters&data=live&ctx=allow#matter-command",
+    "/?locale=ko&view=matters&data=live&ctx=allow#matter-vault",
+    "/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline",
+    "/?locale=ko&view=matters&data=live&ctx=allow#matter-calendar",
+    "/?locale=ko&view=matters&data=live&ctx=allow#matter-channel",
+    "/?locale=ko&view=matters&data=live&ctx=allow#matter-opening",
+    "/?locale=ko&view=vault&data=live&ctx=allow#vault-documents",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-directory",
+    "/?locale=ko&view=clients&data=live&ctx=allow#clients-list",
+    "/?locale=ko&view=clients&data=live&ctx=allow#client-leads",
+    "/?locale=ko&view=clients&data=live&ctx=allow#client-opportunities",
+    "/?locale=ko&view=clients&data=live&ctx=allow#client-intake",
+    "/?locale=ko&view=clients&data=live&ctx=allow#client-accounts",
+    "/?locale=ko&view=clients&data=live&ctx=allow#client-contacts",
+    "/?locale=ko&view=clients&data=live&ctx=allow#client-data",
+    "/?locale=ko&view=clients&data=live&ctx=allow#client-reports",
+    "/?locale=ko&view=clients&data=live&ctx=allow#client-import",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-relationships",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-conflicts",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-members",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-org-chart",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-documents",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-leave",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-approvals",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-recruiting",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-lifecycle",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-policy",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-audit",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-analytics",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-ai",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-payroll",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-admin",
+    "/?locale=ko&view=profile&data=live&ctx=allow",
+    "/?locale=ko&view=profile&data=live&ctx=allow#expenses",
+    "/?locale=ko&view=profile&data=live&ctx=allow#transactions",
+    "/?locale=ko&view=profile&data=live&ctx=allow#payments",
+    "/?locale=ko&view=profile&data=live&ctx=allow#withdrawal",
+    "desktop://matter-shell",
+    "desktop://offline-renderer",
+    "desktop://preload/session",
+    "desktop://preload/fileBridge",
+    "desktop://temp-preview",
+    "matter://matter/:matterId",
+    "matter://document/:documentId",
+    "matter://task/:taskId",
+    "matter://auth/callback?code=...&state=...&issuer=...",
+    "desktop://notification-click",
+    "desktop://updates/internal",
+    "desktop://updates/public",
+    "/?locale=ko&view=home&desktop=1&data=live&ctx=denied",
+    "/?locale=ko&view=home&desktop=1&data=live&ctx=review",
+    "/?locale=ko&view=clients&data=live&ctx=denied#clients-list",
+    "/?locale=ko&view=clients&data=live&ctx=review#clients-list",
+    "/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+    "/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+    "/?locale=ko&view=matters&data=live&ctx=denied#matter-vault",
+    "/?locale=ko&view=matters&data=live&ctx=review#matter-vault",
+    "/?locale=ko&view=vault&data=live&ctx=denied#vault-documents",
+    "/?locale=ko&view=vault&data=live&ctx=review#vault-documents",
+    "/?locale=ko&view=people&data=live&ctx=denied#people-directory",
+    "/?locale=ko&view=people&data=live&ctx=review#people-directory",
+    "/?locale=ko&view=profile&data=live&ctx=denied",
+    "/?locale=ko&view=profile&data=live&ctx=review",
+    "/?locale=ko&view=matters&data=live&ctx=allow#matter-team",
+    "/?locale=ko&view=matters&data=live&ctx=allow#matter-billing",
+    "/?locale=ko&view=matters&data=live&ctx=allow#matter-analytics",
+    "/?locale=ko&view=matters&data=live&ctx=allow#matter-import",
+    "/?locale=ko&view=vault&data=live&ctx=allow#vault-detail",
+    "/?locale=ko&view=vault&data=live&ctx=allow#vault-email",
+    "/?locale=ko&view=people&data=live&ctx=allow#people-approvals; /?locale=ko&view=people&data=live&ctx=allow#people-recruiting; /?locale=ko&view=people&data=live&ctx=allow#people-policy; /?locale=ko&view=people&data=live&ctx=allow#people-audit; /?locale=ko&view=people&data=live&ctx=allow#people-analytics; /?locale=ko&view=people&data=live&ctx=allow#people-ai; /?locale=ko&view=people&data=live&ctx=allow#people-payroll; /?locale=ko&view=people&data=live&ctx=allow#people-admin"
+  ],
+  "selector_scope": "Visible DOM controls plus source-traced repeated controls represented by selector pattern.",
+  "status_counts": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 21,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 111,
+    "fail": 42
+  },
+  "completed_tuws": [
+    "P1-T01",
+    "P1-T02",
+    "P1-T03",
+    "P1-T04",
+    "P1-T05",
+    "P1-T06",
+    "P1-T07",
+    "P1-T08-directory",
+    "P1-T08-remainder",
+    "P1-T09",
+    "P1-T10",
+    "P1-T11",
+    "P1-T12",
+    "P2-T00",
+    "P2-T01",
+    "P2-T02",
+    "P2-T03",
+    "P2-T04",
+    "P2-T05",
+    "P2-T06",
+    "P2-T07",
+    "P2-T08",
+    "P2-T09",
+    "P2-T10",
+    "P3-T00",
+    "P3-T01",
+    "P3-T02",
+    "P3-T03",
+    "P3-T04",
+    "P3-T05",
+    "P3-T06",
+    "P3-T07",
+    "P3-T08",
+    "P3-T09",
+    "P3-T10",
+    "P3-T11",
+    "P4-T00",
+    "P4-T01",
+    "P4-T02",
+    "P4-T03",
+    "P4-T04",
+    "P4-T05",
+    "P4-T06",
+    "P4-T07",
+    "P4-T08",
+    "P5-T00",
+    "P5-T01",
+    "P5-T02",
+    "P5-T03",
+    "P5-T04",
+    "P5-T05",
+    "P5-T06",
+    "P5-T07",
+    "P6-T00",
+    "P6-T01",
+    "P6-T02",
+    "P6-T03",
+    "P6-T04",
+    "P6-T05",
+    "P6-T06",
+    "P6-T07",
+    "P7-T00",
+    "P7-T01",
+    "P7-T02",
+    "P7-T03",
+    "P7-T04",
+    "P7-T05",
+    "P7-T06",
+    "P8-T00",
+    "P8-T01",
+    "P8-T02",
+    "P8-T03",
+    "P8-T04",
+    "P8-T05",
+    "P8-T06",
+    "P8-T07",
+    "P8-T08",
+    "P9-T00",
+    "P9-T01",
+    "P9-T02",
+    "P9-T03",
+    "P9-T04",
+    "P9-T05",
+    "P9-T06",
+    "P9-T07",
+    "P9-T08",
+    "P9-T09"
+  ],
+  "active_next_tuw": null,
+  "s1_notes": [
+    "S1 does not claim API writes are operational; BLOCKED rows are P3/P4 verification candidates.",
+    "S1 does not cover Client P1-T05 or deeper People/HRX sections beyond #people-directory.",
+    "DOM observation proves visibility, not successful click-side effects."
+  ],
+  "p1_t05_notes": [
+    "P1-T05 does not claim Client API writes are operational; BLOCKED rows are P3/P4 verification candidates.",
+    "DOM observation proves visibility and disabled state, not successful click-side effects.",
+    "People/HRX sections beyond #people-directory remain outside this completed Client slice."
+  ],
+  "p1_t08_remainder_notes": [
+    "P1-T08 remainder does not claim HRX API writes are operational; BLOCKED rows require P3/P4 click/API/audit proof.",
+    "DOM observation proves visibility, disabled state, and route reachability only.",
+    "LifecycleBoard complete/close buttons exist in source but are not rendered by current PeopleHome #people-lifecycle route, so they are not counted as visible actions in this ledger slice."
+  ],
+  "p1_t09_notes": [
+    "P1-T09 profile route inventory is DOM/click-state evidence only; no profile API/runtime write is claimed.",
+    "Profile section sidebar links for expenses/transactions/payments/withdrawal currently change hash and active sidebar only; UserProfileSurface renders the same empty profile surface.",
+    "Topbar profile trigger remains represented by LCX8-ACTION-0015 in P1-T02 to avoid duplicate rows."
+  ],
+  "p1_t10_notes": [
+    "P1-T10 uses source trace, desktop unit tests, and contract validators rather than browser DOM screenshots because desktop bridge actions are native/preload surfaces.",
+    "GUARDED desktop rows are local guard proofs only; they are not production, notarization, or public update release claims.",
+    "File bridge, temp preview, deep link, notification, login, and update rows remain BLOCKED where active shell wiring, OS integration, runtime receipt, owner approval, or external proof is absent."
+  ],
+  "p1_t11_notes": [
+    "P1-T11 swept 53 rendered web routes: audited allow routes plus representative ctx=denied/ctx=review variants.",
+    "68 disabled or unavailable-hint controls and 47 unavailable/live-state panels were observed in docs/lazycodex/evidence/matter-web/artifacts/lcx8-disabled-unavailable-observation-p1-t11.json.",
+    "Most disabled buttons were already represented by earlier action rows. P1-T11 added state-panel rows for guarded denied/review states, grouped disabled action strips, one People guard-state gap, and the profile data-unavailable state."
+  ],
+  "p1_t12_notes": [
+    "P1-T12 sealed the inventory coverage count at 281 ledger rows.",
+    "Unknown count is 0 and critical unknown count is 0.",
+    "No PASS rows are claimed before P3/P4/P5/P6 runtime proof.",
+    "P2-T00 App.jsx navigation/source trace is active next."
+  ],
+  "p2_t00_notes": [
+    "P2-T00 traced App.jsx routeFromLocation, routeUrl, navigateToView, popstate, and App-level setView callback wiring.",
+    "P2-T00 updated 63 existing route/hash rows; no new visible action rows were added.",
+    "P2-T00 promoted 21 rows from ui_state_only to route_navigation where App pushState/hash behavior is now source-traced.",
+    "P2-T00 does not claim Shell.jsx local control trace, HomeSurface command-center internals, API operation, browser click success, or production go-live."
+  ],
+  "p2_t01_notes": [
+    "P2-T01 traced Shell.jsx ProductAxisNav, Topbar, NotificationDrawer, Sidebar, GlobalSearch, sidebar utilities, and profileSidebarItems.",
+    "P2-T01 updated 72 existing Shell-sourced ledger rows with Shell source evidence.",
+    "P2-T01 backfilled 21 Matter/Vault contextual sidebar rows discovered in Shell.jsx source but absent from the P1 ledger.",
+    "P2-T01 browser QA drove topbar search, notification drawer, theme/locale/help, Matter sidebar groups/routes/utilities, and Vault sidebar routes/utilities on http://127.0.0.1:5174.",
+    "Browser QA observed API 500 console events because only the web server was running; no API operation PASS is claimed.",
+    "P2-T02 HomeSurface command-center trace is active next."
+  ],
+  "p2_t02_notes": [
+    "P2-T02 traced HomeSurface refresh, QueueRow, WorkAreaRow, probe status mapping, and backendCapabilities route mapping.",
+    "P2-T02 updated 8 existing HomeSurface rows and added no backfill rows.",
+    "P2-T02 browser QA drove refresh, Matter/People/Vault queue rows, and Client/Matter/People/Vault work-area open buttons on http://127.0.0.1:5174.",
+    "Browser QA observed API console noise because only the web server was running; no API operation PASS is claimed.",
+    "LCX8-ACTION-0036 remains BLOCKED because refresh re-runs API probes and needs P3/P4 response proof.",
+    "P2-T03 Client component/API trace is active next."
+  ],
+  "p2_t03_notes": [
+    "P2-T03 traced ClientsSurface, ImportDataMappingPanel, DataCloudEnrichmentPanel, ReportBuilderPanel, primitives Panel, apiClient, and hrxApiClient boundaries.",
+    "P2-T03 updated 34 existing Client rows and added no backfill rows.",
+    "Record-action field updates were corrected to POST /api/record-actions/:object/:record_id/field-update based on apiClient.js source.",
+    "No Client row was promoted to PASS; API-backed Client actions remain BLOCKED pending P3/P4 proof.",
+    "LCX8-ACTION-0115 remains FAIL because the shared Panel overflow icon has no handler.",
+    "P2-T04 Matter component/API trace is active next."
+  ],
+  "p2_t04_notes": [
+    "P2-T04 traced Matter components and API clients without promoting any API-backed action to PASS.",
+    "P2-T04 corrected Matter record-action endpoints to POST /api/record-actions/matter/:record_id/field-update and POST /api/record-actions/matter/bulk-updates.",
+    "P2-T04 backfilled 17 visible Matter team/billing/analytics/import actions that are reachable from the Matter sidebar but were absent from the S1 Matter ledger."
+  ],
+  "p2_t05_notes": [
+    "P2-T05 traced VaultSurface, Vault document detail, email filing, sidebar, shared Panel, vaultApiClient, and apiClient boundaries without promoting API-backed actions to PASS.",
+    "P2-T05 backfilled Vault detail/email missing-handler overflow controls and the email filing provider-unavailable state.",
+    "MatterVaultPanel rows remain covered by P2-T04 and are not reclassified in P2-T05."
+  ],
+  "scope_note": "P5-T06 confirmed 128 UI_ONLY rows as ephemeral/local-only route, component, form, query, or history state. No durable persistence proof is required for those rows; no statuses changed.",
+  "p2_t08_notes": {
+    "reviewed_candidate_rows": 47,
+    "fail_rows_confirmed": 43,
+    "non_fail_boundary_rows_reviewed": 4,
+    "by_classification": {
+      "visible_control_not_consumed_fail": 1,
+      "fail_reviewed_noop_or_missing_handler": 1,
+      "shell_utility_missing_handler_fail": 15,
+      "false_affordance_fail": 1,
+      "shared_panel_overflow_missing_handler_fail": 7,
+      "workforce_control_missing_handler_fail": 5,
+      "no_effect_visible_row_fail": 1,
+      "no_effect_lifecycle_row_fail": 1,
+      "route_without_section_surface_fail": 4,
+      "profile_action_missing_handler_fail": 5,
+      "guarded_disabled_state_not_missing_handler": 1,
+      "guard_state_missing_fail": 1,
+      "blocked_unavailable_state_not_missing_handler": 1,
+      "route_navigation_to_unavailable_surface_not_missing_handler": 1,
+      "blocked_external_unavailable_state_not_missing_handler": 1,
+      "no_effect_refresh_propagation_fail": 1
+    },
+    "status_counts_after_classification": {
+      "inventory_rows": 324,
+      "unknown": 0,
+      "pass": 0,
+      "guarded": 20,
+      "ui_only": 128,
+      "descriptor_only": 0,
+      "blocked": 133,
+      "fail": 43
+    },
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t08-missing-handler-classification.json",
+    "status": "complete_validated"
+  },
+  "p2_t09_notes": {
+    "status": "complete_validated",
+    "reviewed_candidate_rows": 12,
+    "descriptor_only_rows": [
+      "LCX8-ACTION-0281",
+      "LCX8-ACTION-0322"
+    ],
+    "retained_guarded_rows": [
+      "LCX8-ACTION-0272",
+      "LCX8-ACTION-0273",
+      "LCX8-ACTION-0274",
+      "LCX8-ACTION-0275",
+      "LCX8-ACTION-0276",
+      "LCX8-ACTION-0277",
+      "LCX8-ACTION-0278",
+      "LCX8-ACTION-0279"
+    ],
+    "retained_fail_rows": [
+      "LCX8-ACTION-0280"
+    ],
+    "before_counts": {
+      "inventory_rows": 324,
+      "unknown": 0,
+      "pass": 0,
+      "guarded": 20,
+      "ui_only": 128,
+      "descriptor_only": 0,
+      "blocked": 133,
+      "fail": 43
+    },
+    "status_counts_after_classification": {
+      "inventory_rows": 324,
+      "unknown": 0,
+      "pass": 0,
+      "guarded": 20,
+      "ui_only": 128,
+      "descriptor_only": 2,
+      "blocked": 131,
+      "fail": 43
+    },
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-source-trace-p2-t09-descriptor-only-families.json"
+  },
+  "p2_t10_notes": {
+    "status": "complete_validated",
+    "reviewed_rows": 324,
+    "changed_trace_depth_rows": 157,
+    "allowed_trace_depths": [
+      "ui_state_only",
+      "route_navigation",
+      "api_read",
+      "api_write",
+      "native_bridge",
+      "external_receipt_required"
+    ],
+    "mapping": {
+      "api_read_pending_p3": "api_read",
+      "api_write_pending_p4": "api_write",
+      "missing_handler": "ui_state_only",
+      "no_handler": "ui_state_only",
+      "no_effect_visible_row": "ui_state_only",
+      "route_without_section_surface": "route_navigation"
+    },
+    "after_distribution": {
+      "ui_state_only": 103,
+      "route_navigation": 77,
+      "api_read": 34,
+      "api_write": 83,
+      "native_bridge": 26,
+      "external_receipt_required": 1
+    },
+    "status_counts_unchanged": {
+      "inventory_rows": 324,
+      "unknown": 0,
+      "pass": 0,
+      "guarded": 20,
+      "ui_only": 128,
+      "descriptor_only": 2,
+      "blocked": 131,
+      "fail": 43
+    },
+    "non_claims": {
+      "production_go_live": false,
+      "public_release": false,
+      "owner_approval": false,
+      "external_receipts_complete": false
+    },
+    "validation_commands": [
+      "node JSON/CSV/status-count/trace-depth consistency check",
+      "npm --workspace apps/web run test:ui",
+      "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+      "git diff --check"
+    ],
+    "next_tuw": "P3-T00"
+  },
+  "p3_t00_notes": {
+    "status": "complete_validated",
+    "api_base_url": "http://127.0.0.1:4180",
+    "health_url": "http://127.0.0.1:4180/api/health",
+    "listen_pid": 3065,
+    "codex_exec_session_id": 79079,
+    "health_summary": {
+      "service": "@law-firm-os/api",
+      "bounded_context_count": 15,
+      "endpoint_count": 158,
+      "permission_gate_fail_closed": true,
+      "synthetic_only": true,
+      "uses_real_client_data": false
+    },
+    "next_tuw": "P3-T01"
+  },
+  "p3_t01_notes": {
+    "status": "complete_validated",
+    "web_base_url": "http://127.0.0.1:5174",
+    "root_url": "http://127.0.0.1:5174/",
+    "listen_pid": 21872,
+    "codex_exec_session_id": 43222,
+    "root_status_code": 200,
+    "root_html_bytes": 734,
+    "root_checks": {
+      "has_root_node": true,
+      "has_vite_client": true,
+      "has_app_entry": true
+    },
+    "next_tuw": "P3-T02"
+  },
+  "p3_t02_notes": {
+    "status": "fail_recorded",
+    "base_url": "http://127.0.0.1:5174",
+    "check_count": 9,
+    "pass_count": 0,
+    "fail_count": 9,
+    "console_error_count": 14,
+    "mobile_horizontal_overflow": false,
+    "failed_checks": [
+      {
+        "name": "desktop-home-command-center",
+        "expected_text": "Client Matter People Vault",
+        "text_found": 0,
+        "selector_found": 1,
+        "horizontal_overflow": false,
+        "visible_live_states": [],
+        "error": null
+      },
+      {
+        "name": "clients-live",
+        "expected_text": "Clients",
+        "text_found": 0,
+        "selector_found": 1,
+        "horizontal_overflow": false,
+        "visible_live_states": [],
+        "error": null
+      },
+      {
+        "name": "matters-live",
+        "expected_text": "Matter Home",
+        "text_found": 0,
+        "selector_found": 1,
+        "horizontal_overflow": false,
+        "visible_live_states": [],
+        "error": null
+      },
+      {
+        "name": "people-live",
+        "expected_text": "People Runtime",
+        "text_found": 0,
+        "selector_found": 1,
+        "horizontal_overflow": false,
+        "visible_live_states": [],
+        "error": null
+      },
+      {
+        "name": "vault-live",
+        "expected_text": "Matter Vault",
+        "text_found": 0,
+        "selector_found": 1,
+        "horizontal_overflow": false,
+        "visible_live_states": [],
+        "error": null
+      },
+      {
+        "name": "clients-denied",
+        "expected_text": "Access denied",
+        "text_found": 0,
+        "selector_found": 1,
+        "horizontal_overflow": false,
+        "visible_live_states": [
+          "접근 권한이 없습니다권한이 있는 Client만 표시합니다."
+        ],
+        "error": null
+      },
+      {
+        "name": "clients-review",
+        "expected_text": "Review required",
+        "text_found": 0,
+        "selector_found": 1,
+        "horizontal_overflow": false,
+        "visible_live_states": [
+          "검토가 필요합니다검토가 끝나면 Client 정보를 확인할 수 있습니다."
+        ],
+        "error": null
+      },
+      {
+        "name": "matters-denied",
+        "expected_text": "Access denied",
+        "text_found": 0,
+        "selector_found": 1,
+        "horizontal_overflow": false,
+        "visible_live_states": [
+          "접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
+        ],
+        "error": null
+      },
+      {
+        "name": "vault-denied",
+        "expected_text": "Access denied",
+        "text_found": 0,
+        "selector_found": 1,
+        "horizontal_overflow": false,
+        "visible_live_states": [
+          "접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
+        ],
+        "error": null
+      }
+    ],
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/runtime-flow-verification.json",
+    "markdown_artifact": "docs/lazycodex/evidence/matter-web/artifacts/runtime-flow-verification.md",
+    "next_tuw": "P3-T03"
+  },
+  "p3_t03_notes": {
+    "status": "pass_recorded",
+    "base_url": "http://127.0.0.1:5174",
+    "api_base": "http://127.0.0.1:4180 via vite dev proxy",
+    "check_count": 13,
+    "pass_count": 13,
+    "fail_count": 0,
+    "api_response_count": 115,
+    "api_server_error_count": 0,
+    "total_result_5xx": 0,
+    "console_error_count": 12,
+    "failed_checks": [],
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/live-data-verification.json",
+    "markdown_artifact": "docs/lazycodex/evidence/matter-web/artifacts/live-data-verification.md",
+    "next_tuw": "P3-T04"
+  },
+  "p3_t04_notes": {
+    "status": "complete_pass_observed",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t04-home.json",
+    "rows_reviewed": 8,
+    "pass_observed": 8,
+    "fail_observed": 0,
+    "api_response_count": 81,
+    "api_5xx_count": 0,
+    "console_error_count": 0,
+    "screenshots": [
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0036.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0037.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0038.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0039.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0040.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0041.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0042.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0043.png"
+    ],
+    "next_tuw": "P3-T05"
+  },
+  "p3_t05_notes": {
+    "status": "complete_mixed_observed",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+    "rows_reviewed": 14,
+    "pass_observed": 13,
+    "fail_confirmed": 1,
+    "fail_observed": 0,
+    "unexpected_effect_observed": 0,
+    "api_response_count": 56,
+    "api_5xx_count": 0,
+    "console_error_count": 0,
+    "skipped_unsafe_write_rows": [
+      "LCX8-ACTION-0054",
+      "LCX8-ACTION-0055",
+      "LCX8-ACTION-0059",
+      "LCX8-ACTION-0060",
+      "LCX8-ACTION-0061",
+      "LCX8-ACTION-0062",
+      "LCX8-ACTION-0063"
+    ],
+    "screenshots": [
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0044.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0045.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0046.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0047.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0048.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0049.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0050.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0051.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0052.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0053.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0056.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0057.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0058.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0064.png"
+    ],
+    "next_tuw": "P3-T06"
+  },
+  "p3_t06_notes": {
+    "status": "complete_mixed_observed",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t06-vault.json",
+    "rows_reviewed": 9,
+    "pass_observed": 4,
+    "fail_confirmed": 5,
+    "fail_observed": 0,
+    "unexpected_effect_observed": 0,
+    "api_response_count": 1,
+    "api_5xx_count": 0,
+    "console_error_count": 0,
+    "skipped_non_click_state_rows": [
+      "LCX8-ACTION-0276",
+      "LCX8-ACTION-0277",
+      "LCX8-ACTION-0322"
+    ],
+    "runtime_restart_note": "API/web sessions were restarted before P3-T06 after earlier Codex exec sessions ended; preflight health/root checks returned 200.",
+    "screenshots": [
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0091.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0092.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0298.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0299.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0300.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0301.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0302.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0320.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0321.png"
+    ],
+    "next_tuw": "P3-T07"
+  },
+  "p3_t07_notes": {
+    "status": "complete_fail_observed",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t07-people-directory.json",
+    "rows_reviewed": 11,
+    "pass_observed": 9,
+    "fail_confirmed": 1,
+    "fail_observed": 1,
+    "unexpected_effect_observed": 0,
+    "api_response_count": 29,
+    "api_5xx_count": 0,
+    "console_error_count": 0,
+    "skipped_non_click_state_rows": [
+      "LCX8-ACTION-0280"
+    ],
+    "screenshots": [
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0093.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0094.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0095.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0096.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0097.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0098.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0099.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0100.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0101.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0102.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0149.png"
+    ],
+    "observed_fail_rows": [
+      {
+        "id": "LCX8-ACTION-0149",
+        "label": "디렉터리",
+        "reason": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.sidebar-item.sidebar-child:has-text(\"디렉터리\")').first()\u001b[22m\n"
+      }
+    ],
+    "next_tuw": "P3-T08"
+  },
+  "p3_t08_notes": {
+    "status": "complete_no_console_errors_observed",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-console-error-ledger-p3-t08.json",
+    "rows_reviewed": 42,
+    "unique_rows_reviewed": 42,
+    "total_console_errors": 0,
+    "rows_with_console_errors": 0,
+    "next_tuw": "P3-T09"
+  },
+  "p3_t09_notes": {
+    "status": "complete_no_unexpected_http_errors",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-api-response-ledger.json",
+    "rows_reviewed": 42,
+    "unique_rows_reviewed": 42,
+    "api_response_count": 167,
+    "api_4xx_count": 0,
+    "api_5xx_count": 0,
+    "unexpected_4xx_count": 0,
+    "unexpected_5xx_count": 0,
+    "responses_by_status": {
+      "200": 167
+    },
+    "next_tuw": "P3-T10"
+  },
+  "p3_t10_notes": {
+    "status": "complete_mixed_guarded_and_fail_confirmed",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-guarded-state-browser-check-p3-t10.json",
+    "rows_reviewed": 10,
+    "guarded_confirmed": 9,
+    "fail_confirmed": 1,
+    "fail_observed": 0,
+    "api_response_count": 62,
+    "api_5xx_count": 0,
+    "console_error_count": 20,
+    "native_guarded_rows_deferred_to_p6": [
+      "LCX8-ACTION-0244",
+      "LCX8-ACTION-0245",
+      "LCX8-ACTION-0246",
+      "LCX8-ACTION-0258",
+      "LCX8-ACTION-0259",
+      "LCX8-ACTION-0260",
+      "LCX8-ACTION-0262",
+      "LCX8-ACTION-0265",
+      "LCX8-ACTION-0266",
+      "LCX8-ACTION-0268",
+      "LCX8-ACTION-0271"
+    ],
+    "next_tuw": "P3-T11"
+  },
+  "p3_t11_notes": {
+    "status": "MIXED_MOBILE_SMOKE_FINDINGS",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-mobile-overflow-focus-smoke-p3-t11.json",
+    "surfaces_reviewed": 4,
+    "selector_checks_reviewed": 8,
+    "horizontal_overflow_count": 0,
+    "hidden_required_selector_count": 1,
+    "focus_issue_count": 1,
+    "focus_failures": [
+      "global_search_hidden_or_not_focusable"
+    ],
+    "api_response_count": 44,
+    "api_5xx_count": 0,
+    "console_error_count": 0,
+    "next_tuw": "P4-T00"
+  },
+  "p4_t00_notes": {
+    "status": "MAPPED_WITH_UNOBSERVED_ROWS",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-api-route-coverage-p4-t00.json",
+    "api_backed_rows": 117,
+    "api_read_rows": 34,
+    "api_write_rows": 83,
+    "observed_api_rows": 12,
+    "not_observed_api_rows": 105,
+    "total_expected_endpoints": 206,
+    "observed_expected_endpoints": 41,
+    "browser_response_count": 229,
+    "observed_http_4xx_count": 20,
+    "observed_http_5xx_count": 0,
+    "coverage_status_counts": {
+      "OBSERVED_ALL_EXPECTED_ENDPOINTS": 9,
+      "PARTIAL_BROWSER_OBSERVED": 3,
+      "NOT_OBSERVED_WRITE_DEFERRED": 83,
+      "NOT_OBSERVED_READ_DEFERRED": 22
+    },
+    "next_tuw": "P4-T01"
+  },
+  "p4_t01_notes": {
+    "status": "MIXED_FAIL_CLOSED_WITH_PEOPLE_GAP",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-read-fail-closed-p4-t01.json",
+    "contexts_reviewed": 13,
+    "fail_closed_confirmed_contexts": 10,
+    "fail_closed_gap_contexts": 2,
+    "step_up_deferred_contexts": 1,
+    "inconclusive_contexts": 0,
+    "api_response_count": 62,
+    "http_403_count": 20,
+    "http_4xx_count": 20,
+    "http_5xx_count": 0,
+    "protected_token_hit_contexts": 2,
+    "next_tuw": "P4-T02"
+  },
+  "p4_t02_notes": {
+    "status": "MIXED_IDEMPOTENCY_GAPS",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-write-preconditions-p4-t02.json",
+    "write_rows_reviewed": 83,
+    "tenant_known_rows": 83,
+    "actor_known_rows": 83,
+    "scope_or_permission_known_rows": 83,
+    "audit_hint_known_rows": 83,
+    "explicit_idempotency_key_rows": 68,
+    "business_identifier_rows": 4,
+    "idempotency_gap_rows": 11,
+    "preconditions_known_rows": 72,
+    "precondition_gap_rows": 11,
+    "write_rows_not_executed": 83,
+    "next_tuw": "P4-T03"
+  },
+  "p4_t03_notes": {
+    "status": "HRX_HEADER_STEP_UP_CONFIRMED_WITH_PEOPLE_CTX_GAP",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-hrx-header-step-up-p4-t03.json",
+    "validator_status": "PASS",
+    "hrx_rows_reviewed": 75,
+    "hrx_api_rows_reviewed": 49,
+    "header_source_rows": 75,
+    "required_header_count": 5,
+    "step_up_api_cases_reviewed": 4,
+    "step_up_required_cases": 2,
+    "step_up_satisfied_cases": 1,
+    "tenant_context_fail_closed_cases": 1,
+    "people_ctx_gap_rows": 1,
+    "next_tuw": "P4-T04"
+  },
+  "p4_t04_notes": {
+    "status": "MATTER_VAULT_PERMISSION_TRIMMING_CONFIRMED_WRITE_PROOF_DEFERRED",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-matter-vault-permission-trimming-p4-t04.json",
+    "rows_reviewed": 16,
+    "guarded_rows_reviewed": 6,
+    "linked_api_rows_reviewed": 10,
+    "browser_contexts_reviewed": 8,
+    "guarded_confirmed_contexts": 8,
+    "fail_closed_confirmed_contexts": 8,
+    "denied_contexts_reviewed": 4,
+    "review_contexts_reviewed": 4,
+    "mutation_trim_contexts": 6,
+    "enabled_mutation_controls_in_guarded_contexts": 0,
+    "unique_http_403_responses": 4,
+    "unique_http_5xx_responses": 0,
+    "protected_token_hit_contexts": 0,
+    "write_execution": "not_executed_in_p4_t04",
+    "next_tuw": "P4-T05"
+  },
+  "p4_t05_notes": {
+    "status": "AUDIT_REQUIREMENTS_MAPPED_NO_PASS_OVERCLAIMS",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-audit-write-requirements-p4-t05.json",
+    "api_audit_rows_reviewed": 117,
+    "api_write_rows_reviewed": 83,
+    "api_read_rows_reviewed": 34,
+    "pass_audit_rows": 0,
+    "rows_not_pass": 117,
+    "observed_read_audit_rows": 12,
+    "write_rows_not_executed": 83,
+    "write_precondition_gap_rows": 11,
+    "helper_test_status": "PASS",
+    "helper_test_count": 2,
+    "classification_counts": {
+      "AUDIT_READ_RESPONSE_OBSERVED_NOT_PASS": 11,
+      "WRITE_AUDIT_EVENT_PROOF_REQUIRED_PRECONDITION_GAP_NOT_PASS": 11,
+      "WRITE_AUDIT_EVENT_PROOF_REQUIRED_NOT_EXECUTED_NOT_PASS": 72,
+      "AUDIT_READ_PROOF_PENDING_NOT_PASS": 22,
+      "AUDIT_READ_STEP_UP_CONFIRMED_GUARDED_NOT_PASS": 1
+    },
+    "next_tuw": "P4-T06"
+  },
+  "p4_t06_notes": {
+    "status": "ERROR_TAXONOMY_STABLE_NO_UNREASONED_BLOCKERS",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-error-taxonomy-p4-t06.json",
+    "rows_reviewed": 196,
+    "taxonomy_counts": {
+      "FAIL_NO_EFFECT_OR_UNCONSUMED_CONTROL": 3,
+      "FAIL_MISSING_HANDLER_OR_FALSE_AFFORDANCE": 29,
+      "BLOCKED_API_READ_PARTIAL_OR_PROVISIONAL_PROOF": 11,
+      "BLOCKED_API_WRITE_PRECONDITION_GAP": 11,
+      "BLOCKED_API_WRITE_AUDIT_PERSISTENCE_PROOF_DEFERRED": 72,
+      "BLOCKED_API_READ_RESPONSE_PROOF_DEFERRED": 22,
+      "FAIL_CONFIRMED_VISIBLE_ACTION_GAP": 6,
+      "FAIL_ROUTE_WITHOUT_EXPECTED_SECTION_SURFACE": 4,
+      "GUARDED_NATIVE_GUARD_P6_RUNTIME_PENDING": 11,
+      "BLOCKED_NATIVE_BRIDGE_P6_REQUIRED": 15,
+      "GUARDED_WEB_DENIED_REVIEW_FAIL_CLOSED_CONFIRMED": 8,
+      "FAIL_GUARD_STATE_MISSING": 1,
+      "DESCRIPTOR_LOCAL_UNAVAILABLE_STATE": 1,
+      "DESCRIPTOR_EXTERNAL_PROVIDER_UNAVAILABLE": 1,
+      "GUARDED_HRX_STEP_UP_CONFIRMED": 1
+    },
+    "status_counts_reviewed": {
+      "FAIL": 43,
+      "BLOCKED": 131,
+      "GUARDED": 20,
+      "DESCRIPTOR_ONLY": 2
+    },
+    "trace_depth_counts_reviewed": {
+      "ui_state_only": 48,
+      "api_read": 34,
+      "api_write": 83,
+      "route_navigation": 4,
+      "native_bridge": 26,
+      "external_receipt_required": 1
+    },
+    "missing_reason_rows": 0,
+    "invalid_taxonomy_rows": 0,
+    "pass_rows_current": 0,
+    "next_tuw": "P4-T07"
+  },
+  "p4_t07_notes": {
+    "status": "FOCUSED_API_TESTS_PASS_NO_PASS_PROMOTION",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-focused-api-tests-p4-t07.json",
+    "command": "node --test apps/api/test/cmp-r4-g4-matter.test.js apps/api/test/cmp-r4-g5-vault.test.js apps/api/test/security/matter-vault-ethical-wall.test.js apps/api/test/security/matter-vault-legal-hold.test.js apps/api/test/e2e/vault-search-acl.test.js apps/api/test/sf-b-w02-record-actions.test.js apps/api/test/sf-b-w03-activity-calendar-channel.test.js apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/cmp-r4-g6-crm-intake.test.js apps/api/test/cmp-r4-g7-finance.test.js apps/api/test/cmp-r4-g8-analytics.test.js apps/api/test/cmp-r4-g9-ai.test.js apps/api/test/cmp-r4-g10-portal.test.js apps/api/test/sf-b-w05-import-data-mapping.test.js apps/api/test/sf-b-w06-permission-admin.test.js apps/api/test/sf-b-w07-data-cloud-enrichment.test.js apps/api/test/sf-b-w08-report-builder-client-profitability.test.js apps/api/test/hrx-runtime-api.test.js apps/api/test/hrx-audit-write.test.js",
+    "test_files": 19,
+    "tests": 93,
+    "pass": 93,
+    "fail": 0,
+    "api_rows_reviewed": 117,
+    "api_read_rows": 34,
+    "api_write_rows": 83,
+    "pass_promotion": false,
+    "next_tuw": "P4-T08"
+  },
+  "p4_t08_notes": {
+    "status": "API_PROVISIONAL_STATUSES_ASSIGNED_ONE_READ_PASS",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-api-provisional-statuses-p4-t08.json",
+    "api_rows_reviewed": 117,
+    "api_read_rows_reviewed": 34,
+    "api_write_rows_reviewed": 83,
+    "pass_promotions": 1,
+    "pass_promotion_rows": [
+      "LCX8-ACTION-0091"
+    ],
+    "write_rows_kept_blocked": 83,
+    "read_rows_kept_blocked": 32,
+    "guarded_rows_kept_guarded": 1,
+    "status_counts_after": {
+      "inventory_rows": 324,
+      "unknown": 0,
+      "pass": 1,
+      "guarded": 20,
+      "ui_only": 128,
+      "descriptor_only": 2,
+      "blocked": 130,
+      "fail": 43
+    },
+    "next_tuw": "P5-T00"
+  },
+  "p5_t07_notes": {
+    "status": "EXTERNAL_PERSISTENCE_ROWS_CLASSIFIED_NO_STATUS_CHANGES",
+    "reviewed_rows": 38,
+    "category_counts": {
+      "external_provider_or_payment_receipt_required": 3,
+      "data_cloud_provider_repository_receipt_required": 6,
+      "owner_or_approval_receipt_blocked_not_external_provider": 2,
+      "native_runtime_or_packaging_receipt_deferred_to_p6": 26,
+      "descriptor_external_provider_unavailable": 1
+    },
+    "status_changes": 0,
+    "next_tuw": "P6-T00",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-external-persistence-classification-p5-t07.json"
+  },
+  "p6_t00_notes": {
+    "status": "DESKTOP_SMOKE_PASS_NO_STATUS_PROMOTION",
+    "command": "npm --workspace apps/desktop run test:smoke",
+    "result": "PASS",
+    "tests_total": 59,
+    "tests_passed": 59,
+    "tests_failed": 0,
+    "reviewed_native_rows": 26,
+    "status_changes": 0,
+    "next_tuw": "P6-T01",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-smoke-p6-t00.json"
+  },
+  "p6_t01_notes": {
+    "status": "DESKTOP_FILE_BRIDGE_PASS_NO_STATUS_PROMOTION",
+    "command": "npm --workspace apps/desktop run test:file-bridge",
+    "result": "PASS",
+    "tests_total": 17,
+    "tests_passed": 17,
+    "tests_failed": 0,
+    "contract_validator": "PASS",
+    "matter_file_bridge_validator": "PASS",
+    "checked_files": 17,
+    "findings": 0,
+    "reviewed_rows": 7,
+    "status_changes": 0,
+    "next_tuw": "P6-T02",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-file-bridge-p6-t01.json"
+  },
+  "p6_t02_notes": {
+    "status": "DESKTOP_SCREEN_QA_PASS_NO_FINAL_STATUS_PROMOTION",
+    "command": "npm run matter-desktop:screen-qa",
+    "result": "PASS",
+    "source_receipt": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa-result.json",
+    "screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa.png",
+    "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
+    "launch_target": "packaged_mac_app",
+    "account_count": 9,
+    "reviewed_rows": 6,
+    "status_changes": 0,
+    "next_tuw": "P6-T03",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-screen-qa-p6-t02.json"
+  },
+  "p6_t03_notes": {
+    "status": "DESKTOP_LOGIN_ACTIONS_MAPPED_WITH_PASS_PROMOTIONS",
+    "reviewed_rows": 6,
+    "promoted_to_pass": 6,
+    "source_receipt": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa-result.json",
+    "screenshot": "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa.png",
+    "next_tuw": "P6-T04",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-login-actions-p6-t03.json"
+  },
+  "p6_t04_notes": {
+    "status": "DESKTOP_FILE_ACTIONS_MAPPED_ACTIVE_SHELL_BLOCKERS_PRESERVED",
+    "reviewed_rows": 7,
+    "category_counts": {
+      "allow_action_controller_proven_active_shell_blocked": 2,
+      "deny_guard_confirmed": 3,
+      "allow_action_manager_proven_active_shell_blocked": 1,
+      "cleanup_guard_confirmed": 1
+    },
+    "status_changes": 0,
+    "next_tuw": "P6-T05",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-file-actions-p6-t04.json"
+  },
+  "p6_t05_notes": {
+    "status": "DESKTOP_DEEP_LINK_NOTIFICATION_MAPPED_EXTERNAL_OS_BLOCKERS_PRESERVED",
+    "reviewed_rows": 6,
+    "category_counts": {
+      "route_intent_open_logic_proven_os_protocol_blocked": 1,
+      "auth_callback_logic_proven_external_auth_receipt_blocked": 1,
+      "forbidden_action_guard_confirmed": 1,
+      "invalid_route_guard_confirmed": 1,
+      "notification_route_intent_logic_proven_os_delivery_blocked": 1,
+      "notification_action_sensitive_payload_guard_confirmed": 1
+    },
+    "status_changes": 0,
+    "next_tuw": "P6-T06",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-deep-link-notification-p6-t05.json"
+  },
+  "p6_t06_notes": {
+    "status": "DESKTOP_UPDATE_SESSION_MAPPED_WITH_SESSION_PASS_AND_UPDATE_BLOCKERS",
+    "reviewed_rows": 4,
+    "promoted_to_pass": 1,
+    "status_changes": 1,
+    "next_tuw": "P6-T07",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-update-session-p6-t06.json"
+  },
+  "p6_t07_notes": {
+    "status": "DESKTOP_EXTERNAL_RUNTIME_BLOCKERS_CLASSIFIED_NO_OVERCLAIM",
+    "reviewed_native_rows": 26,
+    "category_counts": {
+      "pass_temporary_packaged_desktop_runtime_not_go_live": 7,
+      "guarded_source_or_contract_guard_no_external_runtime_needed": 10,
+      "blocked_active_shell_file_bridge_not_loaded": 3,
+      "blocked_os_protocol_notification_or_auth_receipt_required": 3,
+      "blocked_packaged_updater_notarization_owner_receipt_required": 2,
+      "blocked_runtime_context_preload_not_loaded": 1
+    },
+    "status_changes": 0,
+    "next_tuw": "P7-T00",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-desktop-external-runtime-blockers-p6-t07.json"
+  },
+  "p7_t00_notes": {
+    "status": "VISUAL_OVERLAP_HIDDEN_CONTROL_REVIEW_COMPLETE_WITH_LANE_E_FINDINGS",
+    "findings": 3,
+    "affected_rows": 11,
+    "status_changes": 0,
+    "next_tuw": "P7-T01",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-visual-overlap-hidden-controls-p7-t00.json"
+  },
+  "p7_t01_notes": {
+    "status": "DISABLED_GUARDED_AFFORDANCE_REVIEW_COMPLETE_WITH_FINDINGS",
+    "reviewed_rows": 10,
+    "findings": 2,
+    "affected_rows": 3,
+    "status_changes": 0,
+    "next_tuw": "P7-T02",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-disabled-guarded-affordance-p7-t01.json"
+  },
+  "p7_t02_notes": {
+    "status": "FOCUS_DIALOG_DRAWER_REVIEW_COMPLETE_WITH_LANE_E_FINDINGS",
+    "reviewed_rows": 3,
+    "findings": 2,
+    "status_changes": 0,
+    "next_tuw": "P7-T03",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-focus-dialog-drawer-p7-t02.json"
+  },
+  "p7_t03_notes": {
+    "status": "KOREAN_COPY_REVIEW_COMPLETE_WITH_LANE_E_FINDINGS",
+    "reviewed_rows": 8,
+    "findings": 4,
+    "affected_rows": 8,
+    "status_changes": 0,
+    "next_tuw": "P7-T04",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-korean-copy-review-p7-t03.json"
+  },
+  "p7_t04_notes": {
+    "status": "LAUNCH_CLAIM_REVIEW_COMPLETE_NO_OVERCLAIM_FINDINGS",
+    "reviewed_rows": 10,
+    "findings": 0,
+    "direct_launch_claim_hits": 0,
+    "status_changes": 0,
+    "next_tuw": "P7-T05",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-launch-claim-copy-review-p7-t04.json"
+  },
+  "p7_t05_notes": {
+    "status": "AI_SLOP_LINT_PASS_NO_AUTO_DETECTABLE_SIGNALS",
+    "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+    "exit_code": 0,
+    "status_changes": 0,
+    "next_tuw": "P7-T06",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-ai-slop-lint-p7-t05.json"
+  },
+  "p7_t06_notes": {
+    "status": "P7_FINDINGS_ATTACHED_TO_REMEDIATION_BACKLOG",
+    "findings_reviewed": 11,
+    "affected_rows": 19,
+    "lane_counts": {
+      "Lane E": 9,
+      "Lane B": 2
+    },
+    "severity_counts": {
+      "medium": 7,
+      "high": 3,
+      "low": 1
+    },
+    "status_changes": 0,
+    "next_tuw": "P8-T00",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-copy-ux-a11y-backlog-p7-t06.json"
+  },
+  "p8_t00_notes": {
+    "status": "FINAL_STATUS_COUNTS_RECORDED",
+    "status_counts": {
+      "inventory_rows": 324,
+      "unknown": 0,
+      "pass": 10,
+      "guarded": 19,
+      "ui_only": 128,
+      "descriptor_only": 2,
+      "blocked": 122,
+      "fail": 43
+    },
+    "status_changes": 0,
+    "next_tuw": "P8-T01",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-status-count-p8-t00.json"
+  },
+  "p8_t01_notes": {
+    "status": "CRITICAL_UNKNOWN_ZERO_CONFIRMED",
+    "all_unknown_count": 0,
+    "critical_row_count": 196,
+    "critical_unknown_count": 0,
+    "status_changes": 0,
+    "next_tuw": "P8-T02",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-critical-unknown-zero-p8-t01.json"
+  },
+  "p8_t02_t06_notes": {
+    "status": "FINAL_REMEDIATION_LANES_ASSIGNED",
+    "assignments_count": 184,
+    "required_fail_blocked_descriptor_rows": 167,
+    "unassigned_required_rows": 0,
+    "lane_counts": {
+      "Lane A": 41,
+      "Lane E": 17,
+      "Lane B": 106,
+      "Lane D": 16,
+      "Lane A/Lane E": 1,
+      "Lane B/Lane E": 1,
+      "Lane C": 1,
+      "Lane C/Lane D": 1
+    },
+    "primary_lane_counts": {
+      "Lane A": 42,
+      "Lane E": 17,
+      "Lane B": 107,
+      "Lane D": 16,
+      "Lane C": 2
+    },
+    "status_changes": 0,
+    "next_tuw": "P8-T07",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-lane-assignment-p8-t02-t06.json"
+  },
+  "p8_t07_notes": {
+    "status": "BLOCKER_RISK_RANKING_COMPLETE",
+    "ranked_row_count": 184,
+    "tier_counts": {
+      "critical": 1,
+      "high": 92,
+      "medium": 76,
+      "low": 15
+    },
+    "group_count": 8,
+    "status_changes": 0,
+    "next_tuw": "P8-T08",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-blocker-risk-ranking-p8-t07.json"
+  },
+  "p8_t08_notes": {
+    "status": "REMEDIATION_READY_ISSUES_PUBLISHED",
+    "issue_count": 184,
+    "issue_counts_by_lane": {
+      "Lane B": 107,
+      "Lane E": 17,
+      "Lane D": 16,
+      "Lane A": 42,
+      "Lane C": 2
+    },
+    "issue_counts_by_tier": {
+      "critical": 1,
+      "high": 92,
+      "medium": 76,
+      "low": 15
+    },
+    "status_changes": 0,
+    "next_tuw": "P9-T00",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-ready-issues-p8-t08.json",
+    "backlog_file": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-remediation-backlog.md"
+  },
+  "p9_t00_notes": {
+    "status": "FINAL_WEB_UI_TESTS_PASS",
+    "command": "npm --workspace apps/web run test:ui",
+    "tests": 17,
+    "pass": 17,
+    "fail": 0,
+    "status_changes": 0,
+    "next_tuw": "P9-T01",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-web-ui-tests-p9-t00.json"
+  },
+  "p9_t01_notes": {
+    "status": "FINAL_WEB_BUILD_PASS_WITH_CHUNK_WARNING",
+    "command": "npm --workspace apps/web run build",
+    "exit_code": 0,
+    "warning_count": 1,
+    "status_changes": 0,
+    "next_tuw": "P9-T02",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-web-build-p9-t01.json"
+  },
+  "p9_t02_notes": {
+    "status": "FINAL_HRX_UI_VALIDATOR_PASS",
+    "command": "npm run hrx:ui:validate",
+    "exit_code": 0,
+    "status_changes": 0,
+    "next_tuw": "P9-T03",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-hrx-ui-validator-p9-t02.json"
+  },
+  "p9_t03_notes": {
+    "status": "FINAL_API_TESTS_PASS",
+    "command": "npm run api:test",
+    "tests": 185,
+    "pass": 185,
+    "fail": 0,
+    "status_changes": 0,
+    "next_tuw": "P9-T04",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-api-tests-p9-t03.json"
+  },
+  "p9_t04_notes": {
+    "status": "FINAL_BROWSER_VERIFIERS_PASS_CURRENT_PRODUCT_BASELINE",
+    "flow_failed_checks": 0,
+    "flow_passed_checks": 9,
+    "live_failed_checks": 0,
+    "live_passed_checks": 13,
+    "status_changes": 0,
+    "next_tuw": "P9-T05",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-browser-verifiers-p9-t04.json",
+    "resolved_closeout_blocker": "LCX8-P9-BLOCKER-FLOW-VERIFY-001"
+  },
+  "p9_t05_notes": {
+    "status": "FINAL_WEB_E2E_PASS",
+    "command": "npm run web:e2e",
+    "tests": 15,
+    "pass": 15,
+    "fail": 0,
+    "status_changes": 0,
+    "next_tuw": "P9-T06",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-web-e2e-p9-t05.json"
+  },
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "launch_authorization_claim": false,
+    "final_go_live_decision": false,
+    "owner_final_approval_claim": false,
+    "owner_release_authority_received": true,
+    "external_receipts_received": true,
+    "external_production_smoke_receipt_received": true,
+    "production_migration_operator_receipt_received": true,
+    "real_client_data_migration": false,
+    "matter_builder_publish_promoted_to_pass": true,
+    "matter_builder_publish_owner_receipt_claim": false,
+    "matter_builder_publish_vault_document_created_claim": false,
+    "matter_builder_publish_production_ready_claim": false
+  },
+  "p9_t06_notes": {
+    "status": "FINAL_DESKTOP_SMOKE_AND_FILE_BRIDGE_PASS",
+    "desktop_smoke": "59/59 pass",
+    "file_bridge": "17/17 pass plus validators",
+    "status_changes": 0,
+    "next_tuw": "P9-T07",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-final-desktop-smoke-file-bridge-p9-t06.json"
+  },
+  "p9_t07_notes": {
+    "status": "RUNTIME_LAUNCH_BOUNDARY_VALIDATORS_PASS_PENDING_FINAL_GO_LIVE_DECISION",
+    "commands_passed": 6,
+    "launch_authorization_claim": false,
+    "owner_release_authority_received": true,
+    "external_receipts_received": true,
+    "final_go_live_decision": false,
+    "status_changes": 0,
+    "next_tuw": "P9-T08",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-runtime-launch-boundary-validators-p9-t07.json"
+  },
+  "p9_t08_notes": {
+    "status": "W8_EVIDENCE_PUBLISHED_CURRENT_PRODUCT_FLOW_PASS",
+    "evidence_file": "docs/lazycodex/evidence/matter-web/LCX-WEB-08-ui-action-operational-audit.md",
+    "status_changes": 0,
+    "next_tuw": "P9-T09",
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-w8-evidence-publish-p9-t08.json",
+    "resolved_closeout_blocker": "LCX8-P9-BLOCKER-FLOW-VERIFY-001"
+  },
+  "p9_t09_notes": {
+    "status": "MATTER_WEB_INDEX_UPDATED_CLOSEOUT_CURRENT_PRODUCT_FLOW_PASS",
+    "index_file": "docs/lazycodex/evidence/matter-web/index.md",
+    "status_changes": 0,
+    "next_tuw": null,
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-matter-web-index-update-p9-t09.json",
+    "no_remaining_closeout_blocker": true
+  },
+  "post_closeout_remediation": {
+    "resolved_rows": [
+      "LCX8-ACTION-0280",
+      "LCX8-ACTION-0272",
+      "LCX8-ACTION-0273",
+      "LCX8-ACTION-0054",
+      "LCX8-ACTION-0055",
+      "LCX8-ACTION-0061",
+      "LCX8-ACTION-0063",
+      "LCX8-ACTION-0065",
+      "LCX8-ACTION-0066",
+      "LCX8-ACTION-0067",
+      "LCX8-ACTION-0068",
+      "LCX8-ACTION-0069"
+    ],
+    "status_counts_after": {
+      "inventory_rows": 324,
+      "unknown": 0,
+      "pass": 19,
+      "guarded": 20,
+      "ui_only": 128,
+      "descriptor_only": 2,
+      "blocked": 113,
+      "fail": 42
+    },
+    "artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-builder-publish-2026-06-26.json",
+    "artifacts": [
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-remediation-status-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-affordance-status-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-client-guarded-copy-status-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-affordance-remediation.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0272-0273-client-guarded-copy-remediation.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-list-view-write-status-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0054-matter-list-view-write-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0054-matter-list-view-write-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0054-matter-list-view-write-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-bulk-status-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0055-matter-bulk-status-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0055-matter-bulk-status-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0055-matter-bulk-status-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-record-field-update-status-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0061-matter-record-field-update-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0061-matter-record-field-update-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0061-matter-record-field-update-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-status-transition-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0063-matter-status-transition-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0063-matter-status-transition-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0063-matter-status-transition-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-document-facade-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0065-matter-document-facade-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0065-matter-document-facade-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0065-matter-document-facade-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-builder-draft-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0066-matter-builder-draft-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0066-matter-builder-draft-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0066-matter-builder-draft-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-builder-draft-patch-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0067-matter-builder-draft-patch-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0067-matter-builder-draft-patch-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0067-matter-builder-draft-patch-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-builder-approval-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0068-matter-builder-approval-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0068-matter-builder-approval-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0068-matter-builder-approval-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-post-closeout-matter-builder-publish-2026-06-26.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0069-matter-builder-publish-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0069-matter-builder-publish-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0069-matter-builder-publish-proof.png"
+    ],
+    "latest_note": "LCX8-ACTION-0069 is promoted from BLOCKED to PASS by Matter builder Vault 등록 요청 UI/API owner-blocked proof, no Vault document creation, matter.builder.publish.blocked audit event, and denied/review/missing-draft fail-closed proof. LCX8-ACTION-0272/0273 remain GUARDED.",
+    "latest_verification_summary": "Post-closeout LCX8-ACTION-0069 verification: node --test apps/api/test/sf-b-w04-document-email-builder.test.js apps/api/test/matter-vault-integration.test.js apps/api/test/cmp-r4-g4-matter.test.js PASS 16/16; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS."
+  },
+  "status_counts_last_updated_by": "post-closeout-remediation-lcx8-action-0071"
+}

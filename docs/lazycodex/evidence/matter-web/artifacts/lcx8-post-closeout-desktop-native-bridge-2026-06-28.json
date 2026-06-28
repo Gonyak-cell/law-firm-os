@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.lcx8.post-closeout.desktop-native-bridge.v0.1",
+  "generated_at": "2026-06-28T07:10:55.028Z",
+  "batch_id": "LCX8-ALL-28",
+  "action_ids": [
+    "LCX8-ACTION-0247",
+    "LCX8-ACTION-0256",
+    "LCX8-ACTION-0257",
+    "LCX8-ACTION-0261"
+  ],
+  "status_before": "BLOCKED",
+  "status_after": "BLOCKED",
+  "remediation_lane_after": "Lane B",
+  "status_decision": "BLOCKED remains BLOCKED / Lane B",
+  "reason": "active_product_shell_native_bridge_integration_required",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0247-0256-0257-0261-desktop-native-bridge-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0247-0256-0257-0261-desktop-native-bridge-proof.md",
+  "counts_before": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "counts_after": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "evidence": [
+    {
+      "id": "LCX8-ACTION-0247",
+      "observed": "Active shell loads session.cjs and exposes matterSession only; no materRuntime/matterRuntime bridge exposure is active.",
+      "missing_runtime_receipt": "active runtime preload exposure or product shell integration for materRuntime.context"
+    },
+    {
+      "id": "LCX8-ACTION-0256",
+      "observed": "File bridge choose-file implementation and preload tests pass, but active shell does not load fileBridge.js or register fileBridge IPC handlers.",
+      "missing_runtime_receipt": "visible shell trigger plus active preload/IPC integration for choose file upload"
+    },
+    {
+      "id": "LCX8-ACTION-0257",
+      "observed": "Save-as implementation and tests pass, but active shell does not load fileBridge.js or register fileBridge IPC handlers.",
+      "missing_runtime_receipt": "visible shell trigger plus active preload/IPC integration for save document as"
+    },
+    {
+      "id": "LCX8-ACTION-0261",
+      "observed": "Temp preview manager and cleanup tests pass, but active shell has no visible trigger, preload method, or IPC registration.",
+      "missing_runtime_receipt": "visible shell trigger plus active native bridge integration for temp preview"
+    }
+  ],
+  "tests": [
+    {
+      "command": "npm --workspace apps/desktop run test:file-bridge",
+      "summary": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0
+      }
+    },
+    {
+      "command": "npm --workspace apps/desktop run test:smoke",
+      "summary": {
+        "tests": 59,
+        "pass": 59,
+        "fail": 0
+      }
+    }
+  ],
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0247/0256/0257/0261 desktop native bridge proof PASS. Desktop file bridge suite PASS 17/17 plus contract validators PASS; desktop smoke PASS 59/59. Source proof confirms active shell loads session.cjs and exposes matterSession only; fileBridge.js/materFileBridge and tempPreview manager exist and test cleanly but are not loaded/registered by active product shell. Status remains BLOCKED/Lane B pending visible shell trigger and active preload/IPC integration.",
+  "non_claims": [
+    "desktop unit/contract proof only",
+    "no active file bridge preload loaded in product shell",
+    "no visible product trigger for choose file, save as, or temp preview",
+    "no OS-level file dialog receipt from the packaged desktop app",
+    "no production-ready, public release, or go-live claim"
+  ]
+}

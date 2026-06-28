@@ -70,7 +70,7 @@ function LiveState({ result, noun }) {
     return (
       <div className="live-data-state live-data-error">
         <strong>{noun}를 불러올 수 없습니다</strong>
-        잠시 후 다시 시도하세요.
+        새로고침하거나 연결 상태를 확인하세요.
       </div>
     );
   }
@@ -174,7 +174,7 @@ export function FinanceSurface({ labels, liveCtx = "allow" }) {
         <Panel className="finance-panel" title="내보내기" meta="담당자 확인">
           <div className="matter-boundary-card">
             <Calculator size={20} />
-            <strong>민감 정보는 목록에 표시하지 않습니다</strong>
+            <strong>민감 정보는 목록에서 숨깁니다</strong>
             <span>계좌와 인증 정보는 담당자 권한이 있는 화면에서만 다룹니다.</span>
           </div>
         </Panel>

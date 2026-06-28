@@ -13,6 +13,12 @@ export const REPORT_ROUTE_POLICIES = Object.freeze([
   }),
   Object.freeze({
     method: "GET",
+    pattern: /^\/api\/reports\/audit$/,
+    action: "report:audit:read",
+    resource_type: "report_audit",
+  }),
+  Object.freeze({
+    method: "GET",
     pattern: /^\/api\/reports\/([^/]+)$/,
     action: "report:definition:read",
     resource_type: "report_definition",
@@ -38,12 +44,6 @@ export const REPORT_ROUTE_POLICIES = Object.freeze([
   Object.freeze({
     method: "GET",
     pattern: /^\/api\/reports\/([^/]+)\/audit$/,
-    action: "report:audit:read",
-    resource_type: "report_audit",
-  }),
-  Object.freeze({
-    method: "GET",
-    pattern: /^\/api\/reports\/audit$/,
     action: "report:audit:read",
     resource_type: "report_audit",
   }),

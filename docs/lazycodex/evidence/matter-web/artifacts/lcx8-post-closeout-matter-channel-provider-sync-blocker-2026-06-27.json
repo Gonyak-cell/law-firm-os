@@ -1,0 +1,62 @@
+{
+  "schema_version": "lcx8.post_closeout.channel_provider_sync_blocker.v1",
+  "generated_at": "2026-06-27T00:15:17.523Z",
+  "action_id": "LCX8-ACTION-0079",
+  "status": "external_provider_receipt_required",
+  "status_before": "BLOCKED",
+  "status_after": "BLOCKED",
+  "batch_id": "LCX8-ALL-11",
+  "surface": "matter",
+  "label": "상태 확인",
+  "api_route": "POST /api/matters/:matter_id/channel/provider-sync",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0079-matter-channel-provider-sync-blocker-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0079-matter-channel-provider-sync-blocker-proof.md",
+  "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0079-matter-channel-provider-sync-blocker-proof.png",
+  "fixture": {
+    "tenant_id": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "matter_id": "matter_rp05_synthetic_opening",
+    "safe_fixture_family": "matter_runtime_channel_provider_sync_blocker",
+    "existing_seed_mutated": false,
+    "writes_provider_audit_only": true,
+    "external_provider_configured": false
+  },
+  "evidence": [
+    "Post-closeout LCX8-ACTION-0079 blocker proof: current-product UI 상태 확인 click and direct API POST /api/matters/:matter_id/channel/provider-sync returned provider_blocked; audit reason=provider_receipt_required; denied/review guards fail-closed; artifact=docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0079-matter-channel-provider-sync-blocker-proof.json",
+    "Post-closeout LCX8-ACTION-0079 non-claim: no external channel provider configured, no provider receipt captured, no production/owner approval claimed; status remains BLOCKED/Lane D."
+  ],
+  "counts_before": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 27,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 105,
+    "fail": 42
+  },
+  "counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 27,
+    "guarded": 20,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 105,
+    "fail": 42
+  },
+  "validation": {
+    "browser_ui_api_proof": "PASS 24/24 assertions",
+    "external_provider_receipt": "MISSING_BY_BOUNDARY",
+    "status_decision": "BLOCKED remains BLOCKED / Lane D",
+    "production_ready_claim": false
+  },
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0079 verification: UI/API provider-sync blocker proof PASS (24/24 assertions); node --test apps/api/test/sf-b-w03-activity-calendar-channel.test.js PASS 4/4; npm --workspace apps/web run test:ui PASS 17/17; npm run build PASS (existing Vite chunk-size warning only); npm run ui:live:verify PASS 13/13; npm run ui:flows:verify PASS 9/9; sloplint PASS; JSON/count invariant PASS; git diff --check PASS. Status remains BLOCKED/Lane D because external provider receipt is still missing.",
+  "non_claims": [
+    "local synthetic runtime blocker proof only",
+    "no external channel provider configured",
+    "no external provider receipt captured",
+    "no production go-live or owner approval claimed",
+    "status remains BLOCKED/Lane D by design until external receipt exists"
+  ]
+}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   CalendarDays,
   ChevronRight,
@@ -11,60 +11,81 @@ import {
   UserRound
 } from "lucide-react";
 
-const contractRows = [
-  ["이용 유형", "외부 협업자"],
-  ["계약 방식", "월 정액 자문"],
-  ["소속 조직", "AMIC Law"],
-  ["담당 역할", "법무 운영 매니저"],
-  ["권한 등급", "미설정"],
-  ["시작일", "2024년 4월 15일"],
-  ["정산 금액", "월 $30.00"]
-];
-
-const generalRows = [
-  ["이름", "서지원"],
-  ["이메일", "jws@matter.local"],
-  ["근무 국가", "대한민국"],
-  ["워크스페이스", "Client Matter People Vault"]
-];
-
 const actionCards = [
-  { label: "비용·정산 내역", badge: "신규", icon: ReceiptText },
-  { label: "개인정보 관리", icon: IdCard },
-  { label: "부재 일정", icon: CalendarDays }
+  { label: "비용·정산 내역", icon: ReceiptText, body: "비용과 정산 내역은 프로필 데이터 연결 후 표시합니다." },
+  { label: "개인정보 관리", icon: IdCard, body: "개인정보 변경은 인증된 프로필 API 연결 후 진행합니다." },
+  { label: "부재 일정", icon: CalendarDays, body: "부재 일정은 캘린더 연동 후 확인합니다." }
 ];
+
+const profileSections = {
+  expenses: {
+    title: "비용 관리",
+    body: "비용 관리 화면을 열었습니다. 실제 비용 데이터가 연결되면 제출 내역과 검토 상태를 표시합니다."
+  },
+  transactions: {
+    title: "정산 내역",
+    body: "정산 내역 화면을 열었습니다. 실제 정산 API가 연결되면 지급 상태를 표시합니다."
+  },
+  payments: {
+    title: "지급 설정",
+    body: "지급 설정 화면을 열었습니다. 지급 수단 변경은 인증된 프로필 API 연결 후 처리합니다."
+  },
+  withdrawal: {
+    title: "입금 계좌",
+    body: "입금 계좌 화면을 열었습니다. 계좌 정보는 실제 프로필 API 연결 전까지 표시하지 않습니다."
+  }
+};
 
 export function UserProfileSurface() {
+  const [localAction, setLocalAction] = useState(null);
+  const activeSection = typeof window === "undefined" ? "" : decodeURIComponent(window.location.hash.replace(/^#/, ""));
+  const sectionState = profileSections[activeSection] ?? null;
+
   return (
     <section className="matter-profile-surface surface" data-user-profile-surface="matter-consistent">
       <div className="matter-profile-topline">
         <div className="matter-profile-title">
-          <span className="eyebrow">AMIC LAW</span>
           <h1>내 프로필</h1>
           <p>개인 정보, 계약, 정산 설정을 한 화면에서 관리합니다.</p>
         </div>
         <div className="matter-profile-top-actions">
-          <button type="button" className="ghost-button matter-profile-help-link">
+          <button
+            type="button"
+            className="ghost-button matter-profile-help-link"
+            data-profile-help-feedback="true"
+            onClick={() => setLocalAction({ title: "도움말 및 피드백", body: "프로필 화면 도움말과 피드백 접수 상태를 열었습니다." })}
+          >
             <CircleHelp size={17} />
             도움말 및 피드백
           </button>
-          <button type="button" className="secondary-button matter-profile-contract-button">
+          <button
+            type="button"
+            className="secondary-button matter-profile-contract-button"
+            data-profile-contract-create="true"
+            onClick={() => setLocalAction({ title: "계약 생성", body: "새 계약 생성 준비 상태를 열었습니다. 실제 생성은 Matter 개시 화면에서 처리합니다." })}
+          >
             <CirclePlus size={18} />
             계약 생성
           </button>
         </div>
       </div>
 
+      {(sectionState || localAction) && (
+        <div className="live-data-state live-data-review" role="status" data-profile-local-state="true" data-profile-section-state={sectionState ? activeSection : undefined}>
+          <strong>{(localAction ?? sectionState).title}</strong>
+          {(localAction ?? sectionState).body}
+        </div>
+      )}
+
       <header className="matter-profile-hero panel">
         <div className="matter-profile-photo" aria-hidden="true">
-          <span>서</span>
+          <UserRound size={28} />
         </div>
         <div className="matter-profile-hero-copy">
-          <h1>서지원</h1>
-          <p>법무 운영 매니저</p>
+          <h1>프로필 데이터 없음</h1>
+          <p>로그인 세션 또는 사용자 프로필 API가 연결되면 개인정보와 계약 정보를 표시합니다.</p>
           <div className="matter-profile-meta">
-            <span className="matter-profile-status offboarding">계정 정리 중</span>
-            <span className="matter-profile-meta-pill">AMIC Law</span>
+            <span className="matter-profile-status">연결 필요</span>
           </div>
         </div>
       </header>
@@ -79,17 +100,9 @@ export function UserProfileSurface() {
               </div>
             </div>
             <div className="panel-body matter-profile-card-body">
-              <div className="matter-profile-summary">
-                <strong>서지원</strong>
-                <span className="matter-profile-status in-progress">진행 중</span>
-              </div>
-              <div className="matter-profile-field-list">
-                {contractRows.map(([label, value]) => (
-                  <div className="matter-profile-field-row" key={label}>
-                    <span>{label}</span>
-                    <strong>{value}</strong>
-                  </div>
-                ))}
+              <div className="live-data-state live-data-empty">
+                <strong>계약 정보를 표시할 수 없습니다.</strong>
+                <span>실제 프로필 데이터가 연결되지 않아 더미 값을 표시하지 않습니다.</span>
               </div>
             </div>
           </article>
@@ -102,40 +115,41 @@ export function UserProfileSurface() {
               </div>
             </div>
             <div className="panel-body matter-profile-card-body">
-              <div className="matter-profile-field-list">
-                {generalRows.map(([label, value]) => (
-                  <div className="matter-profile-field-row" key={label}>
-                    <span>{label}</span>
-                    <strong>{value}</strong>
-                  </div>
-                ))}
+              <div className="live-data-state live-data-empty">
+                <strong>계정 정보를 표시할 수 없습니다.</strong>
+                <span>사용자 프로필 API 또는 세션 컨텍스트를 연결해야 합니다.</span>
               </div>
             </div>
           </article>
         </div>
 
         <aside className="matter-profile-side-stack" aria-label="프로필 작업">
-          {actionCards.map(({ label, badge, icon: Icon }) => (
-            <button type="button" className="matter-profile-action-card" key={label}>
+          {actionCards.map(({ label, badge, icon: Icon, body }) => (
+            <button
+              type="button"
+              className="matter-profile-action-card"
+              key={label}
+              data-profile-action-card={label}
+              onClick={() => setLocalAction({ title: label, body })}
+            >
               <span className="matter-profile-action-icon"><Icon size={22} /></span>
               <strong>{label}</strong>
               {badge && <span className="matter-profile-new-tag">{badge}</span>}
               <ChevronRight size={20} />
             </button>
           ))}
-          <div className="matter-profile-progress-card panel" data-profile-onboarding-pill="true">
+          <div className="matter-profile-progress-card panel" data-profile-data-state="empty">
             <div className="panel-head">
               <div>
-                <h2>시작 설정</h2>
-                <span>프로필 설정 진행률</span>
+                <h2>프로필 연결 상태</h2>
+                <span>실제 데이터 필요</span>
               </div>
-              <strong>80%</strong>
             </div>
             <div className="panel-body">
-              <div className="matter-profile-progress-meter" aria-label="시작 설정 80% 완료">
-                <span />
+              <div className="live-data-state live-data-empty">
+                <strong>연결된 프로필 데이터가 없습니다.</strong>
+                <span>임시 사용자명, 계약 금액, 시작일, 진행률은 표시하지 않습니다.</span>
               </div>
-              <p>계정 기본 정보와 계약 정보가 준비되었습니다. 지급 설정만 확인하면 완료됩니다.</p>
             </div>
           </div>
         </aside>

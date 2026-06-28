@@ -33,14 +33,14 @@ export function DocumentDetail({ document }) {
   };
 
   return (
-    <Panel id="vault-detail" className="vault-panel" title="문서 상세" meta="권한 적용">
+    <Panel id="vault-detail" className="vault-panel" title="문서 상세" meta="권한 기준 적용">
       <div className="document-detail" data-cmp-g5-document-detail="true">
         <div className="document-detail-icon">
           <FileText size={18} />
         </div>
         <div>
           <strong>{item.title}</strong>
-          <span>{document ? "버전 정보 있음" : "문서를 선택해주세요"}</span>
+          <span>{document ? "버전 정보 있음" : "문서를 선택하세요"}</span>
         </div>
         <div className="vault-property-grid">
           <span>권한</span>

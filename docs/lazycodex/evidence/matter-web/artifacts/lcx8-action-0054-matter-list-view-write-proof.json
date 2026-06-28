@@ -1,0 +1,193 @@
+{
+  "action_id": "LCX8-ACTION-0054",
+  "generated_at": "2026-06-25T15:44:50.298Z",
+  "route": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+  "status_decision": "BLOCKED_TO_PASS",
+  "precondition": {
+    "synthetic_tenant": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "list_view_id": "matter_view_user_opening",
+    "pre_existing": true,
+    "pre_existing_item": {
+      "tenant_id": "tenant_rp05_synthetic",
+      "resource_id": "matter_view_user_opening",
+      "list_view_id": "matter_view_user_opening",
+      "label": "개시 Matter",
+      "filter": {
+        "status": "opening"
+      },
+      "sort": "updated_desc",
+      "system_view": false,
+      "owner_scoped": true,
+      "created_at": "2026-06-25T15:43:53.216Z",
+      "updated_at": "2026-06-25T15:43:53.216Z",
+      "production_ready_claim": false
+    }
+  },
+  "ui_write_proof": {
+    "selector": "[data-matter-save-list-view-action=\"true\"]",
+    "button_label": "개시 저장",
+    "success_text": "View가 저장되었습니다.",
+    "saved_option_visible": true,
+    "active_after_click": true,
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0054-matter-list-view-write-proof.png"
+  },
+  "write_response": {
+    "http_status": 200,
+    "outcome": "updated",
+    "list_view_id": "matter_view_user_opening",
+    "label": "개시 Matter",
+    "filter": {
+      "status": "opening"
+    },
+    "owner_scoped": true,
+    "state_idempotent": true,
+    "production_ready_claim": false,
+    "audit_event_id": "matter.list_view.saved:tenant_rp05_synthetic:matter_view_user_opening:2026-06-25T15:44:49.631Z",
+    "audit_action": "matter.list_view.saved",
+    "audit_object_id": "matter_view_user_opening",
+    "audit_permission_ref": "ui_sf_b_w02_list_views_write",
+    "raw": {
+      "request_id": "req_33cc6cff-efd1-47f9-92ea-5581ddb08c0a",
+      "outcome": "updated",
+      "item": {
+        "tenant_id": "tenant_rp05_synthetic",
+        "resource_id": "matter_view_user_opening",
+        "list_view_id": "matter_view_user_opening",
+        "label": "개시 Matter",
+        "filter": {
+          "status": "opening"
+        },
+        "sort": "updated_desc",
+        "system_view": false,
+        "owner_scoped": true,
+        "created_at": "2026-06-25T15:43:53.216Z",
+        "updated_at": "2026-06-25T15:44:49.631Z",
+        "production_ready_claim": false
+      },
+      "audit_event": {
+        "event_id": "matter.list_view.saved:tenant_rp05_synthetic:matter_view_user_opening:2026-06-25T15:44:49.631Z",
+        "tenant_id": "tenant_rp05_synthetic",
+        "actor_id": "matter_matter_operator",
+        "action": "matter.list_view.saved",
+        "object_type": "MatterListView",
+        "object_id": "matter_view_user_opening",
+        "decision": "allow",
+        "reason": "matter_saved_list_view_updated",
+        "occurred_at": "2026-06-25T15:44:49.631Z",
+        "metadata": {
+          "filter_status": "opening",
+          "permission_ref": "ui_sf_b_w02_list_views_write",
+          "owner_scoped": true
+        },
+        "event_hash": "2e1194896063bcdc04f4c9b6c97a1517b8f915b70be1a3e01aa636d7923086a5"
+      },
+      "safe_error_codes": [],
+      "audit_hint_ref": "ui_sf_b_w02_list_views_write_probe",
+      "state_idempotent": true,
+      "production_ready_claim": false
+    }
+  },
+  "read_back_proof": {
+    "http_status": 200,
+    "found": true,
+    "item": {
+      "tenant_id": "tenant_rp05_synthetic",
+      "resource_id": "matter_view_user_opening",
+      "list_view_id": "matter_view_user_opening",
+      "label": "개시 Matter",
+      "filter": {
+        "status": "opening"
+      },
+      "sort": "updated_desc",
+      "system_view": false,
+      "owner_scoped": true,
+      "created_at": "2026-06-25T15:43:53.216Z",
+      "updated_at": "2026-06-25T15:44:49.631Z",
+      "production_ready_claim": false
+    },
+    "count_leak_prevented": true,
+    "production_ready_claim": false,
+    "reload_option_visible": true,
+    "reload_text_excerpt": "전체 Matter\n개시 중\n종료\n개시 Matter\n개시 저장"
+  },
+  "audit_proof": {
+    "http_status": 200,
+    "found": true,
+    "event": {
+      "event_id": "matter.list_view.saved:tenant_rp05_synthetic:matter_view_user_opening:2026-06-25T15:44:49.631Z",
+      "tenant_id": "tenant_rp05_synthetic",
+      "actor_id": "matter_matter_operator",
+      "action": "matter.list_view.saved",
+      "object_type": "MatterListView",
+      "object_id": "matter_view_user_opening",
+      "decision": "allow",
+      "reason": "matter_saved_list_view_updated",
+      "occurred_at": "2026-06-25T15:44:49.631Z",
+      "metadata": {
+        "filter_status": "opening",
+        "permission_ref": "ui_sf_b_w02_list_views_write",
+        "owner_scoped": true
+      },
+      "event_hash": "2e1194896063bcdc04f4c9b6c97a1517b8f915b70be1a3e01aa636d7923086a5"
+    },
+    "production_ready_claim": false
+  },
+  "fail_closed_proof": {
+    "denied_write": {
+      "http_status": 403,
+      "outcome": "blocked",
+      "safe_error_codes": [
+        "MATTER_UNAUTHORIZED_OMISSION"
+      ],
+      "ui_state": "denied",
+      "production_ready_claim": false
+    },
+    "review_write": {
+      "http_status": 200,
+      "outcome": "review_required",
+      "safe_error_codes": [
+        "MATTER_REVIEW_REQUIRED"
+      ],
+      "ui_state": "review_required",
+      "production_ready_claim": false
+    },
+    "guard_probes_persisted": {
+      "denied_probe_created": false,
+      "review_probe_created": false
+    }
+  },
+  "console_messages": [],
+  "network_events": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/matters/list-views",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+      "status": 200
+    }
+  ],
+  "non_claims": [
+    "Local synthetic runtime proof only.",
+    "production_ready_claim=false is preserved by write/read/audit surfaces.",
+    "No external customer data or go-live approval claimed."
+  ]
+}

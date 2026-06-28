@@ -1,0 +1,1788 @@
+{
+  "schema_version": "matter.lcx8.read-fail-closed.p4-t01.v1",
+  "generated_at": "2026-06-25T13:21:06.730Z",
+  "status": "complete_mixed_fail_closed_with_people_gap",
+  "tuw": "P4-T01",
+  "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
+  "source_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-guarded-state-browser-check-p3-t10.json"
+  ],
+  "web_base_url": "http://127.0.0.1:5174",
+  "api_base_url": "http://127.0.0.1:4180 via Vite proxy",
+  "contexts_reviewed": 13,
+  "fail_closed_confirmed_contexts": 10,
+  "fail_closed_gap_contexts": 2,
+  "step_up_deferred_contexts": 1,
+  "inconclusive_contexts": 0,
+  "api_response_count": 62,
+  "http_403_count": 20,
+  "http_4xx_count": 20,
+  "http_5xx_count": 0,
+  "protected_token_hit_contexts": 2,
+  "results": [
+    {
+      "row_id": "LCX8-ACTION-0272",
+      "label": "Client list denied state",
+      "context_name": "client-denied",
+      "path": "/?locale=ko&view=clients&data=live&ctx=denied#clients-list",
+      "family": "client",
+      "p3_observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "guard_state_visible",
+      "result": "FAIL_CLOSED_CONFIRMED",
+      "reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=clients&data=live&ctx=denied#clients-list",
+        "guard_text": [
+          "접근 권한이 없습니다권한이 있는 Client만 표시합니다."
+        ],
+        "body_text_sample": "matter Home Client Matter 직원 Vault / 새로 만들기 합류코드 전송 서 3 한국어 Client Client 목록 12 잠재 고객 영업 기회 상담 접수 4 계정 연락처 데이터 관리 보고서 가져오기 Client 설정 태그 관리 Client Client와 상담 접수, 영업 기회를 한 화면에서 확인합니다. 새로고침 Client 목록 권한 기준 적용 접근 권한이 없습니다 권한이 있는 Client만 표시합니다. 레코드 Client 상태 대기 대표 당사자 미지정 구성원 0 연결 Matter 미지정 잠재 Client 0 기회 0 접수 0 계정 0 연락처 0 권한 기준에 맞춰 표시됩니다. 병합 검토 0건 / 실행 가능 0건 데이터 보강 상태는 Client 데이터 관리에서 확인합니다. 보고서와 손익은 Client 보고서에서 확인합니다. 레코드 작업 허용 필드 확인 중 필드 업데이트 담당자 일괄 변경 승인 조건 확인 승인 확인 최근 작업 0건",
+        "protected_token_hits": [],
+        "visible_button_count": 27,
+        "enabled_button_count": 27,
+        "visible_buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Client",
+            "disabled": false
+          },
+          {
+            "text": "Matter",
+            "disabled": false
+          },
+          {
+            "text": "직원",
+            "disabled": false
+          },
+          {
+            "text": "Vault",
+            "disabled": false
+          },
+          {
+            "text": "새로 만들기",
+            "disabled": false
+          },
+          {
+            "text": "합류코드 전송",
+            "disabled": false
+          },
+          {
+            "text": "서",
+            "disabled": false
+          },
+          {
+            "text": "3",
+            "disabled": false
+          },
+          {
+            "text": "도움말",
+            "disabled": false
+          },
+          {
+            "text": "테마",
+            "disabled": false
+          },
+          {
+            "text": "한국어",
+            "disabled": false
+          },
+          {
+            "text": "Client 목록12",
+            "disabled": false
+          },
+          {
+            "text": "잠재 고객",
+            "disabled": false
+          },
+          {
+            "text": "영업 기회",
+            "disabled": false
+          },
+          {
+            "text": "상담 접수4",
+            "disabled": false
+          },
+          {
+            "text": "계정",
+            "disabled": false
+          },
+          {
+            "text": "연락처",
+            "disabled": false
+          },
+          {
+            "text": "데이터 관리",
+            "disabled": false
+          },
+          {
+            "text": "보고서",
+            "disabled": false
+          }
+        ],
+        "horizontal_overflow": false
+      },
+      "network_response_count": 10,
+      "http_403_count": 9,
+      "http_4xx_count": 9,
+      "http_5xx_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?client_id=client_lcx_001"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe"
+        }
+      ],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p4-t01-fail-closed-LCX8-ACTION-0272-client-denied.png"
+    },
+    {
+      "row_id": "LCX8-ACTION-0273",
+      "label": "Client list review-required state",
+      "context_name": "client-review",
+      "path": "/?locale=ko&view=clients&data=live&ctx=review#clients-list",
+      "family": "client",
+      "p3_observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "guard_state_visible",
+      "result": "FAIL_CLOSED_CONFIRMED",
+      "reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=clients&data=live&ctx=review#clients-list",
+        "guard_text": [
+          "검토가 필요합니다검토가 끝나면 Client 정보를 확인할 수 있습니다."
+        ],
+        "body_text_sample": "matter Home Client Matter 직원 Vault / 새로 만들기 합류코드 전송 서 3 한국어 Client Client 목록 12 잠재 고객 영업 기회 상담 접수 4 계정 연락처 데이터 관리 보고서 가져오기 Client 설정 태그 관리 Client Client와 상담 접수, 영업 기회를 한 화면에서 확인합니다. 새로고침 Client 목록 권한 기준 적용 검토가 필요합니다 검토가 끝나면 Client 정보를 확인할 수 있습니다. 레코드 Client 상태 대기 대표 당사자 미지정 구성원 0 연결 Matter 미지정 잠재 Client 0 기회 0 접수 0 계정 0 연락처 0 권한 기준에 맞춰 표시됩니다. 병합 검토 0건 / 실행 가능 0건 데이터 보강 상태는 Client 데이터 관리에서 확인합니다. 보고서와 손익은 Client 보고서에서 확인합니다. 레코드 작업 허용 필드 확인 중 필드 업데이트 담당자 일괄 변경 승인 조건 확인 승인 확인 최근 작업 0건",
+        "protected_token_hits": [],
+        "visible_button_count": 27,
+        "enabled_button_count": 27,
+        "visible_buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Client",
+            "disabled": false
+          },
+          {
+            "text": "Matter",
+            "disabled": false
+          },
+          {
+            "text": "직원",
+            "disabled": false
+          },
+          {
+            "text": "Vault",
+            "disabled": false
+          },
+          {
+            "text": "새로 만들기",
+            "disabled": false
+          },
+          {
+            "text": "합류코드 전송",
+            "disabled": false
+          },
+          {
+            "text": "서",
+            "disabled": false
+          },
+          {
+            "text": "3",
+            "disabled": false
+          },
+          {
+            "text": "도움말",
+            "disabled": false
+          },
+          {
+            "text": "테마",
+            "disabled": false
+          },
+          {
+            "text": "한국어",
+            "disabled": false
+          },
+          {
+            "text": "Client 목록12",
+            "disabled": false
+          },
+          {
+            "text": "잠재 고객",
+            "disabled": false
+          },
+          {
+            "text": "영업 기회",
+            "disabled": false
+          },
+          {
+            "text": "상담 접수4",
+            "disabled": false
+          },
+          {
+            "text": "계정",
+            "disabled": false
+          },
+          {
+            "text": "연락처",
+            "disabled": false
+          },
+          {
+            "text": "데이터 관리",
+            "disabled": false
+          },
+          {
+            "text": "보고서",
+            "disabled": false
+          }
+        ],
+        "horizontal_overflow": false
+      },
+      "network_response_count": 10,
+      "http_403_count": 1,
+      "http_4xx_count": 1,
+      "http_5xx_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/master-data/records?tenant_id=tenant_rp04_synthetic&permission_ref=ui_cmp_g2_party_clients_live&audit_hint_ref=ui_cmp_g2_clients_live_probe&limit=25&model_type=ClientGroup"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?client_id=client_lcx_001"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/crm/leads?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/crm/opportunities?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/intake/requests?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/intake/audit?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/crm/accounts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/crm/contacts?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_cmp_g6_crm_intake_live&audit_hint_ref=ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/crm/duplicate-merge-proposals?tenant_id=tenant_cmp_g6_synthetic&permission_ref=ui_sf_b_w01_merge_read&audit_hint_ref=ui_sf_b_w01_merge_read_probe"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/record-actions/client/fields?tenant_id=tenant_rp04_synthetic&permission_ref=ui_sf_b_w02_record_actions_client&audit_hint_ref=ui_sf_b_w02_record_actions_client_probe"
+        }
+      ],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p4-t01-fail-closed-LCX8-ACTION-0273-client-review.png"
+    },
+    {
+      "row_id": "LCX8-ACTION-0274",
+      "label": "Matter list denied state",
+      "context_name": "matter-denied",
+      "path": "/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+      "family": "matter",
+      "p3_observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "guard_state_visible",
+      "result": "FAIL_CLOSED_CONFIRMED",
+      "reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+        "guard_text": [
+          "접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
+        ],
+        "body_text_sample": "matter Home Client Matter 직원 Vault / 새로 만들기 합류코드 전송 서 3 한국어 Matter Matter 운영 Matter 목록 18 진행 현황 Matter 개시 업무 진행 청구·분석 Matter 설정 태그 관리 Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 목록 권한 기준 적용 접근 권한이 없습니다 권한이 있는 정보만 표시됩니다. 레코드 Matter 1 상태 대기 청구 대기 책임자 미지정 팀 0 문서 0 활동 0 기한 0 대화 0 청구 0 분석 0 청구 상태 대기 저장 책임자 미지정 변경 레코드 필드 허용 필드 확인 중 필드 작업 책임자 일괄 변경 승인 조건 확인 승인 확인 최근 작업 0건 내부 대화 준비 권한 기준에 맞춰 표시됩니다.",
+        "protected_token_hits": [],
+        "visible_button_count": 31,
+        "enabled_button_count": 27,
+        "visible_buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Client",
+            "disabled": false
+          },
+          {
+            "text": "Matter",
+            "disabled": false
+          },
+          {
+            "text": "직원",
+            "disabled": false
+          },
+          {
+            "text": "Vault",
+            "disabled": false
+          },
+          {
+            "text": "새로 만들기",
+            "disabled": false
+          },
+          {
+            "text": "합류코드 전송",
+            "disabled": false
+          },
+          {
+            "text": "서",
+            "disabled": false
+          },
+          {
+            "text": "3",
+            "disabled": false
+          },
+          {
+            "text": "도움말",
+            "disabled": false
+          },
+          {
+            "text": "테마",
+            "disabled": false
+          },
+          {
+            "text": "한국어",
+            "disabled": false
+          },
+          {
+            "text": "Matter 운영",
+            "disabled": false
+          },
+          {
+            "text": "Matter 목록18",
+            "disabled": false
+          },
+          {
+            "text": "진행 현황",
+            "disabled": false
+          },
+          {
+            "text": "Matter 개시",
+            "disabled": false
+          },
+          {
+            "text": "업무 진행",
+            "disabled": false
+          },
+          {
+            "text": "청구·분석",
+            "disabled": false
+          },
+          {
+            "text": "Matter 설정",
+            "disabled": false
+          },
+          {
+            "text": "태그 관리",
+            "disabled": false
+          }
+        ],
+        "horizontal_overflow": false
+      },
+      "network_response_count": 4,
+      "http_403_count": 3,
+      "http_4xx_count": 3,
+      "http_5xx_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        }
+      ],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p4-t01-fail-closed-LCX8-ACTION-0274-matter-denied.png"
+    },
+    {
+      "row_id": "LCX8-ACTION-0275",
+      "label": "Matter list review-required state",
+      "context_name": "matter-review",
+      "path": "/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+      "family": "matter",
+      "p3_observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "guard_state_visible",
+      "result": "FAIL_CLOSED_CONFIRMED",
+      "reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+        "guard_text": [
+          "검토가 필요합니다검토가 끝나면 Matter 목록을 확인할 수 있습니다."
+        ],
+        "body_text_sample": "matter Home Client Matter 직원 Vault / 새로 만들기 합류코드 전송 서 3 한국어 Matter Matter 운영 Matter 목록 18 진행 현황 Matter 개시 업무 진행 청구·분석 Matter 설정 태그 관리 Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 목록 권한 기준 적용 검토가 필요합니다 검토가 끝나면 Matter 목록을 확인할 수 있습니다. 레코드 Matter 1 상태 대기 청구 대기 책임자 미지정 팀 0 문서 0 활동 0 기한 0 대화 0 청구 0 분석 0 청구 상태 대기 저장 책임자 미지정 변경 레코드 필드 허용 필드 확인 중 필드 작업 책임자 일괄 변경 승인 조건 확인 승인 확인 최근 작업 0건 내부 대화 준비 권한 기준에 맞춰 표시됩니다.",
+        "protected_token_hits": [],
+        "visible_button_count": 31,
+        "enabled_button_count": 27,
+        "visible_buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Client",
+            "disabled": false
+          },
+          {
+            "text": "Matter",
+            "disabled": false
+          },
+          {
+            "text": "직원",
+            "disabled": false
+          },
+          {
+            "text": "Vault",
+            "disabled": false
+          },
+          {
+            "text": "새로 만들기",
+            "disabled": false
+          },
+          {
+            "text": "합류코드 전송",
+            "disabled": false
+          },
+          {
+            "text": "서",
+            "disabled": false
+          },
+          {
+            "text": "3",
+            "disabled": false
+          },
+          {
+            "text": "도움말",
+            "disabled": false
+          },
+          {
+            "text": "테마",
+            "disabled": false
+          },
+          {
+            "text": "한국어",
+            "disabled": false
+          },
+          {
+            "text": "Matter 운영",
+            "disabled": false
+          },
+          {
+            "text": "Matter 목록18",
+            "disabled": false
+          },
+          {
+            "text": "진행 현황",
+            "disabled": false
+          },
+          {
+            "text": "Matter 개시",
+            "disabled": false
+          },
+          {
+            "text": "업무 진행",
+            "disabled": false
+          },
+          {
+            "text": "청구·분석",
+            "disabled": false
+          },
+          {
+            "text": "Matter 설정",
+            "disabled": false
+          },
+          {
+            "text": "태그 관리",
+            "disabled": false
+          }
+        ],
+        "horizontal_overflow": false
+      },
+      "network_response_count": 4,
+      "http_403_count": 0,
+      "http_4xx_count": 0,
+      "http_5xx_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        }
+      ],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p4-t01-fail-closed-LCX8-ACTION-0275-matter-review.png"
+    },
+    {
+      "row_id": "LCX8-ACTION-0276",
+      "label": "Vault documents denied state",
+      "context_name": "vault-denied",
+      "path": "/?locale=ko&view=vault&data=live&ctx=denied#vault-documents",
+      "family": "vault",
+      "p3_observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "guard_state_visible",
+      "result": "FAIL_CLOSED_CONFIRMED",
+      "reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=vault&data=live&ctx=denied#vault-documents",
+        "guard_text": [
+          "접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
+        ],
+        "body_text_sample": "matter Home Client Matter 직원 Vault / 새로 만들기 합류코드 전송 서 3 한국어 Vault 문서함 24 문서 상세 메일 보관함 Vault 설정 문서 태그 Vault Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다. 새로고침 Vault 문서함 권한 기준 적용 접근 권한이 없습니다 권한이 있는 정보만 표시됩니다.",
+        "protected_token_hits": [],
+        "visible_button_count": 19,
+        "enabled_button_count": 19,
+        "visible_buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Client",
+            "disabled": false
+          },
+          {
+            "text": "Matter",
+            "disabled": false
+          },
+          {
+            "text": "직원",
+            "disabled": false
+          },
+          {
+            "text": "Vault",
+            "disabled": false
+          },
+          {
+            "text": "새로 만들기",
+            "disabled": false
+          },
+          {
+            "text": "합류코드 전송",
+            "disabled": false
+          },
+          {
+            "text": "서",
+            "disabled": false
+          },
+          {
+            "text": "3",
+            "disabled": false
+          },
+          {
+            "text": "도움말",
+            "disabled": false
+          },
+          {
+            "text": "테마",
+            "disabled": false
+          },
+          {
+            "text": "한국어",
+            "disabled": false
+          },
+          {
+            "text": "문서함24",
+            "disabled": false
+          },
+          {
+            "text": "문서 상세",
+            "disabled": false
+          },
+          {
+            "text": "메일 보관함",
+            "disabled": false
+          },
+          {
+            "text": "Vault 설정",
+            "disabled": false
+          },
+          {
+            "text": "문서 태그",
+            "disabled": false
+          },
+          {
+            "text": "새로고침",
+            "disabled": false
+          },
+          {
+            "text": "",
+            "disabled": false
+          }
+        ],
+        "horizontal_overflow": false
+      },
+      "network_response_count": 1,
+      "http_403_count": 1,
+      "http_4xx_count": 1,
+      "http_5xx_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+        }
+      ],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p4-t01-fail-closed-LCX8-ACTION-0276-vault-denied.png"
+    },
+    {
+      "row_id": "LCX8-ACTION-0277",
+      "label": "Vault documents review-required state",
+      "context_name": "vault-review",
+      "path": "/?locale=ko&view=vault&data=live&ctx=review#vault-documents",
+      "family": "vault",
+      "p3_observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "guard_state_visible",
+      "result": "FAIL_CLOSED_CONFIRMED",
+      "reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=vault&data=live&ctx=review#vault-documents",
+        "guard_text": [
+          "검토가 필요합니다검토가 끝나면 Vault 문서를 확인할 수 있습니다."
+        ],
+        "body_text_sample": "matter Home Client Matter 직원 Vault / 새로 만들기 합류코드 전송 서 3 한국어 Vault 문서함 24 문서 상세 메일 보관함 Vault 설정 문서 태그 Vault Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다. 새로고침 Vault 문서함 권한 기준 적용 검토가 필요합니다 검토가 끝나면 Vault 문서를 확인할 수 있습니다.",
+        "protected_token_hits": [],
+        "visible_button_count": 19,
+        "enabled_button_count": 19,
+        "visible_buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Client",
+            "disabled": false
+          },
+          {
+            "text": "Matter",
+            "disabled": false
+          },
+          {
+            "text": "직원",
+            "disabled": false
+          },
+          {
+            "text": "Vault",
+            "disabled": false
+          },
+          {
+            "text": "새로 만들기",
+            "disabled": false
+          },
+          {
+            "text": "합류코드 전송",
+            "disabled": false
+          },
+          {
+            "text": "서",
+            "disabled": false
+          },
+          {
+            "text": "3",
+            "disabled": false
+          },
+          {
+            "text": "도움말",
+            "disabled": false
+          },
+          {
+            "text": "테마",
+            "disabled": false
+          },
+          {
+            "text": "한국어",
+            "disabled": false
+          },
+          {
+            "text": "문서함24",
+            "disabled": false
+          },
+          {
+            "text": "문서 상세",
+            "disabled": false
+          },
+          {
+            "text": "메일 보관함",
+            "disabled": false
+          },
+          {
+            "text": "Vault 설정",
+            "disabled": false
+          },
+          {
+            "text": "문서 태그",
+            "disabled": false
+          },
+          {
+            "text": "새로고침",
+            "disabled": false
+          },
+          {
+            "text": "",
+            "disabled": false
+          }
+        ],
+        "horizontal_overflow": false
+      },
+      "network_response_count": 1,
+      "http_403_count": 0,
+      "http_4xx_count": 0,
+      "http_5xx_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/vault/documents?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g5_vault_live&audit_hint_ref=ui_cmp_g5_vault_probe"
+        }
+      ],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p4-t01-fail-closed-LCX8-ACTION-0277-vault-review.png"
+    },
+    {
+      "row_id": "LCX8-ACTION-0278",
+      "label": "Matter record action strip disabled under denied/review",
+      "context_name": "matter-record-actions-denied",
+      "path": "/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+      "family": "matter",
+      "p3_observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "mutation_controls_hidden_or_disabled(count=4)",
+      "result": "FAIL_CLOSED_CONFIRMED",
+      "reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=denied#matters-list",
+        "guard_text": [
+          "접근 권한이 없습니다권한이 있는 정보만 표시됩니다."
+        ],
+        "body_text_sample": "matter Home Client Matter 직원 Vault / 새로 만들기 합류코드 전송 서 3 한국어 Matter Matter 운영 Matter 목록 18 진행 현황 Matter 개시 업무 진행 청구·분석 Matter 설정 태그 관리 Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 목록 권한 기준 적용 접근 권한이 없습니다 권한이 있는 정보만 표시됩니다. 레코드 Matter 1 상태 대기 청구 대기 책임자 미지정 팀 0 문서 0 활동 0 기한 0 대화 0 청구 0 분석 0 청구 상태 대기 저장 책임자 미지정 변경 레코드 필드 허용 필드 확인 중 필드 작업 책임자 일괄 변경 승인 조건 확인 승인 확인 최근 작업 0건 내부 대화 준비 권한 기준에 맞춰 표시됩니다.",
+        "protected_token_hits": [],
+        "visible_button_count": 31,
+        "enabled_button_count": 27,
+        "visible_buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Client",
+            "disabled": false
+          },
+          {
+            "text": "Matter",
+            "disabled": false
+          },
+          {
+            "text": "직원",
+            "disabled": false
+          },
+          {
+            "text": "Vault",
+            "disabled": false
+          },
+          {
+            "text": "새로 만들기",
+            "disabled": false
+          },
+          {
+            "text": "합류코드 전송",
+            "disabled": false
+          },
+          {
+            "text": "서",
+            "disabled": false
+          },
+          {
+            "text": "3",
+            "disabled": false
+          },
+          {
+            "text": "도움말",
+            "disabled": false
+          },
+          {
+            "text": "테마",
+            "disabled": false
+          },
+          {
+            "text": "한국어",
+            "disabled": false
+          },
+          {
+            "text": "Matter 운영",
+            "disabled": false
+          },
+          {
+            "text": "Matter 목록18",
+            "disabled": false
+          },
+          {
+            "text": "진행 현황",
+            "disabled": false
+          },
+          {
+            "text": "Matter 개시",
+            "disabled": false
+          },
+          {
+            "text": "업무 진행",
+            "disabled": false
+          },
+          {
+            "text": "청구·분석",
+            "disabled": false
+          },
+          {
+            "text": "Matter 설정",
+            "disabled": false
+          },
+          {
+            "text": "태그 관리",
+            "disabled": false
+          }
+        ],
+        "horizontal_overflow": false
+      },
+      "network_response_count": 4,
+      "http_403_count": 3,
+      "http_4xx_count": 3,
+      "http_5xx_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        }
+      ],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p4-t01-fail-closed-LCX8-ACTION-0278-matter-record-actions-denied.png"
+    },
+    {
+      "row_id": "LCX8-ACTION-0278",
+      "label": "Matter record action strip disabled under denied/review",
+      "context_name": "matter-record-actions-review",
+      "path": "/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+      "family": "matter",
+      "p3_observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "mutation_controls_hidden_or_disabled(count=4)",
+      "result": "FAIL_CLOSED_CONFIRMED",
+      "reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=review#matters-list",
+        "guard_text": [
+          "검토가 필요합니다검토가 끝나면 Matter 목록을 확인할 수 있습니다."
+        ],
+        "body_text_sample": "matter Home Client Matter 직원 Vault / 새로 만들기 합류코드 전송 서 3 한국어 Matter Matter 운영 Matter 목록 18 진행 현황 Matter 개시 업무 진행 청구·분석 Matter 설정 태그 관리 Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter 목록 권한 기준 적용 검토가 필요합니다 검토가 끝나면 Matter 목록을 확인할 수 있습니다. 레코드 Matter 1 상태 대기 청구 대기 책임자 미지정 팀 0 문서 0 활동 0 기한 0 대화 0 청구 0 분석 0 청구 상태 대기 저장 책임자 미지정 변경 레코드 필드 허용 필드 확인 중 필드 작업 책임자 일괄 변경 승인 조건 확인 승인 확인 최근 작업 0건 내부 대화 준비 권한 기준에 맞춰 표시됩니다.",
+        "protected_token_hits": [],
+        "visible_button_count": 31,
+        "enabled_button_count": 27,
+        "visible_buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Client",
+            "disabled": false
+          },
+          {
+            "text": "Matter",
+            "disabled": false
+          },
+          {
+            "text": "직원",
+            "disabled": false
+          },
+          {
+            "text": "Vault",
+            "disabled": false
+          },
+          {
+            "text": "새로 만들기",
+            "disabled": false
+          },
+          {
+            "text": "합류코드 전송",
+            "disabled": false
+          },
+          {
+            "text": "서",
+            "disabled": false
+          },
+          {
+            "text": "3",
+            "disabled": false
+          },
+          {
+            "text": "도움말",
+            "disabled": false
+          },
+          {
+            "text": "테마",
+            "disabled": false
+          },
+          {
+            "text": "한국어",
+            "disabled": false
+          },
+          {
+            "text": "Matter 운영",
+            "disabled": false
+          },
+          {
+            "text": "Matter 목록18",
+            "disabled": false
+          },
+          {
+            "text": "진행 현황",
+            "disabled": false
+          },
+          {
+            "text": "Matter 개시",
+            "disabled": false
+          },
+          {
+            "text": "업무 진행",
+            "disabled": false
+          },
+          {
+            "text": "청구·분석",
+            "disabled": false
+          },
+          {
+            "text": "Matter 설정",
+            "disabled": false
+          },
+          {
+            "text": "태그 관리",
+            "disabled": false
+          }
+        ],
+        "horizontal_overflow": false
+      },
+      "network_response_count": 4,
+      "http_403_count": 0,
+      "http_4xx_count": 0,
+      "http_5xx_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        }
+      ],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p4-t01-fail-closed-LCX8-ACTION-0278-matter-record-actions-review.png"
+    },
+    {
+      "row_id": "LCX8-ACTION-0279",
+      "label": "Matter Vault action strip disabled under denied/review",
+      "context_name": "matter-vault-actions-denied",
+      "path": "/?locale=ko&view=matters&data=live&ctx=denied#matter-vault",
+      "family": "matter",
+      "p3_observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "mutation_controls_hidden_or_disabled(count=5)",
+      "result": "FAIL_CLOSED_CONFIRMED",
+      "reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=denied#matter-vault",
+        "guard_text": [
+          "Matter Vault를 불러오는 중입니다"
+        ],
+        "body_text_sample": "matter Home Client Matter 직원 Vault / 새로 만들기 합류코드 전송 서 3 한국어 Matter Matter 운영 Matter 목록 18 진행 현황 Matter 개시 업무 진행 문서 활동 일정 대화 2 구성원 청구·분석 Matter 설정 태그 관리 Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter Vault 문서 연결 Vault 미연결 Matter 선택 후 문서 기록을 확인할 수 있습니다 새로고침 문서 연결 Matter Vault를 불러오는 중입니다 레코드 Matter 1 상태 대기 청구 대기 책임자 미지정 팀 0 문서 0 활동 0 기한 0 대화 0 청구 0 분석 0 청구 상태 대기 저장 책임자 미지정 변경 레코드 필드 허용 필드 확인 중 필드 작업 책임자 일괄 변경 승인 조건 확인 승인 확인 최근 작업 0건 내부 대화 준비 권한 기준에 맞춰 표시됩니다.",
+        "protected_token_hits": [],
+        "visible_button_count": 38,
+        "enabled_button_count": 33,
+        "visible_buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Client",
+            "disabled": false
+          },
+          {
+            "text": "Matter",
+            "disabled": false
+          },
+          {
+            "text": "직원",
+            "disabled": false
+          },
+          {
+            "text": "Vault",
+            "disabled": false
+          },
+          {
+            "text": "새로 만들기",
+            "disabled": false
+          },
+          {
+            "text": "합류코드 전송",
+            "disabled": false
+          },
+          {
+            "text": "서",
+            "disabled": false
+          },
+          {
+            "text": "3",
+            "disabled": false
+          },
+          {
+            "text": "도움말",
+            "disabled": false
+          },
+          {
+            "text": "테마",
+            "disabled": false
+          },
+          {
+            "text": "한국어",
+            "disabled": false
+          },
+          {
+            "text": "Matter 운영",
+            "disabled": false
+          },
+          {
+            "text": "Matter 목록18",
+            "disabled": false
+          },
+          {
+            "text": "진행 현황",
+            "disabled": false
+          },
+          {
+            "text": "Matter 개시",
+            "disabled": false
+          },
+          {
+            "text": "업무 진행",
+            "disabled": false
+          },
+          {
+            "text": "문서",
+            "disabled": false
+          },
+          {
+            "text": "활동",
+            "disabled": false
+          },
+          {
+            "text": "일정",
+            "disabled": false
+          }
+        ],
+        "horizontal_overflow": false
+      },
+      "network_response_count": 4,
+      "http_403_count": 3,
+      "http_4xx_count": 3,
+      "http_5xx_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+        },
+        {
+          "method": "GET",
+          "status": 403,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        }
+      ],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p4-t01-fail-closed-LCX8-ACTION-0279-matter-vault-actions-denied.png"
+    },
+    {
+      "row_id": "LCX8-ACTION-0279",
+      "label": "Matter Vault action strip disabled under denied/review",
+      "context_name": "matter-vault-actions-review",
+      "path": "/?locale=ko&view=matters&data=live&ctx=review#matter-vault",
+      "family": "matter",
+      "p3_observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "mutation_controls_hidden_or_disabled(count=5)",
+      "result": "FAIL_CLOSED_CONFIRMED",
+      "reason": "Guarded browser state visible and no configured protected tokens were found in the rendered text.",
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=review#matter-vault",
+        "guard_text": [
+          "Matter Vault를 불러오는 중입니다"
+        ],
+        "body_text_sample": "matter Home Client Matter 직원 Vault / 새로 만들기 합류코드 전송 서 3 한국어 Matter Matter 운영 Matter 목록 18 진행 현황 Matter 개시 업무 진행 문서 활동 일정 대화 2 구성원 청구·분석 Matter 설정 태그 관리 Matter Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다. 새로고침 현황 문서 활동 일정 대화 Matter Vault 문서 연결 Vault 미연결 Matter 선택 후 문서 기록을 확인할 수 있습니다 새로고침 문서 연결 Matter Vault를 불러오는 중입니다 레코드 Matter 1 상태 대기 청구 대기 책임자 미지정 팀 0 문서 0 활동 0 기한 0 대화 0 청구 0 분석 0 청구 상태 대기 저장 책임자 미지정 변경 레코드 필드 허용 필드 확인 중 필드 작업 책임자 일괄 변경 승인 조건 확인 승인 확인 최근 작업 0건 내부 대화 준비 권한 기준에 맞춰 표시됩니다.",
+        "protected_token_hits": [],
+        "visible_button_count": 38,
+        "enabled_button_count": 33,
+        "visible_buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Client",
+            "disabled": false
+          },
+          {
+            "text": "Matter",
+            "disabled": false
+          },
+          {
+            "text": "직원",
+            "disabled": false
+          },
+          {
+            "text": "Vault",
+            "disabled": false
+          },
+          {
+            "text": "새로 만들기",
+            "disabled": false
+          },
+          {
+            "text": "합류코드 전송",
+            "disabled": false
+          },
+          {
+            "text": "서",
+            "disabled": false
+          },
+          {
+            "text": "3",
+            "disabled": false
+          },
+          {
+            "text": "도움말",
+            "disabled": false
+          },
+          {
+            "text": "테마",
+            "disabled": false
+          },
+          {
+            "text": "한국어",
+            "disabled": false
+          },
+          {
+            "text": "Matter 운영",
+            "disabled": false
+          },
+          {
+            "text": "Matter 목록18",
+            "disabled": false
+          },
+          {
+            "text": "진행 현황",
+            "disabled": false
+          },
+          {
+            "text": "Matter 개시",
+            "disabled": false
+          },
+          {
+            "text": "업무 진행",
+            "disabled": false
+          },
+          {
+            "text": "문서",
+            "disabled": false
+          },
+          {
+            "text": "활동",
+            "disabled": false
+          },
+          {
+            "text": "일정",
+            "disabled": false
+          }
+        ],
+        "horizontal_overflow": false
+      },
+      "network_response_count": 4,
+      "http_403_count": 0,
+      "http_4xx_count": 0,
+      "http_5xx_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search?matter_id=matter_lcx_001"
+        }
+      ],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p4-t01-fail-closed-LCX8-ACTION-0279-matter-vault-actions-review.png"
+    },
+    {
+      "row_id": "LCX8-ACTION-0280",
+      "label": "People directory denied/review state",
+      "context_name": "people-directory-denied-gap",
+      "path": "/?locale=ko&view=people&data=live&ctx=denied#people-directory",
+      "family": "people",
+      "p3_observed_result": "FAIL_CONFIRMED",
+      "p3_reason": "people_guard_missing_confirmed",
+      "result": "FAIL_CLOSED_GAP_CONFIRMED",
+      "reason": "People denied/review route shows directory data instead of a denied/review guard.",
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=denied#people-directory",
+        "guard_text": [
+          "표시할 관련 기록이 없습니다."
+        ],
+        "body_text_sample": "matter Home Client Matter 직원 Vault / 새로 만들기 합류코드 전송 서 3 한국어 직원 관리 직원 9 조직 휴가관리 요청 관리 5 입퇴사 관리 직원 등록 회사 설정 회사 설정 권한 직원 관리 직원, 조직, 휴가관리, 요청 관리, 입퇴사 관리, 회사방침, 급여정산과 리포트를 확인합니다. 새로고침 Matter 참여자 확인 Client·Matter 관련 기록 권한 범위 안에서 Matter 참여자와 이해상충 검토 상태를 확인합니다. 전체 내부 변호사 Client 상대 대리인 전문가 규제기관 A Arbitrator Han 중재인 · Arbitration Institution 활성 A Ari Kim 내부 변호사 · LCX Litigation Group 활성 C Counterparty A 상대방 · Counterparty Organization 활성 D Dr. Seo 전문가/증인 · Expert Witness Group 활성 F FSC Reviewer 규제기관 담당자 · Financial Services Commission 활성 J Jin Lee 고객 담당자 · LCX Client Organization 활성 M Mina Park 스태프/패러리걸 · LCX Litigation Group 활성 N Noah Choi 상대방 대리인 · Opposing Counsel Firm 활성 S Seoul Central Court Clerk 재판부/법원 관계자 · Seoul Central Court 활성 참여자 상세 선택됨 민감한 관계 정보는 권한에 따라 축약됩니다. A Arbitrator Han 중재인 · Arb",
+        "protected_token_hits": [
+          "Arbitrator Han",
+          "Ari Kim",
+          "Counterparty A",
+          "Dr. Seo",
+          "FSC Reviewer",
+          "Jin Lee",
+          "Mina Park",
+          "Noah Choi",
+          "Seoul Central Court Clerk"
+        ],
+        "visible_button_count": 41,
+        "enabled_button_count": 41,
+        "visible_buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Client",
+            "disabled": false
+          },
+          {
+            "text": "Matter",
+            "disabled": false
+          },
+          {
+            "text": "직원",
+            "disabled": false
+          },
+          {
+            "text": "Vault",
+            "disabled": false
+          },
+          {
+            "text": "새로 만들기",
+            "disabled": false
+          },
+          {
+            "text": "합류코드 전송",
+            "disabled": false
+          },
+          {
+            "text": "서",
+            "disabled": false
+          },
+          {
+            "text": "3",
+            "disabled": false
+          },
+          {
+            "text": "도움말",
+            "disabled": false
+          },
+          {
+            "text": "테마",
+            "disabled": false
+          },
+          {
+            "text": "한국어",
+            "disabled": false
+          },
+          {
+            "text": "관리",
+            "disabled": false
+          },
+          {
+            "text": "직원9",
+            "disabled": false
+          },
+          {
+            "text": "조직",
+            "disabled": false
+          },
+          {
+            "text": "휴가관리",
+            "disabled": false
+          },
+          {
+            "text": "요청 관리5",
+            "disabled": false
+          },
+          {
+            "text": "입퇴사 관리",
+            "disabled": false
+          },
+          {
+            "text": "직원 등록",
+            "disabled": false
+          },
+          {
+            "text": "회사 설정",
+            "disabled": false
+          }
+        ],
+        "horizontal_overflow": false
+      },
+      "network_response_count": 7,
+      "http_403_count": 0,
+      "http_4xx_count": 0,
+      "http_5xx_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/relationships"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/ethics"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/employees"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/person_arbitrator_001"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/relationships?person_id=person_arbitrator_001"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/ethics?person_id=person_arbitrator_001"
+        }
+      ],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p4-t01-fail-closed-LCX8-ACTION-0280-people-directory-denied-gap.png"
+    },
+    {
+      "row_id": "LCX8-ACTION-0280",
+      "label": "People directory denied/review state",
+      "context_name": "people-directory-review-gap",
+      "path": "/?locale=ko&view=people&data=live&ctx=review#people-directory",
+      "family": "people",
+      "p3_observed_result": "FAIL_CONFIRMED",
+      "p3_reason": "people_guard_missing_confirmed",
+      "result": "FAIL_CLOSED_GAP_CONFIRMED",
+      "reason": "People denied/review route shows directory data instead of a denied/review guard.",
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=review#people-directory",
+        "guard_text": [
+          "표시할 관련 기록이 없습니다."
+        ],
+        "body_text_sample": "matter Home Client Matter 직원 Vault / 새로 만들기 합류코드 전송 서 3 한국어 직원 관리 직원 9 조직 휴가관리 요청 관리 5 입퇴사 관리 직원 등록 회사 설정 회사 설정 권한 직원 관리 직원, 조직, 휴가관리, 요청 관리, 입퇴사 관리, 회사방침, 급여정산과 리포트를 확인합니다. 새로고침 Matter 참여자 확인 Client·Matter 관련 기록 권한 범위 안에서 Matter 참여자와 이해상충 검토 상태를 확인합니다. 전체 내부 변호사 Client 상대 대리인 전문가 규제기관 A Arbitrator Han 중재인 · Arbitration Institution 활성 A Ari Kim 내부 변호사 · LCX Litigation Group 활성 C Counterparty A 상대방 · Counterparty Organization 활성 D Dr. Seo 전문가/증인 · Expert Witness Group 활성 F FSC Reviewer 규제기관 담당자 · Financial Services Commission 활성 J Jin Lee 고객 담당자 · LCX Client Organization 활성 M Mina Park 스태프/패러리걸 · LCX Litigation Group 활성 N Noah Choi 상대방 대리인 · Opposing Counsel Firm 활성 S Seoul Central Court Clerk 재판부/법원 관계자 · Seoul Central Court 활성 참여자 상세 선택됨 민감한 관계 정보는 권한에 따라 축약됩니다. A Arbitrator Han 중재인 · Arb",
+        "protected_token_hits": [
+          "Arbitrator Han",
+          "Ari Kim",
+          "Counterparty A",
+          "Dr. Seo",
+          "FSC Reviewer",
+          "Jin Lee",
+          "Mina Park",
+          "Noah Choi",
+          "Seoul Central Court Clerk"
+        ],
+        "visible_button_count": 41,
+        "enabled_button_count": 41,
+        "visible_buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Client",
+            "disabled": false
+          },
+          {
+            "text": "Matter",
+            "disabled": false
+          },
+          {
+            "text": "직원",
+            "disabled": false
+          },
+          {
+            "text": "Vault",
+            "disabled": false
+          },
+          {
+            "text": "새로 만들기",
+            "disabled": false
+          },
+          {
+            "text": "합류코드 전송",
+            "disabled": false
+          },
+          {
+            "text": "서",
+            "disabled": false
+          },
+          {
+            "text": "3",
+            "disabled": false
+          },
+          {
+            "text": "도움말",
+            "disabled": false
+          },
+          {
+            "text": "테마",
+            "disabled": false
+          },
+          {
+            "text": "한국어",
+            "disabled": false
+          },
+          {
+            "text": "관리",
+            "disabled": false
+          },
+          {
+            "text": "직원9",
+            "disabled": false
+          },
+          {
+            "text": "조직",
+            "disabled": false
+          },
+          {
+            "text": "휴가관리",
+            "disabled": false
+          },
+          {
+            "text": "요청 관리5",
+            "disabled": false
+          },
+          {
+            "text": "입퇴사 관리",
+            "disabled": false
+          },
+          {
+            "text": "직원 등록",
+            "disabled": false
+          },
+          {
+            "text": "회사 설정",
+            "disabled": false
+          }
+        ],
+        "horizontal_overflow": false
+      },
+      "network_response_count": 7,
+      "http_403_count": 0,
+      "http_4xx_count": 0,
+      "http_5xx_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/search"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/relationships"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/ethics"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/employees"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/person_arbitrator_001"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/relationships?person_id=person_arbitrator_001"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/legal-people/ethics?person_id=person_arbitrator_001"
+        }
+      ],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p4-t01-fail-closed-LCX8-ACTION-0280-people-directory-review-gap.png"
+    },
+    {
+      "row_id": "LCX8-ACTION-0323",
+      "label": "HRX audit step-up retry",
+      "context_name": "hrx-audit-step-up",
+      "path": "/?locale=ko&view=people&data=live&ctx=allow#people-audit",
+      "family": "hrx",
+      "p3_observed_result": "GUARDED_CONFIRMED",
+      "p3_reason": "step_up_or_guarded_audit_state_visible",
+      "result": "DEFERRED_TO_P4_T03_STEP_UP",
+      "reason": "HRX step-up proof is tracked in P4-T03; browser state remains guarded.",
+      "metrics": {
+        "url": "http://127.0.0.1:5174/?locale=ko&view=people&data=live&ctx=allow#people-audit",
+        "guard_text": [],
+        "body_text_sample": "matter Home Client Matter 직원 Vault / 새로 만들기 합류코드 전송 서 3 한국어 직원 관리 직원 9 조직 휴가관리 요청 관리 5 입퇴사 관리 직원 등록 회사 설정 회사방침 증명서 발급 요청 승인 규칙 인사기록 권한 급여정산 리포트 회사 설정 권한 직원 관리 직원, 조직, 휴가관리, 요청 관리, 입퇴사 관리, 회사방침, 급여정산과 리포트를 확인합니다. 새로고침 인사기록 조직 변경 이력 직원 정보, 조직 변경 이력, 승진 기록 등을 확인합니다. 기록 사용자 작업 대상 기록 1 담당자 확인 업무 기록 2 담당자 확인 업무 기록 3 담당자 확인 업무 기록 4 담당자 확인 업무 기록 5 담당자 확인 업무 기록 6 담당자 확인 업무 기록 7 담당자 확인 업무 기록 8 담당자 확인 업무 기록 9 담당자 확인 업무 기록 10 담당자 확인 업무 기록 11 담당자 확인 업무 기록 12 담당자 확인 업무 기록 13 담당자 확인 업무 기록 14 담당자 확인 업무 기록 15 담당자 확인 업무 기록 16 담당자 확인 업무 기록 17 담당자 확인 업무 기록 18 담당자 확인 업무 기록 19 담당자 확인 업무 기록 20 담당자 확인 업무 기록 21 담당자 확인 업무 기록 22 담당자 확인 업무 기록 23 담당자 확인 업무 기록 24 담당자 확인 업무 기록 25 담당자 확인 업무 기록 26 담당자 확인 업무 기록 27 담당자 확인 업무 기록 28 담당자 확인 업무 기록 29 담당자 확인 업무 기록 30 담당자 확인 업무 기록 31 담당자 확인 업무 기록 32 담당자 확인 업무 기록 33 담당자 확인 업무 기록 3",
+        "protected_token_hits": [],
+        "visible_button_count": 31,
+        "enabled_button_count": 31,
+        "visible_buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Client",
+            "disabled": false
+          },
+          {
+            "text": "Matter",
+            "disabled": false
+          },
+          {
+            "text": "직원",
+            "disabled": false
+          },
+          {
+            "text": "Vault",
+            "disabled": false
+          },
+          {
+            "text": "새로 만들기",
+            "disabled": false
+          },
+          {
+            "text": "합류코드 전송",
+            "disabled": false
+          },
+          {
+            "text": "서",
+            "disabled": false
+          },
+          {
+            "text": "3",
+            "disabled": false
+          },
+          {
+            "text": "도움말",
+            "disabled": false
+          },
+          {
+            "text": "테마",
+            "disabled": false
+          },
+          {
+            "text": "한국어",
+            "disabled": false
+          },
+          {
+            "text": "관리",
+            "disabled": false
+          },
+          {
+            "text": "직원9",
+            "disabled": false
+          },
+          {
+            "text": "조직",
+            "disabled": false
+          },
+          {
+            "text": "휴가관리",
+            "disabled": false
+          },
+          {
+            "text": "요청 관리5",
+            "disabled": false
+          },
+          {
+            "text": "입퇴사 관리",
+            "disabled": false
+          },
+          {
+            "text": "직원 등록",
+            "disabled": false
+          },
+          {
+            "text": "회사 설정",
+            "disabled": false
+          }
+        ],
+        "horizontal_overflow": false
+      },
+      "network_response_count": 2,
+      "http_403_count": 0,
+      "http_4xx_count": 0,
+      "http_5xx_count": 0,
+      "network": [
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/audit"
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "url": "/api/hrx/employees"
+        }
+      ],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p4-t01-fail-closed-LCX8-ACTION-0323-hrx-audit-step-up.png"
+    }
+  ],
+  "next_tuw": "P4-T02 Verify write action preconditions"
+}

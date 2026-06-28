@@ -319,7 +319,7 @@ export function DataCloudEnrichmentPanel({ ctx = "allow" }) {
         />
         <div className="record-boundary-note" data-sf-b-w07-results-list="true" data-sf-b-w07-audit="true">
           <ShieldCheck size={15} />
-          <span>외부 응답 원문, 원문 식별자, 토큰, 연락값은 표시하지 않습니다.</span>
+          <span>외부 응답 원문, 원문 식별자, 토큰, 연락값은 숨깁니다.</span>
         </div>
       </Panel>
     </div>

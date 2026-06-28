@@ -1,0 +1,625 @@
+{
+  "action_id": "LCX8-ACTION-0074",
+  "title": "Matter 상태 저장 activity patch proof",
+  "completed_at": "2026-06-26T23:38:37.485Z",
+  "surface": "matter",
+  "route": "/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline",
+  "browser_start_route": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+  "browser_action_route": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline",
+  "final_browser_url": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline",
+  "fixture": {
+    "tenant_id": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "matter_id": "matter_lcx8_0074_patch_1782517116176",
+    "matter_number": "M-LCX8-0074-17116176",
+    "title": "LCX8 activity patch proof 1782517116176",
+    "activity_id": "activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+    "safe_fixture_family": "matter_runtime_activity_patch",
+    "existing_seed_mutated": false
+  },
+  "trace": {
+    "ui_handler": "handlePatchActivity -> patchMatterActivity({ matterId, activityId, patch })",
+    "selector": "#matter-timeline button:has-text(\"상태 저장\")",
+    "api_route": "PATCH /api/matters/:matter_id/activities/:activity_id",
+    "service": "matterActivityService.patchActivity -> createMatterActivityCalendarChannelService.patchActivity",
+    "audit_action": "matter.activity.patched",
+    "timeline_event_type": "matter.activity.updated",
+    "replay_contract": "recordMatterRuntimeReplay + matterRuntimeReplay by idempotency_key"
+  },
+  "fixture_proof": {
+    "opening": {
+      "status": 201,
+      "body": {
+        "request_id": "req_cd909463-2a0a-44d8-a945-e0a67c58bb80",
+        "outcome": "created",
+        "item": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "resource_id": "matter_lcx8_0074_patch_1782517116176",
+          "matter_id": "matter_lcx8_0074_patch_1782517116176",
+          "matter_code": null,
+          "matter_number": "M-LCX8-0074-17116176",
+          "matter_name": "LCX8 activity patch proof 1782517116176",
+          "title": "LCX8 activity patch proof 1782517116176",
+          "status": "opening",
+          "client_id": "party_lcx8_0074_client",
+          "client_display_name": null,
+          "legal_client_party_id": "party_lcx8_0074_client",
+          "billing_client_party_id": "party_lcx8_0074_client",
+          "matter_type_english": null,
+          "matter_detail_type_korean": null,
+          "source_revision": null,
+          "owner_module": "MatterCore",
+          "owner_employee_id": null,
+          "owner_user_id": null,
+          "owner_display_name": null,
+          "permission_envelope_id": "perm_matter_lcx8_0074_patch_1782517116176",
+          "audit_trace_id": "audit_matter_lcx8_0074_patch_1782517116176",
+          "document_count": 0,
+          "vault_workspace_id": "workspace:matter_lcx8_0074_patch_1782517116176",
+          "matter_vault_linked": true,
+          "team_member_count": 0,
+          "wip_status": "not_started",
+          "risk_level": "standard",
+          "opened_at": null,
+          "closed_at": null,
+          "runtime_write_ready": true,
+          "r5_r6_owner_decision_ready": true,
+          "production_ready_claim": false
+        },
+        "dms_workspace": {
+          "model_type": "DmsWorkspace",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0074_patch_1782517116176",
+          "owner_module": "legal-workspace-dms",
+          "permission_envelope_id": "perm_matter_lcx8_0074_patch_1782517116176",
+          "audit_trace_id": "audit_matter_lcx8_0074_patch_1782517116176",
+          "synthetic_only": true,
+          "writes_product_state": true,
+          "evaluates_runtime_permission": false,
+          "writes_audit_event": false,
+          "creates_database_rows": false,
+          "reads_object_storage": false,
+          "writes_object_storage": false,
+          "exposes_document_bytes": false,
+          "exposes_extracted_text": false,
+          "workspace_id": "workspace:matter_lcx8_0074_patch_1782517116176",
+          "name": "LCX8 activity patch proof 1782517116176",
+          "status": "active",
+          "root_folder_id": "folder:workspace:matter_lcx8_0074_patch_1782517116176:root",
+          "matter_trace_ref": "matter:matter_lcx8_0074_patch_1782517116176",
+          "client_visible_by_default": false,
+          "resource_id": "workspace:matter_lcx8_0074_patch_1782517116176",
+          "created_at": "2026-06-26T23:38:36.186Z",
+          "updated_at": "2026-06-26T23:38:36.186Z"
+        },
+        "default_folder": {
+          "model_type": "DmsFolder",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0074_patch_1782517116176",
+          "owner_module": "legal-workspace-dms",
+          "permission_envelope_id": "perm_matter_lcx8_0074_patch_1782517116176",
+          "audit_trace_id": "audit_matter_lcx8_0074_patch_1782517116176",
+          "synthetic_only": true,
+          "writes_product_state": true,
+          "evaluates_runtime_permission": false,
+          "writes_audit_event": false,
+          "creates_database_rows": false,
+          "reads_object_storage": false,
+          "writes_object_storage": false,
+          "exposes_document_bytes": false,
+          "exposes_extracted_text": false,
+          "folder_id": "folder:workspace:matter_lcx8_0074_patch_1782517116176:root",
+          "workspace_id": "workspace:matter_lcx8_0074_patch_1782517116176",
+          "parent_folder_id": null,
+          "name": "Root",
+          "status": "active",
+          "resource_id": "folder:workspace:matter_lcx8_0074_patch_1782517116176:root",
+          "created_at": "2026-06-26T23:38:36.187Z",
+          "updated_at": "2026-06-26T23:38:36.187Z"
+        },
+        "matter_vault_link": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0074_patch_1782517116176",
+          "vault_workspace_id": "workspace:matter_lcx8_0074_patch_1782517116176",
+          "default_folder_id": "folder:workspace:matter_lcx8_0074_patch_1782517116176:root",
+          "permission_envelope_id": "perm_matter_lcx8_0074_patch_1782517116176",
+          "status": "active",
+          "raw_storage_path_included": false,
+          "document_bytes_included": false,
+          "vault_mutates_matter_status": false
+        },
+        "billing_ledger": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0074_patch_1782517116176",
+          "ledger_id": "matter_billing_ledger_matter_lcx8_0074_patch_1782517116176"
+        },
+        "audit_event": {
+          "event_id": "matter_opened:tenant_rp05_synthetic:matter_lcx8_0074_patch_1782517116176",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.open",
+          "object_type": "Matter",
+          "object_id": "matter_lcx8_0074_patch_1782517116176",
+          "decision": "allow",
+          "reason": "matter_opened_with_clearance",
+          "occurred_at": "2026-06-26T23:38:36.185Z",
+          "metadata": {
+            "matter_number": "M-LCX8-0074-17116176",
+            "matter_code": null,
+            "idempotency_key": "ui:matter_lcx8_0074_patch_1782517116176:opening:1782517116176"
+          },
+          "event_hash": "d374bf35b34dff940a9ace50289fe3c26bb900caf25382ee3f8a4f2c6d0b8329"
+        },
+        "link_audit_event": {
+          "event_id": "matter.vault_link.created:tenant_rp05_synthetic:matter_lcx8_0074_patch_1782517116176",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.vault_link.created",
+          "object_type": "MatterVaultLink",
+          "object_id": "matter_lcx8_0074_patch_1782517116176:workspace:matter_lcx8_0074_patch_1782517116176",
+          "decision": "allow",
+          "reason": "clearance_gated_matter_opening_created_vault_workspace",
+          "occurred_at": "2026-06-26T23:38:36.188Z",
+          "metadata": {
+            "matter_id": "matter_lcx8_0074_patch_1782517116176",
+            "vault_workspace_id": "workspace:matter_lcx8_0074_patch_1782517116176",
+            "idempotency_key": "ui:matter_lcx8_0074_patch_1782517116176:opening:1782517116176"
+          },
+          "event_hash": "e75a956bcaaa9cfc60e11a58cb3ad290251374109c35bb5c304ece3f1afcb5f4"
+        },
+        "idempotent_replay": false,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_cmp_g4_matter_probe",
+        "state_idempotent": true,
+        "production_ready_claim": false
+      }
+    },
+    "create": {
+      "status": 201,
+      "body": {
+        "request_id": "req_d45c71e2-1f29-4485-9e1d-3f9b468895ab",
+        "outcome": "created",
+        "ui_state": null,
+        "item": {
+          "activity_id": "activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+          "matter_id": "matter_lcx8_0074_patch_1782517116176",
+          "activity_type": "task",
+          "title": "LCX8 0074 상태 저장 proof 1782517116176",
+          "status": "todo",
+          "due_at": "2026-06-27T23:38:36.192Z",
+          "assigned_to_label": "미지정",
+          "safe_excerpt": null,
+          "raw_body_included": false,
+          "provider_event_id_included": false,
+          "external_send_state": "not_applicable",
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "matter.activity.created:tenant_rp05_synthetic:matter_lcx8_0074_patch_1782517116176:activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.activity.created",
+          "object_type": "MatterTask",
+          "object_id": "activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+          "decision": "allow",
+          "reason": "activity_created",
+          "occurred_at": "2026-06-26T23:38:36.193Z",
+          "metadata": {
+            "activity_type": "task",
+            "raw_body_included": false,
+            "provider_event_id_included": false,
+            "raw_provider_payload_included": false,
+            "direct_personal_contact_identifier_included": false
+          }
+        },
+        "timeline_event": {
+          "model_type": "MatterTimelineEvent",
+          "resource_id": "matter.timeline.activity:tenant_rp05_synthetic:matter_lcx8_0074_patch_1782517116176:activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+          "event_id": "matter.timeline.activity:tenant_rp05_synthetic:matter_lcx8_0074_patch_1782517116176:activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0074_patch_1782517116176",
+          "occurred_at": "2026-06-26T23:38:36.193Z",
+          "type": "matter.activity.task",
+          "title": "LCX8 0074 상태 저장 proof 1782517116176",
+          "source_ref": "activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+          "source_module": "matter",
+          "source_object_id": "activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+          "safe_summary": {
+            "activity_type": "task",
+            "status": "todo"
+          },
+          "raw_body_included": false,
+          "raw_provider_payload_included": false,
+          "writes_product_state": true,
+          "creates_database_rows": true
+        },
+        "deadline_change_request": null,
+        "confirmation": null,
+        "provider_state": null,
+        "approval_request": null,
+        "publish_state": null,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w03_activity_patch_probe",
+        "state_idempotent": true,
+        "idempotent_replay": false,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "patch": {
+      "status": 200,
+      "body": {
+        "request_id": "req_6e2c6099-94b2-4d41-a44b-68c1b16d392d",
+        "outcome": "updated",
+        "ui_state": null,
+        "item": {
+          "activity_id": "activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+          "matter_id": "matter_lcx8_0074_patch_1782517116176",
+          "activity_type": "task",
+          "title": "LCX8 0074 상태 저장 proof 1782517116176",
+          "status": "in_progress",
+          "due_at": "2026-06-27T23:38:36.192Z",
+          "assigned_to_label": "미지정",
+          "safe_excerpt": null,
+          "raw_body_included": false,
+          "provider_event_id_included": false,
+          "external_send_state": "not_applicable",
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "matter.activity.patched:tenant_rp05_synthetic:matter_lcx8_0074_patch_1782517116176:activity_matter_lcx8_0074_patch_1782517116176_1782517116176:2026-06-26T23:38:36.196Z",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.activity.patched",
+          "object_type": "MatterTask",
+          "object_id": "activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+          "decision": "allow",
+          "reason": "activity_updated",
+          "occurred_at": "2026-06-26T23:38:36.196Z",
+          "metadata": {
+            "changed_fields": [
+              "status"
+            ],
+            "raw_body_included": false,
+            "provider_event_id_included": false,
+            "raw_provider_payload_included": false,
+            "direct_personal_contact_identifier_included": false
+          }
+        },
+        "timeline_event": {
+          "model_type": "MatterTimelineEvent",
+          "resource_id": "matter.timeline.activity_patched:tenant_rp05_synthetic:matter_lcx8_0074_patch_1782517116176:activity_matter_lcx8_0074_patch_1782517116176_1782517116176:2026-06-26T23:38:36.196Z",
+          "event_id": "matter.timeline.activity_patched:tenant_rp05_synthetic:matter_lcx8_0074_patch_1782517116176:activity_matter_lcx8_0074_patch_1782517116176_1782517116176:2026-06-26T23:38:36.196Z",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0074_patch_1782517116176",
+          "occurred_at": "2026-06-26T23:38:36.196Z",
+          "type": "matter.activity.updated",
+          "title": "LCX8 0074 상태 저장 proof 1782517116176",
+          "source_ref": "activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+          "source_module": "matter",
+          "source_object_id": "activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+          "safe_summary": {
+            "status": "in_progress"
+          },
+          "raw_body_included": false,
+          "raw_provider_payload_included": false,
+          "writes_product_state": true,
+          "creates_database_rows": true
+        },
+        "deadline_change_request": null,
+        "confirmation": null,
+        "provider_state": null,
+        "approval_request": null,
+        "publish_state": null,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w03_activity_patch_probe",
+        "state_idempotent": true,
+        "idempotent_replay": false,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "replay": {
+      "status": 200,
+      "body": {
+        "request_id": "req_89e2944f-9712-42ad-9c27-290cfc4c3c55",
+        "outcome": "idempotent_replay",
+        "ui_state": null,
+        "item": {
+          "activity_id": "activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+          "matter_id": "matter_lcx8_0074_patch_1782517116176",
+          "activity_type": "task",
+          "title": "LCX8 0074 상태 저장 proof 1782517116176",
+          "status": "in_progress",
+          "due_at": "2026-06-27T23:38:36.192Z",
+          "assigned_to_label": "미지정",
+          "safe_excerpt": null,
+          "raw_body_included": false,
+          "provider_event_id_included": false,
+          "external_send_state": "not_applicable",
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "matter.activity.patched:tenant_rp05_synthetic:matter_lcx8_0074_patch_1782517116176:activity_matter_lcx8_0074_patch_1782517116176_1782517116176:2026-06-26T23:38:36.196Z",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.activity.patched",
+          "object_type": "MatterTask",
+          "object_id": "activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+          "decision": "allow",
+          "reason": "activity_updated",
+          "occurred_at": "2026-06-26T23:38:36.196Z",
+          "metadata": {
+            "changed_fields": [
+              "status"
+            ],
+            "raw_body_included": false,
+            "provider_event_id_included": false,
+            "raw_provider_payload_included": false,
+            "direct_personal_contact_identifier_included": false
+          }
+        },
+        "timeline_event": {
+          "model_type": "MatterTimelineEvent",
+          "resource_id": "matter.timeline.activity_patched:tenant_rp05_synthetic:matter_lcx8_0074_patch_1782517116176:activity_matter_lcx8_0074_patch_1782517116176_1782517116176:2026-06-26T23:38:36.196Z",
+          "event_id": "matter.timeline.activity_patched:tenant_rp05_synthetic:matter_lcx8_0074_patch_1782517116176:activity_matter_lcx8_0074_patch_1782517116176_1782517116176:2026-06-26T23:38:36.196Z",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0074_patch_1782517116176",
+          "occurred_at": "2026-06-26T23:38:36.196Z",
+          "type": "matter.activity.updated",
+          "title": "LCX8 0074 상태 저장 proof 1782517116176",
+          "source_ref": "activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+          "source_module": "matter",
+          "source_object_id": "activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+          "safe_summary": {
+            "status": "in_progress"
+          },
+          "raw_body_included": false,
+          "raw_provider_payload_included": false,
+          "writes_product_state": true,
+          "creates_database_rows": true
+        },
+        "deadline_change_request": null,
+        "confirmation": null,
+        "provider_state": null,
+        "approval_request": null,
+        "publish_state": null,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w03_activity_patch_probe",
+        "state_idempotent": true,
+        "idempotent_replay": true,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    }
+  },
+  "browser_proof": {
+    "url": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-timeline",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0074-matter-activity-patch-proof.png",
+    "result_message": "활동 상태가 저장되었습니다.",
+    "api_responses": [
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0074_patch_1782517116176/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0074_patch_1782517116176/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0074_patch_1782517116176/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0074_patch_1782517116176/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0074_patch_1782517116176/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0074_patch_1782517116176/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0074_patch_1782517116176/recently-viewed",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5",
+        "status": 200
+      },
+      {
+        "method": "PATCH",
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0074_patch_1782517116176/activities/activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0074_patch_1782517116176/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0074_patch_1782517116176/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0074_patch_1782517116176/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0074_patch_1782517116176/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0074_patch_1782517116176/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+        "status": 200
+      }
+    ],
+    "patch_responses": [
+      {
+        "method": "PATCH",
+        "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0074_patch_1782517116176/activities/activity_matter_lcx8_0074_patch_1782517116176_1782517116176",
+        "status": 200
+      }
+    ],
+    "console_messages": [
+      {
+        "type": "debug",
+        "text": "[vite] connecting..."
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connected."
+      }
+    ]
+  },
+  "read_back": {
+    "activity_read_back_count": 1,
+    "activity_status_after_patch": "in_progress",
+    "timeline_read_back_count": 2,
+    "timeline_updated_entry": {
+      "event_id": "matter.timeline.activity_patched:tenant_rp05_synthetic:matter_lcx8_0074_patch_1782517116176:activity_matter_lcx8_0074_patch_1782517116176_1782517116176:2026-06-26T23:38:36.196Z",
+      "tenant_id": "tenant_rp05_synthetic",
+      "matter_id": "matter_lcx8_0074_patch_1782517116176",
+      "occurred_at": "2026-06-26T23:38:36.196Z",
+      "type": "matter.activity.updated",
+      "title": "LCX8 0074 상태 저장 proof 1782517116176",
+      "source_ref": "activity_matter_lcx8_0074_patch_1782517116176_1782517116176"
+    }
+  },
+  "audit": {
+    "audit_event_action": "matter.activity.patched",
+    "audit_event_id": "matter.activity.patched:tenant_rp05_synthetic:matter_lcx8_0074_patch_1782517116176:activity_matter_lcx8_0074_patch_1782517116176_1782517116176:2026-06-26T23:38:36.196Z",
+    "audit_event_reason": "activity_updated",
+    "changed_fields": [
+      "status"
+    ],
+    "raw_body_included": false
+  },
+  "fail_closed": {
+    "denied": {
+      "status": 403,
+      "outcome": "blocked",
+      "ui_state": "denied",
+      "safe_error_codes": [
+        "MATTER_UNAUTHORIZED_OMISSION"
+      ]
+    },
+    "review": {
+      "status": 200,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "safe_error_codes": [
+        "MATTER_REVIEW_REQUIRED"
+      ]
+    },
+    "invalid": {
+      "status": 404,
+      "outcome": "blocked",
+      "ui_state": "empty",
+      "safe_error_codes": [
+        "MATTER_API_VALIDATION_ERROR"
+      ]
+    },
+    "guard_did_not_mutate_status": true,
+    "activity_count_before_guards": 1,
+    "activity_count_after_guards": 1
+  },
+  "assertions": {
+    "opening 201 created": "PASS",
+    "activity create 201 created": "PASS",
+    "patch 200 updated": "PASS",
+    "patch status in_progress": "PASS",
+    "replay 200 idempotent": "PASS",
+    "activity read-back status": "PASS",
+    "timeline read-back updated": "PASS",
+    "audit patched event": "PASS",
+    "denied guard 403": "PASS",
+    "review guard review_required": "PASS",
+    "invalid missing activity blocked": "PASS",
+    "guards did not mutate status": "PASS",
+    "browser patch response observed": "PASS",
+    "browser result message observed": "PASS"
+  },
+  "non_claims": [
+    "This is local synthetic runtime proof, not production go-live or owner approval."
+  ]
+}

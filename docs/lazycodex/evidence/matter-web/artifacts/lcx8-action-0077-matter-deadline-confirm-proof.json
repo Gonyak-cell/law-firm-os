@@ -1,0 +1,1421 @@
+{
+  "action_id": "LCX8-ACTION-0077",
+  "title": "Matter deadline confirm-change proof",
+  "completed_at": "2026-06-27T00:03:31.003Z",
+  "surface": "matter",
+  "route": "/?locale=ko&view=matters&data=live&ctx=allow#matter-calendar",
+  "browser_start_route": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-calendar",
+  "final_browser_url": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-calendar",
+  "fixture": {
+    "tenant_id": "tenant_rp05_synthetic",
+    "actor_id": "matter_matter_operator",
+    "confirmer_user_id": "user_rp05_associate",
+    "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+    "matter_number": "M-LCX8-0077-18609741",
+    "title": "LCX8 deadline confirm proof 1782518609741",
+    "event_id": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+    "safe_fixture_family": "matter_runtime_deadline_confirm_change",
+    "existing_seed_mutated": false
+  },
+  "trace": {
+    "source_file": "apps/web/src/components/MattersSurface.jsx; apps/web/src/data/apiClient.js; apps/api/src/matter-runtime-context.js; packages/matter/src/activity-calendar-channel-service.js",
+    "handler": "handleConfirmDeadlineChange -> confirmMatterDeadlineChange -> POST /api/matters/:matter_id/deadlines/:deadline_id/confirm-change -> handleMatterDeadlineConfirm -> confirmDeadlineChange",
+    "trace_depth": "api_write"
+  },
+  "direct_api": {
+    "health": {
+      "status": 200,
+      "body": {
+        "status": "ok",
+        "time": "2026-06-27T00:03:29.746Z",
+        "service": "@law-firm-os/api",
+        "version": "0.1.0",
+        "bounded_contexts": [
+          {
+            "bounded_context": "master-data",
+            "contract_ref": "contracts/master-data-contract.json",
+            "contract_schema_version": "law-firm-os.master-data-contract.v0.21",
+            "program_id": "RP04",
+            "api_surface_id": "master_data_api_reference_descriptor_catalog",
+            "ui_surface_id": "master_data_api_reference_ui_surface_state_catalog",
+            "endpoints": {
+              "records_search": {
+                "method": "GET",
+                "path": "/master-data/records",
+                "request_contract": "MasterDataRecordSearchRequest",
+                "response_contract": "MasterDataRecordSearchResponse",
+                "permission_annotation": "permission_ref_required_descriptor_only",
+                "audit_annotation": "audit_hint_ref_required_descriptor_only",
+                "pagination_contract": "cursor_limit_filter_contract"
+              },
+              "relationship_lookup": {
+                "method": "GET",
+                "path": "/master-data/relationships",
+                "request_contract": "MasterDataRelationshipLookupRequest",
+                "response_contract": "MasterDataRelationshipLookupResponse",
+                "permission_annotation": "permission_ref_required_descriptor_only",
+                "audit_annotation": "audit_hint_ref_required_descriptor_only",
+                "pagination_contract": "cursor_limit_filter_contract"
+              },
+              "client_group_resolution": {
+                "method": "GET",
+                "path": "/master-data/client-groups/:client_group_id",
+                "request_contract": "MasterDataClientGroupResolutionRequest",
+                "response_contract": "MasterDataClientGroupResolutionResponse",
+                "permission_annotation": "permission_ref_required_descriptor_only",
+                "audit_annotation": "audit_hint_ref_required_descriptor_only",
+                "pagination_contract": "single_resource_no_pagination"
+              }
+            },
+            "data_source": "master_data_runtime_repository",
+            "runtime_persistence": "file_backed_repository",
+            "uses_real_client_data": false,
+            "fail_closed": true
+          },
+          {
+            "bounded_context": "matter-core",
+            "contract_ref": "contracts/matter-core-contract.json",
+            "contract_schema_version": "law-firm-os.matter-core-contract.v0.1",
+            "endpoints": [
+              "GET /api/matters",
+              "GET /api/matters/:matter_id",
+              "GET /api/matters/:matter_id/command-center",
+              "GET /api/matters/:matter_id/vault-summary",
+              "GET /api/matters/:matter_id/timeline",
+              "GET /api/matters/:matter_id/activities",
+              "POST /api/matters/:matter_id/activities",
+              "PATCH /api/matters/:matter_id/activities/:activity_id",
+              "GET /api/matters/:matter_id/calendar-events",
+              "POST /api/matters/:matter_id/calendar-events",
+              "PATCH /api/matters/:matter_id/calendar-events/:event_id",
+              "GET /api/matters/:matter_id/deadlines",
+              "POST /api/matters/:matter_id/deadlines/:deadline_id/confirm-change",
+              "GET /api/matters/:matter_id/channel",
+              "POST /api/matters/:matter_id/channel/messages",
+              "POST /api/matters/:matter_id/channel/provider-sync",
+              "GET /api/matters/:matter_id/document-templates",
+              "POST /api/matters/:matter_id/builder-drafts",
+              "PATCH /api/matters/:matter_id/builder-drafts/:draft_id",
+              "GET /api/matters/:matter_id/builder-drafts/:draft_id/preview",
+              "POST /api/matters/:matter_id/builder-drafts/:draft_id/approval-requests",
+              "GET /api/matters/:matter_id/builder-approval-requests",
+              "POST /api/matters/:matter_id/builder-drafts/:draft_id/publish-to-vault",
+              "POST /api/matters/:matter_id/email-drafts",
+              "PATCH /api/matters/:matter_id/email-drafts/:draft_id",
+              "POST /api/matters/:matter_id/email-drafts/:draft_id/send",
+              "GET /api/matters/list-views",
+              "GET /api/matters/recently-viewed",
+              "PATCH /api/matters/:matter_id",
+              "POST /api/matters/openings",
+              "POST /api/matters/list-views",
+              "POST /api/matters/bulk/status-transitions",
+              "POST /api/matters/:matter_id/documents",
+              "POST /api/matters/:matter_id/owner-change",
+              "POST /api/matters/:matter_id/team-members",
+              "POST /api/matters/:matter_id/status-transitions",
+              "POST /api/matters/:matter_id/recently-viewed",
+              "GET /api/matters/audit"
+            ],
+            "data_source": "matter_runtime_repository",
+            "runtime_persistence": "file_backed_repository",
+            "runtime_write_ready": true,
+            "r5_r6_owner_decision_ready": true,
+            "production_ready_claim": false,
+            "fail_closed": true
+          },
+          {
+            "bounded_context": "vault-dms",
+            "contract_ref": "contracts/dms-core-contract.json",
+            "contract_schema_version": "law-firm-os.dms-core-contract.v0.1",
+            "endpoints": [
+              "GET /api/vault/documents",
+              "POST /api/vault/documents",
+              "GET /api/vault/search",
+              "GET /api/vault/audit"
+            ],
+            "data_source": "vault_dms_runtime_repository",
+            "runtime_persistence": "file_backed_repository",
+            "runtime_write_ready": true,
+            "r5_r6_owner_decision_ready": true,
+            "production_ready_claim": false,
+            "fail_closed": true
+          },
+          {
+            "bounded_context": "crm-intake",
+            "contract_ref": "contracts/crm-intake-runtime-contract.json",
+            "contract_schema_version": "law-firm-os.crm-intake-runtime-contract.v0.1",
+            "endpoints": [
+              "GET /api/crm/leads",
+              "POST /api/crm/leads",
+              "GET /api/crm/opportunities",
+              "POST /api/crm/opportunities",
+              "GET /api/crm/accounts",
+              "POST /api/crm/accounts",
+              "PATCH /api/crm/accounts/:id",
+              "GET /api/crm/contacts",
+              "POST /api/crm/contacts",
+              "PATCH /api/crm/contacts/:id",
+              "GET /api/crm/accounts/:id/contacts",
+              "POST /api/crm/duplicate-reviews",
+              "GET /api/crm/duplicate-merge-proposals",
+              "POST /api/crm/duplicate-merge-proposals",
+              "POST /api/crm/duplicate-merge-proposals/:id/execute",
+              "POST /api/crm/opportunities/:id/handoff",
+              "GET /api/intake/requests",
+              "POST /api/intake/requests",
+              "POST /api/intake/conflict-checks",
+              "POST /api/intake/clearance-tokens",
+              "GET /api/intake/audit"
+            ],
+            "data_source": "crm_intake_runtime_repositories",
+            "runtime_persistence": "file_backed_repository",
+            "runtime_write_ready": true,
+            "r5_r6_owner_decision_ready": true,
+            "production_ready_claim": false,
+            "fail_closed": true
+          },
+          {
+            "bounded_context": "record-actions",
+            "contract_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w02-record-actions-contract.json",
+            "contract_schema_version": "law-firm-os.sf-client-matter-parity.record-actions.v0.1",
+            "endpoints": [
+              "GET /api/record-actions/:object_name/fields",
+              "GET /api/record-actions/:object_name/bulk-actions",
+              "POST /api/record-actions/:object_name/:record_id/field-update",
+              "POST /api/record-actions/:object_name/bulk-updates",
+              "GET /api/record-actions/:object_name/:record_id/audit"
+            ],
+            "data_source": "matter_runtime_repository + crm_runtime_repository + master_data_repository",
+            "runtime_write_ready": true,
+            "production_ready_claim": false,
+            "fail_closed": true
+          },
+          {
+            "bounded_context": "import-data-mapping",
+            "contract_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w05-import-data-mapping-contract.json",
+            "contract_schema_version": "law-firm-os.sf-client-matter-parity.import-data-mapping.v0.1",
+            "endpoints": [
+              "GET /api/import-jobs",
+              "POST /api/import-jobs",
+              "GET /api/import-targets",
+              "POST /api/import-jobs/:jobId/source-files",
+              "GET /api/import-jobs/:jobId/preview",
+              "POST /api/import-jobs/:jobId/field-mappings",
+              "POST /api/import-jobs/:jobId/dry-run",
+              "POST /api/import-jobs/:jobId/execute",
+              "POST /api/import-jobs/:jobId/rollback",
+              "GET /api/import-jobs/:jobId/error-report"
+            ],
+            "data_source": "matter_runtime_repository/import_records",
+            "runtime_write_ready": true,
+            "execute_owner_blocked": true,
+            "production_ready_claim": false,
+            "fail_closed": true
+          },
+          {
+            "bounded_context": "admin-permission-setup",
+            "contract_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w06-permission-admin-contract.json",
+            "contract_schema_version": "law-firm-os.sf-client-matter-parity.permission-admin.v0.1",
+            "endpoints": [
+              "GET /api/admin/permission-sets",
+              "POST /api/admin/permission-sets",
+              "PATCH /api/admin/permission-sets/:permissionSetId",
+              "GET /api/admin/permission-assignments",
+              "POST /api/admin/permission-assignments",
+              "DELETE /api/admin/permission-assignments/:assignmentId",
+              "GET /api/admin/object-manager/objects",
+              "GET /api/admin/object-manager/objects/:objectName/fields",
+              "PATCH /api/admin/object-manager/objects/:objectName/fields/:fieldName",
+              "GET /api/admin/connected-apps",
+              "POST /api/admin/connected-apps",
+              "POST /api/admin/connected-apps/:appId/disable",
+              "GET /api/admin/audit"
+            ],
+            "data_source": "matter_runtime_repository/admin_permission_records",
+            "runtime_write_ready": true,
+            "owner_gated_effects": true,
+            "provider_gated_effects": true,
+            "production_ready_claim": false,
+            "fail_closed": true
+          },
+          {
+            "bounded_context": "data-cloud-enrichment",
+            "contract_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w07-data-cloud-enrichment-contract.json",
+            "contract_schema_version": "law-firm-os.sf-client-matter-parity.data-cloud-enrichment.v0.1",
+            "endpoints": [
+              "GET /api/data-cloud/providers",
+              "POST /api/data-cloud/providers",
+              "POST /api/data-cloud/consent-records",
+              "POST /api/data-cloud/enrichment-jobs",
+              "GET /api/data-cloud/enrichment-jobs/:jobId/preview",
+              "POST /api/data-cloud/enrichment-jobs/:jobId/execute",
+              "GET /api/data-cloud/enrichment-results",
+              "POST /api/data-cloud/identity-resolution",
+              "GET /api/data-cloud/unified-profiles/:profileId",
+              "POST /api/data-cloud/segment-activations",
+              "GET /api/data-cloud/audit"
+            ],
+            "data_source": "matter_runtime_repository/data_cloud_records",
+            "runtime_write_ready": true,
+            "owner_gated_effects": true,
+            "provider_gated_effects": true,
+            "external_provider_runtime_enabled": false,
+            "product_record_mutation_allowed": false,
+            "production_ready_claim": false,
+            "fail_closed": true
+          },
+          {
+            "bounded_context": "report-builder",
+            "contract_ref": "docs/goal-closeout/sf-client-matter-parity/backend-contracts/sf-b-w08-reporting-builder-contract.json",
+            "contract_schema_version": "law-firm-os.sf-client-matter-parity.report-builder.v0.1",
+            "endpoints": [
+              "GET /api/reports",
+              "POST /api/reports",
+              "GET /api/reports/:reportId",
+              "PATCH /api/reports/:reportId",
+              "POST /api/reports/:reportId/run",
+              "POST /api/reports/:reportId/share",
+              "GET /api/reports/:reportId/audit",
+              "GET /api/reports/audit"
+            ],
+            "data_source": "analytics_runtime_repository/report_builder_records",
+            "runtime_write_ready": true,
+            "safe_query_runtime_enabled": true,
+            "owner_gated_effects": true,
+            "arbitrary_sql_enabled": false,
+            "raw_query_payload_allowed": false,
+            "source_object_mutation_allowed": false,
+            "production_ready_claim": false,
+            "fail_closed": true
+          },
+          {
+            "bounded_context": "finance",
+            "contract_ref": "contracts/finance-runtime-contract.json",
+            "contract_schema_version": "law-firm-os.finance-runtime-contract.v0.1",
+            "endpoints": [
+              "GET /api/finance/time-entries",
+              "POST /api/finance/time-entries",
+              "POST /api/finance/wip",
+              "GET /api/finance/invoices",
+              "POST /api/finance/payments",
+              "GET /api/finance/ar-aging",
+              "GET /api/finance/audit"
+            ],
+            "data_source": "finance_runtime_repository",
+            "runtime_persistence": "file_backed_repository",
+            "runtime_write_ready": true,
+            "r5_r6_owner_decision_ready": true,
+            "production_ready_claim": false,
+            "fail_closed": true
+          },
+          {
+            "bounded_context": "analytics",
+            "contract_ref": "contracts/analytics-runtime-contract.json",
+            "contract_schema_version": "law-firm-os.analytics-runtime-contract.v0.1",
+            "endpoints": [
+              "GET /api/analytics/dashboards",
+              "POST /api/analytics/refresh",
+              "GET /api/analytics/matter-profitability",
+              "POST /api/analytics/matter-profitability",
+              "GET /api/analytics/client-profitability",
+              "POST /api/analytics/client-profitability",
+              "POST /api/analytics/exports",
+              "GET /api/analytics/audit"
+            ],
+            "data_source": "analytics_runtime_repository",
+            "runtime_persistence": "file_backed_repository",
+            "runtime_write_ready": true,
+            "r5_r6_owner_decision_ready": true,
+            "production_ready_claim": false,
+            "fail_closed": true
+          },
+          {
+            "bounded_context": "ai-governance",
+            "contract_ref": "contracts/ai-governance-runtime-contract.json",
+            "contract_schema_version": "law-firm-os.ai-governance-runtime-contract.v0.1",
+            "endpoints": [
+              "POST /api/ai/policies",
+              "POST /api/ai/retrieval",
+              "POST /api/ai/outputs",
+              "GET /api/ai/review-queue",
+              "POST /api/ai/exports",
+              "GET /api/ai/audit"
+            ],
+            "data_source": "ai_governance_runtime_repository",
+            "runtime_persistence": "file_backed_repository",
+            "runtime_write_ready": true,
+            "r5_r6_owner_decision_ready": true,
+            "production_ready_claim": false,
+            "fail_closed": true
+          },
+          {
+            "bounded_context": "client-portal-data-room",
+            "contract_ref": "contracts/client-portal-core-contract.json; contracts/data-room-vdr-core-contract.json",
+            "contract_schema_version": "law-firm-os.portal-data-room-runtime-contract.v0.1",
+            "endpoints": [
+              "GET /api/portal/projections",
+              "GET /api/portal/rfi",
+              "GET /api/portal/dashboard",
+              "POST /api/portal/external-users",
+              "POST /api/portal/external-acls",
+              "POST /api/portal/rfi",
+              "POST /api/portal/rfi-responses",
+              "POST /api/portal/approvals",
+              "POST /api/portal/secure-links",
+              "GET /api/data-room/rooms",
+              "POST /api/data-room/rooms",
+              "GET /api/data-room/projections",
+              "POST /api/data-room/projections",
+              "GET /api/portal/audit"
+            ],
+            "data_source": "client_portal_runtime_repository",
+            "runtime_persistence": "file_backed_repository",
+            "runtime_write_ready": true,
+            "r5_r6_owner_decision_ready": true,
+            "production_ready_claim": false,
+            "fail_closed": true
+          },
+          {
+            "bounded_context": "cmp-ui-readiness",
+            "contract_ref": "docs/reorganization/client-matter-os/cmp-v1/runtime-readiness-standard.md",
+            "contract_schema_version": "law-firm-os.cmp-ui-readiness-runtime-contract.v0.1",
+            "endpoints": [
+              "GET /api/ui/readiness",
+              "POST /api/ui/checks",
+              "POST /api/ui/critical-path-runs",
+              "POST /api/ui/adjudications",
+              "GET /api/ui/audit"
+            ],
+            "data_source": "ui_readiness_runtime_repository",
+            "runtime_persistence": "file_backed_repository",
+            "runtime_write_ready": true,
+            "r5_r6_owner_decision_ready": true,
+            "production_ready_claim": false,
+            "fail_closed": true
+          },
+          {
+            "bounded_context": "enterprise-readiness",
+            "contract_ref": "contracts/enterprise-saas-hardening-contract.json",
+            "contract_schema_version": "law-firm-os.enterprise-readiness-runtime-contract.v0.1",
+            "endpoints": [
+              "GET /api/enterprise/readiness",
+              "POST /api/enterprise/items",
+              "POST /api/enterprise/release-candidates",
+              "POST /api/enterprise/go-no-go",
+              "GET /api/enterprise/audit"
+            ],
+            "data_source": "enterprise_readiness_runtime_repository",
+            "runtime_persistence": "file_backed_repository",
+            "runtime_write_ready": true,
+            "r5_r6_owner_decision_ready": true,
+            "production_ready_claim": false,
+            "go_live_approved": false,
+            "fail_closed": true
+          }
+        ],
+        "permission_gate": {
+          "contract_ref": "contracts/permission-kernel-contract.json",
+          "contract_schema_version": "law-firm-os.permission-kernel-contract.v0.28",
+          "context_header": "x-lawos-permission-context",
+          "decision_order": [
+            "cross_tenant_deny",
+            "deny_rule",
+            "object_acl_deny",
+            "review_required",
+            "approval_required",
+            "object_acl_allow",
+            "abac",
+            "rbac",
+            "fail_closed_no_match"
+          ],
+          "default_decision": "deny",
+          "fail_closed": true
+        },
+        "enrichment": {
+          "contract_ref": "contracts/matter-core-contract.json",
+          "contract_schema_version": "law-firm-os.matter-core-contract.v0.1",
+          "mode": "synthetic_crosswalk"
+        },
+        "synthetic_only": true,
+        "uses_real_client_data": false
+      },
+      "route": "/api/health",
+      "method": "GET"
+    },
+    "opening": {
+      "status": 201,
+      "body": {
+        "request_id": "req_cacaba54-926f-4bfc-b637-840f78ea39da",
+        "outcome": "created",
+        "item": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "resource_id": "matter_lcx8_0077_confirm_1782518609741",
+          "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+          "matter_code": null,
+          "matter_number": "M-LCX8-0077-18609741",
+          "matter_name": "LCX8 deadline confirm proof 1782518609741",
+          "title": "LCX8 deadline confirm proof 1782518609741",
+          "status": "opening",
+          "client_id": "party_lcx8_0077_client_1782518609741",
+          "client_display_name": null,
+          "legal_client_party_id": "party_lcx8_0077_client_1782518609741",
+          "billing_client_party_id": "party_lcx8_0077_client_1782518609741",
+          "matter_type_english": null,
+          "matter_detail_type_korean": null,
+          "source_revision": null,
+          "owner_module": "MatterCore",
+          "owner_employee_id": null,
+          "owner_user_id": null,
+          "owner_display_name": null,
+          "permission_envelope_id": "perm_matter_lcx8_0077_confirm_1782518609741",
+          "audit_trace_id": "audit_matter_lcx8_0077_confirm_1782518609741",
+          "document_count": 0,
+          "vault_workspace_id": "workspace:matter_lcx8_0077_confirm_1782518609741",
+          "matter_vault_linked": true,
+          "team_member_count": 0,
+          "wip_status": "not_started",
+          "risk_level": "standard",
+          "opened_at": null,
+          "closed_at": null,
+          "runtime_write_ready": true,
+          "r5_r6_owner_decision_ready": true,
+          "production_ready_claim": false
+        },
+        "dms_workspace": {
+          "model_type": "DmsWorkspace",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+          "owner_module": "legal-workspace-dms",
+          "permission_envelope_id": "perm_matter_lcx8_0077_confirm_1782518609741",
+          "audit_trace_id": "audit_matter_lcx8_0077_confirm_1782518609741",
+          "synthetic_only": true,
+          "writes_product_state": true,
+          "evaluates_runtime_permission": false,
+          "writes_audit_event": false,
+          "creates_database_rows": false,
+          "reads_object_storage": false,
+          "writes_object_storage": false,
+          "exposes_document_bytes": false,
+          "exposes_extracted_text": false,
+          "workspace_id": "workspace:matter_lcx8_0077_confirm_1782518609741",
+          "name": "LCX8 deadline confirm proof 1782518609741",
+          "status": "active",
+          "root_folder_id": "folder:workspace:matter_lcx8_0077_confirm_1782518609741:root",
+          "matter_trace_ref": "matter:matter_lcx8_0077_confirm_1782518609741",
+          "client_visible_by_default": false,
+          "resource_id": "workspace:matter_lcx8_0077_confirm_1782518609741",
+          "created_at": "2026-06-27T00:03:29.758Z",
+          "updated_at": "2026-06-27T00:03:29.758Z"
+        },
+        "default_folder": {
+          "model_type": "DmsFolder",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+          "owner_module": "legal-workspace-dms",
+          "permission_envelope_id": "perm_matter_lcx8_0077_confirm_1782518609741",
+          "audit_trace_id": "audit_matter_lcx8_0077_confirm_1782518609741",
+          "synthetic_only": true,
+          "writes_product_state": true,
+          "evaluates_runtime_permission": false,
+          "writes_audit_event": false,
+          "creates_database_rows": false,
+          "reads_object_storage": false,
+          "writes_object_storage": false,
+          "exposes_document_bytes": false,
+          "exposes_extracted_text": false,
+          "folder_id": "folder:workspace:matter_lcx8_0077_confirm_1782518609741:root",
+          "workspace_id": "workspace:matter_lcx8_0077_confirm_1782518609741",
+          "parent_folder_id": null,
+          "name": "Root",
+          "status": "active",
+          "resource_id": "folder:workspace:matter_lcx8_0077_confirm_1782518609741:root",
+          "created_at": "2026-06-27T00:03:29.758Z",
+          "updated_at": "2026-06-27T00:03:29.758Z"
+        },
+        "matter_vault_link": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+          "vault_workspace_id": "workspace:matter_lcx8_0077_confirm_1782518609741",
+          "default_folder_id": "folder:workspace:matter_lcx8_0077_confirm_1782518609741:root",
+          "permission_envelope_id": "perm_matter_lcx8_0077_confirm_1782518609741",
+          "status": "active",
+          "raw_storage_path_included": false,
+          "document_bytes_included": false,
+          "vault_mutates_matter_status": false
+        },
+        "billing_ledger": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+          "ledger_id": "matter_billing_ledger_matter_lcx8_0077_confirm_1782518609741"
+        },
+        "audit_event": {
+          "event_id": "matter_opened:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.open",
+          "object_type": "Matter",
+          "object_id": "matter_lcx8_0077_confirm_1782518609741",
+          "decision": "allow",
+          "reason": "matter_opened_with_clearance",
+          "occurred_at": "2026-06-27T00:03:29.757Z",
+          "metadata": {
+            "matter_number": "M-LCX8-0077-18609741",
+            "matter_code": null,
+            "idempotency_key": "ui:matter_lcx8_0077_confirm_1782518609741:opening:1782518609741"
+          },
+          "event_hash": "6b535a9a12f7cc174746be1c04dc13f17bea06b0cf6a2a87d81f01543736339f"
+        },
+        "link_audit_event": {
+          "event_id": "matter.vault_link.created:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.vault_link.created",
+          "object_type": "MatterVaultLink",
+          "object_id": "matter_lcx8_0077_confirm_1782518609741:workspace:matter_lcx8_0077_confirm_1782518609741",
+          "decision": "allow",
+          "reason": "clearance_gated_matter_opening_created_vault_workspace",
+          "occurred_at": "2026-06-27T00:03:29.759Z",
+          "metadata": {
+            "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+            "vault_workspace_id": "workspace:matter_lcx8_0077_confirm_1782518609741",
+            "idempotency_key": "ui:matter_lcx8_0077_confirm_1782518609741:opening:1782518609741"
+          },
+          "event_hash": "5f9e02eebb0c0fa516f9b7f92f4fd9dacd7d364b4ff6ec9e5865958aae264aa5"
+        },
+        "idempotent_replay": false,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_cmp_g4_matter_probe",
+        "state_idempotent": true,
+        "production_ready_claim": false
+      },
+      "route": "/api/matters/openings",
+      "method": "POST"
+    },
+    "create": {
+      "status": 201,
+      "body": {
+        "request_id": "req_2f82993f-a491-45cd-8095-5cd8ffcca170",
+        "outcome": "created",
+        "ui_state": null,
+        "item": {
+          "event_id": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+          "title": "LCX8 deadline confirm proof 1782518609741",
+          "status": "scheduled",
+          "starts_at": "2026-07-20T01:00:00.000Z",
+          "ends_at": "2026-07-20T02:00:00.000Z",
+          "legal_consequence": "court_deadline",
+          "criticality": "critical",
+          "reminder_rule": "two_business_days",
+          "provider_sync_state": "provider_blocked",
+          "provider_event_id_included": false,
+          "raw_provider_payload_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "matter.calendar.created:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.calendar.created",
+          "object_type": "MatterCalendarEvent",
+          "object_id": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "decision": "allow",
+          "reason": "calendar_event_created",
+          "occurred_at": "2026-06-27T00:03:29.761Z",
+          "metadata": {
+            "criticality": "critical",
+            "provider_sync_state": "provider_blocked",
+            "raw_body_included": false,
+            "provider_event_id_included": false,
+            "raw_provider_payload_included": false,
+            "direct_personal_contact_identifier_included": false
+          }
+        },
+        "timeline_event": {
+          "model_type": "MatterTimelineEvent",
+          "resource_id": "matter.timeline.calendar:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "event_id": "matter.timeline.calendar:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+          "occurred_at": "2026-06-27T00:03:29.761Z",
+          "type": "matter.calendar.created",
+          "title": "LCX8 deadline confirm proof 1782518609741",
+          "source_ref": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "source_module": "matter",
+          "source_object_id": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "safe_summary": {
+            "starts_at": "2026-07-20T01:00:00.000Z",
+            "criticality": "critical"
+          },
+          "raw_body_included": false,
+          "raw_provider_payload_included": false,
+          "writes_product_state": true,
+          "creates_database_rows": true
+        },
+        "deadline_change_request": null,
+        "confirmation": null,
+        "provider_state": null,
+        "approval_request": null,
+        "publish_state": null,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w03_calendar_write_probe",
+        "state_idempotent": true,
+        "idempotent_replay": false,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      },
+      "route": "/api/matters/matter_lcx8_0077_confirm_1782518609741/calendar-events",
+      "method": "POST"
+    },
+    "request_change": {
+      "status": 200,
+      "body": {
+        "request_id": "req_0779ddef-e693-49a0-b86d-515c97b215c1",
+        "outcome": "approval_required",
+        "ui_state": "approval_required",
+        "item": {
+          "event_id": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+          "title": "LCX8 deadline confirm proof 1782518609741",
+          "status": "scheduled",
+          "starts_at": "2026-07-20T01:00:00.000Z",
+          "ends_at": "2026-07-20T02:00:00.000Z",
+          "legal_consequence": "court_deadline",
+          "criticality": "critical",
+          "reminder_rule": "two_business_days",
+          "provider_sync_state": "provider_blocked",
+          "provider_event_id_included": false,
+          "raw_provider_payload_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": {
+          "event_id": "matter.deadline.change_requested:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741:2026-06-27T00:03:29.764Z",
+          "tenant_id": "tenant_rp05_synthetic",
+          "actor_id": "matter_matter_operator",
+          "action": "matter.deadline.change_requested",
+          "object_type": "MatterDeadlineChangeRequest",
+          "object_id": "deadline_change:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "decision": "allow",
+          "reason": "critical_deadline_requires_confirmation",
+          "occurred_at": "2026-06-27T00:03:29.764Z",
+          "metadata": {
+            "dual_control_required": true,
+            "raw_body_included": false,
+            "provider_event_id_included": false,
+            "raw_provider_payload_included": false,
+            "direct_personal_contact_identifier_included": false
+          }
+        },
+        "timeline_event": null,
+        "deadline_change_request": {
+          "request_id": "deadline_change:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "event_id": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "status": "pending_confirmation",
+          "dual_control_required": true,
+          "requester_user_ref_included": false,
+          "production_ready_claim": false
+        },
+        "confirmation": null,
+        "provider_state": null,
+        "approval_request": null,
+        "publish_state": null,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w03_calendar_patch_probe",
+        "state_idempotent": true,
+        "idempotent_replay": false,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      },
+      "route": "/api/matters/matter_lcx8_0077_confirm_1782518609741/calendar-events/calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+      "method": "PATCH"
+    },
+    "before_confirm_deadlines": {
+      "status": 200,
+      "body": {
+        "request_id": "req_ba2dffb4-9258-4c8e-ace8-3741b8de7f6c",
+        "outcome": "passed",
+        "items": [
+          {
+            "deadline_id": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+            "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+            "title": "LCX8 deadline confirm proof 1782518609741",
+            "status": "scheduled",
+            "due_at": "2026-07-20T01:00:00.000Z",
+            "criticality": "critical",
+            "legal_consequence": "court_deadline",
+            "dual_control_required": true,
+            "source_ref_included": false,
+            "production_ready_claim": false
+          }
+        ],
+        "page_info": {
+          "returned_count": 1,
+          "omitted_item_count": null
+        },
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w03_deadline_read_probe",
+        "ui_state": null,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      },
+      "route": "/api/matters/matter_lcx8_0077_confirm_1782518609741/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+      "method": "GET"
+    },
+    "confirm": {
+      "status": 200,
+      "body": {
+        "request_id": "req_7cf3c61b-372d-4842-85d2-ce88279ed4ff",
+        "outcome": "confirmed",
+        "ui_state": null,
+        "item": {
+          "deadline_id": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+          "title": "LCX8 deadline confirm proof 1782518609741",
+          "status": "rescheduled",
+          "due_at": "2026-07-21T01:00:00.000Z",
+          "criticality": "critical",
+          "legal_consequence": "court_deadline",
+          "dual_control_required": true,
+          "source_ref_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": null,
+        "timeline_event": {
+          "model_type": "MatterTimelineEvent",
+          "resource_id": "matter.timeline.deadline_confirmed:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741:2026-06-27T00:03:29.766Z",
+          "event_id": "matter.timeline.deadline_confirmed:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741:2026-06-27T00:03:29.766Z",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+          "occurred_at": "2026-06-27T00:03:29.766Z",
+          "type": "matter.deadline.confirmed",
+          "title": "LCX8 deadline confirm proof 1782518609741",
+          "source_ref": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "source_module": "matter",
+          "source_object_id": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "safe_summary": {
+            "dual_control_satisfied": true
+          },
+          "raw_body_included": false,
+          "raw_provider_payload_included": false,
+          "writes_product_state": true,
+          "creates_database_rows": true
+        },
+        "deadline_change_request": null,
+        "confirmation": {
+          "outcome": "confirmed",
+          "dual_control_satisfied": true,
+          "requester_user_ref_included": false,
+          "confirmer_user_ref_included": false,
+          "production_ready_claim": false
+        },
+        "provider_state": null,
+        "approval_request": null,
+        "publish_state": null,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w03_deadline_confirm_probe",
+        "state_idempotent": true,
+        "idempotent_replay": false,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      },
+      "route": "/api/matters/matter_lcx8_0077_confirm_1782518609741/deadlines/calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741/confirm-change",
+      "method": "POST"
+    },
+    "replay": {
+      "status": 200,
+      "body": {
+        "request_id": "req_5faede51-b1d2-4033-a88a-9e83ec10cd09",
+        "outcome": "idempotent_replay",
+        "ui_state": null,
+        "item": {
+          "deadline_id": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+          "title": "LCX8 deadline confirm proof 1782518609741",
+          "status": "rescheduled",
+          "due_at": "2026-07-21T01:00:00.000Z",
+          "criticality": "critical",
+          "legal_consequence": "court_deadline",
+          "dual_control_required": true,
+          "source_ref_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": null,
+        "timeline_event": {
+          "model_type": "MatterTimelineEvent",
+          "resource_id": "matter.timeline.deadline_confirmed:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741:2026-06-27T00:03:29.766Z",
+          "event_id": "matter.timeline.deadline_confirmed:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741:2026-06-27T00:03:29.766Z",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+          "occurred_at": "2026-06-27T00:03:29.766Z",
+          "type": "matter.deadline.confirmed",
+          "title": "LCX8 deadline confirm proof 1782518609741",
+          "source_ref": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "source_module": "matter",
+          "source_object_id": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+          "safe_summary": {
+            "dual_control_satisfied": true
+          },
+          "raw_body_included": false,
+          "raw_provider_payload_included": false,
+          "writes_product_state": true,
+          "creates_database_rows": true
+        },
+        "deadline_change_request": null,
+        "confirmation": {
+          "outcome": "confirmed",
+          "dual_control_satisfied": true,
+          "requester_user_ref_included": false,
+          "confirmer_user_ref_included": false,
+          "production_ready_claim": false
+        },
+        "provider_state": null,
+        "approval_request": null,
+        "publish_state": null,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w03_deadline_confirm_probe",
+        "state_idempotent": true,
+        "idempotent_replay": true,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      },
+      "route": "/api/matters/matter_lcx8_0077_confirm_1782518609741/deadlines/calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741/confirm-change",
+      "method": "POST"
+    }
+  },
+  "read_back": {
+    "calendar": {
+      "status": 200,
+      "body": {
+        "request_id": "req_64525cf5-6abb-4f4e-abfb-26f8148ab485",
+        "outcome": "passed",
+        "items": [
+          {
+            "event_id": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+            "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+            "title": "LCX8 deadline confirm proof 1782518609741",
+            "status": "rescheduled",
+            "starts_at": "2026-07-21T01:00:00.000Z",
+            "ends_at": "2026-07-21T02:00:00.000Z",
+            "legal_consequence": "court_deadline",
+            "criticality": "critical",
+            "reminder_rule": "two_business_days",
+            "provider_sync_state": "provider_blocked",
+            "provider_event_id_included": false,
+            "raw_provider_payload_included": false,
+            "production_ready_claim": false
+          }
+        ],
+        "page_info": {
+          "returned_count": 1,
+          "omitted_item_count": null
+        },
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w03_calendar_read_probe",
+        "ui_state": null,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      },
+      "route": "/api/matters/matter_lcx8_0077_confirm_1782518609741/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+      "method": "GET"
+    },
+    "deadlines": {
+      "status": 200,
+      "body": {
+        "request_id": "req_556bc058-3611-4958-9699-e8b24cce700a",
+        "outcome": "passed",
+        "items": [
+          {
+            "deadline_id": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+            "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+            "title": "LCX8 deadline confirm proof 1782518609741",
+            "status": "rescheduled",
+            "due_at": "2026-07-21T01:00:00.000Z",
+            "criticality": "critical",
+            "legal_consequence": "court_deadline",
+            "dual_control_required": true,
+            "source_ref_included": false,
+            "production_ready_claim": false
+          }
+        ],
+        "page_info": {
+          "returned_count": 1,
+          "omitted_item_count": null
+        },
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w03_deadline_read_probe",
+        "ui_state": null,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      },
+      "route": "/api/matters/matter_lcx8_0077_confirm_1782518609741/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+      "method": "GET"
+    },
+    "timeline": {
+      "status": 200,
+      "body": {
+        "request_id": "req_4792dc7d-af2d-401c-a94e-f6276fc33f94",
+        "outcome": "passed",
+        "item": {
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+          "visible_entries": [
+            {
+              "event_id": "matter.timeline.calendar:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+              "tenant_id": "tenant_rp05_synthetic",
+              "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+              "occurred_at": "2026-06-27T00:03:29.761Z",
+              "type": "matter.calendar.created",
+              "title": "LCX8 deadline confirm proof 1782518609741",
+              "source_ref": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741"
+            },
+            {
+              "event_id": "matter.timeline.deadline_confirmed:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741:2026-06-27T00:03:29.766Z",
+              "tenant_id": "tenant_rp05_synthetic",
+              "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+              "occurred_at": "2026-06-27T00:03:29.766Z",
+              "type": "matter.deadline.confirmed",
+              "title": "LCX8 deadline confirm proof 1782518609741",
+              "source_ref": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741"
+            }
+          ],
+          "omitted_entry_count": null,
+          "count_leak_prevented": true
+        },
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w03_timeline_probe",
+        "ui_state": null,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      },
+      "route": "/api/matters/matter_lcx8_0077_confirm_1782518609741/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_timeline&audit_hint_ref=ui_sf_b_w03_timeline_probe",
+      "method": "GET"
+    }
+  },
+  "audit": {
+    "audit_route": {
+      "status": 200,
+      "body": {
+        "request_id": "req_bc6a98b8-278a-44ca-ad14-61c6f51564aa",
+        "outcome": "passed",
+        "items": [
+          {
+            "event_id": "matter_opened:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741",
+            "tenant_id": "tenant_rp05_synthetic",
+            "actor_id": "matter_matter_operator",
+            "action": "matter.open",
+            "object_type": "Matter",
+            "object_id": "matter_lcx8_0077_confirm_1782518609741",
+            "decision": "allow",
+            "reason": "matter_opened_with_clearance",
+            "occurred_at": "2026-06-27T00:03:29.757Z",
+            "metadata": {
+              "matter_number": "M-LCX8-0077-18609741",
+              "matter_code": null,
+              "idempotency_key": "ui:matter_lcx8_0077_confirm_1782518609741:opening:1782518609741"
+            },
+            "event_hash": "6b535a9a12f7cc174746be1c04dc13f17bea06b0cf6a2a87d81f01543736339f"
+          },
+          {
+            "event_id": "matter.vault_link.created:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741",
+            "tenant_id": "tenant_rp05_synthetic",
+            "actor_id": "matter_matter_operator",
+            "action": "matter.vault_link.created",
+            "object_type": "MatterVaultLink",
+            "object_id": "matter_lcx8_0077_confirm_1782518609741:workspace:matter_lcx8_0077_confirm_1782518609741",
+            "decision": "allow",
+            "reason": "clearance_gated_matter_opening_created_vault_workspace",
+            "occurred_at": "2026-06-27T00:03:29.759Z",
+            "metadata": {
+              "matter_id": "matter_lcx8_0077_confirm_1782518609741",
+              "vault_workspace_id": "workspace:matter_lcx8_0077_confirm_1782518609741",
+              "idempotency_key": "ui:matter_lcx8_0077_confirm_1782518609741:opening:1782518609741"
+            },
+            "event_hash": "5f9e02eebb0c0fa516f9b7f92f4fd9dacd7d364b4ff6ec9e5865958aae264aa5"
+          },
+          {
+            "event_id": "matter.calendar.created:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+            "tenant_id": "tenant_rp05_synthetic",
+            "actor_id": "matter_matter_operator",
+            "action": "matter.calendar.created",
+            "object_type": "MatterCalendarEvent",
+            "object_id": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+            "decision": "allow",
+            "reason": "calendar_event_created",
+            "occurred_at": "2026-06-27T00:03:29.761Z",
+            "metadata": {
+              "criticality": "critical",
+              "provider_sync_state": "provider_blocked",
+              "raw_body_included": false,
+              "provider_event_id_included": false,
+              "raw_provider_payload_included": false,
+              "direct_personal_contact_identifier_included": false
+            }
+          },
+          {
+            "event_id": "matter.deadline.change_requested:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741:2026-06-27T00:03:29.764Z",
+            "tenant_id": "tenant_rp05_synthetic",
+            "actor_id": "matter_matter_operator",
+            "action": "matter.deadline.change_requested",
+            "object_type": "MatterDeadlineChangeRequest",
+            "object_id": "deadline_change:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+            "decision": "allow",
+            "reason": "critical_deadline_requires_confirmation",
+            "occurred_at": "2026-06-27T00:03:29.764Z",
+            "metadata": {
+              "dual_control_required": true,
+              "raw_body_included": false,
+              "provider_event_id_included": false,
+              "raw_provider_payload_included": false,
+              "direct_personal_contact_identifier_included": false
+            }
+          },
+          {
+            "tenant_id": "tenant_rp05_synthetic",
+            "actor_id": "user_rp05_associate",
+            "action": "matter.deadline.change",
+            "object_type": "MatterCalendarEvent",
+            "object_id": "calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741",
+            "decision": "allow",
+            "reason": "critical_deadline_confirmed",
+            "metadata": {
+              "previous_starts_at": "2026-07-20T01:00:00.000Z",
+              "new_starts_at": "2026-07-21T01:00:00.000Z"
+            },
+            "event_id": "matter.deadline.confirmed:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741:calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741:2026-06-27T00:03:29.766Z"
+          },
+          {
+            "event_id": "matter.timeline.viewed:tenant_rp05_synthetic:matter_lcx8_0077_confirm_1782518609741:req_4792dc7d-af2d-401c-a94e-f6276fc33f94",
+            "tenant_id": "tenant_rp05_synthetic",
+            "actor_id": "matter_matter_operator",
+            "action": "matter.timeline.viewed",
+            "object_type": "MatterTimeline",
+            "object_id": "matter_lcx8_0077_confirm_1782518609741",
+            "decision": "allow",
+            "reason": "permission_gated_timeline_read",
+            "occurred_at": "2026-06-27T00:03:29.771Z",
+            "metadata": {
+              "permission_ref": "ui_sf_b_w03_timeline"
+            },
+            "event_hash": "5afcd0f5bed1c0e9e71ae5a4ecedc8b3953a2b92e0c55707c4929557a672f4cc"
+          }
+        ],
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w03_audit_probe",
+        "ui_state": null,
+        "production_ready_claim": false
+      },
+      "route": "/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_audit&audit_hint_ref=ui_sf_b_w03_audit_probe",
+      "method": "GET"
+    },
+    "audit_confirmed_detected": true
+  },
+  "fail_closed": {
+    "denied": {
+      "status": 403,
+      "body": {
+        "request_id": "req_1314dafb-510c-4c58-8948-bbe921911561",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_UNAUTHORIZED_OMISSION"
+        ],
+        "audit_hint_ref": "ui_sf_b_w03_deadline_confirm_probe",
+        "ui_state": "denied",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      },
+      "route": "/api/matters/matter_lcx8_0077_confirm_1782518609741/deadlines/calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741/confirm-change",
+      "method": "POST"
+    },
+    "review": {
+      "status": 200,
+      "body": {
+        "request_id": "req_c429b1ce-7794-43c2-8cef-20026b8b1fa5",
+        "outcome": "review_required",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_REVIEW_REQUIRED"
+        ],
+        "audit_hint_ref": "ui_sf_b_w03_deadline_confirm_probe",
+        "ui_state": "review_required",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      },
+      "route": "/api/matters/matter_lcx8_0077_confirm_1782518609741/deadlines/calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741/confirm-change",
+      "method": "POST"
+    },
+    "missing": {
+      "status": 400,
+      "body": {
+        "request_id": "req_3e88ee95-8342-461b-a5b4-438ea0763313",
+        "outcome": "blocked",
+        "items": [],
+        "safe_error_codes": [
+          "MATTER_API_VALIDATION_ERROR"
+        ],
+        "audit_hint_ref": "ui_sf_b_w03_deadline_confirm_probe",
+        "ui_state": "blocked",
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      },
+      "route": "/api/matters/matter_lcx8_0077_confirm_1782518609741/deadlines/calendar_matter_lcx8_0077_confirm_1782518609741_1782518609741_missing/confirm-change",
+      "method": "POST"
+    }
+  },
+  "browser_proof": {
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0077-matter-deadline-confirm-proof.png",
+    "ui_confirm_response": {
+      "status": 200,
+      "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines/calendar_matter_rp05_synthetic_opening_1782518610853/confirm-change",
+      "method": "POST",
+      "body": {
+        "request_id": "req_ab4f49c2-2a29-47f5-be78-73b256523a6b",
+        "outcome": "confirmed",
+        "ui_state": null,
+        "item": {
+          "deadline_id": "calendar_matter_rp05_synthetic_opening_1782518610853",
+          "matter_id": "matter_rp05_synthetic_opening",
+          "title": "주요 제출 기한",
+          "status": "rescheduled",
+          "due_at": "2026-06-30T00:03:30.853Z",
+          "criticality": "critical",
+          "legal_consequence": "court_deadline",
+          "dual_control_required": true,
+          "source_ref_included": false,
+          "production_ready_claim": false
+        },
+        "audit_event": null,
+        "timeline_event": {
+          "model_type": "MatterTimelineEvent",
+          "resource_id": "matter.timeline.deadline_confirmed:tenant_rp05_synthetic:matter_rp05_synthetic_opening:calendar_matter_rp05_synthetic_opening_1782518610853:2026-06-27T00:03:30.944Z",
+          "event_id": "matter.timeline.deadline_confirmed:tenant_rp05_synthetic:matter_rp05_synthetic_opening:calendar_matter_rp05_synthetic_opening_1782518610853:2026-06-27T00:03:30.944Z",
+          "tenant_id": "tenant_rp05_synthetic",
+          "matter_id": "matter_rp05_synthetic_opening",
+          "occurred_at": "2026-06-27T00:03:30.944Z",
+          "type": "matter.deadline.confirmed",
+          "title": "주요 제출 기한",
+          "source_ref": "calendar_matter_rp05_synthetic_opening_1782518610853",
+          "source_module": "matter",
+          "source_object_id": "calendar_matter_rp05_synthetic_opening_1782518610853",
+          "safe_summary": {
+            "dual_control_satisfied": true
+          },
+          "raw_body_included": false,
+          "raw_provider_payload_included": false,
+          "writes_product_state": true,
+          "creates_database_rows": true
+        },
+        "deadline_change_request": null,
+        "confirmation": {
+          "outcome": "confirmed",
+          "dual_control_satisfied": true,
+          "requester_user_ref_included": false,
+          "confirmer_user_ref_included": false,
+          "production_ready_claim": false
+        },
+        "provider_state": null,
+        "approval_request": null,
+        "publish_state": null,
+        "safe_error_codes": [],
+        "audit_hint_ref": "ui_sf_b_w03_deadline_confirm_probe",
+        "state_idempotent": true,
+        "idempotent_replay": false,
+        "count_leak_prevented": true,
+        "production_ready_claim": false
+      }
+    },
+    "network": [
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe"
+      },
+      {
+        "status": 200,
+        "method": "POST",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5"
+      },
+      {
+        "status": 201,
+        "method": "POST",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "PATCH",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events/calendar_matter_rp05_synthetic_opening_1782518610853"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "POST",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines/calendar_matter_rp05_synthetic_opening_1782518610853/confirm-change"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe"
+      },
+      {
+        "status": 200,
+        "method": "GET",
+        "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe"
+      }
+    ],
+    "console_messages": [
+      {
+        "type": "debug",
+        "text": "[vite] connecting..."
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connected."
+      }
+    ],
+    "browser_failures": [],
+    "observed_section_has_confirm_control": true
+  },
+  "assertions": {
+    "health 200": "PASS",
+    "opening 201 created": "PASS",
+    "calendar seed 201 created": "PASS",
+    "deadline request approval required": "PASS",
+    "before confirm pending original due date": "PASS",
+    "confirm 200 confirmed": "PASS",
+    "dual control satisfied": "PASS",
+    "user refs hidden": "PASS",
+    "confirmed deadline read-back changed": "PASS",
+    "calendar read-back changed": "PASS",
+    "timeline direct confirmed": "PASS",
+    "timeline read-back confirmed": "PASS",
+    "audit confirmation read-back": "PASS",
+    "replay 200 idempotent": "PASS",
+    "denied guard 403": "PASS",
+    "review guard review_required": "PASS",
+    "missing request blocked": "PASS",
+    "browser confirm response observed": "PASS",
+    "browser dual control observed": "PASS",
+    "browser confirmed date visible or response captured": "PASS",
+    "no browser request failures": "PASS",
+    "production ready claim false": "PASS"
+  },
+  "non_claims": [
+    "local synthetic runtime proof only",
+    "deadline confirmation proves dual-control state transition only",
+    "no production go-live claim",
+    "no external calendar provider receipt claimed"
+  ]
+}

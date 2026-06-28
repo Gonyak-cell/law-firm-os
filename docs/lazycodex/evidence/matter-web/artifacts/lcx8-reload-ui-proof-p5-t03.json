@@ -1,0 +1,274 @@
+{
+  "schema_version": "matter.lcx8.reload-ui-proof.p5-t03.v1",
+  "generated_at": "2026-06-25T13:49:21.029Z",
+  "status": "RELOAD_UI_STATE_CONFIRMED_NO_PASS_PROMOTION",
+  "tuw": "P5-T03",
+  "source_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-safe-write-execution-p5-t02.json"
+  ],
+  "browser": {
+    "url": "http://127.0.0.1:5174/?locale=ko&view=matters&data=live&ctx=allow#matters-list",
+    "viewport": {
+      "width": 1440,
+      "height": 1100
+    },
+    "reload_executed": true,
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p5-t03-matter-reload-proof.png"
+  },
+  "expected": {
+    "matter_id": "matter_rp05_synthetic_opening",
+    "wip_status_label": "검토 필요",
+    "owner_label": "Synthetic Responsible Attorney"
+  },
+  "observations": {
+    "before_reload_contains_wip_status": true,
+    "workspace_contains_wip_status": true,
+    "right_panel_contains_wip_status": true,
+    "inline_action_contains_wip_status": true,
+    "right_panel_contains_owner_label": false,
+    "owner_action_contains_owner_label": false,
+    "right_panel_contains_owner_assigned": true,
+    "list_contains_wip_status": true,
+    "workspace_text_excerpt": "Matter 목록\n권한 기준 적용\n새 Matter 개시는 승인 후 반영됩니다.\n전체 Matter\n개시 중\n종료\n개시 저장\n0개 선택\n선택 완료\nMatter\n제목\n진행 상태\n청구 상태\nMatter 1\nMatter 1\n개시 중\n검토 필요\n개인 작업 기록\n최근 본 항목\t제목\t상태\t일시\nMatter 1\tMatter 1\t개시 중\t06. 25. 오후 10:49\n레코드\nMatter 1\n상태\n개시 중\n청구\n검토 필요\n책임자\n지정됨\n팀\n1\n문서\n0\n활동\n0\n기한\n0\n대화\n0\n청구\n2\n분석\n2\n청구 상태\n검토 필요\n저장\n책임자\n지정됨\n변경\n레코드 필드\nMatter 제목 / 청구 준비 상태 / 위험도\n필드 작업\n책임자 일괄 변경\n승인 조건 확인\n승인 확인\n최근 작업 0건\n외부 연동 승인 대기\n권한 기준에 맞춰 표시됩니다.",
+    "right_panel_text_excerpt": "레코드\nMatter 1\n상태\n개시 중\n청구\n검토 필요\n책임자\n지정됨\n팀\n1\n문서\n0\n활동\n0\n기한\n0\n대화\n0\n청구\n2\n분석\n2\n청구 상태\n검토 필요\n저장\n책임자\n지정됨\n변경\n레코드 필드\nMatter 제목 / 청구 준비 상태 / 위험도\n필드 작업\n책임자 일괄 변경\n승인 조건 확인\n승인 확인\n최근 작업 0건\n외부 연동 승인 대기\n권한 기준에 맞춰 표시됩니다.",
+    "list_text_excerpt": "Matter\n제목\n진행 상태\n청구 상태\nMatter 1\nMatter 1\n개시 중\n검토 필요"
+  },
+  "network": {
+    "api_response_count": 44,
+    "api_4xx_count": 0,
+    "api_5xx_count": 0,
+    "api_responses": [
+      {
+        "url": "http://127.0.0.1:5174/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+        "status": 200,
+        "method": "POST"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/record-actions/matter/fields?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/record-actions/matter/matter_rp05_synthetic_opening/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_record_actions_matter&audit_hint_ref=ui_sf_b_w02_record_actions_matter_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/hrx/legal-people/search?matter_id=matter_lcx_001",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/finance/time-entries?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/finance/invoices?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/finance/ar-aging?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/finance/audit?tenant_id=tenant_cmp_g7_synthetic&permission_ref=ui_cmp_g7_finance_live&audit_hint_ref=ui_cmp_g7_finance_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/analytics/dashboards?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/analytics/matter-profitability?tenant_id=tenant_cmp_g8_synthetic&permission_ref=ui_cmp_g8_analytics_live&audit_hint_ref=ui_cmp_g8_analytics_probe",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+        "status": 200,
+        "method": "POST"
+      },
+      {
+        "url": "http://127.0.0.1:5174/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5",
+        "status": 200,
+        "method": "GET"
+      }
+    ]
+  },
+  "console": {
+    "message_count": 6,
+    "error_count": 0,
+    "errors": []
+  },
+  "status_policy": {
+    "pass_promotions_in_p5_t03": 0,
+    "reason": "P5-T03 confirms browser reload state only. P5-T04 read-model proof and P5-T05 audit proof remain required before selected rows can be considered for PASS."
+  },
+  "failures": [],
+  "next_tuw": "P5-T04"
+}

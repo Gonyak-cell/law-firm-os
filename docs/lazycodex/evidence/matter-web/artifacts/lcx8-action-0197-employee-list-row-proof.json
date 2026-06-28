@@ -1,0 +1,452 @@
+{
+  "id": "lcx8-action-0197-employee-list-row-proof",
+  "generated_at": "2026-06-27T01:21:56.665Z",
+  "status": "PASS",
+  "target_ids": [
+    "LCX8-ACTION-0197"
+  ],
+  "batch": "LCX8-ALL-10",
+  "base_url": "http://127.0.0.1:5173",
+  "api_base_url": "http://127.0.0.1:4180",
+  "selected_employee_id": "emp_001",
+  "route_correction": {
+    "ledger_route_before": "/?locale=ko&view=people&data=live&ctx=allow#people-documents",
+    "observed_action_routes": [
+      "/?locale=ko&view=people&data=live&ctx=allow#people-certificates",
+      "/?locale=ko&view=people&data=live&ctx=allow#people-leave"
+    ],
+    "reason": "Current product renders employee row selector inside people-certificates and people-leave runtime grids; people-documents renders company policy workspace only."
+  },
+  "source_fix": {
+    "file": "apps/api/src/hrx-runtime-context.js",
+    "summary": "GET /api/hrx/documents and GET /api/hrx/leave now honor x-lawos-permission-context denied/review decisions with empty guarded read payloads."
+  },
+  "mode_proofs": [
+    {
+      "mode": "certificates",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-certificates",
+      "row_count": 9,
+      "clicked_row_index": 1,
+      "selected_text_excerpt": "서\n서지원\n등록 계정\n재직",
+      "panel_text_excerpt": "증명서 발급 요청\n재직·경력\n재직증명서와 경력증명서의 증명서 발급 요청을 확인합니다.\n표시할 증명서 발급 요청이 없습니다.",
+      "all_protected_responses": [
+        {
+          "url": "http://127.0.0.1:5173/api/hrx/employees",
+          "status": 200,
+          "key": "employees"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/hrx/employees",
+          "status": 200,
+          "key": "employees"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/hrx/documents?employee_id=emp_amic_bj_park",
+          "status": 200,
+          "key": "documents"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/hrx/documents?employee_id=emp_amic_jwsuh",
+          "status": 200,
+          "key": "documents"
+        }
+      ],
+      "after_click_responses": [
+        {
+          "url": "http://127.0.0.1:5173/api/hrx/documents?employee_id=emp_amic_jwsuh",
+          "status": 200,
+          "key": "documents"
+        }
+      ],
+      "expected_endpoint_observed_after_click": true,
+      "employees_observed": true,
+      "expected_endpoint": "documents",
+      "api_5xx_count": 0,
+      "console_events": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0197-people-certificates-allow-proof.png"
+    },
+    {
+      "mode": "leave",
+      "route": "/?locale=ko&view=people&data=live&ctx=allow#people-leave",
+      "row_count": 9,
+      "clicked_row_index": 1,
+      "selected_text_excerpt": "서\n서지원\n등록 계정\n재직",
+      "panel_text_excerpt": "휴가관리\n휴가 현황\n휴가를 신청하고 잔여 휴가를 확인합니다\n시간\n시작일\n종료일\n신청\n확인 가능\n사용 가능한 휴가\n요청\t유형\t기간\t상태",
+      "all_protected_responses": [
+        {
+          "url": "http://127.0.0.1:5173/api/hrx/employees",
+          "status": 200,
+          "key": "employees"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/hrx/employees",
+          "status": 200,
+          "key": "employees"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/hrx/leave?employee_id=emp_amic_bj_park&policy_id=pto-us",
+          "status": 200,
+          "key": "leave"
+        },
+        {
+          "url": "http://127.0.0.1:5173/api/hrx/leave?employee_id=emp_amic_jwsuh&policy_id=pto-us",
+          "status": 200,
+          "key": "leave"
+        }
+      ],
+      "after_click_responses": [
+        {
+          "url": "http://127.0.0.1:5173/api/hrx/leave?employee_id=emp_amic_jwsuh&policy_id=pto-us",
+          "status": 200,
+          "key": "leave"
+        }
+      ],
+      "expected_endpoint_observed_after_click": true,
+      "employees_observed": true,
+      "expected_endpoint": "leave",
+      "api_5xx_count": 0,
+      "console_events": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0197-people-leave-allow-proof.png"
+    }
+  ],
+  "guarded_browser_proofs": [
+    {
+      "route": "/?locale=ko&view=people&data=live&ctx=denied#people-certificates",
+      "hash": "people-certificates",
+      "ctx": "denied",
+      "guard_visible": true,
+      "guard_text": "접근 권한이 없습니다\n권한이 있는 People 정보만 표시합니다.",
+      "employee_row_count": 0,
+      "protected_request_count_after_guard_route": 0,
+      "api_5xx_count": 0,
+      "console_events": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0197-people-certificates-denied-guard-proof.png"
+    },
+    {
+      "route": "/?locale=ko&view=people&data=live&ctx=review#people-certificates",
+      "hash": "people-certificates",
+      "ctx": "review",
+      "guard_visible": true,
+      "guard_text": "검토가 필요합니다\n검토가 끝나면 People 정보를 확인할 수 있습니다.",
+      "employee_row_count": 0,
+      "protected_request_count_after_guard_route": 0,
+      "api_5xx_count": 0,
+      "console_events": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0197-people-certificates-review-guard-proof.png"
+    },
+    {
+      "route": "/?locale=ko&view=people&data=live&ctx=denied#people-leave",
+      "hash": "people-leave",
+      "ctx": "denied",
+      "guard_visible": true,
+      "guard_text": "접근 권한이 없습니다\n권한이 있는 People 정보만 표시합니다.",
+      "employee_row_count": 0,
+      "protected_request_count_after_guard_route": 0,
+      "api_5xx_count": 0,
+      "console_events": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0197-people-leave-denied-guard-proof.png"
+    },
+    {
+      "route": "/?locale=ko&view=people&data=live&ctx=review#people-leave",
+      "hash": "people-leave",
+      "ctx": "review",
+      "guard_visible": true,
+      "guard_text": "검토가 필요합니다\n검토가 끝나면 People 정보를 확인할 수 있습니다.",
+      "employee_row_count": 0,
+      "protected_request_count_after_guard_route": 0,
+      "api_5xx_count": 0,
+      "console_events": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0197-people-leave-review-guard-proof.png"
+    }
+  ],
+  "direct_api_probes": [
+    {
+      "endpoint": "/api/hrx/employees",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "count_leak_prevented": null,
+      "no_payload_leak": null,
+      "employee_count": 9,
+      "document_count": null,
+      "leave_request_count": null,
+      "has_balance": false,
+      "shape": [
+        "employees",
+        "outcome",
+        "request_id"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/documents?employee_id=emp_001",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "count_leak_prevented": null,
+      "no_payload_leak": null,
+      "employee_count": null,
+      "document_count": 0,
+      "leave_request_count": null,
+      "has_balance": false,
+      "shape": [
+        "documents",
+        "outcome",
+        "request_id"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/leave?employee_id=emp_001&policy_id=pto-us",
+      "ctx": "allow",
+      "status": 200,
+      "ok": true,
+      "ui_state": null,
+      "outcome": "ok",
+      "count_leak_prevented": null,
+      "no_payload_leak": null,
+      "employee_count": null,
+      "document_count": null,
+      "leave_request_count": 0,
+      "has_balance": true,
+      "shape": [
+        "balance",
+        "outcome",
+        "request_id",
+        "requests"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/employees",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "employee_count": 0,
+      "document_count": null,
+      "leave_request_count": null,
+      "has_balance": false,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "employees",
+        "fail_closed",
+        "outcome",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/documents?employee_id=emp_001",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "employee_count": null,
+      "document_count": 0,
+      "leave_request_count": null,
+      "has_balance": false,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "documents",
+        "fail_closed",
+        "outcome",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/leave?employee_id=emp_001&policy_id=pto-us",
+      "ctx": "denied",
+      "status": 403,
+      "ok": false,
+      "ui_state": "denied",
+      "outcome": "denied",
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "employee_count": null,
+      "document_count": null,
+      "leave_request_count": 0,
+      "has_balance": false,
+      "shape": [
+        "balance",
+        "claim_boundary",
+        "count_leak_prevented",
+        "fail_closed",
+        "outcome",
+        "permission_summary",
+        "request_id",
+        "requests",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/employees",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "employee_count": 0,
+      "document_count": null,
+      "leave_request_count": null,
+      "has_balance": false,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "employees",
+        "fail_closed",
+        "outcome",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/documents?employee_id=emp_001",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "employee_count": null,
+      "document_count": 0,
+      "leave_request_count": null,
+      "has_balance": false,
+      "shape": [
+        "claim_boundary",
+        "count_leak_prevented",
+        "documents",
+        "fail_closed",
+        "outcome",
+        "permission_summary",
+        "request_id",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    },
+    {
+      "endpoint": "/api/hrx/leave?employee_id=emp_001&policy_id=pto-us",
+      "ctx": "review",
+      "status": 200,
+      "ok": true,
+      "ui_state": "review_required",
+      "outcome": "review_required",
+      "count_leak_prevented": true,
+      "no_payload_leak": true,
+      "employee_count": null,
+      "document_count": null,
+      "leave_request_count": 0,
+      "has_balance": false,
+      "shape": [
+        "balance",
+        "claim_boundary",
+        "count_leak_prevented",
+        "fail_closed",
+        "outcome",
+        "permission_summary",
+        "request_id",
+        "requests",
+        "review_required",
+        "safe_error_codes",
+        "schema_version",
+        "ui_state"
+      ]
+    }
+  ],
+  "screenshots": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0197-people-certificates-allow-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0197-people-leave-allow-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0197-people-certificates-denied-guard-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0197-people-certificates-review-guard-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0197-people-leave-denied-guard-proof.png",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0197-people-leave-review-guard-proof.png"
+  ],
+  "assertions": [
+    {
+      "name": "certificates_route_has_employee_rows",
+      "pass": true
+    },
+    {
+      "name": "leave_route_has_employee_rows",
+      "pass": true
+    },
+    {
+      "name": "certificates_click_observed_documents_read",
+      "pass": true
+    },
+    {
+      "name": "leave_click_observed_leave_read",
+      "pass": true
+    },
+    {
+      "name": "employee_read_observed_in_both_modes",
+      "pass": true
+    },
+    {
+      "name": "no_browser_5xx",
+      "pass": true
+    },
+    {
+      "name": "no_browser_console_errors",
+      "pass": true
+    },
+    {
+      "name": "guarded_routes_show_guard",
+      "pass": true
+    },
+    {
+      "name": "guarded_routes_hide_employee_rows",
+      "pass": true
+    },
+    {
+      "name": "guarded_routes_make_no_protected_requests",
+      "pass": true
+    },
+    {
+      "name": "direct_allow_probes_ok",
+      "pass": true
+    },
+    {
+      "name": "direct_denied_probes_fail_closed",
+      "pass": true
+    },
+    {
+      "name": "direct_review_probes_review_required_no_leak",
+      "pass": true
+    }
+  ],
+  "non_claims": [
+    "This is read-only employee selection proof; no HRX document or leave write persistence is claimed.",
+    "LCX8-ACTION-0197 is not proof for leave submission or document generation actions."
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "schema_version": "law-firm-os.lcx8.post-closeout.desktop-renderer-login-fields.v0.1",
+  "generated_at": "2026-06-28T07:36:03.617Z",
+  "batch_id": "LCX8-ALL-32",
+  "action_ids": [
+    "LCX8-ACTION-0248",
+    "LCX8-ACTION-0249"
+  ],
+  "status_before": "UI_ONLY",
+  "status_after": "UI_ONLY",
+  "status_decision": "UI_ONLY final classification; status remains UI_ONLY",
+  "reason": "desktop_renderer_login_field_state_only",
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0248-0249-desktop-renderer-login-fields-proof.json",
+  "proof_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-0248-0249-desktop-renderer-login-fields-proof.md",
+  "counts_before": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "counts_after": {
+    "PASS": 167,
+    "GUARDED": 20,
+    "UI_ONLY": 115,
+    "DESCRIPTOR_ONLY": 2,
+    "BLOCKED": 20,
+    "FAIL": 0,
+    "UNKNOWN": 0
+  },
+  "evidence": [
+    {
+      "id": "LCX8-ACTION-0248",
+      "observed_state": "email field value desktop.operator@example.test",
+      "raw_value_recorded": true,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0248-desktop-renderer-login-fields-proof.png",
+      "status_decision": "UI_ONLY final"
+    },
+    {
+      "id": "LCX8-ACTION-0249",
+      "observed_state": "password field accepted masked local input length 21",
+      "raw_value_recorded": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0249-desktop-renderer-login-fields-proof.png",
+      "status_decision": "UI_ONLY final"
+    }
+  ],
+  "network": {
+    "api_requests": 0,
+    "api_writes": 0,
+    "api_5xx": 0
+  },
+  "latest_verification_summary": "Post-closeout LCX8-ACTION-0248/0249 desktop renderer login field proof PASS. Browser proof loaded ?view=auth&authStep=login, filled email/password local fields, confirmed no submit, no API write, no native bridge call, no API 5xx, no page errors, and no unexpected console errors. Password raw value was not recorded in proof output. Status remains UI_ONLY as final renderer field-state classification.",
+  "non_claims": [
+    "UI_ONLY local renderer field-state proof only",
+    "no login submit was performed",
+    "no API write or native bridge call was performed",
+    "no password value is recorded in proof output",
+    "no persistence, production-ready, or go-live claim is made"
+  ]
+}

@@ -95,29 +95,41 @@ test("Matter-Vault opening creates a Vault workspace, link, summary, document fa
     assert.equal(summaryBefore.body.item.document_count, 0);
     assert.equal(summaryBefore.body.item.omitted_denied_count, null);
 
+    const documentPayload = {
+      tenant_id: TENANT,
+      permission_ref: "perm_ref_mv_doc",
+      audit_hint_ref: "audit_hint_mv_doc",
+      actor_id: "user_mv_owner",
+      idempotency_key: "mv-doc-001",
+      content_text: "Matter facade delegates bytes to Vault.",
+      document: {
+        document_id: "doc_mv_001",
+        title: "Matter Vault evidence memo",
+        status: "active",
+        current_version_id: "version_doc_mv_001_1",
+        mime_type: "text/plain",
+      },
+    };
     const uploaded = await json(baseUrl, `/api/matters/${MATTER_ID}/documents`, {
       method: "POST",
-      body: JSON.stringify({
-        tenant_id: TENANT,
-        permission_ref: "perm_ref_mv_doc",
-        audit_hint_ref: "audit_hint_mv_doc",
-        actor_id: "user_mv_owner",
-        idempotency_key: "mv-doc-001",
-        content_text: "Matter facade delegates bytes to Vault.",
-        document: {
-          document_id: "doc_mv_001",
-          title: "Matter Vault evidence memo",
-          status: "active",
-          current_version_id: "version_doc_mv_001_1",
-          mime_type: "text/plain",
-        },
-      }),
+      body: JSON.stringify(documentPayload),
     });
     assert.equal(uploaded.status, 201);
     assert.equal(uploaded.body.item.matter_owns_document_bytes, false);
     assert.equal(uploaded.body.item.raw_storage_path_included, false);
     assert.equal(uploaded.body.file_object.storage_pointer_ref_included, false);
     assert.equal(uploaded.body.timeline_event.type, "document.version.created");
+    assert.equal(uploaded.body.matter_audit_event.action, "matter.document_facade.uploaded");
+
+    const replay = await json(baseUrl, `/api/matters/${MATTER_ID}/documents`, {
+      method: "POST",
+      body: JSON.stringify(documentPayload),
+    });
+    assert.equal(replay.status, 200);
+    assert.equal(replay.body.outcome, "idempotent_replay");
+    assert.equal(replay.body.item.document_id, "doc_mv_001");
+    assert.equal(replay.body.timeline_event.type, "document.version.created");
+    assert.equal(replay.body.matter_audit_event.action, "matter.document_facade.uploaded");
 
     const summaryAfter = await json(baseUrl, `/api/matters/${MATTER_ID}/command-center?${BASE_QUERY}`);
     assert.equal(summaryAfter.status, 200);

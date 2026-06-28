@@ -1,0 +1,289 @@
+{
+  "action_id": "LCX8-ACTION-0063",
+  "title": "Matter status transition complete",
+  "completed_at": "2026-06-26T05:36:42.543Z",
+  "surface": "Matter > command panel > 완료",
+  "route": "http://127.0.0.1:5173/?locale=ko&view=matters&data=live&ctx=allow#matter-command",
+  "fixture": {
+    "created_via_api": true,
+    "creation_status": 201,
+    "creation_outcome": "created",
+    "local_synthetic_runtime_only": true
+  },
+  "record": {
+    "tenant_id": "tenant_rp05_synthetic",
+    "matter_id": "matter_lcx8_0063_status_1782452202543",
+    "title": "LCX8 status proof 1782452202543",
+    "before_status": "opening",
+    "before_wip_status": "not_started",
+    "after_status": "closed",
+    "after_wip_status": "completed",
+    "closed_at": "2026-06-26T05:36:44.111Z"
+  },
+  "trace": {
+    "ui_selector": "[data-matter-status-transition-action=\"true\"] button:has-text(\"완료\")",
+    "ui_handler": "apps/web/src/components/MattersSurface.jsx#handleCompleteStatus",
+    "api_client": "apps/web/src/data/apiClient.js#completeMatterStatus",
+    "api_route": "POST /api/matters/:matter_id/status-transitions",
+    "api_handler": "apps/api/src/matter-runtime-context.js#handleMatterStatusTransition",
+    "focused_test": "apps/api/test/cmp-r4-g4-matter.test.js"
+  },
+  "browser_proof": {
+    "clicked": true,
+    "fixture_selected": true,
+    "response_status": 200,
+    "response_outcome": "updated",
+    "success_text_seen": true,
+    "reload_completed_state_seen": true,
+    "button_disabled_after_reload": true,
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0063-matter-status-transition-proof.png",
+    "console_errors": [],
+    "request_failures": [],
+    "api_response_count": 32
+  },
+  "api_write": {
+    "status": 200,
+    "outcome": "updated",
+    "item_status": "closed",
+    "item_wip_status": "completed",
+    "transition": {
+      "previous_status": "opening",
+      "target_status": "closed",
+      "occurred_at": "2026-06-26T05:36:44.111Z",
+      "automatic_matter_creation": false
+    },
+    "audit_event_action": "matter.status.transitioned",
+    "audit_event_id": "matter.status.transitioned:tenant_rp05_synthetic:matter_lcx8_0063_status_1782452202543:closed",
+    "timeline_event_type": "matter.status.transitioned",
+    "state_idempotent": true,
+    "idempotent_replay": false,
+    "production_ready_claim": false
+  },
+  "persistence_and_reload": {
+    "reload_visible": true,
+    "readback_status": 200,
+    "readback_matter_status": "closed",
+    "readback_wip_status": "completed",
+    "guard_readback_status": "closed",
+    "guard_readback_wip_status": "completed"
+  },
+  "audit": {
+    "status": 200,
+    "returned_count": 16,
+    "status_transition_events": 1
+  },
+  "fail_closed": {
+    "denied": {
+      "status": 403,
+      "outcome": "blocked",
+      "ui_state": "denied",
+      "safe_error_codes": [
+        "MATTER_UNAUTHORIZED_OMISSION"
+      ],
+      "count_leak_prevented": true
+    },
+    "review": {
+      "status": 200,
+      "outcome": "review_required",
+      "ui_state": "review_required",
+      "safe_error_codes": [
+        "MATTER_REVIEW_REQUIRED"
+      ],
+      "count_leak_prevented": true
+    },
+    "invalid_status": {
+      "status": 400,
+      "outcome": "blocked",
+      "ui_state": "blocked",
+      "safe_error_codes": [
+        "MATTER_API_VALIDATION_ERROR"
+      ],
+      "count_leak_prevented": true
+    }
+  },
+  "assertions": {
+    "fixture_created": true,
+    "precondition_opening": true,
+    "ui_post_status_200": true,
+    "ui_post_outcome_updated": true,
+    "ui_post_status_closed": true,
+    "ui_post_wip_completed": true,
+    "transition_previous_opening": true,
+    "transition_target_closed": true,
+    "audit_event_action": true,
+    "timeline_safe_no_bytes": true,
+    "state_idempotent": true,
+    "reload_readback_closed": true,
+    "reload_ui_completed_disabled": true,
+    "audit_contains_status_transition": true,
+    "denied_fail_closed": true,
+    "review_fail_closed": true,
+    "invalid_status_blocked": true,
+    "guards_did_not_mutate": true,
+    "no_request_failures": true,
+    "no_console_errors": true,
+    "production_ready_claim_false": true
+  },
+  "api_responses": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0063_status_1782452202543/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0063_status_1782452202543/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0063_status_1782452202543/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0063_status_1782452202543/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0063_status_1782452202543/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0063_status_1782452202543/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0063_status_1782452202543/recently-viewed",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/matters/matter_lcx8_0063_status_1782452202543/status-transitions",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=25",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/list-views?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_list_views&audit_hint_ref=ui_sf_b_w02_list_views_probe&limit=10",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/command-center?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_command_center&audit_hint_ref=ui_mv_matter_command_center_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/timeline?tenant_id=tenant_rp05_synthetic&permission_ref=ui_mv_matter_timeline&audit_hint_ref=ui_mv_matter_timeline_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/activities?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_activity_read&audit_hint_ref=ui_sf_b_w03_activity_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/calendar-events?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_calendar_read&audit_hint_ref=ui_sf_b_w03_calendar_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/deadlines?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_deadline_read&audit_hint_ref=ui_sf_b_w03_deadline_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/channel?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w03_channel_read&audit_hint_ref=ui_sf_b_w03_channel_read_probe",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/audit?tenant_id=tenant_rp05_synthetic&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5173/api/matters/matter_rp05_synthetic_opening/recently-viewed",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5173/api/matters/recently-viewed?tenant_id=tenant_rp05_synthetic&permission_ref=ui_sf_b_w02_recently_viewed&audit_hint_ref=ui_sf_b_w02_recently_viewed_probe&limit=5",
+      "status": 200
+    }
+  ]
+}

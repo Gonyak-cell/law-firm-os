@@ -12,7 +12,7 @@ function stateLabel(value) {
 }
 
 function executionStateLabel(value) {
-  return value === false ? "구현 안됨" : "확인 필요";
+  return value === false ? "아직 미구현" : "확인 필요";
 }
 
 export function PayrollBoundaryPanel() {
@@ -82,10 +82,10 @@ export function PayrollBoundaryPanel() {
   }
 
   return (
-    <Panel id="people-payroll" className="people-panel span-2" title="급여정산" meta="미리보기와 내보내기만 구현됨">
+    <Panel id="people-payroll" className="people-panel span-2" title="급여정산" meta="미리보기·내보내기 전용">
       <div className="people-panel-kicker">
         <ShieldCheck size={15} />
-        현재는 정산 미리보기, 검토 승인, 내보내기만 구현되어 있습니다. 계산·세금·지급 실행은 아직 구현되지 않았습니다.
+        현재는 정산 미리보기, 검토 승인, 내보내기만 제공합니다. 계산·세금·지급 실행은 아직 제공하지 않습니다.
       </div>
       <form className="leave-request-form" onSubmit={handlePreview}>
         <label>

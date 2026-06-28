@@ -1,0 +1,984 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-25T10:55:00.000Z",
+  "tuw": "P2-T00",
+  "status": "complete",
+  "title": "LCX8 P2-T00 App.jsx navigation/source trace",
+  "scope": "Map existing visible route and hash action rows to App.jsx router functions and callback wiring. This does not close Shell.jsx or HomeSurface component-level trace TUWs and does not promote any row to PASS.",
+  "source_files": [
+    {
+      "path": "apps/web/src/App.jsx",
+      "anchors": [
+        {
+          "lines": "15-28",
+          "description": "initial URLSearchParams, routableViews, ctx, query, and hash section state"
+        },
+        {
+          "lines": "40-53",
+          "description": "routeFromLocation and routeUrl read/write view, ctx, and hash section"
+        },
+        {
+          "lines": "56-62",
+          "description": "navigateToView validates nextView, sets view/activeSection, closes notifications, and pushState writes routeUrl"
+        },
+        {
+          "lines": "76-85",
+          "description": "popstate restores view, liveCtx, and activeSection from location"
+        },
+        {
+          "lines": "91-102",
+          "description": "auth login callback shows splash and navigates home"
+        },
+        {
+          "lines": "110-127",
+          "description": "Topbar and Sidebar receive App.navigateToView and route callbacks"
+        },
+        {
+          "lines": "141-151",
+          "description": "Home, Clients, Matters, People, and Vault surfaces receive liveCtx/activeSection and navigation callbacks"
+        },
+        {
+          "lines": "166-167",
+          "description": "GlobalSearch receives App.navigateToView and NotificationDrawer remains local state"
+        }
+      ]
+    }
+  ],
+  "router_contract": {
+    "routable_views_source": "auth, home, loading, profile, plus navItems ids",
+    "accepted_live_ctx": [
+      "allow",
+      "denied",
+      "review"
+    ],
+    "route_state": [
+      "view",
+      "ctx",
+      "hash section"
+    ],
+    "navigate_to_view_effects": [
+      "rejects non-routable view",
+      "sets view",
+      "sets activeSection",
+      "closes notification drawer",
+      "pushState routeUrl(view, section)"
+    ],
+    "popstate_effects": [
+      "reads view",
+      "reads ctx",
+      "reads hash section",
+      "updates state without claiming API success"
+    ]
+  },
+  "updated_row_count": 63,
+  "appended_app_source_count": 50,
+  "trace_depth_promotions": 21,
+  "families": [
+    {
+      "family": "auth_login_to_home",
+      "row_count": 1,
+      "row_ids": [
+        "LCX8-ACTION-0006"
+      ]
+    },
+    {
+      "family": "product_axis_nav",
+      "row_count": 5,
+      "row_ids": [
+        "LCX8-ACTION-0007",
+        "LCX8-ACTION-0008",
+        "LCX8-ACTION-0009",
+        "LCX8-ACTION-0010",
+        "LCX8-ACTION-0011"
+      ]
+    },
+    {
+      "family": "topbar_route_actions",
+      "row_count": 3,
+      "row_ids": [
+        "LCX8-ACTION-0013",
+        "LCX8-ACTION-0014",
+        "LCX8-ACTION-0015"
+      ]
+    },
+    {
+      "family": "global_search_result_routes",
+      "row_count": 5,
+      "row_ids": [
+        "LCX8-ACTION-0021",
+        "LCX8-ACTION-0022",
+        "LCX8-ACTION-0023",
+        "LCX8-ACTION-0024",
+        "LCX8-ACTION-0025"
+      ]
+    },
+    {
+      "family": "home_sidebar_hash_routes",
+      "row_count": 3,
+      "row_ids": [
+        "LCX8-ACTION-0029",
+        "LCX8-ACTION-0030",
+        "LCX8-ACTION-0031"
+      ]
+    },
+    {
+      "family": "home_surface_route_opens_app_side",
+      "row_count": 7,
+      "row_ids": [
+        "LCX8-ACTION-0037",
+        "LCX8-ACTION-0038",
+        "LCX8-ACTION-0039",
+        "LCX8-ACTION-0040",
+        "LCX8-ACTION-0041",
+        "LCX8-ACTION-0042",
+        "LCX8-ACTION-0043"
+      ]
+    },
+    {
+      "family": "matter_section_hash_tabs_app_side",
+      "row_count": 5,
+      "row_ids": [
+        "LCX8-ACTION-0045",
+        "LCX8-ACTION-0046",
+        "LCX8-ACTION-0047",
+        "LCX8-ACTION-0048",
+        "LCX8-ACTION-0049"
+      ]
+    },
+    {
+      "family": "client_sidebar_hash_routes_app_side",
+      "row_count": 9,
+      "row_ids": [
+        "LCX8-ACTION-0103",
+        "LCX8-ACTION-0104",
+        "LCX8-ACTION-0105",
+        "LCX8-ACTION-0106",
+        "LCX8-ACTION-0107",
+        "LCX8-ACTION-0108",
+        "LCX8-ACTION-0109",
+        "LCX8-ACTION-0110",
+        "LCX8-ACTION-0111"
+      ]
+    },
+    {
+      "family": "people_sidebar_hash_routes_app_side",
+      "row_count": 15,
+      "row_ids": [
+        "LCX8-ACTION-0149",
+        "LCX8-ACTION-0150",
+        "LCX8-ACTION-0151",
+        "LCX8-ACTION-0152",
+        "LCX8-ACTION-0153",
+        "LCX8-ACTION-0154",
+        "LCX8-ACTION-0155",
+        "LCX8-ACTION-0156",
+        "LCX8-ACTION-0157",
+        "LCX8-ACTION-0158",
+        "LCX8-ACTION-0159",
+        "LCX8-ACTION-0160",
+        "LCX8-ACTION-0161",
+        "LCX8-ACTION-0162",
+        "LCX8-ACTION-0163"
+      ]
+    },
+    {
+      "family": "profile_sidebar_routes_app_side",
+      "row_count": 10,
+      "row_ids": [
+        "LCX8-ACTION-0227",
+        "LCX8-ACTION-0228",
+        "LCX8-ACTION-0229",
+        "LCX8-ACTION-0230",
+        "LCX8-ACTION-0231",
+        "LCX8-ACTION-0232",
+        "LCX8-ACTION-0233",
+        "LCX8-ACTION-0234",
+        "LCX8-ACTION-0235",
+        "LCX8-ACTION-0236"
+      ]
+    }
+  ],
+  "row_updates": [
+    {
+      "id": "LCX8-ACTION-0006",
+      "label": "Log in",
+      "section": "login-form",
+      "status": "UI_ONLY",
+      "family": "auth_login_to_home",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/AuthSurface.jsx; apps/web/src/App.jsx",
+      "source_file_after": "apps/web/src/components/AuthSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "sets splash state, navigates to view=home, clears activeSection, and pushState writes routeUrl(home)"
+    },
+    {
+      "id": "LCX8-ACTION-0007",
+      "label": "Home",
+      "section": "product-axis-nav",
+      "status": "UI_ONLY",
+      "family": "product_axis_nav",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "calls App.navigateToView(nextView), clears section, closes notifications, and pushState writes ?view=..."
+    },
+    {
+      "id": "LCX8-ACTION-0008",
+      "label": "Client",
+      "section": "product-axis-nav",
+      "status": "UI_ONLY",
+      "family": "product_axis_nav",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "calls App.navigateToView(nextView), clears section, closes notifications, and pushState writes ?view=..."
+    },
+    {
+      "id": "LCX8-ACTION-0009",
+      "label": "Matter",
+      "section": "product-axis-nav",
+      "status": "UI_ONLY",
+      "family": "product_axis_nav",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "calls App.navigateToView(nextView), clears section, closes notifications, and pushState writes ?view=..."
+    },
+    {
+      "id": "LCX8-ACTION-0010",
+      "label": "People",
+      "section": "product-axis-nav",
+      "status": "UI_ONLY",
+      "family": "product_axis_nav",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "calls App.navigateToView(nextView), clears section, closes notifications, and pushState writes ?view=..."
+    },
+    {
+      "id": "LCX8-ACTION-0011",
+      "label": "Vault",
+      "section": "product-axis-nav",
+      "status": "UI_ONLY",
+      "family": "product_axis_nav",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "calls App.navigateToView(nextView), clears section, closes notifications, and pushState writes ?view=..."
+    },
+    {
+      "id": "LCX8-ACTION-0013",
+      "label": "새로 만들기",
+      "section": "topbar",
+      "status": "UI_ONLY",
+      "family": "topbar_route_actions",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "calls App.navigateToView with a product view and optional hash section"
+    },
+    {
+      "id": "LCX8-ACTION-0014",
+      "label": "구성원 초대",
+      "section": "topbar",
+      "status": "UI_ONLY",
+      "family": "topbar_route_actions",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "calls App.navigateToView with a product view and optional hash section"
+    },
+    {
+      "id": "LCX8-ACTION-0015",
+      "label": "내 프로필",
+      "section": "topbar",
+      "status": "UI_ONLY",
+      "family": "topbar_route_actions",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "calls App.navigateToView with a product view and optional hash section"
+    },
+    {
+      "id": "LCX8-ACTION-0021",
+      "label": "홈에서 검색",
+      "section": "global-search",
+      "status": "UI_ONLY",
+      "family": "global_search_result_routes",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "GlobalSearch receives App.navigateToView as setView, then clears query after route change"
+    },
+    {
+      "id": "LCX8-ACTION-0022",
+      "label": "Client에서 검색",
+      "section": "global-search",
+      "status": "UI_ONLY",
+      "family": "global_search_result_routes",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "GlobalSearch receives App.navigateToView as setView, then clears query after route change"
+    },
+    {
+      "id": "LCX8-ACTION-0023",
+      "label": "Matter에서 검색",
+      "section": "global-search",
+      "status": "UI_ONLY",
+      "family": "global_search_result_routes",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "GlobalSearch receives App.navigateToView as setView, then clears query after route change"
+    },
+    {
+      "id": "LCX8-ACTION-0024",
+      "label": "People에서 검색",
+      "section": "global-search",
+      "status": "UI_ONLY",
+      "family": "global_search_result_routes",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "GlobalSearch receives App.navigateToView as setView, then clears query after route change"
+    },
+    {
+      "id": "LCX8-ACTION-0025",
+      "label": "Vault에서 검색",
+      "section": "global-search",
+      "status": "UI_ONLY",
+      "family": "global_search_result_routes",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "GlobalSearch receives App.navigateToView as setView, then clears query after route change"
+    },
+    {
+      "id": "LCX8-ACTION-0029",
+      "label": "최근 작업",
+      "section": "sidebar",
+      "status": "UI_ONLY",
+      "family": "home_sidebar_hash_routes",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes home hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0030",
+      "label": "대시보드",
+      "section": "sidebar",
+      "status": "UI_ONLY",
+      "family": "home_sidebar_hash_routes",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes home hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0031",
+      "label": "검토함",
+      "section": "sidebar",
+      "status": "UI_ONLY",
+      "family": "home_sidebar_hash_routes",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes home hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0037",
+      "label": "Matter 목록",
+      "section": "home-ops-queue",
+      "status": "UI_ONLY",
+      "family": "home_surface_route_opens_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/HomeSurface.jsx",
+      "source_file_after": "apps/web/src/components/HomeSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "HomeSurface receives App.navigateToView as setView; route open buttons change product view through App"
+    },
+    {
+      "id": "LCX8-ACTION-0038",
+      "label": "승인·구성원 확인",
+      "section": "home-ops-queue",
+      "status": "UI_ONLY",
+      "family": "home_surface_route_opens_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/HomeSurface.jsx",
+      "source_file_after": "apps/web/src/components/HomeSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "HomeSurface receives App.navigateToView as setView; route open buttons change product view through App"
+    },
+    {
+      "id": "LCX8-ACTION-0039",
+      "label": "최근 문서 확인",
+      "section": "home-ops-queue",
+      "status": "UI_ONLY",
+      "family": "home_surface_route_opens_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/HomeSurface.jsx",
+      "source_file_after": "apps/web/src/components/HomeSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "HomeSurface receives App.navigateToView as setView; route open buttons change product view through App"
+    },
+    {
+      "id": "LCX8-ACTION-0040",
+      "label": "Client 열기",
+      "section": "home-quick-links",
+      "status": "UI_ONLY",
+      "family": "home_surface_route_opens_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/HomeSurface.jsx",
+      "source_file_after": "apps/web/src/components/HomeSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "HomeSurface receives App.navigateToView as setView; route open buttons change product view through App"
+    },
+    {
+      "id": "LCX8-ACTION-0041",
+      "label": "Matter 열기",
+      "section": "home-quick-links",
+      "status": "UI_ONLY",
+      "family": "home_surface_route_opens_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/HomeSurface.jsx",
+      "source_file_after": "apps/web/src/components/HomeSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "HomeSurface receives App.navigateToView as setView; route open buttons change product view through App"
+    },
+    {
+      "id": "LCX8-ACTION-0042",
+      "label": "People 열기",
+      "section": "home-quick-links",
+      "status": "UI_ONLY",
+      "family": "home_surface_route_opens_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/HomeSurface.jsx",
+      "source_file_after": "apps/web/src/components/HomeSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "HomeSurface receives App.navigateToView as setView; route open buttons change product view through App"
+    },
+    {
+      "id": "LCX8-ACTION-0043",
+      "label": "Vault 열기",
+      "section": "home-quick-links",
+      "status": "UI_ONLY",
+      "family": "home_surface_route_opens_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/HomeSurface.jsx",
+      "source_file_after": "apps/web/src/components/HomeSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "HomeSurface receives App.navigateToView as setView; route open buttons change product view through App"
+    },
+    {
+      "id": "LCX8-ACTION-0045",
+      "label": "현황",
+      "section": "matter-section-tabs",
+      "status": "UI_ONLY",
+      "family": "matter_section_hash_tabs_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/MattersSurface.jsx",
+      "source_file_after": "apps/web/src/components/MattersSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "MattersSurface onNavigateSection is App.navigateToView(\"matters\", section), so tabs update the URL hash and activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0046",
+      "label": "문서",
+      "section": "matter-section-tabs",
+      "status": "UI_ONLY",
+      "family": "matter_section_hash_tabs_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/MattersSurface.jsx",
+      "source_file_after": "apps/web/src/components/MattersSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "MattersSurface onNavigateSection is App.navigateToView(\"matters\", section), so tabs update the URL hash and activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0047",
+      "label": "활동",
+      "section": "matter-section-tabs",
+      "status": "UI_ONLY",
+      "family": "matter_section_hash_tabs_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/MattersSurface.jsx",
+      "source_file_after": "apps/web/src/components/MattersSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "MattersSurface onNavigateSection is App.navigateToView(\"matters\", section), so tabs update the URL hash and activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0048",
+      "label": "일정",
+      "section": "matter-section-tabs",
+      "status": "UI_ONLY",
+      "family": "matter_section_hash_tabs_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/MattersSurface.jsx",
+      "source_file_after": "apps/web/src/components/MattersSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "MattersSurface onNavigateSection is App.navigateToView(\"matters\", section), so tabs update the URL hash and activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0049",
+      "label": "대화",
+      "section": "matter-section-tabs",
+      "status": "UI_ONLY",
+      "family": "matter_section_hash_tabs_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/MattersSurface.jsx",
+      "source_file_after": "apps/web/src/components/MattersSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "MattersSurface onNavigateSection is App.navigateToView(\"matters\", section), so tabs update the URL hash and activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0103",
+      "label": "Client 목록",
+      "section": "client-sidebar",
+      "status": "UI_ONLY",
+      "family": "client_sidebar_hash_routes_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes clients hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0104",
+      "label": "잠재 고객",
+      "section": "client-sidebar",
+      "status": "UI_ONLY",
+      "family": "client_sidebar_hash_routes_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes clients hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0105",
+      "label": "영업 기회",
+      "section": "client-sidebar",
+      "status": "UI_ONLY",
+      "family": "client_sidebar_hash_routes_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes clients hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0106",
+      "label": "상담 접수",
+      "section": "client-sidebar",
+      "status": "UI_ONLY",
+      "family": "client_sidebar_hash_routes_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes clients hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0107",
+      "label": "계정",
+      "section": "client-sidebar",
+      "status": "UI_ONLY",
+      "family": "client_sidebar_hash_routes_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes clients hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0108",
+      "label": "연락처",
+      "section": "client-sidebar",
+      "status": "UI_ONLY",
+      "family": "client_sidebar_hash_routes_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes clients hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0109",
+      "label": "데이터 관리",
+      "section": "client-sidebar",
+      "status": "UI_ONLY",
+      "family": "client_sidebar_hash_routes_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes clients hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0110",
+      "label": "보고서",
+      "section": "client-sidebar",
+      "status": "UI_ONLY",
+      "family": "client_sidebar_hash_routes_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes clients hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0111",
+      "label": "가져오기",
+      "section": "client-sidebar",
+      "status": "UI_ONLY",
+      "family": "client_sidebar_hash_routes_app_side",
+      "trace_depth_before": "ui_state_only",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes clients hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0149",
+      "label": "디렉터리",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "family": "people_sidebar_hash_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes people hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0150",
+      "label": "관계망",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "family": "people_sidebar_hash_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes people hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0151",
+      "label": "충돌·윤리벽",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "family": "people_sidebar_hash_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes people hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0152",
+      "label": "구성원",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "family": "people_sidebar_hash_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes people hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0153",
+      "label": "조직도",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "family": "people_sidebar_hash_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes people hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0154",
+      "label": "휴가",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "family": "people_sidebar_hash_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes people hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0155",
+      "label": "승인",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "family": "people_sidebar_hash_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes people hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0156",
+      "label": "입사·퇴사",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "family": "people_sidebar_hash_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes people hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0157",
+      "label": "채용",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "family": "people_sidebar_hash_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes people hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0158",
+      "label": "인사 문서",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "family": "people_sidebar_hash_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes people hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0159",
+      "label": "인사 정책",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "family": "people_sidebar_hash_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes people hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0160",
+      "label": "활동 기록",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "family": "people_sidebar_hash_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes people hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0161",
+      "label": "권한 관리",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "family": "people_sidebar_hash_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes people hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0162",
+      "label": "급여 정산",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "family": "people_sidebar_hash_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes people hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0163",
+      "label": "인사 현황",
+      "section": "people-sidebar",
+      "status": "UI_ONLY",
+      "family": "people_sidebar_hash_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar receives App.navigateToView and writes people hash section with activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0227",
+      "label": "홈",
+      "section": "profile-sidebar",
+      "status": "UI_ONLY",
+      "family": "profile_sidebar_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar/profile item route reaches App.navigateToView; profile section gaps remain FAIL where UserProfileSurface ignores activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0228",
+      "label": "새 계약 만들기",
+      "section": "profile-sidebar",
+      "status": "UI_ONLY",
+      "family": "profile_sidebar_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar/profile item route reaches App.navigateToView; profile section gaps remain FAIL where UserProfileSurface ignores activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0229",
+      "label": "계약 관리",
+      "section": "profile-sidebar",
+      "status": "UI_ONLY",
+      "family": "profile_sidebar_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar/profile item route reaches App.navigateToView; profile section gaps remain FAIL where UserProfileSurface ignores activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0230",
+      "label": "내 프로필",
+      "section": "profile-sidebar",
+      "status": "UI_ONLY",
+      "family": "profile_sidebar_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar/profile item route reaches App.navigateToView; profile section gaps remain FAIL where UserProfileSurface ignores activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0231",
+      "label": "문서",
+      "section": "profile-sidebar",
+      "status": "UI_ONLY",
+      "family": "profile_sidebar_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar/profile item route reaches App.navigateToView; profile section gaps remain FAIL where UserProfileSurface ignores activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0232",
+      "label": "청구 관리",
+      "section": "profile-sidebar",
+      "status": "UI_ONLY",
+      "family": "profile_sidebar_routes_app_side",
+      "trace_depth_before": "route_navigation",
+      "trace_depth_after": "route_navigation",
+      "source_file_before": "apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "source_file_after": "apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx; apps/web/src/App.jsx",
+      "app_route_effect": "Sidebar/profile item route reaches App.navigateToView; profile section gaps remain FAIL where UserProfileSurface ignores activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0233",
+      "label": "비용 관리",
+      "section": "profile-sidebar-unavailable-sections",
+      "status": "FAIL",
+      "family": "profile_sidebar_routes_app_side",
+      "trace_depth_before": "route_without_section_surface",
+      "trace_depth_after": "route_without_section_surface",
+      "source_file_before": "apps/web/src/App.jsx; apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "source_file_after": "apps/web/src/App.jsx; apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "app_route_effect": "Sidebar/profile item route reaches App.navigateToView; profile section gaps remain FAIL where UserProfileSurface ignores activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0234",
+      "label": "정산 내역",
+      "section": "profile-sidebar-unavailable-sections",
+      "status": "FAIL",
+      "family": "profile_sidebar_routes_app_side",
+      "trace_depth_before": "route_without_section_surface",
+      "trace_depth_after": "route_without_section_surface",
+      "source_file_before": "apps/web/src/App.jsx; apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "source_file_after": "apps/web/src/App.jsx; apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "app_route_effect": "Sidebar/profile item route reaches App.navigateToView; profile section gaps remain FAIL where UserProfileSurface ignores activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0235",
+      "label": "지급 설정",
+      "section": "profile-sidebar-unavailable-sections",
+      "status": "FAIL",
+      "family": "profile_sidebar_routes_app_side",
+      "trace_depth_before": "route_without_section_surface",
+      "trace_depth_after": "route_without_section_surface",
+      "source_file_before": "apps/web/src/App.jsx; apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "source_file_after": "apps/web/src/App.jsx; apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "app_route_effect": "Sidebar/profile item route reaches App.navigateToView; profile section gaps remain FAIL where UserProfileSurface ignores activeSection"
+    },
+    {
+      "id": "LCX8-ACTION-0236",
+      "label": "입금 계좌",
+      "section": "profile-sidebar-unavailable-sections",
+      "status": "FAIL",
+      "family": "profile_sidebar_routes_app_side",
+      "trace_depth_before": "route_without_section_surface",
+      "trace_depth_after": "route_without_section_surface",
+      "source_file_before": "apps/web/src/App.jsx; apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "source_file_after": "apps/web/src/App.jsx; apps/web/src/components/Shell.jsx; apps/web/src/components/UserProfileSurface.jsx",
+      "app_route_effect": "Sidebar/profile item route reaches App.navigateToView; profile section gaps remain FAIL where UserProfileSurface ignores activeSection"
+    }
+  ],
+  "known_gaps_preserved": [
+    {
+      "row_id": "LCX8-ACTION-0280",
+      "status": "FAIL",
+      "reason": "PeopleHome still does not accept or forward liveCtx/ctx to LegalPeopleWorkspace for denied/review directory states."
+    },
+    {
+      "row_ids": [
+        "LCX8-ACTION-0233",
+        "LCX8-ACTION-0234",
+        "LCX8-ACTION-0235",
+        "LCX8-ACTION-0236"
+      ],
+      "status": "FAIL",
+      "reason": "App navigation can write the profile hash, but UserProfileSurface still ignores activeSection for those profile sub-sections."
+    }
+  ],
+  "non_claims": {
+    "production_go_live": false,
+    "public_release": false,
+    "owner_approval": false,
+    "api_write_operational": false,
+    "browser_click_runtime_pass": false
+  },
+  "next_tuw": "P2-T01 Trace Shell.jsx topbar, sidebar, notification, search, and profile actions."
+}

@@ -1,0 +1,140 @@
+{
+  "schema_version": "matter.lcx8.final-browser-verifiers.p9-t04.v1",
+  "generated_at": "2026-06-25T14:52:23.835Z",
+  "status": "FINAL_BROWSER_VERIFIERS_PASS_CURRENT_PRODUCT_BASELINE",
+  "tuw": "P9-T04",
+  "commands": [
+    {
+      "command": "MATTER_UI_URL=http://127.0.0.1:5174 npm run ui:flows:verify",
+      "exit_code": 0,
+      "result": "PASS",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/runtime-flow-verification.json"
+    },
+    {
+      "command": "MATTER_UI_URL=http://127.0.0.1:5174 npm run ui:live:verify",
+      "exit_code": 0,
+      "result": "PASS",
+      "artifact": "docs/lazycodex/evidence/matter-web/artifacts/live-data-verification.json"
+    }
+  ],
+  "flow_passed": true,
+  "flow_failed_checks": [],
+  "live_passed": true,
+  "live_failed_checks": [],
+  "api_server_errors": [],
+  "status_changes": 0,
+  "next_tuw": "P9-T05",
+  "status_counts_after": {
+    "inventory_rows": 324,
+    "unknown": 0,
+    "pass": 10,
+    "guarded": 19,
+    "ui_only": 128,
+    "descriptor_only": 2,
+    "blocked": 122,
+    "fail": 43
+  },
+  "flow_passed_checks": [
+    "desktop-home-command-center",
+    "clients-live",
+    "matters-live",
+    "people-live",
+    "vault-live",
+    "clients-denied",
+    "clients-review",
+    "matters-denied",
+    "vault-denied"
+  ],
+  "live_passed_checks": [
+    "home-command-center-cards",
+    "clients-live-or-unavailable",
+    "clients-denied-visible",
+    "clients-review-visible",
+    "vault-denied-visible",
+    "home-product-axis-state-visible",
+    "matters-live-surface-no-5xx",
+    "people-directory-live-surface-no-5xx",
+    "people-members-live-surface-no-5xx",
+    "vault-live-surface-no-5xx",
+    "client-intake-live-surface-no-5xx",
+    "client-data-cloud-live-surface-no-5xx",
+    "client-reports-live-surface-no-5xx"
+  ],
+  "current_product_baseline": {
+    "source": "apps/web current rendered UI at http://127.0.0.1:5174",
+    "expectation_mode": "current product copy/state plus surface selectors",
+    "flow_checks": [
+      {
+        "name": "desktop-home-command-center",
+        "url": "/?locale=en&view=home&desktop=1&data=live&ctx=allow",
+        "expected_text": "Client, Matter, 구성원, Vault",
+        "selector_found": 1,
+        "text_found": 23
+      },
+      {
+        "name": "clients-live",
+        "url": "/?locale=en&view=clients&data=live&ctx=allow",
+        "expected_text": "Client와 상담 접수",
+        "selector_found": 1,
+        "text_found": 1
+      },
+      {
+        "name": "matters-live",
+        "url": "/?locale=en&view=matters&data=live&ctx=allow",
+        "expected_text": "Matter 상태, 구성원, 문서, 활동, 청구 흐름",
+        "selector_found": 1,
+        "text_found": 1
+      },
+      {
+        "name": "people-live",
+        "url": "/?locale=en&view=people&data=live&ctx=allow",
+        "expected_text": "구성원 관리",
+        "selector_found": 1,
+        "text_found": 1
+      },
+      {
+        "name": "vault-live",
+        "url": "/?locale=en&view=vault&data=live&ctx=allow",
+        "expected_text": "Vault 문서와 권한 상태",
+        "selector_found": 1,
+        "text_found": 1
+      },
+      {
+        "name": "clients-denied",
+        "url": "/?locale=en&view=clients&data=live&ctx=denied",
+        "expected_text": "접근 권한이 없습니다, 권한이 있는 Client만 표시합니다",
+        "selector_found": 1,
+        "text_found": 2
+      },
+      {
+        "name": "clients-review",
+        "url": "/?locale=en&view=clients&data=live&ctx=review",
+        "expected_text": "검토가 필요합니다, 검토가 끝나면 Client 정보를 확인할 수 있습니다",
+        "selector_found": 1,
+        "text_found": 2
+      },
+      {
+        "name": "matters-denied",
+        "url": "/?locale=en&view=matters&data=live&ctx=denied",
+        "expected_text": "접근 권한이 없습니다, 권한이 있는 정보만 표시됩니다",
+        "selector_found": 1,
+        "text_found": 2
+      },
+      {
+        "name": "vault-denied",
+        "url": "/?locale=en&view=vault&data=live&ctx=denied",
+        "expected_text": "접근 권한이 없습니다, 권한이 있는 정보만 표시됩니다",
+        "selector_found": 1,
+        "text_found": 2
+      }
+    ]
+  },
+  "resolved_closeout_blocker": {
+    "id": "LCX8-P9-BLOCKER-FLOW-VERIFY-001",
+    "severity": "high",
+    "status": "resolved",
+    "resolved_at": "2026-06-25T14:52:23.835Z",
+    "resolution": "Updated ui:flows:verify expected copy/state to the current product UI baseline and reran P9-T04; flow verifier passed 9/9 and live verifier passed 13/13.",
+    "boundary": "This resolves the P9 flow verifier blocker only; production go-live, public release, final go-live decision, launch authorization claim, and real client data migration remain false."
+  }
+}

@@ -1,0 +1,572 @@
+{
+  "schema_version": "law-firm-os.lcx8.people-hrx-local-fields-proof.v0.1",
+  "generated_at": "2026-06-28T07:33:41.692Z",
+  "result": "PASS",
+  "rows": [
+    "LCX8-ACTION-0184",
+    "LCX8-ACTION-0187",
+    "LCX8-ACTION-0188",
+    "LCX8-ACTION-0189",
+    "LCX8-ACTION-0190",
+    "LCX8-ACTION-0191",
+    "LCX8-ACTION-0193",
+    "LCX8-ACTION-0198",
+    "LCX8-ACTION-0199",
+    "LCX8-ACTION-0200",
+    "LCX8-ACTION-0205",
+    "LCX8-ACTION-0206",
+    "LCX8-ACTION-0207",
+    "LCX8-ACTION-0211",
+    "LCX8-ACTION-0212",
+    "LCX8-ACTION-0213",
+    "LCX8-ACTION-0214"
+  ],
+  "scope": {
+    "local_browser_runtime": true,
+    "web_origin": "http://127.0.0.1:5174",
+    "trace_depths": [
+      "ui_state_only"
+    ],
+    "status_decision": "UI_ONLY final classification; status remains UI_ONLY",
+    "persistence_claim": false,
+    "api_write_claim": false,
+    "external_receipt_claim": false,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "source_trace": {
+    "workforce_directory": "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx STATUS_TABS, org view toggle, and search input local React state",
+    "leave_request_page": "apps/web/src/people/leave/LeaveRequestPage.tsx amount/start_date/end_date form state; submit row owns HRX write boundary",
+    "policy_console": "apps/web/src/admin/hrx/HRXPolicyConsole.tsx policy form state; submit row owns HRX write boundary",
+    "payroll_boundary": "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx payroll form state; preview/approve/export rows own HRX write boundary"
+  },
+  "rowProofs": [
+    {
+      "id": "LCX8-ACTION-0184",
+      "kind": "org_view",
+      "ledger_label": "조직도",
+      "product_label": "조직",
+      "reconciliation": "ledger label 조직도 maps to current visible 조직 button",
+      "observed_state": "조직 재직 구성원을 부서 기준으로 표시합니다. 미등록 9명 박 박병준 미등록 서 서지원 미등록 조 조성민 미등록 박 박서영 미등록 윤 윤태리 미등록 조 조우상 미등록 임 임영훈 미등록 이 이예진 미등록 김 김양태 미등록",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0184-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0187",
+      "kind": "workforce_tab",
+      "ledger_label": "재직",
+      "product_label": "재직",
+      "reconciliation": null,
+      "observed_state": "active tab: 재직",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0187-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0188",
+      "kind": "workforce_tab",
+      "ledger_label": "입사 예정",
+      "product_label": "입사 예정",
+      "reconciliation": null,
+      "observed_state": "active tab: 입사 예정",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0188-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0189",
+      "kind": "workforce_tab",
+      "ledger_label": "퇴사 예정",
+      "product_label": "퇴사 예정",
+      "reconciliation": null,
+      "observed_state": "active tab: 퇴사 예정",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0189-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0190",
+      "kind": "workforce_tab",
+      "ledger_label": "종료",
+      "product_label": "퇴사",
+      "reconciliation": "ledger label 종료 maps to current visible 퇴사 status tab",
+      "observed_state": "active tab: 퇴사",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0190-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0191",
+      "kind": "workforce_tab",
+      "ledger_label": "외부 협업",
+      "product_label": "계약직",
+      "reconciliation": "ledger label 외부 협업 maps to current visible 계약직 status tab",
+      "observed_state": "active tab: 계약직",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0191-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0193",
+      "kind": "workforce_search",
+      "ledger_label": "구성원 검색",
+      "product_label": "구성원 검색",
+      "reconciliation": null,
+      "observed_state": "search value: 인사",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0193-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0198",
+      "kind": "field",
+      "ledger_label": "시간",
+      "product_label": "시간",
+      "reconciliation": null,
+      "observed_state": "시간: 4",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0198-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0199",
+      "kind": "field",
+      "ledger_label": "시작일",
+      "product_label": "시작일",
+      "reconciliation": null,
+      "observed_state": "시작일: 2026-07-01",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0199-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0200",
+      "kind": "field",
+      "ledger_label": "종료일",
+      "product_label": "종료일",
+      "reconciliation": null,
+      "observed_state": "종료일: 2026-07-01",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0200-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0205",
+      "kind": "field",
+      "ledger_label": "정책 이름",
+      "product_label": "규칙 이름",
+      "reconciliation": "ledger label 정책 이름 maps to current visible 규칙 이름 field",
+      "observed_state": "규칙 이름: approval-rule-local-proof",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0205-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0206",
+      "kind": "field",
+      "ledger_label": "유형",
+      "product_label": "유형",
+      "reconciliation": null,
+      "observed_state": "유형: approval",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0206-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0207",
+      "kind": "field",
+      "ledger_label": "버전",
+      "product_label": "버전",
+      "reconciliation": null,
+      "observed_state": "버전: v-local-proof",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0207-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0211",
+      "kind": "field",
+      "ledger_label": "기간",
+      "product_label": "기간",
+      "reconciliation": null,
+      "observed_state": "기간: 2026-07",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0211-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0212",
+      "kind": "field",
+      "ledger_label": "구성원",
+      "product_label": "구성원",
+      "reconciliation": null,
+      "observed_state": "구성원: 대표 구성원",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0212-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0213",
+      "kind": "field",
+      "ledger_label": "외부 급여 서비스",
+      "product_label": "외부 급여 서비스",
+      "reconciliation": null,
+      "observed_state": "외부 급여 서비스: 외부 미리보기 전용",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0213-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    },
+    {
+      "id": "LCX8-ACTION-0214",
+      "kind": "field",
+      "ledger_label": "문서 참조",
+      "product_label": "문서 참조",
+      "reconciliation": null,
+      "observed_state": "문서 참조: 문서:급여-proof-001",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/lcx8-action-0214-people-hrx-local-fields-proof.png",
+      "status_decision": "UI_ONLY final",
+      "trace_depth": "ui_state_only",
+      "api_write_count_delta": 0,
+      "persistence_claim": false,
+      "api_write_claim": false,
+      "external_receipt_claim": false,
+      "production_ready_claim": false,
+      "go_live_claim": false
+    }
+  ],
+  "assertions": [
+    {
+      "name": "LCX8-ACTION-0184 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "조직 재직 구성원을 부서 기준으로 표시합니다. 미등록 9명 박 박병준 미등록 서 서지원 미등록 조 조성민 미등록 박 박서영 미등록 윤 윤태리 미등록 조 조우상 미등록 임 임영훈 미등록 이 이예진 미등록 김 김양태 미등록",
+        "product_label": "조직"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0187 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "active tab: 재직",
+        "product_label": "재직"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0188 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "active tab: 입사 예정",
+        "product_label": "입사 예정"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0189 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "active tab: 퇴사 예정",
+        "product_label": "퇴사 예정"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0190 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "active tab: 퇴사",
+        "product_label": "퇴사"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0191 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "active tab: 계약직",
+        "product_label": "계약직"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0193 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "search value: 인사",
+        "product_label": "구성원 검색"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0198 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "시간: 4",
+        "product_label": "시간"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0199 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "시작일: 2026-07-01",
+        "product_label": "시작일"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0200 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "종료일: 2026-07-01",
+        "product_label": "종료일"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0205 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "규칙 이름: approval-rule-local-proof",
+        "product_label": "규칙 이름"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0206 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "유형: approval",
+        "product_label": "유형"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0207 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "버전: v-local-proof",
+        "product_label": "버전"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0211 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "기간: 2026-07",
+        "product_label": "기간"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0212 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "구성원: 대표 구성원",
+        "product_label": "구성원"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0213 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "외부 급여 서비스: 외부 미리보기 전용",
+        "product_label": "외부 급여 서비스"
+      }
+    },
+    {
+      "name": "LCX8-ACTION-0214 UI_ONLY final state observed",
+      "passed": true,
+      "details": {
+        "observed_state": "문서 참조: 문서:급여-proof-001",
+        "product_label": "문서 참조"
+      }
+    },
+    {
+      "name": "browser has no page errors",
+      "passed": true,
+      "details": {
+        "pageErrors": []
+      }
+    },
+    {
+      "name": "browser has no unexpected console errors",
+      "passed": true,
+      "details": {
+        "consoleMessages": [],
+        "unexpectedConsoleMessages": []
+      }
+    },
+    {
+      "name": "proof performs no API writes",
+      "passed": true,
+      "details": {
+        "apiWrites": []
+      }
+    },
+    {
+      "name": "proof observes no API 5xx",
+      "passed": true,
+      "details": {
+        "api5xx": []
+      }
+    }
+  ],
+  "consoleMessages": [],
+  "pageErrors": [],
+  "apiRequests": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/employees"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/lifecycle/onboarding"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/lifecycle/offboarding"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/employees"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/employees"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/leave?employee_id=emp_amic_bj_park&policy_id=pto-us"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5174/api/hrx/policies"
+    }
+  ],
+  "apiResponses": [
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/employees"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/lifecycle/onboarding"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/lifecycle/offboarding"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/employees"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/employees"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/leave?employee_id=emp_amic_bj_park&policy_id=pto-us"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/api/hrx/policies"
+    }
+  ],
+  "apiWrites": [],
+  "api5xx": [],
+  "non_claims": [
+    "UI_ONLY local browser state proof only",
+    "no form submit or action button write was performed",
+    "no persistence or reload proof is claimed",
+    "no external provider receipt is claimed",
+    "no production-ready or go-live claim is made"
+  ]
+}

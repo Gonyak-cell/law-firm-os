@@ -1,0 +1,441 @@
+{
+  "schema_version": "matter.lcx8.console-error-ledger.p3-t08.v1",
+  "generated_at": "2026-06-25T12:57:39.317Z",
+  "status": "complete_no_console_errors_observed",
+  "tuw": "P3-T08",
+  "source_plan": "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
+  "source_artifacts": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t04-home.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t06-vault.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t07-people-directory.json"
+  ],
+  "rows_reviewed": 42,
+  "unique_rows_reviewed": 42,
+  "duplicate_ids": [],
+  "total_console_errors": 0,
+  "rows_with_console_errors": 0,
+  "entries": [
+    {
+      "id": "LCX8-ACTION-0036",
+      "label": "새로고침",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t04-home.json",
+      "tuw": "P3-T04",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0036.png"
+    },
+    {
+      "id": "LCX8-ACTION-0037",
+      "label": "Matter 목록",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t04-home.json",
+      "tuw": "P3-T04",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0037.png"
+    },
+    {
+      "id": "LCX8-ACTION-0038",
+      "label": "승인·구성원 확인",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t04-home.json",
+      "tuw": "P3-T04",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0038.png"
+    },
+    {
+      "id": "LCX8-ACTION-0039",
+      "label": "최근 문서 확인",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t04-home.json",
+      "tuw": "P3-T04",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0039.png"
+    },
+    {
+      "id": "LCX8-ACTION-0040",
+      "label": "Client 열기",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t04-home.json",
+      "tuw": "P3-T04",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0040.png"
+    },
+    {
+      "id": "LCX8-ACTION-0041",
+      "label": "Matter 열기",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t04-home.json",
+      "tuw": "P3-T04",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0041.png"
+    },
+    {
+      "id": "LCX8-ACTION-0042",
+      "label": "People 열기",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t04-home.json",
+      "tuw": "P3-T04",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0042.png"
+    },
+    {
+      "id": "LCX8-ACTION-0043",
+      "label": "Vault 열기",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t04-home.json",
+      "tuw": "P3-T04",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t04-home-LCX8-ACTION-0043.png"
+    },
+    {
+      "id": "LCX8-ACTION-0044",
+      "label": "새로고침",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+      "tuw": "P3-T05",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0044.png"
+    },
+    {
+      "id": "LCX8-ACTION-0045",
+      "label": "현황",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+      "tuw": "P3-T05",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0045.png"
+    },
+    {
+      "id": "LCX8-ACTION-0046",
+      "label": "문서",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+      "tuw": "P3-T05",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0046.png"
+    },
+    {
+      "id": "LCX8-ACTION-0047",
+      "label": "활동",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+      "tuw": "P3-T05",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0047.png"
+    },
+    {
+      "id": "LCX8-ACTION-0048",
+      "label": "일정",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+      "tuw": "P3-T05",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0048.png"
+    },
+    {
+      "id": "LCX8-ACTION-0049",
+      "label": "대화",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+      "tuw": "P3-T05",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0049.png"
+    },
+    {
+      "id": "LCX8-ACTION-0050",
+      "label": "Matter panel overflow menu",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+      "tuw": "P3-T05",
+      "observed_result": "FAIL_CONFIRMED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0050.png"
+    },
+    {
+      "id": "LCX8-ACTION-0051",
+      "label": "전체 Matter",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+      "tuw": "P3-T05",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0051.png"
+    },
+    {
+      "id": "LCX8-ACTION-0052",
+      "label": "개시 중",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+      "tuw": "P3-T05",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0052.png"
+    },
+    {
+      "id": "LCX8-ACTION-0053",
+      "label": "종료",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+      "tuw": "P3-T05",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0053.png"
+    },
+    {
+      "id": "LCX8-ACTION-0056",
+      "label": "표시된 Matter 전체 선택",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+      "tuw": "P3-T05",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0056.png"
+    },
+    {
+      "id": "LCX8-ACTION-0057",
+      "label": "Matter row 선택 체크박스",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+      "tuw": "P3-T05",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0057.png"
+    },
+    {
+      "id": "LCX8-ACTION-0058",
+      "label": "Matter record row",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+      "tuw": "P3-T05",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0058.png"
+    },
+    {
+      "id": "LCX8-ACTION-0064",
+      "label": "새로고침",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t05-matter.json",
+      "tuw": "P3-T05",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t05-matter-LCX8-ACTION-0064.png"
+    },
+    {
+      "id": "LCX8-ACTION-0091",
+      "label": "새로고침",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t06-vault.json",
+      "tuw": "P3-T06",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0091.png"
+    },
+    {
+      "id": "LCX8-ACTION-0092",
+      "label": "Vault panel overflow menu",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t06-vault.json",
+      "tuw": "P3-T06",
+      "observed_result": "FAIL_CONFIRMED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0092.png"
+    },
+    {
+      "id": "LCX8-ACTION-0298",
+      "label": "문서함",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t06-vault.json",
+      "tuw": "P3-T06",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0298.png"
+    },
+    {
+      "id": "LCX8-ACTION-0299",
+      "label": "문서 상세",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t06-vault.json",
+      "tuw": "P3-T06",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0299.png"
+    },
+    {
+      "id": "LCX8-ACTION-0300",
+      "label": "메일 보관함",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t06-vault.json",
+      "tuw": "P3-T06",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0300.png"
+    },
+    {
+      "id": "LCX8-ACTION-0301",
+      "label": "Vault 설정",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t06-vault.json",
+      "tuw": "P3-T06",
+      "observed_result": "FAIL_CONFIRMED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0301.png"
+    },
+    {
+      "id": "LCX8-ACTION-0302",
+      "label": "문서 태그",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t06-vault.json",
+      "tuw": "P3-T06",
+      "observed_result": "FAIL_CONFIRMED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0302.png"
+    },
+    {
+      "id": "LCX8-ACTION-0320",
+      "label": "Vault detail panel overflow menus",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t06-vault.json",
+      "tuw": "P3-T06",
+      "observed_result": "FAIL_CONFIRMED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0320.png"
+    },
+    {
+      "id": "LCX8-ACTION-0321",
+      "label": "Vault email panel overflow menu",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t06-vault.json",
+      "tuw": "P3-T06",
+      "observed_result": "FAIL_CONFIRMED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t06-vault-LCX8-ACTION-0321.png"
+    },
+    {
+      "id": "LCX8-ACTION-0093",
+      "label": "새로고침",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t07-people-directory.json",
+      "tuw": "P3-T07",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0093.png"
+    },
+    {
+      "id": "LCX8-ACTION-0094",
+      "label": "Legal People panel overflow menu",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t07-people-directory.json",
+      "tuw": "P3-T07",
+      "observed_result": "FAIL_CONFIRMED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0094.png"
+    },
+    {
+      "id": "LCX8-ACTION-0095",
+      "label": "이름, 역할, 조직 검색",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t07-people-directory.json",
+      "tuw": "P3-T07",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0095.png"
+    },
+    {
+      "id": "LCX8-ACTION-0096",
+      "label": "전체",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t07-people-directory.json",
+      "tuw": "P3-T07",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0096.png"
+    },
+    {
+      "id": "LCX8-ACTION-0097",
+      "label": "내부 변호사",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t07-people-directory.json",
+      "tuw": "P3-T07",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0097.png"
+    },
+    {
+      "id": "LCX8-ACTION-0098",
+      "label": "Client",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t07-people-directory.json",
+      "tuw": "P3-T07",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0098.png"
+    },
+    {
+      "id": "LCX8-ACTION-0099",
+      "label": "상대 대리인",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t07-people-directory.json",
+      "tuw": "P3-T07",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0099.png"
+    },
+    {
+      "id": "LCX8-ACTION-0100",
+      "label": "전문가",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t07-people-directory.json",
+      "tuw": "P3-T07",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0100.png"
+    },
+    {
+      "id": "LCX8-ACTION-0101",
+      "label": "규제기관",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t07-people-directory.json",
+      "tuw": "P3-T07",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0101.png"
+    },
+    {
+      "id": "LCX8-ACTION-0102",
+      "label": "Legal person row",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t07-people-directory.json",
+      "tuw": "P3-T07",
+      "observed_result": "PASS_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0102.png"
+    },
+    {
+      "id": "LCX8-ACTION-0149",
+      "label": "디렉터리",
+      "source_artifact": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-browser-action-qa-p3-t07-people-directory.json",
+      "tuw": "P3-T07",
+      "observed_result": "FAIL_OBSERVED",
+      "console_error_count": 0,
+      "console_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx8-action-screenshots/p3-t07-people-directory-LCX8-ACTION-0149.png"
+    }
+  ],
+  "next_tuw": "P3-T09 Record network responses per action"
+}

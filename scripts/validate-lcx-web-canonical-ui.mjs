@@ -43,7 +43,8 @@ assert.match(sourcePlan, /public release: false/);
 assert.match(sourcePlan, /owner approval: false/);
 
 const appSource = read("apps/web/src/App.jsx");
-assert.match(appSource, /<HomeSurface[\s\S]*liveCtx=\{initialLiveCtx\}/);
+assert.match(appSource, /const \[liveCtx, setLiveCtx\] = useState\(initialLiveCtx\)/);
+assert.match(appSource, /<HomeSurface[\s\S]*liveCtx=\{liveCtx\}/);
 
 const capabilityMap = read("apps/web/src/data/capabilityMap.js");
 const requiredCapabilityIds = ["client", "matter", "people", "vault"];
@@ -84,7 +85,7 @@ for (const removedRoute of ["portal", "readiness", "ops", "intake", "finance", "
 }
 assert.match(shellSource, /Client/);
 assert.match(shellSource, /Matter/);
-assert.match(shellSource, /People/);
+assert.match(shellSource, /구성원/);
 assert.match(shellSource, /Vault/);
 
 const offline = read("apps/desktop/src/renderer/offline.html");

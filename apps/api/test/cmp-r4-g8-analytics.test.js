@@ -107,6 +107,16 @@ test("G8 refresh and profitability writes persist across restart", async () => {
   }, { analyticsStorePath });
 });
 
+test("G8 report audit collection route is not shadowed by report definition route", async () => {
+  await withServer(async (baseUrl) => {
+    const audit = await json(baseUrl, `/api/reports/audit?${BASE_QUERY}`);
+    assert.equal(audit.status, 200);
+    assert.equal(audit.body.outcome, "passed");
+    assert.equal(audit.body.production_ready_claim, false);
+    assert.deepEqual(audit.body.safe_error_codes, []);
+  });
+});
+
 test("G8 export control requires permission and never exposes credential material", async () => {
   await withServer(async (baseUrl) => {
     const blocked = await json(baseUrl, "/api/analytics/exports", {
