@@ -1,0 +1,142 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.production_deploy_success_receipt.v0.1",
+  "program_id": "LCX-HRX-SFT Production Rollout",
+  "recorded_at": "2026-06-28T12:37:00Z",
+  "source": {
+    "runtime_deploy_commit": "8f2203337dc46d54eba545f5d5cd461ce97b3576",
+    "runtime_deploy_ref": "origin/main",
+    "included_prs": [
+      {
+        "number": 127,
+        "url": "https://github.com/Gonyak-cell/law-firm-os/pull/127",
+        "purpose": "HRX People production rollout implementation"
+      },
+      {
+        "number": 128,
+        "url": "https://github.com/Gonyak-cell/law-firm-os/pull/128",
+        "purpose": "AWS SSO deploy blocker receipt"
+      }
+    ]
+  },
+  "aws_identity": {
+    "account": "770880870480",
+    "assumed_role_arn": "arn:aws:sts::770880870480:assumed-role/matter-prod-deploy-admin/botocore-session-1782649897",
+    "profile": "matter-prod-deploy-admin",
+    "region": "ap-northeast-2"
+  },
+  "web_deployment": {
+    "bucket": "matter-lawos-web-prod-770880870480-apne2",
+    "s3_sync_executed": true,
+    "s3_sync_deleted_old_assets": [
+      "assets/index-C2Ua2xtd.css",
+      "assets/index-DkkNhVAW.js"
+    ],
+    "s3_sync_uploaded_assets": [
+      "assets/index-BrLnLC97.js",
+      "assets/index-x40NzoCF.css",
+      "assets/matter-mark-Cc_2F105.svg",
+      "assets/parnas-tower-login-Dogx2L0o.jpg",
+      "index.html"
+    ],
+    "cloudfront_distribution_id": "E3MVAKX2DIR3CS",
+    "cloudfront_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "cloudfront_invalidation_id": "ICBFL9E6B0TGKCC1D8GBD0PJ5O",
+    "cloudfront_invalidation_status": "Completed",
+    "root_status": 200,
+    "root_last_modified": "Sun, 28 Jun 2026 12:33:23 GMT",
+    "root_etag": "\"05744ed80866c3de5348bbd5c129f313\"",
+    "root_asset_js": "assets/index-BrLnLC97.js",
+    "root_asset_css": "assets/index-x40NzoCF.css"
+  },
+  "api_deployment": {
+    "lambda_function_name": "matter-lawos-api-prod",
+    "lambda_runtime": "nodejs22.x",
+    "lambda_last_modified": "2026-06-28T12:35:34.000+0000",
+    "lambda_state": "Active",
+    "lambda_last_update_status": "Successful",
+    "lambda_code_sha256": "9SSle1IBNKzEGX8lmO3oER/jwN4dvX4TU87sb8Iv8HU=",
+    "lambda_environment": {
+      "LAWOS_DEPLOYMENT_COMMIT": "8f2203337dc46d54eba545f5d5cd461ce97b3576",
+      "LAWOS_DEPLOYMENT_MODE": "aws_lambda_function_url"
+    },
+    "zip_packaging": {
+      "zip_path": "/tmp/matter-lawos-api-prod-8f2203337-full.zip",
+      "included_runtime_roots": [
+        "apps/api/src",
+        "apps/api/package.json",
+        "packages",
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json"
+      ],
+      "recovery_note": "Initial minimal zip returned 502 because packages/hrx runtime imports were missing; redeployed full runtime package and health recovered."
+    }
+  },
+  "pre_deploy_validation": {
+    "npm_--workspace_apps_api_test": {
+      "status": "PASS",
+      "tests": 195,
+      "failed": 0
+    },
+    "npm_--workspace_apps_web_run_build": {
+      "status": "PASS",
+      "asset_js": "assets/index-BrLnLC97.js",
+      "asset_css": "assets/index-x40NzoCF.css"
+    },
+    "npm_run_lcx_hrx_sft_production_rollout_validate": "PASS"
+  },
+  "production_smoke": {
+    "api_health_status": 200,
+    "hrx_employees_status": 200,
+    "hrx_employees_roster_source_ref": "hrx-member-roster-source-of-truth",
+    "hrx_employees_sample": {
+      "display_name": "김양태",
+      "title": "대표이사",
+      "affiliation": "PETRA BRIDGE PARTNERS",
+      "department": "Finance",
+      "organization_group": "PETRA BRIDGE"
+    },
+    "people_external_schedule_route": "https://d2mthcc8vp3cr2.cloudfront.net/?locale=ko&view=people&data=live&ctx=allow#people-work-schedule-external",
+    "people_external_schedule_required_terms_visible": {
+      "People": true,
+      "구성원": true,
+      "근무일정": true,
+      "외부일정": true,
+      "법원": true,
+      "우체국": true,
+      "검찰": true,
+      "세무서": true,
+      "관청": true
+    },
+    "removed_people_terms_visible": {
+      "법률 People": false,
+      "디렉터리": false,
+      "관계망": false,
+      "충돌·윤리벽": false,
+      "충돌/벽": false,
+      "활동 기록": false,
+      "인사 현황": false,
+      "권한 관리": false
+    },
+    "people_detail_drawer_parity": {
+      "same_width": true,
+      "same_right_edge": true,
+      "same_animation": true,
+      "detail_width": 440,
+      "notification_width": 440,
+      "animation_name": "notification-drawer-in",
+      "detail_text_has_roster_source": true
+    },
+    "browser_api_5xx_count": 0,
+    "browser_page_errors": [],
+    "browser_unexpected_console_messages": []
+  },
+  "claim_boundary": {
+    "production_deployed": true,
+    "production_ready": false,
+    "go_live_approved": false,
+    "staging_deployed": false,
+    "staging_validated": false,
+    "payroll_provider_live": false,
+    "electronic_contract_provider_live": false
+  }
+}

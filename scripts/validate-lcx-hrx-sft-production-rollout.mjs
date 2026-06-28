@@ -19,11 +19,15 @@ const ledgerPath = "docs/lazycodex/people-reflection/lcx-hrx-sft-production-exec
 const planPath = "docs/lazycodex/people-reflection/lcx-hrx-sft-production-rollout-tuw-plan-2026-06-28.md";
 const navigationBrowserProofPath = "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-navigation-browser-proof.json";
 const localBrowserProofPath = "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-local-browser-proof-2026-06-28.json";
+const productionDeploySuccessReceiptPath = "docs/lazycodex/people-reflection/lcx-hrx-sft-production-deploy-success-receipt-2026-06-28.json";
 const packageJson = readJson("package.json");
 const ledger = readJson(ledgerPath);
 const plan = read(planPath);
 const navigationBrowserProof = readJson(navigationBrowserProofPath);
 const localBrowserProof = readJson(localBrowserProofPath);
+const productionDeploySuccessReceipt = fileExists(productionDeploySuccessReceiptPath)
+  ? readJson(productionDeploySuccessReceiptPath)
+  : null;
 
 const expectedIds = Array.from({ length: 21 }, (_, index) => `LCX-HRX-PROD-${String(index).padStart(2, "0")}`);
 const tuwIds = ledger.tuws.map((tuw) => tuw.id);
@@ -38,7 +42,11 @@ for (const id of expectedIds) {
 }
 
 for (const [claim, value] of Object.entries(ledger.claim_boundary)) {
-  assert.equal(value, false, `${claim} must remain false until its external receipt exists`);
+  if (claim === "production_deployed" && productionDeploySuccessReceipt) {
+    assert.equal(value, true, "production_deployed may be true only with the production deploy success receipt");
+  } else {
+    assert.equal(value, false, `${claim} must remain false until its external receipt exists`);
+  }
 }
 
 const tuwById = new Map(ledger.tuws.map((tuw) => [tuw.id, tuw]));
@@ -53,9 +61,21 @@ if (tuw11?.status === "done-remote") {
   assert.equal(tuw11.production_claims_remain_false, true);
   assert.equal(tuw11.go_live_claim_remains_false, true);
 }
-for (const id of expectedIds.slice(12)) {
+const blockedAfterRelease = productionDeploySuccessReceipt
+  ? expectedIds.slice(12, 18)
+  : expectedIds.slice(12);
+for (const id of blockedAfterRelease) {
   assert.equal(tuwById.get(id)?.status, "blocked", `${id} must remain blocked until its upstream external receipt exists`);
   assert.ok(tuwById.get(id)?.blocked_by, `${id} requires a blocked_by explanation`);
+}
+if (productionDeploySuccessReceipt) {
+  for (const id of expectedIds.slice(18)) {
+    assert.equal(tuwById.get(id)?.status, "done-remote", `${id} must be done-remote when production deployment succeeded`);
+    assert.ok(
+      tuwById.get(id)?.proof?.includes(productionDeploySuccessReceiptPath),
+      `${id} must cite the production deploy success receipt`
+    );
+  }
 }
 
 const proofPaths = new Set();
@@ -110,11 +130,50 @@ assert.deepEqual(localBrowserProof.page_errors, []);
 assert.ok(localBrowserProof.non_claims.includes("no production deployment claim"));
 assert.ok(localBrowserProof.non_claims.includes("no go-live approval claim"));
 
+if (productionDeploySuccessReceipt) {
+  assert.equal(productionDeploySuccessReceipt.schema_version, "lawos.lcx_hrx_sft.production_deploy_success_receipt.v0.1");
+  assert.equal(productionDeploySuccessReceipt.source.runtime_deploy_ref, "origin/main");
+  assert.match(productionDeploySuccessReceipt.source.runtime_deploy_commit, /^[0-9a-f]{40}$/);
+  assert.equal(productionDeploySuccessReceipt.web_deployment.s3_sync_executed, true);
+  assert.equal(productionDeploySuccessReceipt.web_deployment.cloudfront_invalidation_status, "Completed");
+  assert.equal(productionDeploySuccessReceipt.web_deployment.root_status, 200);
+  assert.equal(productionDeploySuccessReceipt.web_deployment.root_asset_js, "assets/index-BrLnLC97.js");
+  assert.equal(productionDeploySuccessReceipt.web_deployment.root_asset_css, "assets/index-x40NzoCF.css");
+  assert.equal(productionDeploySuccessReceipt.api_deployment.lambda_state, "Active");
+  assert.equal(productionDeploySuccessReceipt.api_deployment.lambda_last_update_status, "Successful");
+  assert.equal(
+    productionDeploySuccessReceipt.api_deployment.lambda_environment.LAWOS_DEPLOYMENT_COMMIT,
+    productionDeploySuccessReceipt.source.runtime_deploy_commit
+  );
+  assert.equal(productionDeploySuccessReceipt.production_smoke.api_health_status, 200);
+  assert.equal(productionDeploySuccessReceipt.production_smoke.hrx_employees_status, 200);
+  assert.equal(productionDeploySuccessReceipt.production_smoke.hrx_employees_roster_source_ref, "hrx-member-roster-source-of-truth");
+  assert.equal(productionDeploySuccessReceipt.production_smoke.people_external_schedule_required_terms_visible["외부일정"], true);
+  assert.equal(productionDeploySuccessReceipt.production_smoke.people_external_schedule_required_terms_visible["법원"], true);
+  assert.equal(productionDeploySuccessReceipt.production_smoke.people_external_schedule_required_terms_visible["검찰"], true);
+  assert.equal(productionDeploySuccessReceipt.production_smoke.people_external_schedule_required_terms_visible["우체국"], true);
+  assert.equal(productionDeploySuccessReceipt.production_smoke.people_external_schedule_required_terms_visible["세무서"], true);
+  assert.equal(productionDeploySuccessReceipt.production_smoke.people_external_schedule_required_terms_visible["관청"], true);
+  for (const visible of Object.values(productionDeploySuccessReceipt.production_smoke.removed_people_terms_visible)) {
+    assert.equal(visible, false, "removed People label must not be visible in production smoke");
+  }
+  assert.equal(productionDeploySuccessReceipt.production_smoke.people_detail_drawer_parity.same_width, true);
+  assert.equal(productionDeploySuccessReceipt.production_smoke.people_detail_drawer_parity.same_right_edge, true);
+  assert.equal(productionDeploySuccessReceipt.production_smoke.people_detail_drawer_parity.same_animation, true);
+  assert.equal(productionDeploySuccessReceipt.production_smoke.browser_api_5xx_count, 0);
+  assert.deepEqual(productionDeploySuccessReceipt.production_smoke.browser_page_errors, []);
+  assert.deepEqual(productionDeploySuccessReceipt.production_smoke.browser_unexpected_console_messages, []);
+  assert.equal(productionDeploySuccessReceipt.claim_boundary.production_deployed, true);
+  assert.equal(productionDeploySuccessReceipt.claim_boundary.production_ready, false);
+  assert.equal(productionDeploySuccessReceipt.claim_boundary.go_live_approved, false);
+}
+
 console.log(JSON.stringify({
   verdict: "PASS",
   program_id: ledger.program_id,
   tuw_count: ledger.tuws.length,
   done_local: ledger.tuws.filter((tuw) => tuw.status === "done-local").length,
+  done_remote: ledger.tuws.filter((tuw) => tuw.status === "done-remote").length,
   ready: ledger.tuws.filter((tuw) => tuw.status === "ready").length,
   blocked: ledger.tuws.filter((tuw) => tuw.status === "blocked").length,
   production_ready: ledger.claim_boundary.production_ready,
