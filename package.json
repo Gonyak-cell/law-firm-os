@@ -153,6 +153,7 @@
     "lcx:hrx-sft:roster:validate": "node scripts/validate-lcx-hrx-sft-roster-source.mjs",
     "lcx:hrx-sft:validate": "node scripts/validate-lcx-hrx-sft-completion.mjs",
     "lcx:hrx-sft:production-rollout:validate": "node scripts/validate-lcx-hrx-sft-production-rollout.mjs",
+    "hrx:production:smoke": "node scripts/smoke-hrx-production.mjs",
     "hrx:ai:validate": "node scripts/validate-hrx-ai-analytics.mjs",
     "hrx:security:validate": "node scripts/validate-hrx-security-negative-tests.mjs",
     "hrx:enterprise:validate": "node scripts/validate-hrx-enterprise-readiness.mjs",

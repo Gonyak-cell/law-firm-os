@@ -1,0 +1,93 @@
+{
+  "schema_version": "lawos.lcx_hrx_provider_boundary_next_people_queue.v0.1",
+  "recorded_at": "2026-06-28T14:25:00Z",
+  "provider_live_boundary": {
+    "payroll_provider_live": false,
+    "payroll_execution_enabled": false,
+    "payroll_export_live_transfer_enabled": false,
+    "electronic_contract_provider_live": false,
+    "electronic_signature_send_enabled": false,
+    "provider_credentials_present_in_repo": false,
+    "provider_live_claim_allowed": false,
+    "reason": "Current production scope allows HRX People UI, roster, lifecycle, read models, and guarded previews. Real payroll transfer or e-sign send requires separate provider credentials, contract setup, UAT receipt, and go-live approval."
+  },
+  "post_public_ops_completed": [
+    {
+      "id": "PPO-01",
+      "name": "repo visibility and security posture",
+      "status": "done",
+      "evidence": "docs/lazycodex/people-reflection/lcx-post-public-ops-hardening-receipt-2026-06-28.json"
+    },
+    {
+      "id": "PPO-02",
+      "name": "main branch protection",
+      "status": "done",
+      "evidence": "docs/lazycodex/people-reflection/lcx-post-public-ops-hardening-receipt-2026-06-28.json"
+    },
+    {
+      "id": "PPO-03",
+      "name": "production HRX smoke monitor",
+      "status": "done",
+      "evidence": [
+        "scripts/smoke-hrx-production.mjs",
+        ".github/workflows/production-smoke.yml"
+      ]
+    }
+  ],
+  "next_people_product_queue": [
+    {
+      "id": "PEOPLE-01",
+      "surface": "구성원",
+      "intent": "구성원 명단, 상세 패널, 입사 예정/퇴사 예정/계약직/재직 필터를 roster source of truth 기준으로 계속 확장한다.",
+      "default_state": "enabled"
+    },
+    {
+      "id": "PEOPLE-02",
+      "surface": "근무일정",
+      "intent": "출퇴근기록, 휴게시간, 출퇴근 인증, 현재 근무 상황, 법원/우체국/검찰/세무서/관청 외부일정을 같은 일정 축에서 관리한다.",
+      "default_state": "enabled"
+    },
+    {
+      "id": "PEOPLE-03",
+      "surface": "휴가",
+      "intent": "휴가 그룹/유형, 자동 발생, 수동 발생, 보상휴가, 사용 내역, 월별 조회, 엑셀 다운로드를 도입한다.",
+      "default_state": "enabled"
+    },
+    {
+      "id": "PEOPLE-04",
+      "surface": "요청 / 전자결재",
+      "intent": "승인권자, 승인 규칙, 자동승인, 커스텀 요청, 증명서 발급 요청, 비용 처리 요청, 순차/상황별 승인을 도입한다.",
+      "default_state": "enabled"
+    },
+    {
+      "id": "PEOPLE-05",
+      "surface": "리포트",
+      "intent": "실시간 리포트, 스냅샷, 표준화 규칙, 커스텀 항목, 주의 필요 항목, 조직 필터, 기간별 근무 데이터를 도입한다.",
+      "default_state": "enabled"
+    },
+    {
+      "id": "PEOPLE-06",
+      "surface": "마감 및 급여",
+      "intent": "마감 관리, 급여정산, 연장/야간/휴일/주휴수당, 최저임금, 소정근로요일, 근로정보 기반 정산을 guarded preview로 둔다.",
+      "default_state": "disabled_until_provider_live"
+    },
+    {
+      "id": "PEOPLE-07",
+      "surface": "메시지",
+      "intent": "메시지 전송, 자동화 규칙, 템플릿, 사내 공지사항, 근태 알림, 미승인 요청 알림을 도입한다.",
+      "default_state": "enabled"
+    },
+    {
+      "id": "PEOPLE-08",
+      "surface": "전자계약",
+      "intent": "전자계약 전송, 템플릿, 모두싸인/글로싸인 연동, 서명 차수, 유효기간, 근로계약서, 연차휴가 사용 촉진 문서를 guarded preview로 둔다.",
+      "default_state": "disabled_until_provider_live"
+    },
+    {
+      "id": "PEOPLE-09",
+      "surface": "회사 설정",
+      "intent": "일반, 알림, 권한, 조직, 구성원, 근무일정, 출퇴근기록, 휴게시간, 휴가, 요청, 메시지, 전자계약, 리포트, 급여, 보안, 연동 설정을 관리한다.",
+      "default_state": "enabled"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+name: Production Smoke
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17,47 * * * *"
+  pull_request:
+    paths:
+      - ".github/workflows/production-smoke.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "scripts/smoke-hrx-production.mjs"
+      - "docs/lazycodex/people-reflection/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/production-smoke.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "scripts/smoke-hrx-production.mjs"
+      - "docs/lazycodex/people-reflection/**"
+
+permissions:
+  contents: read
+
+jobs:
+  production-smoke:
+    name: Production HRX smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Production HRX smoke
+        run: npm run hrx:production:smoke
