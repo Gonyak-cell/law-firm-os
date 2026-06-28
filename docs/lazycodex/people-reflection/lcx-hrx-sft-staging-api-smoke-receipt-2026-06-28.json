@@ -1,0 +1,58 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.staging_api_smoke_receipt.v0.1",
+  "program_id": "LCX-HRX-SFT Production Rollout",
+  "tuw_id": "LCX-HRX-PROD-14",
+  "recorded_at": "2026-06-28T13:37:26.856Z",
+  "base_url": "https://d4l5xmvrfsx5b.cloudfront.net",
+  "request_context": {
+    "tenant_header": "x-lawos-tenant-id",
+    "actor_header": "x-lawos-actor-id",
+    "role_header": "x-lawos-actor-role",
+    "scope_header": "x-lawos-hrx-scopes",
+    "tenant_id": "tenant_amic_matter_vault",
+    "actor_id": "staging-smoke-user",
+    "actor_role": "security_admin,hr_admin,people_ops",
+    "scopes": "hrx.employee.read,hrx.schedule.read,hrx.document.read,hrx.lifecycle.read"
+  },
+  "web_root": {
+    "status": 200,
+    "asset_js": "assets/index-BrLnLC97.js",
+    "asset_css": "assets/index-x40NzoCF.css"
+  },
+  "api_health": {
+    "status": 200,
+    "service": "@law-firm-os/api"
+  },
+  "hrx_employees": {
+    "status": 200,
+    "count": 9,
+    "sample": {
+      "display_name": "김양태",
+      "title": "대표이사",
+      "affiliation": "PETRA BRIDGE PARTNERS",
+      "department": "Finance",
+      "organization_group": "PETRA BRIDGE",
+      "source_ref": "hrx-member-roster-source-of-truth"
+    }
+  },
+  "hrx_lifecycle": {
+    "onboarding_status": 200,
+    "onboarding_count": 1,
+    "offboarding_status": 200,
+    "offboarding_count": 1
+  },
+  "negative_security_smoke": {
+    "missing_context_status": 400,
+    "missing_context_safe_error_code": "HRX_TENANT_CONTEXT_REQUIRED",
+    "documents_missing_scope_status": 403,
+    "documents_missing_scope_safe_error_code": "HRX_AUTHZ_DENIED",
+    "documents_required_scope": "hrx.document.read"
+  },
+  "claim_boundary": {
+    "staging_validated": true,
+    "production_ready": false,
+    "go_live_approved": false,
+    "payroll_provider_live": false,
+    "electronic_contract_provider_live": false
+  }
+}

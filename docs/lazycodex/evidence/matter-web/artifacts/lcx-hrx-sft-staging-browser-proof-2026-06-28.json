@@ -1,0 +1,56 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.staging_browser_proof.v0.1",
+  "generated_at": "2026-06-28T13:33:39.043Z",
+  "verdict": "PASS",
+  "base_url": "https://d4l5xmvrfsx5b.cloudfront.net",
+  "routes": {
+    "external_schedule": "https://d4l5xmvrfsx5b.cloudfront.net/?locale=ko&view=people&data=live&ctx=allow#people-work-schedule-external",
+    "lifecycle": "https://d4l5xmvrfsx5b.cloudfront.net/?locale=ko&view=people&data=live&ctx=allow#people-lifecycle",
+    "members": "https://d4l5xmvrfsx5b.cloudfront.net/?locale=ko&view=people&data=live&ctx=allow#people-members"
+  },
+  "checks": {
+    "external_schedule_required_terms": {
+      "People": true,
+      "구성원": true,
+      "근무일정": true,
+      "외부일정": true,
+      "법원": true,
+      "우체국": true,
+      "검찰": true,
+      "세무서": true,
+      "관청": true
+    },
+    "removed_terms_visible": {
+      "법률 People": false,
+      "디렉터리": false,
+      "관계망": false,
+      "충돌·윤리벽": false,
+      "충돌/벽": false,
+      "활동 기록": false,
+      "인사 현황": false,
+      "권한 관리": false
+    },
+    "lifecycle_has_clean_layout_terms": true,
+    "members_has_roster_source_terms": true,
+    "drawer_parity": {
+      "same_width": true,
+      "same_right_edge": true,
+      "same_animation": true,
+      "detail_width": 440,
+      "notification_width": 440,
+      "detail_animation": "notification-drawer-in",
+      "notification_animation": "notification-drawer-in",
+      "detail_text_has_roster_source": true,
+      "detail_text_excerpt": "구성원 상세 선택됨 권한이 없는 정보는 숨깁니다. 구성원 김양태 상태 재직 역할 대표이사 고용 형태 정규직 소속 PETRA BRIDGE PARTNERS 부서 Finance 조직 PETRA BRIDGE 보상 정보 권한 필요"
+    }
+  },
+  "api_5xx_count": 0,
+  "page_errors": [],
+  "unexpected_console_messages": [],
+  "screenshots": {
+    "external_schedule": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/staging/people-work-schedule-external-staging-proof.png",
+    "lifecycle": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/staging/people-lifecycle-staging-proof.png",
+    "people_detail_drawer": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/staging/people-detail-drawer-staging-proof.png",
+    "notification_drawer": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/staging/notification-drawer-staging-proof.png"
+  }
+}

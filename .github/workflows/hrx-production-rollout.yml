@@ -1,0 +1,71 @@
+name: HRX Production Rollout
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/hrx-production-rollout.yml"
+      - "apps/api/**"
+      - "apps/web/**"
+      - "docs/lazycodex/**"
+      - "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json"
+      - "package.json"
+      - "package-lock.json"
+      - "packages/**"
+      - "scripts/validate-hrx-*.mjs"
+      - "scripts/validate-lcx-hrx-sft-*.mjs"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/hrx-production-rollout.yml"
+      - "apps/api/**"
+      - "apps/web/**"
+      - "docs/lazycodex/**"
+      - "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json"
+      - "package.json"
+      - "package-lock.json"
+      - "packages/**"
+      - "scripts/validate-hrx-*.mjs"
+      - "scripts/validate-lcx-hrx-sft-*.mjs"
+
+permissions:
+  contents: read
+
+jobs:
+  hrx-production-rollout:
+    name: HRX rollout validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: API tests
+        run: npm --workspace apps/api test
+
+      - name: Web UI regression tests
+        run: npm --workspace apps/web run test:ui
+
+      - name: Web build
+        run: npm --workspace apps/web run build
+
+      - name: HRX UI validator
+        run: npm run hrx:ui:validate
+
+      - name: People UI validator
+        run: npm run lcx:ppl:ui:validate
+
+      - name: HRX Shiftee feature rollout validator
+        run: npm run lcx:hrx-sft:validate
+
+      - name: HRX production rollout validator
+        run: npm run lcx:hrx-sft:production-rollout:validate
