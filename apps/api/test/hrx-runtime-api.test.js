@@ -87,6 +87,17 @@ test("GET /api/hrx/employees returns synthetic API-backed employee rows", async 
   assert.equal(body.outcome, "ok");
   assert.equal(body.employees.length, 9);
   assert.equal(body.employees[0].tenant_id, "tenant_amic_matter_vault");
+  assert.deepEqual(body.employees.map((employee) => employee.display_name), [
+    "김양태",
+    "박병준",
+    "박서영",
+    "서지원",
+    "윤태리",
+    "이예진",
+    "임영훈",
+    "조성민",
+    "조우상",
+  ]);
   assert.ok(body.employees.every((employee) => employee.source_ref === HRX_MEMBER_ROSTER_SOURCE_REF));
   assert.ok(body.employees.some((employee) => employee.work_email === "jwsuh@amic.kr"));
   assert.ok(body.employees.some((employee) => employee.display_name === "김양태" && employee.title === "대표이사"));
