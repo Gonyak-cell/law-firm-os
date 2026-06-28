@@ -57,6 +57,7 @@ const MEMBER_ROSTER = listHrxMemberRosterRows();
 const MEMBER_ROSTER_BY_USER_ID = new Map(MEMBER_ROSTER.map((member) => [member.user_id, member]));
 const MEMBER_ROSTER_BY_EMPLOYEE_ID = new Map(MEMBER_ROSTER.map((member) => [member.employee_id, member]));
 const MEMBER_ROSTER_BY_DISPLAY_NAME = new Map(MEMBER_ROSTER.map((member) => [member.display_name, member]));
+const KOREAN_DISPLAY_NAME_COLLATOR = new Intl.Collator("ko-KR");
 const COMPATIBILITY_PEOPLE = Object.freeze([
   Object.freeze({
     employee_id: "emp-001",
@@ -223,13 +224,16 @@ function employeeDirectoryRows(repository, tenantId) {
   const profilesByEmployeeId = new Map(
     repository.listEmploymentProfiles({ tenant_id: tenantId }).map((profile) => [profile.employee_id, profile]),
   );
-  return repository.listEmployees({ tenant_id: tenantId }).map((employee) => {
-    const profile = profilesByEmployeeId.get(employee.employee_id);
-    return {
-      ...employee,
-      ...employeeRosterReadFields(employee, profile),
-    };
-  });
+  return repository
+    .listEmployees({ tenant_id: tenantId })
+    .map((employee) => {
+      const profile = profilesByEmployeeId.get(employee.employee_id);
+      return {
+        ...employee,
+        ...employeeRosterReadFields(employee, profile),
+      };
+    })
+    .sort((left, right) => KOREAN_DISPLAY_NAME_COLLATOR.compare(left.display_name, right.display_name));
 }
 
 function seedEmployeeId(tenantId, index) {
