@@ -1,0 +1,43 @@
+{
+  "verdict": "PASS",
+  "checked_at": "2026-06-28T10:25:33.137Z",
+  "web": "http://127.0.0.1:5174",
+  "api": "http://127.0.0.1:4180",
+  "roster": {
+    "route": "/?locale=ko&view=people&data=live&ctx=allow#people-members",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/people-members-roster-source-proof.png",
+    "has_kim_yang_tae": true,
+    "has_petra_bridge_partners": true,
+    "has_finance": true
+  },
+  "external_schedule": {
+    "route": "/?locale=ko&view=people&data=live&ctx=allow#people-work-schedule-external",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/people-work-schedule-external-proof.png",
+    "has_menu_group": true,
+    "has_court": true,
+    "has_prosecutor": true,
+    "has_post_office": true,
+    "has_tax_office": true,
+    "has_agency": true,
+    "has_setup_state": true
+  },
+  "api_responses": [
+    {
+      "url": "http://127.0.0.1:5174/api/hrx/employees",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5174/api/hrx/lifecycle/onboarding",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5174/api/hrx/lifecycle/offboarding",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5174/api/hrx/employees",
+      "status": 200
+    }
+  ],
+  "console_errors": []
+}

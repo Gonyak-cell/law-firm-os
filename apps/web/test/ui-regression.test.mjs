@@ -28,6 +28,8 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
   const navSource = await readWebFile("src/data/nav.js");
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
+  const peopleCatalogSource = await readWebFile("src/people/peopleFeatureCatalog.js");
+  const peopleNavigationSource = `${shellSource}\n${peopleCatalogSource}`;
   const canonicalViews = ["clients", "matters", "people", "vault"];
   const removedViews = [
     "content",
@@ -65,17 +67,20 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
   assert.match(shellSource, /activeSection/);
   assert.match(shellSource, /client-import/);
   assert.match(shellSource, /matter-import/);
-  assert.match(shellSource, /people-members/);
-  assert.match(shellSource, /people-org-chart/);
-  assert.match(shellSource, /people-documents/);
-  assert.match(shellSource, /people-certificates/);
-  assert.match(shellSource, /people-leave/);
-  assert.match(shellSource, /people-approvals/);
-  assert.match(shellSource, /people-recruiting/);
-  assert.match(shellSource, /people-lifecycle/);
-  assert.match(shellSource, /people-policy/);
-  assert.match(shellSource, /people-audit/);
-  assert.match(shellSource, /people-admin/);
+  assert.match(shellSource, /peopleNavigationGroups/);
+  assert.match(shellSource, /peopleSidebarGroups/);
+  assert.match(peopleNavigationSource, /people-members/);
+  assert.match(peopleNavigationSource, /people-org-chart/);
+  assert.match(peopleNavigationSource, /people-documents/);
+  assert.match(peopleNavigationSource, /people-certificates/);
+  assert.match(peopleNavigationSource, /people-leave/);
+  assert.match(peopleNavigationSource, /people-approvals/);
+  assert.match(peopleNavigationSource, /people-recruiting/);
+  assert.match(peopleNavigationSource, /people-lifecycle/);
+  assert.match(peopleNavigationSource, /people-policy/);
+  assert.match(peopleNavigationSource, /people-audit/);
+  assert.match(peopleNavigationSource, /people-admin/);
+  assert.match(peopleNavigationSource, /people-work-schedule-external/);
   assert.doesNotMatch(appSource, /MatterModal|initialVariant|initialDataMode|setModal|mockData/);
 });
 
@@ -741,9 +746,11 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(peopleSource, /setSelectedEmployeeId\(null\)/);
   assert.doesNotMatch(peopleSource, /people-directory-grid detail-open/);
   assert.match(peopleSource, /selectedEmployeeId=\{selectedEmployeeId\}/);
-  assert.match(stylesSource, /\.people-detail-overlay\s*\{[\s\S]*position: fixed;[\s\S]*z-index: 160;/);
-  assert.match(stylesSource, /\.people-detail-backdrop\s*\{[\s\S]*background: rgba\(15, 23, 42, 0\.56\);/);
-  assert.match(stylesSource, /\.people-detail-panel\s*\{[\s\S]*height: 100vh;[\s\S]*background: var\(--am-surface\);/);
+  assert.match(stylesSource, /\.people-detail-overlay\s*\{[\s\S]*position: fixed;[\s\S]*z-index: 140;/);
+  assert.match(stylesSource, /\.people-detail-backdrop\s*\{[\s\S]*background: rgba\(15, 23, 42, 0\.46\);[\s\S]*backdrop-filter: blur\(1px\);/);
+  assert.match(stylesSource, /\.people-detail-panel\s*\{[\s\S]*right: 0;[\s\S]*width: min\(440px, 100vw\);[\s\S]*box-shadow: -18px 0 44px rgba\(15, 23, 42, 0\.18\);[\s\S]*animation: notification-drawer-in 180ms ease-out both;/);
+  assert.match(stylesSource, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.people-detail-panel/);
+  assert.match(stylesSource, /@media \(max-width:\s*1180px\)[\s\S]*\.people-detail-panel[\s\S]*width: min\(390px, calc\(100vw - 22px\)\);/);
   assert.match(workforceDirectorySource, /현재 재직/);
   assert.match(workforceDirectorySource, /입사예정/);
   assert.match(workforceDirectorySource, /퇴사예정/);

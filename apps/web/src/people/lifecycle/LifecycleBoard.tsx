@@ -95,6 +95,10 @@ export function LifecycleBoard() {
         />
         <div className="lifecycle-board-grid">
           <div className="lifecycle-task-list">
+            <div className="lifecycle-task-list-head">
+              <strong>입사 준비 업무</strong>
+              <span>{result.onboarding.reduce((count, plan) => count + plan.tasks.length, 0)}건</span>
+            </div>
             {result.onboarding.flatMap((plan, planIndex) =>
               plan.tasks.map((task) => (
                 <div className="approval-row lifecycle-task-row" key={`${plan.onboarding_id}-${task.task_id}`}>
@@ -112,6 +116,10 @@ export function LifecycleBoard() {
             )}
           </div>
           <div className="lifecycle-task-list">
+            <div className="lifecycle-task-list-head">
+              <strong>퇴사 정리 업무</strong>
+              <span>{result.offboarding.length}건</span>
+            </div>
             {result.offboarding.map((caseItem, index) => (
               <div className="approval-row lifecycle-task-row" key={caseItem.offboarding_id}>
                 <div>
@@ -132,7 +140,7 @@ export function LifecycleBoard() {
   }
 
   return (
-    <Panel id="people-lifecycle" className="people-panel span-2" title="입퇴사 관리" meta="구성원 변경">
+    <Panel id="people-lifecycle" className="people-panel span-2" title="입퇴사 관리" meta="입사 준비 / 퇴사 정리">
       <div className="people-panel-kicker">
         <RefreshCw size={13} />
         입퇴사 관리 업무를 확인합니다

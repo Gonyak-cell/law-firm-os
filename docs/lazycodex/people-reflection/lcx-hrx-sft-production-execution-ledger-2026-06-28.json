@@ -1,0 +1,278 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.production_rollout_execution.v0.1",
+  "program_id": "LCX-HRX-SFT Production Rollout",
+  "created_at": "2026-06-28T11:52:49Z",
+  "updated_at": "2026-06-28T11:58:00Z",
+  "branch": "codex/hrx-member-roster-source-of-truth",
+  "head_observed_before_execution": "3fbe44006",
+  "source_plan": "docs/lazycodex/people-reflection/lcx-hrx-sft-production-rollout-tuw-plan-2026-06-28.md",
+  "parent_plan": "docs/lazycodex/people-reflection/lcx-hrx-sft-production-rollout-plan-2026-06-28.md",
+  "goal_state": {
+    "goal_created": true,
+    "goal_thread_id": "019efea6-73c1-7360-b415-41a33bd618d7",
+    "scope": "Complete every local repository-verifiable TUW and preserve explicit blockers for staging, production, provider, and go-live authority gates."
+  },
+  "claim_boundary": {
+    "production_ready": false,
+    "production_deployed": false,
+    "go_live_approved": false,
+    "payroll_provider_live": false,
+    "electronic_contract_provider_live": false,
+    "staging_deployed": false,
+    "staging_validated": false
+  },
+  "release_payload": {
+    "in_scope": [
+      "apps/web/src/components/Shell.jsx",
+      "apps/web/src/people/PeopleHome.tsx",
+      "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "apps/web/src/people/lifecycle/LifecycleBoard.tsx",
+      "apps/web/src/people/peopleFeatureCatalog.js",
+      "apps/web/src/styles.css",
+      "apps/web/test/ui-regression.test.mjs",
+      "package.json",
+      "scripts/run-lcx8-people-sidebar-current-ui-proof.mjs",
+      "scripts/validate-hrx-ui-api-backed.mjs",
+      "scripts/validate-lcx-ppl-ui.mjs",
+      "scripts/validate-lcx-hrx-sft-completion.mjs",
+      "scripts/validate-lcx-hrx-sft-feature-catalog.mjs",
+      "scripts/validate-lcx-hrx-sft-roster-source.mjs",
+      "scripts/validate-lcx-hrx-sft-production-rollout.mjs",
+      "docs/lazycodex/people-reflection/lcx-hrx-sft-baseline-2026-06-28.md",
+      "docs/lazycodex/people-reflection/lcx-hrx-shiftee-full-adoption-plan-2026-06-28.md",
+      "docs/lazycodex/people-reflection/lcx-hrx-sft-task-ledger.json",
+      "docs/lazycodex/people-reflection/lcx-hrx-sft-production-rollout-plan-2026-06-28.md",
+      "docs/lazycodex/people-reflection/lcx-hrx-sft-production-rollout-tuw-plan-2026-06-28.md",
+      "docs/lazycodex/people-reflection/lcx-hrx-sft-production-execution-ledger-2026-06-28.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-navigation-browser-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-navigation-browser-proof.md",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-lifecycle-cleanup-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-lifecycle-cleanup-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-people-detail-drawer-parity-proof.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-people-detail-drawer-parity-proof.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-local-browser-proof-2026-06-28.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-local-browser-proof-2026-06-28.png"
+    ],
+    "excluded": [
+      {
+        "path": "docs/ui-reference/prototypes/matter-launch-login-dashboard-2026-06-25.html",
+        "reason": "UI reference prototype is outside the People/HRX production rollout payload."
+      },
+      {
+        "path": "scripts/generate-sf-client-matter-surface-ledger.mjs",
+        "reason": "Salesforce/client-matter parity tooling is unrelated to this People/HRX rollout."
+      }
+    ]
+  },
+  "local_validation_receipts": {
+    "npm_--workspace_apps_web_run_test_ui": {
+      "status": "PASS",
+      "tests": 17,
+      "passed": 17,
+      "failed": 0
+    },
+    "npm_--workspace_apps_web_run_build": {
+      "status": "PASS",
+      "note": "Vite emitted existing large chunk warning only."
+    },
+    "npm_run_hrx_ui_validate": {
+      "status": "PASS"
+    },
+    "npm_run_lcx_ppl_ui_validate": {
+      "status": "PASS",
+      "runtime_ready_candidate_complete": false,
+      "production_ready": false
+    },
+    "npm_run_lcx_hrx_sft_catalog_validate": {
+      "status": "PASS",
+      "groups": 10,
+      "feature_items": 71
+    },
+    "npm_run_lcx_hrx_sft_roster_validate": {
+      "status": "PASS",
+      "roster_count": 9,
+      "organization_groups": {
+        "AMIC": 4,
+        "PETRA BRIDGE": 3,
+        "Staff": 2
+      }
+    },
+    "npm_run_lcx_hrx_sft_validate": {
+      "status": "PASS",
+      "task_count": 12,
+      "production_ready": false,
+      "go_live_approved": false
+    },
+    "git_diff_check": {
+      "status": "PASS"
+    },
+    "sloplint_changed": {
+      "status": "REVIEWED",
+      "finding_count": 35,
+      "blocking_findings": 0,
+      "note": "Weak CSS glow, background, dark-mode, and motion signals were reviewed. Drawer blur/shadow/motion is intentional parity with the existing notification drawer; broader legacy CSS signals are not newly introduced by this rollout."
+    },
+    "local_browser_proof": {
+      "status": "PASS",
+      "path": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-local-browser-proof-2026-06-28.json",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-local-browser-proof-2026-06-28.png"
+    }
+  },
+  "tuws": [
+    {
+      "id": "LCX-HRX-PROD-00",
+      "title": "Release scope freeze",
+      "status": "done-local",
+      "proof": [
+        "docs/lazycodex/people-reflection/lcx-hrx-sft-production-execution-ledger-2026-06-28.json"
+      ]
+    },
+    {
+      "id": "LCX-HRX-PROD-01",
+      "title": "Out-of-scope file quarantine",
+      "status": "done-local",
+      "proof": [
+        "docs/lazycodex/people-reflection/lcx-hrx-sft-production-execution-ledger-2026-06-28.json"
+      ]
+    },
+    {
+      "id": "LCX-HRX-PROD-02",
+      "title": "Roster Source of Truth gate",
+      "status": "done-local",
+      "proof": [
+        "scripts/validate-lcx-hrx-sft-roster-source.mjs",
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json"
+      ]
+    },
+    {
+      "id": "LCX-HRX-PROD-03",
+      "title": "People navigation catalog gate",
+      "status": "done-local",
+      "proof": [
+        "scripts/validate-lcx-hrx-sft-feature-catalog.mjs",
+        "apps/web/src/people/peopleFeatureCatalog.js"
+      ]
+    },
+    {
+      "id": "LCX-HRX-PROD-04",
+      "title": "Korean terminology and removed-label guard",
+      "status": "done-local",
+      "proof": [
+        "apps/web/test/ui-regression.test.mjs",
+        "scripts/validate-lcx-hrx-sft-feature-catalog.mjs"
+      ]
+    },
+    {
+      "id": "LCX-HRX-PROD-05",
+      "title": "External schedule surface gate",
+      "status": "done-local",
+      "proof": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-local-browser-proof-2026-06-28.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-navigation-browser-proof.json"
+      ]
+    },
+    {
+      "id": "LCX-HRX-PROD-06",
+      "title": "입퇴사 관리 layout gate",
+      "status": "done-local",
+      "proof": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-local-browser-proof-2026-06-28.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-people-lifecycle-cleanup-proof.json"
+      ]
+    },
+    {
+      "id": "LCX-HRX-PROD-07",
+      "title": "구성원 상세 drawer parity gate",
+      "status": "done-local",
+      "proof": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-local-browser-proof-2026-06-28.json",
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-people-detail-drawer-parity-proof.json"
+      ]
+    },
+    {
+      "id": "LCX-HRX-PROD-08",
+      "title": "Permission and provider boundary gate",
+      "status": "done-local",
+      "proof": [
+        "docs/lazycodex/people-reflection/lcx-hrx-sft-task-ledger.json",
+        "scripts/validate-lcx-hrx-sft-completion.mjs"
+      ]
+    },
+    {
+      "id": "LCX-HRX-PROD-09",
+      "title": "Local validation bundle",
+      "status": "done-local",
+      "proof": [
+        "docs/lazycodex/people-reflection/lcx-hrx-sft-production-execution-ledger-2026-06-28.json"
+      ]
+    },
+    {
+      "id": "LCX-HRX-PROD-10",
+      "title": "Local browser QA bundle",
+      "status": "done-local",
+      "proof": [
+        "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft-production-local-browser-proof-2026-06-28.json"
+      ]
+    },
+    {
+      "id": "LCX-HRX-PROD-11",
+      "title": "Release candidate commit and PR",
+      "status": "ready",
+      "blocked_by": "Requires staging only the in-scope payload and then creating the reviewable commit/PR. No production or go-live claim may be included."
+    },
+    {
+      "id": "LCX-HRX-PROD-12",
+      "title": "CI parity gate",
+      "status": "blocked",
+      "blocked_by": "Requires TUW-11 PR/check run receipt."
+    },
+    {
+      "id": "LCX-HRX-PROD-13",
+      "title": "Staging deployment",
+      "status": "blocked",
+      "blocked_by": "Requires green CI and staging deployment authority."
+    },
+    {
+      "id": "LCX-HRX-PROD-14",
+      "title": "Staging API smoke",
+      "status": "blocked",
+      "blocked_by": "Requires staging deployment receipt."
+    },
+    {
+      "id": "LCX-HRX-PROD-15",
+      "title": "Staging browser QA",
+      "status": "blocked",
+      "blocked_by": "Requires staging URL and authorized staging operator."
+    },
+    {
+      "id": "LCX-HRX-PROD-16",
+      "title": "Security and provider review",
+      "status": "blocked",
+      "blocked_by": "Requires human/security disposition and provider boundary review."
+    },
+    {
+      "id": "LCX-HRX-PROD-17",
+      "title": "UAT and go/no-go",
+      "status": "blocked",
+      "blocked_by": "Requires human UAT and explicit go/no-go receipt."
+    },
+    {
+      "id": "LCX-HRX-PROD-18",
+      "title": "Production deploy preflight",
+      "status": "blocked",
+      "blocked_by": "Requires explicit go-live approval and rollback target."
+    },
+    {
+      "id": "LCX-HRX-PROD-19",
+      "title": "Production deploy",
+      "status": "blocked",
+      "blocked_by": "Requires production deploy authority and approved SHA."
+    },
+    {
+      "id": "LCX-HRX-PROD-20",
+      "title": "Production smoke and closeout",
+      "status": "blocked",
+      "blocked_by": "Requires production deployment receipt."
+    }
+  ]
+}
