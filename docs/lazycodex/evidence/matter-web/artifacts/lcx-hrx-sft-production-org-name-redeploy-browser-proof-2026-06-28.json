@@ -1,0 +1,21 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.production_org_name_redeploy_browser_proof.v0.1",
+  "recorded_at": "2026-06-28T14:46:30Z",
+  "verdict": "PASS",
+  "route": "https://d2mthcc8vp3cr2.cloudfront.net/?locale=ko&view=people&data=live&ctx=allow#people-members",
+  "checks": {
+    "org_chart_visible": true,
+    "petra_bridge_partners_visible": true,
+    "amic_law_visible": true,
+    "staff_visible": true,
+    "petra_bridge_exact_group_absent": true,
+    "amic_exact_group_absent": true,
+    "page_errors_zero": true,
+    "unexpected_console_messages_zero": true
+  },
+  "screenshots": {
+    "people_org_full_names": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/production-org-redeploy/people-org-full-names-production-proof.png"
+  },
+  "page_errors": [],
+  "unexpected_console_messages": []
+}
