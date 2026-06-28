@@ -1,0 +1,93 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.production_redeploy_browser_proof.v0.1",
+  "generated_at": "2026-06-28T14:04:48.336Z",
+  "verdict": "PASS",
+  "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+  "routes": {
+    "external_schedule": "https://d2mthcc8vp3cr2.cloudfront.net/?locale=ko&view=people&data=live&ctx=allow#people-work-schedule-external",
+    "lifecycle": "https://d2mthcc8vp3cr2.cloudfront.net/?locale=ko&view=people&data=live&ctx=allow#people-lifecycle",
+    "members": "https://d2mthcc8vp3cr2.cloudfront.net/?locale=ko&view=people&data=live&ctx=allow#people-members"
+  },
+  "api_smoke": {
+    "root": {
+      "status": 200,
+      "asset_js": "assets/index-BrLnLC97.js",
+      "asset_css": "assets/index-x40NzoCF.css"
+    },
+    "health": {
+      "status": 200,
+      "service": "@law-firm-os/api"
+    },
+    "employees": {
+      "status": 200,
+      "count": 9,
+      "sample": {
+        "display_name": "김양태",
+        "title": "대표이사",
+        "affiliation": "PETRA BRIDGE PARTNERS",
+        "department": "Finance",
+        "organization_group": "PETRA BRIDGE",
+        "source_ref": "hrx-member-roster-source-of-truth"
+      }
+    },
+    "missing_context": {
+      "status": 400,
+      "safe_error_code": "HRX_TENANT_CONTEXT_REQUIRED"
+    },
+    "lifecycle": {
+      "onboarding_status": 200,
+      "onboarding_count": 1,
+      "offboarding_status": 200,
+      "offboarding_count": 1
+    },
+    "documents_denied": {
+      "status": 403,
+      "safe_error_code": "HRX_AUTHZ_DENIED",
+      "required_scope": "hrx.document.read"
+    }
+  },
+  "checks": {
+    "external_schedule_required_terms": {
+      "People": true,
+      "구성원": true,
+      "근무일정": true,
+      "외부일정": true,
+      "법원": true,
+      "우체국": true,
+      "검찰": true,
+      "세무서": true,
+      "관청": true
+    },
+    "removed_terms_visible": {
+      "법률 People": false,
+      "디렉터리": false,
+      "관계망": false,
+      "충돌·윤리벽": false,
+      "충돌/벽": false,
+      "활동 기록": false,
+      "인사 현황": false,
+      "권한 관리": false
+    },
+    "lifecycle_has_clean_layout_terms": true,
+    "drawer_parity": {
+      "same_width": true,
+      "same_right_edge": true,
+      "same_animation": true,
+      "detail_width": 440,
+      "notification_width": 440,
+      "detail_animation": "notification-drawer-in",
+      "notification_animation": "notification-drawer-in",
+      "detail_text_has_roster_source": true
+    }
+  },
+  "api_5xx_count": 0,
+  "page_errors": [],
+  "unexpected_console_messages": [],
+  "screenshots": {
+    "external_schedule": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/production-redeploy/people-work-schedule-external-production-redeploy-proof.png",
+    "lifecycle": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/production-redeploy/people-lifecycle-production-redeploy-proof.png",
+    "people_detail_drawer": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/production-redeploy/people-detail-panel-production-redeploy-proof.png",
+    "notification_drawer": "docs/lazycodex/evidence/matter-web/artifacts/lcx-hrx-sft/production-redeploy/notification-drawer-production-redeploy-proof.png"
+  },
+  "failures": []
+}
