@@ -65,13 +65,13 @@ test("HRX member roster source of truth preserves the registered AMIC and PETRA 
     const member = membersByName.get(displayName);
     assert.equal(member?.affiliation, "PETRA BRIDGE PARTNERS");
     assert.equal(member?.department, "Finance");
-    assert.equal(member?.organization_group, "PETRA BRIDGE");
+    assert.equal(member?.organization_group, "PETRA BRIDGE PARTNERS");
   }
   for (const displayName of ["박병준", "조성민", "임영훈", "서지원"]) {
     const member = membersByName.get(displayName);
     assert.equal(member?.affiliation, "AMIC Law");
     assert.equal(member?.department, "Legal");
-    assert.equal(member?.organization_group, "AMIC");
+    assert.equal(member?.organization_group, "AMIC Law");
   }
   for (const displayName of ["윤태리", "이예진"]) {
     const member = membersByName.get(displayName);
@@ -106,12 +106,12 @@ test("GET /api/hrx/employees returns synthetic API-backed employee rows", async 
   for (const displayName of ["박서영", "조우상", "김양태"]) {
     assert.equal(employeesByName.get(displayName)?.affiliation, "PETRA BRIDGE PARTNERS");
     assert.equal(employeesByName.get(displayName)?.department, "Finance");
-    assert.equal(employeesByName.get(displayName)?.organization_group, "PETRA BRIDGE");
+    assert.equal(employeesByName.get(displayName)?.organization_group, "PETRA BRIDGE PARTNERS");
   }
   for (const displayName of ["박병준", "조성민", "임영훈", "서지원"]) {
     assert.equal(employeesByName.get(displayName)?.affiliation, "AMIC Law");
     assert.equal(employeesByName.get(displayName)?.department, "Legal");
-    assert.equal(employeesByName.get(displayName)?.organization_group, "AMIC");
+    assert.equal(employeesByName.get(displayName)?.organization_group, "AMIC Law");
   }
   for (const displayName of ["윤태리", "이예진"]) {
     assert.equal(employeesByName.get(displayName)?.affiliation, "AMIC Law");
@@ -127,7 +127,7 @@ test("GET /api/hrx/employees/:id returns profile with compensation masked", asyn
   assert.equal(body.employee.employee_id, "emp_amic_ytkim");
   assert.equal(body.employee.affiliation, "PETRA BRIDGE PARTNERS");
   assert.equal(body.employee.department, "Finance");
-  assert.equal(body.employee.organization_group, "PETRA BRIDGE");
+  assert.equal(body.employee.organization_group, "PETRA BRIDGE PARTNERS");
   assert.equal(body.employment_profile.employee_id, "emp_amic_ytkim");
   assert.equal(body.masked_compensation_ref, null);
 });

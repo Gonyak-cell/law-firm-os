@@ -230,8 +230,8 @@ function groupByOrganization(rows: WorkforceRow[]) {
 }
 
 function organizationGroupLabel(department: string) {
-  if (department === "Legal") return "AMIC";
-  if (department === "Finance") return "PETRA BRIDGE";
+  if (department === "Legal") return "AMIC Law";
+  if (department === "Finance") return "PETRA BRIDGE PARTNERS";
   return department;
 }
 

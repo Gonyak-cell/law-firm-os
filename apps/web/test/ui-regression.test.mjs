@@ -777,8 +777,8 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(workforceDirectorySource, /if \(source === "Legal"\) return <Scale size=\{15\} \/>/);
   assert.match(workforceDirectorySource, /if \(source === "Finance"\) return <CircleDollarSign size=\{15\} \/>/);
   assert.match(workforceDirectorySource, /if \(source === "Staff"\) return <UsersRound size=\{15\} \/>/);
-  assert.match(workforceDirectorySource, /if \(department === "Legal"\) return "AMIC"/);
-  assert.match(workforceDirectorySource, /if \(department === "Finance"\) return "PETRA BRIDGE"/);
+  assert.match(workforceDirectorySource, /if \(department === "Legal"\) return "AMIC Law"/);
+  assert.match(workforceDirectorySource, /if \(department === "Finance"\) return "PETRA BRIDGE PARTNERS"/);
   assert.match(workforceDirectorySource, /const key = row\.organizationGroup \|\| row\.department \|\| "미등록";/);
   assert.match(workforceDirectorySource, /<strong>\{organization\}<\/strong>/);
   assert.match(workforceDirectorySource, /className="hr-roster-source"[\s\S]*\{row\.department\}/);
