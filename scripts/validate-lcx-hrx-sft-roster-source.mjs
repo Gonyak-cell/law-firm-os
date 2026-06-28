@@ -39,11 +39,11 @@ assert.ok(rosterRows.every((member) => member.source_ref === HRX_MEMBER_ROSTER_S
 
 assert.deepEqual(
   ["박서영", "조우상", "김양태"].map((name) => membersByName.get(name)?.organization_group),
-  ["PETRA BRIDGE", "PETRA BRIDGE", "PETRA BRIDGE"]
+  ["PETRA BRIDGE PARTNERS", "PETRA BRIDGE PARTNERS", "PETRA BRIDGE PARTNERS"]
 );
 assert.deepEqual(
   ["박병준", "조성민", "임영훈", "서지원"].map((name) => membersByName.get(name)?.organization_group),
-  ["AMIC", "AMIC", "AMIC", "AMIC"]
+  ["AMIC Law", "AMIC Law", "AMIC Law", "AMIC Law"]
 );
 assert.deepEqual(
   ["윤태리", "이예진"].map((name) => membersByName.get(name)?.organization_group),
@@ -54,7 +54,7 @@ const kimYangTae = membersByName.get("김양태");
 assert.equal(kimYangTae?.title, "대표이사");
 assert.equal(kimYangTae?.affiliation, "PETRA BRIDGE PARTNERS");
 assert.equal(kimYangTae?.department, "Finance");
-assert.equal(kimYangTae?.organization_group, "PETRA BRIDGE");
+assert.equal(kimYangTae?.organization_group, "PETRA BRIDGE PARTNERS");
 
 for (const marker of [
   "repoRosterPath",
@@ -95,8 +95,8 @@ console.log(JSON.stringify({
   roster_path: HRX_MEMBER_ROSTER_SOURCE_PATH,
   roster_count: rosterRows.length,
   organization_groups: {
-    AMIC: rosterRows.filter((member) => member.organization_group === "AMIC").length,
-    "PETRA BRIDGE": rosterRows.filter((member) => member.organization_group === "PETRA BRIDGE").length,
+    "AMIC Law": rosterRows.filter((member) => member.organization_group === "AMIC Law").length,
+    "PETRA BRIDGE PARTNERS": rosterRows.filter((member) => member.organization_group === "PETRA BRIDGE PARTNERS").length,
     Staff: rosterRows.filter((member) => member.organization_group === "Staff").length
   },
   kim_yang_tae: {
