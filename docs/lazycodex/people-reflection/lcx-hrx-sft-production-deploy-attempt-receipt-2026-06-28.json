@@ -1,0 +1,85 @@
+{
+  "schema_version": "lawos.lcx_hrx_sft.production_deploy_attempt_receipt.v0.1",
+  "program_id": "LCX-HRX-SFT Production Rollout",
+  "recorded_at": "2026-06-28T12:29:00Z",
+  "source": {
+    "pr_number": 127,
+    "pr_url": "https://github.com/Gonyak-cell/law-firm-os/pull/127",
+    "pr_state": "MERGED",
+    "merged_at": "2026-06-28T12:16:42Z",
+    "merge_commit": "91d08eb28df028dc0b5e5d879fbcecb65ca4d1a8",
+    "origin_main": "91d08eb28df028dc0b5e5d879fbcecb65ca4d1a8"
+  },
+  "target": {
+    "web_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "cloudfront_distribution_id": "E3MVAKX2DIR3CS",
+    "s3_bucket": "matter-lawos-web-prod-770880870480-apne2",
+    "lambda_function_name": "matter-lawos-api-prod",
+    "region": "ap-northeast-2"
+  },
+  "pre_deploy_validation": {
+    "npm_--workspace_apps_web_run_build": "PASS",
+    "npm_run_lcx_hrx_sft_production_rollout_validate": "PASS",
+    "npm_run_lcx_hrx_sft_validate": "PASS"
+  },
+  "production_observation_before_deploy": {
+    "root_status": 200,
+    "root_last_modified": "Wed, 24 Jun 2026 12:11:31 GMT",
+    "root_etag": "\"647b1ec4eda1b7a8db4428c1b8dd056d\"",
+    "root_asset_js": "assets/index-DkkNhVAW.js",
+    "root_asset_css": "assets/index-C2Ua2xtd.css",
+    "api_health_status": 200,
+    "hrx_employees_status_without_required_actor_context": 401,
+    "people_external_schedule_route": "https://d2mthcc8vp3cr2.cloudfront.net/?locale=ko&view=people&ctx=allow#people-work-schedule-external",
+    "people_external_schedule_visible": false,
+    "old_removed_people_terms_still_visible": [
+      "법률 People",
+      "관계망",
+      "충돌/벽",
+      "활동 기록",
+      "인사 현황",
+      "권한 관리"
+    ]
+  },
+  "aws_deploy_attempt": {
+    "aws_cli_present": true,
+    "profiles_present": [
+      "matter-staging-admin",
+      "matter-prod-deploy-admin",
+      "matter-cutover-operator",
+      "matter-readonly-auditor"
+    ],
+    "sts_matter_prod_deploy_admin": "failed: Error when retrieving token from sso: Token has expired and refresh failed",
+    "sts_matter_staging_admin": "failed: Error when retrieving token from sso: Token has expired and refresh failed",
+    "s3_head_bucket": "not_executed_successfully_due_to_expired_sso",
+    "cloudfront_get_distribution": "not_executed_successfully_due_to_expired_sso",
+    "lambda_get_function_configuration": "not_executed_successfully_due_to_expired_sso",
+    "sso_login_attempt": {
+      "profile": "amic-vault-staging-admin",
+      "mode": "device_code_no_browser_then_open_url",
+      "result": "not_completed_in_codex_session",
+      "process_exit": 130
+    },
+    "sso_browser_oauth_retry": {
+      "profile": "amic-vault-staging-admin",
+      "mode": "aws_sso_login_loopback_browser_flow",
+      "result": "not_completed_in_codex_session",
+      "process_exit": 130
+    }
+  },
+  "deployment_result": {
+    "web_s3_sync_executed": false,
+    "cloudfront_invalidation_created": false,
+    "lambda_update_executed": false,
+    "production_deployed": false,
+    "production_smoke_after_deploy": false
+  },
+  "blocked_by": "AWS SSO token for the source profile is expired and could not be refreshed inside the Codex session; production deploy commands cannot assume matter-prod-deploy-admin.",
+  "claim_boundary": {
+    "production_ready": false,
+    "production_deployed": false,
+    "go_live_approved_for_this_hrx_rollout": false,
+    "payroll_provider_live": false,
+    "electronic_contract_provider_live": false
+  }
+}
