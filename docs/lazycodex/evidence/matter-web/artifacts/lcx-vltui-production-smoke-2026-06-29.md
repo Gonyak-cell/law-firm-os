@@ -1,12 +1,12 @@
 # LCX-VLTUI Production Smoke
 
-Generated at: 2026-06-29T16:29:05.169Z
+Generated at: 2026-06-29T16:48:31.848Z
 
 Verdict: PASS
 
 Base URL: https://d2mthcc8vp3cr2.cloudfront.net
 
-Deployment commit: fc0482d59122b476589262d5fdb5b2d4618477ba
+Deployment commit: 0ff79586d887a950200ab091a5864a20c174bdf9
 
 | Check | Passed | Detail |
 | --- | --- | --- |
@@ -21,8 +21,8 @@ Deployment commit: fc0482d59122b476589262d5fdb5b2d4618477ba
 | matter-workspace-sections | true | command_center=200, timeline=200, vault_summary=200 |
 | vault-documents | true | status=200, documents=1 |
 | vault-bridge-status | true | status=200, source_mode=matter_app_api |
-| vault-bridge-client-upsert | true | status=200, action=reused |
-| vault-bridge-matter-upsert | true | status=200, action=reused |
+| vault-bridge-client-upsert | true | status=201, action=created |
+| vault-bridge-matter-upsert | true | status=201, action=created |
 | vault-bridge-lookup | true | status=200, matches=1 |
 | vault-upload-preflight-guarded | true | status=200, allowed_next_step=permission_check_only |
 
