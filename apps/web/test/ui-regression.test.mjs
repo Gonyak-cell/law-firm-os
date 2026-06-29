@@ -485,6 +485,9 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /updateRecordActionField/);
   assert.match(clientsSource, /bulkUpdateRecordActions/);
   assert.match(clientsSource, /clientGuardedState/);
+  assert.match(clientsSource, /function guardedResultForContext/);
+  assert.match(clientsSource, /setClientsResult\(guardedResult\)/);
+  assert.match(clientsSource, /setLeadsResult\(guardedResult\)/);
   assert.match(clientsSource, /!clientGuardedState && selectedClientId/);
   assert.match(clientsSource, /ImportDataMappingPanel/);
   assert.match(clientsSource, /client-import/);

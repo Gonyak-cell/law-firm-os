@@ -121,6 +121,30 @@ function resultItems(result) {
   return result?.kind === "data" && Array.isArray(result.items) ? result.items : [];
 }
 
+function guardedResultForContext(ctx) {
+  if (ctx === "denied") {
+    return {
+      kind: "data",
+      uiState: "denied",
+      outcome: "denied",
+      items: [],
+      safeErrorCodes: ["UI_CONTEXT_DENIED"],
+      productionReadyClaim: false
+    };
+  }
+  if (ctx === "review") {
+    return {
+      kind: "data",
+      uiState: "review_required",
+      outcome: "review_required",
+      items: [],
+      safeErrorCodes: ["UI_CONTEXT_REVIEW_REQUIRED"],
+      productionReadyClaim: false
+    };
+  }
+  return null;
+}
+
 function legalPeopleItems(result) {
   return result?.kind === "data" && Array.isArray(result.people) ? result.people : [];
 }
@@ -877,6 +901,13 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   useEffect(() => {
     let cancelled = false;
     setClientsResult(null);
+    const guardedResult = guardedResultForContext(liveCtx);
+    if (guardedResult) {
+      setClientsResult(guardedResult);
+      return () => {
+        cancelled = true;
+      };
+    }
     fetchMasterDataRecords({
       ctx: liveCtx,
       modelType: "ClientGroup",
@@ -919,6 +950,20 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     setContactPatchResult(null);
     setAccountRecordActionResult(null);
     setContactRecordActionResult(null);
+    const guardedResult = guardedResultForContext(liveCtx);
+    if (guardedResult) {
+      setLeadsResult(guardedResult);
+      setOpportunitiesResult(guardedResult);
+      setIntakeResult(guardedResult);
+      setIntakeAuditResult(guardedResult);
+      setAccountsResult(guardedResult);
+      setContactsResult(guardedResult);
+      setAccountContactsResult(guardedResult);
+      setMergeProposalsResult(guardedResult);
+      return () => {
+        cancelled = true;
+      };
+    }
     Promise.all([
       fetchCrmLeads({ ctx: liveCtx }),
       fetchCrmOpportunities({ ctx: liveCtx }),
