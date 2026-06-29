@@ -2602,7 +2602,7 @@ export function fetchIntakeAudit(options = {}) {
 
 export function handoffCrmOpportunityToIntake({
   opportunityId,
-  requestedScopeSummary = "Client intake request",
+  requestedScopeSummary = "Client 상담·문의 요청",
   ctx = "allow"
 } = {}) {
   const requestId = uiRuntimeId("intake_ui");

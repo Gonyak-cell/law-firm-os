@@ -334,44 +334,106 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
     ],
     home: sidebarMeta.home.actions,
     clients: [
-      { label: "Client 목록", view: "clients", section: "clients-list", icon: ClipboardList, count: "12" },
-      { label: "잠재 고객", view: "clients", section: "client-leads", icon: UserPlus },
-      { label: "영업 기회", view: "clients", section: "client-opportunities", icon: ClipboardList },
-      { label: "상담 접수", view: "clients", section: "client-intake", icon: FileText, count: "4" },
-      { label: "계정", view: "clients", section: "client-accounts", icon: ShieldCheck },
-      { label: "연락처", view: "clients", section: "client-contacts", icon: UserPlus },
-      { label: "데이터 관리", view: "data-import", section: "data-import-client-data", icon: Settings },
-      { label: "보고서", view: "reports", section: "reports-client", icon: FileText },
-      { label: "가져오기", view: "data-import", section: "data-import-client", icon: Plus }
+      {
+        label: "Client 관리",
+        icon: ClipboardList,
+        children: [
+          { label: "Client 홈", view: "clients", section: "clients-home", icon: LayoutDashboard, active: true },
+          { label: "Client 목록", view: "clients", section: "clients-list", icon: ClipboardList, count: "12" },
+          { label: "법인·개인 Client", view: "clients", section: "client-accounts", icon: ShieldCheck },
+          { label: "담당자", view: "clients", section: "client-contacts", icon: UserPlus }
+        ]
+      },
+      {
+        label: "수임 전 업무",
+        icon: FileText,
+        children: [
+          { label: "Opportunity", view: "clients", section: "client-opportunities", icon: ClipboardList },
+          { label: "상담·문의", view: "clients", section: "client-intake", icon: FileText, count: "4" },
+          { label: "접촉 이력", view: "clients", section: "client-activities", icon: ClipboardList },
+          { label: "제안·계약", view: "clients", section: "client-contracts", icon: FileText },
+          { label: "Client 관계", view: "clients", section: "client-relationships", icon: UserPlus },
+          { label: "이해상충 확인", view: "clients", section: "client-conflict", icon: ShieldCheck }
+        ]
+      },
+      {
+        label: "운영",
+        icon: Settings,
+        children: [
+          { label: "청구·수금", view: "clients", section: "client-billing", icon: FileText },
+          { label: "Client 리포트", view: "clients", section: "client-reports", icon: FileText },
+          { label: "Client 데이터", view: "clients", section: "client-data", icon: Settings },
+          { label: "Client 데이터 가져오기", view: "clients", section: "client-import", icon: Plus },
+          { label: "Client 설정", view: "clients", section: "client-settings", icon: Settings }
+        ]
+      }
     ],
     matters: [
       {
-        label: "Matter 운영",
-        icon: ClipboardList,
+        label: "사건 운영",
+        icon: LayoutDashboard,
         children: [
-          { label: "Matter 목록", view: "matters", section: "matters-list", icon: ClipboardList, count: "18", active: true },
-          { label: "진행 현황", view: "matters", section: "matter-command", icon: ShieldCheck },
-          { label: "Matter 개시", view: "matters", section: "matter-opening", icon: Plus }
+          { label: "홈", view: "matters", section: "matter-home", icon: LayoutDashboard, active: true },
+          { label: "사건 목록", view: "matters", section: "matters-list", icon: ClipboardList, count: "18" },
+          { label: "신규 사건", view: "matters", section: "matter-opening", icon: Plus },
+          { label: "수임 진행", view: "matters", section: "matter-intake", icon: ShieldCheck },
+          { label: "종결 처리", view: "matters", section: "matter-closeout", icon: ShieldCheck },
+          { label: "보관 사건", view: "matters", section: "matter-archive", icon: FileText }
         ]
       },
       {
         label: "업무 진행",
         icon: FileText,
         children: [
-          { label: "문서", view: "matters", section: "matter-vault", icon: FileText },
-          { label: "활동", view: "matters", section: "matter-timeline", icon: ClipboardList },
-          { label: "일정", view: "calendar", section: "calendar-matter", icon: ClipboardList },
-          { label: "대화", view: "messages", section: "messages-matter-channel", icon: FileText, count: "2" },
-          { label: "구성원", view: "matters", section: "matter-team", icon: UserPlus }
+          { label: "업무 보드", view: "matters", section: "matter-board", icon: ClipboardList },
+          { label: "할 일", view: "matters", section: "matter-tasks", icon: ClipboardList },
+          { label: "일정", view: "matters", section: "matter-calendar", icon: ClipboardList },
+          { label: "외부 일정", view: "matters", section: "matter-external-schedule", icon: ClipboardList },
+          { label: "메모·검토 의견", view: "matters", section: "matter-notes", icon: FileText }
         ]
       },
       {
-        label: "청구·분석",
+        label: "문서·자료",
         icon: FileText,
         children: [
-          { label: "청구", view: "finance", section: "finance-matter-billing", icon: FileText },
-          { label: "분석", view: "reports", section: "reports-matter-analytics", icon: ClipboardList },
-          { label: "자료 가져오기", view: "data-import", section: "data-import-matter", icon: Plus }
+          { label: "사건 문서", view: "matters", section: "matter-vault", icon: FileText },
+          { label: "증거·자료", view: "matters", section: "matter-evidence", icon: FileText },
+          { label: "양식·템플릿", view: "matters", section: "matter-templates", icon: FileText },
+          { label: "인장·날인", view: "matters", section: "matter-seal", icon: ShieldCheck }
+        ]
+      },
+      {
+        label: "소통·참여",
+        icon: Mail,
+        children: [
+          { label: "이메일·메시지", view: "matters", section: "matter-channel", icon: Mail, count: "2" },
+          { label: "회의·통화 기록", view: "matters", section: "matter-meetings", icon: ClipboardList },
+          { label: "공지·공유", view: "matters", section: "matter-announcements", icon: Bell },
+          { label: "담당자·참여자", view: "matters", section: "matter-team", icon: UserPlus },
+          { label: "의뢰인 요청", view: "matters", section: "matter-client-requests", icon: FileText }
+        ]
+      },
+      {
+        label: "결재·청구",
+        icon: ShieldCheck,
+        children: [
+          { label: "결재·승인", view: "matters", section: "matter-approvals", icon: ShieldCheck },
+          { label: "시간 기록", view: "matters", section: "matter-time", icon: ClipboardList },
+          { label: "비용 처리", view: "matters", section: "matter-expenses", icon: FileText },
+          { label: "청구 내역", view: "matters", section: "matter-billing", icon: FileText },
+          { label: "미수금", view: "matters", section: "matter-ar", icon: FileText }
+        ]
+      },
+      {
+        label: "리포트·관리",
+        icon: Settings,
+        children: [
+          { label: "사건 리포트", view: "matters", section: "matter-analytics", icon: ClipboardList },
+          { label: "검색·통계", view: "matters", section: "matter-search", icon: Search },
+          { label: "사건 위험", view: "matters", section: "matter-risk", icon: ShieldCheck },
+          { label: "감사 이력", view: "matters", section: "matter-audit", icon: FileText },
+          { label: "연동·알림", view: "matters", section: "matter-integrations", icon: Bell },
+          { label: "사건 설정", view: "matters", section: "matter-settings", icon: Settings }
         ]
       }
     ],

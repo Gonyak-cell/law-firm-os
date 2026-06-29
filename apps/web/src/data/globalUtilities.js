@@ -57,11 +57,10 @@ export const globalUtilityItems = [
       },
       {
         id: "messages-matter-channel",
-        label: "Matter 대화",
+        label: "사건 이메일·메시지",
         source: "Matter",
         icon: FileText,
-        badge: "2",
-        legacyRoutes: [legacy("matters", "matter-channel")]
+        badge: "2"
       }
     ]
   },
@@ -210,17 +209,15 @@ export const globalUtilityItems = [
       },
       {
         id: "reports-client",
-        label: "Client 보고서",
+        label: "Client 리포트",
         source: "Client",
-        icon: FileText,
-        legacyRoutes: [legacy("clients", "client-reports")]
+        icon: FileText
       },
       {
         id: "reports-matter-analytics",
-        label: "Matter 분석",
+        label: "사건 리포트",
         source: "Matter",
-        icon: LayoutDashboard,
-        legacyRoutes: [legacy("matters", "matter-analytics")]
+        icon: LayoutDashboard
       }
     ]
   },
@@ -342,10 +339,9 @@ export const conditionalGlobalItems = [
     sections: [
       {
         id: "calendar-matter",
-        label: "Matter 일정",
+        label: "사건 일정",
         source: "Matter",
-        icon: CalendarDays,
-        legacyRoutes: [legacy("matters", "matter-calendar")]
+        icon: CalendarDays
       },
       {
         id: "calendar-people-external",
@@ -373,10 +369,10 @@ export const conditionalGlobalItems = [
     sections: [
       {
         id: "finance-matter-billing",
-        label: "Matter 청구",
+        label: "사건 청구",
         source: "Matter",
         icon: ReceiptText,
-        legacyRoutes: [legacy("matters", "matter-billing"), legacy("profile", "matters")]
+        legacyRoutes: [legacy("profile", "matters")]
       },
       {
         id: "finance-expenses",
@@ -421,22 +417,19 @@ export const conditionalGlobalItems = [
         id: "data-import-client-data",
         label: "Client 데이터 관리",
         source: "Client",
-        icon: Database,
-        legacyRoutes: [legacy("clients", "client-data")]
+        icon: Database
       },
       {
         id: "data-import-client",
-        label: "Client 가져오기",
+        label: "Client 데이터 가져오기",
         source: "Client",
-        icon: Plus,
-        legacyRoutes: [legacy("clients", "client-import")]
+        icon: Plus
       },
       {
         id: "data-import-matter",
-        label: "Matter 자료 가져오기",
+        label: "사건 자료 가져오기",
         source: "Matter",
-        icon: Plus,
-        legacyRoutes: [legacy("matters", "matter-import")]
+        icon: Plus
       },
       {
         id: "data-import-people-attendance",

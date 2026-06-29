@@ -17,19 +17,19 @@ const viewChecks = [
   {
     name: "clients-live",
     url: "/?locale=en&view=clients&data=live&ctx=allow",
-    expectTexts: ["Client와 상담 접수"],
+    expectTexts: ["Client, 담당자, Opportunity, 상담 이력"],
     selector: "[data-cmp-g2-live-clients='true']"
   },
   {
     name: "matters-live",
     url: "/?locale=en&view=matters&data=live&ctx=allow",
-    expectTexts: ["Matter 상태, 구성원, 문서, 활동, 청구 흐름"],
+    expectTexts: ["사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름"],
     selector: "[data-cmp-g4-live-matters='true']"
   },
   {
     name: "people-live",
     url: "/?locale=en&view=people&data=live&ctx=allow",
-    expectTexts: ["구성원 관리"],
+    expectTexts: ["구성원"],
     selector: "[data-hrx-api-backed='true']"
   },
   {
@@ -40,14 +40,14 @@ const viewChecks = [
   },
   {
     name: "clients-denied",
-    url: "/?locale=en&view=clients&data=live&ctx=denied",
-    expectTexts: ["접근 권한이 없습니다", "권한이 있는 의뢰인만 표시합니다"],
+    url: "/?locale=en&view=clients&data=live&ctx=denied#clients-list",
+    expectTexts: ["접근 권한이 없습니다", "권한이 있는 Client만 표시합니다"],
     selector: "[data-cmp-g2-live-clients='true']"
   },
   {
     name: "clients-review",
-    url: "/?locale=en&view=clients&data=live&ctx=review",
-    expectTexts: ["검토가 필요합니다", "검토가 끝나면 의뢰인 정보를 확인할 수 있습니다"],
+    url: "/?locale=en&view=clients&data=live&ctx=review#clients-list",
+    expectTexts: ["검토가 필요합니다", "검토가 끝나면 Client 정보를 확인할 수 있습니다"],
     selector: "[data-cmp-g2-live-clients='true']"
   },
   {

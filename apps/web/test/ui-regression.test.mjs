@@ -75,13 +75,20 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
   assert.match(shellSource, /<span className="sidebar-icon"><Icon size=\{16\} \/><\/span>/);
   assert.match(appSource, /globalUtilityViewIds/);
   assert.match(appSource, /resolveGlobalShortcut/);
-  assert.match(globalUtilitySource, /client-import/);
-  assert.match(globalUtilitySource, /matter-import/);
+  assert.match(globalUtilitySource, /data-import-client/);
+  assert.match(globalUtilitySource, /data-import-matter/);
   assert.match(globalUtilitySource, /messages-matter-channel/);
   for (const label of ["메시지", "알림", "요청함", "보고서", "설정", "전자계약"]) {
     assert.match(globalUtilitySource, new RegExp(`label: "${label}"`));
   }
   assert.doesNotMatch(globalUtilitySource, /label: "Messages"|label: "Notifications"|label: "Requests"|label: "Reports"|label: "Settings"|label: "E-Sign"/);
+  assert.match(shellSource, /client-import/);
+  for (const label of ["Client 홈", "Client 목록", "담당자", "Opportunity", "상담·문의", "접촉 이력", "제안·계약", "Client 관계", "이해상충 확인", "청구·수금", "Client 리포트", "Client 설정"]) {
+    assert.match(shellSource, new RegExp(label));
+  }
+  for (const label of ["사건 운영", "홈", "사건 목록", "신규 사건", "수임 진행", "종결 처리", "보관 사건", "업무 진행", "업무 보드", "할 일", "외부 일정", "메모·검토 의견", "문서·자료", "사건 문서", "증거·자료", "양식·템플릿", "인장·날인", "소통·참여", "이메일·메시지", "회의·통화 기록", "공지·공유", "담당자·참여자", "의뢰인 요청", "결재·청구", "결재·승인", "시간 기록", "비용 처리", "청구 내역", "미수금", "리포트·관리", "사건 리포트", "검색·통계", "사건 위험", "감사 이력", "연동·알림", "사건 설정"]) {
+    assert.match(shellSource, new RegExp(label));
+  }
   assert.match(shellSource, /peopleNavigationGroups/);
   assert.match(shellSource, /peopleSidebarGroups/);
   assert.match(peopleNavigationSource, /people-members/);
@@ -329,6 +336,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   const matterVaultSource = await readWebFile("src/components/MatterVaultPanel.jsx");
   const importPanelSource = await readWebFile("src/components/ImportDataMappingPanel.jsx");
   const dataCloudSource = await readWebFile("src/components/DataCloudEnrichmentPanel.jsx");
+  const reportBuilderSource = await readWebFile("src/components/ReportBuilderPanel.jsx");
   const permissionAdminSource = await readWebFile("src/people/admin/PermissionAdminPanel.jsx");
   const workforceDirectorySource = await readWebFile("src/people/employees/PeopleWorkforceDirectory.tsx");
   const openingSource = await readWebFile("src/components/MatterOpeningWizard.jsx");
@@ -341,28 +349,56 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   const stylesSource = await readWebFile("src/styles.css");
 
   for (const section of [
-    "client-leads",
+    "clients-home",
     "client-opportunities",
     "client-intake",
     "client-accounts",
     "client-contacts",
-    "matter-command",
+    "client-activities",
+    "client-contracts",
+    "client-relationships",
+    "client-conflict",
+    "client-billing",
+    "client-data",
+    "client-settings",
+    "matter-home",
+    "matter-intake",
+    "matter-closeout",
+    "matter-archive",
+    "matter-board",
+    "matter-tasks",
     "matter-vault",
-    "matter-timeline",
+    "matter-evidence",
+    "matter-templates",
+    "matter-seal",
+    "matter-external-schedule",
+    "matter-notes",
+    "matter-channel",
     "matter-opening",
-    "matter-team"
+    "matter-team",
+    "matter-client-requests",
+    "matter-approvals",
+    "matter-time",
+    "matter-expenses",
+    "matter-billing",
+    "matter-ar",
+    "matter-analytics",
+    "matter-search",
+    "matter-risk",
+    "matter-audit",
+    "matter-integrations",
+    "matter-settings"
   ]) {
     assert.match(shellSource, new RegExp(section));
   }
   for (const section of [
-    "client-data",
-    "client-reports",
-    "client-import",
-    "matter-calendar",
-    "matter-channel",
-    "matter-billing",
-    "matter-analytics",
-    "matter-import"
+    "data-import-client-data",
+    "data-import-client",
+    "calendar-matter",
+    "messages-matter-channel",
+    "finance-matter-billing",
+    "reports-matter-analytics",
+    "data-import-matter"
   ]) {
     assert.match(globalUtilitySource, new RegExp(section));
   }
@@ -416,6 +452,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(dataCloudSource, /data-unified-profile="route-backed"/);
   assert.match(dataCloudSource, /data-segment-activation="provider-blocked"/);
   assert.match(dataCloudSource, /data-sf-b-w07-audit="true"/);
+  assert.match(dataCloudSource, /meta="Client"/);
   assert.match(apiClientSource, /fetchDataCloudProviders/);
   assert.match(apiClientSource, /createDataCloudProvider/);
   assert.match(apiClientSource, /createDataCloudConsentRecord/);
@@ -425,6 +462,12 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /runIdentityResolution/);
   assert.match(apiClientSource, /fetchUnifiedCustomerProfile/);
   assert.match(apiClientSource, /activateDataCloudSegment/);
+  assert.match(apiClientSource, /subject_label: "Client 보강 대상"/);
+  assert.match(apiClientSource, /segment_label: "Client 검토 세그먼트"/);
+  assert.match(apiClientSource, /name: "Client 손익 보고서"/);
+  assert.match(apiClientSource, /name: "Client 손익 검토 보고서"/);
+  assert.match(reportBuilderSource, /title="Client 손익"/);
+  assert.match(reportBuilderSource, /columns=\{\["Client", "Matter", "손익", "원본"\]\}/);
   assert.match(clientsSource, /data-sf-b-w02-owner-blocked-result="true"/);
   assert.match(clientsSource, /owner_blocked/);
   assert.match(clientsSource, /data-sf-b-w02-account-record-action="true"/);
@@ -442,9 +485,19 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /updateRecordActionField/);
   assert.match(clientsSource, /bulkUpdateRecordActions/);
   assert.match(clientsSource, /clientGuardedState/);
+  assert.match(clientsSource, /function guardedResultForContext/);
+  assert.match(clientsSource, /setClientsResult\(guardedResult\)/);
+  assert.match(clientsSource, /setLeadsResult\(guardedResult\)/);
   assert.match(clientsSource, /!clientGuardedState && selectedClientId/);
   assert.match(clientsSource, /ImportDataMappingPanel/);
   assert.match(clientsSource, /client-import/);
+  assert.match(clientsSource, /data-client-overview-panel="true"/);
+  assert.match(clientsSource, /data-client-planned-section/);
+  assert.match(clientsSource, /Client, 담당자, Opportunity, 상담 이력/);
+  assert.match(clientsSource, /renderLiveState\(result, "Client"\)/);
+  assert.match(clientsSource, /권한이 있는 \{noun\}만 표시합니다/);
+  assert.match(clientsSource, /검토가 끝나면 \{noun\} 정보를 확인할 수 있습니다/);
+  assert.doesNotMatch(clientsSource, /의뢰인/);
   assert.match(clientsSource, /data-intake-clearance-action="true"/);
   assert.match(clientsSource, /live-data-unavailable/);
   assert.match(clientsSource, /live-data-denied/);
@@ -552,7 +605,11 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(mattersSource, /onMatterUpdated=\{applyMatterUpdate\}/);
   assert.match(mattersSource, /matter-command-audit-trail/);
   assert.match(mattersSource, /matter-finance-audit-trail/);
-  assert.match(mattersSource, /"matter-command",\s*"matter-vault",\s*"matter-timeline",\s*"matter-calendar",\s*"matter-channel"/);
+  assert.match(mattersSource, /"matter-home",\s*"matters-list",\s*"matter-command",\s*"matter-intake"/);
+  assert.match(mattersSource, /MATTER_EXTERNAL_SCHEDULE_ROWS/);
+  assert.match(mattersSource, /법원 일정/);
+  assert.match(mattersSource, /우체국 발송/);
+  assert.match(mattersSource, /세무서 업무/);
   assert.match(matterVaultSource, /fetchMatterVaultSummary/);
   assert.match(matterVaultSource, /fetchMatterTimeline/);
   assert.match(matterVaultSource, /fetchMatterVaultDocuments/);

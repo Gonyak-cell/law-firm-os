@@ -1,0 +1,115 @@
+{
+  "schema_version": "lawos.matter_desktop.github_prerelease_receipt.v0.1",
+  "recorded_at": "2026-06-29T09:30:00Z",
+  "release": {
+    "tag": "matter-desktop-v0.1.0-current-ui-20260629",
+    "name": "matter desktop v0.1.0 current UI prerelease 2026-06-29",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-current-ui-20260629",
+    "published_at": "2026-06-29T09:29:28Z",
+    "is_draft": false,
+    "is_prerelease": true,
+    "target_commitish": "1807b6bb2e573525626441c9e796b15998ad6cf8",
+    "source_branch": "codex/home-utility-menu-style"
+  },
+  "release_notes": {
+    "path": "docs/desktop/matter-desktop-current-ui-release-notes-2026-06-29.md",
+    "language": "ko",
+    "included_in_github_release_body": true
+  },
+  "uploaded_assets": [
+    {
+      "name": "matter-0.1.0-macos.dmg",
+      "size": 139636017,
+      "sha256": "7e49cc1777c483f1425e2d3a9eb88a51fcd1cbcaab88a4a242bd725641c0c44a"
+    },
+    {
+      "name": "matter-0.1.0-macos.zip",
+      "size": 124439699,
+      "sha256": "257f4f6cc2db3191001b440572518edd010cc69f9906e2222d693128485b6670"
+    },
+    {
+      "name": "matter-0.1.0-win-installer-manifest.json",
+      "size": 353,
+      "sha256": "d2cf5fe871580df3943d7048671cef32747fd6bfd2179b606122c903c1be5d93"
+    },
+    {
+      "name": "matter-0.1.0-win-installer-manifest.json.sig",
+      "size": 65,
+      "sha256": "3de4a00644c3068cb4cd05dd2dbfe2fb4d1ab61916c3a3ccc2cd7e2fc314c6a5"
+    },
+    {
+      "name": "release-manifest.json",
+      "size": 3891,
+      "sha256": "a902a4421ac9b430448dc4afb4dd5d41208b8f41b6f27c649debe7f49bc605e5"
+    },
+    {
+      "name": "checksums.sha256",
+      "size": 845,
+      "sha256": "2f24b67a0489332d0ba96018af3b74d19669a14ee51fd7014cfb1dcfa85c1958"
+    },
+    {
+      "name": "matter-desktop-formal-release-receipt.md",
+      "size": 2340,
+      "sha256": "679a338dee5121169eee22f7bd90ecb551a1471fa188507df69588fa766b818a"
+    },
+    {
+      "name": "desktop-screen-qa-result.json",
+      "size": 6346,
+      "sha256": "895962afae195532b59e866b906b62d47a166cdad051ec8786e6d841ea156db7"
+    },
+    {
+      "name": "desktop-screen-qa.png",
+      "size": 255891,
+      "sha256": "7316cb067ae0489732ea9aff0cd6aedc73302451479e8b25ea1a57fb4ab65ae6"
+    },
+    {
+      "name": "desktop-initial-login-ui.png",
+      "size": 74029,
+      "sha256": "22a1dd2e8ae381523a6a898863f966d28a2e33b8c497f990147b6cdd0402f3c0"
+    },
+    {
+      "name": "desktop-super-admin-product-ui.png",
+      "size": 255891,
+      "sha256": "7316cb067ae0489732ea9aff0cd6aedc73302451479e8b25ea1a57fb4ab65ae6"
+    },
+    {
+      "name": "macos-build.md",
+      "size": 1617,
+      "sha256": "218e893fe0ec6139cdbc79374a3602bb3196743b3ecaa6eb4e150add84d47897"
+    },
+    {
+      "name": "windows-build.md",
+      "size": 1116,
+      "sha256": "ffd8431450e15a200388c7367b60ad1d577b53c3d8c0ba8dca11b44a642c30fb"
+    }
+  ],
+  "verification": {
+    "desktop_smoke": "PASS 59/59",
+    "file_bridge": "PASS 17/17",
+    "aws_runtime_smoke": "PASS",
+    "macos_build": {
+      "developer_id_signing": "applied",
+      "codesign_verify": "pass",
+      "strict_codesign_verify": "pass",
+      "gatekeeper_assess": "pass",
+      "notarization_state": "submitted_and_accepted_by_notarytool"
+    },
+    "windows_build": {
+      "manifest_smoke": "PASS",
+      "windows_authenticode_signing_claim": false
+    },
+    "formal_release_validate": "PASS",
+    "desktop_screen_qa": "PASS",
+    "remote_checksums_sha256_matches_local": true,
+    "ai_slop_review": "PASS"
+  },
+  "claim_boundary": {
+    "github_prerelease_created": true,
+    "public_release_claim": false,
+    "production_go_live_claim": false,
+    "owner_final_approval_claim": false,
+    "app_store_distribution_claim": false,
+    "microsoft_store_distribution_claim": false,
+    "windows_authenticode_signing_claim": false
+  }
+}
