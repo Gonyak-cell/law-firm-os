@@ -1,17 +1,119 @@
 {
   "schema_version": "lawos.lcx_vltui.production_smoke.v0.1",
-  "generated_at": "2026-06-29T15:55:53.911Z",
+  "generated_at": "2026-06-29T16:29:05.169Z",
   "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
-  "deployment_commit": "unknown",
-  "verdict": "BLOCKED",
-  "blocked_reason": "LAWOS_VAULT_BRIDGE_TOKEN is required for production bridge smoke",
-  "missing_required_env": [
-    "LAWOS_VAULT_BRIDGE_TOKEN"
+  "deployment_commit": "fc0482d59122b476589262d5fdb5b2d4618477ba",
+  "verdict": "PASS",
+  "checks": [
+    {
+      "id": "cloudfront-root-new-assets",
+      "passed": true,
+      "details": {
+        "summary": "root=200, assets=index-C4I169hQ.js/index-COfWDa_0.css"
+      }
+    },
+    {
+      "id": "health-context-profile",
+      "passed": true,
+      "details": {
+        "summary": "profile present"
+      }
+    },
+    {
+      "id": "health-context-matter-core",
+      "passed": true,
+      "details": {
+        "summary": "matter-core present"
+      }
+    },
+    {
+      "id": "health-context-vault-dms",
+      "passed": true,
+      "details": {
+        "summary": "vault-dms present"
+      }
+    },
+    {
+      "id": "health-context-crm-intake",
+      "passed": true,
+      "details": {
+        "summary": "crm-intake present"
+      }
+    },
+    {
+      "id": "profile-session-principal",
+      "passed": true,
+      "details": {
+        "summary": "status=200, ui_state=populated"
+      }
+    },
+    {
+      "id": "client-crm-sections",
+      "passed": true,
+      "details": {
+        "summary": "opportunities=1, activities=1, proposals=1"
+      }
+    },
+    {
+      "id": "matter-list",
+      "passed": true,
+      "details": {
+        "summary": "status=200, matters=1"
+      }
+    },
+    {
+      "id": "matter-workspace-sections",
+      "passed": true,
+      "details": {
+        "summary": "command_center=200, timeline=200, vault_summary=200"
+      }
+    },
+    {
+      "id": "vault-documents",
+      "passed": true,
+      "details": {
+        "summary": "status=200, documents=1"
+      }
+    },
+    {
+      "id": "vault-bridge-status",
+      "passed": true,
+      "details": {
+        "summary": "status=200, source_mode=matter_app_api"
+      }
+    },
+    {
+      "id": "vault-bridge-client-upsert",
+      "passed": true,
+      "details": {
+        "summary": "status=200, action=reused"
+      }
+    },
+    {
+      "id": "vault-bridge-matter-upsert",
+      "passed": true,
+      "details": {
+        "summary": "status=200, action=reused"
+      }
+    },
+    {
+      "id": "vault-bridge-lookup",
+      "passed": true,
+      "details": {
+        "summary": "status=200, matches=1"
+      }
+    },
+    {
+      "id": "vault-upload-preflight-guarded",
+      "passed": true,
+      "details": {
+        "summary": "status=200, allowed_next_step=permission_check_only"
+      }
+    }
   ],
-  "checks": [],
   "boundary": {
-    "production_web_deployed": false,
-    "production_api_redeployed": false,
+    "production_web_deployed": true,
+    "production_api_redeployed": true,
     "synthetic_bridge_writes_only": true,
     "vault_document_write_enabled": false,
     "real_client_data_used": false,
