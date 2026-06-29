@@ -364,7 +364,7 @@ p {
 
 .global-sidebar-nav {
   display: grid;
-  gap: 4px;
+  gap: 6px;
   padding: 8px 0 12px;
   margin-bottom: 8px;
   border-bottom: 1px solid var(--am-border-soft);
@@ -375,23 +375,7 @@ p {
 }
 
 .global-sidebar-item {
-  min-height: 34px;
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-  padding: 0 8px;
-  border-radius: var(--am-radius-sm);
-  background: transparent;
-  color: var(--am-text-muted);
-  text-align: left;
-  font-weight: 600;
-}
-
-.global-sidebar-item:hover,
-.global-sidebar-item.active {
-  background: var(--am-blue-soft);
-  color: var(--am-blue);
+  width: 100%;
 }
 
 .eyebrow,

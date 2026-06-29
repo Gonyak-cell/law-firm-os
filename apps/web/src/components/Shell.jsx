@@ -439,12 +439,12 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
               <button
                 key={item.id}
                 type="button"
-                className={active ? "global-sidebar-item active" : "global-sidebar-item"}
+                className={active ? "sidebar-item global-sidebar-item active" : "sidebar-item global-sidebar-item"}
                 aria-current={active ? "page" : undefined}
                 data-global-utility-nav={item.id}
                 onClick={() => setView(item.id, item.defaultSection)}
               >
-                <Icon size={15} />
+                <span className="sidebar-icon"><Icon size={16} /></span>
                 <span>{item.label}</span>
               </button>
             );
