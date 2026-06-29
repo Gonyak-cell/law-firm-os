@@ -38,6 +38,16 @@ const DEFAULT_DATA_CLOUD_PERMISSION_REF = "ui_sf_b_w07_data_cloud_enrichment";
 const DEFAULT_DATA_CLOUD_AUDIT_HINT_REF = "ui_sf_b_w07_data_cloud_probe";
 const DEFAULT_REPORT_PERMISSION_REF = "ui_sf_b_w08_report_builder";
 const DEFAULT_REPORT_AUDIT_HINT_REF = "ui_sf_b_w08_report_builder_probe";
+const DEFAULT_PROFILE_PERMISSION_REF = "ui_profile_me";
+const DEFAULT_PROFILE_AUDIT_HINT_REF = "ui_profile_me_probe";
+export const LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos.session.envelope";
+export const LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION = "law-firm-os.desktop-web-session-envelope.v0.1";
+
+const SESSION_DOMAINS = ["client", "matter", "vault", "crm", "default"];
+const SAFE_SESSION_STATES = new Set(["signed_in"]);
+const SAFE_REVIEW_STATES = new Set(["allow", "review", "denied"]);
+const SAFE_REF_PATTERN = /^[A-Za-z0-9._:-]{1,160}$/;
+const FORBIDDEN_SESSION_TEXT = /(password|reset|bearer|cookie|secret|credential|authorization|token|sk-)/i;
 
 const PRINCIPAL = {
   user_id: "matter_client_operator",
@@ -170,6 +180,157 @@ const VAULT_PERMISSION_CONTEXTS = {
     object_acl: []
   }
 };
+
+function safeSessionRef(value) {
+  if (typeof value !== "string") return null;
+  const ref = value.trim();
+  if (!ref || ref.includes("@") || !SAFE_REF_PATTERN.test(ref) || FORBIDDEN_SESSION_TEXT.test(ref)) return null;
+  return ref;
+}
+
+function safeSessionRefList(values) {
+  if (!Array.isArray(values)) return [];
+  return values.map((value) => safeSessionRef(value)).filter(Boolean).slice(0, 24);
+}
+
+function safeTenantRefs(value, fallbackTenantRef = null) {
+  const tenantRefs = {};
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  for (const domain of SESSION_DOMAINS) {
+    const ref = safeSessionRef(source[domain]);
+    if (ref) tenantRefs[domain] = ref;
+  }
+  const fallback = safeSessionRef(fallbackTenantRef);
+  if (fallback && !tenantRefs.default) tenantRefs.default = fallback;
+  return tenantRefs;
+}
+
+function readStoredSessionEnvelope(source) {
+  try {
+    const storage = source?.sessionStorage ?? globalThis.sessionStorage;
+    const raw = storage?.getItem?.(LAWOS_SESSION_ENVELOPE_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function readUrlSessionEnvelope(source) {
+  try {
+    const location = source?.location ?? globalThis.location;
+    const search = typeof location?.search === "string" ? location.search : "";
+    const params = new URLSearchParams(search);
+    if (params.get("desktop") !== "1") return null;
+
+    const actorRef = safeSessionRef(params.get("desktop_actor_ref"));
+    const tenantRef = safeSessionRef(params.get("desktop_tenant_ref"));
+    if (!actorRef || !tenantRef) return null;
+
+    const sessionRef = safeSessionRef(params.get("desktop_session_ref")) ?? `desktop:${actorRef}:0`;
+    const sourceRef = safeSessionRef(params.get("desktop_source_ref")) ?? "desktop_offline_login";
+    return {
+      schema_version: LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION,
+      state: "signed_in",
+      session_ref: sessionRef,
+      source: sourceRef,
+      actor_ref: actorRef,
+      tenant_refs: {
+        default: tenantRef,
+        client: TENANT_ID,
+        matter: MATTER_TENANT_ID,
+        vault: VAULT_TENANT_ID,
+        crm: CRM_INTAKE_TENANT_ID
+      },
+      role_ids: params.getAll("desktop_role_ref"),
+      scopes: params.getAll("desktop_scope_ref"),
+      review_state: SAFE_REVIEW_STATES.has(params.get("desktop_review_state")) ? params.get("desktop_review_state") : "allow",
+      expires_at: params.get("desktop_expires_at")
+    };
+  } catch {
+    return null;
+  }
+}
+
+function hasForbiddenSessionKey(value) {
+  if (!value || typeof value !== "object") return false;
+  if (Array.isArray(value)) return value.some((item) => hasForbiddenSessionKey(item));
+  return Object.entries(value).some(([key, nested]) => {
+    if (FORBIDDEN_SESSION_TEXT.test(key)) return true;
+    return hasForbiddenSessionKey(nested);
+  });
+}
+
+export function readLawosSessionEnvelope(source = globalThis) {
+  const raw = source?.__LAWOS_SESSION_CONTEXT__ ?? readUrlSessionEnvelope(source) ?? readStoredSessionEnvelope(source);
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  if (hasForbiddenSessionKey(raw)) return null;
+
+  const schemaVersion = safeSessionRef(raw.schema_version);
+  const state = typeof raw.state === "string" ? raw.state : null;
+  const actorRef = safeSessionRef(raw.actor_ref ?? raw.user_ref ?? raw.user_id);
+  const sessionRef = safeSessionRef(raw.session_ref);
+  const sourceRef = safeSessionRef(raw.source ?? raw.source_ref);
+  const tenantRefs = safeTenantRefs(raw.tenant_refs, raw.tenant_ref ?? raw.tenant_id);
+  const reviewState = SAFE_REVIEW_STATES.has(raw.review_state) ? raw.review_state : "allow";
+  const expiresAt = typeof raw.expires_at === "string" ? raw.expires_at : null;
+  const expiresAtMs = expiresAt ? Date.parse(expiresAt) : Number.NaN;
+
+  if (schemaVersion !== LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION) return null;
+  if (!SAFE_SESSION_STATES.has(state) || !actorRef) return null;
+  if (Object.keys(tenantRefs).length === 0) return null;
+  if (Number.isFinite(expiresAtMs) && expiresAtMs <= Date.now()) return null;
+
+  return {
+    schema_version: schemaVersion,
+    state,
+    session_ref: sessionRef,
+    source: sourceRef ?? "desktop_session",
+    actor_ref: actorRef,
+    tenant_refs: tenantRefs,
+    role_ids: safeSessionRefList(raw.role_ids),
+    scopes: safeSessionRefList(raw.scopes),
+    review_state: reviewState,
+    expires_at: expiresAt
+  };
+}
+
+function tenantRefForDomain(envelope, domain, fallbackTenantId) {
+  if (!envelope) return fallbackTenantId;
+  return envelope.tenant_refs[domain] ?? envelope.tenant_refs.default ?? fallbackTenantId;
+}
+
+function principalWithSession(basePrincipal, domain, envelope = readLawosSessionEnvelope()) {
+  if (!envelope) return basePrincipal;
+  return {
+    ...basePrincipal,
+    user_id: envelope.actor_ref,
+    tenant_id: tenantRefForDomain(envelope, domain, basePrincipal.tenant_id),
+    role_ids: envelope.role_ids.length > 0 ? envelope.role_ids : basePrincipal.role_ids,
+    session_context_ref: envelope.session_ref,
+    session_source_ref: envelope.source,
+    session_principal_source: "desktop_web_session_envelope"
+  };
+}
+
+function actorRefForDomain(_domain, fallbackActorId) {
+  return readLawosSessionEnvelope()?.actor_ref ?? fallbackActorId;
+}
+
+function permissionContextFor(ctx, contexts, domain) {
+  const envelope = readLawosSessionEnvelope();
+  const requestedMode = SAFE_REVIEW_STATES.has(ctx) ? ctx : "allow";
+  const effectiveMode =
+    envelope && requestedMode === "allow" && envelope.review_state !== "allow"
+      ? envelope.review_state
+      : requestedMode;
+  const baseContext = contexts[effectiveMode] ?? contexts.allow;
+  return {
+    ...baseContext,
+    principal: principalWithSession(baseContext.principal, domain, envelope),
+    rules: [...(baseContext.rules ?? [])],
+    object_acl: [...(baseContext.object_acl ?? [])]
+  };
+}
 
 const CRM_INTAKE_PERMISSION_CONTEXTS = {
   allow: {
@@ -373,7 +534,7 @@ export async function fetchMasterDataRecords({
   permissionRef = DEFAULT_PERMISSION_REF,
   auditHintRef = DEFAULT_AUDIT_HINT_REF
 } = {}) {
-  const context = PERMISSION_CONTEXTS[ctx] ?? PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, PERMISSION_CONTEXTS, "client");
   const params = new URLSearchParams({
     tenant_id: TENANT_ID,
     permission_ref: permissionRef,
@@ -418,13 +579,73 @@ export async function fetchMasterDataRecords({
   };
 }
 
+export async function fetchUserProfile({
+  ctx = "allow",
+  permissionRef = DEFAULT_PROFILE_PERMISSION_REF,
+  auditHintRef = DEFAULT_PROFILE_AUDIT_HINT_REF
+} = {}) {
+  const context = permissionContextFor(ctx, PERMISSION_CONTEXTS, "client");
+  const params = new URLSearchParams({
+    tenant_id: TENANT_ID,
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+
+  let response;
+  let body;
+  try {
+    response = await fetch(`/api/profile/me?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", uiState: "error" };
+  }
+
+  const hasProfileShape =
+    body !== null &&
+    typeof body === "object" &&
+    !Array.isArray(body) &&
+    ["request_id", "outcome", "item", "safe_error_codes", "audit_hint_ref", "ui_state", "production_ready_claim"]
+      .every((key) => key in body) &&
+    Array.isArray(body.safe_error_codes);
+  if (!hasProfileShape) return { kind: "error", uiState: "error" };
+
+  if (!response.ok || body.outcome !== "passed") {
+    return {
+      kind: "guarded",
+      status: response.status,
+      requestId: body.request_id,
+      outcome: body.outcome,
+      uiState: body.ui_state ?? (body.outcome === "review_required" ? "review" : "denied"),
+      item: null,
+      safeErrorCodes: body.safe_error_codes,
+      auditHintRef: body.audit_hint_ref,
+      countLeakPrevented: body.count_leak_prevented === true,
+      productionReadyClaim: body.production_ready_claim === true
+    };
+  }
+
+  return {
+    kind: body.item ? "data" : "empty",
+    requestId: body.request_id,
+    outcome: body.outcome,
+    uiState: body.item ? body.ui_state : "empty",
+    item: body.item ?? null,
+    safeErrorCodes: body.safe_error_codes,
+    auditHintRef: body.audit_hint_ref,
+    countLeakPrevented: body.count_leak_prevented === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
 export async function fetchMatterRecords({
   ctx = "allow",
   limit = 25,
   permissionRef = DEFAULT_MATTER_PERMISSION_REF,
   auditHintRef = DEFAULT_MATTER_AUDIT_HINT_REF
 } = {}) {
-  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
     tenant_id: MATTER_TENANT_ID,
     permission_ref: permissionRef,
@@ -471,7 +692,7 @@ export async function fetchMatterListViews({
   permissionRef = "ui_sf_b_w02_list_views",
   auditHintRef = "ui_sf_b_w02_list_views_probe"
 } = {}) {
-  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
     tenant_id: MATTER_TENANT_ID,
     permission_ref: permissionRef,
@@ -517,7 +738,7 @@ export async function fetchMatterRecentlyViewed({
   permissionRef = "ui_sf_b_w02_recently_viewed",
   auditHintRef = "ui_sf_b_w02_recently_viewed_probe"
 } = {}) {
-  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
     tenant_id: MATTER_TENANT_ID,
     permission_ref: permissionRef,
@@ -558,7 +779,7 @@ export async function fetchMatterRecentlyViewed({
 }
 
 async function writeMatterRuntime({ method = "POST", path, payload, ctx = "allow" } = {}) {
-  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   let body;
   try {
     const response = await fetch(path, {
@@ -617,7 +838,7 @@ async function fetchMatterRuntimeCollection({
   permissionRef = DEFAULT_MATTER_PERMISSION_REF,
   auditHintRef = DEFAULT_MATTER_AUDIT_HINT_REF
 } = {}) {
-  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
     tenant_id: MATTER_TENANT_ID,
     permission_ref: permissionRef,
@@ -657,7 +878,7 @@ async function fetchMatterRuntimeItem({
   permissionRef = DEFAULT_MATTER_PERMISSION_REF,
   auditHintRef = DEFAULT_MATTER_AUDIT_HINT_REF
 } = {}) {
-  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
     tenant_id: MATTER_TENANT_ID,
     permission_ref: permissionRef,
@@ -1100,13 +1321,13 @@ function importDataPayload(overrides = {}) {
     tenant_id: MATTER_TENANT_ID,
     permission_ref: "ui_sf_b_w05_import_data_mapping",
     audit_hint_ref: "ui_sf_b_w05_import_data_mapping_probe",
-    actor_id: MATTER_PRINCIPAL.user_id,
+    actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
     ...overrides
   };
 }
 
 async function fetchImportDataCollection({ path, ctx = "allow" } = {}) {
-  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
     tenant_id: MATTER_TENANT_ID,
     permission_ref: "ui_sf_b_w05_import_data_mapping",
@@ -1280,7 +1501,7 @@ function recordActionRuntime(objectName, ctx = "allow") {
       objectName: normalized,
       tenantId: MATTER_TENANT_ID,
       principal: MATTER_PRINCIPAL,
-      context: MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow,
+      context: permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter"),
       permissionRef: "ui_sf_b_w02_record_actions_matter",
       auditHintRef: "ui_sf_b_w02_record_actions_matter_probe"
     };
@@ -1290,7 +1511,7 @@ function recordActionRuntime(objectName, ctx = "allow") {
       objectName: normalized,
       tenantId: TENANT_ID,
       principal: PRINCIPAL,
-      context: PERMISSION_CONTEXTS[ctx] ?? PERMISSION_CONTEXTS.allow,
+      context: permissionContextFor(ctx, PERMISSION_CONTEXTS, "client"),
       permissionRef: "ui_sf_b_w02_record_actions_client",
       auditHintRef: "ui_sf_b_w02_record_actions_client_probe"
     };
@@ -1299,10 +1520,17 @@ function recordActionRuntime(objectName, ctx = "allow") {
     objectName: normalized,
     tenantId: CRM_INTAKE_TENANT_ID,
     principal: CRM_INTAKE_PRINCIPAL,
-    context: CRM_INTAKE_PERMISSION_CONTEXTS[ctx] ?? CRM_INTAKE_PERMISSION_CONTEXTS.allow,
+    context: permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm"),
     permissionRef: "ui_sf_b_w02_record_actions_client",
     auditHintRef: "ui_sf_b_w02_record_actions_client_probe"
   };
+}
+
+function recordActionActorDomain(objectName) {
+  const normalized = normalizeRecordActionObject(objectName);
+  if (normalized === "matter") return "matter";
+  if (normalized === "client") return "client";
+  return "crm";
 }
 
 function normalizeRecordActionBody(body = {}) {
@@ -1360,7 +1588,7 @@ async function writeRecordActionRuntime({ objectName, suffix, payload, ctx = "al
         tenant_id: runtime.tenantId,
         permission_ref: runtime.permissionRef,
         audit_hint_ref: runtime.auditHintRef,
-        actor_id: runtime.principal.user_id,
+        actor_id: actorRefForDomain(recordActionActorDomain(objectName), runtime.principal.user_id),
         ...payload
       })
     });
@@ -1426,7 +1654,7 @@ function normalizeMatterTeamMemberPayload(payload = {}) {
     tenant_id: MATTER_TENANT_ID,
     permission_ref: payload.permission_ref ?? "ui_cmp_g4_matter_team",
     audit_hint_ref: payload.audit_hint_ref ?? "ui_cmp_g4_matter_team_probe",
-    actor_id: payload.actor_id ?? MATTER_PRINCIPAL.user_id,
+    actor_id: payload.actor_id ?? actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
     member: {
       ...safeMember,
       tenant_id: MATTER_TENANT_ID
@@ -1472,7 +1700,7 @@ export function saveMatterListView({ label = "개시 Matter", status = "opening"
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w02_list_views_write",
       audit_hint_ref: "ui_sf_b_w02_list_views_write_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       list_view_id: listViewId,
       label,
       filter: { status },
@@ -1491,7 +1719,7 @@ export function bulkCompleteMatterStatus({ matterIds = [], ctx = "allow" } = {})
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w02_matter_bulk_status_transition",
       audit_hint_ref: "ui_sf_b_w02_matter_bulk_status_transition_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:bulk:status:closed:${stamp}`,
       matter_ids: safeMatterIds,
       target_status: "closed",
@@ -1510,7 +1738,7 @@ export function changeMatterOwner({ matterId, employeeId = "emp-001", ctx = "all
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w02_matter_owner_change",
       audit_hint_ref: "ui_sf_b_w02_matter_owner_change_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:${safeMatterId}:owner:${employeeId}:${stamp}`,
       owner: {
         employee_id: employeeId
@@ -1534,7 +1762,7 @@ export function updateMatterInlineFields({
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w02_matter_inline_patch",
       audit_hint_ref: "ui_sf_b_w02_matter_inline_patch_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:${safeMatterId}:inline:${stamp}`,
       field_updates: fieldUpdates,
       reason: "inline_field_edit"
@@ -1552,7 +1780,7 @@ export function createMatterDocumentFacade({ matterId, title, contentText, ctx =
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_mv_matter_document_facade",
       audit_hint_ref: "ui_mv_matter_document_facade_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:${safeMatterId}:document:${stamp}`,
       content_text: contentText ?? "Matter 문서 연결 기록",
       document: {
@@ -1593,7 +1821,7 @@ export function createMatterBuilderDraft({
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w04_builder_draft_create",
       audit_hint_ref: "ui_sf_b_w04_builder_draft_create_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:${safeMatterId}:builder:${safeDraftId}:${stamp}`,
       draft: {
         draft_id: safeDraftId,
@@ -1621,7 +1849,7 @@ export function patchMatterBuilderDraft({
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w04_builder_draft_patch",
       audit_hint_ref: "ui_sf_b_w04_builder_draft_patch_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:${safeMatterId}:builder:${safeDraftId}:patch:${stamp}`,
       patch
     },
@@ -1648,7 +1876,7 @@ export function requestMatterBuilderApproval({ matterId, draftId, ctx = "allow" 
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w04_builder_approval_request",
       audit_hint_ref: "ui_sf_b_w04_builder_approval_request_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:${safeMatterId}:builder:${safeDraftId}:approval:${stamp}`
     },
     ctx
@@ -1671,7 +1899,7 @@ export function publishMatterBuilderDraftToVault({ matterId, draftId, ctx = "all
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w04_builder_publish",
       audit_hint_ref: "ui_sf_b_w04_builder_publish_probe",
-      actor_id: MATTER_PRINCIPAL.user_id
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id)
     },
     ctx
   });
@@ -1694,7 +1922,7 @@ export function createMatterEmailDraft({
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w04_email_draft_create",
       audit_hint_ref: "ui_sf_b_w04_email_draft_create_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:${safeMatterId}:email:${safeDraftId}:${stamp}`,
       draft: {
         draft_id: safeDraftId,
@@ -1723,7 +1951,7 @@ export function patchMatterEmailDraft({
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w04_email_draft_patch",
       audit_hint_ref: "ui_sf_b_w04_email_draft_patch_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:${safeMatterId}:email:${safeDraftId}:patch:${stamp}`,
       patch
     },
@@ -1738,7 +1966,7 @@ export function requestMatterEmailDraftSendBoundary({ matterId, draftId, ctx = "
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w04_email_send_boundary",
       audit_hint_ref: "ui_sf_b_w04_email_send_boundary_probe",
-      actor_id: MATTER_PRINCIPAL.user_id
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id)
     },
     ctx
   });
@@ -1753,7 +1981,7 @@ export function completeMatterStatus({ matterId, ctx = "allow" } = {}) {
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w02_matter_status_transition",
       audit_hint_ref: "ui_sf_b_w02_matter_status_transition_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:${safeMatterId}:status:closed:${stamp}`,
       target_status: "closed",
       reason: "status_complete"
@@ -1769,7 +1997,7 @@ export function markMatterRecentlyViewed({ matterId, ctx = "allow" } = {}) {
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w02_recently_viewed",
       audit_hint_ref: "ui_sf_b_w02_recently_viewed_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       viewed_at: new Date().toISOString()
     },
     ctx
@@ -1802,7 +2030,7 @@ export function createMatterActivity({
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w03_activity_write",
       audit_hint_ref: "ui_sf_b_w03_activity_write_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:${safeMatterId}:activity:${stamp}`,
       activity: {
         activity_id: `activity_${safeMatterId}_${stamp}`,
@@ -1827,7 +2055,7 @@ export function patchMatterActivity({ matterId, activityId, patch = { status: "i
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w03_activity_patch",
       audit_hint_ref: "ui_sf_b_w03_activity_patch_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:${safeMatterId}:activity:${safeActivityId}:patch:${stamp}`,
       patch
     },
@@ -1863,7 +2091,7 @@ export function createMatterCalendarEvent({
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w03_calendar_write",
       audit_hint_ref: "ui_sf_b_w03_calendar_write_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:${safeMatterId}:calendar:${stamp}`,
       event: {
         event_id: `calendar_${safeMatterId}_${stamp}`,
@@ -1892,7 +2120,7 @@ export function patchMatterCalendarEvent({ matterId, eventId, patch = {}, ctx = 
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w03_calendar_patch",
       audit_hint_ref: "ui_sf_b_w03_calendar_patch_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:${safeMatterId}:calendar:${safeEventId}:patch:${stamp}`,
       patch: {
         ...patch,
@@ -1928,7 +2156,7 @@ export function confirmMatterDeadlineChange({
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w03_deadline_confirm",
       audit_hint_ref: "ui_sf_b_w03_deadline_confirm_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       confirmer_user_id: confirmerUserId,
       idempotency_key: `ui:${safeMatterId}:deadline:${safeDeadlineId}:confirm:${stamp}`
     },
@@ -1958,7 +2186,7 @@ export function createMatterChannelMessage({
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w03_channel_message",
       audit_hint_ref: "ui_sf_b_w03_channel_message_probe",
-      actor_id: MATTER_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:${safeMatterId}:channel:${stamp}`,
       message: {
         message_id: `channel_message_${safeMatterId}_${stamp}`,
@@ -1976,7 +2204,7 @@ export function syncMatterChannelProvider({ matterId, ctx = "allow" } = {}) {
       tenant_id: MATTER_TENANT_ID,
       permission_ref: "ui_sf_b_w03_channel_provider_sync",
       audit_hint_ref: "ui_sf_b_w03_channel_provider_sync_probe",
-      actor_id: MATTER_PRINCIPAL.user_id
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id)
     },
     ctx
   });
@@ -1988,7 +2216,7 @@ export async function fetchMatterCommandCenter({
   permissionRef = "ui_mv_matter_command_center",
   auditHintRef = "ui_mv_matter_command_center_probe"
 } = {}) {
-  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
     tenant_id: MATTER_TENANT_ID,
     permission_ref: permissionRef,
@@ -2036,7 +2264,7 @@ export async function fetchMatterVaultSummary({
   permissionRef = "ui_mv_matter_vault_summary",
   auditHintRef = "ui_mv_matter_vault_probe"
 } = {}) {
-  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
     tenant_id: MATTER_TENANT_ID,
     permission_ref: permissionRef,
@@ -2080,7 +2308,7 @@ export async function fetchMatterTimeline({
   permissionRef = "ui_mv_matter_timeline",
   auditHintRef = "ui_mv_matter_timeline_probe"
 } = {}) {
-  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
     tenant_id: MATTER_TENANT_ID,
     permission_ref: permissionRef,
@@ -2115,7 +2343,7 @@ export async function fetchMatterAudit({
   permissionRef = DEFAULT_MATTER_PERMISSION_REF,
   auditHintRef = DEFAULT_MATTER_AUDIT_HINT_REF
 } = {}) {
-  const context = MATTER_PERMISSION_CONTEXTS[ctx] ?? MATTER_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
     tenant_id: MATTER_TENANT_ID,
     permission_ref: permissionRef,
@@ -2159,7 +2387,7 @@ export async function fetchVaultDocuments({
   permissionRef = DEFAULT_VAULT_PERMISSION_REF,
   auditHintRef = DEFAULT_VAULT_AUDIT_HINT_REF
 } = {}) {
-  const context = VAULT_PERMISSION_CONTEXTS[ctx] ?? VAULT_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
   const params = new URLSearchParams({
     tenant_id: VAULT_TENANT_ID,
     permission_ref: permissionRef,
@@ -2199,6 +2427,196 @@ export async function fetchVaultDocuments({
   };
 }
 
+export async function fetchVaultBridgeStatus({ ctx = "allow", bridgeToken = null } = {}) {
+  const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
+  const headers = { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) };
+  if (bridgeToken) headers.Authorization = `Bearer ${bridgeToken}`;
+
+  let response;
+  let body;
+  try {
+    response = await fetch("/api/matters/vault-bridge/status", { headers });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+
+  const hasStatusShape =
+    body !== null &&
+    typeof body === "object" &&
+    !Array.isArray(body) &&
+    ["request_id", "outcome", "item", "safe_error_codes", "state_idempotent", "count_leak_prevented", "production_ready_claim"]
+      .every((key) => key in body) &&
+    Array.isArray(body.safe_error_codes);
+  if (!hasStatusShape) return { kind: "error" };
+
+  if (!response.ok) {
+    return {
+      kind: "guarded",
+      status: response.status,
+      requestId: body.request_id,
+      outcome: body.outcome,
+      safeErrorCodes: body.safe_error_codes,
+      auditHintRef: body.audit_hint_ref ?? null,
+      countLeakPrevented: body.count_leak_prevented === true,
+      productionReadyClaim: body.production_ready_claim === true
+    };
+  }
+
+  return {
+    kind: "data",
+    requestId: body.request_id,
+    outcome: body.outcome,
+    sourceMode: body.item?.source_mode ?? null,
+    clientUpsertPath: body.item?.client_upsert_path ?? null,
+    matterUpsertPath: body.item?.matter_upsert_path ?? null,
+    runtimeWriteReady: body.item?.runtime_write_ready === true,
+    repositoryDurable: body.item?.repository_durable === true,
+    safeErrorCodes: body.safe_error_codes,
+    stateIdempotent: body.state_idempotent === true,
+    countLeakPrevented: body.count_leak_prevented === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+export async function fetchVaultMatterLookup({ ctx = "allow", query = "", bridgeToken = null } = {}) {
+  const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
+  const headers = { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) };
+  if (bridgeToken) headers.Authorization = `Bearer ${bridgeToken}`;
+  const params = new URLSearchParams({
+    tenant_id: MATTER_TENANT_ID,
+    permission_ref: DEFAULT_VAULT_PERMISSION_REF,
+    audit_hint_ref: DEFAULT_VAULT_AUDIT_HINT_REF,
+    q: query
+  });
+
+  let response;
+  let body;
+  try {
+    response = await fetch(`/api/matters/vault-bridge/matter-lookup?${params.toString()}`, { headers });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+
+  const hasLookupShape =
+    body !== null &&
+    typeof body === "object" &&
+    !Array.isArray(body) &&
+    ["request_id", "outcome", "items", "safe_error_codes", "audit_hint_ref", "count_leak_prevented", "production_ready_claim"]
+      .every((key) => key in body) &&
+    Array.isArray(body.items) &&
+    Array.isArray(body.safe_error_codes);
+  if (!hasLookupShape) return { kind: "error" };
+
+  if (!response.ok) {
+    return {
+      kind: "guarded",
+      status: response.status,
+      requestId: body.request_id,
+      outcome: body.outcome,
+      uiState: body.ui_state,
+      items: [],
+      safeErrorCodes: body.safe_error_codes,
+      auditHintRef: body.audit_hint_ref,
+      countLeakPrevented: body.count_leak_prevented === true,
+      productionReadyClaim: body.production_ready_claim === true
+    };
+  }
+
+  return {
+    kind: "data",
+    requestId: body.request_id,
+    outcome: body.outcome,
+    uiState: body.ui_state,
+    items: body.items,
+    safeErrorCodes: body.safe_error_codes,
+    auditHintRef: body.audit_hint_ref,
+    countLeakPrevented: body.count_leak_prevented === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+export async function fetchVaultUploadPreflight({
+  ctx = "allow",
+  selectedMatter = null,
+  bridgeStatus = null,
+  bridgeToken = null
+} = {}) {
+  const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
+  const headers = { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) };
+  if (bridgeToken) headers.Authorization = `Bearer ${bridgeToken}`;
+  const payload = {
+    tenant_id: MATTER_TENANT_ID,
+    permission_ref: DEFAULT_VAULT_PERMISSION_REF,
+    audit_hint_ref: DEFAULT_VAULT_AUDIT_HINT_REF,
+    action: "upload_preflight",
+    selected_matter_ref: selectedMatter?.selected_ref ?? "",
+    matter_id: selectedMatter?.matter_id ?? "",
+    matter_code: selectedMatter?.matter_code ?? "",
+    source_mode: bridgeStatus?.sourceMode ?? null,
+    runtime_write_ready: bridgeStatus?.runtimeWriteReady === true,
+    repository_durable: bridgeStatus?.repositoryDurable === true,
+    production_ready_claim: bridgeStatus?.productionReadyClaim === true,
+    permission_check_only: true
+  };
+
+  let response;
+  let body;
+  try {
+    response = await fetch("/api/matters/vault-bridge/upload-preflight", {
+      method: "POST",
+      headers: { ...headers, "content-type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+
+  const hasPreflightShape =
+    body !== null &&
+    typeof body === "object" &&
+    !Array.isArray(body) &&
+    ["request_id", "outcome", "item", "safe_error_codes", "state_idempotent", "count_leak_prevented", "vault_document_write_enabled", "production_ready_claim"]
+      .every((key) => key in body) &&
+    Array.isArray(body.safe_error_codes);
+  if (!hasPreflightShape) return { kind: "error" };
+
+  if (!response.ok || body.item === null || body.outcome !== "preflight_passed") {
+    return {
+      kind: "guarded",
+      status: response.status,
+      requestId: body.request_id,
+      outcome: body.outcome,
+      uiState: body.ui_state,
+      safeErrorCodes: body.safe_error_codes,
+      auditHintRef: body.audit_hint_ref ?? null,
+      stateIdempotent: body.state_idempotent === true,
+      countLeakPrevented: body.count_leak_prevented === true,
+      vaultDocumentWriteEnabled: body.vault_document_write_enabled === true,
+      productionReadyClaim: body.production_ready_claim === true
+    };
+  }
+
+  return {
+    kind: "data",
+    requestId: body.request_id,
+    outcome: body.outcome,
+    uiState: body.ui_state,
+    item: body.item,
+    preflightRef: body.item.preflight_ref,
+    selectedMatterRef: body.item.selected_matter_ref,
+    allowedNextStep: body.item.allowed_next_step,
+    safeErrorCodes: body.safe_error_codes,
+    auditHintRef: body.audit_hint_ref ?? null,
+    stateIdempotent: body.state_idempotent === true,
+    countLeakPrevented: body.count_leak_prevented === true,
+    vaultDocumentWriteEnabled: body.vault_document_write_enabled === true || body.item?.vault_document_write_enabled === true,
+    productionReadyClaim: body.production_ready_claim === true || body.item?.production_ready_claim === true
+  };
+}
+
 async function fetchMatterVaultCollection({
   path,
   matterId,
@@ -2206,7 +2624,7 @@ async function fetchMatterVaultCollection({
   permissionRef,
   auditHintRef
 } = {}) {
-  const context = VAULT_PERMISSION_CONTEXTS[ctx] ?? VAULT_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
   const params = new URLSearchParams({
     tenant_id: VAULT_TENANT_ID,
     permission_ref: permissionRef,
@@ -2282,7 +2700,7 @@ async function fetchCrmIntakeCollection({
   permissionRef = DEFAULT_CRM_INTAKE_PERMISSION_REF,
   auditHintRef = DEFAULT_CRM_INTAKE_AUDIT_HINT_REF
 } = {}) {
-  const context = CRM_INTAKE_PERMISSION_CONTEXTS[ctx] ?? CRM_INTAKE_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
   const params = new URLSearchParams({
     tenant_id: CRM_INTAKE_TENANT_ID,
     permission_ref: permissionRef,
@@ -2335,7 +2753,7 @@ function uiStableId(prefix, value) {
 }
 
 async function postCrmIntakeRuntime({ path, payload, ctx = "allow" } = {}) {
-  const context = CRM_INTAKE_PERMISSION_CONTEXTS[ctx] ?? CRM_INTAKE_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
   let body;
   try {
     const response = await fetch(path, {
@@ -2373,7 +2791,7 @@ async function postCrmIntakeRuntime({ path, payload, ctx = "allow" } = {}) {
 }
 
 async function patchCrmIntakeRuntime({ path, payload, ctx = "allow" } = {}) {
-  const context = CRM_INTAKE_PERMISSION_CONTEXTS[ctx] ?? CRM_INTAKE_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
   let body;
   try {
     const response = await fetch(path, {
@@ -2414,6 +2832,139 @@ export function fetchCrmLeads(options = {}) {
   return fetchCrmIntakeCollection({ ...options, path: "/api/crm/leads" });
 }
 
+export function fetchCrmActivities(options = {}) {
+  return fetchCrmIntakeCollection({
+    permissionRef: "ui_lcx_vltui_05_activity_read",
+    auditHintRef: "ui_lcx_vltui_05_activity_read_probe",
+    ...options,
+    path: "/api/crm/activities"
+  });
+}
+
+export function createCrmActivity({
+  activityId,
+  partyId = "party_cmp_g6_client_001",
+  opportunityId = "opp_cmp_g6_synthetic_001",
+  activityType = "note",
+  subject = "Client 후속 조치",
+  confidential = false,
+  ctx = "allow"
+} = {}) {
+  const stamp = Date.now();
+  const safeActivityId = activityId ?? `activity_ui_${stamp}`;
+  return postCrmIntakeRuntime({
+    path: "/api/crm/activities",
+    ctx,
+    payload: {
+      tenant_id: CRM_INTAKE_TENANT_ID,
+      permission_ref: "ui_lcx_vltui_05_activity_write",
+      audit_hint_ref: "ui_lcx_vltui_05_activity_write_probe",
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
+      idempotency_key: `ui:crm:activity:${safeActivityId}:${stamp}`,
+      reason: "client_activity_created",
+      activity: {
+        crm_activity_id: safeActivityId,
+        tenant_id: CRM_INTAKE_TENANT_ID,
+        party_id: partyId,
+        opportunity_id: opportunityId,
+        activity_type: activityType,
+        subject,
+        confidential,
+        status: "active"
+      }
+    }
+  });
+}
+
+export function patchCrmActivity({
+  activityId,
+  fieldUpdates = { status: "review_required" },
+  ctx = "allow"
+} = {}) {
+  const safeActivityId = String(activityId ?? "activity").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  return patchCrmIntakeRuntime({
+    path: `/api/crm/activities/${encodeURIComponent(activityId)}`,
+    ctx,
+    payload: {
+      tenant_id: CRM_INTAKE_TENANT_ID,
+      permission_ref: "ui_lcx_vltui_05_activity_patch",
+      audit_hint_ref: "ui_lcx_vltui_05_activity_patch_probe",
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
+      idempotency_key: `ui:crm:activity:${safeActivityId}:patch:${stamp}`,
+      reason: "client_activity_patch",
+      field_updates: fieldUpdates
+    }
+  });
+}
+
+export function fetchCrmProposals(options = {}) {
+  return fetchCrmIntakeCollection({
+    permissionRef: "ui_lcx_vltui_05_proposal_read",
+    auditHintRef: "ui_lcx_vltui_05_proposal_read_probe",
+    ...options,
+    path: "/api/crm/proposals"
+  });
+}
+
+export function createCrmProposal({
+  proposalId,
+  opportunityId = "opp_cmp_g6_synthetic_001",
+  partyId = "party_cmp_g6_client_001",
+  displayName = "Client 제안 초안",
+  vaultDocumentRef = "vault_doc_cmp_g6_proposal_ui",
+  ctx = "allow"
+} = {}) {
+  const stamp = Date.now();
+  const safeProposalId = proposalId ?? `proposal_ui_${stamp}`;
+  return postCrmIntakeRuntime({
+    path: "/api/crm/proposals",
+    ctx,
+    payload: {
+      tenant_id: CRM_INTAKE_TENANT_ID,
+      permission_ref: "ui_lcx_vltui_05_proposal_write",
+      audit_hint_ref: "ui_lcx_vltui_05_proposal_write_probe",
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
+      idempotency_key: `ui:crm:proposal:${safeProposalId}:${stamp}`,
+      reason: "client_proposal_created",
+      proposal: {
+        proposal_id: safeProposalId,
+        tenant_id: CRM_INTAKE_TENANT_ID,
+        opportunity_id: opportunityId,
+        party_id: partyId,
+        fee_estimate_ref: `fee_estimate:${safeProposalId}`,
+        display_name: displayName,
+        status: "draft",
+        proposal_status: "draft",
+        approval_state: "review_required",
+        vault_document_ref: vaultDocumentRef
+      }
+    }
+  });
+}
+
+export function patchCrmProposal({
+  proposalId,
+  fieldUpdates = { approval_state: "review_required" },
+  ctx = "allow"
+} = {}) {
+  const safeProposalId = String(proposalId ?? "proposal").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  return patchCrmIntakeRuntime({
+    path: `/api/crm/proposals/${encodeURIComponent(proposalId)}`,
+    ctx,
+    payload: {
+      tenant_id: CRM_INTAKE_TENANT_ID,
+      permission_ref: "ui_lcx_vltui_05_proposal_patch",
+      audit_hint_ref: "ui_lcx_vltui_05_proposal_patch_probe",
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
+      idempotency_key: `ui:crm:proposal:${safeProposalId}:patch:${stamp}`,
+      reason: "client_proposal_patch",
+      field_updates: fieldUpdates
+    }
+  });
+}
+
 export function fetchCrmAccounts(options = {}) {
   return fetchCrmIntakeCollection({ ...options, path: "/api/crm/accounts" });
 }
@@ -2432,7 +2983,7 @@ export function createCrmAccount({
       tenant_id: CRM_INTAKE_TENANT_ID,
       permission_ref: "ui_sf_b_w01_account_write",
       audit_hint_ref: "ui_sf_b_w01_account_write_probe",
-      actor_id: CRM_INTAKE_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
       idempotency_key: `ui:crm:account:${safeAccountId}:${stamp}`,
       reason: "account_created",
       account: {
@@ -2459,7 +3010,7 @@ export function patchCrmAccount({
       tenant_id: CRM_INTAKE_TENANT_ID,
       permission_ref: "ui_sf_b_w01_account_patch",
       audit_hint_ref: "ui_sf_b_w01_account_patch_probe",
-      actor_id: CRM_INTAKE_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
       idempotency_key: `ui:crm:account:${safeAccountId}:patch:${stamp}`,
       reason: "account_inline_patch",
       field_updates: fieldUpdates
@@ -2486,7 +3037,7 @@ export function createCrmContact({
       tenant_id: CRM_INTAKE_TENANT_ID,
       permission_ref: "ui_sf_b_w01_contact_write",
       audit_hint_ref: "ui_sf_b_w01_contact_write_probe",
-      actor_id: CRM_INTAKE_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
       idempotency_key: `ui:crm:contact:${safeContactId}:${stamp}`,
       reason: "contact_created",
       contact: {
@@ -2515,7 +3066,7 @@ export function patchCrmContact({
       tenant_id: CRM_INTAKE_TENANT_ID,
       permission_ref: "ui_sf_b_w01_contact_patch",
       audit_hint_ref: "ui_sf_b_w01_contact_patch_probe",
-      actor_id: CRM_INTAKE_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
       idempotency_key: `ui:crm:contact:${safeContactId}:patch:${stamp}`,
       reason: "contact_inline_patch",
       field_updates: fieldUpdates
@@ -2539,6 +3090,37 @@ export function fetchCrmMergeProposals(options = {}) {
   });
 }
 
+export function fetchCrmClientSettings(options = {}) {
+  return fetchCrmIntakeCollection({
+    permissionRef: "ui_lcx_vltui_05_client_settings_read",
+    auditHintRef: "ui_lcx_vltui_05_client_settings_read_probe",
+    ...options,
+    path: "/api/crm/client-settings"
+  });
+}
+
+export function patchCrmClientSetting({
+  policyId,
+  fieldUpdates = { duplicate_review_required: true },
+  ctx = "allow"
+} = {}) {
+  const safePolicyId = String(policyId ?? "client_policy").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  return patchCrmIntakeRuntime({
+    path: `/api/crm/client-settings/${encodeURIComponent(policyId)}`,
+    ctx,
+    payload: {
+      tenant_id: CRM_INTAKE_TENANT_ID,
+      permission_ref: "ui_lcx_vltui_05_client_settings_patch",
+      audit_hint_ref: "ui_lcx_vltui_05_client_settings_patch_probe",
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
+      idempotency_key: `ui:crm:client-setting:${safePolicyId}:patch:${stamp}`,
+      reason: "client_policy_patch",
+      field_updates: fieldUpdates
+    }
+  });
+}
+
 export function createCrmMergeProposal({
   proposalId,
   displayName = "CMP G6 synthetic",
@@ -2557,7 +3139,7 @@ export function createCrmMergeProposal({
       tenant_id: CRM_INTAKE_TENANT_ID,
       permission_ref: "ui_sf_b_w01_merge_write",
       audit_hint_ref: "ui_sf_b_w01_merge_write_probe",
-      actor_id: CRM_INTAKE_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
       idempotency_key: `ui:crm:merge:${safeProposalId}:${stamp}`,
       proposal: {
         proposal_id: safeProposalId,
@@ -2585,7 +3167,7 @@ export function executeCrmMergeProposal({ proposalId, ctx = "allow" } = {}) {
       tenant_id: CRM_INTAKE_TENANT_ID,
       permission_ref: "ui_sf_b_w01_merge_execute",
       audit_hint_ref: "ui_sf_b_w01_merge_execute_probe",
-      actor_id: CRM_INTAKE_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
       idempotency_key: `ui:crm:merge:${proposalId}:execute:${stamp}`,
       reason: "duplicate_merge_execute_requested"
     }
@@ -2613,7 +3195,7 @@ export function handoffCrmOpportunityToIntake({
       tenant_id: CRM_INTAKE_TENANT_ID,
       permission_ref: DEFAULT_CRM_INTAKE_PERMISSION_REF,
       audit_hint_ref: DEFAULT_CRM_INTAKE_AUDIT_HINT_REF,
-      actor_id: CRM_INTAKE_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
       idempotency_key: `handoff:${requestId}`,
       intake_request_id: requestId,
       requested_scope_summary: requestedScopeSummary
@@ -2633,7 +3215,7 @@ export function createIntakeConflictCheck({ intakeRequest, ctx = "allow" } = {})
       tenant_id: CRM_INTAKE_TENANT_ID,
       permission_ref: DEFAULT_CRM_INTAKE_PERMISSION_REF,
       audit_hint_ref: DEFAULT_CRM_INTAKE_AUDIT_HINT_REF,
-      actor_id: CRM_INTAKE_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
       idempotency_key: `conflict:${conflictId}`,
       conflict_check: {
         conflict_check_id: conflictId,
@@ -2641,7 +3223,7 @@ export function createIntakeConflictCheck({ intakeRequest, ctx = "allow" } = {})
         intake_request_id: intakeRequest?.intake_request_id,
         party_snapshot: { party_ids: partyIds },
         status: "snapshot_recorded",
-        owner_user_id: CRM_INTAKE_PRINCIPAL.user_id
+        owner_user_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id)
       }
     }
   });
@@ -2656,7 +3238,7 @@ export function issueIntakeClearanceToken({ intakeRequest, conflictCheck, ctx = 
       tenant_id: CRM_INTAKE_TENANT_ID,
       permission_ref: DEFAULT_CRM_INTAKE_PERMISSION_REF,
       audit_hint_ref: DEFAULT_CRM_INTAKE_AUDIT_HINT_REF,
-      actor_id: CRM_INTAKE_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
       idempotency_key: `clearance:${clearanceId}`,
       now: "2026-06-20T00:00:00.000Z",
       token: {
@@ -2783,7 +3365,7 @@ export function createFinanceTimeEntry({
       tenant_id: FINANCE_TENANT_ID,
       permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
       audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
-      actor_id: FINANCE_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", FINANCE_PRINCIPAL.user_id),
       idempotency_key: `ui-time:${matterId}`,
       time_entry: {
         time_entry_id: timeEntryId,
@@ -2807,7 +3389,7 @@ export function generateFinanceWip({ matterId, ctx = "allow" } = {}) {
       tenant_id: FINANCE_TENANT_ID,
       permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
       audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
-      actor_id: FINANCE_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", FINANCE_PRINCIPAL.user_id),
       idempotency_key: `ui-wip:${matterId}`,
       matter_id: matterId
     }
@@ -2823,7 +3405,7 @@ export function importFinancePayment({ matterId, amount = 100000, currency = "KR
       tenant_id: FINANCE_TENANT_ID,
       permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
       audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
-      actor_id: FINANCE_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", FINANCE_PRINCIPAL.user_id),
       idempotency_key: `ui-payment:${matterId}`,
       payment: {
         payment_id: paymentId,

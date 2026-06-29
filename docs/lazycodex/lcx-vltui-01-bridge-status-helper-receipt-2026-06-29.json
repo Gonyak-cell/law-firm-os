@@ -1,0 +1,60 @@
+{
+  "schema": "law-firm-os.lazycodex.lcx-vltui.bridge_status_helper_receipt.v0.1",
+  "generated_at": "2026-06-29T11:06:13Z",
+  "tuw_id": "LCX-VLTUI-01.01",
+  "status": "source-implemented",
+  "goal_thread_id": "019f12b6-4a23-7042-8d78-524e0ec3f852",
+  "objective": "Add a fail-closed web API helper for the Law Firm OS Vault bridge status endpoint without committing or exposing bridge tokens.",
+  "changed_files": [
+    "apps/web/src/data/apiClient.js",
+    "apps/web/test/ui-regression.test.mjs"
+  ],
+  "helper": {
+    "name": "fetchVaultBridgeStatus",
+    "endpoint": "GET /api/matters/vault-bridge/status",
+    "bridge_token_handling": "Optional caller-supplied bridgeToken only; no token is stored or hard-coded.",
+    "permission_context": "VAULT_PERMISSION_CONTEXTS with x-lawos-permission-context header",
+    "success_kind": "data",
+    "blocked_kind": "guarded",
+    "error_kind": "error",
+    "normalized_fields": [
+      "requestId",
+      "outcome",
+      "sourceMode",
+      "clientUpsertPath",
+      "matterUpsertPath",
+      "runtimeWriteReady",
+      "repositoryDurable",
+      "safeErrorCodes",
+      "stateIdempotent",
+      "countLeakPrevented",
+      "productionReadyClaim"
+    ]
+  },
+  "guardrails": {
+    "no_secret_material_committed": true,
+    "missing_or_invalid_bearer_token_fails_closed": true,
+    "production_ready_claim_must_remain_false": true,
+    "ui_surface_mount_deferred_to": "LCX-VLTUI-02.01"
+  },
+  "verification": {
+    "npm_workspace_apps_web_test_ui": "PASS 17/17",
+    "npm_workspace_apps_web_build": "PASS with existing Vite chunk-size warning",
+    "json_parse_receipts": "PASS",
+    "git_diff_check": "PASS",
+    "no_public_release_claim_validator": "PASS"
+  },
+  "claim_boundary": {
+    "production_ready": false,
+    "public_release": false,
+    "production_go_live": false,
+    "owner_final_approval": false,
+    "vault_document_write_enabled": false,
+    "customer_document_import_executed": false
+  },
+  "next_tuws": [
+    "LCX-VLTUI-01.02",
+    "LCX-VLTUI-01.03",
+    "LCX-VLTUI-02.01"
+  ]
+}

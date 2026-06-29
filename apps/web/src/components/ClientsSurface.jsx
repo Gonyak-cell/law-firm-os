@@ -3,16 +3,23 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Link2, Plus, RefreshCw, ShieldCheck } from "lucide-react";
 import {
   createCrmAccount,
+  createCrmActivity,
   createCrmContact,
   createCrmMergeProposal,
+  createCrmProposal,
   createIntakeConflictCheck,
   executeCrmMergeProposal,
+  fetchCrmActivities,
   fetchCrmAccountContacts,
   fetchCrmAccounts,
+  fetchCrmClientSettings,
   fetchCrmContacts,
   fetchCrmLeads,
   fetchCrmMergeProposals,
   fetchCrmOpportunities,
+  fetchCrmProposals,
+  fetchFinanceArAging,
+  fetchFinanceInvoices,
   fetchIntakeAudit,
   fetchIntakeRequests,
   fetchMasterDataRecords,
@@ -21,8 +28,11 @@ import {
   handoffCrmOpportunityToIntake,
   issueIntakeClearanceToken,
   bulkUpdateRecordActions,
+  patchCrmActivity,
   patchCrmAccount,
+  patchCrmClientSetting,
   patchCrmContact,
+  patchCrmProposal,
   updateRecordActionField
 } from "../data/apiClient.js";
 import { DataTable, PageHeader, Panel, Property } from "./primitives.jsx";
@@ -74,6 +84,52 @@ function pipelineStatus(value) {
   if (value === "review_required") return "계약 검토";
   if (value === "closed") return "실권·종료";
   return value ?? "진행 중";
+}
+
+function activityTypeLabel(value) {
+  if (value === "call") return "통화";
+  if (value === "email") return "이메일";
+  if (value === "meeting") return "미팅";
+  if (value === "task") return "할 일";
+  return "메모";
+}
+
+function proposalStatusLabel(value) {
+  if (value === "sent") return "발송됨";
+  if (value === "accepted") return "수락됨";
+  if (value === "declined") return "거절됨";
+  if (value === "expired") return "만료";
+  return "초안";
+}
+
+function approvalStateLabel(value) {
+  if (value === "approved") return "승인됨";
+  if (value === "blocked") return "차단";
+  if (value === "draft") return "초안";
+  return "검토 필요";
+}
+
+function policyDisplayName(value) {
+  if (value === "Client classification policy") return "Client 분류 정책";
+  return businessLabel(value, "Client 정책");
+}
+
+function policyFieldLabel(value) {
+  if (value === "client_classification") return "Client 분류";
+  return businessLabel(value, "정책 필드");
+}
+
+function policyValueLabel(value) {
+  if (value === "individual") return "개인";
+  if (value === "organization") return "법인";
+  if (value === "key_client") return "주요 Client";
+  return businessLabel(value, "값");
+}
+
+function amountLabel(value, currency = "KRW") {
+  const amount = Number(value ?? 0);
+  if (!Number.isFinite(amount)) return "확인 필요";
+  return `${currency} ${amount.toLocaleString("ko-KR")}`;
 }
 
 function businessLabel(value, fallback) {
@@ -228,16 +284,231 @@ function ClientsOverviewPanel({ customerCount, leadCount, opportunityCount, inta
   );
 }
 
-function PlannedClientSection({ title, rows }) {
+function ClientActivitiesPanel({ result, createResult, patchResult, createPending, patchPending, onCreate, onPatch }) {
+  const state = renderLiveState(result, "접촉 이력");
+  if (state) return state;
+  const activities = resultItems(result);
+  const editableActivity = activities[0] ?? null;
   return (
-    <div className="clients-live-stack" data-client-planned-section={title}>
-      <div className="live-data-state live-data-empty">
-        <strong>{title} 메뉴를 준비 중입니다</strong>
-        현재 배포에서는 Client 레코드와 연결될 위치만 열어두었습니다.
+    <div className="clients-live-stack" data-client-activities-connected="true">
+      <div className="record-action-strip" data-client-activity-create-action="true">
+        <div>
+          <strong>접촉 이력 추가</strong>
+          <span>Client와 Opportunity 기준으로 후속 조치를 남깁니다.</span>
+          <ActionNotice pending={createPending} result={createResult} pendingText="이력을 추가 중입니다." successText="접촉 이력이 추가되었습니다." />
+        </div>
+        <button className="secondary-button" type="button" disabled={createPending} onClick={onCreate}>
+          <Plus size={15} />
+          추가
+        </button>
+      </div>
+      <div className="record-action-strip" data-client-activity-patch-action="true">
+        <div>
+          <strong>이력 검토 표시</strong>
+          <span>{editableActivity ? businessLabel(editableActivity.subject, "접촉 이력") : "검토할 이력 없음"}</span>
+          <ActionNotice pending={patchPending} result={patchResult} pendingText="상태를 업데이트 중입니다." successText="접촉 이력 상태가 기록되었습니다." />
+        </div>
+        <button className="secondary-button" type="button" disabled={!editableActivity || patchPending} onClick={() => onPatch(editableActivity)}>
+          <ShieldCheck size={15} />
+          검토 표시
+        </button>
       </div>
       <DataTable
-        columns={["항목", "연결 기준", "현재 상태"]}
-        rows={rows}
+        columns={["접촉", "유형", "상태", "보호"]}
+        rows={activities.map((item, index) => [
+          businessLabel(item.subject, `접촉 이력 ${index + 1}`),
+          activityTypeLabel(item.activity_type),
+          clientStatus(item.status),
+          item.confidential ? "보호됨" : "표시 가능"
+        ])}
+      />
+    </div>
+  );
+}
+
+function ClientContractsPanel({ result, createResult, patchResult, createPending, patchPending, onCreate, onProviderCheck }) {
+  const state = renderLiveState(result, "제안·계약");
+  if (state) return state;
+  const proposals = resultItems(result);
+  const selectedProposal = proposals[0] ?? null;
+  return (
+    <div className="clients-live-stack" data-client-contracts-connected="true">
+      <div className="record-action-strip" data-client-contract-create-action="true">
+        <div>
+          <strong>계약 초안 생성</strong>
+          <span>Opportunity와 Vault 문서 참조를 묶어 제안 초안을 만듭니다.</span>
+          <ActionNotice pending={createPending} result={createResult} pendingText="초안을 생성 중입니다." successText="계약 초안이 생성되었습니다." />
+        </div>
+        <button className="secondary-button" type="button" disabled={createPending} onClick={onCreate}>
+          <Plus size={15} />
+          초안 생성
+        </button>
+      </div>
+      <div className="record-action-strip" data-client-contract-esign-provider-blocked="true">
+        <div>
+          <strong>전자서명 발송</strong>
+          <span>{patchResult?.uiState === "provider_blocked" ? "제공자 receipt 필요" : "제공자 연결 확인"}</span>
+          <ActionNotice pending={patchPending} result={patchResult} pendingText="제공자 상태를 확인 중입니다." successText="전자서명 제공자 상태가 기록되었습니다." />
+        </div>
+        <button className="secondary-button" type="button" disabled={!selectedProposal || patchPending} onClick={() => onProviderCheck(selectedProposal)}>
+          <ShieldCheck size={15} />
+          발송 확인
+        </button>
+      </div>
+      <DataTable
+        columns={["제안·계약", "상태", "승인", "Vault", "전자서명"]}
+        rows={proposals.map((item, index) => [
+          businessLabel(item.display_name, `제안·계약 ${index + 1}`),
+          proposalStatusLabel(item.proposal_status),
+          approvalStateLabel(item.approval_state),
+          item.vault_document_ref_present ? "문서 참조 있음" : "문서 참조 필요",
+          item.e_sign_send_enabled ? "발송 가능" : "제공자 차단"
+        ])}
+      />
+    </div>
+  );
+}
+
+function ClientRelationshipsPanel({
+  relationshipResult,
+  mergeResult,
+  mergeCreateResult,
+  mergeExecuteResult,
+  mergeCreatePending,
+  mergeExecutePending,
+  onCreateMergeProposal,
+  onExecuteMergeProposal
+}) {
+  const relationshipState = renderLiveState(relationshipResult, "Client 관계");
+  return (
+    <div className="clients-live-stack" data-client-relationships-connected="true">
+      <div className="record-action-strip" data-client-relationship-list="true">
+        <div>
+          <strong>관계 목록</strong>
+          <span>법인·개인 Client와 담당자 관계를 기준 데이터와 함께 표시합니다.</span>
+        </div>
+      </div>
+      {relationshipState ?? (
+        <DataTable
+          columns={["관계", "담당자", "상태", "연락값"]}
+          rows={resultItems(relationshipResult).map((item, index) => [
+            item.relationship_type ?? `관계 ${index + 1}`,
+            businessLabel(item.contact_display_name, `담당자 ${index + 1}`),
+            clientStatus(item.status),
+            item.contact_point_value_included === false ? "보호됨" : "검토 필요"
+          ])}
+        />
+      )}
+      <MergeReviewPanel
+        result={mergeResult}
+        createResult={mergeCreateResult}
+        executeResult={mergeExecuteResult}
+        createPending={mergeCreatePending}
+        executePending={mergeExecutePending}
+        onCreateMergeProposal={onCreateMergeProposal}
+        onExecuteMergeProposal={onExecuteMergeProposal}
+      />
+    </div>
+  );
+}
+
+function ClientConflictPanel({ result, auditResult, conflictResult, clearanceResult, conflictPending, clearancePending, onConflictCheck, onClearance }) {
+  const state = renderLiveState(result, "이해상충 확인");
+  if (state) return state;
+  const intakes = resultItems(result);
+  const auditCount = resultItems(auditResult).length;
+  return (
+    <div className="clients-live-stack" data-client-conflict-connected="true">
+      <IntakeActionPanel
+        intakeRequest={intakes[0]}
+        auditCount={auditCount}
+        conflictResult={conflictResult}
+        clearanceResult={clearanceResult}
+        conflictPending={conflictPending}
+        clearancePending={clearancePending}
+        onConflictCheck={onConflictCheck}
+        onClearance={onClearance}
+      />
+      <DataTable
+        columns={["확인 대상", "상태", "스냅샷", "감사"]}
+        rows={intakes.map((item, index) => [
+          `상담·문의 ${index + 1}`,
+          pipelineStatus(item.status),
+          conflictResult?.kind === "data" ? "기록됨" : "대기",
+          `${auditCount}건`
+        ])}
+      />
+    </div>
+  );
+}
+
+function ClientBillingPanel({ invoicesResult, arAgingResult }) {
+  const invoiceState = renderLiveState(invoicesResult, "청구 내역");
+  const arState = renderLiveState(arAgingResult, "미수금");
+  return (
+    <div className="clients-live-stack" data-client-billing-connected="true">
+      <div className="record-action-strip" data-client-billing-provider-blocked="true">
+        <div>
+          <strong>결제·송장 발송</strong>
+          <span>외부 결제와 송장 발송은 제공자 receipt 확인 전까지 차단됩니다.</span>
+        </div>
+        <button className="secondary-button" type="button" disabled>
+          <ShieldCheck size={15} />
+          제공자 차단
+        </button>
+      </div>
+      {invoiceState ?? (
+        <DataTable
+          columns={["송장", "상태", "청구액", "수납"]}
+          rows={resultItems(invoicesResult).map((item, index) => [
+            item.invoice_id ? `송장 ${index + 1}` : "송장",
+            item.status ?? "확인 필요",
+            amountLabel(item.amount_due, item.currency),
+            amountLabel(item.amount_paid, item.currency)
+          ])}
+        />
+      )}
+      {arState ?? (
+        <DataTable
+          columns={["미수금", "상태", "잔액", "Client"]}
+          rows={resultItems(arAgingResult).map((item, index) => [
+            item.invoice_id ? `미수 ${index + 1}` : "미수",
+            item.status ?? "확인 필요",
+            amountLabel(item.balance, "KRW"),
+            linkedLabel(item.billing_client_party_id)
+          ])}
+        />
+      )}
+    </div>
+  );
+}
+
+function ClientSettingsPanel({ result, patchResult, patchPending, onPatch }) {
+  const state = renderLiveState(result, "Client 설정");
+  if (state) return state;
+  const policies = resultItems(result);
+  const selectedPolicy = policies[0] ?? null;
+  return (
+    <div className="clients-live-stack" data-client-settings-connected="true">
+      <div className="record-action-strip" data-client-settings-policy-patch-action="true">
+        <div>
+          <strong>정책 레지스트리</strong>
+          <span>{selectedPolicy ? policyDisplayName(selectedPolicy.display_name) : "정책 없음"}</span>
+          <ActionNotice pending={patchPending} result={patchResult} pendingText="정책을 업데이트 중입니다." successText="정책 변경이 감사 기록에 남았습니다." />
+        </div>
+        <button className="secondary-button" type="button" disabled={!selectedPolicy || patchPending} onClick={() => onPatch(selectedPolicy)}>
+          <ShieldCheck size={15} />
+          정책 확인
+        </button>
+      </div>
+      <DataTable
+        columns={["정책", "필드", "값", "쓰기 조건"]}
+        rows={policies.map((item, index) => [
+          policyDisplayName(item.display_name) || `정책 ${index + 1}`,
+          policyFieldLabel(item.field_name),
+          Array.isArray(item.allowed_values) ? item.allowed_values.map(policyValueLabel).join(" / ") : "확인 필요",
+          item.policy_write_permissioned ? "권한 필요" : "읽기 전용"
+        ])}
       />
     </div>
   );
@@ -862,6 +1133,11 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   const [contactsResult, setContactsResult] = useState(null);
   const [accountContactsResult, setAccountContactsResult] = useState(null);
   const [mergeProposalsResult, setMergeProposalsResult] = useState(null);
+  const [activitiesResult, setActivitiesResult] = useState(null);
+  const [proposalsResult, setProposalsResult] = useState(null);
+  const [clientSettingsResult, setClientSettingsResult] = useState(null);
+  const [financeInvoicesResult, setFinanceInvoicesResult] = useState(null);
+  const [financeArAgingResult, setFinanceArAgingResult] = useState(null);
   const [leadsResult, setLeadsResult] = useState(null);
   const [opportunitiesResult, setOpportunitiesResult] = useState(null);
   const [intakeResult, setIntakeResult] = useState(null);
@@ -873,6 +1149,11 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   const [contactCreateResult, setContactCreateResult] = useState(null);
   const [mergeCreateResult, setMergeCreateResult] = useState(null);
   const [mergeExecuteResult, setMergeExecuteResult] = useState(null);
+  const [activityCreateResult, setActivityCreateResult] = useState(null);
+  const [activityPatchResult, setActivityPatchResult] = useState(null);
+  const [proposalCreateResult, setProposalCreateResult] = useState(null);
+  const [proposalPatchResult, setProposalPatchResult] = useState(null);
+  const [clientSettingPatchResult, setClientSettingPatchResult] = useState(null);
   const [accountPatchResult, setAccountPatchResult] = useState(null);
   const [contactPatchResult, setContactPatchResult] = useState(null);
   const [clientRecordActionFieldsResult, setClientRecordActionFieldsResult] = useState(null);
@@ -889,6 +1170,11 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   const [contactCreatePending, setContactCreatePending] = useState(false);
   const [mergeCreatePending, setMergeCreatePending] = useState(false);
   const [mergeExecutePending, setMergeExecutePending] = useState(false);
+  const [activityCreatePending, setActivityCreatePending] = useState(false);
+  const [activityPatchPending, setActivityPatchPending] = useState(false);
+  const [proposalCreatePending, setProposalCreatePending] = useState(false);
+  const [proposalPatchPending, setProposalPatchPending] = useState(false);
+  const [clientSettingPatchPending, setClientSettingPatchPending] = useState(false);
   const [accountPatchPending, setAccountPatchPending] = useState(false);
   const [contactPatchPending, setContactPatchPending] = useState(false);
   const [clientRecordActionPending, setClientRecordActionPending] = useState(false);
@@ -942,10 +1228,20 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     setContactsResult(null);
     setAccountContactsResult(null);
     setMergeProposalsResult(null);
+    setActivitiesResult(null);
+    setProposalsResult(null);
+    setClientSettingsResult(null);
+    setFinanceInvoicesResult(null);
+    setFinanceArAgingResult(null);
     setAccountCreateResult(null);
     setContactCreateResult(null);
     setMergeCreateResult(null);
     setMergeExecuteResult(null);
+    setActivityCreateResult(null);
+    setActivityPatchResult(null);
+    setProposalCreateResult(null);
+    setProposalPatchResult(null);
+    setClientSettingPatchResult(null);
     setAccountPatchResult(null);
     setContactPatchResult(null);
     setAccountRecordActionResult(null);
@@ -960,6 +1256,11 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
       setContactsResult(guardedResult);
       setAccountContactsResult(guardedResult);
       setMergeProposalsResult(guardedResult);
+      setActivitiesResult(guardedResult);
+      setProposalsResult(guardedResult);
+      setClientSettingsResult(guardedResult);
+      setFinanceInvoicesResult(guardedResult);
+      setFinanceArAgingResult(guardedResult);
       return () => {
         cancelled = true;
       };
@@ -971,8 +1272,26 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
       fetchIntakeAudit({ ctx: liveCtx }),
       fetchCrmAccounts({ ctx: liveCtx }),
       fetchCrmContacts({ ctx: liveCtx }),
-      fetchCrmMergeProposals({ ctx: liveCtx })
-    ]).then(async ([leads, opportunities, intake, audit, accounts, contacts, mergeProposals]) => {
+      fetchCrmMergeProposals({ ctx: liveCtx }),
+      fetchCrmActivities({ ctx: liveCtx }),
+      fetchCrmProposals({ ctx: liveCtx }),
+      fetchCrmClientSettings({ ctx: liveCtx }),
+      fetchFinanceInvoices({ ctx: liveCtx }),
+      fetchFinanceArAging({ ctx: liveCtx })
+    ]).then(async ([
+      leads,
+      opportunities,
+      intake,
+      audit,
+      accounts,
+      contacts,
+      mergeProposals,
+      activities,
+      proposals,
+      clientSettings,
+      financeInvoices,
+      financeArAging
+    ]) => {
       if (cancelled) return;
       setLeadsResult(leads);
       setOpportunitiesResult(opportunities);
@@ -981,6 +1300,11 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
       setAccountsResult(accounts);
       setContactsResult(contacts);
       setMergeProposalsResult(mergeProposals);
+      setActivitiesResult(activities);
+      setProposalsResult(proposals);
+      setClientSettingsResult(clientSettings);
+      setFinanceInvoicesResult(financeInvoices);
+      setFinanceArAgingResult(financeArAging);
       const firstAccountId = resultItems(accounts)[0]?.account_id;
       const accountContacts = await fetchCrmAccountContacts({ accountId: firstAccountId, ctx: liveCtx });
       if (!cancelled) setAccountContactsResult(accountContacts);
@@ -1002,6 +1326,8 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   const intakes = resultItems(intakeResult);
   const selectedOpportunity = opportunities[0] ?? null;
   const selectedIntake = intakes[0] ?? null;
+  const selectedAccount = resultItems(accountsResult)[0] ?? null;
+  const selectedClientPartyId = selectedClient?.primary_party_id ?? selectedClient?.primary_entity_id ?? selectedAccount?.party_id ?? selectedOpportunity?.party_id ?? "party_cmp_g6_client_001";
   const leadCount = resultItems(leadsResult).length;
   const opportunityCount = opportunities.length;
   const intakeCount = intakes.length;
@@ -1175,6 +1501,81 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
           productionReadyClaim: false
         };
       });
+    }
+  }
+
+  async function handleCreateActivity() {
+    setActivityCreatePending(true);
+    const next = await createCrmActivity({
+      partyId: selectedClientPartyId,
+      opportunityId: selectedOpportunity?.opportunity_id ?? "opp_cmp_g6_synthetic_001",
+      subject: "Client 후속 조치",
+      ctx: liveCtx
+    });
+    setActivityCreateResult(next);
+    setActivityCreatePending(false);
+    if (next.kind === "data" && next.item) {
+      setActivitiesResult((current) => upsertResultItem(current, next.item, "crm_activity_id"));
+    }
+  }
+
+  async function handlePatchActivity(activity) {
+    if (!activity?.crm_activity_id) return;
+    setActivityPatchPending(true);
+    const next = await patchCrmActivity({
+      activityId: activity.crm_activity_id,
+      fieldUpdates: { status: "review_required" },
+      ctx: liveCtx
+    });
+    setActivityPatchResult(next);
+    setActivityPatchPending(false);
+    if (next.kind === "data" && next.item) {
+      setActivitiesResult((current) => upsertResultItem(current, next.item, "crm_activity_id"));
+    }
+  }
+
+  async function handleCreateProposal() {
+    setProposalCreatePending(true);
+    const next = await createCrmProposal({
+      opportunityId: selectedOpportunity?.opportunity_id ?? "opp_cmp_g6_synthetic_001",
+      partyId: selectedClientPartyId,
+      displayName: "Client 제안 초안",
+      ctx: liveCtx
+    });
+    setProposalCreateResult(next);
+    setProposalCreatePending(false);
+    if (next.kind === "data" && next.item) {
+      setProposalsResult((current) => upsertResultItem(current, next.item, "proposal_id"));
+    }
+  }
+
+  async function handleProposalProviderCheck(proposal) {
+    if (!proposal?.proposal_id) return;
+    setProposalPatchPending(true);
+    const next = await patchCrmProposal({
+      proposalId: proposal.proposal_id,
+      fieldUpdates: { e_sign_send_requested: true },
+      ctx: liveCtx
+    });
+    setProposalPatchResult(next);
+    setProposalPatchPending(false);
+    if (next.kind === "data" && next.item) {
+      setProposalsResult((current) => upsertResultItem(current, next.item, "proposal_id"));
+    }
+  }
+
+  async function handlePatchClientSetting(policy) {
+    if (!policy?.policy_id) return;
+    setClientSettingPatchPending(true);
+    const next = await patchCrmClientSetting({
+      policyId: policy.policy_id,
+      fieldUpdates: { duplicate_review_required: true },
+      ctx: liveCtx
+    });
+    setClientSettingPatchResult(next);
+    setClientSettingPatchPending(false);
+    if (next.kind === "data" && next.item) {
+      setClientSettingsResult((current) => upsertResultItem(current, next.item, "policy_id"));
     }
   }
 
@@ -1447,62 +1848,64 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
           </Panel>
         )}
         {currentSection === "client-activities" && (
-          <Panel id="client-activities" className="record-list-panel" title="접촉 이력" meta="준비 중">
-            <PlannedClientSection
-              title="접촉 이력"
-              rows={[
-                ["미팅·통화 기록", "Client/담당자", "메뉴 위치 준비"],
-                ["이메일·메시지", "Client/Opportunity", "연동 전"],
-                ["후속 조치", "상담·문의", "업무 흐름 연결 예정"]
-              ]}
+          <Panel id="client-activities" className="record-list-panel" title="접촉 이력" meta="CRM 활동">
+            <ClientActivitiesPanel
+              result={activitiesResult}
+              createResult={activityCreateResult}
+              patchResult={activityPatchResult}
+              createPending={activityCreatePending}
+              patchPending={activityPatchPending}
+              onCreate={handleCreateActivity}
+              onPatch={handlePatchActivity}
             />
           </Panel>
         )}
         {currentSection === "client-contracts" && (
-          <Panel id="client-contracts" className="record-list-panel" title="제안·계약" meta="준비 중">
-            <PlannedClientSection
-              title="제안·계약"
-              rows={[
-                ["제안서", "Opportunity", "문서 연결 예정"],
-                ["견적·보수 협의", "Opportunity", "청구 조건 연결 예정"],
-                ["위임·자문계약", "Client", "계약 상태 연결 예정"]
-              ]}
+          <Panel id="client-contracts" className="record-list-panel" title="제안·계약" meta="Vault/e-sign 경계">
+            <ClientContractsPanel
+              result={proposalsResult}
+              createResult={proposalCreateResult}
+              patchResult={proposalPatchResult}
+              createPending={proposalCreatePending}
+              patchPending={proposalPatchPending}
+              onCreate={handleCreateProposal}
+              onProviderCheck={handleProposalProviderCheck}
             />
           </Panel>
         )}
         {currentSection === "client-relationships" && (
-          <Panel id="client-relationships" className="record-list-panel" title="Client 관계" meta="준비 중">
-            <PlannedClientSection
-              title="Client 관계"
-              rows={[
-                ["관계 회사", "법인 Client", "기준 데이터 연결 예정"],
-                ["계열사", "Client 그룹", "검토 필요"],
-                ["관련 상대방", "이해상충 확인", "권한 기준 준비"]
-              ]}
+          <Panel id="client-relationships" className="record-list-panel" title="Client 관계" meta="관계·병합 검토">
+            <ClientRelationshipsPanel
+              relationshipResult={accountContactsResult}
+              mergeResult={mergeProposalsResult}
+              mergeCreateResult={mergeCreateResult}
+              mergeExecuteResult={mergeExecuteResult}
+              mergeCreatePending={mergeCreatePending}
+              mergeExecutePending={mergeExecutePending}
+              onCreateMergeProposal={handleCreateMergeProposal}
+              onExecuteMergeProposal={handleExecuteMergeProposal}
             />
           </Panel>
         )}
         {currentSection === "client-conflict" && (
-          <Panel id="client-conflict" className="record-list-panel" title="이해상충 확인" meta="준비 중">
-            <PlannedClientSection
-              title="이해상충 확인"
-              rows={[
-                ["확인 요청", "상담·문의", "검토 흐름 연결 예정"],
-                ["관련 당사자", "Client/상대방", "기준 데이터 필요"],
-                ["확인 이력", "감사 기록", "읽기 전용 준비"]
-              ]}
+          <Panel id="client-conflict" className="record-list-panel" title="이해상충 확인" meta="검토 큐">
+            <ClientConflictPanel
+              result={intakeResult}
+              auditResult={intakeAuditResult}
+              conflictResult={conflictResult}
+              clearanceResult={clearanceResult}
+              conflictPending={conflictPending}
+              clearancePending={clearancePending}
+              onConflictCheck={handleConflictCheck}
+              onClearance={handleClearance}
             />
           </Panel>
         )}
         {currentSection === "client-billing" && (
-          <Panel id="client-billing" className="record-list-panel" title="청구·수금" meta="준비 중">
-            <PlannedClientSection
-              title="청구·수금"
-              rows={[
-                ["청구 내역", "Client", "Finance 연결 예정"],
-                ["미수금", "Client/사건·업무", "리포트 연결 예정"],
-                ["보수 조건", "제안·계약", "검토 필요"]
-              ]}
+          <Panel id="client-billing" className="record-list-panel" title="청구·수금" meta="Finance 연결">
+            <ClientBillingPanel
+              invoicesResult={financeInvoicesResult}
+              arAgingResult={financeArAgingResult}
             />
           </Panel>
         )}
@@ -1516,14 +1919,12 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
           <ImportDataMappingPanel ctx={liveCtx} surface="client" />
         )}
         {currentSection === "client-settings" && (
-          <Panel id="client-settings" className="record-list-panel" title="Client 설정" meta="준비 중">
-            <PlannedClientSection
-              title="Client 설정"
-              rows={[
-                ["Client 분류", "개인/법인/주요 Client", "설정 UI 준비"],
-                ["Opportunity 단계", "수임 전 업무", "단계 정의 예정"],
-                ["중복 Client 관리", "기준 데이터", "검토 큐 연결 예정"]
-              ]}
+          <Panel id="client-settings" className="record-list-panel" title="Client 설정" meta="정책 레지스트리">
+            <ClientSettingsPanel
+              result={clientSettingsResult}
+              patchResult={clientSettingPatchResult}
+              patchPending={clientSettingPatchPending}
+              onPatch={handlePatchClientSetting}
             />
           </Panel>
         )}

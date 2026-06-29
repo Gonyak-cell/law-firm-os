@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-06-29T09:26:16.338Z",
+  "generated_at": "2026-06-29T15:22:13.562Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
   "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
@@ -33,7 +33,7 @@
       "password_reset_confirm": "passed",
       "password_login": "passed",
       "product_handoff": {
-        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
+        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1&desktop_session_ref=desktop%3Auser_amic_jwsuh%3A88&desktop_source_ref=desktop_offline_login&desktop_actor_ref=user_amic_jwsuh&desktop_tenant_ref=tenant_amic_matter_vault&desktop_expires_at=2026-06-29T16%3A22%3A03.779Z&desktop_role_ref=system_super_admin&desktop_role_ref=tenant_owner&desktop_role_ref=managing_partner&desktop_role_ref=security_admin&desktop_role_ref=matter_vault_admin&desktop_role_ref=matter_vault_user&desktop_scope_ref=tenant.admin&desktop_scope_ref=user.admin&desktop_scope_ref=security.admin&desktop_scope_ref=cutover.execute&desktop_scope_ref=matter.read&desktop_scope_ref=matter.write&desktop_scope_ref=vault.read&desktop_scope_ref=vault.write&desktop_scope_ref=audit.read&desktop_scope_ref=audit.export",
         "title": "오늘의 운영 대기열",
         "capability_cards": 4,
         "capability_labels": [
@@ -107,7 +107,7 @@
       "password_reset_confirm": "passed",
       "password_login": "passed",
       "product_handoff": {
-        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
+        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1&desktop_session_ref=desktop%3Auser_amic_ytkim%3A72&desktop_source_ref=desktop_offline_login&desktop_actor_ref=user_amic_ytkim&desktop_tenant_ref=tenant_amic_matter_vault&desktop_expires_at=2026-06-29T16%3A22%3A10.101Z&desktop_role_ref=tenant_owner&desktop_role_ref=managing_partner&desktop_role_ref=matter_vault_admin&desktop_role_ref=matter_vault_user&desktop_scope_ref=tenant.admin&desktop_scope_ref=matter.read&desktop_scope_ref=matter.write&desktop_scope_ref=vault.read&desktop_scope_ref=vault.write&desktop_scope_ref=audit.read",
         "title": "오늘의 운영 대기열",
         "capability_cards": 4,
         "capability_labels": [

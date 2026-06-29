@@ -1,0 +1,52 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_vltui.upload_preflight_proof.v0.1",
+  "tuw_id": "LCX-VLTUI-02.03",
+  "generated_at": "2026-06-29T12:50:36.136Z",
+  "web_url": "http://127.0.0.1:5173",
+  "source_refs": [
+    "apps/api/src/matter-runtime-context.js",
+    "apps/web/src/components/VaultSurface.jsx",
+    "apps/web/src/data/apiClient.js"
+  ],
+  "boundary": {
+    "synthetic_route_interception_only": true,
+    "customer_document_import_executed": false,
+    "vault_document_write_enabled": false,
+    "production_ready": false,
+    "public_release": false,
+    "go_live_approved": false,
+    "owner_final_approval": false
+  },
+  "cases": [
+    {
+      "id": "passed",
+      "state": "passed",
+      "preflight_calls": 1,
+      "preflight_ref": "vault-preflight:matter_lcx_vltui_alpha:browser-proof",
+      "vault_document_write_enabled": "false",
+      "forbidden_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-03-passed.png",
+      "passed": true
+    },
+    {
+      "id": "source-blocked",
+      "state": "source-blocked",
+      "preflight_calls": 0,
+      "vault_document_write_enabled": "false",
+      "action_disabled": true,
+      "forbidden_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-03-source-blocked.png",
+      "passed": true
+    },
+    {
+      "id": "guarded",
+      "state": "guarded",
+      "preflight_calls": 1,
+      "vault_document_write_enabled": "false",
+      "forbidden_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-03-guarded.png",
+      "passed": true
+    }
+  ],
+  "verdict": "PASS"
+}

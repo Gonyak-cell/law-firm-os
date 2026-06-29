@@ -1,0 +1,121 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-github-release-receipt.v0.1",
+  "status": "github_prerelease_published",
+  "local_release_date": "2026-06-30",
+  "release": {
+    "tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "name": "matter Desktop LCX VLTUI prerelease 2026-06-30",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "created_at": "2026-06-29T15:25:05Z",
+    "published_at": "2026-06-29T15:25:50Z",
+    "target_commitish": "ef493451a1d070412d3d24d4474493afbca3f1a4",
+    "source_branch": "codex/lcx-vltui-desktop-release-20260630",
+    "is_draft": false,
+    "is_prerelease": true
+  },
+  "assets": [
+    {
+      "name": "matter-0.1.0-macos.dmg",
+      "size": 139588130,
+      "digest": "sha256:cfec77354111419cb01a912fb32b45dd599321d13bd4c710ba5be481773ce8b5",
+      "state": "uploaded"
+    },
+    {
+      "name": "matter-0.1.0-macos.zip",
+      "size": 124454572,
+      "digest": "sha256:f5661dabb9b11212fede3f9edf3bcc4330c8820ffec8225208ef42437a67b6d7",
+      "state": "uploaded"
+    },
+    {
+      "name": "matter-0.1.0-win-installer-manifest.json",
+      "size": 353,
+      "digest": "sha256:d2cf5fe871580df3943d7048671cef32747fd6bfd2179b606122c903c1be5d93",
+      "state": "uploaded"
+    },
+    {
+      "name": "matter-0.1.0-win-installer-manifest.json.sig",
+      "size": 65,
+      "digest": "sha256:3de4a00644c3068cb4cd05dd2dbfe2fb4d1ab61916c3a3ccc2cd7e2fc314c6a5",
+      "state": "uploaded"
+    },
+    {
+      "name": "release-manifest.json",
+      "size": 3889,
+      "digest": "sha256:9e5fdf8790a356504c34c0e38cdaa587ba986bb6e20cd8e0685cec3e50c8e42f",
+      "state": "uploaded"
+    },
+    {
+      "name": "checksums.sha256",
+      "size": 845,
+      "digest": "sha256:1e4ae252618f516cb9cbee92f5c96babf4c44329e26bf067e78af0a7ab5bcef4",
+      "state": "uploaded"
+    },
+    {
+      "name": "matter-desktop-formal-release-receipt.md",
+      "size": 2336,
+      "digest": "sha256:baab04f4f6c91d521821949f5d20511502c5f95436d7ea1892ab53458cc2df91",
+      "state": "uploaded"
+    },
+    {
+      "name": "matter-desktop-lcx-vltui-release-notes-2026-06-30.md",
+      "size": 2680,
+      "digest": "sha256:07c3b6971503e80db54db49e576b8d2b2699db8a3f6cbef43556d9e58e885c25",
+      "state": "uploaded"
+    },
+    {
+      "name": "macos-build.md",
+      "size": 1617,
+      "digest": "sha256:218e893fe0ec6139cdbc79374a3602bb3196743b3ecaa6eb4e150add84d47897",
+      "state": "uploaded"
+    },
+    {
+      "name": "windows-build.md",
+      "size": 1116,
+      "digest": "sha256:ffd8431450e15a200388c7367b60ad1d577b53c3d8c0ba8dca11b44a642c30fb",
+      "state": "uploaded"
+    },
+    {
+      "name": "desktop-screen-qa-result.json",
+      "size": 7607,
+      "digest": "sha256:74e8913423353733eefa99999e1da43c53c824cf5cad8901be1ad82d540b7bbe",
+      "state": "uploaded"
+    },
+    {
+      "name": "desktop-screen-qa.png",
+      "size": 260169,
+      "digest": "sha256:2e2da112f2e538b74af06f1aca3632815f5568077b1f7aa53db0a262242e0b1d",
+      "state": "uploaded"
+    },
+    {
+      "name": "desktop-initial-login-ui.png",
+      "size": 74029,
+      "digest": "sha256:22a1dd2e8ae381523a6a898863f966d28a2e33b8c497f990147b6cdd0402f3c0",
+      "state": "uploaded"
+    },
+    {
+      "name": "desktop-super-admin-product-ui.png",
+      "size": 260169,
+      "digest": "sha256:2e2da112f2e538b74af06f1aca3632815f5568077b1f7aa53db0a262242e0b1d",
+      "state": "uploaded"
+    }
+  ],
+  "verification": {
+    "desktop_smoke": "PASS 59/59",
+    "web_ui": "PASS 17/17",
+    "web_build": "PASS",
+    "file_bridge": "PASS 17/17",
+    "aws_runtime_smoke": "PASS",
+    "formal_release_validate": "PASS",
+    "desktop_screen_qa": "PASS",
+    "no_public_release_claim": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "non_claims": {
+    "public_release": false,
+    "production_go_live": false,
+    "owner_final_approval": false,
+    "app_store_distribution": false,
+    "microsoft_store_distribution": false,
+    "windows_authenticode_signing": false
+  }
+}

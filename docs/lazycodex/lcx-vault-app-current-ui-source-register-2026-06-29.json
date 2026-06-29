@@ -1,0 +1,134 @@
+{
+  "schema": "law-firm-os.lazycodex.lcx-vltui.source_register.v0.1",
+  "generated_at": "2026-06-29T11:06:13Z",
+  "purpose": "Source register for implementing all Matter, Client, and Vault LCX-VLTUI TUWs end to end.",
+  "law_firm_os": {
+    "plan": [
+      "docs/lazycodex/lcx-vault-app-current-ui-implementation-tuw-plan-2026-06-29.md",
+      "workbook/salesforce-track-b-ui-exposure-implementation-plan.md",
+      "docs/lazycodex/lcx8-ui-action-operational-audit-tuw-plan.md",
+      "docs/lazycodex/lcx8-remaining-ui-action-remediation-plan-2026-06-27.md"
+    ],
+    "release": [
+      "docs/desktop/matter-desktop-current-ui-release-notes-2026-06-29.md",
+      "docs/desktop/matter-web-canonical-ui-plan.md",
+      "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa-result.json",
+      "docs/lazycodex/evidence/matter-desktop/artifacts/desktop-screen-qa.png"
+    ],
+    "web_surfaces": [
+      "apps/web/src/App.jsx",
+      "apps/web/src/components/Shell.jsx",
+      "apps/web/src/components/ClientsSurface.jsx",
+      "apps/web/src/components/MattersSurface.jsx",
+      "apps/web/src/components/VaultSurface.jsx",
+      "apps/web/src/components/MatterVaultPanel.jsx",
+      "apps/web/src/components/UserProfileSurface.jsx",
+      "apps/web/src/components/GlobalUtilitySurface.jsx",
+      "apps/web/src/people/PeopleHome.tsx",
+      "apps/web/src/people/peopleFeatureCatalog.js",
+      "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx",
+      "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx"
+    ],
+    "api_and_clients": [
+      "apps/web/src/data/apiClient.js",
+      "apps/web/src/data/vaultApiClient.ts",
+      "apps/api/src/routes/matters.js",
+      "apps/api/src/matter-runtime-context.js",
+      "apps/api/src/matter-temp-desktop-runtime-lambda.mjs"
+    ],
+    "validators_and_qa": [
+      "apps/web/test/ui-regression.test.mjs",
+      "scripts/validate-matter-desktop-no-public-release-claim.mjs",
+      "scripts/generate-sf-client-matter-surface-ledger.mjs",
+      "scripts/run-sf-client-matter-browser-qa.mjs",
+      "scripts/smoke-matter-desktop-screen-qa.mjs"
+    ]
+  },
+  "vault_app": {
+    "root": "/Users/jws/Projects/amic-vault",
+    "contracts": [
+      "/Users/jws/Projects/amic-vault/docs/integrations/matter-app-vault-contract.md",
+      "/Users/jws/Projects/amic-vault/docs/release/onedrive-migration-approved-write-plan.md",
+      "/Users/jws/Projects/amic-vault/docs/ui/enterprise-dms-ux-route-capability-inventory.md"
+    ],
+    "migration_tools": [
+      "/Users/jws/Projects/amic-vault/tools/migration/matter-app-canonical-upsert-sync.mjs",
+      "/Users/jws/Projects/amic-vault/tools/migration/matter-app-canonical-projection-rollback.mjs",
+      "/Users/jws/Projects/amic-vault/tools/migration/matter-app-migration-db-linkage-closeout.mjs",
+      "/Users/jws/Projects/amic-vault/tools/migration/matter-app-identity-preflight.mjs"
+    ],
+    "runtime_contract": {
+      "matter_app_source_modes": [
+        "matter_app_api",
+        "matter_app_event_projection",
+        "vault_projection_only",
+        "unconfigured"
+      ],
+      "production_rule": "Production-connected document mutations require matter_app_api or an approved event projection, runtime-ready source, fresh projection, permission allow, ethical-wall clearance, and reference-only audit.",
+      "dev_test_fallback": "vault_projection_only remains dev/test fallback unless a later ADR explicitly changes the contract."
+    }
+  },
+  "bridge_endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/matters/vault-bridge/status",
+      "owner": "Law Firm OS",
+      "auth": "Authorization: Bearer <LAWOS_VAULT_BRIDGE_TOKEN>",
+      "implementation": "apps/api/src/matter-runtime-context.js"
+    },
+    {
+      "method": "GET",
+      "path": "/api/matters/vault-bridge/matter-lookup",
+      "owner": "Law Firm OS",
+      "auth": "Authorization: Bearer <LAWOS_VAULT_BRIDGE_TOKEN>",
+      "implementation": "apps/api/src/matter-runtime-context.js"
+    },
+    {
+      "method": "POST",
+      "path": "/api/matters/vault-bridge/upload-preflight",
+      "owner": "Law Firm OS",
+      "auth": "Authorization: Bearer <LAWOS_VAULT_BRIDGE_TOKEN>",
+      "implementation": "apps/api/src/matter-runtime-context.js"
+    },
+    {
+      "method": "POST",
+      "path": "/api/matters/vault-bridge/clients/upsert",
+      "owner": "Law Firm OS",
+      "auth": "Authorization: Bearer <LAWOS_VAULT_BRIDGE_TOKEN>",
+      "implementation": "apps/api/src/matter-runtime-context.js"
+    },
+    {
+      "method": "POST",
+      "path": "/api/matters/vault-bridge/matters/upsert",
+      "owner": "Law Firm OS",
+      "auth": "Authorization: Bearer <LAWOS_VAULT_BRIDGE_TOKEN>",
+      "implementation": "apps/api/src/matter-runtime-context.js"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/integrations/matter-app/status",
+      "owner": "Vault app",
+      "auth": "Vault app runtime auth",
+      "implementation": "/Users/jws/Projects/amic-vault"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/integrations/matter-app/matter-lookup",
+      "owner": "Vault app",
+      "auth": "Vault app runtime auth",
+      "implementation": "/Users/jws/Projects/amic-vault"
+    }
+  ],
+  "forbidden_evidence": [
+    "secrets",
+    "tokens",
+    "cookies",
+    "credentials",
+    "customer document bodies",
+    "OCR text excerpts",
+    "raw prompts",
+    "model responses",
+    "production database dumps",
+    "unredacted local source paths from customer sync"
+  ]
+}

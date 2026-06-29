@@ -1,0 +1,207 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_vltui.browser_qa_proof.v0.1",
+  "tuw_ids": [
+    "LCX-VLTUI-02.04",
+    "LCX-VLTUI-02.05",
+    "LCX-VLTUI-02.06"
+  ],
+  "generated_at": "2026-06-29T13:00:47.613Z",
+  "web_url": "http://127.0.0.1:5173",
+  "source_refs": [
+    "apps/web/src/components/VaultSurface.jsx",
+    "apps/web/src/styles.css",
+    "apps/web/test/ui-regression.test.mjs"
+  ],
+  "boundary": {
+    "synthetic_route_interception_only": true,
+    "customer_document_import_executed": false,
+    "vault_document_write_enabled": false,
+    "production_ready": false,
+    "public_release": false,
+    "go_live_approved": false,
+    "owner_final_approval": false
+  },
+  "cases": [
+    {
+      "id": "ready-preflight-passed",
+      "base_state": "preflight-checked",
+      "boundary_write_enabled": "false",
+      "preflight_ref": "vault-preflight:matter_lcx_vltui_alpha:browser-qa",
+      "states": {
+        "version_upload": "guarded",
+        "metadata_mutation": "guarded",
+        "legal_hold": "owner-blocked",
+        "retention": "records-blocked",
+        "document_action": "guarded"
+      },
+      "row_count": 5,
+      "rows": [
+        {
+          "action": "version-upload",
+          "state": "guarded",
+          "owner": "Vault",
+          "write_enabled": "false"
+        },
+        {
+          "action": "metadata-mutation",
+          "state": "guarded",
+          "owner": "Matter app",
+          "write_enabled": "false"
+        },
+        {
+          "action": "legal-hold",
+          "state": "owner-blocked",
+          "owner": "Owner 결정 필요",
+          "write_enabled": "false"
+        },
+        {
+          "action": "retention",
+          "state": "records-blocked",
+          "owner": "Vault Records",
+          "write_enabled": "false"
+        },
+        {
+          "action": "document-action",
+          "state": "guarded",
+          "owner": "Matter app + Vault",
+          "write_enabled": "false"
+        }
+      ],
+      "disabled_buttons": 5,
+      "all_buttons_disabled": true,
+      "api_calls": {
+        "documents": 1,
+        "status": 1,
+        "lookup": 1,
+        "preflight": 1,
+        "unexpectedWrites": []
+      },
+      "preflight_calls": 1,
+      "unexpected_write_calls": 0,
+      "forbidden_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-06-boundary-passed.png",
+      "passed": true
+    },
+    {
+      "id": "source-blocked",
+      "base_state": "source-blocked",
+      "boundary_write_enabled": "false",
+      "preflight_ref": "",
+      "states": {
+        "version_upload": "source-blocked",
+        "metadata_mutation": "source-blocked",
+        "legal_hold": "source-blocked",
+        "retention": "source-blocked",
+        "document_action": "source-blocked"
+      },
+      "row_count": 5,
+      "rows": [
+        {
+          "action": "version-upload",
+          "state": "source-blocked",
+          "owner": "Vault",
+          "write_enabled": "false"
+        },
+        {
+          "action": "metadata-mutation",
+          "state": "source-blocked",
+          "owner": "Matter app",
+          "write_enabled": "false"
+        },
+        {
+          "action": "legal-hold",
+          "state": "source-blocked",
+          "owner": "Owner 결정 필요",
+          "write_enabled": "false"
+        },
+        {
+          "action": "retention",
+          "state": "source-blocked",
+          "owner": "Vault Records",
+          "write_enabled": "false"
+        },
+        {
+          "action": "document-action",
+          "state": "source-blocked",
+          "owner": "Matter app + Vault",
+          "write_enabled": "false"
+        }
+      ],
+      "disabled_buttons": 5,
+      "all_buttons_disabled": true,
+      "api_calls": {
+        "documents": 1,
+        "status": 1,
+        "lookup": 1,
+        "preflight": 0,
+        "unexpectedWrites": []
+      },
+      "preflight_calls": 0,
+      "unexpected_write_calls": 0,
+      "forbidden_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-06-boundary-source-blocked.png",
+      "passed": true
+    },
+    {
+      "id": "guarded-preflight",
+      "base_state": "permission-blocked",
+      "boundary_write_enabled": "false",
+      "preflight_ref": "",
+      "states": {
+        "version_upload": "permission-blocked",
+        "metadata_mutation": "permission-blocked",
+        "legal_hold": "permission-blocked",
+        "retention": "permission-blocked",
+        "document_action": "permission-blocked"
+      },
+      "row_count": 5,
+      "rows": [
+        {
+          "action": "version-upload",
+          "state": "permission-blocked",
+          "owner": "Vault",
+          "write_enabled": "false"
+        },
+        {
+          "action": "metadata-mutation",
+          "state": "permission-blocked",
+          "owner": "Matter app",
+          "write_enabled": "false"
+        },
+        {
+          "action": "legal-hold",
+          "state": "permission-blocked",
+          "owner": "Owner 결정 필요",
+          "write_enabled": "false"
+        },
+        {
+          "action": "retention",
+          "state": "permission-blocked",
+          "owner": "Vault Records",
+          "write_enabled": "false"
+        },
+        {
+          "action": "document-action",
+          "state": "permission-blocked",
+          "owner": "Matter app + Vault",
+          "write_enabled": "false"
+        }
+      ],
+      "disabled_buttons": 5,
+      "all_buttons_disabled": true,
+      "api_calls": {
+        "documents": 1,
+        "status": 1,
+        "lookup": 1,
+        "preflight": 1,
+        "unexpectedWrites": []
+      },
+      "preflight_calls": 1,
+      "unexpected_write_calls": 0,
+      "forbidden_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-06-boundary-guarded.png",
+      "passed": true
+    }
+  ],
+  "verdict": "PASS"
+}

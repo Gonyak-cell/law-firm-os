@@ -1,0 +1,75 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_vltui.profile_audit_receipt.v0.1",
+  "generated_at": "2026-06-29T00:00:00.000Z",
+  "status": "profile-and-audit-browser-verified",
+  "implemented_tuws": [
+    "LCX-VLTUI-04.03",
+    "LCX-VLTUI-04.04"
+  ],
+  "scope": {
+    "phase": "LCX-VLTUI-04 Session, Tenant, Actor, And Audit Principal Bridge",
+    "implemented_slice": "profile API route states plus Client/Matter/Vault write-candidate audit actor propagation",
+    "phase_status": "implemented",
+    "next_slice": [
+      "LCX-VLTUI-05.01",
+      "LCX-VLTUI-05.02",
+      "LCX-VLTUI-05.03",
+      "LCX-VLTUI-05.04",
+      "LCX-VLTUI-05.05",
+      "LCX-VLTUI-05.06",
+      "LCX-VLTUI-05.07"
+    ]
+  },
+  "source_changes": [
+    {
+      "path": "apps/api/src/server.js",
+      "change": "Adds read-only GET /api/profile/me with permission-gated populated, review, denied, and error-safe envelopes."
+    },
+    {
+      "path": "apps/api/test/profile-api.test.js",
+      "change": "Covers profile bounded context descriptor, safe read model, and fail-closed review/denied states."
+    },
+    {
+      "path": "apps/web/src/data/apiClient.js",
+      "change": "Adds fetchUserProfile and routes CRM/Matter write payload actor_id values through the session actor helper when a safe envelope exists."
+    },
+    {
+      "path": "apps/web/src/components/UserProfileSurface.jsx",
+      "change": "Replaces local placeholder profile actions with API-backed profile states and route-backed actions."
+    },
+    {
+      "path": "scripts/run-lcx-vltui-profile-audit-proof.mjs",
+      "change": "Browser proof validates profile states and Client/Matter/Vault write-candidate permission/audit actor propagation."
+    }
+  ],
+  "browser_proof": {
+    "path": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-profile-audit-proof.json",
+    "markdown": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-profile-audit-proof.md",
+    "profile_screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-04-profile-api-proof.png",
+    "audit_screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-04-profile-audit-proof.png",
+    "verdict": "PASS",
+    "covered_cases": [
+      "profile-populated-state",
+      "profile-empty-state",
+      "profile-review-state",
+      "profile-denied-state",
+      "profile-error-state",
+      "profile-help-route-backed",
+      "profile-contract-route-backed",
+      "profile-finance-route-backed",
+      "client-write-session-actor-audit",
+      "matter-write-session-actor-audit",
+      "vault-write-candidate-session-actor-audit"
+    ]
+  },
+  "claim_boundary": {
+    "production_ready": false,
+    "public_release": false,
+    "production_go_live": false,
+    "owner_final_approval": false,
+    "customer_data_write_executed": false,
+    "vault_document_write_enabled": false,
+    "secret_material_in_profile": false,
+    "secret_material_in_permission_header": false
+  }
+}

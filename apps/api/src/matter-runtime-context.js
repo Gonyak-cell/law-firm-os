@@ -30,6 +30,10 @@ export const MATTER_API_ERROR_CODES = Object.freeze({
   not_found: "MATTER_NOT_FOUND",
   vault_bridge_required: "MATTER_VAULT_BRIDGE_REQUIRED",
   vault_bridge_blocked: "MATTER_VAULT_BRIDGE_BLOCKED",
+  vault_bridge_lookup_required: "MATTER_VAULT_LOOKUP_QUERY_REQUIRED",
+  vault_upload_preflight_matter_required: "MATTER_VAULT_UPLOAD_PREFLIGHT_MATTER_REQUIRED",
+  vault_upload_preflight_source_blocked: "MATTER_VAULT_UPLOAD_PREFLIGHT_SOURCE_BLOCKED",
+  vault_upload_preflight_lifecycle_blocked: "MATTER_VAULT_UPLOAD_PREFLIGHT_LIFECYCLE_BLOCKED",
 });
 
 export const MATTER_BOUNDED_CONTEXT = Object.freeze({
@@ -68,6 +72,8 @@ export const MATTER_BOUNDED_CONTEXT = Object.freeze({
     "PATCH /api/matters/:matter_id",
     "POST /api/matters/openings",
     "GET /api/matters/vault-bridge/status",
+    "GET /api/matters/vault-bridge/matter-lookup",
+    "POST /api/matters/vault-bridge/upload-preflight",
     "POST /api/matters/vault-bridge/clients/upsert",
     "POST /api/matters/vault-bridge/matters/upsert",
     "POST /api/matters/list-views",
@@ -317,6 +323,40 @@ function vaultBridgeError(status, requestId, code, extra = {}) {
   };
 }
 
+function vaultBridgeLookupError(status, requestId, codes, extra = {}) {
+  return {
+    status,
+    body: {
+      request_id: requestId,
+      outcome: "blocked",
+      items: [],
+      safe_error_codes: Array.isArray(codes) ? codes : [codes],
+      audit_hint_ref: extra.audit_hint_ref ?? null,
+      ui_state: extra.ui_state ?? "blocked",
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+function vaultBridgePreflightError(status, requestId, codes, extra = {}) {
+  return {
+    status,
+    body: {
+      request_id: requestId,
+      outcome: extra.outcome ?? "blocked",
+      item: null,
+      safe_error_codes: Array.isArray(codes) ? codes : [codes],
+      audit_hint_ref: extra.audit_hint_ref ?? null,
+      ui_state: extra.ui_state ?? "blocked",
+      state_idempotent: true,
+      count_leak_prevented: true,
+      vault_document_write_enabled: false,
+      production_ready_claim: false,
+    },
+  };
+}
+
 function validateVaultBridgeAuth({ headers, requestId } = {}) {
   const expected = configuredVaultBridgeToken();
   if (!expected) {
@@ -355,6 +395,215 @@ function handleVaultBridgeStatus({ headers, requestId, runtime = DEFAULT_MATTER_
       safe_error_codes: [],
       state_idempotent: true,
       count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+const UUID_INPUT_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const VAULT_UPLOAD_PREFLIGHT_ELIGIBLE_STATUSES = new Set(["opening", "open"]);
+
+function serializeVaultBridgeMatterLookupItem(record, runtime) {
+  const item = serializeMatter(record, runtime);
+  return Object.freeze({
+    matter_id: item.matter_id,
+    matter_code: item.matter_code,
+    matter_name: item.matter_name,
+    client_id: item.client_id,
+    client_display_name: item.client_display_name,
+    vault_workspace_id: item.vault_workspace_id,
+    source_revision: item.source_revision,
+    selected_ref: `matter:${item.matter_id}`,
+    lookup_label: item.matter_code ?? item.matter_name ?? item.matter_id,
+    production_ready_claim: false,
+  });
+}
+
+function handleVaultBridgeMatterLookup({ query, headers, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const authError = validateVaultBridgeAuth({ headers, requestId });
+  if (authError) {
+    return vaultBridgeLookupError(authError.status, requestId, authError.body.safe_error_codes, {
+      audit_hint_ref: query?.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:read",
+    resource: { resource_type: "matter_lookup" },
+  });
+  if (gated) return gated;
+  const rawQuery = String(query.q ?? "").trim();
+  if (UUID_INPUT_PATTERN.test(rawQuery)) {
+    return vaultBridgeLookupError(400, requestId, MATTER_API_ERROR_CODES.validation_error, {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  if (rawQuery.length < 2) {
+    return vaultBridgeLookupError(400, requestId, MATTER_API_ERROR_CODES.vault_bridge_lookup_required, {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  const needle = rawQuery.toLowerCase();
+  const records = visibleMatterRecords(runtime.repository.list({ tenant_id: query.tenant_id, model_type: "Matter" }));
+  const serialized = records.map((record) => serializeMatter(record, runtime));
+  const { allowed } = trimItemsByPermission({
+    context,
+    items: serialized,
+    action: "matter:read",
+    resourceType: "matter",
+  });
+  const matches = allowed
+    .filter((item) => [
+      item.matter_code,
+      item.matter_name,
+      item.title,
+      item.client_display_name,
+      item.matter_number,
+    ].some((value) => String(value ?? "").toLowerCase().includes(needle)))
+    .slice(0, 8);
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      items: matches.map((item) => serializeVaultBridgeMatterLookupItem(item, runtime)),
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: matches.length === 0 ? "empty" : null,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+function queryFromVaultBridgeBody(body = {}) {
+  return {
+    tenant_id: body.tenant_id ?? body.tenantRef,
+    permission_ref: body.permission_ref ?? body.permissionRef,
+    audit_hint_ref: body.audit_hint_ref ?? body.auditHintRef,
+  };
+}
+
+function vaultUploadPreflightGate({ context, query, matterId, requestId }) {
+  const invalid = validateCommonQuery(query, requestId);
+  if (invalid) {
+    return vaultBridgePreflightError(invalid.status, requestId, invalid.body.safe_error_codes, {
+      audit_hint_ref: invalid.body.audit_hint_ref,
+      ui_state: invalid.body.ui_state,
+    });
+  }
+  const decision = evaluateRouteDecision({
+    context,
+    resource: {
+      tenant_id: query.tenant_id,
+      resource_type: "matter",
+      resource_id: matterId,
+      matter_id: matterId,
+    },
+    action: "vault:upload:preflight",
+  });
+  if (decision.effect === "allow") return null;
+  const code = decision.effect === "review_required"
+    ? MATTER_API_ERROR_CODES.review_required
+    : decision.effect === "approval_required"
+      ? MATTER_API_ERROR_CODES.approval_required
+      : MATTER_API_ERROR_CODES.unauthorized_omission;
+  return vaultBridgePreflightError(403, requestId, code, {
+    audit_hint_ref: query.audit_hint_ref,
+    ui_state: decision.effect === "review_required" || decision.effect === "approval_required" ? "review_required" : "denied",
+  });
+}
+
+function handleVaultBridgeUploadPreflight({ body, headers, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromVaultBridgeBody(body);
+  const authError = validateVaultBridgeAuth({ headers, requestId });
+  if (authError) {
+    return vaultBridgePreflightError(authError.status, requestId, authError.body.safe_error_codes, {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  const selectedRef = body?.selected_matter_ref ?? body?.selectedMatterRef ?? "";
+  const matterId = String(body?.matter_id ?? body?.matterId ?? "").trim() || (
+    String(selectedRef).startsWith("matter:") ? String(selectedRef).slice("matter:".length).trim() : ""
+  );
+  if (!matterId || selectedRef !== `matter:${matterId}`) {
+    return vaultBridgePreflightError(400, requestId, MATTER_API_ERROR_CODES.vault_upload_preflight_matter_required, {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "matter_required",
+    });
+  }
+  const sourceMode = body?.source_mode ?? body?.sourceMode;
+  const runtimeWriteReady = body?.runtime_write_ready === true || body?.runtimeWriteReady === true;
+  const repositoryDurable = body?.repository_durable === true || body?.repositoryDurable === true;
+  const productionReadyClaim = body?.production_ready_claim === true || body?.productionReadyClaim === true;
+  const permissionCheckOnly = body?.permission_check_only === true || body?.permissionCheckOnly === true;
+  const action = body?.action ?? "upload_preflight";
+  if (
+    sourceMode !== "matter_app_api" ||
+    runtimeWriteReady !== true ||
+    repositoryDurable !== true ||
+    productionReadyClaim === true ||
+    permissionCheckOnly !== true ||
+    !["upload_preflight", "upload"].includes(action)
+  ) {
+    return vaultBridgePreflightError(409, requestId, MATTER_API_ERROR_CODES.vault_upload_preflight_source_blocked, {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "source_blocked",
+    });
+  }
+  const gate = vaultUploadPreflightGate({ context, query, matterId, requestId });
+  if (gate) return gate;
+  const matter = runtime.repository.get({ tenant_id: query.tenant_id, model_type: "Matter", matter_id: matterId });
+  if (!matter || matter.silent === true || matter.hidden_from_actor === true) {
+    return vaultBridgePreflightError(404, requestId, MATTER_API_ERROR_CODES.not_found, {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "matter_required",
+    });
+  }
+  const safeMatter = serializeMatter(matter, runtime);
+  if (!VAULT_UPLOAD_PREFLIGHT_ELIGIBLE_STATUSES.has(safeMatter.status)) {
+    return vaultBridgePreflightError(409, requestId, MATTER_API_ERROR_CODES.vault_upload_preflight_lifecycle_blocked, {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "lifecycle_blocked",
+    });
+  }
+  const suffix = String(body?.idempotency_key_hash ?? body?.idempotencyKeyHash ?? requestId ?? "request")
+    .replace(/[^a-zA-Z0-9:_-]/g, "_")
+    .slice(0, 80);
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "preflight_passed",
+      item: {
+        preflight_ref: `vault-preflight:${matterId}:${suffix}`,
+        selected_matter_ref: `matter:${matterId}`,
+        matter_id: matterId,
+        matter_code: safeMatter.matter_code,
+        matter_name: safeMatter.matter_name,
+        client_id: safeMatter.client_id,
+        client_display_name: safeMatter.client_display_name,
+        action: "upload_preflight",
+        allowed_next_step: "permission_check_only",
+        source_mode: "matter_app_api",
+        permission_checked: true,
+        ethical_wall_clear: true,
+        lifecycle_eligible: true,
+        vault_document_write_enabled: false,
+        production_ready_claim: false,
+      },
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "preflight_passed",
+      state_idempotent: true,
+      count_leak_prevented: true,
+      vault_document_write_enabled: false,
       production_ready_claim: false,
     },
   };
@@ -2713,6 +2962,12 @@ export async function handleMatterApiRequest({
 } = {}) {
   if (pathname === "/api/matters/vault-bridge/status" && method === "GET") {
     return handleVaultBridgeStatus({ headers, requestId, runtime });
+  }
+  if (pathname === "/api/matters/vault-bridge/matter-lookup" && method === "GET") {
+    return handleVaultBridgeMatterLookup({ query, headers, context, requestId, runtime });
+  }
+  if (pathname === "/api/matters/vault-bridge/upload-preflight" && method === "POST") {
+    return handleVaultBridgeUploadPreflight({ body, headers, context, requestId, runtime });
   }
   if (pathname === "/api/matters/vault-bridge/clients/upsert" && method === "POST") {
     return handleVaultBridgeClientUpsert({ body, headers, requestId, runtime });

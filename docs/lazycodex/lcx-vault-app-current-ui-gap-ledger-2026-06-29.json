@@ -1,0 +1,385 @@
+{
+  "schema": "law-firm-os.lazycodex.lcx-vltui.gap_ledger.v0.1",
+  "generated_at": "2026-06-29T11:06:13Z",
+  "status": "open",
+  "implementation_premise": "All Matter, Client, and Vault product surfaces must be connectable end to end. A row may close only as route-mounted, provider-blocked, owner-blocked, guarded, or retired-by-decision.",
+  "summary": {
+    "client_rows": 6,
+    "matter_rows": 17,
+    "vault_rows": 6,
+    "cross_surface_rows": 4,
+    "people_rows": 3
+  },
+  "rows": [
+    {
+      "id": "LCX-VLTUI-GAP-CLIENT-001",
+      "surface": "Client",
+      "section": "client-activities",
+      "status": "implemented",
+      "current_state": "route-mounted-api-backed",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-05.01",
+      "implementation": "GET/POST/PATCH Client activity timeline, type policy, right-panel summary, audit/read-back proof."
+    },
+    {
+      "id": "LCX-VLTUI-GAP-CLIENT-002",
+      "surface": "Client",
+      "section": "client-contracts",
+      "status": "implemented",
+      "current_state": "route-mounted-provider-blocked",
+      "target_state": "route-mounted-or-provider-blocked",
+      "target_tuw": "LCX-VLTUI-05.02",
+      "implementation": "Proposal/contract draft metadata, approval state, Vault document references, e-sign provider blocked state."
+    },
+    {
+      "id": "LCX-VLTUI-GAP-CLIENT-003",
+      "surface": "Client",
+      "section": "client-relationships",
+      "status": "implemented",
+      "current_state": "route-mounted-api-backed",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-05.03",
+      "implementation": "Canonical relation list, duplicate/merge proposal state, owner-approved execution only."
+    },
+    {
+      "id": "LCX-VLTUI-GAP-CLIENT-004",
+      "surface": "Client",
+      "section": "client-conflict",
+      "status": "implemented",
+      "current_state": "route-mounted-api-backed",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-05.04",
+      "implementation": "Conflict search, review queue, clearance/block decision, Matter handoff state, no denied party label leakage."
+    },
+    {
+      "id": "LCX-VLTUI-GAP-CLIENT-005",
+      "surface": "Client",
+      "section": "client-billing",
+      "status": "implemented",
+      "current_state": "route-mounted-provider-blocked",
+      "target_state": "route-mounted-or-provider-blocked",
+      "target_tuw": "LCX-VLTUI-05.05",
+      "implementation": "AR aging, invoice/payment status, collections queue, external payment/send provider blocked state."
+    },
+    {
+      "id": "LCX-VLTUI-GAP-CLIENT-006",
+      "surface": "Client",
+      "section": "client-settings",
+      "status": "implemented",
+      "current_state": "route-mounted-permissioned",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-05.06",
+      "implementation": "Policy registry, field/action allowlist, ownership rules, admin/owner audit feed."
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-001",
+      "surface": "Matter",
+      "section": "matter-closeout",
+      "current_state": "route-mounted-lifecycle-boundary",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-06.01",
+      "implementation": "Matter lifecycle closeout with legal hold, retention, Vault mutation block, reopen/review state.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-002",
+      "surface": "Matter",
+      "section": "matter-archive",
+      "current_state": "route-mounted-lifecycle-boundary",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-06.01",
+      "implementation": "Archive lifecycle with document mutation blocking and audit.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-003",
+      "surface": "Matter",
+      "section": "matter-tasks",
+      "current_state": "route-mounted-activity-subtypes",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-06.02",
+      "implementation": "Task activity subtype with composer, assignment, due date, timeline append.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-004",
+      "surface": "Matter",
+      "section": "matter-notes",
+      "current_state": "route-mounted-activity-subtypes",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-06.02",
+      "implementation": "Note activity subtype with read-back, audit, denied/review trimming.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-005",
+      "surface": "Matter",
+      "section": "matter-evidence",
+      "current_state": "route-mounted-vault-shortcut",
+      "target_state": "route-mounted-or-guarded",
+      "target_tuw": "LCX-VLTUI-06.03",
+      "implementation": "Vault-backed evidence workspace shortcut consuming Vault readiness and preflight status.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-006",
+      "surface": "Matter",
+      "section": "matter-templates",
+      "current_state": "route-mounted-vault-shortcut",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-06.03",
+      "implementation": "Vault-backed template picker and builder metadata route.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-007",
+      "surface": "Matter",
+      "section": "matter-seal",
+      "current_state": "route-mounted-owner-provider-blocked",
+      "target_state": "provider-blocked",
+      "target_tuw": "LCX-VLTUI-06.04",
+      "implementation": "Seal/signature request and provider-blocked send state until receipt.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-008",
+      "surface": "Matter",
+      "section": "matter-meetings",
+      "current_state": "route-mounted-calendar-channel-boundary",
+      "target_state": "route-mounted-or-provider-blocked",
+      "target_tuw": "LCX-VLTUI-06.05",
+      "implementation": "Meeting internal log/calendar route with Outlook/Teams provider blocked state.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-009",
+      "surface": "Matter",
+      "section": "matter-announcements",
+      "current_state": "route-mounted-calendar-channel-boundary",
+      "target_state": "route-mounted-or-provider-blocked",
+      "target_tuw": "LCX-VLTUI-06.05",
+      "implementation": "Internal announcement draft route with external send blocked until provider receipt.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-010",
+      "surface": "Matter",
+      "section": "matter-client-requests",
+      "current_state": "route-mounted-owner-provider-blocked",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-06.04",
+      "implementation": "Client request workflow with approval/read status and audit.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-011",
+      "surface": "Matter",
+      "section": "matter-approvals",
+      "current_state": "route-mounted-owner-provider-blocked",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-06.04",
+      "implementation": "Approval request/status workflow with owner-blocked exits where needed.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-012",
+      "surface": "Matter",
+      "section": "matter-expenses",
+      "current_state": "route-mounted-finance-boundary",
+      "target_state": "route-mounted-or-provider-blocked",
+      "target_tuw": "LCX-VLTUI-06.06",
+      "implementation": "Time/WIP/expense internal records with payment/external invoice delivery blocked.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-013",
+      "surface": "Matter",
+      "section": "matter-search",
+      "current_state": "route-mounted-permission-scoped-search-risk",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-06.07",
+      "implementation": "Permission-scoped Vault/Matter search with safe snippets and no denied count leakage.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-014",
+      "surface": "Matter",
+      "section": "matter-risk",
+      "current_state": "route-mounted-permission-scoped-search-risk",
+      "target_state": "route-mounted-or-guarded",
+      "target_tuw": "LCX-VLTUI-06.07",
+      "implementation": "Risk panel with audited actions or blocked states.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-015",
+      "surface": "Matter",
+      "section": "matter-integrations",
+      "current_state": "route-mounted-provider-status-only",
+      "target_state": "route-mounted-or-provider-blocked",
+      "target_tuw": "LCX-VLTUI-06.08",
+      "implementation": "Provider registry/status, connect/disable request, no credentials in UI/evidence.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-016",
+      "surface": "Matter",
+      "section": "matter-settings",
+      "current_state": "route-mounted-provider-status-only",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-06.08",
+      "implementation": "Matter settings policy registry and audit-safe changes.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-MATTER-017",
+      "surface": "Matter",
+      "section": "matter-import",
+      "current_state": "route-mounted-import-dry-run-guarded-execute",
+      "target_state": "route-mounted-or-owner-blocked",
+      "target_tuw": "LCX-VLTUI-06.09",
+      "implementation": "Job/source/mapping/validation/dry-run/guarded execute/rollback/error-report lifecycle.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-VAULT-001",
+      "surface": "Vault",
+      "section": "vault-connection-status",
+      "current_state": "documents-read-only",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-02.01",
+      "implementation": "Vault bridge status panel with source mode, runtime readiness, freshness, upload-authoritative state."
+    },
+    {
+      "id": "LCX-VLTUI-GAP-VAULT-002",
+      "surface": "Vault",
+      "section": "matter-code-picker",
+      "current_state": "not-mounted-in-lawos-vault-surface",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-02.02",
+      "implementation": "Matter Code/name/client lookup, UUID rejection, permission-negative safe empty state."
+    },
+    {
+      "id": "LCX-VLTUI-GAP-VAULT-003",
+      "surface": "Vault",
+      "section": "upload-preflight",
+      "current_state": "not-mounted-in-lawos-vault-surface",
+      "target_state": "guarded",
+      "target_tuw": "LCX-VLTUI-02.03",
+      "implementation": "Upload preflight blocked unless source ready, projection fresh, permission allow, ethical wall clear, lifecycle eligible."
+    },
+    {
+      "id": "LCX-VLTUI-GAP-VAULT-004",
+      "surface": "Vault",
+      "section": "version-and-metadata-preflight",
+      "current_state": "not-mounted-in-lawos-vault-surface",
+      "target_state": "guarded",
+      "target_tuw": "LCX-VLTUI-02.04",
+      "implementation": "Version upload and metadata mutation preflight using selected matter decision."
+    },
+    {
+      "id": "LCX-VLTUI-GAP-VAULT-005",
+      "surface": "Vault",
+      "section": "legal-hold-retention-actions",
+      "current_state": "not-mounted-in-lawos-vault-surface",
+      "target_state": "guarded-or-owner-blocked",
+      "target_tuw": "LCX-VLTUI-02.05",
+      "implementation": "Legal hold and retention boundary cards with source ownership labels."
+    },
+    {
+      "id": "LCX-VLTUI-GAP-VAULT-006",
+      "surface": "Vault",
+      "section": "vault-browser-qa",
+      "current_state": "not-covered-by-connected-vault-qa",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-02.06",
+      "implementation": "Browser QA for status, lookup, preflight, blocked, denied, and ready synthetic states."
+    },
+    {
+      "id": "LCX-VLTUI-GAP-X-001",
+      "surface": "Cross-surface",
+      "section": "client-to-matter-handoff",
+      "current_state": "route-mounted",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-90.04",
+      "implementation": "Browser QA and ledger row for Client opportunity/intake -> Matter opening handoff.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-closeout-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-X-002",
+      "surface": "Cross-surface",
+      "section": "matter-to-vault-documents",
+      "current_state": "route-mounted",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-90.04",
+      "implementation": "Browser QA and ledger row for Matter document workspace -> Vault projection/preflight.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-closeout-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-X-003",
+      "surface": "Cross-surface",
+      "section": "vault-to-matter-search-detail",
+      "current_state": "route-mounted",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-90.04",
+      "implementation": "Browser QA and ledger row for Vault document/search result -> Matter context.",
+      "status": "implemented",
+      "evidence": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-closeout-proof.json"
+    },
+    {
+      "id": "LCX-VLTUI-GAP-X-004",
+      "surface": "Cross-surface",
+      "section": "session-principal-audit",
+      "current_state": "synthetic-default",
+      "target_state": "route-mounted",
+      "target_tuw": "LCX-VLTUI-04.01",
+      "implementation": "Session-derived tenant/actor/role/scope envelope for Client/Matter/Vault writes with safe audit refs."
+    },
+    {
+      "id": "LCX-VLTUI-GAP-PEOPLE-001",
+      "surface": "People",
+      "section": "people-feature-catalog",
+      "current_state": "56-non-active-features",
+      "target_state": "ledgered",
+      "target_tuw": "LCX-VLTUI-07.01",
+      "implementation": "Feature-state ledger from peopleFeatureCatalog.js with active/setup/audit/integration counts."
+    },
+    {
+      "id": "LCX-VLTUI-GAP-PEOPLE-002",
+      "surface": "People",
+      "section": "workforce-local-actions",
+      "current_state": "local-ui-only",
+      "target_state": "route-mounted-or-removed",
+      "target_tuw": "LCX-VLTUI-07.04",
+      "implementation": "Replace add/more/options/export local actions with real routes or remove controls."
+    },
+    {
+      "id": "LCX-VLTUI-GAP-PEOPLE-003",
+      "surface": "People",
+      "section": "payroll-execution",
+      "current_state": "explicitly-not-implemented",
+      "target_state": "provider-blocked",
+      "target_tuw": "LCX-VLTUI-07.05",
+      "implementation": "Keep calculation, tax, and disbursement blocked until policy/provider proof exists."
+    }
+  ]
+}

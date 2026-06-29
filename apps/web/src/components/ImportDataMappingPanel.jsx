@@ -160,7 +160,12 @@ export function ImportDataMappingPanel({ ctx = "allow", surface = "client" }) {
 
   return (
     <Panel id={`${surface}-import`} className="record-list-panel" title="가져오기" meta="필드 매핑">
-      <div className="matter-live-stack" data-sf-b-w05-import-wizard="true" data-client-matter-import-wizard="route-backed">
+      <div
+        className="matter-live-stack"
+        data-sf-b-w05-import-wizard="true"
+        data-client-matter-import-wizard="route-backed"
+        data-lcx-vltui-06-import-connected={surface === "matter" ? "true" : undefined}
+      >
         <div className="record-action-grid">
           <div className="record-action-strip" data-sf-b-w05-target-selector="true">
             <div>

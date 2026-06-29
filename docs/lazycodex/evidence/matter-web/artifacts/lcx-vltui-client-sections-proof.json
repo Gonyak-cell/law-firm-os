@@ -1,0 +1,230 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_vltui.client_sections_proof.v0.1",
+  "tuw_ids": [
+    "LCX-VLTUI-05.01",
+    "LCX-VLTUI-05.02",
+    "LCX-VLTUI-05.03",
+    "LCX-VLTUI-05.04",
+    "LCX-VLTUI-05.05",
+    "LCX-VLTUI-05.06",
+    "LCX-VLTUI-05.07"
+  ],
+  "generated_at": "2026-06-29T14:14:09.101Z",
+  "verdict": "PASS",
+  "boundary": {
+    "synthetic_route_interception_only": true,
+    "planned_client_section_count": 0,
+    "provider_send_executed": false,
+    "payment_or_invoice_send_executed": false,
+    "automatic_identity_merge_executed": false,
+    "customer_data_write_executed": false,
+    "production_ready": false,
+    "public_release": false,
+    "go_live_approved": false,
+    "owner_final_approval": false
+  },
+  "cases": [
+    {
+      "id": "client-planned-section-implementation",
+      "passed": true,
+      "checks": [
+        {
+          "id": "activity-section-connected",
+          "passed": true
+        },
+        {
+          "id": "activity-create-session-audit",
+          "passed": true
+        },
+        {
+          "id": "activity-patch-session-audit",
+          "passed": true
+        },
+        {
+          "id": "contract-section-connected",
+          "passed": true
+        },
+        {
+          "id": "proposal-create-session-audit",
+          "passed": true
+        },
+        {
+          "id": "proposal-provider-blocked-session-audit",
+          "passed": true
+        },
+        {
+          "id": "relationship-merge-route-backed",
+          "passed": true
+        },
+        {
+          "id": "conflict-clearance-route-backed",
+          "passed": true
+        },
+        {
+          "id": "billing-provider-blocked-visible",
+          "passed": true
+        },
+        {
+          "id": "settings-policy-session-admin-audit",
+          "passed": true
+        },
+        {
+          "id": "no-forbidden-session-or-secret-text",
+          "passed": true
+        },
+        {
+          "id": "no-page-errors",
+          "passed": true
+        }
+      ],
+      "writes": [
+        {
+          "kind": "activity_create",
+          "path": "/api/crm/activities",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:client-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_lcx_vltui_05_activity_write_probe"
+        },
+        {
+          "kind": "activity_patch",
+          "path": "/api/crm/activities/activity_lcx_vltui_created",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:client-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_lcx_vltui_05_activity_patch_probe"
+        },
+        {
+          "kind": "proposal_create",
+          "path": "/api/crm/proposals",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:client-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_lcx_vltui_05_proposal_write_probe"
+        },
+        {
+          "kind": "proposal_provider_blocked",
+          "path": "/api/crm/proposals/proposal_lcx_vltui_created",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:client-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_lcx_vltui_05_proposal_patch_probe"
+        },
+        {
+          "kind": "merge_create",
+          "path": "/api/crm/duplicate-merge-proposals",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:client-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w01_merge_write_probe"
+        },
+        {
+          "kind": "conflict_check",
+          "path": "/api/intake/conflict-checks",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:client-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "kind": "clearance_token",
+          "path": "/api/intake/clearance-tokens",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:client-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe"
+        },
+        {
+          "kind": "client_setting_patch",
+          "path": "/api/crm/client-settings/client_policy_cmp_g6_classification",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:client-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_lcx_vltui_05_client_settings_patch_probe"
+        }
+      ],
+      "page_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-05-client-sections-proof.png"
+    }
+  ]
+}

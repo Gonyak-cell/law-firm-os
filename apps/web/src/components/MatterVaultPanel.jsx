@@ -13,6 +13,8 @@ import {
   fetchMatterVaultDocuments,
   fetchMatterVaultSearch,
   fetchMatterVaultSummary,
+  fetchVaultBridgeStatus,
+  fetchVaultUploadPreflight,
   patchMatterBuilderDraft,
   patchMatterEmailDraft,
   publishMatterBuilderDraftToVault,
@@ -47,7 +49,7 @@ function documentActionMessage(result) {
   if (!result) return null;
   if (result.kind === "error") return "문서를 연결하지 못했습니다.";
   if (result.statusOutcome === "created" || result.statusOutcome === "idempotent_replay") {
-    return "문서가 Vault에 연결되었습니다.";
+    return "문서 참조가 Vault 메타데이터에 기록되었습니다.";
   }
   if (result.statusOutcome === "blocked" || result.statusOutcome === "review_required" || !result.item) {
     return "검토가 필요합니다.";
@@ -142,6 +144,48 @@ function approvalRows(result) {
   ]);
 }
 
+function workspaceMatterSelection(matterId, item) {
+  if (!matterId) return null;
+  const safeMatterId = String(matterId);
+  return {
+    selected_ref: `matter:${safeMatterId}`,
+    matter_id: safeMatterId,
+    matter_code: item?.matter_code ?? safeMatterId,
+    matter_name: item?.matter_name ?? item?.title ?? "Matter",
+    client_display_name: item?.client_display_name ?? "고객"
+  };
+}
+
+function workspaceBridgeState(result) {
+  if (result === null) return "loading";
+  if (result.kind === "data" && result.runtimeWriteReady && result.repositoryDurable && !result.productionReadyClaim) return "source-ready";
+  if (result.kind === "data") return "source-guarded";
+  return "source-blocked";
+}
+
+function workspaceBridgeLabel(result) {
+  if (result === null) return "Matter/Vault 원천 확인 중";
+  if (result.kind === "data" && result.runtimeWriteReady && result.repositoryDurable && !result.productionReadyClaim) {
+    return "Matter/Vault 원천 확인";
+  }
+  if (result.kind === "data") return "Matter/Vault 원천 보류";
+  return "Matter/Vault 원천 차단";
+}
+
+function workspacePreflightState(result) {
+  if (result === null) return "not-run";
+  if (result.kind === "data" && result.outcome === "preflight_passed" && !result.productionReadyClaim) return "passed";
+  if (result.kind === "guarded") return "guarded";
+  return "blocked";
+}
+
+function workspacePreflightLabel(result) {
+  if (result === null) return "사전검사 전";
+  if (result.kind === "data" && result.outcome === "preflight_passed" && !result.productionReadyClaim) return "권한 확인만 완료";
+  if (result.kind === "guarded") return "권한 확인 보류";
+  return "사전검사 차단";
+}
+
 function builderMessage(result) {
   if (!result) return null;
   if (result.kind === "error") return "문서 초안 작업을 완료하지 못했습니다.";
@@ -187,9 +231,12 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
   const [emailDraftResult, setEmailDraftResult] = useState(null);
   const [emailPatchResult, setEmailPatchResult] = useState(null);
   const [emailSendResult, setEmailSendResult] = useState(null);
+  const [workspaceBridgeResult, setWorkspaceBridgeResult] = useState(null);
+  const [workspacePreflightResult, setWorkspacePreflightResult] = useState(null);
   const [documentPending, setDocumentPending] = useState(false);
   const [builderPending, setBuilderPending] = useState(false);
   const [emailPending, setEmailPending] = useState(false);
+  const [workspacePreflightPending, setWorkspacePreflightPending] = useState(false);
   const [builderDraftId, setBuilderDraftId] = useState(null);
   const [emailDraftId, setEmailDraftId] = useState(null);
   const [refreshToken, setRefreshToken] = useState(0);
@@ -203,6 +250,7 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
     setVaultAudit(null);
     setDocumentTemplates(null);
     setApprovalRequests(null);
+    setWorkspaceBridgeResult(null);
     if (!matterId) return undefined;
     Promise.all([
       fetchMatterVaultSummary({ matterId, ctx: liveCtx }),
@@ -211,8 +259,9 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
       fetchMatterVaultSearch({ matterId, ctx: liveCtx }),
       fetchMatterVaultAudit({ matterId, ctx: liveCtx }),
       fetchMatterDocumentTemplates({ matterId, ctx: liveCtx }),
-      fetchMatterBuilderApprovalRequests({ matterId, ctx: liveCtx })
-    ]).then(([nextSummary, nextTimeline, nextDocuments, nextSearch, nextAudit, nextTemplates, nextApprovals]) => {
+      fetchMatterBuilderApprovalRequests({ matterId, ctx: liveCtx }),
+      fetchVaultBridgeStatus({ ctx: liveCtx })
+    ]).then(([nextSummary, nextTimeline, nextDocuments, nextSearch, nextAudit, nextTemplates, nextApprovals, nextBridge]) => {
       if (!cancelled) {
         setSummary(nextSummary);
         setTimeline(nextTimeline);
@@ -221,6 +270,7 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
         setVaultAudit(nextAudit);
         setDocumentTemplates(nextTemplates);
         setApprovalRequests(nextApprovals);
+        setWorkspaceBridgeResult(nextBridge);
       }
     });
     return () => {
@@ -238,6 +288,8 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
     setEmailDraftResult(null);
     setEmailPatchResult(null);
     setEmailSendResult(null);
+    setWorkspacePreflightResult(null);
+    setWorkspacePreflightPending(false);
     setBuilderDraftId(null);
     setEmailDraftId(null);
   }, [matterId, liveCtx]);
@@ -245,6 +297,17 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
   const item = summary?.kind === "data" ? summary.item : null;
   const entries = timeline?.kind === "data" ? timeline.item?.visible_entries ?? [] : [];
   const documentMessage = documentActionMessage(documentResult);
+  const workspaceMatter = workspaceMatterSelection(matterId, item);
+  const workspacePreflightPassed =
+    workspacePreflightResult?.kind === "data" &&
+    workspacePreflightResult.outcome === "preflight_passed" &&
+    workspacePreflightResult.productionReadyClaim !== true;
+  const canRunDocumentWorkspacePreflight =
+    Boolean(workspaceMatter && workspaceBridgeResult?.kind === "data") && !workspacePreflightPending;
+  const workspacePublishState = !builderDraftId ? "draft-required" : workspacePreflightPassed ? "owner-blocked" : "preflight-required";
+  const workspaceImportDryRunState = workspacePreflightPassed ? "dry-run-ready" : "preflight-required";
+  const workspaceImportExecuteState = workspacePreflightPassed ? "owner-provider-blocked" : "preflight-required";
+  const workspaceEmailSendState = emailDraftId ? "provider-blocked" : "draft-required";
   const hasVaultCollectionPreview =
     collectionItems(vaultDocuments).length > 0 ||
     collectionItems(vaultSearch).length > 0 ||
@@ -262,6 +325,18 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
     setDocumentResult(next);
     setDocumentPending(false);
     if (next.kind === "data" && next.item) setRefreshToken((value) => value + 1);
+  }
+
+  async function handleWorkspacePreflight() {
+    if (!canRunDocumentWorkspacePreflight) return;
+    setWorkspacePreflightPending(true);
+    const next = await fetchVaultUploadPreflight({
+      ctx: liveCtx,
+      selectedMatter: workspaceMatter,
+      bridgeStatus: workspaceBridgeResult
+    });
+    setWorkspacePreflightResult(next);
+    setWorkspacePreflightPending(false);
   }
 
   async function handleCreateBuilderDraft() {
@@ -298,7 +373,7 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
   }
 
   async function handlePublishBuilderDraft() {
-    if (!matterId || !builderDraftId || builderPending) return;
+    if (!matterId || !builderDraftId || builderPending || !workspacePreflightPassed) return;
     setBuilderPending(true);
     const next = await publishMatterBuilderDraftToVault({ matterId, draftId: builderDraftId, ctx: liveCtx });
     setBuilderPublishResult(next);
@@ -385,6 +460,85 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
           <ShieldCheck size={15} />
           <span>문서 내용은 권한이 있을 때만 표시됩니다.</span>
         </div>
+        <div
+          className={`vault-action-boundary ${workspacePreflightPassed ? "ready" : workspaceBridgeResult?.kind === "data" ? "blocked" : "error"}`}
+          data-lcx-vltui-03-document-workspace-boundary="true"
+          data-lcx-vltui-03-vault-source-state={workspaceBridgeState(workspaceBridgeResult)}
+          data-lcx-vltui-03-preflight-state={workspacePreflightState(workspacePreflightResult)}
+          data-lcx-vltui-03-publish-state={workspacePublishState}
+          data-lcx-vltui-03-publish-write-enabled="false"
+          data-lcx-vltui-03-import-dry-run-state={workspaceImportDryRunState}
+          data-lcx-vltui-03-import-execute-state={workspaceImportExecuteState}
+          data-lcx-vltui-03-email-send-state={workspaceEmailSendState}
+          data-lcx-vltui-03-preflight-ref={workspacePreflightResult?.preflightRef ?? ""}
+        >
+          <div className="vault-action-boundary-strip">
+            <ShieldCheck size={15} />
+            <span>문서 작업 사전검사</span>
+            <button
+              className="secondary-button vault-action-boundary-action"
+              data-lcx-vltui-03-preflight-action="true"
+              disabled={!canRunDocumentWorkspacePreflight}
+              onClick={handleWorkspacePreflight}
+            >
+              <Eye size={15} />
+              {workspacePreflightPending ? "사전검사 중" : "문서 사전검사"}
+            </button>
+          </div>
+          <div className="vault-action-boundary-list">
+            <div className="vault-action-boundary-row" data-lcx-vltui-03-source-row="true">
+              <div className="vault-action-boundary-main">
+                <strong>Matter app 원천</strong>
+                <span>{workspaceBridgeLabel(workspaceBridgeResult)}</span>
+              </div>
+              <div className="vault-action-boundary-meta">
+                <span>{workspaceBridgeResult?.kind === "data" ? "bridge status read" : "fail-closed"}</span>
+              </div>
+            </div>
+            <div className="vault-action-boundary-row" data-lcx-vltui-03-preflight-row="true">
+              <div className="vault-action-boundary-main">
+                <strong>권한 확인</strong>
+                <span>{workspacePreflightLabel(workspacePreflightResult)}</span>
+              </div>
+              <div className="vault-action-boundary-meta">
+                <span>{workspacePreflightResult?.preflightRef ?? "reference-only"}</span>
+              </div>
+            </div>
+            <div className="vault-action-boundary-row" data-lcx-vltui-03-publish-boundary="true">
+              <div className="vault-action-boundary-main">
+                <strong>Vault 게시</strong>
+                <span>{workspacePublishState === "owner-blocked" ? "게시 요청만 가능, 쓰기 차단" : "초안과 사전검사 필요"}</span>
+              </div>
+              <div className="vault-action-boundary-meta">
+                <span>write=false</span>
+              </div>
+            </div>
+            <div className="vault-action-boundary-row" data-lcx-vltui-03-import-boundary="true">
+              <div className="vault-action-boundary-main">
+                <strong>문서 가져오기</strong>
+                <span>{workspaceImportDryRunState === "dry-run-ready" ? "Dry-run만 열림, 실행은 차단" : "사전검사 전 실행 차단"}</span>
+              </div>
+              <div className="vault-action-boundary-meta">
+                <span>{workspaceImportExecuteState}</span>
+              </div>
+            </div>
+            <div className="vault-action-boundary-row" data-lcx-vltui-03-email-send-boundary="true">
+              <div className="vault-action-boundary-main">
+                <strong>외부 발송</strong>
+                <span>{workspaceEmailSendState === "provider-blocked" ? "초안 후 provider-blocked" : "초안 필요"}</span>
+              </div>
+              <div className="vault-action-boundary-meta">
+                <span>outlook_graph=false</span>
+              </div>
+            </div>
+          </div>
+          {workspacePreflightResult && (
+            <div className="live-data-state live-data-review" data-lcx-vltui-03-preflight-result="true">
+              <strong>{workspacePreflightLabel(workspacePreflightResult)}</strong>
+              <span>문서 바이트, 원본 저장 경로, 운영 준비 주장은 표시하지 않습니다.</span>
+            </div>
+          )}
+        </div>
         <DataTable columns={["활동", "유형", "제목", "표시 범위"]} rows={timelineRows(entries)} />
         <VaultCollectionTable
           result={vaultDocuments}
@@ -433,7 +587,13 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
               <Lock size={15} />
               승인 요청
             </button>
-            <button className="secondary-button" disabled={!builderDraftId || builderPending} onClick={handlePublishBuilderDraft} data-sf-b-w04-builder-publish-action="true">
+            <button
+              className="secondary-button"
+              disabled={!builderDraftId || builderPending || !workspacePreflightPassed}
+              onClick={handlePublishBuilderDraft}
+              data-sf-b-w04-builder-publish-action="true"
+              data-lcx-vltui-03-publish-action-state={workspacePublishState}
+            >
               <FolderOpen size={15} />
               Vault 등록 요청
             </button>
@@ -465,7 +625,7 @@ export function MatterVaultPanel({ matterId, liveCtx = "allow" }) {
           {builderPublishResult && (
             <div className="live-data-state live-data-denied" data-sf-b-w04-builder-publish-blocked-result="true">
               <strong>{builderMessage(builderPublishResult)}</strong>
-              <span>승인이 끝나기 전에는 문서를 만들지 않습니다.</span>
+              <span>Vault 문서 쓰기는 승인과 실행 증거 전까지 차단됩니다.</span>
             </div>
           )}
           <VaultCollectionTable

@@ -1,0 +1,503 @@
+{
+  "schema": "law-firm-os.lazycodex.lcx-vltui.implementation_receipt.v0.1",
+  "generated_at": "2026-06-29T11:06:13Z",
+  "goal_thread_id": "019f12b6-4a23-7042-8d78-524e0ec3f852",
+  "goal_status": "complete",
+  "goal_objective": "Implement the LCX-VLTUI train so every Matter, Client, and Vault TUW can be executed end-to-end from baseline/gap ledgers through Vault bridge, connected UI surfaces, browser QA, and release-boundary closeout, preserving no production/go-live/public-release/owner-approval claims.",
+  "lazycodex_plan": "docs/lazycodex/lcx-vault-app-current-ui-implementation-tuw-plan-2026-06-29.md",
+  "closeout_receipt": "docs/lazycodex/lcx-vault-app-current-ui-implementation-closeout-2026-06-29.json",
+  "opened_tuws": [
+    "LCX-VLTUI-00.01",
+    "LCX-VLTUI-00.02",
+    "LCX-VLTUI-00.03",
+    "LCX-VLTUI-00.04",
+    "LCX-VLTUI-01.01",
+    "LCX-VLTUI-01.02",
+    "LCX-VLTUI-01.03",
+    "LCX-VLTUI-01.04",
+    "LCX-VLTUI-01.05",
+    "LCX-VLTUI-01.06",
+    "LCX-VLTUI-02.01",
+    "LCX-VLTUI-02.02",
+    "LCX-VLTUI-02.03",
+    "LCX-VLTUI-02.04",
+    "LCX-VLTUI-02.05",
+    "LCX-VLTUI-02.06",
+    "LCX-VLTUI-03.01",
+    "LCX-VLTUI-03.02",
+    "LCX-VLTUI-03.03",
+    "LCX-VLTUI-03.04",
+    "LCX-VLTUI-03.05",
+    "LCX-VLTUI-04.01",
+    "LCX-VLTUI-04.02",
+    "LCX-VLTUI-04.03",
+    "LCX-VLTUI-04.04",
+    "LCX-VLTUI-05.01",
+    "LCX-VLTUI-05.02",
+    "LCX-VLTUI-05.03",
+    "LCX-VLTUI-05.04",
+    "LCX-VLTUI-05.05",
+    "LCX-VLTUI-05.06",
+    "LCX-VLTUI-05.07",
+    "LCX-VLTUI-06.01",
+    "LCX-VLTUI-06.02",
+    "LCX-VLTUI-06.03",
+    "LCX-VLTUI-06.04",
+    "LCX-VLTUI-06.05",
+    "LCX-VLTUI-06.06",
+    "LCX-VLTUI-06.07",
+    "LCX-VLTUI-06.08",
+    "LCX-VLTUI-06.09",
+    "LCX-VLTUI-06.10",
+    "LCX-VLTUI-06.11",
+    "LCX-VLTUI-90.01",
+    "LCX-VLTUI-90.02",
+    "LCX-VLTUI-90.03",
+    "LCX-VLTUI-90.04",
+    "LCX-VLTUI-90.05",
+    "LCX-VLTUI-90.06",
+    "LCX-VLTUI-90.07"
+  ],
+  "implemented_tuws": [
+    {
+      "id": "LCX-VLTUI-01.01",
+      "status": "source-implemented",
+      "receipt": "docs/lazycodex/lcx-vltui-01-bridge-status-helper-receipt-2026-06-29.json",
+      "surface_status": "not-yet-mounted-in-vault-ui",
+      "next_surface_tuw": "LCX-VLTUI-02.01"
+    },
+    {
+      "id": "LCX-VLTUI-01.02~01.06",
+      "status": "source-and-contract-implemented",
+      "receipt": "docs/lazycodex/lcx-vltui-01-vault-bridge-contract-receipt-2026-06-29.json",
+      "contract": "docs/lazycodex/lcx-vltui-01-vault-bridge-contract-2026-06-29.json",
+      "mv_link_ladder": "docs/lazycodex/lcx-vltui-mv-link-acceptance-2026-06-29.md",
+      "surface_status": "mounted-in-vault-ui-by-LCX-VLTUI-02.01",
+      "next_surface_tuw": "LCX-VLTUI-02.02"
+    },
+    {
+      "id": "LCX-VLTUI-02.01",
+      "status": "ui-browser-verified",
+      "receipt": "docs/lazycodex/lcx-vltui-02-vault-status-panel-receipt-2026-06-29.json",
+      "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-vault-status-panel-proof.json",
+      "surface_status": "vault-status-panel-mounted",
+      "covered_states": [
+        "unconfigured-missing-token",
+        "ready-synthetic-matter-app-api",
+        "projection-only-blocked",
+        "stale-projection-blocked",
+        "claim-boundary-blocked"
+      ],
+      "next_surface_tuw": "LCX-VLTUI-02.02"
+    },
+    {
+      "id": "LCX-VLTUI-02.02",
+      "status": "api-ui-browser-verified",
+      "receipt": "docs/lazycodex/lcx-vltui-02-matter-picker-receipt-2026-06-29.json",
+      "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-picker-proof.json",
+      "surface_status": "vault-matter-picker-mounted",
+      "covered_states": [
+        "positive-selection",
+        "guarded-lookup",
+        "uuid-local-block"
+      ],
+      "next_surface_tuw": "LCX-VLTUI-02.03"
+    },
+    {
+      "id": "LCX-VLTUI-02.03",
+      "status": "api-ui-browser-verified",
+      "receipt": "docs/lazycodex/lcx-vltui-02-upload-preflight-receipt-2026-06-29.json",
+      "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-upload-preflight-proof.json",
+      "surface_status": "vault-upload-preflight-mounted",
+      "covered_states": [
+        "passed",
+        "source-blocked",
+        "guarded"
+      ],
+      "next_surface_tuw": "LCX-VLTUI-02.04"
+    },
+    {
+      "id": "LCX-VLTUI-02.04~02.06",
+      "status": "ui-browser-verified",
+      "receipt": "docs/lazycodex/lcx-vltui-02-action-boundary-receipt-2026-06-29.json",
+      "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-browser-qa-proof.json",
+      "surface_status": "vault-action-boundaries-mounted",
+      "covered_states": [
+        "ready-preflight-passed",
+        "source-blocked",
+        "guarded-preflight"
+      ],
+      "covered_boundaries": [
+        "version-upload",
+        "metadata-mutation",
+        "legal-hold",
+        "retention",
+        "document-action"
+      ],
+      "next_surface_tuw": "LCX-VLTUI-03.01"
+    },
+    {
+      "id": "LCX-VLTUI-03.01~03.05",
+      "status": "ui-browser-verified",
+      "receipt": "docs/lazycodex/lcx-vltui-03-document-workspace-receipt-2026-06-29.json",
+      "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-document-workspace-proof.json",
+      "surface_status": "matter-document-workspace-boundary-mounted",
+      "covered_states": [
+        "source-ready",
+        "preflight-required",
+        "preflight-passed",
+        "owner-blocked-publish",
+        "provider-blocked-email-send",
+        "owner-provider-blocked-import-execute"
+      ],
+      "covered_boundaries": [
+        "builder-draft-metadata",
+        "builder-preview-sanitized",
+        "builder-approval-request",
+        "vault-publication-preflight-gate",
+        "document-import-dry-run-boundary",
+        "email-send-provider-boundary"
+      ],
+      "next_surface_tuw": "LCX-VLTUI-04.01"
+    },
+    {
+      "id": "LCX-VLTUI-04.01~04.02",
+      "status": "session-header-browser-verified",
+      "receipt": "docs/lazycodex/lcx-vltui-04-session-principal-receipt-2026-06-29.json",
+      "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-session-principal-proof.json",
+      "surface_status": "desktop-web-session-envelope-and-api-permission-context-mounted",
+      "covered_states": [
+        "client-allow-session-principal",
+        "matter-allow-session-principal",
+        "vault-allow-session-principal",
+        "vault-bridge-allow-session-principal",
+        "matter-envelope-review-fail-closed",
+        "vault-query-denied-fail-closed"
+      ],
+      "covered_boundaries": [
+        "reference-only-session-envelope",
+        "session-derived-client-principal",
+        "session-derived-matter-principal",
+        "session-derived-vault-principal",
+        "review-state-fail-closed",
+        "denied-state-fail-closed",
+        "no-secret-material-in-permission-header"
+      ],
+      "next_surface_tuw": "LCX-VLTUI-04.03"
+    },
+    {
+      "id": "LCX-VLTUI-04.03~04.04",
+      "status": "profile-and-audit-browser-verified",
+      "receipt": "docs/lazycodex/lcx-vltui-04-profile-audit-receipt-2026-06-29.json",
+      "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-profile-audit-proof.json",
+      "surface_status": "profile-api-states-and-write-candidate-audit-actors-mounted",
+      "covered_states": [
+        "profile-populated-state",
+        "profile-empty-state",
+        "profile-review-state",
+        "profile-denied-state",
+        "profile-error-state",
+        "profile-route-backed-actions",
+        "client-write-session-actor-audit",
+        "matter-write-session-actor-audit",
+        "vault-write-candidate-session-actor-audit"
+      ],
+      "covered_boundaries": [
+        "profile-read-only-session-projection",
+        "no-profile-secret-material",
+        "no-profile-local-dead-actions",
+        "client-crm-write-candidate-session-actor",
+        "matter-write-candidate-session-actor",
+        "vault-preflight-write-candidate-session-actor",
+        "no-production-ready-public-go-live-owner-approval-claim"
+      ],
+      "next_surface_tuw": "LCX-VLTUI-05.01"
+    },
+    {
+      "id": "LCX-VLTUI-05.01~05.07",
+      "status": "client-sections-browser-verified",
+      "receipt": "docs/lazycodex/lcx-vltui-05-client-sections-receipt-2026-06-29.json",
+      "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-client-sections-proof.json",
+      "surface_status": "client-planned-sections-route-mounted-or-explicitly-blocked",
+      "covered_states": [
+        "activity-read-create-patch",
+        "proposal-draft-create",
+        "proposal-esign-provider-blocked",
+        "relationship-list-and-merge-review-create",
+        "conflict-check-and-clearance-route-backed",
+        "billing-invoice-ar-read-provider-blocked",
+        "settings-policy-admin-audited-write"
+      ],
+      "covered_boundaries": [
+        "no-generic-client-planned-section-placeholder",
+        "no-provider-send-executed",
+        "no-payment-or-invoice-send-executed",
+        "no-automatic-identity-merge-executed",
+        "no-production-ready-public-go-live-owner-approval-claim"
+      ],
+      "next_surface_tuw": "LCX-VLTUI-06.01"
+    },
+    {
+      "id": "LCX-VLTUI-06.01~06.11",
+      "status": "matter-sections-browser-verified",
+      "receipt": "docs/lazycodex/lcx-vltui-06-matter-sections-receipt-2026-06-29.json",
+      "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json",
+      "surface_status": "matter-planned-sections-route-mounted-or-explicitly-blocked",
+      "covered_states": [
+        "closeout-archive-lifecycle-boundary",
+        "task-note-activity-create-update",
+        "evidence-template-vault-shortcut",
+        "seal-approval-owner-provider-blocked",
+        "meeting-announcement-calendar-channel",
+        "expense-finance-write-candidates",
+        "search-risk-permission-scoped",
+        "integrations-settings-provider-status-only",
+        "import-dry-run-guarded-execute"
+      ],
+      "covered_boundaries": [
+        "no-generic-matter-planned-section-placeholder",
+        "no-provider-send-executed",
+        "no-vault-document-mutation-executed",
+        "no-import-execute-mutation-executed",
+        "no-payment-or-invoice-send-executed",
+        "no-production-ready-public-go-live-owner-approval-claim"
+      ],
+      "next_surface_tuw": "LCX-VLTUI-90.01"
+    },
+    {
+      "id": "LCX-VLTUI-90.01~90.07",
+      "status": "closeout-browser-verified",
+      "receipt": "docs/lazycodex/lcx-vault-app-current-ui-implementation-closeout-2026-06-29.json",
+      "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-closeout-proof.json",
+      "surface_status": "client-matter-vault-people-profile-global-closeout-mounted",
+      "covered_states": [
+        "client-to-matter-handoff",
+        "matter-to-vault-workspace",
+        "vault-to-matter-lookup",
+        "people-profile-global"
+      ],
+      "covered_boundaries": [
+        "synthetic-route-interception-only",
+        "no-vault-document-mutation",
+        "no-provider-send",
+        "no-customer-document-import",
+        "no-production-ready-public-go-live-owner-approval-claim"
+      ],
+      "next_surface_tuw": null
+    }
+  ],
+  "baseline": {
+    "github_release_tag": "matter-desktop-v0.1.0-current-ui-20260629",
+    "github_release_name": "matter desktop v0.1.0 current UI prerelease 2026-06-29",
+    "github_release_url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-current-ui-20260629",
+    "github_release_published_at": "2026-06-29T09:29:28Z",
+    "github_release_is_prerelease": true,
+    "github_release_is_draft": false,
+    "github_release_target_commit": "c08c8a29c6d7d4f6b9f599f4a56371d770b9ae5f",
+    "local_branch": "codex/home-utility-menu-style",
+    "local_head": "44ce32ca468120c628a7c17daed8d5298db9615c",
+    "local_describe": "matter-desktop-v0.1.0-20260629-10-g44ce32ca4-dirty",
+    "observed_dirty_files": [
+      "docs/lazycodex/evidence/matter-web/artifacts/runtime-flow-verification.json",
+      "docs/lazycodex/evidence/matter-web/artifacts/runtime-flow-verification.md",
+      "scripts/generate-sf-client-matter-surface-ledger.mjs"
+    ],
+    "observed_untracked_files": [
+      "docs/lazycodex/lcx-vault-app-current-ui-implementation-tuw-plan-2026-06-29.md",
+      "docs/ui-reference/prototypes/matter-launch-login-dashboard-2026-06-25.html"
+    ]
+  },
+  "release_assets": [
+    {
+      "name": "desktop-screen-qa-result.json",
+      "digest": "sha256:895962afae195532b59e866b906b62d47a166cdad051ec8786e6d841ea156db7",
+      "content_type": "application/json"
+    },
+    {
+      "name": "desktop-screen-qa.png",
+      "digest": "sha256:7316cb067ae0489732ea9aff0cd6aedc73302451479e8b25ea1a57fb4ab65ae6",
+      "content_type": "image/png"
+    },
+    {
+      "name": "release-manifest.json",
+      "digest": "sha256:a902a4421ac9b430448dc4afb4dd5d41208b8f41b6f27c649debe7f49bc605e5",
+      "content_type": "application/json"
+    },
+    {
+      "name": "matter-desktop-formal-release-receipt.md",
+      "digest": "sha256:679a338dee5121169eee22f7bd90ecb551a1471fa188507df69588fa766b818a",
+      "content_type": "application/octet-stream"
+    }
+  ],
+  "counts": {
+    "client_planned_sections": 6,
+    "matter_planned_sections": 17,
+    "people_feature_active": 15,
+    "people_feature_non_active": 56,
+    "vault_bridge_routes_present": 5
+  },
+  "claim_boundary": {
+    "planning_only": false,
+    "lcx_vltui_execution_opened": true,
+    "production_ready": false,
+    "public_release": false,
+    "go_live_approved": false,
+    "owner_final_approval": false,
+    "customer_document_import_executed": false,
+    "onedrive_cutover_executed": false
+  },
+  "verification_after_lcx_vltui_01": {
+    "lcx_vltui_bridge_validator": "PASS",
+    "api_workspace_test": "PASS 196/196",
+    "api_vault_bridge_focus": "PASS 4/4",
+    "web_ui_regression": "PASS 17/17",
+    "web_build": "PASS with existing Vite chunk-size warning",
+    "claim_validator": "PASS",
+    "json_parse_receipts": "PASS 7/7",
+    "git_diff_check": "PASS",
+    "sloplint": "PASS"
+  },
+  "verification_after_lcx_vltui_02_01": {
+    "web_ui_regression": "PASS 17/17",
+    "web_build": "PASS with existing Vite chunk-size warning",
+    "lcx_vltui_bridge_validator": "PASS",
+    "lcx_vltui_vault_status_validator": "PASS",
+    "vault_status_browser_proof": "PASS 5/5",
+    "claim_validator": "PASS",
+    "json_parse_receipts": "PASS",
+    "git_diff_check": "PASS",
+    "script_syntax": "PASS",
+    "lsp_diagnostics": "NOT_RUN: MCP LSP transport closed",
+    "sloplint": "PASS_EXIT_WITH_EXISTING_WEAK_CSS_FLAGS",
+    "lazyweb_report": "ATTEMPTED_BLOCKED_BY_INPUT_ADAPTER"
+  },
+  "verification_after_lcx_vltui_02_02": {
+    "api_vault_bridge_focus": "PASS 5/5",
+    "web_ui_regression": "PASS 17/17",
+    "lcx_vltui_bridge_validator": "PASS",
+    "vault_matter_picker_browser_proof": "PASS 3/3",
+    "lcx_vltui_matter_picker_validator": "PASS",
+    "visual_qa": "PASS positive-selection and uuid-local-block screenshots",
+    "api_workspace_test": "PASS 197/197",
+    "web_build": "PASS with existing Vite chunk-size warning",
+    "claim_validator": "PASS",
+    "git_diff_check": "PASS",
+    "sloplint": "PASS_EXIT_WITH_EXISTING_WEAK_CSS_FLAGS"
+  },
+  "verification_after_lcx_vltui_02_03": {
+    "api_vault_bridge_focus": "PASS 6/6",
+    "web_ui_regression": "PASS 17/17",
+    "lcx_vltui_bridge_validator": "PASS",
+    "lcx_vltui_vault_status_validator": "PASS",
+    "lcx_vltui_matter_picker_validator": "PASS",
+    "vault_upload_preflight_browser_proof": "PASS 3/3",
+    "lcx_vltui_upload_preflight_validator": "PASS",
+    "visual_qa": "PASS passed, source-blocked, and guarded upload-preflight screenshots",
+    "api_workspace_test": "PASS 198/198",
+    "web_build": "PASS with existing Vite chunk-size warning",
+    "claim_validator": "PASS",
+    "git_diff_check": "PASS",
+    "script_syntax_and_json_parse": "PASS",
+    "sloplint": "PASS_EXIT_WITH_EXISTING_WEAK_CSS_FLAGS",
+    "lazyweb_report": "ATTEMPTED_FAILED_SYNTHESIZE_INVALID_IMAGE"
+  },
+  "verification_after_lcx_vltui_02_04_06": {
+    "web_ui_regression": "PASS 17/17",
+    "script_syntax": "PASS",
+    "vault_action_boundary_browser_qa": "PASS 3/3",
+    "visual_qa": "PASS boundary-passed, boundary-source-blocked, and boundary-guarded screenshots",
+    "unexpected_write_calls": "PASS 0/0",
+    "api_workspace_test": "PASS 198/198",
+    "web_build": "PASS with existing Vite chunk-size warning",
+    "lcx_vltui_bridge_validator": "PASS",
+    "lcx_vltui_vault_status_validator": "PASS",
+    "lcx_vltui_matter_picker_validator": "PASS",
+    "lcx_vltui_upload_preflight_validator": "PASS",
+    "lcx_vltui_action_boundaries_validator": "PASS",
+    "claim_boundary": "PASS no production/public/go-live/owner approval claim",
+    "git_diff_check": "PASS",
+    "json_parse": "PASS 3/3",
+    "sloplint": "PASS_EXIT_WITH_EXISTING_WEAK_CSS_FLAGS",
+    "lazyweb_report": "ATTEMPTED_FAILED_SYNTHESIZE_INVALID_IMAGE"
+  },
+  "verification_after_lcx_vltui_03": {
+    "matter_document_workspace_browser_proof": "PASS 1/1",
+    "web_ui_regression": "PASS 17/17",
+    "api_workspace_test": "PASS 198/198",
+    "web_build": "PASS with existing Vite chunk-size warning",
+    "lcx_vltui_bridge_validator": "PASS",
+    "lcx_vltui_vault_status_validator": "PASS",
+    "lcx_vltui_matter_picker_validator": "PASS",
+    "lcx_vltui_upload_preflight_validator": "PASS",
+    "lcx_vltui_action_boundaries_validator": "PASS",
+    "lcx_vltui_matter_document_workspace_validator": "PASS",
+    "visual_qa": "PASS document-workspace-proof screenshot",
+    "unexpected_document_write_calls": "PASS 0/0",
+    "vault_document_write_enabled": "PASS false",
+    "provider_send_executed": "PASS false",
+    "customer_document_import_executed": "PASS false",
+    "claim_boundary": "PASS no production/public/go-live/owner approval claim",
+    "git_diff_check": "PASS",
+    "sloplint": "PASS_EXIT_WITH_EXISTING_WEAK_CSS_FLAGS",
+    "lazyweb_report_initial": "ATTEMPTED_FAILED_SYNTHESIZE_INVALID_IMAGE_DATA_URL",
+    "lazyweb_report_retry": "ATTEMPTED_FAILED_SYNTHESIZE_FIELD_MISSING",
+    "lazyweb_report_retry_job": "01f18780-0318-4190-b04b-61fd03ff7ec7"
+  },
+  "verification_after_lcx_vltui_05": {
+    "client_sections_browser_proof": "PASS 1/1",
+    "crm_intake_api_test": "PASS 10/10",
+    "web_ui_regression": "PASS 17/17",
+    "planned_client_section_count": "PASS 0",
+    "provider_send_executed": "PASS false",
+    "payment_or_invoice_send_executed": "PASS false",
+    "automatic_identity_merge_executed": "PASS false",
+    "claim_boundary": "PASS no production/public/go-live/owner approval claim"
+  },
+  "next_slice": [],
+  "verification_after_lcx_vltui_06": {
+    "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json",
+    "receipt": "docs/lazycodex/lcx-vltui-06-matter-sections-receipt-2026-06-29.json",
+    "verdict": "PASS",
+    "planned_matter_section_count": 0,
+    "connected_sections": 17,
+    "claim_boundary": {
+      "synthetic_route_interception_only": true,
+      "planned_matter_section_count": 0,
+      "provider_send_executed": false,
+      "vault_document_mutation_executed": false,
+      "import_execute_mutation_executed": false,
+      "payment_or_invoice_send_executed": false,
+      "owner_final_approval": false,
+      "production_ready": false,
+      "public_release": false,
+      "go_live_approved": false
+    }
+  },
+  "verification_after_lcx_vltui_90": {
+    "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-closeout-proof.json",
+    "receipt": "docs/lazycodex/lcx-vault-app-current-ui-implementation-closeout-2026-06-29.json",
+    "verdict": "PASS",
+    "source_tests": {
+      "web_ui": "PASS 17/17",
+      "focused_api": "PASS 19/19",
+      "api_workspace": "PASS 202/202"
+    },
+    "web_build": "PASS with existing Vite chunk-size warning",
+    "desktop_screen_qa": "PASS",
+    "mv_link_acceptance": "PASS",
+    "browser_closeout_cases": "PASS 4/4",
+    "release_boundary": "PASS no production/public/go-live/owner approval claim",
+    "git_diff_check": "PASS",
+    "sloplint": "PASS_EXIT_WITH_EXISTING_WEAK_FLAGS",
+    "claim_boundary": {
+      "synthetic_route_interception_only": true,
+      "provider_send_executed": false,
+      "vault_document_mutation_executed": false,
+      "customer_document_import_executed": false,
+      "owner_final_approval": false,
+      "production_ready": false,
+      "public_release": false,
+      "go_live_approved": false
+    }
+  }
+}

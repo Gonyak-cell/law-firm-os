@@ -1,0 +1,53 @@
+{
+  "schema": "law-firm-os.lazycodex.lcx-vltui.client_sections_receipt.v0.1",
+  "generated_at": "2026-06-29T00:00:00Z",
+  "status": "client-sections-browser-verified",
+  "implemented_tuws": [
+    "LCX-VLTUI-05.01",
+    "LCX-VLTUI-05.02",
+    "LCX-VLTUI-05.03",
+    "LCX-VLTUI-05.04",
+    "LCX-VLTUI-05.05",
+    "LCX-VLTUI-05.06",
+    "LCX-VLTUI-05.07"
+  ],
+  "source_files": [
+    "apps/api/src/routes/crm.js",
+    "apps/api/src/crm-intake-runtime-context.js",
+    "apps/api/test/cmp-r4-g6-crm-intake.test.js",
+    "apps/web/src/data/apiClient.js",
+    "apps/web/src/components/ClientsSurface.jsx",
+    "apps/web/test/ui-regression.test.mjs",
+    "scripts/run-lcx-vltui-client-sections-proof.mjs",
+    "scripts/validate-lcx-vltui-client-sections.mjs"
+  ],
+  "browser_proof": {
+    "script": "scripts/run-lcx-vltui-client-sections-proof.mjs",
+    "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-client-sections-proof.json",
+    "markdown": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-client-sections-proof.md",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-05-client-sections-proof.png",
+    "verdict": "PASS"
+  },
+  "covered_states": [
+    "activity-read-create-patch",
+    "proposal-draft-create",
+    "proposal-esign-provider-blocked",
+    "relationship-list-and-merge-review-create",
+    "conflict-check-and-clearance-route-backed",
+    "billing-invoice-ar-read-provider-blocked",
+    "settings-policy-admin-audited-write"
+  ],
+  "claim_boundary": {
+    "synthetic_route_interception_only": true,
+    "planned_client_section_count": 0,
+    "provider_send_executed": false,
+    "payment_or_invoice_send_executed": false,
+    "automatic_identity_merge_executed": false,
+    "customer_data_write_executed": false,
+    "production_ready": false,
+    "public_release": false,
+    "production_go_live": false,
+    "owner_final_approval": false
+  },
+  "next_surface_tuw": "LCX-VLTUI-06.01"
+}

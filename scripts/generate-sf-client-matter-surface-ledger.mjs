@@ -508,7 +508,7 @@ const rows = [
     parity_status: "implemented_route_mounted_owner_provider_blocked",
     tuw_lanes: ["SF-B-W06-T01", "SF-B-W06-T02", "SF-B-W06-T03", "SF-B-W06-T04", "SF-B-W06-T05"],
     ui_menu: [
-      marker("apps/web/src/components/Shell.jsx", /people-admin/, "People permission admin section")
+      marker("apps/web/src/people/peopleFeatureCatalog.js", /people-admin/, "People permission admin section")
     ],
     ui_surface: [
       marker("apps/web/src/people/PeopleHome.tsx", /PermissionAdminPanel/, "People admin panel mount"),

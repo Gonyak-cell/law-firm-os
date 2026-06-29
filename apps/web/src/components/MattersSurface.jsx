@@ -108,124 +108,158 @@ const MATTER_EXTERNAL_SCHEDULE_ROWS = [
   ["송달 확인", "송달 상태와 수령 여부 확인", "송달 대상, 송달일, 확인자"],
   ["마감·기한", "항소·상고, 답변서, 보정명령 등 기한 관리", "기한일, 기준일, 담당자"]
 ];
-const MATTER_PLANNED_SECTIONS = {
+const MATTER_CONNECTED_SECTIONS = {
   "matter-closeout": {
     title: "종결 처리",
+    marker: "closeout",
+    meta: "생애주기",
     rows: [
-      ["종결 체크리스트", "종결 보고, 미수금, 문서 보관 확인", "준비 중"],
-      ["후속 업무", "송달·집행·Client 안내", "비활성 후보"]
+      ["종결 체크리스트", "종결 보고, 미수금, 문서 보관 확인", "Matter 상태 전환 연결"],
+      ["Vault 변경", "종결 후 문서 쓰기와 보관 정책", "법적 보존 검토 전 차단"]
     ]
   },
   "matter-archive": {
     title: "보관 사건",
+    marker: "archive",
+    meta: "보관 정책",
     rows: [
-      ["보관 기준", "종결일, 보관 위치, 접근 권한", "준비 중"],
-      ["재개 처리", "보관 사건 재활성화", "비활성 후보"]
+      ["보관 기준", "종결일, 보관 위치, 접근 권한", "보존 정책 연결"],
+      ["재개 처리", "보관 사건 재활성화", "담당자 승인 전 차단"]
     ]
   },
-  "matter-tasks": {
-    title: "할 일",
-    rows: [
-      ["개인 할 일", "담당자, 기한, 우선순위", "준비 중"],
-      ["사건별 할 일", "업무 보드와 연결", "준비 중"]
+      "matter-tasks": {
+        title: "할 일",
+        marker: "tasks",
+        meta: "활동 기록",
+        rows: [
+      ["개인 할 일", "담당자, 기한, 우선순위", "Matter 활동 기록 연결"],
+      ["사건별 할 일", "업무 보드와 연결", "생성/상태 변경/감사 연결"]
     ]
   },
   "matter-notes": {
     title: "메모·검토 의견",
+    marker: "notes",
+    meta: "내부 기록",
     rows: [
-      ["검토 의견", "쟁점, 리스크, 다음 액션", "준비 중"],
-      ["내부 메모", "권한 기준 비공개 메모", "비활성 후보"]
+      ["검토 의견", "쟁점, 리스크, 다음 액션", "Matter 활동 유형 연결"],
+      ["내부 메모", "권한 기준 비공개 메모", "외부 공유 차단"]
     ]
   },
   "matter-evidence": {
     title: "증거·자료",
+    marker: "evidence",
+    meta: "Vault 단축 경로",
     rows: [
-      ["증거 목록", "증거번호, 제출 여부, 관련 쟁점", "준비 중"],
-      ["자료 분류", "의뢰인 제공, 상대방 제출, 기관 회신", "준비 중"]
+      ["증거 목록", "증거번호, 제출 여부, 관련 쟁점", "Matter Vault 문서 워크스페이스 연결"],
+      ["자료 분류", "의뢰인 제공, 상대방 제출, 기관 회신", "사전검사 후 작업 가능"]
     ]
   },
   "matter-templates": {
     title: "양식·템플릿",
+    marker: "templates",
+    meta: "문서 초안",
     rows: [
-      ["문서 양식", "소장, 답변서, 의견서, 내용증명", "준비 중"],
-      ["사건 유형별 템플릿", "송무, 자문, M&A 분류", "비활성 후보"]
+      ["문서 양식", "소장, 답변서, 의견서, 내용증명", "Vault 템플릿 읽기 연결"],
+      ["사건 유형별 템플릿", "송무, 자문, M&A 분류", "승인 요청 후 게시 차단"]
     ]
   },
   "matter-seal": {
     title: "인장·날인",
+    marker: "seal",
+    meta: "승인 경계",
     rows: [
-      ["날인 요청", "문서, 승인권자, 사용 목적", "준비 중"],
-      ["사용 이력", "인장 종류, 처리자, 감사 이력", "비활성 후보"]
+      ["날인 요청", "문서, 승인권자, 사용 목적", "담당자 승인 필요"],
+      ["사용 이력", "인장 종류, 처리자, 감사 이력", "감사 이력 연결"]
     ]
   },
   "matter-meetings": {
     title: "회의·통화 기록",
+    marker: "meetings",
+    meta: "일정·대화",
     rows: [
-      ["회의록", "참석자, 안건, 결정사항", "준비 중"],
-      ["통화 기록", "통화자, 요지, 후속 업무", "준비 중"]
+      ["회의록", "참석자, 안건, 결정사항", "Matter 일정/활동 연결"],
+      ["통화 기록", "통화자, 요지, 후속 업무", "내부 기록 연결"]
     ]
   },
   "matter-announcements": {
     title: "공지·공유",
+    marker: "announcements",
+    meta: "내부 공유",
     rows: [
-      ["사건 공지", "팀 공지와 변경사항 공유", "준비 중"],
-      ["공유 범위", "담당자·참여자 권한 기준", "비활성 후보"]
+      ["사건 공지", "팀 공지와 변경사항 공유", "Matter 채널 연결"],
+      ["공유 범위", "담당자·참여자 권한 기준", "외부 전송 provider 차단"]
     ]
   },
   "matter-client-requests": {
     title: "의뢰인 요청",
+    marker: "client-requests",
+    meta: "요청 관리",
     rows: [
-      ["요청 접수", "자료 요청, 진행 문의, 일정 문의", "준비 중"],
-      ["응답 관리", "담당자, 상태, 회신 기한", "준비 중"]
+      ["요청 접수", "자료 요청, 진행 문의, 일정 문의", "내부 메시지 연결"],
+      ["응답 관리", "담당자, 상태, 회신 기한", "외부 회신 provider 차단"]
     ]
   },
   "matter-approvals": {
     title: "결재·승인",
+    marker: "approvals",
+    meta: "소유자 승인",
     rows: [
-      ["내부 결재", "기안, 검토, 승인, 반려", "준비 중"],
-      ["외부 제출 승인", "제출 전 검토와 승인 이력", "준비 중"]
+      ["내부 결재", "기안, 검토, 승인, 반려", "레코드 액션 승인 경계 연결"],
+      ["외부 제출 승인", "제출 전 검토와 승인 이력", "담당자 승인 대기"]
     ]
   },
   "matter-expenses": {
     title: "비용 처리",
+    marker: "expenses",
+    meta: "청구 경계",
     rows: [
-      ["비용 신청", "인지대, 송달료, 교통비, 복사비", "준비 중"],
-      ["증빙 관리", "영수증, 청구 가능 여부, 정산 상태", "준비 중"]
+      ["비용 신청", "인지대, 송달료, 교통비, 복사비", "Finance 후보 기록 연결"],
+      ["증빙 관리", "영수증, 청구 가능 여부, 정산 상태", "외부 지급/발송 차단"]
     ]
   },
   "matter-search": {
     title: "검색·통계",
+    marker: "search",
+    meta: "권한 검색",
     rows: [
-      ["통합 검색", "사건, 문서, 일정, 대화", "준비 중"],
-      ["통계", "유형, 상태, 담당자, 기간별 집계", "비활성 후보"]
+      ["통합 검색", "사건, 문서, 일정, 대화", "권한 필터 적용"],
+      ["통계", "유형, 상태, 담당자, 기간별 집계", "안전 집계 연결"]
     ]
   },
   "matter-risk": {
     title: "사건 위험",
+    marker: "risk",
+    meta: "위험 관리",
     rows: [
-      ["위험 항목", "기한, 이해상충, 미수금, 자료 누락", "준비 중"],
-      ["주의 알림", "담당자 확인과 감사 이력 연결", "준비 중"]
+      ["위험 항목", "기한, 이해상충, 미수금, 자료 누락", "Matter/Finance/Audit 연결"],
+      ["주의 알림", "담당자 확인과 감사 이력 연결", "필드 업데이트 감사 연결"]
     ]
   },
   "matter-integrations": {
     title: "연동·알림",
+    marker: "integrations",
+    meta: "공급자 상태",
     rows: [
-      ["알림 규칙", "기한, 대화, 문서, 결재 알림", "준비 중"],
-      ["외부 연동", "캘린더, 이메일, 문서 저장소", "비활성 후보"]
+      ["알림 규칙", "기한, 대화, 문서, 결재 알림", "내부 상태 확인"],
+      ["외부 연동", "캘린더, 이메일, 문서 저장소", "외부 승인 기록 전 차단"]
     ]
   },
   "matter-settings": {
     title: "사건 설정",
+    marker: "settings",
+    meta: "정책 설정",
     rows: [
-      ["사건 유형", "송무, 자문, M&A별 필드와 단계", "준비 중"],
-      ["권한 기준", "담당자·참여자 접근 범위", "준비 중"]
+      ["사건 유형", "송무, 자문, M&A별 필드와 단계", "허용 필드 정책 연결"],
+      ["권한 기준", "담당자·참여자 접근 범위", "권한/감사 경계 연결"]
     ]
   },
   "matter-import": {
     title: "자료 가져오기",
+    marker: "import",
+    meta: "가져오기 검증",
     rows: [
-      ["가져오기", "사건 자료 매핑과 검증", "전역 가져오기와 연결"],
-      ["검증", "중복, 권한, 필수 필드 확인", "준비 중"]
+      ["가져오기", "사건 자료 매핑과 검증", "필드 매핑 패널 연결"],
+      ["검증", "중복, 권한, 필수 필드 확인", "사전 검증 후 실행 승인 대기"]
     ]
   }
 };
@@ -315,17 +349,216 @@ function LegalMatterPeopleBacklinkPanel({ result }) {
   );
 }
 
-function PlannedMatterSection({ title, rows }) {
+function ConnectedMatterSection({ sectionId, config, children }) {
   return (
-    <div className="clients-live-stack" data-matter-planned-section={title}>
-      <div className="live-data-state live-data-empty">
-        <strong>{title} 메뉴를 준비 중입니다</strong>
-        현재 배포에서는 사건 레코드와 연결될 위치를 먼저 열어두었습니다.
+    <div
+      className="matter-live-stack"
+      data-lcx-vltui-06-connected-section={config.marker}
+      data-lcx-vltui-06-section-id={sectionId}
+      data-lcx-vltui-06-route-backed="true"
+      data-lcx-vltui-06-claim-state="bounded"
+    >
+      <div className="matter-review-strip" data-lcx-vltui-06-boundary-state="connected-or-blocked">
+        <ShieldCheck size={15} />
+        <span>현재 Matter와 권한 컨텍스트를 기준으로 연결 상태만 표시합니다.</span>
       </div>
       <DataTable
-        columns={["항목", "연결 기준", "현재 상태"]}
-        rows={rows}
+        columns={["항목", "연결 기준", "상태"]}
+        rows={config.rows}
       />
+      {children}
+    </div>
+  );
+}
+
+function VaultShortcutPanel({ label, onOpenVault }) {
+  return (
+    <div className="record-action-strip" data-lcx-vltui-06-vault-shortcut="true">
+      <div>
+        <strong>{label}</strong>
+        <span>Matter Vault 문서 워크스페이스 사전검사를 사용합니다.</span>
+      </div>
+      <button className="secondary-button" type="button" data-lcx-vltui-06-vault-shortcut-action="true" onClick={onOpenVault}>
+        <FileText size={15} />
+        사건 문서 열기
+      </button>
+    </div>
+  );
+}
+
+function LifecycleBoundaryPanel({ commandResult, matter, statusResult, statusPending, onCompleteStatus, matterAuditResult }) {
+  return (
+    <div className="workspace-mini-grid" data-lcx-vltui-06-lifecycle-boundary="true">
+      <CommandPanel
+        result={commandResult}
+        matter={matter}
+        statusResult={statusResult}
+        statusPending={statusPending}
+        onCompleteStatus={onCompleteStatus}
+      />
+      <div
+        className="record-boundary-note"
+        data-lcx-vltui-06-vault-mutation-blocked="true"
+        data-lcx-vltui-06-legal-hold-required="true"
+      >
+        <ShieldCheck size={15} />
+        <span>종결/보관 상태에서는 legal hold와 보존 정책 확인 전 Vault 변경을 열지 않습니다.</span>
+      </div>
+      <AuditTrailPanel result={matterAuditResult} events={[statusResult?.auditEvent].filter(Boolean)} marker="lcx-vltui-06-lifecycle-audit" />
+    </div>
+  );
+}
+
+function ApprovalBoundaryPanel({
+  marker,
+  recordActionBulkResult,
+  recordActionBulkPending,
+  onRecordActionOwnerBlocked,
+  channelProviderResult,
+  channelProviderPending,
+  onProviderSync
+}) {
+  return (
+    <div className="record-action-grid" data-lcx-vltui-06-approval-boundary={marker}>
+      <div className="record-action-strip" data-lcx-vltui-06-owner-blocked-action="true">
+        <div>
+          <strong>담당자 승인</strong>
+          <span>{recordActionBulkResult?.uiState === "owner_blocked" ? "승인 대기" : "승인 경계 확인"}</span>
+          <ActionNotice
+            pending={recordActionBulkPending}
+            result={recordActionBulkResult}
+            pendingText="승인 경계를 확인 중입니다."
+            successText="승인 필요 상태가 기록되었습니다."
+          />
+        </div>
+        <button className="secondary-button" type="button" disabled={recordActionBulkPending} onClick={onRecordActionOwnerBlocked}>
+          <ShieldCheck size={15} />
+          승인 확인
+        </button>
+      </div>
+      <div className="record-action-strip" data-lcx-vltui-06-provider-blocked-action="true">
+        <div>
+          <strong>외부 공급자</strong>
+          <span>{channelProviderResult?.uiState === "provider_blocked" ? "공급자 차단" : "연동 상태 확인"}</span>
+          <ActionNotice
+            pending={channelProviderPending}
+            result={channelProviderResult}
+            pendingText="공급자 상태를 확인 중입니다."
+            successText="공급자 연결 전이라 차단되었습니다."
+          />
+        </div>
+        <button className="secondary-button" type="button" disabled={channelProviderPending} onClick={onProviderSync}>
+          <Link2 size={15} />
+          상태 확인
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SearchRiskPanel({
+  marker,
+  matter,
+  timelineResult,
+  matterAuditResult,
+  recordActionFieldsResult,
+  recordActionUpdateResult,
+  recordActionPending,
+  onRecordActionFieldUpdate
+}) {
+  const timelineEntries = timelineResult?.kind === "data" ? timelineResult.item?.visible_entries ?? [] : [];
+  const actionFields = recordActionFieldsResult?.kind === "data" && Array.isArray(recordActionFieldsResult.item?.fields)
+    ? recordActionFieldsResult.item.fields
+    : [];
+  return (
+    <div
+      className="workspace-mini-grid"
+      data-lcx-vltui-06-search-risk={marker}
+      data-lcx-vltui-06-raw-snippet-visible="false"
+      data-lcx-vltui-06-denied-count-visible="false"
+    >
+      <DataTable
+        columns={["범위", "결과", "표시"]}
+        rows={[
+          ["Matter", matter ? matterStatus(matter.status) : "대기", "권한 기준"],
+          ["활동", `${timelineEntries.length}건`, "요약만 표시"],
+          ["감사", `${resultItems(matterAuditResult).length}건`, "결정 상태만 표시"]
+        ]}
+      />
+      <div className="record-action-strip" data-lcx-vltui-06-risk-field-action="true">
+        <div>
+          <strong>위험 필드</strong>
+          <span>{actionFields.length > 0 ? actionFields.map((field) => recordFieldLabel(field.label)).join(" / ") : "허용 필드 확인"}</span>
+          <ActionNotice
+            pending={recordActionPending}
+            result={recordActionUpdateResult}
+            pendingText="위험 필드를 업데이트 중입니다."
+            successText="위험 필드가 감사 이력과 함께 저장되었습니다."
+          />
+        </div>
+        <button className="secondary-button" type="button" disabled={!matter || recordActionPending} onClick={onRecordActionFieldUpdate}>
+          <ShieldCheck size={15} />
+          위험 표시
+        </button>
+      </div>
+      <AuditTrailPanel result={matterAuditResult} events={[recordActionUpdateResult?.auditEvent].filter(Boolean)} marker={`lcx-vltui-06-${marker}-audit`} />
+    </div>
+  );
+}
+
+function IntegrationsSettingsPanel({
+  marker,
+  channelResult,
+  channelProviderResult,
+  channelProviderPending,
+  onProviderSync,
+  recordActionFieldsResult,
+  recordActionUpdateResult,
+  recordActionPending,
+  onRecordActionFieldUpdate
+}) {
+  const channel = channelResult?.kind === "data" ? channelResult.item : null;
+  const actionFields = recordActionFieldsResult?.kind === "data" && Array.isArray(recordActionFieldsResult.item?.fields)
+    ? recordActionFieldsResult.item.fields
+    : [];
+  return (
+    <div
+      className="workspace-mini-grid"
+      data-lcx-vltui-06-integrations-settings={marker}
+      data-lcx-vltui-06-provider-credentials-visible="false"
+    >
+      <div className="record-action-strip" data-lcx-vltui-06-provider-status-only="true">
+        <div>
+          <strong>연동 상태</strong>
+          <span>{providerStateLabel(channelProviderResult?.providerState?.external_send_state ?? channel?.provider_state?.external_send_state)}</span>
+          <ActionNotice
+            pending={channelProviderPending}
+            result={channelProviderResult}
+            pendingText="연동 상태를 확인 중입니다."
+            successText="공급자 승인 대기 상태입니다."
+          />
+        </div>
+        <button className="secondary-button" type="button" disabled={channelProviderPending} onClick={onProviderSync}>
+          <Link2 size={15} />
+          상태 확인
+        </button>
+      </div>
+      <div className="record-action-strip" data-lcx-vltui-06-settings-policy-action="true">
+        <div>
+          <strong>정책 필드</strong>
+          <span>{actionFields.length > 0 ? actionFields.map((field) => recordFieldLabel(field.label)).join(" / ") : "권한 필드 확인"}</span>
+          <ActionNotice
+            pending={recordActionPending}
+            result={recordActionUpdateResult}
+            pendingText="정책 필드를 업데이트 중입니다."
+            successText="정책 필드가 감사 이력과 함께 저장되었습니다."
+          />
+        </div>
+        <button className="secondary-button" type="button" disabled={recordActionPending} onClick={onRecordActionFieldUpdate}>
+          <Pencil size={15} />
+          정책 확인
+        </button>
+      </div>
     </div>
   );
 }
@@ -1130,27 +1363,37 @@ function ActivityWorkspacePanel({
   createPending,
   patchPending,
   onCreateActivity,
-  onPatchActivity
+  onPatchActivity,
+  activityType = "task",
+  actionLabel = "작업",
+  createButtonLabel = "작업 추가",
+  createTitle = "증거 검토 작업",
+  bodyText = null
 }) {
   const activities = resultItems(activityResult);
-  const targetActivity = activities.find((item) => item.activity_type === "task") ?? createResult?.item ?? activities[0] ?? null;
+  const targetActivity = activities.find((item) => item.activity_type === activityType) ?? createResult?.item ?? activities[0] ?? null;
   return (
-    <div className="matter-live-stack" data-sf-b-w03-activity-workspace="true">
+    <div className="matter-live-stack" data-sf-b-w03-activity-workspace="true" data-lcx-vltui-06-activity-type={activityType}>
       <div className="record-action-grid" data-sf-b-w03-activity-composer="true">
         <div className="record-action-strip">
           <div>
-            <strong>작업</strong>
-            <span>{targetActivity ? activityStatusLabel(targetActivity.status) : "새 작업"}</span>
+            <strong>{actionLabel}</strong>
+            <span>{targetActivity ? activityStatusLabel(targetActivity.status) : `새 ${actionLabel}`}</span>
             <ActionNotice
               pending={createPending}
               result={createResult}
-              pendingText="작업을 기록 중입니다."
-              successText="작업이 기록되었습니다."
+              pendingText={`${actionLabel}을 기록 중입니다.`}
+              successText={`${actionLabel}이 기록되었습니다.`}
             />
           </div>
-          <button className="secondary-button" type="button" disabled={createPending} onClick={onCreateActivity}>
+          <button
+            className="secondary-button"
+            type="button"
+            disabled={createPending}
+            onClick={() => onCreateActivity({ activityType, title: createTitle, bodyText })}
+          >
             <ListChecks size={15} />
-            작업 추가
+            {createButtonLabel}
           </button>
         </div>
         <div className="record-action-strip">
@@ -2150,13 +2393,15 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     setChannelResult(channel);
   }
 
-  async function handleCreateActivity() {
+  async function handleCreateActivity({ activityType = "task", title = "증거 검토 작업", status = "todo", bodyText = null } = {}) {
     if (!activeMatterId) return;
     setActivityCreatePending(true);
     const next = await createMatterActivity({
       matterId: activeMatterId,
-      title: "증거 검토 작업",
-      status: "todo",
+      activityType,
+      title,
+      status,
+      bodyText,
       ctx: liveCtx
     });
     setActivityCreateResult(next);
@@ -2355,11 +2600,221 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     }
   }
 
-  const plannedMatterSection = MATTER_PLANNED_SECTIONS[currentSection];
+  const connectedMatterSection = MATTER_CONNECTED_SECTIONS[currentSection];
   const matterAccessState =
     result?.uiState === "denied" || result?.uiState === "review_required" || result?.outcome === "review_required"
       ? renderCollectionState(result, "사건")
       : null;
+
+  function renderConnectedMatterContent(config) {
+    if (["matter-closeout", "matter-archive"].includes(currentSection)) {
+      return (
+        <LifecycleBoundaryPanel
+          commandResult={commandResult}
+          matter={selectedMatter}
+          statusResult={statusTransitionResult}
+          statusPending={statusTransitionPending}
+          onCompleteStatus={handleCompleteStatus}
+          matterAuditResult={matterAuditResult}
+        />
+      );
+    }
+    if (currentSection === "matter-tasks") {
+      return (
+        <ActivityWorkspacePanel
+          activityResult={activityResult}
+          timelineResult={timelineResult}
+          createResult={activityCreateResult}
+          patchResult={activityPatchResult}
+          createPending={activityCreatePending}
+          patchPending={activityPatchPending}
+          onCreateActivity={handleCreateActivity}
+          onPatchActivity={handlePatchActivity}
+        />
+      );
+    }
+    if (currentSection === "matter-notes") {
+      return (
+        <ActivityWorkspacePanel
+          activityResult={activityResult}
+          timelineResult={timelineResult}
+          createResult={activityCreateResult}
+          patchResult={activityPatchResult}
+          createPending={activityCreatePending}
+          patchPending={activityPatchPending}
+          onCreateActivity={handleCreateActivity}
+          onPatchActivity={handlePatchActivity}
+          activityType="note"
+          actionLabel="메모"
+          createButtonLabel="메모 추가"
+          createTitle="검토 의견"
+          bodyText="내부 검토 의견"
+        />
+      );
+    }
+    if (["matter-evidence", "matter-templates"].includes(currentSection)) {
+      return (
+        <div className="workspace-mini-grid" data-lcx-vltui-06-vault-backed-shortcuts={config.marker}>
+          <VaultShortcutPanel label={config.title} onOpenVault={() => onNavigateSection("matter-vault")} />
+          <div
+            className="record-boundary-note"
+            data-lcx-vltui-06-vault-preflight-required="true"
+            data-lcx-vltui-06-owner-blocked="true"
+          >
+            <ShieldCheck size={15} />
+            <span>문서 바이트나 저장 경로를 표시하지 않고 LCX-VLTUI-03 문서 사전검사로 이동합니다.</span>
+          </div>
+        </div>
+      );
+    }
+    if (["matter-seal", "matter-approvals"].includes(currentSection)) {
+      return (
+        <ApprovalBoundaryPanel
+          marker={config.marker}
+          recordActionBulkResult={recordActionBulkResult}
+          recordActionBulkPending={recordActionBulkPending}
+          onRecordActionOwnerBlocked={handleRecordActionOwnerBlocked}
+          channelProviderResult={channelProviderResult}
+          channelProviderPending={channelProviderPending}
+          onProviderSync={handleChannelProviderSync}
+        />
+      );
+    }
+    if (currentSection === "matter-client-requests") {
+      return (
+        <div className="workspace-mini-grid" data-lcx-vltui-06-client-requests-connected="true">
+          <ChannelWorkspacePanel
+            channelResult={channelResult}
+            messageResult={channelMessageResult}
+            providerResult={channelProviderResult}
+            messagePending={channelMessagePending}
+            providerPending={channelProviderPending}
+            onCreateMessage={handleCreateChannelMessage}
+            onProviderSync={handleChannelProviderSync}
+          />
+          <ApprovalBoundaryPanel
+            marker={config.marker}
+            recordActionBulkResult={recordActionBulkResult}
+            recordActionBulkPending={recordActionBulkPending}
+            onRecordActionOwnerBlocked={handleRecordActionOwnerBlocked}
+            channelProviderResult={channelProviderResult}
+            channelProviderPending={channelProviderPending}
+            onProviderSync={handleChannelProviderSync}
+          />
+        </div>
+      );
+    }
+    if (currentSection === "matter-meetings") {
+      return (
+        <div className="workspace-mini-grid" data-lcx-vltui-06-meetings-connected="true">
+          <CalendarWorkspacePanel
+            calendarResult={calendarResult}
+            deadlineResult={deadlineResult}
+            createResult={calendarCreateResult}
+            approvalResult={deadlineApprovalResult}
+            confirmResult={deadlineConfirmResult}
+            createPending={calendarCreatePending}
+            approvalPending={deadlineApprovalPending}
+            confirmPending={deadlineConfirmPending}
+            onCreateCalendarEvent={handleCreateCalendarEvent}
+            onRequestDeadlineChange={handleRequestDeadlineChange}
+            onConfirmDeadlineChange={handleConfirmDeadlineChange}
+          />
+          <ChannelWorkspacePanel
+            channelResult={channelResult}
+            messageResult={channelMessageResult}
+            providerResult={channelProviderResult}
+            messagePending={channelMessagePending}
+            providerPending={channelProviderPending}
+            onCreateMessage={handleCreateChannelMessage}
+            onProviderSync={handleChannelProviderSync}
+          />
+        </div>
+      );
+    }
+    if (currentSection === "matter-announcements") {
+      return (
+        <ChannelWorkspacePanel
+          channelResult={channelResult}
+          messageResult={channelMessageResult}
+          providerResult={channelProviderResult}
+          messagePending={channelMessagePending}
+          providerPending={channelProviderPending}
+          onCreateMessage={handleCreateChannelMessage}
+          onProviderSync={handleChannelProviderSync}
+        />
+      );
+    }
+    if (currentSection === "matter-expenses") {
+      return (
+        <div className="workspace-mini-grid" data-lcx-vltui-06-expenses-connected="true">
+          <BillingPanel
+            timeResult={timeResult}
+            invoiceResult={invoiceResult}
+            agingResult={agingResult}
+            financeAuditResult={financeAuditResult}
+            matter={selectedMatter}
+            matterId={activeMatterId}
+            timeEntryResult={timeEntryResult}
+            wipResult={wipResult}
+            paymentResult={paymentResult}
+            timeEntryPending={timeEntryPending}
+            wipPending={wipPending}
+            paymentPending={paymentPending}
+            onCreateTimeEntry={handleCreateTimeEntry}
+            onGenerateWip={handleGenerateWip}
+            onImportPayment={handleImportPayment}
+          />
+          <div className="record-boundary-note" data-lcx-vltui-06-expense-finance-boundary="true">
+            <ShieldCheck size={15} />
+            <span>외부 지급이나 청구서 발송은 공급자 승인 기록 없이는 실행하지 않습니다.</span>
+          </div>
+        </div>
+      );
+    }
+    if (["matter-search", "matter-risk"].includes(currentSection)) {
+      return (
+        <SearchRiskPanel
+          marker={config.marker}
+          matter={selectedMatter}
+          timelineResult={timelineResult}
+          matterAuditResult={matterAuditResult}
+          recordActionFieldsResult={recordActionFieldsResult}
+          recordActionUpdateResult={recordActionUpdateResult}
+          recordActionPending={recordActionPending}
+          onRecordActionFieldUpdate={handleRecordActionFieldUpdate}
+        />
+      );
+    }
+    if (["matter-integrations", "matter-settings"].includes(currentSection)) {
+      return (
+        <IntegrationsSettingsPanel
+          marker={config.marker}
+          channelResult={channelResult}
+          channelProviderResult={channelProviderResult}
+          channelProviderPending={channelProviderPending}
+          onProviderSync={handleChannelProviderSync}
+          recordActionFieldsResult={recordActionFieldsResult}
+          recordActionUpdateResult={recordActionUpdateResult}
+          recordActionPending={recordActionPending}
+          onRecordActionFieldUpdate={handleRecordActionFieldUpdate}
+        />
+      );
+    }
+    if (currentSection === "matter-import") {
+      return (
+        <div
+          className="record-boundary-note"
+          data-lcx-vltui-06-import-lifecycle="dry-run-guarded-execute"
+          data-lcx-vltui-06-import-execute-blocked="true"
+        >
+          <ShieldCheck size={15} />
+          <span>가져오기는 안전한 사전 검증과 오류 보고서까지 열고, 실제 실행은 승인 전 차단합니다.</span>
+        </div>
+      );
+    }
+    return null;
+  }
 
   return (
     <section id="matters-home" className="surface stack matters-surface" data-cmp-g4-live-matters="true">
@@ -2571,7 +3026,14 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "matter-import" && (
-          <ImportDataMappingPanel ctx={liveCtx} surface="matter" />
+          <>
+            <Panel id="matter-import-guard" className="record-list-panel" title={connectedMatterSection.title} meta={connectedMatterSection.meta}>
+              <ConnectedMatterSection sectionId={currentSection} config={connectedMatterSection}>
+                {renderConnectedMatterContent(connectedMatterSection)}
+              </ConnectedMatterSection>
+            </Panel>
+            <ImportDataMappingPanel ctx={liveCtx} surface="matter" />
+          </>
         )}
         {currentSection === "matter-audit" && (
           <AuditTrailPanel
@@ -2580,9 +3042,11 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             marker="matter-command-audit-trail"
           />
         )}
-        {plannedMatterSection && (
-          <Panel id={currentSection} className="record-list-panel" title={plannedMatterSection.title} meta="준비 중">
-            <PlannedMatterSection title={plannedMatterSection.title} rows={plannedMatterSection.rows} />
+        {connectedMatterSection && currentSection !== "matter-import" && (
+          <Panel id={currentSection} className="record-list-panel" title={connectedMatterSection.title} meta={connectedMatterSection.meta}>
+            <ConnectedMatterSection sectionId={currentSection} config={connectedMatterSection}>
+              {renderConnectedMatterContent(connectedMatterSection)}
+            </ConnectedMatterSection>
           </Panel>
         )}
         {currentSection !== "matter-opening" && (

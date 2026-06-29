@@ -1,0 +1,65 @@
+{
+  "schema": "law-firm-os.lazycodex.lcx-vltui.upload_preflight_receipt.v0.1",
+  "generated_at": "2026-06-29T13:05:00Z",
+  "goal_thread_id": "019f12b6-4a23-7042-8d78-524e0ec3f852",
+  "status": "api_ui_browser_verified",
+  "implemented_tuws": [
+    "LCX-VLTUI-02.03"
+  ],
+  "changed_files": [
+    "apps/api/src/matter-runtime-context.js",
+    "apps/api/src/routes/matters.js",
+    "apps/api/test/matter-vault-bridge-api.test.js",
+    "apps/web/src/components/VaultSurface.jsx",
+    "apps/web/src/data/apiClient.js",
+    "apps/web/src/styles.css",
+    "apps/web/test/ui-regression.test.mjs",
+    "scripts/run-lcx-vltui-upload-preflight-proof.mjs",
+    "scripts/validate-lcx-vltui-upload-preflight.mjs",
+    "package.json",
+    "docs/lazycodex/lcx-vltui-01-vault-bridge-contract-2026-06-29.json",
+    "docs/lazycodex/lcx-vault-app-current-ui-source-register-2026-06-29.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-upload-preflight-proof.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-upload-preflight-proof.md"
+  ],
+  "exit_proofs": {
+    "law_preflight_route": "`POST /api/matters/vault-bridge/upload-preflight` is implemented behind existing bridge bearer auth and permission context.",
+    "source_negative": "Projection-only or non-ready source returns `MATTER_VAULT_UPLOAD_PREFLIGHT_SOURCE_BLOCKED` with `vault_document_write_enabled=false`.",
+    "permission_negative": "Missing bearer or denied preflight returns guarded `item=null`; browser guarded state displays safe reason only.",
+    "positive_preflight": "Synthetic upserted Matter returns a reference-only `preflight_ref`, selected Matter ref, permission check marker, ethical-wall-clear marker, lifecycle eligible marker, and `allowed_next_step=permission_check_only`.",
+    "ui_panel": "`VaultSurface` renders `data-lcx-vltui-02-upload-preflight=true`, state marker, write-enabled marker, disabled source-blocked action, and no upload-completion copy."
+  },
+  "browser_proof": {
+    "command": "npm run lcx:vltui:upload-preflight:proof",
+    "verdict": "PASS",
+    "json": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-upload-preflight-proof.json",
+    "markdown": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-upload-preflight-proof.md",
+    "screenshots": [
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-03-passed.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-03-source-blocked.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-03-guarded.png"
+    ]
+  },
+  "verification": {
+    "api_vault_bridge_focus": "PASS: node --test apps/api/test/matter-vault-bridge-api.test.js (6/6)",
+    "web_ui_regression": "PASS: npm --workspace apps/web run test:ui (17/17)",
+    "browser_proof": "PASS: npm run lcx:vltui:upload-preflight:proof (3/3 scenarios)",
+    "visual_qa": "PASS: inspected passed, source-blocked, and guarded screenshots",
+    "lazyweb_report": "ATTEMPTED_FAILED_SYNTHESIZE_INVALID_IMAGE: job 8124661b-ca39-462a-bd3e-d3809ecf2a66"
+  },
+  "claim_boundary": {
+    "production_ready": false,
+    "public_release": false,
+    "production_go_live": false,
+    "owner_final_approval": false,
+    "vault_document_write_enabled": false,
+    "customer_document_import_executed": false,
+    "onedrive_cutover_executed": false,
+    "upload_success_claimed": false
+  },
+  "next_tuws": [
+    "LCX-VLTUI-02.04",
+    "LCX-VLTUI-02.05",
+    "LCX-VLTUI-02.06"
+  ]
+}
