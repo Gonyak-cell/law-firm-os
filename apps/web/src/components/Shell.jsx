@@ -20,6 +20,12 @@ import {
   X
 } from "lucide-react";
 import { navItems } from "../data/nav.js";
+import {
+  getGlobalUtilityByView,
+  globalUtilityCatalog,
+  globalUtilityItems,
+  isLegacyGlobalRoute
+} from "../data/globalUtilities.js";
 import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
 import { profileSidebarItems } from "./UserProfileSurface.jsx";
@@ -35,13 +41,18 @@ const peopleIconMap = {
   users: UserPlus
 };
 
+const peopleGlobalGroupLabels = new Set(["요청/전자결재", "리포트", "메시지", "전자계약", "회사 설정"]);
+
 function peopleSidebarGroups() {
   return peopleNavigationGroups.map((group) => {
+    if (peopleGlobalGroupLabels.has(group.label)) return null;
     const GroupIcon = peopleIconMap[group.icon] ?? ClipboardList;
+    const children = group.children.filter((child) => !isLegacyGlobalRoute("people", child.section));
+    if (children.length === 0) return null;
     return {
       label: group.label,
       icon: GroupIcon,
-      children: group.children.map((child) => {
+      children: children.map((child) => {
         const ChildIcon = peopleIconMap[child.icon] ?? ClipboardList;
         return {
           label: child.label,
@@ -53,7 +64,7 @@ function peopleSidebarGroups() {
         };
       })
     };
-  });
+  }).filter(Boolean);
 }
 
 export function LoadingSurface({ labels, locale, theme, setLocale, setTheme, className = "", message = labels.loading }) {
@@ -269,41 +280,26 @@ const sidebarMeta = {
     title: "Home",
     actions: [
       { label: "최근 작업", view: "home", section: "home-recent", icon: ClipboardList, count: "8" },
-      { label: "대시보드", view: "home", section: "home-dashboard", icon: LayoutDashboard },
-      { label: "검토함", view: "home", section: "home-review", icon: ShieldCheck, count: "3" }
+      { label: "대시보드", view: "reports", section: "reports-home-dashboard", icon: LayoutDashboard },
+      { label: "검토함", view: "requests", section: "requests-review-inbox", icon: ShieldCheck, count: "3" }
     ],
-    utilities: [
-      { label: "작업공간 설정", icon: Settings },
-      { label: "태그 관리", icon: Tags }
-    ]
+    utilities: []
   },
   clients: {
     title: "Client",
-    utilities: [
-      { label: "Client 설정", icon: Settings },
-      { label: "태그 관리", icon: Tags }
-    ]
+    utilities: []
   },
   matters: {
     title: "Matter",
-    utilities: [
-      { label: "Matter 설정", icon: Settings },
-      { label: "태그 관리", icon: Tags }
-    ]
+    utilities: []
   },
   people: {
     title: "구성원",
-    utilities: [
-      { label: "회사 설정", icon: Settings },
-      { label: "권한", icon: ShieldCheck }
-    ]
+    utilities: []
   },
   vault: {
     title: "Vault",
-    utilities: [
-      { label: "Vault 설정", icon: Settings },
-      { label: "문서 태그", icon: Tags }
-    ]
+    utilities: []
   },
   profile: {
     title: "내 프로필",
@@ -317,6 +313,20 @@ const sidebarMeta = {
 export function Sidebar({ labels, view, setView, activeSection = "" }) {
   const [openGroups, setOpenGroups] = useState({});
   const [utilityPanel, setUtilityPanel] = useState(null);
+  const activeGlobalUtility = getGlobalUtilityByView(view);
+  const globalSubnav = Object.fromEntries(
+    globalUtilityCatalog.map((utility) => [
+      utility.id,
+      utility.sections.map((section) => ({
+        label: section.label,
+        view: utility.id,
+        section: section.id,
+        icon: section.icon ?? utility.icon,
+        count: section.badge,
+        active: section.id === utility.defaultSection
+      }))
+    ])
+  );
   const subnav = {
     auth: [
       { label: "로그인", view: "auth" },
@@ -330,9 +340,9 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
       { label: "상담 접수", view: "clients", section: "client-intake", icon: FileText, count: "4" },
       { label: "계정", view: "clients", section: "client-accounts", icon: ShieldCheck },
       { label: "연락처", view: "clients", section: "client-contacts", icon: UserPlus },
-      { label: "데이터 관리", view: "clients", section: "client-data", icon: Settings },
-      { label: "보고서", view: "clients", section: "client-reports", icon: FileText },
-      { label: "가져오기", view: "clients", section: "client-import", icon: Plus }
+      { label: "데이터 관리", view: "data-import", section: "data-import-client-data", icon: Settings },
+      { label: "보고서", view: "reports", section: "reports-client", icon: FileText },
+      { label: "가져오기", view: "data-import", section: "data-import-client", icon: Plus }
     ],
     matters: [
       {
@@ -350,8 +360,8 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
         children: [
           { label: "문서", view: "matters", section: "matter-vault", icon: FileText },
           { label: "활동", view: "matters", section: "matter-timeline", icon: ClipboardList },
-          { label: "일정", view: "matters", section: "matter-calendar", icon: ClipboardList },
-          { label: "대화", view: "matters", section: "matter-channel", icon: FileText, count: "2" },
+          { label: "일정", view: "calendar", section: "calendar-matter", icon: ClipboardList },
+          { label: "대화", view: "messages", section: "messages-matter-channel", icon: FileText, count: "2" },
           { label: "구성원", view: "matters", section: "matter-team", icon: UserPlus }
         ]
       },
@@ -359,9 +369,9 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
         label: "청구·분석",
         icon: FileText,
         children: [
-          { label: "청구", view: "matters", section: "matter-billing", icon: FileText },
-          { label: "분석", view: "matters", section: "matter-analytics", icon: ClipboardList },
-          { label: "자료 가져오기", view: "matters", section: "matter-import", icon: Plus }
+          { label: "청구", view: "finance", section: "finance-matter-billing", icon: FileText },
+          { label: "분석", view: "reports", section: "reports-matter-analytics", icon: ClipboardList },
+          { label: "자료 가져오기", view: "data-import", section: "data-import-matter", icon: Plus }
         ]
       }
     ],
@@ -371,9 +381,10 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
       { label: "문서 상세", view: "vault", section: "vault-detail", icon: ClipboardList },
       { label: "메일 보관함", view: "vault", section: "vault-email", icon: FileText }
     ],
-    profile: profileSidebarItems
+    profile: profileSidebarItems,
+    ...globalSubnav
   }[view] ?? [];
-  const meta = sidebarMeta[view] ?? { title: "matter", utilities: [] };
+  const meta = sidebarMeta[view] ?? (activeGlobalUtility ? { title: activeGlobalUtility.label, utilities: [] } : { title: "matter", utilities: [] });
   const flatSubnav = subnav.flatMap((item) => item.children ?? [item]);
   const hasPreferredActiveItem = flatSubnav.some((item) => item.active);
 
@@ -418,6 +429,26 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
         </div>
         <ChevronDown size={15} />
       </button>
+      <nav className="global-sidebar-nav" aria-label="공통 메뉴" data-global-sidebar-nav="true">
+        <span className="sidebar-section-title">공통</span>
+        {globalUtilityItems.map((item) => {
+          const Icon = item.icon;
+          const active = view === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className={active ? "global-sidebar-item active" : "global-sidebar-item"}
+              aria-current={active ? "page" : undefined}
+              data-global-utility-nav={item.id}
+              onClick={() => setView(item.id, item.defaultSection)}
+            >
+              <Icon size={15} />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
       {subnav.length > 0 && (
         <nav className="sidebar-nav">
           {subnav.map((item, index) => {
@@ -480,14 +511,20 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
       )}
       {meta.utilities.length > 0 && (
         <div className="sidebar-utilities">
-          {meta.utilities.map(({ label, icon: Icon }) => (
+          {meta.utilities.map(({ label, icon: Icon, view: utilityView, section }) => (
             <button
               key={label}
               type="button"
               className="sidebar-utility"
               data-sidebar-utility={label}
               aria-expanded={utilityPanel?.label === label ? "true" : "false"}
-              onClick={() => setUtilityPanel({ kind: "utility", label, scope: meta.title })}
+              onClick={() => {
+                if (utilityView) {
+                  setView(utilityView, section ?? "");
+                  return;
+                }
+                setUtilityPanel({ kind: "utility", label, scope: meta.title });
+              }}
             >
               <Icon size={16} />
               <span>{label}</span>
@@ -510,7 +547,14 @@ export function GlobalSearch({ labels, query, setQuery, setView }) {
     icon,
     title: query.trim() ? `${labels[id]}에서 "${query.trim()}" 검색` : labels[id],
     view: id
-  }));
+  })).concat(
+    globalUtilityItems.map(({ id, label, localLabel, icon, defaultSection }) => ({
+      icon,
+      title: query.trim() ? `${label}에서 "${query.trim()}" 검색` : `${label} · ${localLabel}`,
+      view: id,
+      section: defaultSection
+    }))
+  );
 
   return (
     <div className="search-popover">
@@ -521,12 +565,12 @@ export function GlobalSearch({ labels, query, setQuery, setView }) {
           <X size={15} />
         </button>
       </header>
-      {results.map(({ icon: Icon, title, view }) => (
+      {results.map(({ icon: Icon, title, view, section }) => (
         <button
           key={title}
           className="search-result"
           onClick={() => {
-            setView(view);
+            setView(view, section ?? "");
             setQuery("");
           }}
         >

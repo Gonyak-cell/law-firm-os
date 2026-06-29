@@ -2,8 +2,10 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { copy } from "./i18n.js";
 import { navItems } from "./data/nav.js";
+import { globalUtilityViewIds, isGlobalUtilityView, resolveGlobalShortcut } from "./data/globalUtilities.js";
 import { GlobalSearch, LoadingSurface, NotificationDrawer, Sidebar, Topbar } from "./components/Shell.jsx";
 import { AuthSurface } from "./components/AuthSurface.jsx";
+import { GlobalUtilitySurface } from "./components/GlobalUtilitySurface.jsx";
 import { HomeSurface } from "./components/HomeSurface.jsx";
 import { ClientsSurface } from "./components/ClientsSurface.jsx";
 import { MattersSurface } from "./components/MattersSurface.jsx";
@@ -13,10 +15,13 @@ import { PeopleHome } from "./people/PeopleHome.tsx";
 
 export function App() {
   const initialParams = new URLSearchParams(window.location.search);
-  const routableViews = ["auth", "home", "loading", "profile", ...navItems.map((item) => item.id)];
+  const routableViews = ["auth", "home", "loading", "profile", ...navItems.map((item) => item.id), ...globalUtilityViewIds];
   const initialLocale = initialParams.get("locale") === "en" ? "en" : "ko";
   const initialTheme = initialParams.get("theme") === "dark" ? "dark" : "light";
-  const initialView = routableViews.includes(initialParams.get("view")) ? initialParams.get("view") : "home";
+  const rawInitialView = routableViews.includes(initialParams.get("view")) ? initialParams.get("view") : "home";
+  const rawInitialSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
+  const resolvedInitialRoute = resolveRoute(rawInitialView, rawInitialSection);
+  const initialView = resolvedInitialRoute.view;
   const initialAuthStep = ["signup", "signupModal", "login", "verify", "password", "org", "reset", "sent", "onboarding"].includes(initialParams.get("authStep"))
     ? initialParams.get("authStep")
     : "signup";
@@ -24,7 +29,7 @@ export function App() {
   const initialLiveCtx = ["allow", "denied", "review"].includes(initialParams.get("ctx"))
     ? initialParams.get("ctx")
     : "allow";
-  const initialSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
+  const initialSection = resolvedInitialRoute.section;
   const initialHandoffSplash = initialParams.get("splash") === "1";
   const [locale, setLocale] = useState(initialLocale);
   const [theme, setTheme] = useState(initialTheme);
@@ -37,12 +42,18 @@ export function App() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const labels = copy[locale];
 
+  function resolveRoute(nextView, section = "") {
+    const resolved = resolveGlobalShortcut(nextView, section);
+    if (!routableViews.includes(resolved.view)) return { view: "home", section: "" };
+    return resolved;
+  }
+
   function routeFromLocation() {
     const params = new URLSearchParams(window.location.search);
-    const nextView = routableViews.includes(params.get("view")) ? params.get("view") : "home";
+    const rawView = routableViews.includes(params.get("view")) ? params.get("view") : "home";
     const nextLiveCtx = ["allow", "denied", "review"].includes(params.get("ctx")) ? params.get("ctx") : "allow";
-    const nextSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
-    return { view: nextView, liveCtx: nextLiveCtx, section: nextSection };
+    const rawSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
+    return { ...resolveRoute(rawView, rawSection), liveCtx: nextLiveCtx };
   }
 
   function routeUrl(nextView, section = "") {
@@ -54,11 +65,12 @@ export function App() {
   }
 
   function navigateToView(nextView, section = "") {
-    if (!routableViews.includes(nextView)) return;
-    setView(nextView);
-    setActiveSection(section);
+    const resolved = resolveRoute(nextView, section);
+    if (!routableViews.includes(resolved.view)) return;
+    setView(resolved.view);
+    setActiveSection(resolved.section);
     setNotificationsOpen(false);
-    window.history.pushState({ view: nextView, section }, "", routeUrl(nextView, section));
+    window.history.pushState({ view: resolved.view, section: resolved.section }, "", routeUrl(resolved.view, resolved.section));
   }
 
   useEffect(() => {
@@ -150,6 +162,7 @@ export function App() {
           {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} />}
           {view === "vault" && <VaultSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
           {view === "profile" && <UserProfileSurface />}
+          {isGlobalUtilityView(view) && <GlobalUtilitySurface view={view} activeSection={activeSection} setView={navigateToView} />}
         </main>
       </div>
       {handoffSplashVisible && (

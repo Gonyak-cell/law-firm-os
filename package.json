@@ -179,6 +179,7 @@
     "lcx:ppl:browser-qa": "node scripts/run-lcx-ppl-browser-qa.mjs",
     "lcx:ppl:qa:validate": "node scripts/validate-lcx-ppl-qa-closeout.mjs",
     "lcx:hro:blocked:validate": "node scripts/validate-lcx-hro-blocked-backlog.mjs",
+    "lcx:global-ia:validate": "node scripts/validate-lcx-global-ia.mjs",
     "web:e2e": "node scripts/run-web-e2e.mjs",
     "db:migrate:test": "node --test packages/hrx/test/migration.test.js",
     "hrx:requirements:generate": "node scripts/generate-hrx-requirement-ledger.mjs",

@@ -28,6 +28,7 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
   const navSource = await readWebFile("src/data/nav.js");
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
+  const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
   const peopleCatalogSource = await readWebFile("src/people/peopleFeatureCatalog.js");
   const peopleNavigationSource = `${shellSource}\n${peopleCatalogSource}`;
   const canonicalViews = ["clients", "matters", "people", "vault"];
@@ -65,8 +66,12 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
   assert.match(appSource, /window\.history\.pushState/);
   assert.doesNotMatch(appSource, /scrollIntoView/);
   assert.match(shellSource, /activeSection/);
-  assert.match(shellSource, /client-import/);
-  assert.match(shellSource, /matter-import/);
+  assert.match(shellSource, /data-global-sidebar-nav/);
+  assert.match(appSource, /globalUtilityViewIds/);
+  assert.match(appSource, /resolveGlobalShortcut/);
+  assert.match(globalUtilitySource, /client-import/);
+  assert.match(globalUtilitySource, /matter-import/);
+  assert.match(globalUtilitySource, /messages-matter-channel/);
   assert.match(shellSource, /peopleNavigationGroups/);
   assert.match(shellSource, /peopleSidebarGroups/);
   assert.match(peopleNavigationSource, /people-members/);
@@ -308,6 +313,7 @@ test("command center groups all backend coverage into four product axes", async 
 
 test("Client Matter People Vault surfaces stay API-backed and fail closed", async () => {
   const shellSource = await readWebFile("src/components/Shell.jsx");
+  const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
   const clientsSource = await readWebFile("src/components/ClientsSurface.jsx");
   const mattersSource = await readWebFile("src/components/MattersSurface.jsx");
   const matterVaultSource = await readWebFile("src/components/MatterVaultPanel.jsx");
@@ -330,18 +336,25 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
     "client-intake",
     "client-accounts",
     "client-contacts",
-    "client-data",
     "matter-command",
     "matter-vault",
     "matter-timeline",
-    "matter-calendar",
-    "matter-channel",
     "matter-opening",
-    "matter-team",
-    "matter-billing",
-    "matter-analytics"
+    "matter-team"
   ]) {
     assert.match(shellSource, new RegExp(section));
+  }
+  for (const section of [
+    "client-data",
+    "client-reports",
+    "client-import",
+    "matter-calendar",
+    "matter-channel",
+    "matter-billing",
+    "matter-analytics",
+    "matter-import"
+  ]) {
+    assert.match(globalUtilitySource, new RegExp(section));
   }
   assert.match(clientsSource, /data-cmp-g2-live-clients="true"/);
   assert.match(clientsSource, /data-salesforce-client-workspace="list-detail-right-panel"/);

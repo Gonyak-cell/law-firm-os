@@ -1,0 +1,392 @@
+{
+  "schema_version": "lawos.lcx_global_ia.tuw_plan.v0.1",
+  "program_id": "LCX-GIA",
+  "title": "Global Navigation Extraction",
+  "created_at": "2026-06-29",
+  "status": "done-local",
+  "branch_observed": "codex/hrx-member-roster-source-of-truth",
+  "head_observed": "eaf352324e27",
+  "source_plan": "docs/lazycodex/global-ia/lcx-global-ia-tuw-plan-2026-06-29.md",
+  "local_implementation_receipt": "docs/lazycodex/global-ia/lcx-global-ia-local-implementation-receipt-2026-06-29.json",
+  "lazyweb_note": "lazyweb_generate_report was attempted for global IA planning and routed the request to deeper design research instead of returning a report.",
+  "claim_boundary": {
+    "global_navigation_runtime_ready": false,
+    "production_ready": false,
+    "production_deployed": false,
+    "go_live_approved": false,
+    "external_provider_live": false,
+    "data_migration_executed": false
+  },
+  "immediate_global_surfaces": [
+    {
+      "target": "Messages",
+      "items": [
+        "메시지 전송",
+        "메시지 자동화",
+        "메시지 템플릿",
+        "공지사항",
+        "Matter의 대화"
+      ],
+      "disposition": "move"
+    },
+    {
+      "target": "Notifications",
+      "items": [
+        "출퇴근 누락 알림",
+        "회사 설정의 알림",
+        "현재 상단 알림 드로어"
+      ],
+      "disposition": "move"
+    },
+    {
+      "target": "Requests",
+      "items": [
+        "요청 관리",
+        "승인 대기함",
+        "강제 승인/거절",
+        "비용 처리 요청",
+        "증명서 발급 요청",
+        "Home의 검토함"
+      ],
+      "disposition": "move"
+    },
+    {
+      "target": "Reports",
+      "items": [
+        "People 리포트 전체",
+        "Client 보고서",
+        "Matter 분석",
+        "Home 대시보드"
+      ],
+      "disposition": "move"
+    },
+    {
+      "target": "Settings",
+      "items": [
+        "회사 설정 대부분",
+        "권한",
+        "보안",
+        "연동",
+        "결제",
+        "지원",
+        "고급 옵션",
+        "태그 관리"
+      ],
+      "disposition": "move"
+    },
+    {
+      "target": "E-Sign",
+      "items": [
+        "전자계약 전송",
+        "전자계약 템플릿",
+        "서명 진행 상태"
+      ],
+      "disposition": "move"
+    }
+  ],
+  "conditional_global_surfaces": [
+    {
+      "target": "Calendar",
+      "items": [
+        "Matter 일정",
+        "People 외부일정",
+        "부재 일정"
+      ],
+      "decision": "global only if a unified calendar is built"
+    },
+    {
+      "target": "Billing/Finance",
+      "items": [
+        "Matter 청구",
+        "비용 관리",
+        "정산 내역",
+        "지급 설정",
+        "입금 계좌"
+      ],
+      "decision": "global only if a finance axis is introduced"
+    },
+    {
+      "target": "Data/Import",
+      "items": [
+        "Client 가져오기",
+        "Client 데이터 관리",
+        "Matter 자료 가져오기",
+        "People 출퇴근 엑셀 업로드"
+      ],
+      "decision": "global only if import jobs share queue, validation, audit, and rollback"
+    },
+    {
+      "target": "Vault/Policies",
+      "items": [
+        "회사방침",
+        "근로계약서",
+        "연차휴가 사용 촉진 문서"
+      ],
+      "decision": "Vault remains the document source of truth; People keeps HR document shortcuts"
+    }
+  ],
+  "tuws": [
+    {
+      "id": "LCX-GIA-00.01",
+      "phase": "LCX-GIA-00",
+      "title": "Inventory current routes and menus",
+      "status": "ready",
+      "depends_on": [],
+      "deliverables": [
+        "route inventory JSON",
+        "current menu screenshot set"
+      ],
+      "verification": [
+        "all current menu items classified"
+      ]
+    },
+    {
+      "id": "LCX-GIA-00.02",
+      "phase": "LCX-GIA-00",
+      "title": "Classify each item as move, shortcut, keep, or delete-after-compat",
+      "status": "ready",
+      "depends_on": [
+        "LCX-GIA-00.01"
+      ],
+      "deliverables": [
+        "IA classification ledger"
+      ],
+      "verification": [
+        "no unclassified source items"
+      ]
+    },
+    {
+      "id": "LCX-GIA-00.03",
+      "phase": "LCX-GIA-00",
+      "title": "Define old-route compatibility policy",
+      "status": "ready",
+      "depends_on": [
+        "LCX-GIA-00.02"
+      ],
+      "deliverables": [
+        "redirect and backlink matrix"
+      ],
+      "verification": [
+        "every moved route has a compatibility decision"
+      ]
+    },
+    {
+      "id": "LCX-GIA-01.01",
+      "phase": "LCX-GIA-01",
+      "title": "Create global utility catalog",
+      "status": "ready",
+      "depends_on": [
+        "LCX-GIA-00.03"
+      ],
+      "deliverables": [
+        "global utility catalog for Messages, Notifications, Requests, Reports, Settings, and E-Sign"
+      ],
+      "verification": [
+        "catalog validator or unit test"
+      ]
+    },
+    {
+      "id": "LCX-GIA-01.02",
+      "phase": "LCX-GIA-01",
+      "title": "Wire global entries into shell navigation",
+      "status": "ready",
+      "depends_on": [
+        "LCX-GIA-01.01"
+      ],
+      "deliverables": [
+        "global shell menu update"
+      ],
+      "verification": [
+        "desktop and mobile browser screenshots"
+      ]
+    },
+    {
+      "id": "LCX-GIA-01.03",
+      "phase": "LCX-GIA-01",
+      "title": "Add global route shells and deep-link parameters",
+      "status": "ready",
+      "depends_on": [
+        "LCX-GIA-01.02"
+      ],
+      "deliverables": [
+        "global route shells",
+        "scope parameter contract"
+      ],
+      "verification": [
+        "route smoke test",
+        "deep-link regression test"
+      ]
+    },
+    {
+      "id": "LCX-GIA-02.01",
+      "phase": "LCX-GIA-02",
+      "title": "Move message workflows to Messages",
+      "status": "ready",
+      "depends_on": [
+        "LCX-GIA-01.03"
+      ],
+      "deliverables": [
+        "Messages hub",
+        "People and Matter filtered shortcuts"
+      ],
+      "verification": [
+        "route smoke test",
+        "Matter conversation deep-link test"
+      ]
+    },
+    {
+      "id": "LCX-GIA-03.01",
+      "phase": "LCX-GIA-03",
+      "title": "Promote notifications to global center",
+      "status": "ready",
+      "depends_on": [
+        "LCX-GIA-01.03"
+      ],
+      "deliverables": [
+        "global notification center",
+        "attendance missing alert filter",
+        "notification settings route"
+      ],
+      "verification": [
+        "drawer parity screenshot",
+        "People alert filter test"
+      ]
+    },
+    {
+      "id": "LCX-GIA-04.01",
+      "phase": "LCX-GIA-04",
+      "title": "Move approvals and requests to Requests",
+      "status": "ready",
+      "depends_on": [
+        "LCX-GIA-01.03"
+      ],
+      "deliverables": [
+        "Requests hub",
+        "Home review shortcut",
+        "forced decision permission gate"
+      ],
+      "verification": [
+        "request type regression test",
+        "permission and audit test"
+      ]
+    },
+    {
+      "id": "LCX-GIA-05.01",
+      "phase": "LCX-GIA-05",
+      "title": "Move analytics and reports to Reports",
+      "status": "ready",
+      "depends_on": [
+        "LCX-GIA-01.03"
+      ],
+      "deliverables": [
+        "Reports hub",
+        "People, Client, Matter, and Home report scopes"
+      ],
+      "verification": [
+        "domain report route tests",
+        "Home dashboard regression"
+      ]
+    },
+    {
+      "id": "LCX-GIA-06.01",
+      "phase": "LCX-GIA-06",
+      "title": "Move company-wide configuration to Settings",
+      "status": "ready",
+      "depends_on": [
+        "LCX-GIA-01.03"
+      ],
+      "deliverables": [
+        "global Settings route group",
+        "People settings shortcuts"
+      ],
+      "verification": [
+        "settings inventory diff",
+        "admin permission regression"
+      ]
+    },
+    {
+      "id": "LCX-GIA-07.01",
+      "phase": "LCX-GIA-07",
+      "title": "Move e-contract workflows to E-Sign",
+      "status": "ready",
+      "depends_on": [
+        "LCX-GIA-01.03"
+      ],
+      "deliverables": [
+        "E-Sign hub",
+        "contextual People and Matter send links",
+        "Vault source relation ledger"
+      ],
+      "verification": [
+        "E-Sign route smoke",
+        "context deep-link QA"
+      ]
+    },
+    {
+      "id": "LCX-GIA-08.01",
+      "phase": "LCX-GIA-08",
+      "title": "Decide conditional global surfaces",
+      "status": "decision-required",
+      "depends_on": [
+        "LCX-GIA-01.03"
+      ],
+      "deliverables": [
+        "Calendar decision",
+        "Billing/Finance decision",
+        "Data/Import decision",
+        "Vault/Policies decision"
+      ],
+      "verification": [
+        "decision register updated before implementation"
+      ]
+    },
+    {
+      "id": "LCX-GIA-09.01",
+      "phase": "LCX-GIA-09",
+      "title": "Clean up domain menus and legacy routes",
+      "status": "todo",
+      "depends_on": [
+        "LCX-GIA-02.01",
+        "LCX-GIA-03.01",
+        "LCX-GIA-04.01",
+        "LCX-GIA-05.01",
+        "LCX-GIA-06.01",
+        "LCX-GIA-07.01",
+        "LCX-GIA-08.01"
+      ],
+      "deliverables": [
+        "People menu cleanup",
+        "Matter menu shortcuts",
+        "Home shortcut cleanup",
+        "Client shortcut cleanup",
+        "legacy route redirects"
+      ],
+      "verification": [
+        "menu before/after screenshots",
+        "redirect tests"
+      ]
+    },
+    {
+      "id": "LCX-GIA-10.01",
+      "phase": "LCX-GIA-10",
+      "title": "Validate and close out without production claims",
+      "status": "todo",
+      "depends_on": [
+        "LCX-GIA-09.01"
+      ],
+      "deliverables": [
+        "test receipts",
+        "browser QA screenshots",
+        "AI slop review note",
+        "PR checklist"
+      ],
+      "verification": [
+        "git diff --check",
+        "relevant app tests",
+        "web build",
+        "sloplint changed",
+        "browser QA"
+      ]
+    }
+  ]
+}
