@@ -1,0 +1,114 @@
+{
+  "schema_version": "lawos.lcx_global_ia.local_implementation_receipt.v0.1",
+  "program_id": "LCX-GIA",
+  "title": "Global Navigation Extraction Local Implementation Receipt",
+  "created_at": "2026-06-29",
+  "status": "done-local",
+  "branch_observed": "codex/hrx-member-roster-source-of-truth",
+  "head_observed": "eaf352324e27",
+  "source_plan": "docs/lazycodex/global-ia/lcx-global-ia-tuw-plan-2026-06-29.md",
+  "execution_ledger": "docs/lazycodex/global-ia/lcx-global-ia-execution-ledger-2026-06-29.json",
+  "claim_boundary": {
+    "local_global_navigation_runtime_ready": true,
+    "production_ready": false,
+    "production_deployed": false,
+    "go_live_approved": false,
+    "external_provider_live": false,
+    "data_migration_executed": false
+  },
+  "implemented_tuws": [
+    "LCX-GIA-00",
+    "LCX-GIA-01",
+    "LCX-GIA-02",
+    "LCX-GIA-03",
+    "LCX-GIA-04",
+    "LCX-GIA-05",
+    "LCX-GIA-06",
+    "LCX-GIA-07",
+    "LCX-GIA-08",
+    "LCX-GIA-09",
+    "LCX-GIA-10"
+  ],
+  "implemented_surfaces": {
+    "immediate_global": [
+      "Messages",
+      "Notifications",
+      "Requests",
+      "Reports",
+      "Settings",
+      "E-Sign"
+    ],
+    "conditional_decision_surfaces": [
+      "Calendar",
+      "Billing/Finance",
+      "Data/Import",
+      "Vault/Policies"
+    ]
+  },
+  "changed_runtime_files": [
+    "apps/web/src/App.jsx",
+    "apps/web/src/components/Shell.jsx",
+    "apps/web/src/components/UserProfileSurface.jsx",
+    "apps/web/src/components/GlobalUtilitySurface.jsx",
+    "apps/web/src/data/globalUtilities.js",
+    "apps/web/src/styles.css"
+  ],
+  "changed_validation_files": [
+    "apps/web/test/ui-regression.test.mjs",
+    "scripts/validate-lcx-global-ia.mjs",
+    "package.json"
+  ],
+  "validation_receipts": [
+    {
+      "command": "npm run lcx:global-ia:validate",
+      "verdict": "PASS",
+      "summary": "6 immediate global surfaces, 4 conditional decision surfaces, 50 legacy route mappings, production/go-live false"
+    },
+    {
+      "command": "npm --workspace apps/web run test:ui",
+      "verdict": "PASS",
+      "summary": "17 tests passed"
+    },
+    {
+      "command": "npm --workspace apps/web run build",
+      "verdict": "PASS",
+      "summary": "Vite production build succeeded; existing chunk-size warning only"
+    },
+    {
+      "command": "git diff --check",
+      "verdict": "PASS",
+      "summary": "No whitespace errors"
+    }
+  ],
+  "manual_qa": {
+    "tool": "Playwright via system Google Chrome",
+    "url": "http://127.0.0.1:5173/",
+    "verdict": "PASS",
+    "screenshot": "docs/lazycodex/global-ia/evidence/lcx-global-ia-settings-surface-2026-06-29.png",
+    "checks": [
+      "legacy People message route opens Messages surface",
+      "Messages send section visible",
+      "top product axis keeps Home, Client, Matter, People, Vault",
+      "global common sidebar menu visible on People",
+      "People sidebar does not expose moved global sections",
+      "common Messages button opens Messages",
+      "Matter 대화 shortcut opens Messages",
+      "Matter 대화 section active",
+      "Home 대시보드 shortcut opens Reports",
+      "Home dashboard report section active",
+      "Matter 일정 shortcut opens Calendar decision surface",
+      "Calendar decision gate visible",
+      "Profile 비용 관리 shortcut opens Finance decision surface",
+      "Finance decision gate visible",
+      "direct Settings global route opens",
+      "Settings exposes conditional utility preview"
+    ]
+  },
+  "lazyweb_receipt": {
+    "tool": "lazyweb_search",
+    "query": "enterprise web app global navigation sidebar utilities",
+    "verdict": "adjacent_reference_only",
+    "coverage": "weak",
+    "implementation_note": "No visual pattern was copied. The implementation used the repo shell and restrained common utility sidebar pattern."
+  }
+}

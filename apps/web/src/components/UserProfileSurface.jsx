@@ -164,9 +164,9 @@ export const profileSidebarItems = [
   { label: "계약 관리", view: "matters", section: "matters-list", icon: FileCheck2 },
   { label: "내 프로필", view: "profile", icon: UserRound, active: true },
   { label: "문서", view: "vault", section: "vault-documents", icon: ClipboardList },
-  { label: "청구 관리", view: "matters", section: "matter-billing", icon: ReceiptText },
-  { label: "비용 관리", view: "profile", section: "expenses", icon: ReceiptText },
-  { label: "정산 내역", view: "profile", section: "transactions", icon: ClipboardList },
-  { label: "지급 설정", view: "profile", section: "payments", icon: ReceiptText },
-  { label: "입금 계좌", view: "profile", section: "withdrawal", icon: IdCard }
+  { label: "청구 관리", view: "finance", section: "finance-matter-billing", icon: ReceiptText },
+  { label: "비용 관리", view: "finance", section: "finance-expenses", icon: ReceiptText },
+  { label: "정산 내역", view: "finance", section: "finance-transactions", icon: ClipboardList },
+  { label: "지급 설정", view: "finance", section: "finance-payments", icon: ReceiptText },
+  { label: "입금 계좌", view: "finance", section: "finance-withdrawal", icon: IdCard }
 ];
