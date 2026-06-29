@@ -387,6 +387,7 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
   const meta = sidebarMeta[view] ?? (activeGlobalUtility ? { title: activeGlobalUtility.label, utilities: [] } : { title: "matter", utilities: [] });
   const flatSubnav = subnav.flatMap((item) => item.children ?? [item]);
   const hasPreferredActiveItem = flatSubnav.some((item) => item.active);
+  const showGlobalUtilityNav = view === "home";
 
   function isItemActive(item, index = 0) {
     if (item.section) {
@@ -429,26 +430,28 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
         </div>
         <ChevronDown size={15} />
       </button>
-      <nav className="global-sidebar-nav" aria-label="공통 메뉴" data-global-sidebar-nav="true">
-        <span className="sidebar-section-title">공통</span>
-        {globalUtilityItems.map((item) => {
-          const Icon = item.icon;
-          const active = view === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              className={active ? "global-sidebar-item active" : "global-sidebar-item"}
-              aria-current={active ? "page" : undefined}
-              data-global-utility-nav={item.id}
-              onClick={() => setView(item.id, item.defaultSection)}
-            >
-              <Icon size={15} />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+      {showGlobalUtilityNav && (
+        <nav className="global-sidebar-nav" aria-label="공통 메뉴" data-global-sidebar-nav="home-only">
+          <span className="sidebar-section-title">공통</span>
+          {globalUtilityItems.map((item) => {
+            const Icon = item.icon;
+            const active = view === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={active ? "global-sidebar-item active" : "global-sidebar-item"}
+                aria-current={active ? "page" : undefined}
+                data-global-utility-nav={item.id}
+                onClick={() => setView(item.id, item.defaultSection)}
+              >
+                <Icon size={15} />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
       {subnav.length > 0 && (
         <nav className="sidebar-nav">
           {subnav.map((item, index) => {

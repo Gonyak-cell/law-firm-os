@@ -66,7 +66,9 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
   assert.match(appSource, /window\.history\.pushState/);
   assert.doesNotMatch(appSource, /scrollIntoView/);
   assert.match(shellSource, /activeSection/);
-  assert.match(shellSource, /data-global-sidebar-nav/);
+  assert.match(shellSource, /const showGlobalUtilityNav = view === "home"/);
+  assert.match(shellSource, /\{showGlobalUtilityNav && \(/);
+  assert.match(shellSource, /data-global-sidebar-nav="home-only"/);
   assert.match(appSource, /globalUtilityViewIds/);
   assert.match(appSource, /resolveGlobalShortcut/);
   assert.match(globalUtilitySource, /client-import/);
