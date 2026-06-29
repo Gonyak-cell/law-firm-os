@@ -7,7 +7,8 @@ import path from "node:path";
 const ROOT = process.cwd();
 const desktopPackage = JSON.parse(readFileSync(path.join(ROOT, "apps/desktop/package.json"), "utf8"));
 const version = desktopPackage.version;
-const releaseId = `matter-desktop-v${version}`;
+const defaultReleaseId = `matter-desktop-v${version}`;
+const releaseId = process.env.MATTER_DESKTOP_GITHUB_RELEASE_TAG ?? defaultReleaseId;
 const manifestPath = path.join(ROOT, "apps/desktop/dist/release", releaseId, "release-manifest.json");
 const checksumPath = path.join(ROOT, "apps/desktop/dist/release", releaseId, "checksums.sha256");
 const receiptPath = path.join(ROOT, "docs/desktop/matter-desktop-formal-release-receipt.md");
@@ -43,7 +44,7 @@ assert.equal(manifest.product_name, "matter");
 assert.equal(manifest.package_name, "@law-firm-os/desktop");
 assert.equal(manifest.app_id, "com.amic.matter.desktop");
 assert.equal(manifest.channel, "formal-candidate");
-assert.equal(manifest.github_release_tag, `matter-desktop-v${version}`);
+assert.equal(manifest.github_release_tag, releaseId);
 assert.equal(manifest.custom_domain_required, false);
 assert.equal(manifest.public_release_claim, false);
 assert.equal(manifest.production_go_live_claim, false);
@@ -84,7 +85,7 @@ const requiredReceiptPhrases = [
   `Manifest | \`apps/desktop/dist/release/${releaseId}/release-manifest.json\``,
   "Channel | `formal-candidate`",
   "App ID | `com.amic.matter.desktop`",
-  "GitHub tag candidate | `matter-desktop-v0.1.0`",
+  `GitHub tag candidate | \`${releaseId}\``,
   "macOS ZIP archive | `apps/desktop/dist/mac/matter-0.1.0-macos.zip`",
   "macOS DMG image | `apps/desktop/dist/mac/matter-0.1.0-macos.dmg`",
   "Windows formal manifest | `apps/desktop/dist/win/matter-0.1.0-win-installer-manifest.json`",

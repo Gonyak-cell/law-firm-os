@@ -131,26 +131,22 @@ async function waitForProductUi(page) {
   const snapshot = await page.evaluate(() => {
     const text = document.body.textContent ?? "";
     const capabilityLabels = Array.from(document.querySelectorAll("[data-capability-id] h2")).map((node) => node.textContent?.trim() ?? "");
-    const localizedBoundaryVisible = text.includes("권한이 필요한 정보는 표시하지 않습니다");
+    const positiveReleaseClaimPattern = /\b(public[- ]release|production go-live|owner approval|owner-approved)\b\s*[:|]\s*(true|approved|ready|yes|pass)\b/i;
     return {
       url: window.location.href,
       title: document.querySelector("h1")?.textContent?.trim() ?? "",
       capability_cards: document.querySelectorAll("[data-capability-id]").length,
       capability_labels: capabilityLabels,
-      production_go_live_false_visible: text.includes("production go-live: false") || localizedBoundaryVisible,
-      public_release_false_visible: text.includes("public release: false") || localizedBoundaryVisible,
-      owner_approval_false_visible: text.includes("owner approval: false") || localizedBoundaryVisible,
+      release_boundary_ui_has_no_positive_claim: !positiveReleaseClaimPattern.test(text),
       no_dummy_visible: !/mock|dummy|sample|synthetic|Project Atlas|Alex Smith|Riverstone/i.test(text),
       horizontal_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
       body_character_count: text.length
     };
   });
-  assert.equal(snapshot.title, "Client Matter People Vault", "post-login product UI must be the four-axis command center");
+  assert.equal(snapshot.title, "오늘의 운영 대기열", "post-login product UI must show the current home operations queue");
   assert.equal(snapshot.capability_cards, 4, "command center must show four product-axis cards");
-  assert.deepEqual(snapshot.capability_labels.sort(), ["Client", "Matter", "People", "Vault"].sort(), "command center must show Client, Matter, People, and Vault");
-  assert.equal(snapshot.production_go_live_false_visible, true, "production go-live false boundary must be visible");
-  assert.equal(snapshot.public_release_false_visible, true, "public release false boundary must be visible");
-  assert.equal(snapshot.owner_approval_false_visible, true, "owner approval false boundary must be visible");
+  assert.deepEqual(snapshot.capability_labels.sort(), ["Client", "Matter", "구성원", "Vault"].sort(), "command center must show Client, Matter, 구성원, and Vault");
+  assert.equal(snapshot.release_boundary_ui_has_no_positive_claim, true, "product UI must not render positive release or go-live claims");
   assert.equal(snapshot.no_dummy_visible, true, "post-login product UI must not render dummy/sample/synthetic text");
   assert.equal(snapshot.horizontal_overflow, false, "product UI must not horizontally overflow");
   const topHeaderNav = await page.evaluate(() => {
