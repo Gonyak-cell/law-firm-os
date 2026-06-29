@@ -21,8 +21,8 @@ function legacy(view, section) {
 export const globalUtilityItems = [
   {
     id: "messages",
-    label: "Messages",
-    localLabel: "메시지",
+    label: "메시지",
+    localLabel: "전송·자동화",
     icon: Mail,
     defaultSection: "messages-send",
     description: "도메인별 메시지, 공지, 자동화, 템플릿을 한 곳에서 관리합니다.",
@@ -67,8 +67,8 @@ export const globalUtilityItems = [
   },
   {
     id: "notifications",
-    label: "Notifications",
-    localLabel: "알림",
+    label: "알림",
+    localLabel: "센터·설정",
     icon: Bell,
     defaultSection: "notifications-center",
     description: "상단 알림 드로어, 근태 알림, 회사 알림 설정을 전역 알림 센터로 묶습니다.",
@@ -98,8 +98,8 @@ export const globalUtilityItems = [
   },
   {
     id: "requests",
-    label: "Requests",
-    localLabel: "요청",
+    label: "요청함",
+    localLabel: "승인·증명서",
     icon: ShieldCheck,
     defaultSection: "requests-inbox",
     description: "승인 대기, 비용, 증명서, 강제 승인/거절을 하나의 요청함으로 모읍니다.",
@@ -167,8 +167,8 @@ export const globalUtilityItems = [
   },
   {
     id: "reports",
-    label: "Reports",
-    localLabel: "리포트",
+    label: "보고서",
+    localLabel: "분석·스냅샷",
     icon: LayoutDashboard,
     defaultSection: "reports-home-dashboard",
     description: "Home, People, Client, Matter의 분석과 보고서를 전역 리포트 허브에서 확인합니다.",
@@ -226,8 +226,8 @@ export const globalUtilityItems = [
   },
   {
     id: "settings",
-    label: "Settings",
-    localLabel: "설정",
+    label: "설정",
+    localLabel: "권한·보안",
     icon: Settings,
     defaultSection: "settings-company",
     description: "회사 설정, 권한, 보안, 연동, 결제, 지원, 고급 옵션, 태그 관리를 전역 설정으로 이동합니다.",
@@ -292,11 +292,11 @@ export const globalUtilityItems = [
   },
   {
     id: "esign",
-    label: "E-Sign",
-    localLabel: "전자계약",
+    label: "전자계약",
+    localLabel: "전송·서명",
     icon: FileCheck2,
     defaultSection: "esign-send",
-    description: "전자계약 전송, 템플릿, 서명 진행 상태를 도메인 공통 워크플로로 다룹니다.",
+    description: "전자계약 전송, 템플릿, 서명 진행 상태를 여러 도메인에서 함께 다룹니다.",
     sections: [
       {
         id: "esign-send",
@@ -333,12 +333,12 @@ export const globalUtilityItems = [
 export const conditionalGlobalItems = [
   {
     id: "calendar",
-    label: "Calendar",
+    label: "일정",
     localLabel: "캘린더",
     icon: CalendarDays,
     defaultSection: "calendar-decision",
     status: "decision-required",
-    decision: "전역 캘린더를 만들 때만 최상위 공통 메뉴로 승격합니다.",
+    decision: "전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다.",
     sections: [
       {
         id: "calendar-matter",
@@ -364,8 +364,8 @@ export const conditionalGlobalItems = [
   },
   {
     id: "finance",
-    label: "Billing/Finance",
-    localLabel: "청구·재무",
+    label: "청구·재무",
+    localLabel: "정산·입금",
     icon: ReceiptText,
     defaultSection: "finance-decision",
     status: "decision-required",
@@ -410,12 +410,12 @@ export const conditionalGlobalItems = [
   },
   {
     id: "data-import",
-    label: "Data/Import",
-    localLabel: "데이터·가져오기",
+    label: "데이터 가져오기",
+    localLabel: "검증·롤백",
     icon: Database,
     defaultSection: "data-import-decision",
     status: "decision-required",
-    decision: "공통 검증, 감사, 롤백 큐가 확정될 때 전역 가져오기 허브로 승격합니다.",
+    decision: "공유 검증, 감사, 롤백 큐가 확정될 때 전역 가져오기 허브로 승격합니다.",
     sections: [
       {
         id: "data-import-client-data",
@@ -449,8 +449,8 @@ export const conditionalGlobalItems = [
   },
   {
     id: "policies",
-    label: "Vault/Policies",
-    localLabel: "방침·문서",
+    label: "문서·방침",
+    localLabel: "Vault 원장",
     icon: FolderOpen,
     defaultSection: "policies-decision",
     status: "decision-required",

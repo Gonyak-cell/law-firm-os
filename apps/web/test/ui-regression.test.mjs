@@ -66,12 +66,20 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
   assert.match(appSource, /window\.history\.pushState/);
   assert.doesNotMatch(appSource, /scrollIntoView/);
   assert.match(shellSource, /activeSection/);
-  assert.match(shellSource, /data-global-sidebar-nav/);
+  assert.match(shellSource, /const showGlobalUtilityNav = view === "home"/);
+  assert.match(shellSource, /\{showGlobalUtilityNav && \(/);
+  assert.match(shellSource, /data-global-sidebar-nav="home-only"/);
+  assert.match(shellSource, /aria-label="Home 빠른 메뉴"/);
+  assert.doesNotMatch(shellSource, />공통<|aria-label="공통 메뉴"/);
   assert.match(appSource, /globalUtilityViewIds/);
   assert.match(appSource, /resolveGlobalShortcut/);
   assert.match(globalUtilitySource, /client-import/);
   assert.match(globalUtilitySource, /matter-import/);
   assert.match(globalUtilitySource, /messages-matter-channel/);
+  for (const label of ["메시지", "알림", "요청함", "보고서", "설정", "전자계약"]) {
+    assert.match(globalUtilitySource, new RegExp(`label: "${label}"`));
+  }
+  assert.doesNotMatch(globalUtilitySource, /label: "Messages"|label: "Notifications"|label: "Requests"|label: "Reports"|label: "Settings"|label: "E-Sign"/);
   assert.match(shellSource, /peopleNavigationGroups/);
   assert.match(shellSource, /peopleSidebarGroups/);
   assert.match(peopleNavigationSource, /people-members/);
