@@ -8,7 +8,8 @@
     "published_at": "2026-06-29T09:29:28Z",
     "is_draft": false,
     "is_prerelease": true,
-    "target_commitish": "1807b6bb2e573525626441c9e796b15998ad6cf8",
+    "target_commitish": "c08c8a29c6d7d4f6b9f599f4a56371d770b9ae5f",
+    "retagged_at": "2026-06-29T09:52:00Z",
     "source_branch": "codex/home-utility-menu-style"
   },
   "release_notes": {
