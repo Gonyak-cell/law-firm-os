@@ -2,8 +2,13 @@ import { startApiServer } from "./server.js";
 
 let serverPromise;
 
-function requestPath(event = {}) {
-  const path = event.rawPath || event.path || "/";
+function normalizeLambdaPath(value = "/") {
+  const path = String(value || "/");
+  return `/${path}`.replace(/^\/+/, "/") || "/";
+}
+
+export function requestPath(event = {}) {
+  const path = normalizeLambdaPath(event.rawPath || event.requestContext?.http?.path || event.path || "/");
   const query = event.rawQueryString || "";
   return query ? `${path}?${query}` : path;
 }

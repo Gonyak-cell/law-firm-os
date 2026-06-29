@@ -521,9 +521,14 @@ function loginWithPassword(body = {}, state) {
   });
 }
 
+function normalizeLambdaPath(value = "/") {
+  const path = String(value || "/");
+  return `/${path}`.replace(/^\/+/, "/") || "/";
+}
+
 function routeFromEvent(event = {}) {
   const method = event.httpMethod ?? event.requestContext?.http?.method ?? "GET";
-  const path = event.path ?? event.rawPath ?? "/";
+  const path = normalizeLambdaPath(event.path ?? event.rawPath ?? event.requestContext?.http?.path ?? "/");
   return { method: method.toUpperCase(), path: path.replace(/\/+$/, "") || "/" };
 }
 

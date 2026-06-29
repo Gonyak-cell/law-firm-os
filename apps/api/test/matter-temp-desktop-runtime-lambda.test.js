@@ -16,6 +16,15 @@ function event({ method = "GET", path = "/", body, headers, queryStringParameter
   };
 }
 
+function functionUrlEvent({ method = "GET", rawPath = "/", body, headers } = {}) {
+  return {
+    requestContext: { http: { method, path: rawPath } },
+    rawPath,
+    headers: headers ?? {},
+    body: body === undefined ? undefined : JSON.stringify(body)
+  };
+}
+
 function json(result) {
   return JSON.parse(result.body);
 }
@@ -40,6 +49,15 @@ test("temporary desktop runtime health exposes AWS no-domain synthetic boundary"
   assert.equal(body.public_release_completed, false);
   assert.equal(body.registered_account_count, 9);
   assert.equal(body.highest_privilege_account, "jwsuh@amic.kr");
+});
+
+test("temporary desktop runtime normalizes duplicate leading slashes from Function URL rawPath", async () => {
+  const result = await handler(functionUrlEvent({ rawPath: "//health" }));
+  const body = json(result);
+
+  assert.equal(result.statusCode, 200);
+  assert.equal(body.ok, true);
+  assert.equal(body.service, "matter-temp-desktop-runtime");
 });
 
 test("temporary desktop runtime requires operator bearer token for runtime routes", async () => {
