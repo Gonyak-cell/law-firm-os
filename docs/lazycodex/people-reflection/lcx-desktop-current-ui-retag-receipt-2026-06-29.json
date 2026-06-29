@@ -1,0 +1,30 @@
+{
+  "schema_version": "lawos.lcx_desktop_current_ui.retag_receipt.v0.1",
+  "recorded_at": "2026-06-29T09:53:00Z",
+  "source": {
+    "pr": 142,
+    "receipt": "docs/desktop/matter-desktop-current-ui-github-release-receipt-2026-06-29.json"
+  },
+  "release": {
+    "tag": "matter-desktop-v0.1.0-current-ui-20260629",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-current-ui-20260629",
+    "target_commitish": "c08c8a29c6d7d4f6b9f599f4a56371d770b9ae5f",
+    "retagged_at": "2026-06-29T09:52:00Z",
+    "is_prerelease": true,
+    "asset_count": 13,
+    "remote_checksums_sha256_matches_local": true
+  },
+  "verification": {
+    "receipt_json_parse": "PASS",
+    "validate_matter_desktop_no_public_release_claim": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "claim_boundary": {
+    "github_prerelease_created": true,
+    "production_go_live_claim": false,
+    "owner_final_approval_claim": false,
+    "app_store_distribution_claim": false,
+    "microsoft_store_distribution_claim": false,
+    "windows_authenticode_signing_claim": false
+  }
+}
