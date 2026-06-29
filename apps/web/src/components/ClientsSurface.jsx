@@ -34,19 +34,26 @@ import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
 const CLIENTS_PERMISSION_REF = "ui_cmp_g2_party_clients_live";
 const CLIENTS_AUDIT_HINT_REF = "ui_cmp_g2_clients_live_probe";
 const CLIENT_SECTIONS = new Set([
+  "clients-home",
   "clients-list",
   "client-leads",
   "client-opportunities",
   "client-intake",
   "client-accounts",
   "client-contacts",
+  "client-activities",
+  "client-contracts",
+  "client-relationships",
+  "client-conflict",
+  "client-billing",
   "client-data",
   "client-reports",
-  "client-import"
+  "client-import",
+  "client-settings"
 ]);
 
 function clientDisplayName(item, index) {
-  return businessLabel(item.display_name ?? item.client_name ?? item.name, `Client ${index + 1}`);
+  return businessLabel(item.display_name ?? item.client_name ?? item.name, `고객 ${index + 1}`);
 }
 
 function clientMembers(item) {
@@ -60,12 +67,12 @@ function clientStatus(value) {
 }
 
 function pipelineStatus(value) {
-  if (value === "qualified") return "검증됨";
-  if (value === "active") return "진행 중";
-  if (value === "open") return "접수";
-  if (value === "intake_requested") return "접수 요청됨";
-  if (value === "review_required") return "검토 필요";
-  if (value === "closed") return "종료";
+  if (value === "qualified") return "상담 진행";
+  if (value === "active") return "제안 준비";
+  if (value === "open") return "신규 문의";
+  if (value === "intake_requested") return "수임 검토";
+  if (value === "review_required") return "계약 검토";
+  if (value === "closed") return "실권·종료";
   return value ?? "진행 중";
 }
 
@@ -95,9 +102,9 @@ function proposalStateLabel(value) {
 
 function recordFieldLabel(value) {
   const text = String(value ?? "").trim();
-  if (text === "Client display name") return "Client 표시 이름";
-  if (text === "Account status") return "계정 상태";
-  if (text === "Contact status") return "연락처 상태";
+  if (text === "Client display name") return "고객 표시 이름";
+  if (text === "Account status") return "고객 상태";
+  if (text === "Contact status") return "담당자 상태";
   if (text === "Owner") return "담당자";
   if (text === "Status") return "상태";
   return text || "필드";
@@ -173,12 +180,51 @@ function renderLiveState(result, noun) {
   return null;
 }
 
+function ClientsOverviewPanel({ customerCount, leadCount, opportunityCount, intakeCount, accountCount, contactCount }) {
+  return (
+    <div className="clients-live-stack" data-client-overview-panel="true">
+      <div className="record-action-strip">
+        <div>
+          <strong>고객 운영 현황</strong>
+          <span>개인·법인 고객, 담당자, Opportunity, 상담·문의를 한 화면에서 확인합니다.</span>
+        </div>
+      </div>
+      <DataTable
+        columns={["구분", "건수", "확인할 메뉴", "상태"]}
+        rows={[
+          ["고객", String(customerCount), "고객 목록", "권한 기준 적용"],
+          ["잠재 고객", String(leadCount), "상담·문의", "수임 전"],
+          ["Opportunity", String(opportunityCount), "Opportunity", "수임 전 기회"],
+          ["상담·문의", String(intakeCount), "상담·문의", "검토 흐름"],
+          ["법인·개인 고객", String(accountCount), "법인·개인 고객", "CRM 연결"],
+          ["담당자", String(contactCount), "담당자", "고객 연락 창구"]
+        ]}
+      />
+    </div>
+  );
+}
+
+function PlannedClientSection({ title, rows }) {
+  return (
+    <div className="clients-live-stack" data-client-planned-section={title}>
+      <div className="live-data-state live-data-empty">
+        <strong>{title} 메뉴를 준비 중입니다</strong>
+        현재 배포에서는 고객 레코드와 연결될 위치만 열어두었습니다.
+      </div>
+      <DataTable
+        columns={["항목", "연결 기준", "현재 상태"]}
+        rows={rows}
+      />
+    </div>
+  );
+}
+
 function ClientRecordPanel({ client, leadCount, opportunityCount, intakeCount, accountCount, contactCount, mergeProposalCount, executableMergeCount }) {
   return (
     <aside className="record-side-panel" data-client-record-workspace="right-panel">
       <div className="record-side-header">
-        <span className="eyebrow">레코드</span>
-        <strong>{client ? clientDisplayName(client, 0) : "Client"}</strong>
+        <span className="eyebrow">고객 정보</span>
+        <strong>{client ? clientDisplayName(client, 0) : "고객"}</strong>
       </div>
       <div className="property-grid tight">
         <Property label="상태" value={client ? clientStatus(client.status) : "대기"} />
@@ -188,23 +234,23 @@ function ClientRecordPanel({ client, leadCount, opportunityCount, intakeCount, a
       </div>
       <div className="record-meter-grid">
         <div>
-          <span>잠재 Client</span>
+          <span>잠재 고객</span>
           <strong>{leadCount}</strong>
         </div>
         <div>
-          <span>기회</span>
+          <span>Opportunity</span>
           <strong>{opportunityCount}</strong>
         </div>
         <div>
-          <span>접수</span>
+          <span>상담·문의</span>
           <strong>{intakeCount}</strong>
         </div>
         <div>
-          <span>계정</span>
+          <span>고객</span>
           <strong>{accountCount}</strong>
         </div>
         <div>
-          <span>연락처</span>
+          <span>담당자</span>
           <strong>{contactCount}</strong>
         </div>
       </div>
@@ -218,11 +264,11 @@ function ClientRecordPanel({ client, leadCount, opportunityCount, intakeCount, a
       </div>
       <div className="record-boundary-note" data-sf-b-w07-right-panel-enrichment-summary="route-backed">
         <ShieldCheck size={15} />
-        <span>데이터 보강 상태는 Client 데이터 관리에서 확인합니다.</span>
+        <span>데이터 보강 상태는 고객 데이터에서 확인합니다.</span>
       </div>
       <div className="record-boundary-note" data-sf-b-w08-right-panel-report-summary="route-backed">
         <ShieldCheck size={15} />
-        <span>보고서와 손익은 Client 보고서에서 확인합니다.</span>
+        <span>보고서와 손익은 고객 리포트에서 확인합니다.</span>
       </div>
     </aside>
   );
@@ -286,7 +332,7 @@ function RecordActionSummary({ fieldsResult, auditResult, updateResult, ownerRes
 }
 
 function ClientsTable({ result }) {
-  const state = renderLiveState(result, "의뢰인");
+  const state = renderLiveState(result, "고객");
   if (state) return state;
   const items = resultItems(result);
   const reviewCount = items.filter((item) => item.status === "review_required").length;
@@ -295,11 +341,11 @@ function ClientsTable({ result }) {
       {reviewCount > 0 && (
         <div className="client-review-strip">
           <ShieldCheck size={15} />
-          <span>검토가 필요한 Client가 있습니다.</span>
+          <span>검토가 필요한 고객이 있습니다.</span>
         </div>
       )}
       <DataTable
-        columns={["Client", "진행 상태", "대표 당사자", "구성원", "연결된 Matter"]}
+        columns={["고객", "진행 상태", "대표 당사자", "구성원", "연결된 Matter"]}
         rows={items.map((item, index) => [
           clientDisplayName(item, index),
           clientStatus(item.status),
@@ -325,22 +371,22 @@ function AccountsTable({
   onPatchAccount,
   onRecordActionFieldUpdate
 }) {
-  const state = renderLiveState(result, "계정");
+  const state = renderLiveState(result, "법인·개인 고객");
   if (state) return state;
   const accounts = resultItems(result);
   const editableAccount = accounts.find((item) => item.account_source === "crm-runtime.Account");
-  const relationshipState = renderLiveState(relationshipResult, "관련 연락처");
+  const relationshipState = renderLiveState(relationshipResult, "관련 담당자");
   return (
     <div className="clients-live-stack" data-crm-accounts-read="true">
       <div className="record-action-strip" data-crm-account-create-action="true">
         <div>
-          <strong>계정 생성</strong>
-          <span>새 Client 계정 레코드를 추가합니다.</span>
+          <strong>고객 정보 생성</strong>
+          <span>새 법인·개인 고객 정보를 추가합니다.</span>
           <ActionNotice
             pending={createPending}
             result={createResult}
-            pendingText="계정을 생성 중입니다."
-            successText="계정이 생성되었습니다."
+            pendingText="고객 정보를 생성 중입니다."
+            successText="고객 정보가 생성되었습니다."
           />
         </div>
         <button className="secondary-button" type="button" disabled={createPending} onClick={onCreateAccount}>
@@ -351,18 +397,18 @@ function AccountsTable({
       {createResult?.kind === "data" && createResult.item && (
         <div className="record-boundary-note" data-crm-account-create-result="true" data-sf-b-w01r-account-canonical-sync="true">
           <ShieldCheck size={15} />
-          <span>계정 생성과 기준 데이터 동기화가 기록되었습니다.</span>
+          <span>고객 정보 생성과 기준 데이터 동기화가 기록되었습니다.</span>
         </div>
       )}
       <div className="record-action-strip" data-crm-account-patch-action="true">
         <div>
-          <strong>계정 검토 표시</strong>
-          <span>{editableAccount ? businessLabel(editableAccount.display_name, "생성된 계정") : "편집 가능한 계정 없음"}</span>
+          <strong>고객 검토 표시</strong>
+          <span>{editableAccount ? businessLabel(editableAccount.display_name, "생성된 고객") : "편집 가능한 고객 정보 없음"}</span>
           <ActionNotice
             pending={patchPending}
             result={patchResult}
-            pendingText="계정을 업데이트 중입니다."
-            successText="계정이 업데이트되었습니다."
+            pendingText="고객 정보를 업데이트 중입니다."
+            successText="고객 정보가 업데이트되었습니다."
           />
         </div>
         <button className="secondary-button" type="button" disabled={!editableAccount || patchPending} onClick={onPatchAccount}>
@@ -373,18 +419,18 @@ function AccountsTable({
       {patchResult?.kind === "data" && patchResult.item && (
         <div className="record-boundary-note" data-crm-account-patch-result="true">
           <ShieldCheck size={15} />
-          <span>계정 상태가 반영되었습니다.</span>
+          <span>고객 상태가 반영되었습니다.</span>
         </div>
       )}
       <div className="record-action-strip" data-sf-b-w02-account-record-action="true">
         <div>
-          <strong>계정 필드 작업</strong>
-          <span>{editableAccount ? businessLabel(editableAccount.display_name, "생성된 계정") : "편집 가능한 계정 없음"}</span>
+          <strong>고객 필드 작업</strong>
+          <span>{editableAccount ? businessLabel(editableAccount.display_name, "생성된 고객") : "편집 가능한 고객 정보 없음"}</span>
           <ActionNotice
             pending={recordActionPending}
             result={recordActionResult}
-            pendingText="계정 필드를 업데이트 중입니다."
-            successText="계정 필드 작업이 기록되었습니다."
+            pendingText="고객 필드를 업데이트 중입니다."
+            successText="고객 필드 작업이 기록되었습니다."
           />
         </div>
         <button className="secondary-button" type="button" disabled={!editableAccount || recordActionPending} onClick={onRecordActionFieldUpdate}>
@@ -395,13 +441,13 @@ function AccountsTable({
       {recordActionResult?.kind === "data" && recordActionResult.fieldPatch && (
         <div className="record-boundary-note" data-sf-b-w02-account-record-action-result="true">
           <ShieldCheck size={15} />
-          <span>계정 필드 작업이 완료되었습니다.</span>
+          <span>고객 필드 작업이 완료되었습니다.</span>
         </div>
       )}
       <DataTable
-        columns={["계정", "상태", "기준 데이터", "Client 그룹", "식별자"]}
+        columns={["고객", "상태", "기준 데이터", "고객 그룹", "식별자"]}
         rows={accounts.map((item, index) => [
-          businessLabel(item.display_name, `계정 ${index + 1}`),
+          businessLabel(item.display_name, `고객 ${index + 1}`),
           clientStatus(item.status),
           canonicalSyncLabel(item.canonical_sync_state),
           linkedLabel(item.client_group_id),
@@ -410,15 +456,15 @@ function AccountsTable({
       />
       <div className="record-action-strip" data-crm-account-contacts-read="true">
         <div>
-          <strong>관련 연락처</strong>
+          <strong>관련 담당자</strong>
           <span>권한이 허용한 관계만 표시됩니다.</span>
         </div>
       </div>
       {relationshipState ?? (
         <DataTable
-          columns={["연락처", "관계", "상태", "연락값"]}
+          columns={["담당자", "관계", "상태", "연락값"]}
           rows={resultItems(relationshipResult).map((item, index) => [
-            businessLabel(item.contact_display_name, `연락처 ${index + 1}`),
+            businessLabel(item.contact_display_name, `담당자 ${index + 1}`),
             item.relationship_type ?? "관계",
             clientStatus(item.status),
             item.contact_point_value_included === false ? "보호됨" : "검토 필요"
@@ -449,7 +495,7 @@ function ContactsTable({
   onCreateMergeProposal,
   onExecuteMergeProposal
 }) {
-  const state = renderLiveState(result, "연락처");
+  const state = renderLiveState(result, "담당자");
   if (state) return state;
   const contacts = resultItems(result);
   const legalPeople = legalPeopleItems(legalPeopleResult);
@@ -458,13 +504,13 @@ function ContactsTable({
     <div className="clients-live-stack" data-crm-contacts-read="true">
       <div className="record-action-strip" data-crm-contact-create-action="true">
         <div>
-          <strong>연락처 생성</strong>
-          <span>새 담당자를 Client 레코드에 추가합니다.</span>
+          <strong>담당자 생성</strong>
+          <span>새 담당자를 고객 정보에 추가합니다.</span>
           <ActionNotice
             result={createResult}
             pending={createPending}
-            pendingText="연락처를 생성 중입니다."
-            successText="연락처가 생성되었습니다."
+            pendingText="담당자를 생성 중입니다."
+            successText="담당자가 생성되었습니다."
           />
         </div>
         <button className="secondary-button" type="button" disabled={createPending} onClick={onCreateContact}>
@@ -475,18 +521,18 @@ function ContactsTable({
       {createResult?.kind === "data" && createResult.item && (
         <div className="record-boundary-note" data-crm-contact-create-result="true" data-sf-b-w01r-contact-canonical-sync="true">
           <ShieldCheck size={15} />
-          <span>연락처와 기준 데이터 담당자 정보가 등록되었습니다.</span>
+          <span>담당자와 기준 데이터 담당자 정보가 등록되었습니다.</span>
         </div>
       )}
       <div className="record-action-strip" data-crm-contact-patch-action="true">
         <div>
-          <strong>연락처 검토 표시</strong>
-          <span>{editableContact ? businessLabel(editableContact.display_name, "생성된 연락처") : "편집 가능한 연락처 없음"}</span>
+          <strong>담당자 검토 표시</strong>
+          <span>{editableContact ? businessLabel(editableContact.display_name, "생성된 담당자") : "편집 가능한 담당자 없음"}</span>
           <ActionNotice
             result={patchResult}
             pending={patchPending}
-            pendingText="연락처를 업데이트 중입니다."
-            successText="연락처가 업데이트되었습니다."
+            pendingText="담당자를 업데이트 중입니다."
+            successText="담당자가 업데이트되었습니다."
           />
         </div>
         <button className="secondary-button" type="button" disabled={!editableContact || patchPending} onClick={onPatchContact}>
@@ -497,18 +543,18 @@ function ContactsTable({
       {patchResult?.kind === "data" && patchResult.item && (
         <div className="record-boundary-note" data-crm-contact-patch-result="true">
           <ShieldCheck size={15} />
-          <span>연락처 상태가 반영되었습니다.</span>
+          <span>담당자 상태가 반영되었습니다.</span>
         </div>
       )}
       <div className="record-action-strip" data-sf-b-w02-contact-record-action="true">
         <div>
-          <strong>연락처 필드 작업</strong>
-          <span>{editableContact ? businessLabel(editableContact.display_name, "생성된 연락처") : "편집 가능한 연락처 없음"}</span>
+          <strong>담당자 필드 작업</strong>
+          <span>{editableContact ? businessLabel(editableContact.display_name, "생성된 담당자") : "편집 가능한 담당자 없음"}</span>
           <ActionNotice
             pending={recordActionPending}
             result={recordActionResult}
-            pendingText="연락처 필드를 업데이트 중입니다."
-            successText="연락처 필드 작업이 기록되었습니다."
+            pendingText="담당자 필드를 업데이트 중입니다."
+            successText="담당자 필드 작업이 기록되었습니다."
           />
         </div>
         <button className="secondary-button" type="button" disabled={!editableContact || recordActionPending} onClick={onRecordActionFieldUpdate}>
@@ -519,13 +565,13 @@ function ContactsTable({
       {recordActionResult?.kind === "data" && recordActionResult.fieldPatch && (
         <div className="record-boundary-note" data-sf-b-w02-contact-record-action-result="true">
           <ShieldCheck size={15} />
-          <span>연락처 필드 작업이 완료되었습니다.</span>
+          <span>담당자 필드 작업이 완료되었습니다.</span>
         </div>
       )}
       <DataTable
-        columns={["연락처", "상태", "기준 데이터", "기본 연락처", "연락값"]}
+        columns={["담당자", "상태", "기준 데이터", "기본 연락 수단", "연락값"]}
         rows={contacts.map((item, index) => [
-          businessLabel(item.display_name, `연락처 ${index + 1}`),
+          businessLabel(item.display_name, `담당자 ${index + 1}`),
           clientStatus(item.status),
           canonicalSyncLabel(item.canonical_sync_state),
           item.primary_contact_type ?? "미지정",
@@ -535,11 +581,11 @@ function ContactsTable({
       <div className="record-action-strip legal-people-backlink-strip" data-lcx-ppl-client-backlink="true">
         <div>
           <strong>관련 인물 연결</strong>
-          <span>Client 연락처와 연결된 인물 기록을 함께 확인합니다.</span>
+          <span>고객 담당자와 연결된 인물 기록을 함께 확인합니다.</span>
           {legalPeopleResult === null && <em>인물 기록 조회 중</em>}
           {legalPeopleResult?.kind === "error" && <em>인물 기록 조회 실패</em>}
         </div>
-        <div className="legal-people-backlink-list" aria-label="Client 연결 인물">
+        <div className="legal-people-backlink-list" aria-label="고객 연결 인물">
           {legalPeople.slice(0, 4).map((person) => (
             <span key={person.person_id} className="legal-people-backlink-row">
               <Link2 size={13} />
@@ -643,13 +689,13 @@ function MergeReviewPanel({
 }
 
 function LeadsTable({ result }) {
-  const state = renderLiveState(result, "잠재 Client");
+  const state = renderLiveState(result, "잠재 고객");
   if (state) return state;
   return (
     <DataTable
-      columns={["잠재 Client", "상태", "당사자", "담당"]}
+      columns={["잠재 고객", "상태", "당사자", "담당"]}
       rows={resultItems(result).map((item, index) => [
-        businessLabel(item.display_name, `잠재 Client ${index + 1}`),
+        businessLabel(item.display_name, `잠재 고객 ${index + 1}`),
         pipelineStatus(item.status),
         linkedLabel(item.party_id),
         item.owner_user_id ? "배정됨" : "미지정"
@@ -672,18 +718,18 @@ function OpportunityActionPanel({ opportunity, pending, result, onHandoff }) {
   return (
     <div className="record-action-strip" data-crm-handoff-action="true">
       <div>
-          <strong>{refreshedOpportunity ? businessLabel(refreshedOpportunity.display_name, "기회 1") : "기회"}</strong>
-        <span>{linked ? "접수 연결됨" : "접수 전환 대기"}</span>
+          <strong>{refreshedOpportunity ? businessLabel(refreshedOpportunity.display_name, "Opportunity 1") : "Opportunity"}</strong>
+        <span>{linked ? "상담·문의 연결됨" : "상담·문의 전환 대기"}</span>
         <ActionNotice
           pending={pending}
           result={result}
-          pendingText="전환 중입니다."
-          successText="접수로 전환되었습니다."
+          pendingText="상담·문의로 전환 중입니다."
+          successText="상담·문의로 전환되었습니다."
         />
       </div>
       <button className="secondary-button" type="button" disabled={!opportunity || linked || pending} onClick={onHandoff}>
         <ArrowRight size={15} />
-        전환
+        상담·문의 전환
       </button>
     </div>
   );
@@ -696,7 +742,7 @@ function IntakeActionPanel({ intakeRequest, auditCount, conflictResult, clearanc
     <div className="record-action-grid" data-intake-clearance-action="true">
       <div className="record-action-strip">
         <div>
-          <strong>{intakeRequest ? "접수 1" : "접수"}</strong>
+          <strong>{intakeRequest ? "상담·문의 1" : "상담·문의"}</strong>
           <span>{auditCount > 0 ? "감사 기록 있음" : "검토 대기"}</span>
           <ActionNotice
             pending={conflictPending}
@@ -729,7 +775,7 @@ function IntakeActionPanel({ intakeRequest, auditCount, conflictResult, clearanc
 }
 
 function OpportunitiesTable({ result, pending, handoffResult, onHandoff }) {
-  const state = renderLiveState(result, "기회");
+  const state = renderLiveState(result, "Opportunity");
   if (state) return state;
   const opportunities = resultItems(result);
   return (
@@ -739,14 +785,14 @@ function OpportunitiesTable({ result, pending, handoffResult, onHandoff }) {
         <div className="record-boundary-note" data-crm-handoff-refresh-result="true">
           <ShieldCheck size={15} />
           <span>
-            기회 상태가 {pipelineStatus(handoffResult.opportunity.stage)} 단계로 갱신되고 접수 레코드와 연결되었습니다.
+            Opportunity 상태가 {pipelineStatus(handoffResult.opportunity.stage)} 단계로 갱신되고 상담·문의 레코드와 연결되었습니다.
           </span>
         </div>
       )}
       <DataTable
-        columns={["기회", "단계", "상태", "접수"]}
+        columns={["Opportunity", "단계", "상태", "상담·문의"]}
         rows={opportunities.map((item, index) => [
-          businessLabel(item.display_name, `기회 ${index + 1}`),
+          businessLabel(item.display_name, `Opportunity ${index + 1}`),
           pipelineStatus(item.stage),
           pipelineStatus(item.status),
           linkedLabel(item.intake_request_id)
@@ -757,7 +803,7 @@ function OpportunitiesTable({ result, pending, handoffResult, onHandoff }) {
 }
 
 function IntakeTable({ result, auditResult, conflictResult, clearanceResult, conflictPending, clearancePending, onConflictCheck, onClearance }) {
-  const state = renderLiveState(result, "접수");
+  const state = renderLiveState(result, "상담·문의");
   if (state) return state;
   const intakes = resultItems(result);
   const auditCount = resultItems(auditResult).length;
@@ -774,9 +820,9 @@ function IntakeTable({ result, auditResult, conflictResult, clearanceResult, con
         onClearance={onClearance}
       />
       <DataTable
-        columns={["접수", "상태", "기회", "범위"]}
+        columns={["상담·문의", "상태", "Opportunity", "범위"]}
         rows={intakes.map((item, index) => [
-          `접수 ${index + 1}`,
+          `상담·문의 ${index + 1}`,
           pipelineStatus(item.status),
           linkedLabel(item.opportunity_id),
           businessLabel(item.requested_scope_summary, "범위 미지정")
@@ -826,7 +872,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   const [accountRecordActionPending, setAccountRecordActionPending] = useState(false);
   const [contactRecordActionPending, setContactRecordActionPending] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
-  const currentSection = CLIENT_SECTIONS.has(activeSection) ? activeSection : "clients-list";
+  const currentSection = CLIENT_SECTIONS.has(activeSection) ? activeSection : "clients-home";
 
   useEffect(() => {
     let cancelled = false;
@@ -950,7 +996,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     setHandoffPending(true);
     const next = await handoffCrmOpportunityToIntake({
       opportunityId: selectedOpportunity.opportunity_id,
-      requestedScopeSummary: businessLabel(selectedOpportunity.display_name, "Client 접수 요청"),
+      requestedScopeSummary: businessLabel(selectedOpportunity.display_name, "고객 상담·문의 요청"),
       ctx: liveCtx
     });
     setHandoffResult(next);
@@ -982,7 +1028,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
 
   async function handleCreateAccount() {
     setAccountCreatePending(true);
-    const next = await createCrmAccount({ displayName: "신규 계정", ctx: liveCtx });
+    const next = await createCrmAccount({ displayName: "신규 고객", ctx: liveCtx });
     setAccountCreateResult(next);
     setAccountCreatePending(false);
     if (next.kind === "data" && next.item) {
@@ -1003,7 +1049,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   async function handleCreateContact() {
     const accountId = resultItems(accountsResult)[0]?.account_id ?? null;
     setContactCreatePending(true);
-    const next = await createCrmContact({ displayName: "신규 연락처", accountId, ctx: liveCtx });
+    const next = await createCrmContact({ displayName: "신규 담당자", accountId, ctx: liveCtx });
     setContactCreateResult(next);
     setContactCreatePending(false);
     if (next.kind === "data" && next.item) {
@@ -1159,7 +1205,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     const next = await updateRecordActionField({
       objectName: "client",
       recordId: selectedClientId,
-      fieldUpdates: { display_name: "Client 작업 검토" },
+      fieldUpdates: { display_name: "고객 작업 검토" },
       ctx: liveCtx
     });
     setClientRecordActionUpdateResult(next);
@@ -1202,7 +1248,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     const next = await updateRecordActionField({
       objectName: "account",
       recordId: account.account_id,
-      fieldUpdates: { display_name: "계정 작업 검토" },
+      fieldUpdates: { display_name: "고객 작업 검토" },
       ctx: liveCtx
     });
     setAccountRecordActionResult(next);
@@ -1230,7 +1276,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     const next = await updateRecordActionField({
       objectName: "contact",
       recordId: contact.contact_id,
-      fieldUpdates: { display_name: "연락처 작업 검토" },
+      fieldUpdates: { display_name: "담당자 작업 검토" },
       ctx: liveCtx
     });
     setContactRecordActionResult(next);
@@ -1259,7 +1305,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     >
       <PageHeader
         title={labels.clientsTitle}
-        subtitle="Client와 상담 접수, 영업 기회를 한 화면에서 확인합니다."
+        subtitle="고객, 담당자, Opportunity, 상담 이력을 한 화면에서 확인합니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />
@@ -1268,18 +1314,30 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
         }
       />
       <div className="clients-runtime-grid record-workspace" data-salesforce-client-workspace="list-detail-right-panel">
+        {currentSection === "clients-home" && (
+          <Panel id="clients-home-panel" className="record-list-panel" title="고객 홈" meta="요약">
+            <ClientsOverviewPanel
+              customerCount={clients.length}
+              leadCount={leadCount}
+              opportunityCount={opportunityCount}
+              intakeCount={intakeCount}
+              accountCount={accountCount}
+              contactCount={contactCount}
+            />
+          </Panel>
+        )}
         {currentSection === "clients-list" && (
-          <Panel id="clients-list" className="record-list-panel" title="Client 목록" meta="권한 기준 적용">
+          <Panel id="clients-list" className="record-list-panel" title="고객 목록" meta="권한 기준 적용">
             <ClientsTable result={clientsResult} />
           </Panel>
         )}
         {currentSection === "client-leads" && (
-          <Panel id="client-leads" className="record-list-panel" title="잠재 Client" meta="고객관리">
+          <Panel id="client-leads" className="record-list-panel" title="잠재 고객" meta="수임 전">
             <LeadsTable result={leadsResult} />
           </Panel>
         )}
         {currentSection === "client-opportunities" && (
-          <Panel id="client-opportunities" className="record-list-panel" title="기회" meta="고객관리">
+          <Panel id="client-opportunities" className="record-list-panel" title="Opportunity" meta="수임 전 기회">
             <OpportunitiesTable
               result={opportunitiesResult}
               pending={handoffPending}
@@ -1289,7 +1347,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
           </Panel>
         )}
         {currentSection === "client-intake" && (
-          <Panel id="client-intake" className="record-list-panel" title="접수" meta="상담 접수">
+          <Panel id="client-intake" className="record-list-panel" title="상담·문의" meta="수임 전 검토">
             <IntakeTable
               result={intakeResult}
               auditResult={intakeAuditResult}
@@ -1303,7 +1361,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
           </Panel>
         )}
         {currentSection === "client-accounts" && (
-          <Panel id="client-accounts" className="record-list-panel" title="계정" meta="고객관리">
+          <Panel id="client-accounts" className="record-list-panel" title="법인·개인 고객" meta="고객관리">
             <AccountsTable
               result={accountsResult}
               relationshipResult={accountContactsResult}
@@ -1320,7 +1378,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
           </Panel>
         )}
         {currentSection === "client-contacts" && (
-          <Panel id="client-contacts" className="record-list-panel" title="연락처" meta="고객관리">
+          <Panel id="client-contacts" className="record-list-panel" title="담당자" meta="고객 연락 창구">
             <ContactsTable
               result={contactsResult}
               legalPeopleResult={legalPeopleClientResult}
@@ -1343,6 +1401,66 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
             />
           </Panel>
         )}
+        {currentSection === "client-activities" && (
+          <Panel id="client-activities" className="record-list-panel" title="접촉 이력" meta="준비 중">
+            <PlannedClientSection
+              title="접촉 이력"
+              rows={[
+                ["미팅·통화 기록", "고객/담당자", "메뉴 위치 준비"],
+                ["이메일·메시지", "고객/Opportunity", "연동 전"],
+                ["후속 조치", "상담·문의", "업무 흐름 연결 예정"]
+              ]}
+            />
+          </Panel>
+        )}
+        {currentSection === "client-contracts" && (
+          <Panel id="client-contracts" className="record-list-panel" title="제안·계약" meta="준비 중">
+            <PlannedClientSection
+              title="제안·계약"
+              rows={[
+                ["제안서", "Opportunity", "문서 연결 예정"],
+                ["견적·보수 협의", "Opportunity", "청구 조건 연결 예정"],
+                ["위임·자문계약", "고객", "계약 상태 연결 예정"]
+              ]}
+            />
+          </Panel>
+        )}
+        {currentSection === "client-relationships" && (
+          <Panel id="client-relationships" className="record-list-panel" title="고객 관계" meta="준비 중">
+            <PlannedClientSection
+              title="고객 관계"
+              rows={[
+                ["관계 회사", "법인 고객", "기준 데이터 연결 예정"],
+                ["계열사", "고객 그룹", "검토 필요"],
+                ["관련 상대방", "이해상충 확인", "권한 기준 준비"]
+              ]}
+            />
+          </Panel>
+        )}
+        {currentSection === "client-conflict" && (
+          <Panel id="client-conflict" className="record-list-panel" title="이해상충 확인" meta="준비 중">
+            <PlannedClientSection
+              title="이해상충 확인"
+              rows={[
+                ["확인 요청", "상담·문의", "검토 흐름 연결 예정"],
+                ["관련 당사자", "고객/상대방", "기준 데이터 필요"],
+                ["확인 이력", "감사 기록", "읽기 전용 준비"]
+              ]}
+            />
+          </Panel>
+        )}
+        {currentSection === "client-billing" && (
+          <Panel id="client-billing" className="record-list-panel" title="청구·수금" meta="준비 중">
+            <PlannedClientSection
+              title="청구·수금"
+              rows={[
+                ["청구 내역", "고객", "Finance 연결 예정"],
+                ["미수금", "고객/사건·업무", "리포트 연결 예정"],
+                ["보수 조건", "제안·계약", "검토 필요"]
+              ]}
+            />
+          </Panel>
+        )}
         {currentSection === "client-data" && (
           <DataCloudEnrichmentPanel ctx={liveCtx} />
         )}
@@ -1351,6 +1469,18 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
         )}
         {currentSection === "client-import" && (
           <ImportDataMappingPanel ctx={liveCtx} surface="client" />
+        )}
+        {currentSection === "client-settings" && (
+          <Panel id="client-settings" className="record-list-panel" title="고객 설정" meta="준비 중">
+            <PlannedClientSection
+              title="고객 설정"
+              rows={[
+                ["고객 분류", "개인/법인/주요 고객", "설정 UI 준비"],
+                ["Opportunity 단계", "수임 전 업무", "단계 정의 예정"],
+                ["중복 고객 관리", "기준 데이터", "검토 큐 연결 예정"]
+              ]}
+            />
+          </Panel>
         )}
         <ClientRecordPanel
           client={selectedClient}

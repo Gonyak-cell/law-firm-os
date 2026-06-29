@@ -78,7 +78,7 @@ export function LoadingSurface({ labels, locale, theme, setLocale, setTheme, cla
 
 function ProductAxisNav({ view, setView }) {
   return (
-    <nav className="top-axis-nav" aria-label="Home Client Matter People Vault" data-product-axis-nav="top-header">
+    <nav className="top-axis-nav" aria-label="Home 고객 Matter People Vault" data-product-axis-nav="top-header">
       {navItems.map(({ id, label, icon: Icon }) => (
         <button
           key={id}
@@ -110,7 +110,7 @@ const notificationItems = [
   {
     id: "client-conflict-check",
     initials: "JL",
-    type: "Client",
+    type: "고객",
     title: "James Lee",
     client: "신규 자문 후보",
     status: "이해상충 확인",
@@ -278,9 +278,9 @@ const sidebarMeta = {
     ]
   },
   clients: {
-    title: "Client",
+    title: "고객",
     utilities: [
-      { label: "Client 설정", icon: Settings },
+      { label: "고객 설정", icon: Settings },
       { label: "태그 관리", icon: Tags }
     ]
   },
@@ -324,15 +324,39 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
     ],
     home: sidebarMeta.home.actions,
     clients: [
-      { label: "Client 목록", view: "clients", section: "clients-list", icon: ClipboardList, count: "12" },
-      { label: "잠재 고객", view: "clients", section: "client-leads", icon: UserPlus },
-      { label: "영업 기회", view: "clients", section: "client-opportunities", icon: ClipboardList },
-      { label: "상담 접수", view: "clients", section: "client-intake", icon: FileText, count: "4" },
-      { label: "계정", view: "clients", section: "client-accounts", icon: ShieldCheck },
-      { label: "연락처", view: "clients", section: "client-contacts", icon: UserPlus },
-      { label: "데이터 관리", view: "clients", section: "client-data", icon: Settings },
-      { label: "보고서", view: "clients", section: "client-reports", icon: FileText },
-      { label: "가져오기", view: "clients", section: "client-import", icon: Plus }
+      {
+        label: "고객 관리",
+        icon: ClipboardList,
+        children: [
+          { label: "고객 홈", view: "clients", section: "clients-home", icon: LayoutDashboard, active: true },
+          { label: "고객 목록", view: "clients", section: "clients-list", icon: ClipboardList, count: "12" },
+          { label: "법인·개인 고객", view: "clients", section: "client-accounts", icon: ShieldCheck },
+          { label: "담당자", view: "clients", section: "client-contacts", icon: UserPlus }
+        ]
+      },
+      {
+        label: "수임 전 업무",
+        icon: FileText,
+        children: [
+          { label: "Opportunity", view: "clients", section: "client-opportunities", icon: ClipboardList },
+          { label: "상담·문의", view: "clients", section: "client-intake", icon: FileText, count: "4" },
+          { label: "접촉 이력", view: "clients", section: "client-activities", icon: ClipboardList },
+          { label: "제안·계약", view: "clients", section: "client-contracts", icon: FileText },
+          { label: "고객 관계", view: "clients", section: "client-relationships", icon: UserPlus },
+          { label: "이해상충 확인", view: "clients", section: "client-conflict", icon: ShieldCheck }
+        ]
+      },
+      {
+        label: "운영",
+        icon: Settings,
+        children: [
+          { label: "청구·수금", view: "clients", section: "client-billing", icon: FileText },
+          { label: "고객 리포트", view: "clients", section: "client-reports", icon: FileText },
+          { label: "고객 데이터", view: "clients", section: "client-data", icon: Settings },
+          { label: "고객 데이터 가져오기", view: "clients", section: "client-import", icon: Plus },
+          { label: "고객 설정", view: "clients", section: "client-settings", icon: Settings }
+        ]
+      }
     ],
     matters: [
       {

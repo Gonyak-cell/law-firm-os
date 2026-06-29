@@ -1,7 +1,7 @@
 export const backendCapabilities = Object.freeze([
   {
     id: "client",
-    label: "Client",
+    label: "고객",
     route: "clients",
     owner: "client",
     readEndpoints: [
@@ -32,7 +32,7 @@ export const backendCapabilities = Object.freeze([
       "POST /api/portal/projections"
     ],
     auditEndpoints: ["GET /api/intake/audit", "GET /api/portal/audit"],
-    boundary: "Client 정보와 연결된 Matter를 권한 범위 안에서 확인합니다."
+    boundary: "고객 정보와 연결된 Matter를 권한 범위 안에서 확인합니다."
   },
   {
     id: "matter",

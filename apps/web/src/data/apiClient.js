@@ -1014,7 +1014,7 @@ export function createDataCloudConsentRecord({ ctx = "allow" } = {}) {
     payload: {
       idempotency_key: `ui:data-cloud:consent:${stamp}`,
       consent_record_id: `consent_ui_${stamp}`,
-      subject_label: "Client 보강 대상",
+      subject_label: "고객 보강 대상",
       data_categories: ["firmographic", "relationship"],
       lawful_basis: "owner_review_required",
       retention_policy_ref: "retention_owner_review"
@@ -1031,7 +1031,7 @@ export function createEnrichmentJob({ jobId = `data_cloud_job_ui_${Date.now()}`,
       job_id: jobId,
       provider_id: "provider_salesforce_data_cloud",
       target_object: "Client",
-      target_refs: [{ object_type: "Client", record_ref: "client-ui-record", label: "Client" }],
+      target_refs: [{ object_type: "Client", record_ref: "client-ui-record", label: "고객" }],
       data_categories: ["firmographic", "relationship"]
     }
   });
@@ -1085,7 +1085,7 @@ export function activateDataCloudSegment({ ctx = "allow" } = {}) {
     payload: {
       idempotency_key: `ui:data-cloud:segment:${stamp}`,
       activation_id: `segment_activation_ui_${stamp}`,
-      segment_label: "Client 검토 세그먼트",
+      segment_label: "고객 검토 세그먼트",
       destination_label: "외부 연동 대상"
     }
   });
@@ -2602,7 +2602,7 @@ export function fetchIntakeAudit(options = {}) {
 
 export function handoffCrmOpportunityToIntake({
   opportunityId,
-  requestedScopeSummary = "Client intake request",
+  requestedScopeSummary = "고객 상담·문의 요청",
   ctx = "allow"
 } = {}) {
   const requestId = uiRuntimeId("intake_ui");
@@ -3036,7 +3036,7 @@ export function refreshMatterProfitability({ matterId, wipItems = [], invoices =
 
 export function refreshClientProfitability({
   clientGroupId = "client_group_ui",
-  clientGroupLabel = "Client 그룹",
+  clientGroupLabel = "고객 그룹",
   ctx = "allow"
 } = {}) {
   return postAnalyticsRuntime({
@@ -3158,7 +3158,7 @@ export function createReportDefinition({ reportId = `report_ui_${Date.now()}`, c
     payload: {
       idempotency_key: `ui-report:create:${reportId}`,
       report_id: reportId,
-      name: "Client 손익 보고서",
+      name: "고객 손익 보고서",
       object_scope: "Client",
       column_refs: ["client_group", "matter_count", "profitability_amount"],
       filter_manifest: [{ field: "period", operator: "current", value_label: "현재" }],
@@ -3175,7 +3175,7 @@ export function patchReportDefinition({ reportId, ctx = "allow" } = {}) {
     ctx,
     payload: {
       idempotency_key: `ui-report:patch:${reportId}`,
-      name: "Client 손익 검토 보고서",
+      name: "고객 손익 검토 보고서",
       chart_manifest: { type: "line", metric: "profitability_amount" }
     }
   });

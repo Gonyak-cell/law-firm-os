@@ -83,7 +83,7 @@ for (const removedRoute of ["portal", "readiness", "ops", "intake", "finance", "
   assert.doesNotMatch(navSource, new RegExp(`id: "${removedRoute}"`));
   assert.doesNotMatch(appSource, new RegExp(`view === "${removedRoute}"`));
 }
-assert.match(shellSource, /Client/);
+assert.match(shellSource, /고객/);
 assert.match(shellSource, /Matter/);
 assert.match(shellSource, /구성원/);
 assert.match(shellSource, /Vault/);

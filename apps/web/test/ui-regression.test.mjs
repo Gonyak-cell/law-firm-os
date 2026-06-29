@@ -52,7 +52,7 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
     assert.match(appSource, new RegExp(`view === "${view}"`));
   }
   assert.match(navSource, /id: "people", label: "People"/);
-  assert.match(shellSource, /aria-label="Home Client Matter People Vault"/);
+  assert.match(shellSource, /aria-label="Home 고객 Matter People Vault"/);
   assert.match(appSource, /view === "home"/);
   assert.match(appSource, /view === "auth"/);
   for (const view of removedViews) {
@@ -66,6 +66,9 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
   assert.doesNotMatch(appSource, /scrollIntoView/);
   assert.match(shellSource, /activeSection/);
   assert.match(shellSource, /client-import/);
+  for (const label of ["고객 홈", "고객 목록", "담당자", "Opportunity", "상담·문의", "접촉 이력", "제안·계약", "고객 관계", "이해상충 확인", "청구·수금", "고객 리포트", "고객 설정"]) {
+    assert.match(shellSource, new RegExp(label));
+  }
   assert.match(shellSource, /matter-import/);
   assert.match(shellSource, /peopleNavigationGroups/);
   assert.match(shellSource, /peopleSidebarGroups/);
@@ -313,6 +316,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   const matterVaultSource = await readWebFile("src/components/MatterVaultPanel.jsx");
   const importPanelSource = await readWebFile("src/components/ImportDataMappingPanel.jsx");
   const dataCloudSource = await readWebFile("src/components/DataCloudEnrichmentPanel.jsx");
+  const reportBuilderSource = await readWebFile("src/components/ReportBuilderPanel.jsx");
   const permissionAdminSource = await readWebFile("src/people/admin/PermissionAdminPanel.jsx");
   const workforceDirectorySource = await readWebFile("src/people/employees/PeopleWorkforceDirectory.tsx");
   const openingSource = await readWebFile("src/components/MatterOpeningWizard.jsx");
@@ -325,12 +329,18 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   const stylesSource = await readWebFile("src/styles.css");
 
   for (const section of [
-    "client-leads",
+    "clients-home",
     "client-opportunities",
     "client-intake",
     "client-accounts",
     "client-contacts",
+    "client-activities",
+    "client-contracts",
+    "client-relationships",
+    "client-conflict",
+    "client-billing",
     "client-data",
+    "client-settings",
     "matter-command",
     "matter-vault",
     "matter-timeline",
@@ -393,6 +403,8 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(dataCloudSource, /data-unified-profile="route-backed"/);
   assert.match(dataCloudSource, /data-segment-activation="provider-blocked"/);
   assert.match(dataCloudSource, /data-sf-b-w07-audit="true"/);
+  assert.match(dataCloudSource, /meta="고객"/);
+  assert.doesNotMatch(dataCloudSource, /meta="Client"/);
   assert.match(apiClientSource, /fetchDataCloudProviders/);
   assert.match(apiClientSource, /createDataCloudProvider/);
   assert.match(apiClientSource, /createDataCloudConsentRecord/);
@@ -402,6 +414,13 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /runIdentityResolution/);
   assert.match(apiClientSource, /fetchUnifiedCustomerProfile/);
   assert.match(apiClientSource, /activateDataCloudSegment/);
+  assert.match(apiClientSource, /subject_label: "고객 보강 대상"/);
+  assert.match(apiClientSource, /segment_label: "고객 검토 세그먼트"/);
+  assert.match(apiClientSource, /name: "고객 손익 보고서"/);
+  assert.match(apiClientSource, /name: "고객 손익 검토 보고서"/);
+  assert.match(reportBuilderSource, /title="고객 손익"/);
+  assert.match(reportBuilderSource, /columns=\{\["고객", "Matter", "손익", "원본"\]\}/);
+  assert.doesNotMatch(reportBuilderSource, /title="Client 손익"|columns=\{\["Client", "Matter", "손익", "원본"\]\}|meta="Client"/);
   assert.match(clientsSource, /data-sf-b-w02-owner-blocked-result="true"/);
   assert.match(clientsSource, /owner_blocked/);
   assert.match(clientsSource, /data-sf-b-w02-account-record-action="true"/);
@@ -422,6 +441,13 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /!clientGuardedState && selectedClientId/);
   assert.match(clientsSource, /ImportDataMappingPanel/);
   assert.match(clientsSource, /client-import/);
+  assert.match(clientsSource, /data-client-overview-panel="true"/);
+  assert.match(clientsSource, /data-client-planned-section/);
+  assert.match(clientsSource, /고객, 담당자, Opportunity, 상담 이력/);
+  assert.match(clientsSource, /renderLiveState\(result, "고객"\)/);
+  assert.match(clientsSource, /권한이 있는 \{noun\}만 표시합니다/);
+  assert.match(clientsSource, /검토가 끝나면 \{noun\} 정보를 확인할 수 있습니다/);
+  assert.doesNotMatch(clientsSource, /의뢰인/);
   assert.match(clientsSource, /data-intake-clearance-action="true"/);
   assert.match(clientsSource, /live-data-unavailable/);
   assert.match(clientsSource, /live-data-denied/);

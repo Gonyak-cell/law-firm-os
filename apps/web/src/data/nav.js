@@ -8,7 +8,7 @@ import {
 
 export const navItems = [
   { id: "home", label: "Home", icon: Home },
-  { id: "clients", label: "Client", icon: Building2 },
+  { id: "clients", label: "고객", icon: Building2 },
   { id: "matters", label: "Matter", icon: BriefcaseBusiness },
   { id: "people", label: "People", icon: UserRoundCheck },
   { id: "vault", label: "Vault", icon: FolderOpen }

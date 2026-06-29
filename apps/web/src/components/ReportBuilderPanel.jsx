@@ -28,21 +28,21 @@ function stateLabel(value) {
 
 function reportNameLabel(value) {
   const text = String(value ?? "").trim();
-  if (text === "Client profitability overview") return "Client 손익 개요";
-  if (text === "Client profitability report") return "Client 손익 보고서";
-  if (text === "Client profitability route report") return "Client 손익 경로 보고서";
-  if (text === "Client profitability reviewed report") return "Client 손익 검토 보고서";
+  if (text === "Client profitability overview") return "고객 손익 개요";
+  if (text === "Client profitability report") return "고객 손익 보고서";
+  if (text === "Client profitability route report") return "고객 손익 경로 보고서";
+  if (text === "Client profitability reviewed report") return "고객 손익 검토 보고서";
   return text || "보고서";
 }
 
 function scopeLabel(value) {
-  if (value === "Client") return "Client";
+  if (value === "Client") return "고객";
   if (value === "Matter") return "Matter";
   return value ?? "범위";
 }
 
 function reportColumnLabel(value) {
-  if (value === "client_group") return "Client 그룹";
+  if (value === "client_group") return "고객 그룹";
   if (value === "matter_count") return "Matter 수";
   if (value === "profitability_amount") return "손익";
   if (value === "realization_band") return "실현 구간";
@@ -117,7 +117,7 @@ export function ReportBuilderPanel({ ctx = "allow", selectedClient }) {
   const queryRows = Array.isArray(queryRun?.item?.table_rows) ? queryRun.item.table_rows : [];
   const chartRows = Array.isArray(queryRun?.item?.chart_rows) ? queryRun.item.chart_rows : [];
   const clientGroupId = selectedClient?.client_group_id ?? "client_group_ui";
-  const clientLabel = selectedClient?.display_name ?? "Client 그룹";
+  const clientLabel = selectedClient?.display_name ?? "고객 그룹";
 
   async function runAction(key, callback) {
     setBusy(key);
@@ -184,7 +184,7 @@ export function ReportBuilderPanel({ ctx = "allow", selectedClient }) {
 
   return (
     <div className="clients-live-stack span-2" data-report-builder="route-backed">
-      <Panel id="client-report-builder" className="record-list-panel span-2" title="보고서" meta="Client">
+      <Panel id="client-report-builder" className="record-list-panel span-2" title="보고서" meta="고객">
         <div className="record-action-grid">
           <div className="record-action-strip" data-sf-b-w08-report-list="true">
             <div>
@@ -231,11 +231,11 @@ export function ReportBuilderPanel({ ctx = "allow", selectedClient }) {
         )}
       </Panel>
 
-      <Panel id="client-profitability" className="record-list-panel" title="Client 손익" meta="집계">
+      <Panel id="client-profitability" className="record-list-panel" title="고객 손익" meta="집계">
         <div className="record-action-strip" data-client-profitability="route-backed">
           <div>
             <strong>수익성 새로고침</strong>
-            <span>기존 Matter 집계에서만 Client 집계를 만듭니다.</span>
+            <span>기존 Matter 집계에서만 고객 집계를 만듭니다.</span>
           </div>
           <button className="secondary-button" type="button" disabled={busy === "clientProfitability"} onClick={handleRefreshProfitability} data-sf-b-w08-client-profitability-refresh-action="true">
             <ShieldCheck size={15} />
@@ -246,11 +246,11 @@ export function ReportBuilderPanel({ ctx = "allow", selectedClient }) {
           <strong>집계 상태</strong>
           {actionState(actions.clientProfitability)}
         </div>
-        {loadingState(profitability, "Client 손익") ?? (
+        {loadingState(profitability, "고객 손익") ?? (
           <DataTable
-            columns={["Client", "Matter", "손익", "원본"]}
+            columns={["고객", "Matter", "손익", "원본"]}
             rows={profitabilityRows.map((item, index) => [
-              item.client_group_label ?? `Client ${index + 1}`,
+              item.client_group_label ?? `고객 ${index + 1}`,
               String(item.matter_count ?? 0),
               String(item.profitability_amount ?? 0),
               item.matter_level_rows_included || item.row_level_billing_payload_included ? "확인 필요" : "보호됨"

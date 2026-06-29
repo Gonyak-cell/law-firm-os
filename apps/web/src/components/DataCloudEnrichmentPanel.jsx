@@ -170,7 +170,7 @@ export function DataCloudEnrichmentPanel({ ctx = "allow" }) {
 
   return (
     <div className="clients-live-stack span-2" data-data-cloud-enrichment="route-backed">
-      <Panel id="client-data-cloud" className="record-list-panel span-2" title="데이터 보강" meta="Client">
+      <Panel id="client-data-cloud" className="record-list-panel span-2" title="데이터 보강" meta="고객">
         <div className="record-action-grid">
           <div className="record-action-strip" data-enrichment-provider-admin="provider-blocked" data-sf-b-w07-provider-list="true">
             <div>
