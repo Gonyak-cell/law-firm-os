@@ -8,12 +8,12 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 
 | Field | Value |
 | --- | --- |
-| Release ID | `matter-desktop-v0.1.0-current-ui-20260629` |
-| Manifest | `apps/desktop/dist/release/matter-desktop-v0.1.0-current-ui-20260629/release-manifest.json` |
-| Checksums | `apps/desktop/dist/release/matter-desktop-v0.1.0-current-ui-20260629/checksums.sha256` |
+| Release ID | `matter-desktop-v0.1.0-lcx-vltui-20260630` |
+| Manifest | `apps/desktop/dist/release/matter-desktop-v0.1.0-lcx-vltui-20260630/release-manifest.json` |
+| Checksums | `apps/desktop/dist/release/matter-desktop-v0.1.0-lcx-vltui-20260630/checksums.sha256` |
 | Channel | `formal-candidate` |
 | App ID | `com.amic.matter.desktop` |
-| GitHub tag candidate | `matter-desktop-v0.1.0-current-ui-20260629` |
+| GitHub tag candidate | `matter-desktop-v0.1.0-lcx-vltui-20260630` |
 | Custom domain requirement | false |
 
 ## Release Artifacts
@@ -22,9 +22,9 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 | --- | --- |
 | macOS app bundle | `apps/desktop/dist/mac/matter.app` |
 | macOS ZIP archive | `apps/desktop/dist/mac/matter-0.1.0-macos.zip` |
-| macOS ZIP SHA-256 | `257f4f6cc2db3191001b440572518edd010cc69f9906e2222d693128485b6670` |
+| macOS ZIP SHA-256 | `f5661dabb9b11212fede3f9edf3bcc4330c8820ffec8225208ef42437a67b6d7` |
 | macOS DMG image | `apps/desktop/dist/mac/matter-0.1.0-macos.dmg` |
-| macOS DMG SHA-256 | `7e49cc1777c483f1425e2d3a9eb88a51fcd1cbcaab88a4a242bd725641c0c44a` |
+| macOS DMG SHA-256 | `cfec77354111419cb01a912fb32b45dd599321d13bd4c710ba5be481773ce8b5` |
 | Windows formal manifest | `apps/desktop/dist/win/matter-0.1.0-win-installer-manifest.json` |
 | Windows formal manifest SHA-256 | `d2cf5fe871580df3943d7048671cef32747fd6bfd2179b606122c903c1be5d93` |
 

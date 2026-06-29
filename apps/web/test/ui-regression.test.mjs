@@ -145,8 +145,10 @@ test("desktop post-login route docks logo before five-axis contextual shell", as
   assert.match(desktopSource, /function desktopSessionEnvelope/);
   assert.match(desktopSource, /actor_ref: actorRef/);
   assert.match(desktopSource, /tenant_refs: \{[\s\S]*client: "tenant_rp04_synthetic"[\s\S]*matter: "tenant_rp05_synthetic"[\s\S]*vault: "tenant_amic_matter_vault"/);
-  assert.match(desktopSource, /window\.sessionStorage\.setItem\(LAWOS_SESSION_ENVELOPE_STORAGE_KEY/);
-  assert.match(desktopSource, /clearSessionEnvelope/);
+  assert.match(desktopSource, /desktop_session_ref/);
+  assert.match(desktopSource, /desktop_actor_ref/);
+  assert.match(desktopSource, /desktop_tenant_ref/);
+  assert.doesNotMatch(desktopSource, /localStorage|sessionStorage|indexedDB/);
   assert.doesNotMatch(desktopSource, /access_token|refresh_token|id_token|raw_cookie|Bearer/);
   assert.match(desktopSource, /data-launch-logo-flow/);
   assert.match(desktopSource, /\.auth-stage[\s\S]*place-items:\s*center/);

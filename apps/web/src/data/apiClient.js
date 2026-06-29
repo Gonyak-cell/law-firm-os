@@ -215,6 +215,42 @@ function readStoredSessionEnvelope(source) {
   }
 }
 
+function readUrlSessionEnvelope(source) {
+  try {
+    const location = source?.location ?? globalThis.location;
+    const search = typeof location?.search === "string" ? location.search : "";
+    const params = new URLSearchParams(search);
+    if (params.get("desktop") !== "1") return null;
+
+    const actorRef = safeSessionRef(params.get("desktop_actor_ref"));
+    const tenantRef = safeSessionRef(params.get("desktop_tenant_ref"));
+    if (!actorRef || !tenantRef) return null;
+
+    const sessionRef = safeSessionRef(params.get("desktop_session_ref")) ?? `desktop:${actorRef}:0`;
+    const sourceRef = safeSessionRef(params.get("desktop_source_ref")) ?? "desktop_offline_login";
+    return {
+      schema_version: LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION,
+      state: "signed_in",
+      session_ref: sessionRef,
+      source: sourceRef,
+      actor_ref: actorRef,
+      tenant_refs: {
+        default: tenantRef,
+        client: TENANT_ID,
+        matter: MATTER_TENANT_ID,
+        vault: VAULT_TENANT_ID,
+        crm: CRM_INTAKE_TENANT_ID
+      },
+      role_ids: params.getAll("desktop_role_ref"),
+      scopes: params.getAll("desktop_scope_ref"),
+      review_state: SAFE_REVIEW_STATES.has(params.get("desktop_review_state")) ? params.get("desktop_review_state") : "allow",
+      expires_at: params.get("desktop_expires_at")
+    };
+  } catch {
+    return null;
+  }
+}
+
 function hasForbiddenSessionKey(value) {
   if (!value || typeof value !== "object") return false;
   if (Array.isArray(value)) return value.some((item) => hasForbiddenSessionKey(item));
@@ -225,7 +261,7 @@ function hasForbiddenSessionKey(value) {
 }
 
 export function readLawosSessionEnvelope(source = globalThis) {
-  const raw = source?.__LAWOS_SESSION_CONTEXT__ ?? readStoredSessionEnvelope(source);
+  const raw = source?.__LAWOS_SESSION_CONTEXT__ ?? readUrlSessionEnvelope(source) ?? readStoredSessionEnvelope(source);
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   if (hasForbiddenSessionKey(raw)) return null;
 

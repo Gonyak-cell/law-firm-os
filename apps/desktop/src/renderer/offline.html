@@ -953,11 +953,23 @@
       return "기능 확인 결과를 확인했습니다.";
     }
 
-    function productUiTarget() {
-      return new URL("./web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1", window.location.href).toString();
+    const PRODUCT_UI_BASE_TARGET = "./web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1";
+    const LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos.session.envelope";
+
+    function productUiTarget(session) {
+      const envelope = desktopSessionEnvelope(session);
+      const target = new URL(PRODUCT_UI_BASE_TARGET, window.location.href);
+      if (!envelope) return target.toString();
+      target.searchParams.set("desktop_session_ref", envelope.session_ref);
+      target.searchParams.set("desktop_source_ref", envelope.source);
+      target.searchParams.set("desktop_actor_ref", envelope.actor_ref);
+      target.searchParams.set("desktop_tenant_ref", envelope.tenant_refs.default);
+      target.searchParams.set("desktop_expires_at", envelope.expires_at);
+      for (const roleRef of envelope.role_ids) target.searchParams.append("desktop_role_ref", roleRef);
+      for (const scopeRef of envelope.scopes) target.searchParams.append("desktop_scope_ref", scopeRef);
+      return target.toString();
     }
 
-    const LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos.session.envelope";
     const LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION = "law-firm-os.desktop-web-session-envelope.v0.1";
     const SAFE_HANDOFF_REF_PATTERN = /^[A-Za-z0-9._:-]{1,160}$/;
     const FORBIDDEN_HANDOFF_TEXT = /(password|reset|bearer|cookie|secret|credential|authorization|token|sk-)/i;
@@ -999,32 +1011,13 @@
       };
     }
 
-    function writeSessionEnvelope(session) {
-      const envelope = desktopSessionEnvelope(session);
-      if (!envelope) return false;
-      try {
-        window.sessionStorage.setItem(LAWOS_SESSION_ENVELOPE_STORAGE_KEY, JSON.stringify(envelope));
-        return true;
-      } catch {
-        return false;
-      }
-    }
-
-    function clearSessionEnvelope() {
-      try {
-        window.sessionStorage.removeItem(LAWOS_SESSION_ENVELOPE_STORAGE_KEY);
-      } catch {
-        // Session handoff storage is best-effort and contains reference-only data.
-      }
-    }
-
     function handoffToProductUi(session) {
       if (!(session?.state === "signed_in" || session?.email)) return;
-      writeSessionEnvelope(session);
       document.body.dataset.productHandoff = "apps-web";
       nodes.loginResult.textContent = `${session.email} 계정으로 로그인했습니다. matter 작업공간을 여는 중입니다.`;
+      const target = productUiTarget(session);
       window.setTimeout(() => {
-        window.location.assign(productUiTarget());
+        window.location.assign(target);
       }, 350);
     }
 
@@ -1054,7 +1047,6 @@
 
     async function logout() {
       const session = await api.logout();
-      clearSessionEnvelope();
       renderSession(session);
       renderFeatures([]);
       nodes.loginResult.textContent = "로그아웃되었습니다.";
