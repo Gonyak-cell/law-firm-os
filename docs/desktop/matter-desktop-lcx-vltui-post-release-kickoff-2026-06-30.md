@@ -18,7 +18,7 @@ Local date: 2026-06-30
 
 | Workstream | Tracker | Started State | Completion Gate |
 | --- | --- | --- | --- |
-| Owner approval evidence | https://github.com/Gonyak-cell/law-firm-os/issues/146 | Open | Explicit owner approval or rejection receipt recorded. |
+| Owner approval evidence | https://github.com/Gonyak-cell/law-firm-os/issues/146 | Open, intake validator ready | Explicit owner approval or rejection receipt recorded through `docs/desktop/matter-desktop-owner-approval-intake.json` and `npm run matter-desktop:owner-approval:intake:validate`. |
 | Production go-live receipt | https://github.com/Gonyak-cell/law-firm-os/issues/144 | Open, blocked by owner approval | Go-live receipt committed after owner approval and final decision validation. |
 | Windows Authenticode signing | https://github.com/Gonyak-cell/law-firm-os/issues/145 | Open, blocked by signing provider/certificate and Windows host verification | Sanitized Authenticode receipt plus Windows native install smoke. |
 
@@ -55,3 +55,11 @@ Local date: 2026-06-30
 1. Owner approval evidence must name the reviewed artifact, release URL, decision maker, decision, and timestamp.
 2. Production go-live receipt must cite the owner approval receipt and final go-live decision validator output before any true claim.
 3. Windows Authenticode receipt must include certificate/provider identity, sanitized signing command evidence, verification output, and Windows native install smoke output.
+
+## Owner Approval Intake
+
+- Intake template: `docs/desktop/matter-desktop-owner-approval-intake.json`
+- Reader copy: `docs/desktop/matter-desktop-owner-approval-intake.md`
+- Validator: `npm run matter-desktop:owner-approval:intake:validate`
+- Validation receipt: `docs/desktop/matter-desktop-owner-approval-intake-validation.json`
+- Pending intake state remains valid but does not count as owner approval.
