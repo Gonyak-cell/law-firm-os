@@ -7,7 +7,8 @@ import path from "node:path";
 const ROOT = process.cwd();
 const desktopPackage = JSON.parse(await readFile(path.join(ROOT, "apps/desktop/package.json"), "utf8"));
 const version = desktopPackage.version;
-const releaseId = `matter-desktop-v${version}`;
+const defaultReleaseId = `matter-desktop-v${version}`;
+const releaseId = process.env.MATTER_DESKTOP_GITHUB_RELEASE_TAG ?? defaultReleaseId;
 const releaseRoot = path.join(ROOT, "apps/desktop/dist/release", releaseId);
 const manifestPath = path.join(releaseRoot, "release-manifest.json");
 const checksumPath = path.join(releaseRoot, "checksums.sha256");
@@ -118,7 +119,7 @@ const manifest = {
   app_id: "com.amic.matter.desktop",
   channel: "formal-candidate",
   custom_domain_required: false,
-  github_release_tag: `matter-desktop-v${version}`,
+  github_release_tag: releaseId,
   public_release_claim: false,
   production_go_live_claim: false,
   owner_approval_claim: false,
@@ -157,7 +158,7 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 | Checksums | \`apps/desktop/dist/release/${releaseId}/checksums.sha256\` |
 | Channel | \`formal-candidate\` |
 | App ID | \`com.amic.matter.desktop\` |
-| GitHub tag candidate | \`matter-desktop-v${version}\` |
+| GitHub tag candidate | \`${releaseId}\` |
 | Custom domain requirement | false |
 
 ## Release Artifacts

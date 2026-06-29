@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-screen-qa.v0.1",
-  "generated_at": "2026-06-28T07:51:31.753Z",
+  "generated_at": "2026-06-29T02:29:21.976Z",
   "status": "passed",
   "command": "npm run matter-desktop:screen-qa",
   "qa_mode": "packaged_electron_app_screen_with_aws_temporary_runtime",
@@ -33,21 +33,19 @@
       "password_reset_confirm": "passed",
       "password_login": "passed",
       "product_handoff": {
-        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
-        "title": "Client Matter People Vault",
+        "url": "file:///private/tmp/law-firm-os-desktop-release/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
+        "title": "오늘의 운영 대기열",
         "capability_cards": 4,
         "capability_labels": [
           "Client",
           "Matter",
-          "People",
-          "Vault"
+          "Vault",
+          "구성원"
         ],
-        "production_go_live_false_visible": true,
-        "public_release_false_visible": true,
-        "owner_approval_false_visible": true,
+        "release_boundary_ui_has_no_positive_claim": true,
         "no_dummy_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 435,
+        "body_character_count": 768,
         "logo_flow": {
           "observed": true,
           "image_alt": "matter",
@@ -109,21 +107,19 @@
       "password_reset_confirm": "passed",
       "password_login": "passed",
       "product_handoff": {
-        "url": "file:///Users/jws/Documents/Codex/Law%20Firm%20OS/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
-        "title": "Client Matter People Vault",
+        "url": "file:///private/tmp/law-firm-os-desktop-release/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1",
+        "title": "오늘의 운영 대기열",
         "capability_cards": 4,
         "capability_labels": [
           "Client",
           "Matter",
-          "People",
-          "Vault"
+          "Vault",
+          "구성원"
         ],
-        "production_go_live_false_visible": true,
-        "public_release_false_visible": true,
-        "owner_approval_false_visible": true,
+        "release_boundary_ui_has_no_positive_claim": true,
         "no_dummy_visible": true,
         "horizontal_overflow": false,
-        "body_character_count": 435,
+        "body_character_count": 768,
         "logo_flow": {
           "observed": true,
           "image_alt": "matter",
@@ -194,7 +190,7 @@
     "token_or_password_visible_in_final_dom": false,
     "reset_token_input_cleared_before_screenshot": true,
     "generated_password_visible_in_final_dom": false,
-    "final_dom_character_count": 435
+    "final_dom_character_count": 768
   },
   "release_claims": {
     "production_go_live": false,
