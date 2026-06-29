@@ -13,7 +13,7 @@ function formatOpsLabel(value, fallback = "항목") {
   if (normalized.includes("access")) return "접근";
   if (normalized.includes("security")) return "보안";
   if (normalized.includes("incident")) return "장애 대응";
-  if (normalized.includes("support")) return "고객 지원";
+  if (normalized.includes("support")) return "Client 지원";
   if (normalized.includes("ready") || normalized.includes("complete")) return "완료";
   if (normalized.includes("review")) return "검토 필요";
   if (normalized.includes("pending") || normalized.includes("open")) return "대기";
@@ -64,7 +64,7 @@ export function OpsSurface({ labels, liveCtx = "allow" }) {
       <PageHeader
         eyebrow="운영"
         title={labels.opsTitle}
-        subtitle="접근, 보안, 장애 대응, 고객 지원에 필요한 운영 항목을 확인합니다."
+        subtitle="접근, 보안, 장애 대응, Client 지원에 필요한 운영 항목을 확인합니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />

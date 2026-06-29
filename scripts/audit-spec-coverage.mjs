@@ -55,7 +55,7 @@ const narrativeRequirements = [
   ["integrations", "외부 연동", ["Microsoft 365", "Outlook", "Gmail", "Google Workspace", "Word", "Excel", "PowerPoint", "더존", "WEHAGO", "홈택스", "은행", "법인카드", "Slack", "Teams", "전자서명", "DART", "법원"], ["RP08", "RP22", "RP23", "RP24", "RP25"]],
   ["differentiation_korea", "한국형 로펌 특화", ["HWP", "HWPX", "국문 계약서", "한국 법령", "판례", "등기", "정관", "의사록", "LDD", "RFI", "CP", "전자세금계산서"], ["RP20", "RP23", "RP24"]],
   ["differentiation_management", "로펌 경영 특화", ["Matter P&L", "Partner Settlement", "WIP", "Fixed Fee", "Client Profitability", "Origination Tracking", "AR Risk", "Success Fee", "Disbursement Recovery"], ["RP12", "RP13", "RP14", "RP15"]],
-  ["ai_ready_dms", "AI-ready DMS", ["문서버전 기반 AI", "권한연동 AI", "조항 단위 검색", "협상경과 요약", "마크업", "실사이슈", "고객보고서", "Billing narrative"], ["RP06", "RP07", "RP17", "RP18"]],
+  ["ai_ready_dms", "AI-ready DMS", ["문서버전 기반 AI", "권한연동 AI", "조항 단위 검색", "협상경과 요약", "마크업", "실사이슈", "Client 보고서", "Billing narrative"], ["RP06", "RP07", "RP17", "RP18"]],
   ["open_decisions", "착수 전 결정 필요사항", ["제품 우선 포지션", "배포방식", "회계 범위", "전자세금계산서", "DMS migration", "이메일 정책", "AI 모델", "HWP", "정산정책", "인건비 배부", "개인정보 보존", "권한정책", "선례관리", "외부공유"], ["RP00"]],
 ];
 

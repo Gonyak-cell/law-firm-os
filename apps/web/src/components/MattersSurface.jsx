@@ -53,26 +53,182 @@ import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
 const MATTER_PERMISSION_REF = "ui_cmp_g4_matter_live";
 const MATTER_AUDIT_HINT_REF = "ui_cmp_g4_matter_probe";
 const MATTER_SECTIONS = new Set([
+  "matter-home",
   "matters-list",
   "matter-command",
+  "matter-intake",
+  "matter-closeout",
+  "matter-archive",
+  "matter-board",
+  "matter-tasks",
   "matter-vault",
+  "matter-evidence",
+  "matter-templates",
+  "matter-seal",
   "matter-timeline",
   "matter-calendar",
+  "matter-external-schedule",
+  "matter-notes",
   "matter-channel",
+  "matter-meetings",
+  "matter-announcements",
   "matter-opening",
   "matter-team",
+  "matter-client-requests",
+  "matter-approvals",
+  "matter-time",
+  "matter-expenses",
   "matter-billing",
+  "matter-ar",
   "matter-analytics",
+  "matter-search",
+  "matter-risk",
+  "matter-audit",
+  "matter-integrations",
+  "matter-settings",
   "matter-import"
 ]);
 const MATTER_WORK_TABS = [
-  { section: "matter-command", label: "현황" },
-  { section: "matter-vault", label: "문서" },
-  { section: "matter-timeline", label: "활동" },
+  { section: "matter-home", label: "홈" },
+  { section: "matters-list", label: "사건 목록" },
+  { section: "matter-board", label: "업무 보드" },
   { section: "matter-calendar", label: "일정" },
-  { section: "matter-channel", label: "대화" }
+  { section: "matter-external-schedule", label: "외부 일정" },
+  { section: "matter-vault", label: "사건 문서" }
 ];
 const MATTER_PATH_STEPS = ["신규", "이해상충", "계약", "수행", "청구"];
+const MATTER_EXTERNAL_SCHEDULE_ROWS = [
+  ["법원 일정", "판결선고 청취, 변론기일, 조정기일", "법원명, 재판부, 사건번호, 출석자"],
+  ["검찰 일정", "기록 열람·복사, 출석, 의견서 제출", "검찰청, 담당부, 사건번호, 준비물"],
+  ["우체국 발송", "내용증명, 등기, 송달 추적", "발송처, 수신처, 등기번호, 마감"],
+  ["관공서 방문", "인허가, 민원, 자료 제출", "기관명, 접수번호, 방문자, 제출물"],
+  ["세무서 업무", "신고, 납부, 자료 제출, 사실조회 대응", "세무서명, 업무 유형, 기한"],
+  ["기록 열람·복사", "법원·검찰 기록 복사와 수령", "기관, 예약일, 복사 범위"],
+  ["제출·접수", "서면 제출, 전자 접수, 방문 접수", "제출처, 제출물, 접수번호"],
+  ["송달 확인", "송달 상태와 수령 여부 확인", "송달 대상, 송달일, 확인자"],
+  ["마감·기한", "항소·상고, 답변서, 보정명령 등 기한 관리", "기한일, 기준일, 담당자"]
+];
+const MATTER_PLANNED_SECTIONS = {
+  "matter-closeout": {
+    title: "종결 처리",
+    rows: [
+      ["종결 체크리스트", "종결 보고, 미수금, 문서 보관 확인", "준비 중"],
+      ["후속 업무", "송달·집행·Client 안내", "비활성 후보"]
+    ]
+  },
+  "matter-archive": {
+    title: "보관 사건",
+    rows: [
+      ["보관 기준", "종결일, 보관 위치, 접근 권한", "준비 중"],
+      ["재개 처리", "보관 사건 재활성화", "비활성 후보"]
+    ]
+  },
+  "matter-tasks": {
+    title: "할 일",
+    rows: [
+      ["개인 할 일", "담당자, 기한, 우선순위", "준비 중"],
+      ["사건별 할 일", "업무 보드와 연결", "준비 중"]
+    ]
+  },
+  "matter-notes": {
+    title: "메모·검토 의견",
+    rows: [
+      ["검토 의견", "쟁점, 리스크, 다음 액션", "준비 중"],
+      ["내부 메모", "권한 기준 비공개 메모", "비활성 후보"]
+    ]
+  },
+  "matter-evidence": {
+    title: "증거·자료",
+    rows: [
+      ["증거 목록", "증거번호, 제출 여부, 관련 쟁점", "준비 중"],
+      ["자료 분류", "의뢰인 제공, 상대방 제출, 기관 회신", "준비 중"]
+    ]
+  },
+  "matter-templates": {
+    title: "양식·템플릿",
+    rows: [
+      ["문서 양식", "소장, 답변서, 의견서, 내용증명", "준비 중"],
+      ["사건 유형별 템플릿", "송무, 자문, M&A 분류", "비활성 후보"]
+    ]
+  },
+  "matter-seal": {
+    title: "인장·날인",
+    rows: [
+      ["날인 요청", "문서, 승인권자, 사용 목적", "준비 중"],
+      ["사용 이력", "인장 종류, 처리자, 감사 이력", "비활성 후보"]
+    ]
+  },
+  "matter-meetings": {
+    title: "회의·통화 기록",
+    rows: [
+      ["회의록", "참석자, 안건, 결정사항", "준비 중"],
+      ["통화 기록", "통화자, 요지, 후속 업무", "준비 중"]
+    ]
+  },
+  "matter-announcements": {
+    title: "공지·공유",
+    rows: [
+      ["사건 공지", "팀 공지와 변경사항 공유", "준비 중"],
+      ["공유 범위", "담당자·참여자 권한 기준", "비활성 후보"]
+    ]
+  },
+  "matter-client-requests": {
+    title: "의뢰인 요청",
+    rows: [
+      ["요청 접수", "자료 요청, 진행 문의, 일정 문의", "준비 중"],
+      ["응답 관리", "담당자, 상태, 회신 기한", "준비 중"]
+    ]
+  },
+  "matter-approvals": {
+    title: "결재·승인",
+    rows: [
+      ["내부 결재", "기안, 검토, 승인, 반려", "준비 중"],
+      ["외부 제출 승인", "제출 전 검토와 승인 이력", "준비 중"]
+    ]
+  },
+  "matter-expenses": {
+    title: "비용 처리",
+    rows: [
+      ["비용 신청", "인지대, 송달료, 교통비, 복사비", "준비 중"],
+      ["증빙 관리", "영수증, 청구 가능 여부, 정산 상태", "준비 중"]
+    ]
+  },
+  "matter-search": {
+    title: "검색·통계",
+    rows: [
+      ["통합 검색", "사건, 문서, 일정, 대화", "준비 중"],
+      ["통계", "유형, 상태, 담당자, 기간별 집계", "비활성 후보"]
+    ]
+  },
+  "matter-risk": {
+    title: "사건 위험",
+    rows: [
+      ["위험 항목", "기한, 이해상충, 미수금, 자료 누락", "준비 중"],
+      ["주의 알림", "담당자 확인과 감사 이력 연결", "준비 중"]
+    ]
+  },
+  "matter-integrations": {
+    title: "연동·알림",
+    rows: [
+      ["알림 규칙", "기한, 대화, 문서, 결재 알림", "준비 중"],
+      ["외부 연동", "캘린더, 이메일, 문서 저장소", "비활성 후보"]
+    ]
+  },
+  "matter-settings": {
+    title: "사건 설정",
+    rows: [
+      ["사건 유형", "송무, 자문, M&A별 필드와 단계", "준비 중"],
+      ["권한 기준", "담당자·참여자 접근 범위", "준비 중"]
+    ]
+  },
+  "matter-import": {
+    title: "자료 가져오기",
+    rows: [
+      ["가져오기", "사건 자료 매핑과 검증", "전역 가져오기와 연결"],
+      ["검증", "중복, 권한, 필수 필드 확인", "준비 중"]
+    ]
+  }
+};
 const TIMELINE_FILTERS = Object.freeze([
   Object.freeze({ id: "all", label: "전체", icon: ListChecks }),
   Object.freeze({ id: "matter", label: "Matter", icon: CheckCircle2 }),
@@ -156,6 +312,21 @@ function LegalMatterPeopleBacklinkPanel({ result }) {
         )}
       </div>
     </Panel>
+  );
+}
+
+function PlannedMatterSection({ title, rows }) {
+  return (
+    <div className="clients-live-stack" data-matter-planned-section={title}>
+      <div className="live-data-state live-data-empty">
+        <strong>{title} 메뉴를 준비 중입니다</strong>
+        현재 배포에서는 사건 레코드와 연결될 위치를 먼저 열어두었습니다.
+      </div>
+      <DataTable
+        columns={["항목", "연결 기준", "현재 상태"]}
+        rows={rows}
+      />
+    </div>
   );
 }
 
@@ -1602,7 +1773,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [selectedMatterId, setSelectedMatterId] = useState(null);
   const [selectedMatterIds, setSelectedMatterIds] = useState([]);
   const [activeListViewId, setActiveListViewId] = useState(null);
-  const currentSection = MATTER_SECTIONS.has(activeSection) ? activeSection : "matters-list";
+  const currentSection = MATTER_SECTIONS.has(activeSection) ? activeSection : "matter-home";
 
   useEffect(() => {
     let cancelled = false;
@@ -2184,11 +2355,17 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     }
   }
 
+  const plannedMatterSection = MATTER_PLANNED_SECTIONS[currentSection];
+  const matterAccessState =
+    result?.uiState === "denied" || result?.uiState === "review_required" || result?.outcome === "review_required"
+      ? renderCollectionState(result, "사건")
+      : null;
+
   return (
     <section id="matters-home" className="surface stack matters-surface" data-cmp-g4-live-matters="true">
       <PageHeader
         title={labels.mattersTitle}
-        subtitle="Matter 상태, 구성원, 문서, 활동, 청구 흐름을 확인합니다."
+        subtitle="사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름을 확인합니다."
         actions={
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />
@@ -2209,8 +2386,21 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
         ))}
       </nav>
       <div className="matter-runtime-grid record-workspace" data-salesforce-matter-workspace="list-detail-right-panel">
+        {currentSection === "matter-home" && (
+          <Panel id="matter-home" className="record-list-panel" title="홈" meta="사건 운영">
+            {matterAccessState ?? (
+              <CommandPanel
+                result={commandResult}
+                matter={selectedMatter}
+                statusResult={statusTransitionResult}
+                statusPending={statusTransitionPending}
+                onCompleteStatus={handleCompleteStatus}
+              />
+            )}
+          </Panel>
+        )}
         {currentSection === "matters-list" && (
-          <Panel id="matters-list" className="record-list-panel" title="Matter 목록" meta="권한 기준 적용">
+          <Panel id="matters-list" className="record-list-panel" title="사건 목록" meta="권한 기준 적용">
             <MattersTable
               result={result}
               matters={visibleMatters}
@@ -2232,25 +2422,29 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             />
           </Panel>
         )}
-        {currentSection === "matter-command" && (
-          <Panel id="matter-command" className="record-list-panel" title="Matter 현황" meta="진행 관리">
-            <CommandPanel
-              result={commandResult}
-              matter={selectedMatter}
-              statusResult={statusTransitionResult}
-              statusPending={statusTransitionPending}
-              onCompleteStatus={handleCompleteStatus}
-            />
-            <AuditTrailPanel
-              result={matterAuditResult}
-              events={[statusTransitionResult?.auditEvent].filter(Boolean)}
-              marker="matter-command-audit-trail"
-            />
+        {["matter-intake", "matter-command"].includes(currentSection) && (
+          <Panel id={currentSection} className="record-list-panel" title="수임 진행" meta="진행 관리">
+            {matterAccessState ?? (
+              <>
+                <CommandPanel
+                  result={commandResult}
+                  matter={selectedMatter}
+                  statusResult={statusTransitionResult}
+                  statusPending={statusTransitionPending}
+                  onCompleteStatus={handleCompleteStatus}
+                />
+                <AuditTrailPanel
+                  result={matterAuditResult}
+                  events={[statusTransitionResult?.auditEvent].filter(Boolean)}
+                  marker="matter-command-audit-trail"
+                />
+              </>
+            )}
           </Panel>
         )}
         {currentSection === "matter-vault" && <MatterVaultPanel matterId={activeMatterId} liveCtx={liveCtx} />}
-        {currentSection === "matter-timeline" && (
-          <Panel id="matter-timeline" className="record-list-panel" title="활동" meta="활동 이력">
+        {["matter-board", "matter-timeline"].includes(currentSection) && (
+          <Panel id={currentSection} className="record-list-panel" title="업무 보드" meta="업무·활동 이력">
             <ActivityWorkspacePanel
               activityResult={activityResult}
               timelineResult={timelineResult}
@@ -2280,8 +2474,29 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             />
           </Panel>
         )}
+        {currentSection === "matter-external-schedule" && (
+          <Panel id="matter-external-schedule" className="record-list-panel" title="외부 일정" meta="법원·검찰·우체국·관공서">
+            <CalendarWorkspacePanel
+              calendarResult={calendarResult}
+              deadlineResult={deadlineResult}
+              createResult={calendarCreateResult}
+              approvalResult={deadlineApprovalResult}
+              confirmResult={deadlineConfirmResult}
+              createPending={calendarCreatePending}
+              approvalPending={deadlineApprovalPending}
+              confirmPending={deadlineConfirmPending}
+              onCreateCalendarEvent={handleCreateCalendarEvent}
+              onRequestDeadlineChange={handleRequestDeadlineChange}
+              onConfirmDeadlineChange={handleConfirmDeadlineChange}
+            />
+            <DataTable
+              columns={["유형", "업무", "관리 필드"]}
+              rows={MATTER_EXTERNAL_SCHEDULE_ROWS}
+            />
+          </Panel>
+        )}
         {currentSection === "matter-channel" && (
-          <Panel id="matter-channel" className="record-list-panel" title="대화" meta="메시지">
+          <Panel id="matter-channel" className="record-list-panel" title="이메일·메시지" meta="소통">
             <ChannelWorkspacePanel
               channelResult={channelResult}
               messageResult={channelMessageResult}
@@ -2308,8 +2523,13 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             <LegalMatterPeopleBacklinkPanel result={legalPeopleMatterResult} />
           </>
         )}
-        {currentSection === "matter-billing" && (
-          <Panel id="matter-billing" className="record-list-panel" title="청구" meta="청구 관리">
+        {["matter-time", "matter-billing", "matter-ar"].includes(currentSection) && (
+          <Panel
+            id={currentSection}
+            className="record-list-panel"
+            title={currentSection === "matter-time" ? "시간 기록" : currentSection === "matter-ar" ? "미수금" : "청구 내역"}
+            meta="결재·청구"
+          >
             <BillingPanel
               timeResult={timeResult}
               invoiceResult={invoiceResult}
@@ -2330,7 +2550,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "matter-analytics" && (
-          <Panel id="matter-analytics" className="record-list-panel" title="분석" meta="분석 관리">
+          <Panel id="matter-analytics" className="record-list-panel" title="사건 리포트" meta="리포트·관리">
             <AnalyticsPanel
               result={analyticsResult}
               profitabilityResult={profitabilityResult}
@@ -2353,7 +2573,19 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
         {currentSection === "matter-import" && (
           <ImportDataMappingPanel ctx={liveCtx} surface="matter" />
         )}
-        {["matters-list", "matter-command", "matter-vault", "matter-timeline", "matter-calendar", "matter-channel", "matter-team", "matter-billing", "matter-analytics", "matter-import"].includes(currentSection) && (
+        {currentSection === "matter-audit" && (
+          <AuditTrailPanel
+            result={matterAuditResult}
+            events={[statusTransitionResult?.auditEvent].filter(Boolean)}
+            marker="matter-command-audit-trail"
+          />
+        )}
+        {plannedMatterSection && (
+          <Panel id={currentSection} className="record-list-panel" title={plannedMatterSection.title} meta="준비 중">
+            <PlannedMatterSection title={plannedMatterSection.title} rows={plannedMatterSection.rows} />
+          </Panel>
+        )}
+        {currentSection !== "matter-opening" && (
           <MatterRecordPanel
             matter={selectedMatter}
             commandResult={commandResult}

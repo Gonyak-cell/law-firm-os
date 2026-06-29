@@ -1,6 +1,6 @@
 {
   "schema_version": "matter.lcx-web.runtime-verification.v1",
-  "generated_at": "2026-06-28T07:47:40.154Z",
+  "generated_at": "2026-06-29T08:52:56.152Z",
   "base_url": "http://127.0.0.1:5174",
   "source_of_truth": "apps/web",
   "passed": true,
@@ -37,7 +37,7 @@
         "Vault"
       ],
       "passed": true,
-      "textFound": 23,
+      "textFound": 22,
       "textMatches": [
         {
           "expectedText": "Client",
@@ -49,7 +49,7 @@
         },
         {
           "expectedText": "구성원",
-          "count": 5
+          "count": 4
         },
         {
           "expectedText": "Vault",
@@ -70,15 +70,15 @@
     {
       "name": "clients-live",
       "url": "/?locale=en&view=clients&data=live&ctx=allow",
-      "expectText": "Client와 상담 접수",
+      "expectText": "Client, 담당자, Opportunity, 상담 이력",
       "expectedTexts": [
-        "Client와 상담 접수"
+        "Client, 담당자, Opportunity, 상담 이력"
       ],
       "passed": true,
       "textFound": 1,
       "textMatches": [
         {
-          "expectedText": "Client와 상담 접수",
+          "expectedText": "Client, 담당자, Opportunity, 상담 이력",
           "count": 1
         }
       ],
@@ -96,15 +96,15 @@
     {
       "name": "matters-live",
       "url": "/?locale=en&view=matters&data=live&ctx=allow",
-      "expectText": "Matter 상태, 구성원, 문서, 활동, 청구 흐름",
+      "expectText": "사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름",
       "expectedTexts": [
-        "Matter 상태, 구성원, 문서, 활동, 청구 흐름"
+        "사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름"
       ],
       "passed": true,
       "textFound": 1,
       "textMatches": [
         {
-          "expectedText": "Matter 상태, 구성원, 문서, 활동, 청구 흐름",
+          "expectedText": "사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름",
           "count": 1
         }
       ],
@@ -122,16 +122,16 @@
     {
       "name": "people-live",
       "url": "/?locale=en&view=people&data=live&ctx=allow",
-      "expectText": "구성원 관리",
+      "expectText": "구성원",
       "expectedTexts": [
-        "구성원 관리"
+        "구성원"
       ],
       "passed": true,
-      "textFound": 1,
+      "textFound": 6,
       "textMatches": [
         {
-          "expectedText": "구성원 관리",
-          "count": 1
+          "expectedText": "구성원",
+          "count": 6
         }
       ],
       "selectorFound": 1,
@@ -141,9 +141,7 @@
         "theme": "light",
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
-        "visibleLiveStates": [
-          "구성원을 선택하세요."
-        ]
+        "visibleLiveStates": []
       },
       "error": null
     },
@@ -175,11 +173,11 @@
     },
     {
       "name": "clients-denied",
-      "url": "/?locale=en&view=clients&data=live&ctx=denied",
-      "expectText": "접근 권한이 없습니다, 권한이 있는 의뢰인만 표시합니다",
+      "url": "/?locale=en&view=clients&data=live&ctx=denied#clients-list",
+      "expectText": "접근 권한이 없습니다, 권한이 있는 Client만 표시합니다",
       "expectedTexts": [
         "접근 권한이 없습니다",
-        "권한이 있는 의뢰인만 표시합니다"
+        "권한이 있는 Client만 표시합니다"
       ],
       "passed": true,
       "textFound": 2,
@@ -189,7 +187,7 @@
           "count": 1
         },
         {
-          "expectedText": "권한이 있는 의뢰인만 표시합니다",
+          "expectedText": "권한이 있는 Client만 표시합니다",
           "count": 1
         }
       ],
@@ -201,18 +199,18 @@
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
         "visibleLiveStates": [
-          "접근 권한이 없습니다권한이 있는 의뢰인만 표시합니다."
+          "접근 권한이 없습니다권한이 있는 Client만 표시합니다."
         ]
       },
       "error": null
     },
     {
       "name": "clients-review",
-      "url": "/?locale=en&view=clients&data=live&ctx=review",
-      "expectText": "검토가 필요합니다, 검토가 끝나면 의뢰인 정보를 확인할 수 있습니다",
+      "url": "/?locale=en&view=clients&data=live&ctx=review#clients-list",
+      "expectText": "검토가 필요합니다, 검토가 끝나면 Client 정보를 확인할 수 있습니다",
       "expectedTexts": [
         "검토가 필요합니다",
-        "검토가 끝나면 의뢰인 정보를 확인할 수 있습니다"
+        "검토가 끝나면 Client 정보를 확인할 수 있습니다"
       ],
       "passed": true,
       "textFound": 2,
@@ -222,7 +220,7 @@
           "count": 1
         },
         {
-          "expectedText": "검토가 끝나면 의뢰인 정보를 확인할 수 있습니다",
+          "expectedText": "검토가 끝나면 Client 정보를 확인할 수 있습니다",
           "count": 1
         }
       ],
@@ -234,7 +232,7 @@
         "horizontalOverflow": false,
         "visibleCapabilityCards": 0,
         "visibleLiveStates": [
-          "검토가 필요합니다검토가 끝나면 의뢰인 정보를 확인할 수 있습니다."
+          "검토가 필요합니다검토가 끝나면 Client 정보를 확인할 수 있습니다."
         ]
       },
       "error": null
