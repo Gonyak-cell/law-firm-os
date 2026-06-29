@@ -71,6 +71,8 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
   assert.match(shellSource, /data-global-sidebar-nav="home-only"/);
   assert.match(shellSource, /aria-label="Home 빠른 메뉴"/);
   assert.doesNotMatch(shellSource, />공통<|aria-label="공통 메뉴"/);
+  assert.match(shellSource, /"sidebar-item global-sidebar-item/);
+  assert.match(shellSource, /<span className="sidebar-icon"><Icon size=\{16\} \/><\/span>/);
   assert.match(appSource, /globalUtilityViewIds/);
   assert.match(appSource, /resolveGlobalShortcut/);
   assert.match(globalUtilitySource, /client-import/);
