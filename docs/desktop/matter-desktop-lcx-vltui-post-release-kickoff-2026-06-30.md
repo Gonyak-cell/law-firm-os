@@ -37,6 +37,9 @@ Local date: 2026-06-30
 - Formal release validate: PASS
 - Desktop screen QA: PASS
 - No-public-release guard: PASS
+- PR #147 merge: `0ff79586d887a950200ab091a5864a20c174bdf9`
+- Post-merge HRX production smoke: PASS
+- Post-merge LCX-VLTUI production bridge smoke: PASS 15/15
 
 ## Active Boundaries
 
@@ -55,6 +58,7 @@ Local date: 2026-06-30
 1. Owner approval evidence must name the reviewed artifact, release URL, decision maker, decision, and timestamp.
 2. Production go-live receipt must cite the owner approval receipt and final go-live decision validator output before any true claim.
 3. Windows Authenticode receipt must include certificate/provider identity, sanitized signing command evidence, verification output, and Windows native install smoke output.
+4. Post-merge production smoke receipts prove route operability only; they do not replace owner final approval, public release approval, Windows signing, external pilot approval, or real client data migration receipts.
 
 ## Owner Approval Intake
 
