@@ -1,0 +1,147 @@
+{
+  "schema_version": "lawos.current_ui.production_reflection_receipt.v0.1",
+  "program_id": "Current UI Production Reflection",
+  "recorded_at": "2026-06-29T09:20:02Z",
+  "source": {
+    "branch": "codex/home-utility-menu-style",
+    "runtime_web_deploy_commit": "604399d48b397cd8b5506d1d9b162f1a6fd81a1b",
+    "commits": [
+      {
+        "sha": "6511e9974030eaf78419106c0e02d7f08e5107e7",
+        "message": "Reflect current Client and Matter UI"
+      },
+      {
+        "sha": "604399d48b397cd8b5506d1d9b162f1a6fd81a1b",
+        "message": "Keep Client guard states visible in production"
+      }
+    ]
+  },
+  "aws_identity": {
+    "account": "770880870480",
+    "assumed_role_arn": "arn:aws:sts::770880870480:assumed-role/matter-prod-deploy-admin/botocore-session-1782724317",
+    "profile": "matter-prod-deploy-admin",
+    "region": "ap-northeast-2"
+  },
+  "web_deployment": {
+    "bucket": "matter-lawos-web-prod-770880870480-apne2",
+    "s3_sync_executed": true,
+    "s3_sync_deleted_old_assets": [
+      "assets/index-DzTUBEHn.js"
+    ],
+    "s3_sync_uploaded_or_refreshed_assets": [
+      "assets/index-DPTVB3OC.js",
+      "assets/index-BvsuuLZH.css",
+      "assets/matter-mark-Cc_2F105.svg",
+      "assets/parnas-tower-login-Dogx2L0o.jpg",
+      "fonts/pretendard/Pretendard-Bold.otf",
+      "fonts/pretendard/Pretendard-Medium.otf",
+      "fonts/pretendard/Pretendard-Regular.otf",
+      "fonts/pretendard/Pretendard-SemiBold.otf",
+      "fonts/pretendard/OFL.txt",
+      "fonts/suite/SUITE-Bold.otf",
+      "fonts/suite/SUITE-ExtraBold.otf",
+      "fonts/suite/SUITE-Medium.otf",
+      "fonts/suite/SUITE-Regular.otf",
+      "fonts/suite/SUITE-SemiBold.otf",
+      "fonts/suite/OFL.txt",
+      "index.html",
+      "matter-mark.svg"
+    ],
+    "cloudfront_distribution_id": "E3MVAKX2DIR3CS",
+    "cloudfront_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "cloudfront_invalidation_id": "I8LYEJX8KX0F8GF7KZQSB5EZ6W",
+    "cloudfront_invalidation_status": "Completed",
+    "root_status": 200,
+    "root_assets": [
+      "assets/index-DPTVB3OC.js",
+      "assets/index-BvsuuLZH.css"
+    ]
+  },
+  "api_deployment": {
+    "lambda_redeployed_in_this_receipt": false,
+    "lambda_function_name": "matter-lawos-api-prod",
+    "lambda_runtime": "nodejs22.x",
+    "lambda_last_modified": "2026-06-28T14:43:42.000+0000",
+    "lambda_state": "Active",
+    "lambda_last_update_status": "Successful",
+    "lambda_code_sha256": "UYlxTgSsrfzFVEkXDSP6Qj1WrmG5IheJyQevDWt+tLw=",
+    "lambda_environment": {
+      "LAWOS_DEPLOYMENT_COMMIT": "0e4a4960d017e55057330a3b9417bd947df4721f",
+      "LAWOS_DEPLOYMENT_MODE": "aws_lambda_function_url"
+    }
+  },
+  "pre_deploy_validation": {
+    "npm_workspace_apps_web_test_ui": {
+      "status": "PASS",
+      "tests": 17,
+      "failed": 0
+    },
+    "npm_workspace_apps_web_run_build": {
+      "status": "PASS",
+      "asset_js": "assets/index-DPTVB3OC.js",
+      "asset_css": "assets/index-BvsuuLZH.css",
+      "warning": "existing Vite chunk-size warning only"
+    },
+    "local_runtime_flow_verification_before_redeploy": {
+      "status": "PASS",
+      "base_url": "http://127.0.0.1:5174",
+      "checks": 9,
+      "failed": 0
+    },
+    "git_diff_check": "PASS",
+    "ai_slop_review": "PASS"
+  },
+  "production_smoke": {
+    "npm_run_hrx_production_smoke": {
+      "verdict": "PASS",
+      "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+      "web_root_status": 200,
+      "api_health_status": 200,
+      "hrx_employees_status": 200,
+      "hrx_employees_count": 9,
+      "organization_groups": {
+        "PETRA BRIDGE PARTNERS": 3,
+        "AMIC Law": 4,
+        "Staff": 2
+      },
+      "negative_security_smoke": {
+        "missing_context_status": 400,
+        "missing_context_safe_error_code": "HRX_TENANT_CONTEXT_REQUIRED",
+        "documents_missing_scope_status": 403,
+        "documents_missing_scope_safe_error_code": "HRX_AUTHZ_DENIED"
+      }
+    },
+    "runtime_flow_verification": {
+      "verdict": "PASS",
+      "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+      "artifact_json": "docs/lazycodex/evidence/matter-web/artifacts/runtime-flow-verification.json",
+      "artifact_md": "docs/lazycodex/evidence/matter-web/artifacts/runtime-flow-verification.md",
+      "checks": [
+        "desktop-home-command-center",
+        "clients-live",
+        "matters-live",
+        "people-live",
+        "vault-live",
+        "clients-denied",
+        "clients-review",
+        "matters-denied",
+        "vault-denied"
+      ],
+      "failed": []
+    },
+    "client_guard_fix": {
+      "production_pre_fix_observation": "Client denied/review rendered generic list load failure on production after first web sync.",
+      "fix_commit": "604399d48b397cd8b5506d1d9b162f1a6fd81a1b",
+      "post_fix_result": "PASS"
+    }
+  },
+  "claim_boundary": {
+    "production_web_deployed": true,
+    "production_api_redeployed": false,
+    "production_runtime_flow_smoke_passed": true,
+    "staging_validation_for_this_ui_batch": false,
+    "go_live_approval_for_this_ui_batch": false,
+    "payroll_provider_live": false,
+    "electronic_contract_provider_live": false
+  }
+}

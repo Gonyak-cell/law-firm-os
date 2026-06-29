@@ -1,15 +1,18 @@
 {
   "schema_version": "matter.lcx-web.runtime-verification.v1",
-  "generated_at": "2026-06-29T09:16:09.442Z",
-  "base_url": "http://127.0.0.1:5174",
+  "generated_at": "2026-06-29T09:19:45.321Z",
+  "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
   "source_of_truth": "apps/web",
   "passed": true,
   "console_errors_recorded_not_gated": [
-    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
-    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
-    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
-    "Failed to load resource: the server responded with a status of 403 (Forbidden)",
-    "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    "Failed to load resource: the server responded with a status of 403 ()",
+    "Failed to load resource: the server responded with a status of 403 ()",
+    "Failed to load resource: the server responded with a status of 403 ()",
+    "Failed to load resource: the server responded with a status of 403 ()",
+    "Failed to load resource: the server responded with a status of 403 ()",
+    "Failed to load resource: the server responded with a status of 403 ()",
+    "Failed to load resource: the server responded with a status of 403 ()",
+    "Failed to load resource: the server responded with a status of 403 ()"
   ],
   "mobile_metrics": {
     "scrollWidth": 390,
