@@ -1,0 +1,49 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_vltui.matter_picker_proof.v0.1",
+  "tuw_id": "LCX-VLTUI-02.02",
+  "generated_at": "2026-06-29T12:32:11.375Z",
+  "web_url": "http://127.0.0.1:5173",
+  "source_refs": [
+    "apps/api/src/matter-runtime-context.js",
+    "apps/web/src/components/VaultSurface.jsx",
+    "apps/web/src/data/apiClient.js"
+  ],
+  "boundary": {
+    "synthetic_route_interception_only": true,
+    "customer_document_import_executed": false,
+    "vault_document_write_enabled": false,
+    "production_ready": false,
+    "public_release": false,
+    "go_live_approved": false,
+    "owner_final_approval": false
+  },
+  "cases": [
+    {
+      "id": "positive-selection",
+      "kind": "data",
+      "selected_ref": "matter:matter_lcx_vltui_alpha",
+      "forbidden_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-02-positive-selection.png",
+      "passed": true
+    },
+    {
+      "id": "guarded-lookup",
+      "kind": "guarded",
+      "selected_ref": "",
+      "forbidden_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-02-guarded-lookup.png",
+      "passed": true
+    },
+    {
+      "id": "uuid-local-block",
+      "kind": "blocked-local",
+      "selected_ref": "",
+      "lookup_calls_before_uuid": 1,
+      "lookup_calls_after_uuid": 1,
+      "forbidden_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-02-uuid-local-block.png",
+      "passed": true
+    }
+  ],
+  "verdict": "PASS"
+}

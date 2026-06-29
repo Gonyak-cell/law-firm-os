@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_vltui.matter_document_workspace_proof.v0.1",
+  "tuw_ids": [
+    "LCX-VLTUI-03.01",
+    "LCX-VLTUI-03.02",
+    "LCX-VLTUI-03.03",
+    "LCX-VLTUI-03.04",
+    "LCX-VLTUI-03.05"
+  ],
+  "generated_at": "2026-06-29T13:23:17.777Z",
+  "verdict": "PASS",
+  "boundary": {
+    "synthetic_route_interception_only": true,
+    "customer_document_import_executed": false,
+    "vault_document_write_enabled": false,
+    "vault_document_created": false,
+    "document_bytes_included": false,
+    "storage_pointer_ref_included": false,
+    "provider_send_executed": false,
+    "production_ready": false,
+    "public_release": false,
+    "go_live_approved": false,
+    "owner_final_approval": false
+  },
+  "cases": [
+    {
+      "id": "document-workspace-boundary",
+      "initial_boundary": {
+        "source_state": "source-ready",
+        "preflight_state": "not-run",
+        "publish_state": "draft-required",
+        "publish_write_enabled": "false",
+        "import_dry_run_state": "preflight-required",
+        "import_execute_state": "preflight-required",
+        "email_send_state": "draft-required",
+        "preflight_ref": ""
+      },
+      "final_boundary": {
+        "source_state": "source-ready",
+        "preflight_state": "passed",
+        "publish_state": "owner-blocked",
+        "publish_write_enabled": "false",
+        "import_dry_run_state": "dry-run-ready",
+        "import_execute_state": "owner-provider-blocked",
+        "email_send_state": "provider-blocked",
+        "preflight_ref": "vault-preflight:matter_lcx_vltui_alpha:document-workspace"
+      },
+      "publish_initial": {
+        "state": "draft-required",
+        "disabled": true
+      },
+      "publish_before_preflight": {
+        "state": "preflight-required",
+        "disabled": true
+      },
+      "publish_after_preflight": {
+        "state": "owner-blocked",
+        "disabled": false
+      },
+      "preflight_state": "passed",
+      "preflight_ref": "vault-preflight:matter_lcx_vltui_alpha:document-workspace",
+      "calls": {
+        "matters": 1,
+        "vault_summary": 1,
+        "timeline": 2,
+        "bridge_status": 1,
+        "preflight": 1,
+        "builder_create": 1,
+        "builder_patch": 1,
+        "builder_preview": 2,
+        "approval": 1,
+        "publish": 1,
+        "email_create": 1,
+        "email_patch": 1,
+        "email_send": 1,
+        "recently_viewed": 1,
+        "unexpected_writes": []
+      },
+      "forbidden_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-03-document-workspace-proof.png",
+      "passed": true
+    }
+  ]
+}

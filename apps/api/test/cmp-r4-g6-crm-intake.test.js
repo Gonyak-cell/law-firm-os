@@ -131,6 +131,154 @@ test("G6 CRM list is permission gated and omits Matter shortcut fields", async (
   });
 });
 
+test("G6 Client planned sections expose activity proposal and settings routes with guarded writes", async () => {
+  const crmStorePath = join(mkdtempSync(join(tmpdir(), "crm-client-sections-g6-")), "crm.json");
+  await withServer(async (baseUrl) => {
+    const health = await json(baseUrl, "/api/health");
+    const context = health.body.bounded_contexts.find((item) => item.bounded_context === "crm-intake");
+    for (const endpoint of [
+      "GET /api/crm/activities",
+      "POST /api/crm/activities",
+      "PATCH /api/crm/activities/:id",
+      "GET /api/crm/proposals",
+      "POST /api/crm/proposals",
+      "PATCH /api/crm/proposals/:id",
+      "GET /api/crm/client-settings",
+      "PATCH /api/crm/client-settings/:id",
+    ]) {
+      assert.ok(context.endpoints.includes(endpoint), `${endpoint} missing from CRM descriptor`);
+    }
+
+    const activities = await json(baseUrl, `/api/crm/activities?${BASE_QUERY}`);
+    assert.equal(activities.status, 200);
+    assert.equal(activities.body.items[0].direct_matter_reference_included, false);
+    assert.equal("matter_id" in activities.body.items[0], false);
+
+    const createdActivity = await json(baseUrl, "/api/crm/activities", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_activity_write",
+        audit_hint_ref: "audit_hint_cmp_g6_activity_write",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-client-activity-create-1",
+        activity: {
+          crm_activity_id: "activity_cmp_g6_api_001",
+          tenant_id: TENANT,
+          party_id: "party_cmp_g6_client_001",
+          opportunity_id: "opp_cmp_g6_synthetic_001",
+          activity_type: "note",
+          subject: "Client follow up",
+          confidential: false,
+          status: "active",
+        },
+      }),
+    });
+    assert.equal(createdActivity.status, 201);
+    assert.equal(createdActivity.body.audit_event.action, "crm.activity.created");
+
+    const patchedActivity = await json(baseUrl, "/api/crm/activities/activity_cmp_g6_api_001", {
+      method: "PATCH",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_activity_patch",
+        audit_hint_ref: "audit_hint_cmp_g6_activity_patch",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-client-activity-patch-1",
+        field_updates: { status: "review_required" },
+      }),
+    });
+    assert.equal(patchedActivity.status, 200);
+    assert.equal(patchedActivity.body.item.status, "review_required");
+
+    const proposals = await json(baseUrl, `/api/crm/proposals?${BASE_QUERY}`);
+    assert.equal(proposals.status, 200);
+    assert.equal(proposals.body.items[0].e_sign_send_enabled, false);
+    assert.equal(proposals.body.items[0].vault_document_ref_present, true);
+
+    const createdProposal = await json(baseUrl, "/api/crm/proposals", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_proposal_write",
+        audit_hint_ref: "audit_hint_cmp_g6_proposal_write",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-client-proposal-create-1",
+        proposal: {
+          proposal_id: "proposal_cmp_g6_api_001",
+          tenant_id: TENANT,
+          opportunity_id: "opp_cmp_g6_synthetic_001",
+          party_id: "party_cmp_g6_client_001",
+          fee_estimate_ref: "fee_estimate_cmp_g6_api_001",
+          display_name: "API proposal draft",
+          status: "draft",
+          proposal_status: "draft",
+          approval_state: "review_required",
+          vault_document_ref: "vault_doc_cmp_g6_api_001",
+        },
+      }),
+    });
+    assert.equal(createdProposal.status, 201);
+    assert.equal(createdProposal.body.item.e_sign_send_enabled, false);
+
+    const providerBlocked = await json(baseUrl, "/api/crm/proposals/proposal_cmp_g6_api_001", {
+      method: "PATCH",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_proposal_patch",
+        audit_hint_ref: "audit_hint_cmp_g6_proposal_patch",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-client-proposal-provider-blocked-1",
+        field_updates: { e_sign_send_requested: true },
+      }),
+    });
+    assert.equal(providerBlocked.status, 200);
+    assert.equal(providerBlocked.body.outcome, "provider_blocked");
+    assert.equal(providerBlocked.body.audit_event.action, "crm.proposal.esign_send_blocked");
+
+    const settings = await json(baseUrl, `/api/crm/client-settings?${BASE_QUERY}`);
+    assert.equal(settings.status, 200);
+    assert.equal(settings.body.items[0].policy_write_permissioned, true);
+
+    const roleBlocked = await json(baseUrl, "/api/crm/client-settings/client_policy_cmp_g6_classification", {
+      method: "PATCH",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_client_settings_patch",
+        audit_hint_ref: "audit_hint_cmp_g6_client_settings_patch",
+        actor_id: "user_cmp_g6_owner",
+        field_updates: { duplicate_review_required: true },
+      }),
+    });
+    assert.equal(roleBlocked.status, 200);
+    assert.equal(roleBlocked.body.outcome, "approval_required");
+    assert.equal(roleBlocked.body.audit_event.action, "crm.client_policy.patch_blocked");
+
+    const adminContext = JSON.stringify({
+      principal: { user_id: "user_cmp_g6_owner", tenant_id: TENANT, role_ids: ["crm_intake_user", "matter_vault_admin"] },
+      rules: [{ id: "rule_crm_intake_admin_allow", effect: "allow", action: "*" }],
+      object_acl: [],
+    });
+    const patchedSetting = await json(baseUrl, "/api/crm/client-settings/client_policy_cmp_g6_classification", {
+      method: "PATCH",
+      headers: { [PERMISSION_CONTEXT_HEADER]: adminContext },
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_client_settings_patch",
+        audit_hint_ref: "audit_hint_cmp_g6_client_settings_patch",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-client-settings-patch-1",
+        field_updates: { duplicate_review_required: false },
+      }),
+    });
+    assert.equal(patchedSetting.status, 200);
+    assert.equal(patchedSetting.body.outcome, "updated");
+    assert.equal(patchedSetting.body.item.duplicate_review_required, false);
+    assert.equal(patchedSetting.body.audit_event.action, "crm.client_policy.patched");
+    assert.equal(patchedSetting.body.production_ready_claim, false);
+  }, { crmStorePath });
+});
+
 test("G6 CRM Account and Contact read facades are permission gated and safe-source", async () => {
   await withServer(async (baseUrl) => {
     const accounts = await json(baseUrl, `/api/crm/accounts?${BASE_QUERY}`);

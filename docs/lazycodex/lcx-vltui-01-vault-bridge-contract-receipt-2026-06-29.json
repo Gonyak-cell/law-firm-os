@@ -1,0 +1,52 @@
+{
+  "schema": "law-firm-os.lazycodex.lcx-vltui.vault_bridge_contract_receipt.v0.1",
+  "generated_at": "2026-06-29T11:16:21Z",
+  "goal_thread_id": "019f12b6-4a23-7042-8d78-524e0ec3f852",
+  "status": "source_and_contract_implemented",
+  "implemented_tuws": [
+    "LCX-VLTUI-01.02",
+    "LCX-VLTUI-01.03",
+    "LCX-VLTUI-01.04",
+    "LCX-VLTUI-01.05",
+    "LCX-VLTUI-01.06"
+  ],
+  "changed_files": [
+    "apps/api/test/matter-vault-bridge-api.test.js",
+    "docs/lazycodex/lcx-vltui-01-vault-bridge-contract-2026-06-29.json",
+    "docs/lazycodex/lcx-vltui-mv-link-acceptance-2026-06-29.md",
+    "scripts/validate-lcx-vltui-bridge-contract.mjs",
+    "package.json"
+  ],
+  "exit_proofs": {
+    "LCX-VLTUI-01.02": "Contract fixture maps unconfigured, projection-only, stale, denied, and ready states from Vault app status or lookup surfaces.",
+    "LCX-VLTUI-01.03": "API test rejects missing bearer auth and invalid canonical payloads; contract fixture records missing base URL, stale source timestamp, and projection mismatch as non-write-capable states.",
+    "LCX-VLTUI-01.04": "Synthetic upsert handshake requires idempotency keys, client id, matter id, matter code, source revision, source updated timestamp, and audit refs.",
+    "LCX-VLTUI-01.05": "Projection mismatch remains blocked or validation-error only; Vault projection-only is not upload-authoritative.",
+    "LCX-VLTUI-01.06": "MV-LINK acceptance ladder receipt created with no document/import/go-live claim."
+  },
+  "verification": {
+    "lcx_vltui_bridge_validator": "PASS: node scripts/validate-lcx-vltui-bridge-contract.mjs",
+    "api_vault_bridge_test": "PASS: node --test apps/api/test/matter-vault-bridge-api.test.js (4/4)",
+    "api_workspace_test": "PASS: npm --workspace apps/api run test (196/196)",
+    "web_ui_regression": "PASS: npm --workspace apps/web run test:ui (17/17)",
+    "build": "PASS: npm --workspace apps/web run build with existing Vite chunk-size warning",
+    "claim_validator": "PASS: node scripts/validate-matter-desktop-no-public-release-claim.mjs",
+    "json_parse_receipts": "PASS: 7 JSON artifacts parsed",
+    "git_diff_check": "PASS",
+    "sloplint": "PASS: no auto-detectable AI slop signals"
+  },
+  "claim_boundary": {
+    "production_ready": false,
+    "public_release": false,
+    "production_go_live": false,
+    "owner_final_approval": false,
+    "vault_document_write_enabled": false,
+    "customer_document_import_executed": false,
+    "onedrive_cutover_executed": false
+  },
+  "next_tuws": [
+    "LCX-VLTUI-02.01",
+    "LCX-VLTUI-02.02",
+    "LCX-VLTUI-02.03"
+  ]
+}

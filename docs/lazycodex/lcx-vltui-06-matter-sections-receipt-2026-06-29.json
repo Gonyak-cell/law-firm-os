@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_vltui.matter_sections_receipt.v0.1",
+  "generated_at": "2026-06-29T14:28:59.127Z",
+  "status": "matter-sections-browser-verified",
+  "implemented_tuws": [
+    "LCX-VLTUI-06.01",
+    "LCX-VLTUI-06.02",
+    "LCX-VLTUI-06.03",
+    "LCX-VLTUI-06.04",
+    "LCX-VLTUI-06.05",
+    "LCX-VLTUI-06.06",
+    "LCX-VLTUI-06.07",
+    "LCX-VLTUI-06.08",
+    "LCX-VLTUI-06.09",
+    "LCX-VLTUI-06.10",
+    "LCX-VLTUI-06.11"
+  ],
+  "browser_proof": {
+    "path": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.json",
+    "markdown": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-sections-proof.md",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-06-matter-sections-proof.png",
+    "verdict": "PASS"
+  },
+  "covered_sections": [
+    "matter-closeout",
+    "matter-archive",
+    "matter-tasks",
+    "matter-notes",
+    "matter-evidence",
+    "matter-templates",
+    "matter-seal",
+    "matter-meetings",
+    "matter-announcements",
+    "matter-client-requests",
+    "matter-approvals",
+    "matter-expenses",
+    "matter-search",
+    "matter-risk",
+    "matter-integrations",
+    "matter-settings",
+    "matter-import"
+  ],
+  "covered_states": [
+    "closeout-archive-lifecycle-boundary",
+    "task-note-activity-create-update",
+    "evidence-template-vault-shortcut",
+    "seal-approval-owner-provider-blocked",
+    "meeting-announcement-calendar-channel",
+    "expense-finance-write-candidates",
+    "search-risk-permission-scoped",
+    "integrations-settings-provider-status-only",
+    "import-dry-run-guarded-execute",
+    "planned-matter-section-count-zero"
+  ],
+  "claim_boundary": {
+    "synthetic_route_interception_only": true,
+    "provider_send_executed": false,
+    "vault_document_mutation_executed": false,
+    "import_execute_mutation_executed": false,
+    "payment_or_invoice_send_executed": false,
+    "production_ready": false,
+    "public_release": false,
+    "production_go_live": false,
+    "owner_final_approval": false
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_vltui.profile_audit_proof.v0.1",
+  "tuw_ids": [
+    "LCX-VLTUI-04.03",
+    "LCX-VLTUI-04.04"
+  ],
+  "generated_at": "2026-06-29T13:53:42.793Z",
+  "verdict": "PASS",
+  "boundary": {
+    "synthetic_route_interception_only": true,
+    "profile_api_route_backed": true,
+    "customer_data_write_executed": false,
+    "vault_document_write_enabled": false,
+    "production_ready": false,
+    "public_release": false,
+    "go_live_approved": false,
+    "owner_final_approval": false,
+    "secret_material_in_profile": false,
+    "secret_material_in_permission_header": false
+  },
+  "cases": [
+    {
+      "id": "profile-route-states-and-audit-actors",
+      "passed": true,
+      "checks": [
+        {
+          "id": "profile-populated-state",
+          "passed": true
+        },
+        {
+          "id": "profile-empty-state",
+          "passed": true
+        },
+        {
+          "id": "profile-review-state",
+          "passed": true
+        },
+        {
+          "id": "profile-denied-state",
+          "passed": true
+        },
+        {
+          "id": "profile-error-state",
+          "passed": true
+        },
+        {
+          "id": "profile-help-route-backed",
+          "passed": true
+        },
+        {
+          "id": "profile-contract-route-backed",
+          "passed": true
+        },
+        {
+          "id": "profile-finance-route-backed",
+          "passed": true
+        },
+        {
+          "id": "client-write-session-actor-audit",
+          "passed": true
+        },
+        {
+          "id": "matter-write-session-actor-audit",
+          "passed": true
+        },
+        {
+          "id": "vault-write-candidate-session-actor-audit",
+          "passed": true
+        }
+      ],
+      "writes": {
+        "client": {
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:profile-audit",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "payload": {
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "permission_ref": "ui_sf_b_w01_account_write",
+            "audit_hint_ref": "ui_sf_b_w01_account_write_probe",
+            "actor_id": "user_lcx_vltui_session",
+            "idempotency_key": "ui:crm:account:account_ui_1782741222568:1782741222568",
+            "reason": "account_created",
+            "account": {
+              "account_id": "account_ui_1782741222568",
+              "tenant_id": "tenant_cmp_g6_synthetic",
+              "display_name": "신규 Client",
+              "status": "active"
+            }
+          }
+        },
+        "matter": {
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:profile-audit",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "payload": {
+            "tenant_id": "tenant_rp05_synthetic",
+            "permission_ref": "ui_sf_b_w04_builder_draft_create",
+            "audit_hint_ref": "ui_sf_b_w04_builder_draft_create_probe",
+            "actor_id": "user_lcx_vltui_session",
+            "idempotency_key": "ui:matter_lcx_vltui_alpha:builder:builder_draft_matter_lcx_vltui_alpha_1782741222744:1782741222744",
+            "draft": {
+              "draft_id": "builder_draft_matter_lcx_vltui_alpha_1782741222744",
+              "template_id": "matter_engagement_letter",
+              "title": "위임계약서 초안",
+              "body": "문서 초안 본문"
+            }
+          }
+        },
+        "vault": {
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_amic_matter_vault",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:profile-audit",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "payload": {
+            "tenant_id": "tenant_rp05_synthetic",
+            "permission_ref": "ui_cmp_g5_vault_live",
+            "audit_hint_ref": "ui_cmp_g5_vault_probe",
+            "action": "upload_preflight",
+            "selected_matter_ref": "matter:matter_lcx_vltui_alpha",
+            "matter_id": "matter_lcx_vltui_alpha",
+            "matter_code": "SyntheticAlpha/Civil/Contract",
+            "source_mode": "matter_app_api",
+            "runtime_write_ready": true,
+            "repository_durable": true,
+            "production_ready_claim": false,
+            "permission_check_only": true
+          }
+        }
+      },
+      "page_errors": [],
+      "forbidden_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-04-profile-api-proof.png",
+      "audit_screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-04-profile-audit-proof.png"
+    }
+  ]
+}

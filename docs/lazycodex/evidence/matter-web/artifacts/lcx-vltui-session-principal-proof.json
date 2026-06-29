@@ -1,0 +1,335 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_vltui.session_principal_proof.v0.1",
+  "tuw_ids": [
+    "LCX-VLTUI-04.01",
+    "LCX-VLTUI-04.02"
+  ],
+  "generated_at": "2026-06-29T13:39:23.914Z",
+  "verdict": "PASS",
+  "boundary": {
+    "synthetic_route_interception_only": true,
+    "session_header_source": "desktop_web_session_envelope",
+    "customer_data_write_executed": false,
+    "production_ready": false,
+    "public_release": false,
+    "go_live_approved": false,
+    "owner_final_approval": false,
+    "secret_material_in_envelope": false,
+    "secret_material_in_permission_header": false
+  },
+  "cases": [
+    {
+      "id": "session-principal-headers",
+      "passed": true,
+      "session_envelope": {
+        "schema_version": "law-firm-os.desktop-web-session-envelope.v0.1",
+        "source": "desktop_offline_login",
+        "actor_ref": "user_lcx_vltui_session",
+        "tenant_refs": {
+          "default": "tenant_amic_matter_vault",
+          "client": "tenant_rp04_synthetic",
+          "matter": "tenant_rp05_synthetic",
+          "vault": "tenant_amic_matter_vault"
+        },
+        "role_ids": [
+          "matter_vault_admin",
+          "matter_runtime_user",
+          "master_data_reader"
+        ],
+        "scopes": [
+          "client_read",
+          "matter_read",
+          "vault_read"
+        ],
+        "review_state": "allow",
+        "expires_at": "2999-12-31T23:59:59.000Z"
+      },
+      "captured_count": 7,
+      "cases": [
+        {
+          "id": "client-allow-session-principal",
+          "domain": "client",
+          "expected_mode": "allow",
+          "record": {
+            "domain": "client_records",
+            "method": "GET",
+            "path": "/master-data/records",
+            "context": {
+              "principal": {
+                "user_id": "user_lcx_vltui_session",
+                "tenant_id": "tenant_rp04_synthetic",
+                "role_ids": [
+                  "matter_vault_admin",
+                  "matter_runtime_user",
+                  "master_data_reader"
+                ],
+                "session_context_ref": "desktop:user_lcx_vltui_session:7",
+                "session_source_ref": "desktop_offline_login",
+                "session_principal_source": "desktop_web_session_envelope"
+              },
+              "rules": [
+                {
+                  "id": "rule_allow_read",
+                  "effect": "allow",
+                  "action": "*"
+                }
+              ],
+              "object_acl": []
+            }
+          },
+          "passed": true,
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp04_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:7",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "rule_effects": [
+            "allow"
+          ]
+        },
+        {
+          "id": "matter-allow-session-principal",
+          "domain": "matter",
+          "expected_mode": "allow",
+          "record": {
+            "domain": "matter_records",
+            "method": "GET",
+            "path": "/api/matters",
+            "context": {
+              "principal": {
+                "user_id": "user_lcx_vltui_session",
+                "tenant_id": "tenant_rp05_synthetic",
+                "role_ids": [
+                  "matter_vault_admin",
+                  "matter_runtime_user",
+                  "master_data_reader"
+                ],
+                "session_context_ref": "desktop:user_lcx_vltui_session:7",
+                "session_source_ref": "desktop_offline_login",
+                "session_principal_source": "desktop_web_session_envelope"
+              },
+              "rules": [
+                {
+                  "id": "rule_matter_allow",
+                  "effect": "allow",
+                  "action": "*"
+                }
+              ],
+              "object_acl": []
+            }
+          },
+          "passed": true,
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:7",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "rule_effects": [
+            "allow"
+          ]
+        },
+        {
+          "id": "vault-allow-session-principal",
+          "domain": "vault",
+          "expected_mode": "allow",
+          "record": {
+            "domain": "vault_documents",
+            "method": "GET",
+            "path": "/api/vault/documents",
+            "context": {
+              "principal": {
+                "user_id": "user_lcx_vltui_session",
+                "tenant_id": "tenant_amic_matter_vault",
+                "role_ids": [
+                  "matter_vault_admin",
+                  "matter_runtime_user",
+                  "master_data_reader"
+                ],
+                "session_context_ref": "desktop:user_lcx_vltui_session:7",
+                "session_source_ref": "desktop_offline_login",
+                "session_principal_source": "desktop_web_session_envelope"
+              },
+              "rules": [
+                {
+                  "id": "rule_vault_allow",
+                  "effect": "allow",
+                  "action": "*"
+                }
+              ],
+              "object_acl": []
+            }
+          },
+          "passed": true,
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_amic_matter_vault",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:7",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "rule_effects": [
+            "allow"
+          ]
+        },
+        {
+          "id": "vault-bridge-allow-session-principal",
+          "domain": "vault",
+          "expected_mode": "allow",
+          "record": {
+            "domain": "vault_bridge_status",
+            "method": "GET",
+            "path": "/api/matters/vault-bridge/status",
+            "context": {
+              "principal": {
+                "user_id": "user_lcx_vltui_session",
+                "tenant_id": "tenant_amic_matter_vault",
+                "role_ids": [
+                  "matter_vault_admin",
+                  "matter_runtime_user",
+                  "master_data_reader"
+                ],
+                "session_context_ref": "desktop:user_lcx_vltui_session:7",
+                "session_source_ref": "desktop_offline_login",
+                "session_principal_source": "desktop_web_session_envelope"
+              },
+              "rules": [
+                {
+                  "id": "rule_vault_allow",
+                  "effect": "allow",
+                  "action": "*"
+                }
+              ],
+              "object_acl": []
+            }
+          },
+          "passed": true,
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_amic_matter_vault",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:7",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "rule_effects": [
+            "allow"
+          ]
+        },
+        {
+          "id": "matter-envelope-review-fail-closed",
+          "domain": "matter",
+          "expected_mode": "review",
+          "record": {
+            "domain": "matter_records",
+            "method": "GET",
+            "path": "/api/matters",
+            "context": {
+              "principal": {
+                "user_id": "user_lcx_vltui_session",
+                "tenant_id": "tenant_rp05_synthetic",
+                "role_ids": [
+                  "matter_vault_admin",
+                  "matter_runtime_user",
+                  "master_data_reader"
+                ],
+                "session_context_ref": "desktop:user_lcx_vltui_session:review",
+                "session_source_ref": "desktop_offline_login",
+                "session_principal_source": "desktop_web_session_envelope"
+              },
+              "rules": [
+                {
+                  "id": "rule_matter_review",
+                  "effect": "review_required",
+                  "action": "*"
+                }
+              ],
+              "object_acl": []
+            }
+          },
+          "passed": true,
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:review",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "rule_effects": [
+            "review_required"
+          ]
+        },
+        {
+          "id": "vault-query-denied-fail-closed",
+          "domain": "vault",
+          "expected_mode": "denied",
+          "record": {
+            "domain": "vault_documents",
+            "method": "GET",
+            "path": "/api/vault/documents",
+            "context": {
+              "principal": {
+                "user_id": "user_lcx_vltui_session",
+                "tenant_id": "tenant_amic_matter_vault",
+                "role_ids": [
+                  "matter_vault_admin",
+                  "matter_runtime_user",
+                  "master_data_reader"
+                ],
+                "session_context_ref": "desktop:user_lcx_vltui_session:7",
+                "session_source_ref": "desktop_offline_login",
+                "session_principal_source": "desktop_web_session_envelope"
+              },
+              "rules": [],
+              "object_acl": []
+            }
+          },
+          "passed": true,
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_amic_matter_vault",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:7",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "rule_effects": []
+        }
+      ],
+      "page_errors": [],
+      "forbidden_header_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-04-session-principal-proof.png"
+    }
+  ]
+}

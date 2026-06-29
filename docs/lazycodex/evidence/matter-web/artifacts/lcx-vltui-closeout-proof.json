@@ -1,0 +1,182 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_vltui.closeout_proof.v0.1",
+  "tuw_ids": [
+    "LCX-VLTUI-90.01",
+    "LCX-VLTUI-90.02",
+    "LCX-VLTUI-90.03",
+    "LCX-VLTUI-90.04",
+    "LCX-VLTUI-90.05",
+    "LCX-VLTUI-90.06",
+    "LCX-VLTUI-90.07"
+  ],
+  "generated_at": "2026-06-29T14:38:32.577Z",
+  "web_url": "http://127.0.0.1:5173",
+  "source_refs": [
+    "apps/web/src/components/ClientsSurface.jsx",
+    "apps/web/src/components/MattersSurface.jsx",
+    "apps/web/src/components/MatterVaultPanel.jsx",
+    "apps/web/src/components/VaultSurface.jsx",
+    "apps/web/src/people/PeopleHome.tsx",
+    "apps/web/src/components/UserProfileSurface.jsx",
+    "apps/web/src/components/GlobalUtilitySurface.jsx"
+  ],
+  "allowed_write_calls": [
+    "POST /api/crm/opportunities/:id/handoff",
+    "POST /api/matters/:id/recently-viewed",
+    "POST /api/matters/vault-bridge/upload-preflight"
+  ],
+  "boundary": {
+    "synthetic_route_interception_only": true,
+    "client_to_matter_handoff_mounted": true,
+    "matter_to_vault_workspace_mounted": true,
+    "vault_to_matter_lookup_mounted": true,
+    "people_profile_global_mounted": true,
+    "customer_document_import_executed": false,
+    "vault_document_mutation_executed": false,
+    "vault_document_write_enabled": false,
+    "provider_send_executed": false,
+    "owner_final_approval": false,
+    "production_ready": false,
+    "public_release": false,
+    "go_live_approved": false
+  },
+  "cases": [
+    {
+      "id": "client-to-matter-handoff",
+      "surface": "Client",
+      "checks": [
+        {
+          "id": "crm-handoff-mounted",
+          "passed": true
+        },
+        {
+          "id": "client-record-workspace-mounted",
+          "passed": true
+        },
+        {
+          "id": "crm-handoff-result-mounted",
+          "passed": true
+        }
+      ],
+      "api_request_count": 16,
+      "api_error_count": 0,
+      "unexpected_write_count": 0,
+      "console_errors": [],
+      "page_errors": [],
+      "forbidden_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-90-client-to-matter-handoff.png",
+      "passed": true
+    },
+    {
+      "id": "matter-to-vault-workspace",
+      "surface": "Matter",
+      "checks": [
+        {
+          "id": "matter-evidence-connected",
+          "passed": true
+        },
+        {
+          "id": "matter-vault-shortcut-mounted",
+          "passed": true
+        },
+        {
+          "id": "matter-vault-workspace-boundary",
+          "passed": true
+        },
+        {
+          "id": "matter-vault-publish-write-disabled",
+          "passed": true
+        }
+      ],
+      "api_request_count": 30,
+      "api_error_count": 0,
+      "unexpected_write_count": 0,
+      "console_errors": [],
+      "page_errors": [],
+      "forbidden_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-90-matter-to-vault-workspace.png",
+      "passed": true
+    },
+    {
+      "id": "vault-to-matter-lookup",
+      "surface": "Vault",
+      "checks": [
+        {
+          "id": "vault-bridge-mounted",
+          "passed": true
+        },
+        {
+          "id": "vault-matter-picker-mounted",
+          "passed": true
+        },
+        {
+          "id": "vault-upload-preflight-mounted",
+          "passed": true
+        },
+        {
+          "id": "vault-action-boundaries-mounted",
+          "passed": true
+        },
+        {
+          "id": "vault-selected-matter-safe-ref",
+          "passed": true
+        },
+        {
+          "id": "vault-boundary-write-disabled",
+          "passed": true
+        },
+        {
+          "id": "vault-boundary-five-rows",
+          "passed": true
+        }
+      ],
+      "api_request_count": 4,
+      "api_error_count": 0,
+      "unexpected_write_count": 0,
+      "console_errors": [],
+      "page_errors": [],
+      "forbidden_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-90-vault-to-matter-lookup.png",
+      "passed": true
+    },
+    {
+      "id": "people-profile-global",
+      "surface": "People/Profile/Global",
+      "checks": [
+        {
+          "id": "people-api-backed-mounted",
+          "passed": true
+        },
+        {
+          "id": "profile-surface-mounted",
+          "passed": true
+        },
+        {
+          "id": "profile-api-populated",
+          "passed": true
+        },
+        {
+          "id": "notification-drawer-mounted",
+          "passed": true
+        },
+        {
+          "id": "global-utility-mounted",
+          "passed": true
+        },
+        {
+          "id": "global-matter-message-card-mounted",
+          "passed": true
+        }
+      ],
+      "api_request_count": 19,
+      "api_error_count": 0,
+      "unexpected_write_count": 0,
+      "console_errors": [],
+      "page_errors": [],
+      "forbidden_text_detected": false,
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-90-people-profile-global.png",
+      "passed": true
+    }
+  ],
+  "verdict": "PASS"
+}

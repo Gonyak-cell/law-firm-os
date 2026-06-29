@@ -1,0 +1,83 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_vltui.vault_status_panel_proof.v0.1",
+  "tuw_id": "LCX-VLTUI-02.01",
+  "generated_at": "2026-06-29T12:22:53.928Z",
+  "web_url": "http://127.0.0.1:5173",
+  "source_refs": [
+    "apps/web/src/components/VaultSurface.jsx",
+    "apps/web/src/data/apiClient.js",
+    "docs/lazycodex/lcx-vltui-01-vault-bridge-contract-2026-06-29.json"
+  ],
+  "boundary": {
+    "synthetic_route_interception_only": true,
+    "customer_document_import_executed": false,
+    "vault_document_write_enabled": false,
+    "production_ready": false,
+    "public_release": false,
+    "go_live_approved": false,
+    "owner_final_approval": false
+  },
+  "cases": [
+    {
+      "id": "unconfigured-missing-token",
+      "http_status": 503,
+      "kind": "guarded",
+      "ready": "false",
+      "request_id": "vltui-proof-unconfigured",
+      "matched_expected_text": true,
+      "forbidden_text_detected": false,
+      "text": "토큰 값은 화면에 표시하지 않습니다. 상태 브리지 설정 필요 소스 fail-closed 경계 건수 비노출 요청 vltui-proof-unconfigured 브리지 설정 필요",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-01-unconfigured-missing-token.png",
+      "passed": true
+    },
+    {
+      "id": "ready-synthetic-matter-app-api",
+      "http_status": 200,
+      "kind": "data",
+      "ready": "true",
+      "request_id": "vltui-proof-ready",
+      "matched_expected_text": true,
+      "forbidden_text_detected": false,
+      "text": "운영 승인 주장은 만들지 않고 연결 상태만 표시합니다. 상태 런타임 준비 소스 Matter app API 경계 합성 사전검사 가능 요청 vltui-proof-ready",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-01-ready-synthetic-matter-app-api.png",
+      "passed": true
+    },
+    {
+      "id": "projection-only-blocked",
+      "http_status": 200,
+      "kind": "data",
+      "ready": "false",
+      "request_id": "vltui-proof-projection-only",
+      "matched_expected_text": true,
+      "forbidden_text_detected": false,
+      "text": "운영 승인 주장은 만들지 않고 연결 상태만 표시합니다. 상태 쓰기 차단 소스 Vault projection-only 경계 쓰기 차단 요청 vltui-proof-projection-only",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-01-projection-only-blocked.png",
+      "passed": true
+    },
+    {
+      "id": "stale-projection-blocked",
+      "http_status": 200,
+      "kind": "data",
+      "ready": "false",
+      "request_id": "vltui-proof-stale-projection",
+      "matched_expected_text": true,
+      "forbidden_text_detected": false,
+      "text": "운영 승인 주장은 만들지 않고 연결 상태만 표시합니다. 상태 쓰기 차단 소스 Stale projection 경계 쓰기 차단 요청 vltui-proof-stale-projection Vault 상태 확인 필요",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-01-stale-projection-blocked.png",
+      "passed": true
+    },
+    {
+      "id": "claim-boundary-blocked",
+      "http_status": 200,
+      "kind": "data",
+      "ready": "false",
+      "request_id": "vltui-proof-claim-boundary",
+      "matched_expected_text": true,
+      "forbidden_text_detected": false,
+      "text": "운영 승인 주장이 감지되어 쓰기 상태로 올리지 않습니다. 상태 쓰기 차단 소스 Matter app API 경계 쓰기 차단 요청 vltui-proof-claim-boundary",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-01-claim-boundary-blocked.png",
+      "passed": true
+    }
+  ],
+  "verdict": "PASS"
+}

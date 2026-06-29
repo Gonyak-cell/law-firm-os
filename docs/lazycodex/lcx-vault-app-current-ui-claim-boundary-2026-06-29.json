@@ -1,0 +1,54 @@
+{
+  "schema": "law-firm-os.lazycodex.lcx-vltui.claim_boundary.v0.1",
+  "generated_at": "2026-06-29T11:06:13Z",
+  "scope": "LCX-VLTUI goal kickoff and LCX-VLTUI-00 implementation rails",
+  "allowed_claims": {
+    "goal_created": true,
+    "lcx_vltui_00_opened": true,
+    "baseline_receipt_created": true,
+    "source_register_created": true,
+    "gap_ledger_created": true,
+    "claim_boundary_created": true,
+    "latest_release_is_prerelease": true,
+    "matter_client_vault_connectable_premise_recorded": true
+  },
+  "forbidden_claims": {
+    "production_ready": false,
+    "public_release": false,
+    "production_go_live": false,
+    "owner_final_approval": false,
+    "app_store_release": false,
+    "microsoft_store_release": false,
+    "customer_document_import_executed": false,
+    "onedrive_cutover_executed": false,
+    "vault_document_write_enabled": false,
+    "external_provider_enabled": false,
+    "real_customer_data_used": false
+  },
+  "required_validators": [
+    "node scripts/validate-matter-desktop-no-public-release-claim.mjs",
+    "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+    "git diff --check"
+  ],
+  "manual_qa_gate_for_later_tuws": {
+    "required": true,
+    "minimum_surfaces": [
+      "Client",
+      "Matter",
+      "Vault"
+    ],
+    "must_drive": [
+      "Client -> Matter handoff",
+      "Matter -> Vault document workspace",
+      "Vault -> Matter lookup/detail",
+      "blocked provider state",
+      "denied/review state"
+    ]
+  },
+  "stop_conditions": [
+    "A TUW requires real production credentials, tokens, cookies, customer documents, or production DB dumps.",
+    "A UI write affordance cannot be backed by a route-mounted, provider-blocked, owner-blocked, guarded, or retired-by-decision state.",
+    "A proposed evidence artifact would expose document body, OCR text, raw prompts, model output, secrets, or unredacted source locations.",
+    "A validator reports a production/public/go-live/owner-approval claim."
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "schema": "law-firm-os.lazycodex.lcx-vltui.vault_status_panel_receipt.v0.1",
+  "generated_at": "2026-06-29T12:23:41Z",
+  "goal_thread_id": "019f12b6-4a23-7042-8d78-524e0ec3f852",
+  "status": "ui_browser_verified",
+  "implemented_tuws": [
+    "LCX-VLTUI-02.01"
+  ],
+  "changed_files": [
+    "apps/web/src/components/VaultSurface.jsx",
+    "apps/web/src/styles.css",
+    "apps/web/test/ui-regression.test.mjs",
+    "scripts/run-lcx-vltui-vault-status-panel-proof.mjs",
+    "scripts/validate-lcx-vltui-vault-status-panel.mjs",
+    "package.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-vault-status-panel-proof.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-vault-status-panel-proof.md"
+  ],
+  "exit_proofs": {
+    "bridge_helper_consumed": "`VaultSurface` imports and calls `fetchVaultBridgeStatus` with UI context only; no bridge token is passed from UI.",
+    "status_panel_rendered": "Top-level Vault document surface renders `Matter 연결 상태` with `data-lcx-vltui-02-vault-bridge-panel=true`.",
+    "state_coverage": "Browser proof covers unconfigured missing token, ready synthetic Matter app API, projection-only blocked, stale projection blocked, and claim-boundary blocked.",
+    "write_boundary": "The panel only exposes status and synthetic preflight readiness; no upload, version upload, metadata mutation, legal hold, import, or document write action is enabled.",
+    "secret_boundary": "The panel displays safe state labels and request ids only; `LAWOS_VAULT_BRIDGE_TOKEN`, `MATTER_APP_API_TOKEN`, bearer values, customer document bodies, and storage pointers are not displayed."
+  },
+  "browser_proof": {
+    "command": "npm run lcx:vltui:vault-status:proof",
+    "verdict": "PASS",
+    "json": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-vault-status-panel-proof.json",
+    "markdown": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-vault-status-panel-proof.md",
+    "screenshots": [
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-01-unconfigured-missing-token.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-01-ready-synthetic-matter-app-api.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-01-projection-only-blocked.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-01-stale-projection-blocked.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-01-claim-boundary-blocked.png"
+    ]
+  },
+  "lazyweb_report": {
+    "required_by_repo_router": true,
+    "version": "0.13.7",
+    "integrity": "lw1.495c33c6b1070d05de80911de52328c728ff39d1.0.13.7.b19acb98270a",
+    "status": "attempted_blocked_by_lazyweb_input_adapter",
+    "attempts": [
+      {
+        "job_id": "dac34186-b3f8-483b-aef6-ac8490ec2d54",
+        "input_mode": "image_base64_with_mime_type",
+        "result": "error",
+        "error": "synthesize_failed: invalid input[0].content[1].image_url; expected base64-encoded data URL"
+      },
+      {
+        "job_id": "aac5400a-ebe6-4557-8bb8-b7e49ed61f5c",
+        "input_mode": "image_url_data_url",
+        "result": "error",
+        "error": "JSON_JOB_FAILED: image_url must be http(s), got data://"
+      }
+    ],
+    "fallback_evidence": [
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/vault-current-before-lcx-vltui-02-01.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-01-ready-synthetic-matter-app-api.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-01-unconfigured-missing-token.png"
+    ]
+  },
+  "verification": {
+    "web_ui_regression": "PASS: npm --workspace apps/web run test:ui (17/17)",
+    "web_build": "PASS: npm --workspace apps/web run build with existing Vite chunk-size warning",
+    "lcx_vltui_bridge_validator": "PASS: node scripts/validate-lcx-vltui-bridge-contract.mjs",
+    "lcx_vltui_vault_status_validator": "PASS: npm run lcx:vltui:vault-status:validate",
+    "browser_proof": "PASS: npm run lcx:vltui:vault-status:proof (5/5 scenarios)",
+    "claim_validator": "PASS: node scripts/validate-matter-desktop-no-public-release-claim.mjs",
+    "json_parse": "PASS",
+    "git_diff_check": "PASS",
+    "script_syntax": "PASS: node --check scripts/run-lcx-vltui-vault-status-panel-proof.mjs",
+    "lsp_diagnostics": "NOT_RUN: MCP LSP transport closed during diagnostics request",
+    "sloplint": "PASS_EXIT_WITH_EXISTING_WEAK_CSS_FLAGS: new vault bridge CSS block produced no new decorative background flags; existing styles.css weak flags remain outside this patch"
+  },
+  "claim_boundary": {
+    "production_ready": false,
+    "public_release": false,
+    "production_go_live": false,
+    "owner_final_approval": false,
+    "vault_document_write_enabled": false,
+    "customer_document_import_executed": false,
+    "onedrive_cutover_executed": false
+  },
+  "next_tuws": [
+    "LCX-VLTUI-02.02",
+    "LCX-VLTUI-02.03",
+    "LCX-VLTUI-02.04",
+    "LCX-VLTUI-02.05",
+    "LCX-VLTUI-02.06"
+  ]
+}

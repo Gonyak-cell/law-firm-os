@@ -1,0 +1,69 @@
+{
+  "schema": "law-firm-os.lazycodex.lcx-vltui.matter_picker_receipt.v0.1",
+  "generated_at": "2026-06-29T12:32:32Z",
+  "goal_thread_id": "019f12b6-4a23-7042-8d78-524e0ec3f852",
+  "status": "api_ui_browser_verified",
+  "implemented_tuws": [
+    "LCX-VLTUI-02.02"
+  ],
+  "changed_files": [
+    "apps/api/src/matter-runtime-context.js",
+    "apps/api/src/routes/matters.js",
+    "apps/api/test/matter-vault-bridge-api.test.js",
+    "apps/web/src/components/VaultSurface.jsx",
+    "apps/web/src/data/apiClient.js",
+    "apps/web/src/styles.css",
+    "apps/web/test/ui-regression.test.mjs",
+    "scripts/run-lcx-vltui-matter-picker-proof.mjs",
+    "scripts/validate-lcx-vltui-matter-picker.mjs",
+    "package.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-picker-proof.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-picker-proof.md"
+  ],
+  "exit_proofs": {
+    "law_lookup_route": "`GET /api/matters/vault-bridge/matter-lookup` is implemented behind existing bridge bearer auth and permission context.",
+    "uuid_rejection": "UUID-shaped normal input returns `MATTER_API_VALIDATION_ERROR` in API tests and is blocked locally in the UI before another lookup request.",
+    "permission_negative": "Missing bearer lookup returns guarded empty items with `count_leak_prevented=true`.",
+    "positive_lookup": "Synthetic upserted Matter is returned as a reference-safe lookup candidate with Matter Code, client label, source revision, and selected ref only.",
+    "ui_picker": "`VaultSurface` renders `data-lcx-vltui-02-matter-picker=true`, candidate selection, and selected Matter ref state."
+  },
+  "browser_proof": {
+    "command": "npm run lcx:vltui:matter-picker:proof",
+    "verdict": "PASS",
+    "json": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-picker-proof.json",
+    "markdown": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-picker-proof.md",
+    "screenshots": [
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-02-positive-selection.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-02-guarded-lookup.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-02-uuid-local-block.png"
+    ]
+  },
+  "verification": {
+    "api_vault_bridge_test": "PASS: node --test apps/api/test/matter-vault-bridge-api.test.js (5/5)",
+    "web_ui_regression": "PASS: npm --workspace apps/web run test:ui (17/17)",
+    "lcx_vltui_bridge_validator": "PASS: node scripts/validate-lcx-vltui-bridge-contract.mjs",
+    "browser_proof": "PASS: npm run lcx:vltui:matter-picker:proof (3/3 scenarios)",
+    "script_syntax": "PASS: node --check scripts/run-lcx-vltui-matter-picker-proof.mjs",
+    "visual_qa": "PASS: inspected positive-selection and uuid-local-block screenshots",
+    "api_workspace_test": "PASS: npm --workspace apps/api run test (197/197)",
+    "web_build": "PASS: npm --workspace apps/web run build with existing Vite chunk-size warning",
+    "claim_boundary": "PASS: node scripts/validate-matter-desktop-no-public-release-claim.mjs",
+    "git_diff_check": "PASS",
+    "sloplint": "PASS_EXIT_WITH_EXISTING_WEAK_CSS_FLAGS: new Matter picker CSS uses restrained operational styles; existing styles.css weak flags remain outside this patch"
+  },
+  "claim_boundary": {
+    "production_ready": false,
+    "public_release": false,
+    "production_go_live": false,
+    "owner_final_approval": false,
+    "vault_document_write_enabled": false,
+    "customer_document_import_executed": false,
+    "onedrive_cutover_executed": false
+  },
+  "next_tuws": [
+    "LCX-VLTUI-02.03",
+    "LCX-VLTUI-02.04",
+    "LCX-VLTUI-02.05",
+    "LCX-VLTUI-02.06"
+  ]
+}

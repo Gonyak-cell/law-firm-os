@@ -35,7 +35,7 @@ import {
 } from "./master-data-context.js";
 import { authorizeHrxApiRequest } from "./middleware/hrx-authz.js";
 import { authorizeHrxStepUpRequest } from "./middleware/hrx-step-up-context.js";
-import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, parsePermissionContext } from "./permission-gate.js";
+import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, evaluateRouteDecision, parsePermissionContext } from "./permission-gate.js";
 import { createHrxRuntimeContext, handleHrxApiRequest, seedHrxDurableRuntimeStore } from "./hrx-runtime-context.js";
 import {
   MATTER_BOUNDED_CONTEXT,
@@ -331,11 +331,24 @@ export function createDefaultEnterpriseReadinessRuntime({
   return createEnterpriseReadinessRuntimeContext({ repository: enterpriseReadinessRepository });
 }
 
+export const PROFILE_BOUNDED_CONTEXT = Object.freeze({
+  bounded_context: "profile",
+  contract_ref: "contracts/profile-read-contract.json",
+  contract_schema_version: "law-firm-os.profile-read-contract.v0.1",
+  endpoints: Object.freeze(["GET /api/profile/me"]),
+  data_source: "session_permission_context",
+  runtime_persistence: "read_only_session_projection",
+  runtime_write_ready: false,
+  production_ready_claim: false,
+  fail_closed: true,
+});
+
 export const SERVICE_DESCRIPTOR = Object.freeze({
   service: "@law-firm-os/api",
   version: "0.1.0",
   bounded_contexts: Object.freeze([
     MASTER_DATA_BOUNDED_CONTEXT,
+    PROFILE_BOUNDED_CONTEXT,
     MATTER_BOUNDED_CONTEXT,
     VAULT_DMS_BOUNDED_CONTEXT,
     CRM_INTAKE_BOUNDED_CONTEXT,
@@ -395,6 +408,118 @@ function hasJsonRequestBody(method) {
   return method === "POST" || method === "PATCH" || method === "DELETE";
 }
 
+function handleProfileApiRequest({ pathname, method, query, context, requestId } = {}) {
+  if (pathname !== "/api/profile/me") {
+    return {
+      status: 404,
+      body: {
+        request_id: requestId,
+        outcome: "blocked",
+        item: null,
+        safe_error_codes: ["PROFILE_NOT_FOUND"],
+        audit_hint_ref: query.audit_hint_ref ?? null,
+        ui_state: "error",
+        count_leak_prevented: true,
+        production_ready_claim: false,
+      },
+    };
+  }
+  if (method !== "GET") {
+    return {
+      status: 405,
+      body: {
+        request_id: requestId,
+        outcome: "blocked",
+        item: null,
+        safe_error_codes: ["PROFILE_METHOD_NOT_ALLOWED"],
+        audit_hint_ref: query.audit_hint_ref ?? null,
+        ui_state: "error",
+        count_leak_prevented: true,
+        production_ready_claim: false,
+      },
+    };
+  }
+
+  const tenantId = query.tenant_id ?? context?.principal?.tenant_id ?? "tenant_rp04_synthetic";
+  const actorRef = context?.principal?.user_id ?? null;
+  const decision = evaluateRouteDecision({
+    context,
+    resource: {
+      tenant_id: tenantId,
+      resource_type: "user_profile",
+      resource_id: actorRef ?? "profile_unknown",
+    },
+    action: "profile:read",
+  });
+  const auditHintRef = query.audit_hint_ref ?? "ui_profile_me_probe";
+
+  if (decision.effect === "review_required") {
+    return {
+      status: 403,
+      body: {
+        request_id: requestId,
+        outcome: "review_required",
+        item: null,
+        safe_error_codes: ["PROFILE_REVIEW_REQUIRED"],
+        audit_hint_ref: auditHintRef,
+        ui_state: "review",
+        count_leak_prevented: true,
+        production_ready_claim: false,
+      },
+    };
+  }
+  if (decision.effect !== "allow") {
+    return {
+      status: 403,
+      body: {
+        request_id: requestId,
+        outcome: "denied",
+        item: null,
+        safe_error_codes: ["PROFILE_PERMISSION_DENIED"],
+        audit_hint_ref: auditHintRef,
+        ui_state: "denied",
+        count_leak_prevented: true,
+        production_ready_claim: false,
+      },
+    };
+  }
+
+  const roleIds = Array.isArray(context?.principal?.role_ids) ? context.principal.role_ids : [];
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      item: {
+        profile_ref: `profile:${actorRef}`,
+        actor_ref: actorRef,
+        tenant_ref: tenantId,
+        display_name: "세션 사용자",
+        primary_role_label: roleIds[0] ?? "role_unassigned",
+        role_count: roleIds.length,
+        contract_summary: {
+          state: "connected",
+          visible_contract_count: 0,
+          source_ref: "session_profile_projection",
+        },
+        account_summary: {
+          state: "connected",
+          session_principal_source: context?.principal?.session_principal_source ?? "permission_context",
+          session_source_ref: context?.principal?.session_source_ref ?? null,
+        },
+        secret_material_included: false,
+        direct_identifier_included: false,
+        production_ready_claim: false,
+      },
+      safe_error_codes: [],
+      audit_hint_ref: auditHintRef,
+      ui_state: "populated",
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
 async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, enterpriseReadinessRuntime } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
@@ -403,6 +528,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
 
   const clientGroupMatch = pathname.match(/^\/master-data\/client-groups\/([^/]+)$/);
   const isHrxPath = pathname.startsWith("/api/hrx");
+  const isProfilePath = pathname.startsWith("/api/profile");
   const isMatterPath = pathname.startsWith("/api/matters");
   const isVaultPath = pathname.startsWith("/api/vault");
   const isCrmIntakePath = pathname.startsWith("/api/crm") || pathname.startsWith("/api/intake");
@@ -423,6 +549,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
     pathname === "/master-data/relationships" ||
     clientGroupMatch !== null ||
     isHrxPath ||
+    isProfilePath ||
     isMatterPath ||
     isVaultPath ||
     isCrmIntakePath ||
@@ -442,7 +569,7 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
     sendJson(res, 404, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "not_found" });
     return;
   }
-  if (!isHrxPath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isUiReadinessPath && !isEnterpriseReadinessPath && req.method !== "GET") {
+  if (!isHrxPath && !isProfilePath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isUiReadinessPath && !isEnterpriseReadinessPath && req.method !== "GET") {
     sendJson(res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
@@ -475,6 +602,13 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       permissionContext,
     });
     sendJson(res, result.status, { request_id: requestId, ...result.body });
+    return;
+  }
+
+  if (isProfilePath) {
+    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const result = handleProfileApiRequest({ pathname, method: req.method, query, context, requestId });
+    sendJson(res, result.status, result.body);
     return;
   }
 

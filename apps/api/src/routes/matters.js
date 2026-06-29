@@ -7,6 +7,8 @@ export const MATTER_VAULT_MATTER_ROUTES = Object.freeze([
   'GET /api/matters/list-views',
   'GET /api/matters/recently-viewed',
   'GET /api/matters/vault-bridge/status',
+  'GET /api/matters/vault-bridge/matter-lookup',
+  'POST /api/matters/vault-bridge/upload-preflight',
   'PATCH /api/matters/:id',
   'POST /api/matters/:id/documents',
   'POST /api/matters/list-views',

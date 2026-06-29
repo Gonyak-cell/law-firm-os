@@ -1,0 +1,103 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_vltui.session_principal_receipt.v0.1",
+  "generated_at": "2026-06-29T00:00:00.000Z",
+  "status": "session-header-browser-verified",
+  "implemented_tuws": [
+    "LCX-VLTUI-04.01",
+    "LCX-VLTUI-04.02"
+  ],
+  "scope": {
+    "phase": "LCX-VLTUI-04 Session, Tenant, Actor, And Audit Principal Bridge",
+    "implemented_slice": "desktop-to-web session envelope and session-derived Client/Matter/Vault permission headers",
+    "remaining_slice": [
+      "LCX-VLTUI-04.03",
+      "LCX-VLTUI-04.04"
+    ]
+  },
+  "source_changes": [
+    {
+      "path": "apps/desktop/src/renderer/offline.html",
+      "change": "Stores a reference-only desktop-to-web session envelope before product UI handoff and clears it on logout."
+    },
+    {
+      "path": "apps/web/src/data/apiClient.js",
+      "change": "Reads the session envelope, rejects secret-bearing shapes, and derives Client/Matter/Vault permission context principals from safe session refs when present."
+    },
+    {
+      "path": "scripts/run-lcx-vltui-session-principal-proof.mjs",
+      "change": "Browser proof captures live app-generated Client/Matter/Vault permission headers under allow, review, and denied states."
+    },
+    {
+      "path": "scripts/validate-lcx-vltui-session-principal.mjs",
+      "change": "Static and artifact validator for LCX-VLTUI-04.01 through LCX-VLTUI-04.02."
+    }
+  ],
+  "session_contract": {
+    "storage_key": "lawos.session.envelope",
+    "schema_version": "law-firm-os.desktop-web-session-envelope.v0.1",
+    "allowed_fields": [
+      "schema_version",
+      "state",
+      "session_ref",
+      "source",
+      "actor_ref",
+      "tenant_refs",
+      "role_ids",
+      "scopes",
+      "review_state",
+      "expires_at"
+    ],
+    "forbidden_material": [
+      "password",
+      "reset token",
+      "bearer token",
+      "access token",
+      "refresh token",
+      "raw cookie",
+      "secret",
+      "credential"
+    ],
+    "permission_domains": {
+      "client": "tenant_rp04_synthetic",
+      "matter": "tenant_rp05_synthetic",
+      "vault": "tenant_amic_matter_vault"
+    },
+    "fallback_without_session": "existing synthetic permission contexts remain active for local test mode"
+  },
+  "browser_proof": {
+    "path": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-session-principal-proof.json",
+    "markdown": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-session-principal-proof.md",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-04-session-principal-proof.png",
+    "verdict": "PASS",
+    "covered_cases": [
+      "client-allow-session-principal",
+      "matter-allow-session-principal",
+      "vault-allow-session-principal",
+      "vault-bridge-allow-session-principal",
+      "matter-envelope-review-fail-closed",
+      "vault-query-denied-fail-closed"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm run lcx:vltui:session-principal:proof",
+      "npm run lcx:vltui:session-principal:validate",
+      "npm --workspace apps/web run test:ui",
+      "npm --workspace apps/web run build",
+      "npm --workspace apps/api run test",
+      "node scripts/validate-matter-desktop-no-public-release-claim.mjs",
+      "git diff --check",
+      "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed"
+    ],
+    "result": "PASS after local verification; Vite chunk-size warning remains pre-existing and non-blocking"
+  },
+  "claim_boundary": {
+    "production_ready": false,
+    "public_release": false,
+    "production_go_live": false,
+    "owner_final_approval": false,
+    "customer_data_write_executed": false,
+    "secret_material_in_envelope": false,
+    "secret_material_in_permission_header": false
+  }
+}

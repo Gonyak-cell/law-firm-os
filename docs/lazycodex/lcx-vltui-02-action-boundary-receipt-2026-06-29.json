@@ -1,0 +1,108 @@
+{
+  "schema": "law-firm-os.lazycodex.lcx_vltui.action_boundary_receipt.v0.1",
+  "generated_at": "2026-06-29T13:00:47.613Z",
+  "status": "ui-browser-verified",
+  "implemented_tuws": [
+    "LCX-VLTUI-02.04",
+    "LCX-VLTUI-02.05",
+    "LCX-VLTUI-02.06"
+  ],
+  "summary": "Vault version upload, metadata mutation, legal hold, retention, and document-action controls are mounted as guarded boundary states behind the selected Matter and upload-preflight result. No document bytes, storage pointer, version write, metadata write, legal hold mutation, retention mutation, or document action write is enabled.",
+  "source_refs": [
+    "apps/web/src/components/VaultSurface.jsx",
+    "apps/web/src/styles.css",
+    "apps/web/test/ui-regression.test.mjs",
+    "scripts/run-lcx-vltui-browser-qa.mjs",
+    "scripts/validate-lcx-vltui-action-boundaries.mjs"
+  ],
+  "browser_proof": {
+    "path": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-browser-qa-proof.json",
+    "verdict": "PASS",
+    "cases": [
+      "ready-preflight-passed",
+      "source-blocked",
+      "guarded-preflight"
+    ],
+    "unexpected_write_calls": 0,
+    "screenshots": [
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-06-boundary-passed.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-06-boundary-source-blocked.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-02-06-boundary-guarded.png"
+    ]
+  },
+  "covered_boundaries": [
+    {
+      "id": "version-upload",
+      "owner": "Vault",
+      "state_after_passed_preflight": "guarded",
+      "write_enabled": false
+    },
+    {
+      "id": "metadata-mutation",
+      "owner": "Matter app",
+      "state_after_passed_preflight": "guarded",
+      "write_enabled": false
+    },
+    {
+      "id": "legal-hold",
+      "owner": "Owner decision needed",
+      "state_after_passed_preflight": "owner-blocked",
+      "write_enabled": false
+    },
+    {
+      "id": "retention",
+      "owner": "Vault Records",
+      "state_after_passed_preflight": "records-blocked",
+      "write_enabled": false
+    },
+    {
+      "id": "document-action",
+      "owner": "Matter app + Vault",
+      "state_after_passed_preflight": "guarded",
+      "write_enabled": false
+    }
+  ],
+  "verification": {
+    "web_ui_regression": "PASS 17/17",
+    "script_syntax": "PASS",
+    "browser_qa": "PASS 3/3",
+    "visual_qa": "PASS boundary-passed, boundary-source-blocked, boundary-guarded screenshots",
+    "api_workspace_test": "PASS 198/198",
+    "web_build": "PASS with existing Vite chunk-size warning",
+    "lcx_vltui_bridge_validator": "PASS",
+    "lcx_vltui_vault_status_validator": "PASS",
+    "lcx_vltui_matter_picker_validator": "PASS",
+    "lcx_vltui_upload_preflight_validator": "PASS",
+    "lcx_vltui_action_boundaries_validator": "PASS",
+    "claim_validator": "PASS",
+    "git_diff_check": "PASS",
+    "json_parse": "PASS 3/3",
+    "sloplint": "PASS_EXIT_WITH_EXISTING_WEAK_CSS_FLAGS"
+  },
+  "lazyweb_report": {
+    "status": "attempted_failed",
+    "result": "synthesize_failed_invalid_image",
+    "job_id": "8124661b-ca39-462a-bd3e-d3809ecf2a66"
+  },
+  "claim_boundary": {
+    "production_ready": false,
+    "public_release": false,
+    "production_go_live": false,
+    "go_live_approved": false,
+    "owner_final_approval": false,
+    "customer_document_import_executed": false,
+    "vault_document_write_enabled": false,
+    "version_upload_enabled": false,
+    "metadata_mutation_enabled": false,
+    "legal_hold_mutation_enabled": false,
+    "retention_mutation_enabled": false,
+    "document_action_write_enabled": false
+  },
+  "next_slice": [
+    "LCX-VLTUI-03.01",
+    "LCX-VLTUI-03.02",
+    "LCX-VLTUI-03.03",
+    "LCX-VLTUI-03.04",
+    "LCX-VLTUI-03.05"
+  ]
+}

@@ -1,0 +1,212 @@
+{
+  "schema": "law-firm-os.lazycodex.lcx-vltui.vault_bridge_contract.v0.1",
+  "generated_at": "2026-06-29T11:16:21Z",
+  "goal_thread_id": "019f12b6-4a23-7042-8d78-524e0ec3f852",
+  "status": "contract_implemented_sanitized",
+  "implemented_tuws": [
+    "LCX-VLTUI-01.02",
+    "LCX-VLTUI-01.03",
+    "LCX-VLTUI-01.04",
+    "LCX-VLTUI-01.05",
+    "LCX-VLTUI-01.06"
+  ],
+  "law_firm_os_bridge": {
+    "repo": "/Users/jws/Documents/Codex/Law Firm OS",
+    "routes_source": "apps/api/src/matter-runtime-context.js",
+    "web_helper_source": "apps/web/src/data/apiClient.js",
+    "endpoints": [
+      "GET /api/matters/vault-bridge/status",
+      "GET /api/matters/vault-bridge/matter-lookup",
+      "POST /api/matters/vault-bridge/upload-preflight",
+      "POST /api/matters/vault-bridge/clients/upsert",
+      "POST /api/matters/vault-bridge/matters/upsert"
+    ],
+    "required_runtime_secret_names": [
+      "LAWOS_VAULT_BRIDGE_TOKEN"
+    ],
+    "secret_values_recorded": false
+  },
+  "vault_app_contract": {
+    "repo": "/Users/jws/Projects/amic-vault",
+    "branch_observed": "codex/matter-bridge-post-merge-smoke",
+    "head_observed": "ffc9217a0016e862e81d2b1beed3eb7be9bb663b",
+    "contract_doc": "docs/integrations/matter-app-vault-contract.md",
+    "runtime_source": "apps/api/src/modules/integrations/matter-app/matter-app-runtime.service.ts",
+    "runtime_tests": [
+      "apps/api/src/modules/integrations/matter-app/matter-app-runtime.service.spec.ts",
+      "apps/api/src/modules/integrations/matter-app/matter-source-policy.spec.ts",
+      "apps/web/src/lib/matter-app.spec.ts",
+      "apps/web/src/lib/api-client.spec.ts",
+      "apps/web/src/components/matter/matter-code-picker.test.tsx"
+    ],
+    "endpoints": [
+      "GET /v1/integrations/matter-app/status",
+      "GET /v1/integrations/matter-app/matter-lookup"
+    ]
+  },
+  "status_state_map": [
+    {
+      "id": "unconfigured",
+      "vault_endpoint": "GET /v1/integrations/matter-app/status",
+      "vault_mode": "unconfigured",
+      "law_bridge_expected": "blocked",
+      "source_available": false,
+      "upload_authoritative": false,
+      "may_call_law_bridge_upserts": false,
+      "safe_reason": "unconfigured"
+    },
+    {
+      "id": "vault_projection_only",
+      "vault_endpoint": "GET /v1/integrations/matter-app/status",
+      "vault_mode": "vault_projection_only",
+      "law_bridge_expected": "not_write_authoritative",
+      "source_available": true,
+      "upload_authoritative": false,
+      "may_call_law_bridge_upserts": false,
+      "safe_reason": "dev_test_projection_only"
+    },
+    {
+      "id": "stale_projection",
+      "vault_endpoint": "GET /v1/integrations/matter-app/status",
+      "vault_mode": "unconfigured",
+      "requested_mode": "matter_app_event_projection",
+      "law_bridge_expected": "blocked_before_lookup_or_upload",
+      "source_available": false,
+      "upload_authoritative": false,
+      "may_call_law_bridge_upserts": false,
+      "safe_reason": "stale_projection"
+    },
+    {
+      "id": "denied",
+      "vault_endpoint": "GET /v1/integrations/matter-app/matter-lookup",
+      "vault_mode": "matter_app_api",
+      "law_bridge_expected": "permission_negative",
+      "source_available": true,
+      "upload_authoritative": true,
+      "may_call_law_bridge_upserts": false,
+      "safe_reason": "permission_denied_or_ethical_wall"
+    },
+    {
+      "id": "matter_app_api_ready",
+      "vault_endpoint": "GET /v1/integrations/matter-app/status",
+      "vault_mode": "matter_app_api",
+      "law_bridge_expected": "authenticated_reference_only_upsert_allowed",
+      "source_available": true,
+      "upload_authoritative": true,
+      "may_call_law_bridge_upserts": true,
+      "safe_reason": null
+    }
+  ],
+  "synthetic_upsert_handshake": {
+    "client": {
+      "tenantRef": "tenant_lcx_vltui",
+      "idempotencyKeyHash": "hash-client-lcx-vltui-alpha",
+      "clientId": "client_lcx_vltui_alpha",
+      "clientDisplayName": "Synthetic Alpha Client",
+      "clientShortName": "SyntheticAlpha",
+      "approvalRef": "lcx-vltui-approval-alpha",
+      "migrationApprovalRef": "lcx-vltui-approval-alpha",
+      "supportingEvidenceRefs": [
+        "lcx-vltui-evidence-alpha"
+      ],
+      "migrationOperatorRef": "lcx-vltui-operator"
+    },
+    "matter": {
+      "tenantRef": "tenant_lcx_vltui",
+      "idempotencyKeyHash": "hash-matter-lcx-vltui-alpha",
+      "matterAppMatterId": "matter_lcx_vltui_alpha",
+      "clientId": "client_lcx_vltui_alpha",
+      "clientDisplayName": "Synthetic Alpha Client",
+      "clientShortName": "SyntheticAlpha",
+      "matterCode": "SyntheticAlpha/Civil/Contract",
+      "matterName": "SyntheticAlpha/Civil/Contract",
+      "matterTypeEnglish": "Civil",
+      "matterDetailTypeKorean": "Contract",
+      "sourceRevision": "lcx-vltui-source-revision-alpha",
+      "sourceUpdatedAt": "2026-06-29T11:16:21Z",
+      "approvalRef": "lcx-vltui-approval-alpha",
+      "migrationApprovalRef": "lcx-vltui-approval-alpha",
+      "supportingEvidenceRefs": [
+        "lcx-vltui-evidence-alpha"
+      ],
+      "migrationOperatorRef": "lcx-vltui-operator"
+    },
+    "expected_replay": {
+      "client_duplicate_create_count": 0,
+      "matter_duplicate_create_count": 0,
+      "idempotent_replay": true,
+      "response_shape": [
+        "clientId",
+        "matterAppMatterId",
+        "matterCode",
+        "sourceRevision",
+        "action",
+        "idempotent_replay",
+        "production_ready_claim"
+      ]
+    }
+  },
+  "negative_cases": [
+    {
+      "id": "law_bridge_token_missing",
+      "surface": "Law Firm OS",
+      "expected_http_status": 503,
+      "safe_error_code": "MATTER_VAULT_BRIDGE_REQUIRED",
+      "write_capable_state": false
+    },
+    {
+      "id": "law_bridge_bearer_missing_or_wrong",
+      "surface": "Law Firm OS",
+      "expected_http_status": 403,
+      "safe_error_code": "MATTER_VAULT_BRIDGE_BLOCKED",
+      "write_capable_state": false
+    },
+    {
+      "id": "matter_app_api_base_url_missing",
+      "surface": "Vault app",
+      "expected_unavailable_reason": "matter_app_api_config_missing",
+      "write_capable_state": false
+    },
+    {
+      "id": "stale_source_timestamp",
+      "surface": "Vault app",
+      "expected_unavailable_reason": "stale_projection",
+      "write_capable_state": false
+    },
+    {
+      "id": "matter_projection_mismatch",
+      "surface": "Vault app",
+      "expected_unavailable_reason": "projection_mismatch_or_validation_error",
+      "write_capable_state": false
+    }
+  ],
+  "mv_link_ladder": [
+    "MV-LINK-017 baseline counts",
+    "MV-LINK-018 authenticated status",
+    "MV-LINK-019 lookup positive",
+    "MV-LINK-020 permission negative",
+    "MV-LINK-021 replay duplicate-create zero",
+    "MV-LINK-022 web picker/helper evidence",
+    "MV-LINK-023 runtime config fixation",
+    "MV-LINK-024 sanitized release receipt"
+  ],
+  "claim_boundary": {
+    "production_ready": false,
+    "public_release": false,
+    "production_go_live": false,
+    "owner_final_approval": false,
+    "vault_document_write_enabled": false,
+    "customer_document_import_executed": false,
+    "onedrive_cutover_executed": false,
+    "secret_material_recorded": false
+  },
+  "sanitization": {
+    "no_customer_documents": true,
+    "no_raw_document_text": true,
+    "no_ocr_excerpt": true,
+    "no_object_key": true,
+    "no_cookie": true,
+    "no_secret_value": true,
+    "receipts_reference_paths_and_counts_only": true
+  }
+}

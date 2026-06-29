@@ -1,0 +1,558 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_vltui.matter_sections_proof.v0.1",
+  "tuw_ids": [
+    "LCX-VLTUI-06.01",
+    "LCX-VLTUI-06.02",
+    "LCX-VLTUI-06.03",
+    "LCX-VLTUI-06.04",
+    "LCX-VLTUI-06.05",
+    "LCX-VLTUI-06.06",
+    "LCX-VLTUI-06.07",
+    "LCX-VLTUI-06.08",
+    "LCX-VLTUI-06.09",
+    "LCX-VLTUI-06.10",
+    "LCX-VLTUI-06.11"
+  ],
+  "generated_at": "2026-06-29T14:28:59.127Z",
+  "verdict": "PASS",
+  "boundary": {
+    "synthetic_route_interception_only": true,
+    "planned_matter_section_count": 0,
+    "provider_send_executed": false,
+    "vault_document_mutation_executed": false,
+    "import_execute_mutation_executed": false,
+    "payment_or_invoice_send_executed": false,
+    "owner_final_approval": false,
+    "production_ready": false,
+    "public_release": false,
+    "go_live_approved": false
+  },
+  "cases": [
+    {
+      "id": "matter-planned-section-implementation",
+      "passed": true,
+      "checks": [
+        {
+          "id": "all-matter-sections-connected",
+          "passed": true
+        },
+        {
+          "id": "lifecycle-closeout-archive-boundary",
+          "passed": true
+        },
+        {
+          "id": "task-note-create-update-audit",
+          "passed": true
+        },
+        {
+          "id": "vault-evidence-template-shortcut",
+          "passed": true
+        },
+        {
+          "id": "seal-approval-owner-provider-blocked",
+          "passed": true
+        },
+        {
+          "id": "meeting-announcement-calendar-channel",
+          "passed": true
+        },
+        {
+          "id": "expense-finance-boundary-audited",
+          "passed": true
+        },
+        {
+          "id": "search-risk-permission-scoped",
+          "passed": true
+        },
+        {
+          "id": "integration-settings-no-credentials",
+          "passed": true
+        },
+        {
+          "id": "import-dry-run-guarded-execute",
+          "passed": true
+        },
+        {
+          "id": "no-forbidden-session-secret-or-release-claim",
+          "passed": true
+        },
+        {
+          "id": "no-page-errors",
+          "passed": true
+        }
+      ],
+      "sections": [
+        {
+          "section": "matter-closeout",
+          "marker": "closeout",
+          "connected": true
+        },
+        {
+          "section": "matter-archive",
+          "marker": "archive",
+          "connected": true
+        },
+        {
+          "section": "matter-tasks",
+          "marker": "tasks",
+          "connected": true
+        },
+        {
+          "section": "matter-notes",
+          "marker": "notes",
+          "connected": true
+        },
+        {
+          "section": "matter-evidence",
+          "marker": "evidence",
+          "connected": true
+        },
+        {
+          "section": "matter-templates",
+          "marker": "templates",
+          "connected": true
+        },
+        {
+          "section": "matter-seal",
+          "marker": "seal",
+          "connected": true
+        },
+        {
+          "section": "matter-meetings",
+          "marker": "meetings",
+          "connected": true
+        },
+        {
+          "section": "matter-announcements",
+          "marker": "announcements",
+          "connected": true
+        },
+        {
+          "section": "matter-client-requests",
+          "marker": "client-requests",
+          "connected": true
+        },
+        {
+          "section": "matter-approvals",
+          "marker": "approvals",
+          "connected": true
+        },
+        {
+          "section": "matter-expenses",
+          "marker": "expenses",
+          "connected": true
+        },
+        {
+          "section": "matter-search",
+          "marker": "search",
+          "connected": true
+        },
+        {
+          "section": "matter-risk",
+          "marker": "risk",
+          "connected": true
+        },
+        {
+          "section": "matter-integrations",
+          "marker": "integrations",
+          "connected": true
+        },
+        {
+          "section": "matter-settings",
+          "marker": "settings",
+          "connected": true
+        },
+        {
+          "section": "matter-import",
+          "marker": "import",
+          "connected": true
+        }
+      ],
+      "writes": [
+        {
+          "kind": "lifecycle_closeout",
+          "path": "/api/matters/matter_lcx_vltui_06_alpha/status-transitions",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w02_matter_status_transition_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "activity_create",
+          "path": "/api/matters/matter_lcx_vltui_06_alpha/activities",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w03_activity_write_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "activity_patch",
+          "path": "/api/matters/matter_lcx_vltui_06_alpha/activities/activity_lcx_vltui_06_task",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w03_activity_patch_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "activity_create",
+          "path": "/api/matters/matter_lcx_vltui_06_alpha/activities",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w03_activity_write_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "owner_blocked",
+          "path": "/api/record-actions/matter/bulk-updates",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w02_record_actions_matter_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "provider_blocked",
+          "path": "/api/matters/matter_lcx_vltui_06_alpha/channel/provider-sync",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w03_channel_provider_sync_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "calendar_create",
+          "path": "/api/matters/matter_lcx_vltui_06_alpha/calendar-events",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w03_calendar_write_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "deadline_change_request",
+          "path": "/api/matters/matter_lcx_vltui_06_alpha/calendar-events/calendar_lcx_vltui_06_hearing",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w03_calendar_patch_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "deadline_confirm",
+          "path": "/api/matters/matter_lcx_vltui_06_alpha/deadlines/calendar_lcx_vltui_06_hearing/confirm-change",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w03_deadline_confirm_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "channel_message",
+          "path": "/api/matters/matter_lcx_vltui_06_alpha/channel/messages",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w03_channel_message_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "finance_time_entry",
+          "path": "/api/finance/time-entries",
+          "principal": {
+            "user_id": "matter_finance_operator",
+            "tenant_id": "tenant_cmp_g7_synthetic",
+            "role_ids": [
+              "finance_user"
+            ]
+          },
+          "audit_hint_ref": "ui_cmp_g7_finance_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "finance_wip",
+          "path": "/api/finance/wip",
+          "principal": {
+            "user_id": "matter_finance_operator",
+            "tenant_id": "tenant_cmp_g7_synthetic",
+            "role_ids": [
+              "finance_user"
+            ]
+          },
+          "audit_hint_ref": "ui_cmp_g7_finance_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "finance_payment",
+          "path": "/api/finance/payments",
+          "principal": {
+            "user_id": "matter_finance_operator",
+            "tenant_id": "tenant_cmp_g7_synthetic",
+            "role_ids": [
+              "finance_user"
+            ]
+          },
+          "audit_hint_ref": "ui_cmp_g7_finance_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "risk_field_update",
+          "path": "/api/record-actions/matter/matter_lcx_vltui_06_alpha/field-update",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w02_record_actions_matter_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "risk_field_update",
+          "path": "/api/record-actions/matter/matter_lcx_vltui_06_alpha/field-update",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w02_record_actions_matter_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "import_job",
+          "path": "/api/import-jobs",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "import_source",
+          "path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/source-files",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "import_mapping",
+          "path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/field-mappings",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "import_dry_run",
+          "path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/dry-run",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "import_execute_blocked",
+          "path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/execute",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+          "actor_id": "user_lcx_vltui_session"
+        },
+        {
+          "kind": "import_rollback",
+          "path": "/api/import-jobs/import_job_ui_sf_b_w05_matter/rollback",
+          "principal": {
+            "user_id": "user_lcx_vltui_session",
+            "tenant_id": "tenant_rp05_synthetic",
+            "role_ids": [
+              "matter_vault_admin",
+              "matter_runtime_user",
+              "master_data_reader",
+              "crm_intake_user"
+            ],
+            "session_context_ref": "desktop:user_lcx_vltui_session:matter-sections",
+            "session_source_ref": "desktop_offline_login",
+            "session_principal_source": "desktop_web_session_envelope"
+          },
+          "audit_hint_ref": "ui_sf_b_w05_import_data_mapping_probe",
+          "actor_id": "user_lcx_vltui_session"
+        }
+      ],
+      "page_errors": [],
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-06-matter-sections-proof.png"
+    }
+  ]
+}

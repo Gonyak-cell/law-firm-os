@@ -1,0 +1,74 @@
+{
+  "schema": "law-firm-os.lazycodex.lcx-vltui.document_workspace_receipt.v0.1",
+  "generated_at": "2026-06-29T13:23:17Z",
+  "status": "ui-browser-verified",
+  "implemented_tuws": [
+    "LCX-VLTUI-03.01",
+    "LCX-VLTUI-03.02",
+    "LCX-VLTUI-03.03",
+    "LCX-VLTUI-03.04",
+    "LCX-VLTUI-03.05"
+  ],
+  "primary_files": [
+    "apps/web/src/components/MatterVaultPanel.jsx",
+    "apps/web/src/data/apiClient.js",
+    "apps/web/test/ui-regression.test.mjs",
+    "scripts/run-lcx-vltui-matter-document-workspace-proof.mjs",
+    "scripts/validate-lcx-vltui-matter-document-workspace.mjs"
+  ],
+  "browser_proof": {
+    "verdict": "PASS",
+    "path": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-document-workspace-proof.json",
+    "markdown": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-document-workspace-proof.md",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-03-document-workspace-proof.png",
+    "covered_case": "document-workspace-boundary"
+  },
+  "covered_behaviors": [
+    "MatterVaultPanel consumes Vault bridge status",
+    "MatterVaultPanel runs reference-only Vault upload preflight",
+    "Vault publication action stays disabled after draft until preflight passes",
+    "Vault publication returns owner_blocked publish envelope without document write",
+    "document import shows dry-run-ready after preflight while execute remains owner-provider-blocked",
+    "email send boundary remains provider_blocked without Outlook/Graph receipt",
+    "builder and email routes surface sanitized metadata only"
+  ],
+  "network_ledger": {
+    "preflight_calls": 1,
+    "builder_create_calls": 1,
+    "builder_patch_calls": 1,
+    "builder_preview_calls": 2,
+    "approval_calls": 1,
+    "publish_calls": 1,
+    "email_create_calls": 1,
+    "email_patch_calls": 1,
+    "email_send_calls": 1,
+    "unexpected_document_write_calls": 0
+  },
+  "claim_boundary": {
+    "production_ready": false,
+    "public_release": false,
+    "production_go_live": false,
+    "owner_final_approval": false,
+    "customer_document_import_executed": false,
+    "vault_document_write_enabled": false,
+    "vault_document_created": false,
+    "document_bytes_included": false,
+    "storage_pointer_ref_included": false,
+    "provider_send_executed": false
+  },
+  "lazyweb_report_attempts": [
+    {
+      "job_id": "3f3e21a2-9a4d-47f2-a3c3-6d5c52df804c",
+      "status": "error",
+      "code": "synthesize_failed",
+      "note": "initial image_base64 attempt rejected by Lazyweb image data URL adapter"
+    },
+    {
+      "job_id": "01f18780-0318-4190-b04b-61fd03ff7ec7",
+      "status": "error",
+      "code": "synthesize_field_missing",
+      "note": "retry accepted as data:image/jpeg;base64 URL but Lazyweb synthesis reported no web evidence for inferred content_detail screen type"
+    }
+  ],
+  "next_tuw": "LCX-VLTUI-04.01"
+}

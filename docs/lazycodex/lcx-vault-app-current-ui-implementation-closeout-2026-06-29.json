@@ -1,0 +1,129 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_vltui.closeout_receipt.v0.1",
+  "generated_at": "2026-06-29T14:43:00Z",
+  "status": "closeout-browser-verified",
+  "goal_thread_id": "019f12b6-4a23-7042-8d78-524e0ec3f852",
+  "closed_tuws": [
+    "LCX-VLTUI-90.01",
+    "LCX-VLTUI-90.02",
+    "LCX-VLTUI-90.03",
+    "LCX-VLTUI-90.04",
+    "LCX-VLTUI-90.05",
+    "LCX-VLTUI-90.06",
+    "LCX-VLTUI-90.07"
+  ],
+  "tuw_status": {
+    "LCX-VLTUI-90.01": "implemented",
+    "LCX-VLTUI-90.02": "implemented",
+    "LCX-VLTUI-90.03": "implemented",
+    "LCX-VLTUI-90.04": "implemented",
+    "LCX-VLTUI-90.05": "implemented",
+    "LCX-VLTUI-90.06": "implemented",
+    "LCX-VLTUI-90.07": "implemented"
+  },
+  "closeout_proof": {
+    "path": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-closeout-proof.json",
+    "markdown": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-closeout-proof.md",
+    "verdict": "PASS",
+    "cases": [
+      "client-to-matter-handoff",
+      "matter-to-vault-workspace",
+      "vault-to-matter-lookup",
+      "people-profile-global"
+    ],
+    "screenshots": [
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-90-client-to-matter-handoff.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-90-matter-to-vault-workspace.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-90-vault-to-matter-lookup.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-screenshots/lcx-vltui-90-people-profile-global.png"
+    ]
+  },
+  "mv_link_acceptance": {
+    "path": "docs/lazycodex/lcx-vltui-mv-link-acceptance-2026-06-29.md",
+    "status": "PASS",
+    "coverage": [
+      "status",
+      "lookup-positive",
+      "permission-negative",
+      "replay-duplicate-create-zero",
+      "runtime-config",
+      "sanitized-output"
+    ]
+  },
+  "verification_commands": [
+    {
+      "command": "npm --workspace apps/web run test:ui",
+      "status": "PASS 17/17"
+    },
+    {
+      "command": "node --test apps/api/test/cmp-r4-g6-crm-intake.test.js apps/api/test/profile-api.test.js",
+      "status": "PASS 13/13"
+    },
+    {
+      "command": "node --test apps/api/test/matter-vault-bridge-api.test.js apps/api/test/cmp-r4-g6-crm-intake.test.js apps/api/test/profile-api.test.js",
+      "status": "PASS 19/19"
+    },
+    {
+      "command": "npm run api:test",
+      "status": "PASS 202/202"
+    },
+    {
+      "command": "npm --workspace apps/web run build",
+      "status": "PASS with existing Vite chunk-size warning"
+    },
+    {
+      "command": "npm run matter-desktop:screen-qa",
+      "status": "PASS"
+    },
+    {
+      "command": "npm run lcx:vltui:closeout:proof",
+      "status": "PASS 4/4 browser cases"
+    },
+    {
+      "command": "node scripts/validate-matter-desktop-release-boundary.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "node scripts/validate-matter-desktop-no-public-release-claim.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "status": "PASS"
+    },
+    {
+      "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+      "status": "PASS_EXIT_WITH_EXISTING_WEAK_FLAGS",
+      "notes": "Exited 0 with pre-existing weak glow, motion, dark-mode, and ornamental background CSS flags; LCX-VLTUI-90 added proof and docs only, no new product UI styling."
+    }
+  ],
+  "final_classification": {
+    "LCX-VLTUI-00": "PASS",
+    "LCX-VLTUI-01": "PASS",
+    "LCX-VLTUI-02": "PASS",
+    "LCX-VLTUI-03": "PASS",
+    "LCX-VLTUI-04": "PASS",
+    "LCX-VLTUI-05": "PASS",
+    "LCX-VLTUI-06": "PASS",
+    "LCX-VLTUI-07": "READY_SEPARATE_TRAIN",
+    "LCX-VLTUI-08": "READY_SEPARATE_TRAIN",
+    "LCX-VLTUI-09": "DECISION_REQUIRED_SEPARATE_TRAIN",
+    "LCX-VLTUI-90": "PASS"
+  },
+  "claim_boundary": {
+    "synthetic_route_interception_only": true,
+    "production_ready": false,
+    "public_release": false,
+    "production_go_live": false,
+    "go_live_approved": false,
+    "owner_final_approval": false,
+    "customer_document_import_executed": false,
+    "onedrive_cutover_executed": false,
+    "vault_document_write_enabled": false,
+    "vault_document_mutation_executed": false,
+    "provider_send_executed": false,
+    "payment_or_invoice_send_executed": false,
+    "real_customer_data_used": false
+  },
+  "next_slice": []
+}

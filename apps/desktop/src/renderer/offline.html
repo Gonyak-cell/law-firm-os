@@ -957,8 +957,70 @@
       return new URL("./web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1", window.location.href).toString();
     }
 
+    const LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos.session.envelope";
+    const LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION = "law-firm-os.desktop-web-session-envelope.v0.1";
+    const SAFE_HANDOFF_REF_PATTERN = /^[A-Za-z0-9._:-]{1,160}$/;
+    const FORBIDDEN_HANDOFF_TEXT = /(password|reset|bearer|cookie|secret|credential|authorization|token|sk-)/i;
+
+    function safeHandoffRef(value) {
+      if (typeof value !== "string") return null;
+      const ref = value.trim();
+      if (!ref || ref.includes("@") || !SAFE_HANDOFF_REF_PATTERN.test(ref) || FORBIDDEN_HANDOFF_TEXT.test(ref)) return null;
+      return ref;
+    }
+
+    function safeHandoffRefList(values) {
+      if (!Array.isArray(values)) return [];
+      return values.map((value) => safeHandoffRef(value)).filter(Boolean).slice(0, 24);
+    }
+
+    function desktopSessionEnvelope(session) {
+      const actorRef = safeHandoffRef(session?.user_id ?? session?.actor_ref);
+      const tenantRef = safeHandoffRef(session?.tenant_id);
+      if (!actorRef || !tenantRef) return null;
+      const generation = Number.isFinite(Number(session?.session_generation)) ? String(Number(session.session_generation)) : "0";
+      return {
+        schema_version: LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION,
+        state: "signed_in",
+        session_ref: `desktop:${actorRef}:${generation}`,
+        source: "desktop_offline_login",
+        actor_ref: actorRef,
+        tenant_refs: {
+          default: tenantRef,
+          client: "tenant_rp04_synthetic",
+          matter: "tenant_rp05_synthetic",
+          vault: "tenant_amic_matter_vault",
+          crm: "tenant_cmp_g6_synthetic"
+        },
+        role_ids: safeHandoffRefList(session?.role_ids),
+        scopes: safeHandoffRefList(session?.scopes),
+        review_state: "allow",
+        expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString()
+      };
+    }
+
+    function writeSessionEnvelope(session) {
+      const envelope = desktopSessionEnvelope(session);
+      if (!envelope) return false;
+      try {
+        window.sessionStorage.setItem(LAWOS_SESSION_ENVELOPE_STORAGE_KEY, JSON.stringify(envelope));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function clearSessionEnvelope() {
+      try {
+        window.sessionStorage.removeItem(LAWOS_SESSION_ENVELOPE_STORAGE_KEY);
+      } catch {
+        // Session handoff storage is best-effort and contains reference-only data.
+      }
+    }
+
     function handoffToProductUi(session) {
       if (!(session?.state === "signed_in" || session?.email)) return;
+      writeSessionEnvelope(session);
       document.body.dataset.productHandoff = "apps-web";
       nodes.loginResult.textContent = `${session.email} 계정으로 로그인했습니다. matter 작업공간을 여는 중입니다.`;
       window.setTimeout(() => {
@@ -992,6 +1054,7 @@
 
     async function logout() {
       const session = await api.logout();
+      clearSessionEnvelope();
       renderSession(session);
       renderFeatures([]);
       nodes.loginResult.textContent = "로그아웃되었습니다.";

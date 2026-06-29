@@ -161,7 +161,7 @@ export function App() {
           {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} onNavigateSection={(section) => navigateToView("matters", section)} />}
           {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} />}
           {view === "vault" && <VaultSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
-          {view === "profile" && <UserProfileSurface />}
+          {view === "profile" && <UserProfileSurface liveCtx={liveCtx} onNavigate={navigateToView} />}
           {isGlobalUtilityView(view) && <GlobalUtilitySurface view={view} activeSection={activeSection} setView={navigateToView} />}
         </main>
       </div>
