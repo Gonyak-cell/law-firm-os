@@ -302,6 +302,7 @@
     "lcx:vltui:matter-sections:validate": "node scripts/validate-lcx-vltui-matter-sections.mjs",
     "lcx:vltui:closeout:proof": "node scripts/run-lcx-vltui-closeout-proof.mjs",
     "lcx:vltui:closeout:validate": "node scripts/validate-lcx-vltui-closeout.mjs",
+    "lcx:vltui:production-smoke": "node scripts/run-lcx-vltui-production-smoke.mjs",
     "rp23:external-integrations-ii:validate": "node scripts/validate-rp23-external-integrations-ii-contract.mjs",
     "rp24:korean-legal-depth:validate": "node scripts/validate-rp24-korean-legal-depth-contract.mjs",
     "rp25:migration-platform:validate": "node scripts/validate-rp25-migration-platform-contract.mjs"

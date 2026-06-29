@@ -1,0 +1,160 @@
+{
+  "schema_version": "lawos.lcx_vltui.production_reflection_receipt.v0.1",
+  "program_id": "LCX-VLTUI Production Reflection",
+  "recorded_at": "2026-06-29T15:07:01Z",
+  "source": {
+    "branch": "codex/home-utility-menu-style",
+    "implementation_commit": "88ef3d5cdeaff25de2638b5aaee2ae76aafa4816",
+    "implementation_commit_message": "Connect Matter Client Vault UI",
+    "closeout_receipt": "docs/lazycodex/lcx-vault-app-current-ui-implementation-closeout-2026-06-29.json",
+    "closeout_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-closeout-proof.json"
+  },
+  "aws_identity": {
+    "account": "770880870480",
+    "assumed_role_arn": "arn:aws:sts::770880870480:assumed-role/matter-prod-deploy-admin/botocore-session-1782745030",
+    "profile": "matter-prod-deploy-admin",
+    "region": "ap-northeast-2"
+  },
+  "api_deployment": {
+    "lambda_redeployed_in_this_receipt": true,
+    "lambda_function_name": "matter-lawos-api-prod",
+    "lambda_runtime": "nodejs22.x",
+    "lambda_last_modified": "2026-06-29T15:00:11.000+0000",
+    "lambda_state": "Active",
+    "lambda_last_update_status": "Successful",
+    "lambda_code_sha256": "UzjkcB6uTXgLcbodElAw2p/wmSQWU0KbMZ8M/H/qSmA=",
+    "lambda_revision_id": "39992b97-c370-4507-a30c-2effcd115492",
+    "lambda_environment": {
+      "LAWOS_DEPLOYMENT_COMMIT": "88ef3d5cdeaff25de2638b5aaee2ae76aafa4816",
+      "LAWOS_DEPLOYMENT_MODE": "aws_lambda_function_url"
+    },
+    "zip_packaging": {
+      "zip_path": "/tmp/matter-lawos-api-prod-88ef3d5c-lcx-vltui.zip",
+      "zip_sha256": "5338e4701eae4d780b71ba1d125030da9ff099241653429b319f0cfc7fea4a60",
+      "zip_bytes": 3440618,
+      "included_runtime_roots": [
+        "apps/api/src",
+        "apps/api/package.json",
+        "packages",
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json"
+      ]
+    },
+    "rollback_pointer": {
+      "previous_last_modified": "2026-06-29T14:15:10.000+0000",
+      "previous_code_sha256": "rqYTKt3PH27/tTx0eUkwU/INKTpvyg6QcQ50U0LkzT8=",
+      "previous_revision_id": "99786f3a-fa3f-424b-b875-69000a90bf5e",
+      "previous_deployment_commit": "0e4a4960d017e55057330a3b9417bd947df4721f",
+      "previous_deployment_mode": "aws_lambda_function_url"
+    }
+  },
+  "web_deployment": {
+    "bucket": "matter-lawos-web-prod-770880870480-apne2",
+    "s3_sync_executed": true,
+    "s3_sync_deleted_old_assets": [
+      "assets/index-BvsuuLZH.css",
+      "assets/index-DPTVB3OC.js"
+    ],
+    "s3_sync_uploaded_or_refreshed_assets": [
+      "assets/index-C4I169hQ.js",
+      "assets/index-COfWDa_0.css",
+      "assets/matter-mark-Cc_2F105.svg",
+      "assets/parnas-tower-login-Dogx2L0o.jpg",
+      "fonts/pretendard/Pretendard-Bold.otf",
+      "fonts/pretendard/Pretendard-Medium.otf",
+      "fonts/pretendard/Pretendard-Regular.otf",
+      "fonts/pretendard/Pretendard-SemiBold.otf",
+      "fonts/pretendard/OFL.txt",
+      "fonts/suite/SUITE-Bold.otf",
+      "fonts/suite/SUITE-ExtraBold.otf",
+      "fonts/suite/SUITE-Medium.otf",
+      "fonts/suite/SUITE-Regular.otf",
+      "fonts/suite/SUITE-SemiBold.otf",
+      "fonts/suite/OFL.txt",
+      "index.html",
+      "matter-mark.svg"
+    ],
+    "cloudfront_distribution_id": "E3MVAKX2DIR3CS",
+    "cloudfront_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "cloudfront_invalidation_id": "I4BEK8AU2OX97HB4PICXLW56TT",
+    "cloudfront_invalidation_status": "Completed",
+    "root_status": 200,
+    "root_assets": [
+      "assets/index-C4I169hQ.js",
+      "assets/index-COfWDa_0.css"
+    ]
+  },
+  "pre_deploy_validation": {
+    "npm_workspace_apps_api_test": {
+      "status": "PASS",
+      "tests": 202,
+      "failed": 0
+    },
+    "npm_workspace_apps_web_run_build": {
+      "status": "PASS",
+      "asset_js": "assets/index-C4I169hQ.js",
+      "asset_css": "assets/index-COfWDa_0.css",
+      "warning": "existing Vite chunk-size warning only"
+    },
+    "npm_run_lcx_vltui_closeout_validate": {
+      "status": "PASS",
+      "closed_tuws": [
+        "LCX-VLTUI-90.01",
+        "LCX-VLTUI-90.02",
+        "LCX-VLTUI-90.03",
+        "LCX-VLTUI-90.04",
+        "LCX-VLTUI-90.05",
+        "LCX-VLTUI-90.06",
+        "LCX-VLTUI-90.07"
+      ]
+    }
+  },
+  "production_smoke": {
+    "npm_run_hrx_production_smoke": {
+      "status": "PASS",
+      "web_root_status": 200,
+      "api_health_status": 200,
+      "hrx_employees_status": 200,
+      "hrx_employees_count": 9,
+      "negative_security_smoke": {
+        "missing_context_status": 400,
+        "missing_context_safe_error_code": "HRX_TENANT_CONTEXT_REQUIRED",
+        "documents_missing_scope_status": 403,
+        "documents_missing_scope_safe_error_code": "HRX_AUTHZ_DENIED"
+      }
+    },
+    "npm_run_lcx_vltui_production_smoke": {
+      "status": "PASS",
+      "checks": 15,
+      "artifact_json": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json",
+      "artifact_md": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.md",
+      "covered_surfaces": [
+        "CloudFront root",
+        "API health contexts",
+        "Profile session principal",
+        "Client CRM sections",
+        "Matter list and workspace sections",
+        "Vault document list",
+        "Vault bridge status",
+        "Vault bridge Client upsert",
+        "Vault bridge Matter upsert",
+        "Vault bridge lookup",
+        "Vault upload preflight"
+      ]
+    }
+  },
+  "claim_boundary": {
+    "production_web_deployed": true,
+    "production_api_redeployed": true,
+    "production_runtime_flow_smoke_passed": true,
+    "staging_validation_for_this_ui_batch": false,
+    "owner_final_approval_for_public_release": false,
+    "public_release_completed": false,
+    "company_wide_go_live_claim": false,
+    "real_client_data_used": false,
+    "synthetic_bridge_writes_only": true,
+    "vault_document_write_enabled": false,
+    "payroll_provider_live": false,
+    "electronic_contract_provider_live": false
+  }
+}
