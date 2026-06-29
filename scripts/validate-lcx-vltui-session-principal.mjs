@@ -60,8 +60,13 @@ requireText(desktopPath, "actor_ref: actorRef");
 requireText(desktopPath, "client: \"tenant_rp04_synthetic\"");
 requireText(desktopPath, "matter: \"tenant_rp05_synthetic\"");
 requireText(desktopPath, "vault: \"tenant_amic_matter_vault\"");
-requireText(desktopPath, "window.sessionStorage.setItem(LAWOS_SESSION_ENVELOPE_STORAGE_KEY");
-requireText(desktopPath, "clearSessionEnvelope");
+requireText(desktopPath, "PRODUCT_UI_BASE_TARGET = \"./web/index.html?desktop=1&view=home&data=live&ctx=allow&splash=1\"");
+requireText(desktopPath, "desktop_session_ref");
+requireText(desktopPath, "desktop_actor_ref");
+requireText(desktopPath, "desktop_tenant_ref");
+requireText(desktopPath, "desktop_role_ref");
+requireText(desktopPath, "desktop_scope_ref");
+assert.doesNotMatch(read(desktopPath), /localStorage|sessionStorage|indexedDB/);
 assert.doesNotMatch(read(desktopPath), /access_token|refresh_token|id_token|raw_cookie|Bearer/);
 
 requireText(uiTestPath, "LAWOS_SESSION_ENVELOPE_STORAGE_KEY = \"lawos\\.session\\.envelope\"");

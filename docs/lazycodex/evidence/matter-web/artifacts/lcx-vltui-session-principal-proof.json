@@ -4,7 +4,7 @@
     "LCX-VLTUI-04.01",
     "LCX-VLTUI-04.02"
   ],
-  "generated_at": "2026-06-29T13:39:23.914Z",
+  "generated_at": "2026-06-29T15:54:56.325Z",
   "verdict": "PASS",
   "boundary": {
     "synthetic_route_interception_only": true,
@@ -29,7 +29,8 @@
           "default": "tenant_amic_matter_vault",
           "client": "tenant_rp04_synthetic",
           "matter": "tenant_rp05_synthetic",
-          "vault": "tenant_amic_matter_vault"
+          "vault": "tenant_amic_matter_vault",
+          "crm": "tenant_cmp_g6_synthetic"
         },
         "role_ids": [
           "matter_vault_admin",

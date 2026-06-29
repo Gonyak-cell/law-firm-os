@@ -1,7 +1,7 @@
 {
   "schema_version": "law-firm-os.lazycodex.lcx_vltui.matter_picker_proof.v0.1",
   "tuw_id": "LCX-VLTUI-02.02",
-  "generated_at": "2026-06-29T12:32:11.375Z",
+  "generated_at": "2026-06-29T15:55:46.183Z",
   "web_url": "http://127.0.0.1:5173",
   "source_refs": [
     "apps/api/src/matter-runtime-context.js",
