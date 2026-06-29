@@ -431,8 +431,7 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
         <ChevronDown size={15} />
       </button>
       {showGlobalUtilityNav && (
-        <nav className="global-sidebar-nav" aria-label="공통 메뉴" data-global-sidebar-nav="home-only">
-          <span className="sidebar-section-title">공통</span>
+        <nav className="global-sidebar-nav" aria-label="Home 빠른 메뉴" data-global-sidebar-nav="home-only">
           {globalUtilityItems.map((item) => {
             const Icon = item.icon;
             const active = view === item.id;
