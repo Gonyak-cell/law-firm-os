@@ -1,0 +1,70 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-owner-approval-intake.v0.1",
+  "status": "pending_owner_response",
+  "local_date": "2026-06-30",
+  "release": {
+    "tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "target_commitish": "ef493451a1d070412d3d24d4474493afbca3f1a4",
+    "merge_pr": "https://github.com/Gonyak-cell/law-firm-os/pull/143",
+    "merge_commit": "f5e34f1e06528d774b6afc7dabbc92da3214d3c1",
+    "is_prerelease": true
+  },
+  "tracker": {
+    "owner_approval_issue": "https://github.com/Gonyak-cell/law-firm-os/issues/146",
+    "go_live_issue": "https://github.com/Gonyak-cell/law-firm-os/issues/144",
+    "windows_authenticode_issue": "https://github.com/Gonyak-cell/law-firm-os/issues/145"
+  },
+  "boundary": {
+    "owner_approval_intake_template_only": true,
+    "owner_approved_by_this_file": false,
+    "public_release_approved_by_this_file": false,
+    "production_go_live_approved_by_this_file": false,
+    "external_pilot_approved_by_this_file": false,
+    "windows_authenticode_approved_by_this_file": false,
+    "pending_entries_count_as_owner_evidence": false,
+    "agent_inferred_evidence_allowed": false,
+    "go_live_receipt_modified_by_this_file": false,
+    "release_asset_mutation_allowed_by_this_file": false
+  },
+  "required_owner_response_fields": [
+    "owner",
+    "decision",
+    "reviewed_artifact",
+    "release_url",
+    "artifact_digest",
+    "basis",
+    "decision_at",
+    "approval_signature_ref",
+    "recorded_by_human"
+  ],
+  "response_entries": [
+    {
+      "id": "MDT-LCX-VLTUI-OWNER-001",
+      "tracker": "https://github.com/Gonyak-cell/law-firm-os/issues/146",
+      "response_status": "pending_owner_response",
+      "scope": "matter desktop LCX VLTUI prerelease owner review",
+      "allowed_decisions": [
+        "approve_supervised_pilot",
+        "approve_public_release_planning",
+        "reject_public_release_planning",
+        "request_changes"
+      ],
+      "required_review_artifacts": [
+        "matter-0.1.0-macos.dmg",
+        "matter-0.1.0-macos.zip",
+        "release-manifest.json",
+        "checksums.sha256",
+        "matter-desktop-formal-release-receipt.md",
+        "desktop-screen-qa-result.json",
+        "desktop-screen-qa.png"
+      ],
+      "pending_response_not_approval": true,
+      "copy_to_owner_decision_packet_allowed": false,
+      "copy_to_go_live_receipt_allowed": false,
+      "public_release_claim_after_response": false,
+      "production_go_live_claim_after_response": false,
+      "owner_final_approval_claim_after_response": false
+    }
+  ]
+}

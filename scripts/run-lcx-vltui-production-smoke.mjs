@@ -140,6 +140,44 @@ function renderMarkdown(report) {
   return `${lines.join("\n")}\n`;
 }
 
+function writeReport(report) {
+  mkdirSync(ARTIFACT_DIR, { recursive: true });
+  writeFileSync(JSON_PATH, `${JSON.stringify(report, null, 2)}\n`);
+  writeFileSync(MD_PATH, renderMarkdown(report));
+}
+
+if (!BRIDGE_TOKEN) {
+  const report = {
+    schema_version: "lawos.lcx_vltui.production_smoke.v0.1",
+    generated_at: new Date().toISOString(),
+    base_url: BASE_URL,
+    deployment_commit: COMMIT,
+    verdict: "BLOCKED",
+    blocked_reason: "LAWOS_VAULT_BRIDGE_TOKEN is required for production bridge smoke",
+    missing_required_env: ["LAWOS_VAULT_BRIDGE_TOKEN"],
+    checks: [],
+    boundary: {
+      production_web_deployed: false,
+      production_api_redeployed: false,
+      synthetic_bridge_writes_only: true,
+      vault_document_write_enabled: false,
+      real_client_data_used: false,
+      public_release_claim: false,
+      owner_final_approval_claim: false,
+      company_wide_go_live_claim: false
+    }
+  };
+  writeReport(report);
+  console.error(JSON.stringify({
+    verdict: report.verdict,
+    blocked_reason: report.blocked_reason,
+    missing_required_env: report.missing_required_env,
+    artifact_json: JSON_PATH,
+    artifact_md: MD_PATH
+  }, null, 2));
+  process.exit(1);
+}
+
 const checks = [];
 const root = await readText("/");
 record(checks, "cloudfront-root-new-assets", root.status === 200 && root.text.includes("index-C4I169hQ.js") && root.text.includes("index-COfWDa_0.css"), {
@@ -261,9 +299,7 @@ const report = {
   }
 };
 
-mkdirSync(ARTIFACT_DIR, { recursive: true });
-writeFileSync(JSON_PATH, `${JSON.stringify(report, null, 2)}\n`);
-writeFileSync(MD_PATH, renderMarkdown(report));
+writeReport(report);
 
 console.log(JSON.stringify({
   verdict: report.verdict,

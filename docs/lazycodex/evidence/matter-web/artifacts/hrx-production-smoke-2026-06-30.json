@@ -1,0 +1,45 @@
+{
+  "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+  "web_root_status": 200,
+  "root_assets": [
+    "assets/index-C4I169hQ.js",
+    "assets/index-COfWDa_0.css"
+  ],
+  "api_health_status": 200,
+  "hrx_employees_status": 200,
+  "hrx_employees_count": 9,
+  "expected_employee_count": 9,
+  "expected_roster_source_ref": "hrx-member-roster-source-of-truth",
+  "hrx_source_ref_counts": {
+    "hrx-member-roster-source-of-truth": 9
+  },
+  "verdict": "PASS",
+  "organization_groups": {
+    "PETRA BRIDGE PARTNERS": 3,
+    "AMIC Law": 4,
+    "Staff": 2
+  },
+  "roster_source_ref": "hrx-member-roster-source-of-truth",
+  "sample_member": {
+    "display_name": "김양태",
+    "title": "대표이사",
+    "affiliation": "PETRA BRIDGE PARTNERS",
+    "department": "Finance",
+    "organization_group": "PETRA BRIDGE PARTNERS",
+    "source_ref": "hrx-member-roster-source-of-truth"
+  },
+  "lifecycle": {
+    "onboarding_status": 200,
+    "offboarding_status": 200
+  },
+  "negative_security_smoke": {
+    "missing_context_status": 400,
+    "missing_context_safe_error_code": "HRX_TENANT_CONTEXT_REQUIRED",
+    "documents_missing_scope_status": 403,
+    "documents_missing_scope_safe_error_code": "HRX_AUTHZ_DENIED"
+  },
+  "provider_live_claims": {
+    "payroll_provider_live": false,
+    "electronic_contract_provider_live": false
+  }
+}
