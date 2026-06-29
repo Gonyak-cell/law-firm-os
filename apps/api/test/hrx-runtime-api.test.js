@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import { startApiServer } from "../src/server.js";
+import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
+import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
+import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
 import {
   HRX_MEMBER_ROSTER_SOURCE_REF,
   listHrxMemberRosterRows,
@@ -119,6 +125,60 @@ test("GET /api/hrx/employees returns synthetic API-backed employee rows", async 
     assert.equal(employeesByName.get(displayName)?.organization_group, "Staff");
   }
   assert.ok(body.employees.every((employee) => employee.country === "대한민국"));
+});
+
+test("durable HRX seed reconciles stale Matter Vault account seed rows to the member roster source of truth", async () => {
+  const store = createFileHrxStore({ filePath: join(mkdtempSync(join(tmpdir(), "hrx-roster-reconcile-")), "store.json") });
+  runHrxMigrations(store);
+  const repository = createSqlHrxRepository({ store, clock: () => "2026-06-19T00:00:00.000Z" });
+  const member = listHrxMemberRosterRows().find((row) => row.display_name === "김양태");
+  assert.ok(member);
+  const tenant_id = "tenant_amic_matter_vault";
+  const staleSourceRef = "matter-vault-user-registration-seed";
+  const profile_id = `profile_${member.user_id.replace(/^user_/, "")}`;
+  repository.createEmployee({
+    tenant_id,
+    employee_id: member.employee_id,
+    display_name: member.display_name,
+    legal_name: member.legal_name,
+    work_email: member.work_email,
+    status: "active",
+    source_ref: staleSourceRef,
+  });
+  repository.createEmploymentProfile({
+    tenant_id,
+    profile_id,
+    employee_id: member.employee_id,
+    employment_type: "full_time",
+    status: "active",
+    title: "대표",
+    org_unit_id: "group_matter_vault_users",
+    effective_from: "2026-06-22",
+    source_ref: staleSourceRef,
+  });
+
+  const started = await startApiServer({ port: 0, hrxStore: store });
+  const localBaseUrl = `http://${started.host}:${started.port}`;
+  try {
+    const response = await fetch(`${localBaseUrl}/api/hrx/employees`, { headers: HRX_AUTH_HEADERS });
+    const body = await response.json();
+    assert.equal(response.status, 200);
+    const kimYangTae = body.employees.find((employee) => employee.display_name === "김양태");
+    assert.equal(kimYangTae.source_ref, HRX_MEMBER_ROSTER_SOURCE_REF);
+    assert.equal(kimYangTae.title, "대표이사");
+    assert.equal(kimYangTae.affiliation, "PETRA BRIDGE PARTNERS");
+    assert.equal(kimYangTae.department, "Finance");
+    assert.equal(kimYangTae.organization_group, "PETRA BRIDGE PARTNERS");
+
+    const storedEmployee = repository.getEmployee({ tenant_id, employee_id: member.employee_id });
+    assert.equal(storedEmployee.source_ref, HRX_MEMBER_ROSTER_SOURCE_REF);
+    const storedProfile = repository.getEmploymentProfile({ tenant_id, profile_id });
+    assert.equal(storedProfile.source_ref, HRX_MEMBER_ROSTER_SOURCE_REF);
+    assert.equal(storedProfile.title, "대표이사");
+    assert.equal(storedProfile.org_unit_id, member.org_unit_id);
+  } finally {
+    await new Promise((resolve) => started.server.close(resolve));
+  }
 });
 
 test("GET /api/hrx/employees/:id returns profile with compensation masked", async () => {

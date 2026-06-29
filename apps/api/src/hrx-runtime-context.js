@@ -747,6 +747,49 @@ function hasRow(store, table, where) {
   return Boolean(store.query("selectOne", { table, where }));
 }
 
+function seedPatchFor(current, desired, fields) {
+  const patch = {};
+  for (const field of fields) {
+    if (current?.[field] !== desired?.[field]) patch[field] = desired?.[field];
+  }
+  return patch;
+}
+
+function reconcileSeedEmployee(repository, employee) {
+  const ref = { tenant_id: employee.tenant_id, employee_id: employee.employee_id };
+  const current = repository.getEmployee(ref);
+  if (!current) {
+    repository.createEmployee(employee);
+    return "created";
+  }
+  const patch = seedPatchFor(current, employee, ["display_name", "legal_name", "work_email", "status", "source_ref"]);
+  if (Object.keys(patch).length === 0) return "unchanged";
+  repository.updateEmployee(ref, patch);
+  return "reconciled";
+}
+
+function reconcileSeedEmploymentProfile(repository, profile) {
+  const ref = { tenant_id: profile.tenant_id, profile_id: profile.profile_id };
+  const current = repository.getEmploymentProfile(ref);
+  if (!current) {
+    repository.createEmploymentProfile(profile);
+    return "created";
+  }
+  const patch = seedPatchFor(current, profile, [
+    "employment_type",
+    "status",
+    "title",
+    "org_unit_id",
+    "manager_employee_id",
+    "effective_from",
+    "effective_to",
+    "source_ref",
+  ]);
+  if (Object.keys(patch).length === 0) return "unchanged";
+  repository.updateEmploymentProfile(ref, patch);
+  return "reconciled";
+}
+
 function seedHrxDurableRuntimeTenant(store, tenantId) {
   const repository = createSqlHrxRepository({ store, clock: () => "2026-06-20T00:00:00.000Z" });
   const documents = createSqlHrxDocumentStore({ store });
@@ -754,17 +797,19 @@ function seedHrxDurableRuntimeTenant(store, tenantId) {
   const leaveStore = createSqlLeaveRequestStore({ store });
 
   const employees = seedEmployees(tenantId);
+  const employeeResults = { created: 0, reconciled: 0 };
   for (const employee of employees) {
-    if (!hasRow(store, "hrx_employees", { tenant_id: employee.tenant_id, employee_id: employee.employee_id })) {
-      repository.createEmployee(employee);
-    }
+    const result = reconcileSeedEmployee(repository, employee);
+    if (result === "created") employeeResults.created += 1;
+    if (result === "reconciled") employeeResults.reconciled += 1;
   }
 
   const profiles = seedEmploymentProfiles(tenantId);
+  const profileResults = { created: 0, reconciled: 0 };
   for (const profile of profiles) {
-    if (!hasRow(store, "hrx_employment_profiles", { tenant_id: profile.tenant_id, profile_id: profile.profile_id })) {
-      repository.createEmploymentProfile(profile);
-    }
+    const result = reconcileSeedEmploymentProfile(repository, profile);
+    if (result === "created") profileResults.created += 1;
+    if (result === "reconciled") profileResults.reconciled += 1;
   }
 
   const links = seedEmployeeUserLinks(tenantId);
@@ -798,7 +843,11 @@ function seedHrxDurableRuntimeTenant(store, tenantId) {
   return Object.freeze({
     tenant_id: tenantId,
     employees: employees.length,
+    employees_created: employeeResults.created,
+    employees_reconciled: employeeResults.reconciled,
     employment_profiles: profiles.length,
+    employment_profiles_created: profileResults.created,
+    employment_profiles_reconciled: profileResults.reconciled,
     employee_user_links: links.length,
     documents: documentRows.length,
     leave_balance_entries: ledgerEntries.length,
