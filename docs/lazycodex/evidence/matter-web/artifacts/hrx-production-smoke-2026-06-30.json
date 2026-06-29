@@ -1,0 +1,26 @@
+{
+  "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+  "web_root_status": 200,
+  "root_assets": [
+    "assets/index-C4I169hQ.js",
+    "assets/index-COfWDa_0.css"
+  ],
+  "api_health_status": 200,
+  "hrx_employees_status": 200,
+  "hrx_employees_count": 9,
+  "expected_employee_count": 9,
+  "expected_roster_source_ref": "hrx-member-roster-source-of-truth",
+  "hrx_source_ref_counts": {
+    "matter-vault-user-registration-seed": 9
+  },
+  "verdict": "FAIL",
+  "failed_check": "hrx_employees_roster_source_ref",
+  "actual_unexpected_source_refs": [
+    "matter-vault-user-registration-seed"
+  ],
+  "deploy_drift_suspected": true,
+  "provider_live_claims": {
+    "payroll_provider_live": false,
+    "electronic_contract_provider_live": false
+  }
+}

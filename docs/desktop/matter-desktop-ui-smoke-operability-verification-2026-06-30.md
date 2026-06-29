@@ -1,6 +1,6 @@
 # matter Desktop UI and Smoke Operability Verification
 
-Status: verified-with-one-production-secret-blocker
+Status: verified-with-production-blockers
 Local date: 2026-06-30
 Branch: `codex/lcx-vltui-owner-approval-intake`
 
@@ -24,6 +24,7 @@ This verification checks the currently implemented web UI, LCX-VLTUI Client/Matt
 | Owner approval intake guard | PASS | `npm run matter-desktop:owner-approval:intake:validate`; pending owner response remains non-approval. |
 | Public/go-live claim guard | PASS | `node scripts/validate-matter-desktop-no-public-release-claim.mjs`. |
 | LCX-VLTUI production bridge smoke | BLOCKED | `LAWOS_VAULT_BRIDGE_TOKEN` is not present in this environment; blocked receipt written to `docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json`. |
+| HRX production smoke | FAIL | `npm run hrx:production:smoke` reaches production web/API and 9 employees, but production returns `matter-vault-user-registration-seed` for all employee `source_ref` values instead of `hrx-member-roster-source-of-truth`; failure receipt written to `docs/lazycodex/evidence/matter-web/artifacts/hrx-production-smoke-2026-06-30.json`. |
 
 ## Observed UI
 
@@ -36,6 +37,7 @@ This verification checks the currently implemented web UI, LCX-VLTUI Client/Matt
 - Local/development smoke is operable for web UI, LCX-VLTUI browser QA, packaged desktop screen QA, desktop file bridge, desktop runtime, and AWS temporary runtime.
 - Production LCX-VLTUI bridge smoke is structurally operable but cannot execute in this environment without `LAWOS_VAULT_BRIDGE_TOKEN`.
 - The production smoke script now records a structured `BLOCKED` receipt instead of throwing a raw assertion stack when the bridge token is missing.
+- Production HRX smoke is structurally operable and now records a structured `FAIL` receipt. The failure is isolated to the roster source-of-truth boundary: production web root is 200, `/api/health` is 200, `/api/hrx/employees` is 200, and employee count is 9, but the live API currently serves the account-registration seed source ref.
 
 ## Non-Claims
 
