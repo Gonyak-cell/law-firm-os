@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-owner-approval-intake.v0.1",
-  "status": "pending_owner_response",
+  "status": "owner_response_received",
   "local_date": "2026-06-30",
   "release": {
     "tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
@@ -42,7 +42,7 @@
     {
       "id": "MDT-LCX-VLTUI-OWNER-001",
       "tracker": "https://github.com/Gonyak-cell/law-firm-os/issues/146",
-      "response_status": "pending_owner_response",
+      "response_status": "real_owner_response_received",
       "scope": "matter desktop LCX VLTUI prerelease owner review",
       "allowed_decisions": [
         "approve_supervised_pilot",
@@ -59,12 +59,25 @@
         "desktop-screen-qa-result.json",
         "desktop-screen-qa.png"
       ],
-      "pending_response_not_approval": true,
-      "copy_to_owner_decision_packet_allowed": false,
+      "owner": "Jiwon Suh, Product Owner",
+      "decision": "approve_public_release_planning",
+      "reviewed_artifact": "matter-0.1.0-macos.dmg",
+      "user_declared_reviewed_artifact": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+      "release_url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-lcx-vltui-20260630",
+      "artifact_digest": "sha256:cfec77354111419cb01a912fb32b45dd599321d13bd4c710ba5be481773ce8b5",
+      "basis": "Owner reviewed the LCX VLTUI desktop prerelease and approved the owner approval gate plus next-step production go-live decision validation. This response does not approve public release, company-wide production go-live, Windows Authenticode signing, external pilot distribution, Vault document writes, or real client data migration.",
+      "decision_at": "2026-06-30",
+      "received_at": "2026-06-30T00:35:37Z",
+      "received_at_original": "2026-06-30 09:35:37 KST",
+      "approval_signature_ref": "docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json",
+      "recorded_by_human": true,
+      "copy_to_owner_decision_packet_allowed": true,
       "copy_to_go_live_receipt_allowed": false,
       "public_release_claim_after_response": false,
       "production_go_live_claim_after_response": false,
-      "owner_final_approval_claim_after_response": false
+      "owner_final_approval_claim_after_response": false,
+      "external_pilot_claim_after_response": false,
+      "windows_authenticode_claim_after_response": false
     }
   ]
 }
