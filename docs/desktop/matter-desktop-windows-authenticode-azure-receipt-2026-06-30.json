@@ -1,0 +1,78 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-windows-authenticode-azure-receipt.v0.1",
+  "status": "trusted_signing_account_created_pending_identity_validation",
+  "recorded_at": "2026-06-30T02:15:08Z",
+  "recorded_at_original": "2026-06-30 11:15:08 KST",
+  "issue": "https://github.com/Gonyak-cell/law-firm-os/issues/145",
+  "azure": {
+    "subscription_name": "Azure subscription 1",
+    "tenant_display_name": "Default Directory",
+    "resource_group": "amic-platform-rg",
+    "location": "Korea Central",
+    "provider_namespace": "Microsoft.CodeSigning",
+    "provider_registration_state": "Registered",
+    "trusted_signing_account_name": "lawosmattersigning",
+    "trusted_signing_account_uri": "https://krc.codesigning.azure.net/",
+    "trusted_signing_account_sku": "Basic",
+    "trusted_signing_account_provisioning_state": "Succeeded"
+  },
+  "role_assignments": [
+    {
+      "principal_type": "User",
+      "role": "Artifact Signing Identity Verifier",
+      "scope": "codeSigningAccounts/lawosmattersigning",
+      "assignment_name": "201e2201-f5ae-4104-8967-7ba09eabc559"
+    },
+    {
+      "principal_type": "User",
+      "role": "Artifact Signing Certificate Profile Signer",
+      "scope": "codeSigningAccounts/lawosmattersigning",
+      "assignment_name": "719cca8e-c8e8-4c6b-8847-fc30fb4487c8"
+    }
+  ],
+  "commands_executed": [
+    "brew install azure-cli",
+    "az login --allow-no-subscriptions",
+    "az provider register --namespace Microsoft.CodeSigning --wait",
+    "az rest --method put .../Microsoft.CodeSigning/codeSigningAccounts/lawosmattersigning?api-version=2025-10-13",
+    "az extension add --name trustedsigning --yes",
+    "az artifact-signing show -g amic-platform-rg -n lawosmattersigning",
+    "az role assignment create --role 'Artifact Signing Identity Verifier' --scope .../codeSigningAccounts/lawosmattersigning",
+    "az role assignment create --role 'Artifact Signing Certificate Profile Signer' --scope .../codeSigningAccounts/lawosmattersigning",
+    "az trustedsigning show -g amic-platform-rg -n lawosmattersigning",
+    "az trustedsigning certificate-profile list -g amic-platform-rg --account-name lawosmattersigning"
+  ],
+  "certificate_profile_attempt": {
+    "profile_name": "matterdesktoptest",
+    "profile_type": "PublicTrustTest",
+    "result": "blocked",
+    "error_code": "BadResourceOperation",
+    "error_message": "IdentityValidationId property value is invalid."
+  },
+  "current_certificate_profiles": [],
+  "required_next_steps": {
+    "identity_validation_id": "required from Azure Trusted Signing identity validation",
+    "certificate_profile": "create after identity validation is approved",
+    "github_secret_or_oidc_binding": "required before automated signing workflow",
+    "windows_host": "required for Authenticode signing and native install smoke",
+    "authenticode_verification_output": "required from Get-AuthenticodeSignature or equivalent"
+  },
+  "boundary": {
+    "azure_cli_installed": true,
+    "azure_cli_logged_in": true,
+    "code_signing_provider_registered": true,
+    "trusted_signing_account_created": true,
+    "artifact_signing_identity_verifier_role_assigned": true,
+    "artifact_signing_certificate_profile_signer_role_assigned": true,
+    "certificate_profile_created": false,
+    "identity_validation_completed": false,
+    "signing_execution_allowed": false,
+    "windows_authenticode_signing": false,
+    "windows_native_install_smoke": "not_run",
+    "public_release_approved": false,
+    "microsoft_store_distribution_approved": false,
+    "external_pilot_distribution_approved": false,
+    "vault_document_writes_approved": false,
+    "real_client_data_migration_approved": false
+  }
+}

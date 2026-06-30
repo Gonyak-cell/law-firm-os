@@ -105,3 +105,11 @@ Local date: 2026-06-30
 - Validator: `npm run matter-desktop:windows-authenticode:approval:intake:validate`
 - Validation receipt: `docs/desktop/matter-desktop-windows-authenticode-approval-intake-validation.json`
 - Current state: approval input is recorded but blocked because provider/certificate, certificate fingerprint, and Windows host are still placeholders.
+
+## Windows Authenticode Azure Setup
+
+- Azure receipt: `docs/desktop/matter-desktop-windows-authenticode-azure-receipt-2026-06-30.json`
+- Reader copy: `docs/desktop/matter-desktop-windows-authenticode-azure-receipt-2026-06-30.md`
+- Validator: `npm run matter-desktop:windows-authenticode:azure:validate`
+- Validation receipt: `docs/desktop/matter-desktop-windows-authenticode-azure-receipt-validation.json`
+- Current state: `Microsoft.CodeSigning` provider registered, Trusted Signing / Artifact Signing account `lawosmattersigning` created in `amic-platform-rg`, and required user-level Artifact Signing roles assigned; certificate profile remains blocked until Azure identity validation is completed in Azure Portal.
