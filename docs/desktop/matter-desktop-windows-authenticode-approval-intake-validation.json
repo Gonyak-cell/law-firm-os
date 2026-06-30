@@ -1,0 +1,21 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-windows-authenticode-approval-intake.validation.v0.1",
+  "generated_at": "2026-06-30T01:51:02Z",
+  "source_refs": [
+    "docs/desktop/matter-desktop-windows-authenticode-approval-intake-2026-06-30.json",
+    "docs/desktop/matter-desktop-windows-authenticode-approval-intake-2026-06-30.md",
+    "docs/lazycodex/evidence/matter-desktop/artifacts/windows-authenticode-approval-intake-2026-06-30.json",
+    "docs/desktop/matter-desktop-windows-authenticode-preflight-validation.json"
+  ],
+  "verdict": "PASS",
+  "summary": {
+    "approval_input_recorded": true,
+    "approval_input_is_actionable": false,
+    "signing_execution_allowed": false,
+    "placeholder_field_count": 3,
+    "windows_authenticode_signing": false,
+    "windows_native_install_smoke": "not_run",
+    "finding_count": 0
+  },
+  "findings": []
+}
