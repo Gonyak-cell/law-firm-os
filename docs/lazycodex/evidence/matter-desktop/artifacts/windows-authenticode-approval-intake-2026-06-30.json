@@ -1,0 +1,22 @@
+{
+  "schema_version": "lawos.matter_desktop.windows_authenticode_approval_intake.v0.1",
+  "status": "blocked_placeholder_authenticode_approval_input",
+  "recorded_at": "2026-06-30T01:51:02Z",
+  "issue": "https://github.com/Gonyak-cell/law-firm-os/issues/145",
+  "release": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+  "placeholder_fields": [
+    "signing_provider_or_certificate",
+    "certificate_fingerprint",
+    "windows_host"
+  ],
+  "boundary": {
+    "approval_input_recorded": true,
+    "approval_input_is_actionable": false,
+    "signing_execution_allowed": false,
+    "windows_authenticode_signing": false,
+    "windows_native_install_smoke": "not_run",
+    "public_release": false,
+    "microsoft_store_distribution": false,
+    "external_pilot_distribution": false
+  }
+}

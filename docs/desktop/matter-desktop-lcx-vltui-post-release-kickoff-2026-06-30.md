@@ -97,3 +97,11 @@ Local date: 2026-06-30
 - Validator: `npm run matter-desktop:windows-authenticode:preflight:validate`
 - Validation receipt: `docs/desktop/matter-desktop-windows-authenticode-preflight-validation.json`
 - Current state: local unsigned Windows package candidate exists, but current GitHub release still has no Windows installer/package asset and #145 remains blocked by Authenticode provider plus Windows-host verification.
+
+## Windows Authenticode Approval Intake
+
+- Intake: `docs/desktop/matter-desktop-windows-authenticode-approval-intake-2026-06-30.json`
+- Reader copy: `docs/desktop/matter-desktop-windows-authenticode-approval-intake-2026-06-30.md`
+- Validator: `npm run matter-desktop:windows-authenticode:approval:intake:validate`
+- Validation receipt: `docs/desktop/matter-desktop-windows-authenticode-approval-intake-validation.json`
+- Current state: approval input is recorded but blocked because provider/certificate, certificate fingerprint, and Windows host are still placeholders.
