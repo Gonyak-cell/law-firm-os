@@ -1,6 +1,6 @@
 {
   "name": "@law-firm-os/desktop",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "main": "src/main/main.js",
@@ -10,6 +10,7 @@
     "prepare:web-renderer": "node ../../scripts/prepare-matter-desktop-web-renderer.mjs",
     "build:mac": "node ../../scripts/build-matter-desktop-mac.mjs",
     "build:win": "node ../../scripts/build-matter-desktop-win.mjs",
+    "build:win:installer": "node ../../scripts/build-matter-desktop-win-installer.mjs",
     "test:smoke": "node --test test/*.test.mjs",
     "test:session": "node --test test/auth-coordinator.test.mjs test/aws-runtime-client.test.mjs test/session-ipc.test.mjs test/session-cleanup.test.mjs",
     "test:update": "node --test test/update-rollback.test.mjs",

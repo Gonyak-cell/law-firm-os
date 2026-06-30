@@ -1,6 +1,6 @@
 {
   "name": "law-firm-os",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "packageManager": "npm@11.12.1",
@@ -222,7 +222,7 @@
     "matter-desktop:owner-approval:intake:validate": "node scripts/validate-matter-desktop-owner-approval-intake.mjs",
     "matter-desktop:temporary-release": "npm --workspace apps/desktop run test:smoke && npm --workspace apps/desktop run test:file-bridge && npm run matter-desktop:aws-runtime:smoke && MATTER_NOTARY_KEYCHAIN_PROFILE=matter-notary MATTER_DESKTOP_SIGN=developer-id MATTER_DESKTOP_NOTARIZE=1 npm --workspace apps/desktop run build:mac && npm --workspace apps/desktop run build:win && node scripts/release-matter-desktop-temporary.mjs && npm run matter-desktop:temporary-release:validate && node scripts/validate-matter-desktop-temporary-release-bundle.mjs && node scripts/validate-matter-desktop-release-boundary.mjs && node scripts/validate-matter-desktop-no-public-release-claim.mjs",
     "matter-desktop:formal-release:validate": "node scripts/validate-matter-desktop-formal-release-bundle.mjs",
-    "matter-desktop:formal-release": "npm --workspace apps/desktop run test:smoke && npm --workspace apps/desktop run test:file-bridge && npm run matter-desktop:aws-runtime:smoke && MATTER_DESKTOP_RELEASE_CHANNEL=formal MATTER_NOTARY_KEYCHAIN_PROFILE=matter-notary MATTER_DESKTOP_SIGN=developer-id MATTER_DESKTOP_NOTARIZE=1 npm --workspace apps/desktop run build:mac && MATTER_DESKTOP_RELEASE_CHANNEL=formal npm --workspace apps/desktop run build:win && node scripts/release-matter-desktop-formal.mjs && npm run matter-desktop:formal-release:validate && node scripts/validate-matter-desktop-no-public-release-claim.mjs",
+    "matter-desktop:formal-release": "npm --workspace apps/desktop run test:smoke && npm --workspace apps/desktop run test:file-bridge && npm run matter-desktop:aws-runtime:smoke && MATTER_DESKTOP_RELEASE_CHANNEL=formal MATTER_NOTARY_KEYCHAIN_PROFILE=matter-notary MATTER_DESKTOP_SIGN=developer-id MATTER_DESKTOP_NOTARIZE=1 npm --workspace apps/desktop run build:mac && MATTER_DESKTOP_RELEASE_CHANNEL=formal npm --workspace apps/desktop run build:win && MATTER_DESKTOP_RELEASE_CHANNEL=formal npm --workspace apps/desktop run build:win:installer && node scripts/release-matter-desktop-formal.mjs && npm run matter-desktop:formal-release:validate && node scripts/validate-matter-desktop-no-public-release-claim.mjs",
     "client-matter:g1:plan:validate": "node scripts/validate-client-matter-os-g1-plan.mjs",
     "client-matter:g1a:validate": "node scripts/validate-client-matter-os-g1-a.mjs",
     "client-matter:g1b:validate": "node scripts/validate-client-matter-os-g1-b.mjs",

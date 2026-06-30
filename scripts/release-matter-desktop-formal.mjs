@@ -53,6 +53,20 @@ const artifacts = [
     kind: "formal_detached_signature",
   },
   {
+    id: "windows_installer",
+    path: `apps/desktop/dist/matter-${version}-win-x64.exe`,
+    display_path: `apps/desktop/dist/matter-${version}-win-x64.exe`,
+    platform: "win32",
+    kind: "formal_nsis_installer",
+  },
+  {
+    id: "windows_installer_blockmap",
+    path: `apps/desktop/dist/matter-${version}-win-x64.exe.blockmap`,
+    display_path: `apps/desktop/dist/matter-${version}-win-x64.exe.blockmap`,
+    platform: "win32",
+    kind: "formal_nsis_installer_blockmap",
+  },
+  {
     id: "macos_build_receipt",
     path: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
     display_path: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
@@ -142,6 +156,8 @@ await writeFile(
 const macZip = artifactRecords.find((artifact) => artifact.id === "macos_zip_archive");
 const macDmg = artifactRecords.find((artifact) => artifact.id === "macos_dmg_image");
 const winManifest = artifactRecords.find((artifact) => artifact.id === "windows_manifest");
+const winInstaller = artifactRecords.find((artifact) => artifact.id === "windows_installer");
+const winBlockmap = artifactRecords.find((artifact) => artifact.id === "windows_installer_blockmap");
 
 const releaseReceipt = `# matter Desktop Formal Release Candidate Receipt
 
@@ -172,6 +188,10 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 | macOS DMG SHA-256 | \`${macDmg.sha256}\` |
 | Windows formal manifest | \`apps/desktop/dist/win/matter-${version}-win-installer-manifest.json\` |
 | Windows formal manifest SHA-256 | \`${winManifest.sha256}\` |
+| Windows formal installer | \`apps/desktop/dist/matter-${version}-win-x64.exe\` |
+| Windows formal installer SHA-256 | \`${winInstaller.sha256}\` |
+| Windows installer blockmap | \`apps/desktop/dist/matter-${version}-win-x64.exe.blockmap\` |
+| Windows installer blockmap SHA-256 | \`${winBlockmap.sha256}\` |
 
 ## macOS Signing and Notarization
 

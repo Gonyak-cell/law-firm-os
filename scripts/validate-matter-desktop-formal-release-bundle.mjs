@@ -42,6 +42,7 @@ assert.equal(manifest.release_id, releaseId);
 assert.equal(manifest.status, "formal_release_candidate_generated");
 assert.equal(manifest.product_name, "matter");
 assert.equal(manifest.package_name, "@law-firm-os/desktop");
+assert.equal(manifest.version, version);
 assert.equal(manifest.app_id, "com.amic.matter.desktop");
 assert.equal(manifest.channel, "formal-candidate");
 assert.equal(manifest.github_release_tag, releaseId);
@@ -70,7 +71,7 @@ assert(macosReceipt.includes("Channel: `formal`"), "macOS receipt must record fo
 assert(windowsReceipt.includes("App ID: `com.amic.matter.desktop`"), "Windows receipt must use formal app id");
 assert(windowsReceipt.includes("Channel: `formal`"), "Windows receipt must record formal channel");
 assert(windowsReceipt.includes("Windows Authenticode signing: false"), "Windows formal candidate must not claim Authenticode signing");
-assert.equal(manifest.artifacts.length, 7);
+assert.equal(manifest.artifacts.length, 9);
 
 for (const artifact of manifest.artifacts) {
   const artifactPath = path.join(ROOT, artifact.path);
@@ -86,9 +87,11 @@ const requiredReceiptPhrases = [
   "Channel | `formal-candidate`",
   "App ID | `com.amic.matter.desktop`",
   `GitHub tag candidate | \`${releaseId}\``,
-  "macOS ZIP archive | `apps/desktop/dist/mac/matter-0.1.0-macos.zip`",
-  "macOS DMG image | `apps/desktop/dist/mac/matter-0.1.0-macos.dmg`",
-  "Windows formal manifest | `apps/desktop/dist/win/matter-0.1.0-win-installer-manifest.json`",
+  `macOS ZIP archive | \`apps/desktop/dist/mac/matter-${version}-macos.zip\``,
+  `macOS DMG image | \`apps/desktop/dist/mac/matter-${version}-macos.dmg\``,
+  `Windows formal manifest | \`apps/desktop/dist/win/matter-${version}-win-installer-manifest.json\``,
+  `Windows formal installer | \`apps/desktop/dist/matter-${version}-win-x64.exe\``,
+  `Windows installer blockmap | \`apps/desktop/dist/matter-${version}-win-x64.exe.blockmap\``,
   "Developer ID signing | applied",
   "notarization requested | true",
   "notarization state | submitted_and_accepted_by_notarytool",
