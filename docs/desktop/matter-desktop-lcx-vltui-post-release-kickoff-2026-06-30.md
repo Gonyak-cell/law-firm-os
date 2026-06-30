@@ -113,3 +113,11 @@ Local date: 2026-06-30
 - Validator: `npm run matter-desktop:windows-authenticode:azure:validate`
 - Validation receipt: `docs/desktop/matter-desktop-windows-authenticode-azure-receipt-validation.json`
 - Current state: `Microsoft.CodeSigning` provider registered, Trusted Signing / Artifact Signing account `lawosmattersigning` created in `amic-platform-rg`, required user-level Artifact Signing roles assigned, and Azure Portal Public identity validation form reached; request was not submitted because it requires authorized legal organization data, a supported organization jurisdiction, business identifier, requester identity, and Microsoft terms acceptance.
+
+## Windows Authenticode Korea Provider Pivot
+
+- Pivot receipt: `docs/desktop/matter-desktop-windows-authenticode-korea-provider-pivot-2026-06-30.json`
+- Reader copy: `docs/desktop/matter-desktop-windows-authenticode-korea-provider-pivot-2026-06-30.md`
+- Validator: `npm run matter-desktop:windows-authenticode:korea-provider:validate`
+- Validation receipt: `docs/desktop/matter-desktop-windows-authenticode-korea-provider-pivot-validation.json`
+- Current state: target jurisdiction is Korea/Seoul; Azure Public identity validation is not viable for this lane, so #145 must use a separate external Windows Authenticode provider that supports South Korea legal organization validation.
