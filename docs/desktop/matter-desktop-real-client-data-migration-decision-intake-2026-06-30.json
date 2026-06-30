@@ -1,7 +1,8 @@
 {
   "schema_version": "law-firm-os.matter-desktop-real-client-data-migration-decision-intake.v0.1",
-  "status": "pending_owner_decision",
+  "status": "owner_decision_recorded",
   "decision_gate": "real_client_data_migration",
+  "approval_receipt": "docs/desktop/matter-desktop-real-client-data-migration-approval-receipt-2026-06-30.json",
   "tracker": {
     "owner_decision_issue": "https://github.com/Gonyak-cell/law-firm-os/issues/160"
   },
@@ -18,10 +19,14 @@
     "production_go_live_receipt": "docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json",
     "vault_document_writes_decision_intake": "docs/desktop/matter-desktop-vault-document-writes-decision-intake-2026-06-30.json",
     "vault_document_writes_approval_receipt": "docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.json",
-    "lcx_vltui_production_bridge_smoke": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json"
+    "lcx_vltui_production_bridge_smoke": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json",
+    "source_inventory": "docs/desktop/matter-desktop-real-client-data-migration-source-inventory-2026-06-30.json",
+    "mapping_workbook": "docs/desktop/matter-desktop-real-client-data-migration-mapping-workbook-2026-06-30.json",
+    "dry_run_receipt": "docs/desktop/matter-desktop-real-client-data-migration-dry-run-receipt-2026-06-30.json",
+    "rollback_plan": "docs/desktop/matter-desktop-real-client-data-migration-rollback-plan-2026-06-30.md"
   },
   "decision_request": {
-    "response_status": "pending_owner_decision",
+    "response_status": "owner_decision_recorded",
     "required_decision_fields": [
       "decision_maker",
       "decision",
@@ -42,7 +47,13 @@
       "reject_real_client_data_migration",
       "request_changes"
     ],
-    "current_blocker": "real_client_data_migration_owner_decision_not_recorded"
+    "current_blocker": null
+  },
+  "owner_decision": {
+    "decision_maker": "Jiwon Suh, Product Owner",
+    "decision": "approve_real_client_data_migration",
+    "approval_signature_ref": "approval:real-client-data-migration-lcx-vltui-2026-06-30-1520-kst",
+    "recorded_by_human": true
   },
   "minimum_evidence_before_approval": [
     "Client population and exclusions named.",
@@ -52,7 +63,7 @@
     "Rollback plan and communications owner named."
   ],
   "boundary": {
-    "real_client_data_migration_approved": false,
+    "real_client_data_migration_approved": true,
     "real_client_data_migration_execution_authorized_by_this_file": false,
     "real_client_rows_migrated": 0,
     "vault_document_writes_approved_by_this_file": false,

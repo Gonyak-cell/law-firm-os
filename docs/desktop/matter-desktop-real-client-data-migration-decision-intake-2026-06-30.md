@@ -1,6 +1,6 @@
 # matter Desktop Real Client Data Migration Decision Intake
 
-Status: pending-owner-decision
+Status: owner-decision-recorded
 
 ## Decision Gate
 
@@ -11,6 +11,7 @@ Status: pending-owner-decision
 | Tracker | https://github.com/Gonyak-cell/law-firm-os/issues/160 |
 | Upstream write gate | `vault_document_writes` |
 | Upstream write approval | `docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.json` |
+| Approval receipt | `docs/desktop/matter-desktop-real-client-data-migration-approval-receipt-2026-06-30.json` |
 
 ## Required Owner Response
 
@@ -46,7 +47,7 @@ Required fields:
 
 ## Boundary
 
-- Real client data migration: false
+- Real client data migration: true
 - Real client rows migrated: 0
 - Vault document writes approved by this file: false
 - Vault document write execution authorized by this file: false

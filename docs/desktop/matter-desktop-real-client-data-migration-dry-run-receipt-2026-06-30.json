@@ -1,0 +1,30 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-real-client-data-migration-dry-run-receipt.v0.1",
+  "status": "dry_run_pass",
+  "recorded_at": "2026-06-30T06:20:00Z",
+  "recorded_at_original": "2026-06-30 15:20:00 KST",
+  "source_inventory_ref": "docs/desktop/matter-desktop-real-client-data-migration-source-inventory-2026-06-30.json",
+  "mapping_workbook_ref": "docs/desktop/matter-desktop-real-client-data-migration-mapping-workbook-2026-06-30.json",
+  "dry_run": {
+    "mode": "approval_prerequisite_only",
+    "source_record_count": 1,
+    "mapped_record_count": 1,
+    "planned_client_records": 1,
+    "planned_matter_records": 1,
+    "planned_vault_document_write_limit": 10,
+    "executed_mutation_count": 0,
+    "unexpected_mutation_count": 0,
+    "destructive_mutation_count": 0,
+    "secret_material_observed": false
+  },
+  "boundary": {
+    "dry_run_only": true,
+    "real_client_data_migration_approved_by_this_file": false,
+    "real_client_data_migration_execution_authorized_by_this_file": false,
+    "real_client_rows_migrated": 0,
+    "vault_document_writes_executed": false,
+    "public_release_approved": false,
+    "external_pilot_distribution_approved": false,
+    "windows_authenticode_signing_approved": false
+  }
+}

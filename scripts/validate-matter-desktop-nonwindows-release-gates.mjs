@@ -12,6 +12,13 @@ const VAULT_WRITES_APPROVAL_MD_PATH = "docs/desktop/matter-desktop-vault-documen
 const VAULT_WRITES_ROLLBACK_PLAN_PATH = "docs/desktop/matter-desktop-vault-document-writes-rollback-plan-2026-06-30.md";
 const MIGRATION_JSON_PATH = "docs/desktop/matter-desktop-real-client-data-migration-decision-intake-2026-06-30.json";
 const MIGRATION_MD_PATH = "docs/desktop/matter-desktop-real-client-data-migration-decision-intake-2026-06-30.md";
+const MIGRATION_APPROVAL_JSON_PATH = "docs/desktop/matter-desktop-real-client-data-migration-approval-receipt-2026-06-30.json";
+const MIGRATION_APPROVAL_MD_PATH = "docs/desktop/matter-desktop-real-client-data-migration-approval-receipt-2026-06-30.md";
+const MIGRATION_SOURCE_INVENTORY_PATH = "docs/desktop/matter-desktop-real-client-data-migration-source-inventory-2026-06-30.json";
+const MIGRATION_MAPPING_WORKBOOK_PATH = "docs/desktop/matter-desktop-real-client-data-migration-mapping-workbook-2026-06-30.json";
+const MIGRATION_DRY_RUN_JSON_PATH = "docs/desktop/matter-desktop-real-client-data-migration-dry-run-receipt-2026-06-30.json";
+const MIGRATION_DRY_RUN_MD_PATH = "docs/desktop/matter-desktop-real-client-data-migration-dry-run-receipt-2026-06-30.md";
+const MIGRATION_ROLLBACK_PLAN_PATH = "docs/desktop/matter-desktop-real-client-data-migration-rollback-plan-2026-06-30.md";
 const RELEASE_RECEIPT_PATH = "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json";
 const OWNER_RECEIPT_PATH = "docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json";
 const GO_LIVE_RECEIPT_PATH = "docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json";
@@ -170,8 +177,8 @@ function renderMarkdown(report) {
   lines.push("", "## Boundary", "");
   lines.push("- Internal prerelease distribution readiness is recorded for the named lane only.");
   lines.push("- Vault document writes are approved only for the bounded named-lane write verification receipt.");
-  lines.push("- Real client data migration remains pending owner decision.");
-  lines.push("- Public release, external pilot distribution, Windows Authenticode signing, company-wide rollout, Vault writes outside the approved scope, and real client migration execution remain out of scope.");
+  lines.push("- Real client data migration is approved only for the bounded named-lane migration verification receipt.");
+  lines.push("- Public release, external pilot distribution, Windows Authenticode signing, company-wide rollout, Vault writes outside the approved scope, migration outside the approved scope, and unbounded bulk migration remain out of scope.");
   return `${lines.join("\n")}\n`;
 }
 
@@ -186,6 +193,13 @@ for (const path of [
   VAULT_WRITES_ROLLBACK_PLAN_PATH,
   MIGRATION_JSON_PATH,
   MIGRATION_MD_PATH,
+  MIGRATION_APPROVAL_JSON_PATH,
+  MIGRATION_APPROVAL_MD_PATH,
+  MIGRATION_SOURCE_INVENTORY_PATH,
+  MIGRATION_MAPPING_WORKBOOK_PATH,
+  MIGRATION_DRY_RUN_JSON_PATH,
+  MIGRATION_DRY_RUN_MD_PATH,
+  MIGRATION_ROLLBACK_PLAN_PATH,
   RELEASE_RECEIPT_PATH,
   OWNER_RECEIPT_PATH,
   GO_LIVE_RECEIPT_PATH,
@@ -204,6 +218,13 @@ const vaultWritesApprovalMd = existsSync(VAULT_WRITES_APPROVAL_MD_PATH) ? readTe
 const vaultWritesRollbackPlan = existsSync(VAULT_WRITES_ROLLBACK_PLAN_PATH) ? readText(VAULT_WRITES_ROLLBACK_PLAN_PATH) : "";
 const migration = existsSync(MIGRATION_JSON_PATH) ? readJson(MIGRATION_JSON_PATH) : {};
 const migrationMd = existsSync(MIGRATION_MD_PATH) ? readText(MIGRATION_MD_PATH) : "";
+const migrationApproval = existsSync(MIGRATION_APPROVAL_JSON_PATH) ? readJson(MIGRATION_APPROVAL_JSON_PATH) : {};
+const migrationApprovalMd = existsSync(MIGRATION_APPROVAL_MD_PATH) ? readText(MIGRATION_APPROVAL_MD_PATH) : "";
+const migrationSourceInventory = existsSync(MIGRATION_SOURCE_INVENTORY_PATH) ? readJson(MIGRATION_SOURCE_INVENTORY_PATH) : {};
+const migrationMappingWorkbook = existsSync(MIGRATION_MAPPING_WORKBOOK_PATH) ? readJson(MIGRATION_MAPPING_WORKBOOK_PATH) : {};
+const migrationDryRun = existsSync(MIGRATION_DRY_RUN_JSON_PATH) ? readJson(MIGRATION_DRY_RUN_JSON_PATH) : {};
+const migrationDryRunMd = existsSync(MIGRATION_DRY_RUN_MD_PATH) ? readText(MIGRATION_DRY_RUN_MD_PATH) : "";
+const migrationRollbackPlan = existsSync(MIGRATION_ROLLBACK_PLAN_PATH) ? readText(MIGRATION_ROLLBACK_PLAN_PATH) : "";
 const releaseReceipt = existsSync(RELEASE_RECEIPT_PATH) ? readJson(RELEASE_RECEIPT_PATH) : {};
 const ownerReceipt = existsSync(OWNER_RECEIPT_PATH) ? readJson(OWNER_RECEIPT_PATH) : {};
 const goLiveReceipt = existsSync(GO_LIVE_RECEIPT_PATH) ? readJson(GO_LIVE_RECEIPT_PATH) : {};
@@ -401,6 +422,8 @@ checkPendingDecisionIntake(findings, "MIGRATION", migration, {
   schemaVersion: "law-firm-os.matter-desktop-real-client-data-migration-decision-intake.v0.1",
   decisionGate: "real_client_data_migration",
   issueUrl: "https://github.com/Gonyak-cell/law-firm-os/issues/160",
+  status: "owner_decision_recorded",
+  responseStatus: "owner_decision_recorded",
   checkRuntime: false,
   requiredFields: [
     "decision_maker",
@@ -419,7 +442,7 @@ checkPendingDecisionIntake(findings, "MIGRATION", migration, {
   ],
   allowedDecisions: ["approve_real_client_data_migration", "reject_real_client_data_migration", "request_changes"],
   boundary: {
-    real_client_data_migration_approved: false,
+    real_client_data_migration_approved: true,
     real_client_data_migration_execution_authorized_by_this_file: false,
     real_client_rows_migrated: 0,
     vault_document_writes_approved_by_this_file: false,
@@ -430,13 +453,93 @@ checkPendingDecisionIntake(findings, "MIGRATION", migration, {
     windows_authenticode_signing_approved: false
   }
 });
+if (migration.approval_receipt !== MIGRATION_APPROVAL_JSON_PATH) {
+  addFinding(findings, "P1", "MIGRATION_APPROVAL_RECEIPT", "Migration intake must point to the approval receipt.", {
+    expected: MIGRATION_APPROVAL_JSON_PATH,
+    actual: migration.approval_receipt
+  });
+}
+if (migrationApproval.schema_version !== "law-firm-os.matter-desktop-real-client-data-migration-approval-receipt.v0.1") {
+  addFinding(findings, "P1", "MIGRATION_APPROVAL_SCHEMA", "Unexpected real client data migration approval schema version.", {
+    actual: migrationApproval.schema_version
+  });
+}
+if (migrationApproval.status !== "real_client_data_migration_approved") {
+  addFinding(findings, "P1", "MIGRATION_APPROVAL_STATUS", "Real client data migration approval receipt must be approved.", {
+    actual: migrationApproval.status
+  });
+}
+for (const [key, expected] of Object.entries({
+  real_client_data_migration_approved: true,
+  real_client_data_migration_execution_authorized_by_this_receipt: true,
+  real_client_rows_migrated_by_this_receipt: 0,
+  migration_execution_receipt_present: false,
+  vault_document_writes_approval_recorded: true,
+  source_inventory_ready: true,
+  mapping_workbook_ready: true,
+  dry_run_pass: true,
+  public_release_approved: false,
+  company_wide_production_rollout_approved: false,
+  external_pilot_distribution_approved: false,
+  windows_authenticode_signing_approved: false,
+  migration_outside_named_scope_approved: false,
+  unbounded_bulk_client_data_migration_approved: false
+})) {
+  if (migrationApproval.boundary?.[key] !== expected) {
+    addFinding(findings, expected === false ? "P0" : "P1", `MIGRATION_APPROVAL_BOUNDARY_${key}`, "Migration approval boundary drifted.", {
+      expected,
+      actual: migrationApproval.boundary?.[key]
+    });
+  }
+}
+if (migrationSourceInventory.status !== "source_inventory_ready" || migrationSourceInventory.scope?.company_wide_client_population !== false) {
+  addFinding(findings, "P1", "MIGRATION_SOURCE_INVENTORY", "Migration source inventory must be ready and exclude company-wide population.", {
+    status: migrationSourceInventory.status,
+    scope: migrationSourceInventory.scope
+  });
+}
+if (migrationMappingWorkbook.status !== "mapping_workbook_ready" || migrationMappingWorkbook.target?.company_wide_target !== false) {
+  addFinding(findings, "P1", "MIGRATION_MAPPING_WORKBOOK", "Migration mapping workbook must be ready and avoid company-wide targets.", {
+    status: migrationMappingWorkbook.status,
+    target: migrationMappingWorkbook.target
+  });
+}
+if (
+  migrationDryRun.status !== "dry_run_pass" ||
+  migrationDryRun.dry_run?.unexpected_mutation_count !== 0 ||
+  migrationDryRun.dry_run?.executed_mutation_count !== 0 ||
+  migrationDryRun.boundary?.real_client_rows_migrated !== 0
+) {
+  addFinding(findings, "P1", "MIGRATION_DRY_RUN", "Migration dry run must pass with zero executed/unexpected mutations and zero migrated rows.", {
+    status: migrationDryRun.status,
+    dry_run: migrationDryRun.dry_run,
+    boundary: migrationDryRun.boundary
+  });
+}
 checkMarkdown(findings, MIGRATION_MD_PATH, migrationMd, [
-  "Status: pending-owner-decision",
-  "Real client data migration: false",
+  "Status: owner-decision-recorded",
+  "Real client data migration: true",
   "Real client rows migrated: 0",
   "Vault document writes approved by this file: false",
   "Vault document write execution authorized by this file: false"
 ]);
+checkMarkdown(findings, MIGRATION_APPROVAL_MD_PATH, migrationApprovalMd, [
+  "Status: real-client-data-migration-approved",
+  "Real client data migration approved: true",
+  "Real client rows migrated by this receipt: 0",
+  "Migration execution receipt present: false"
+]);
+checkMarkdown(findings, MIGRATION_DRY_RUN_MD_PATH, migrationDryRunMd, [
+  "Status: dry-run-pass",
+  "Executed mutations: 0",
+  "Unexpected mutations: 0",
+  "Real client rows migrated: 0"
+]);
+for (const phrase of ["Status: rollback-plan-ready", "approval:real-client-data-migration-lcx-vltui-2026-06-30-1520-kst", "does not authorize unbounded or bulk client data migration"]) {
+  if (!migrationRollbackPlan.includes(phrase)) {
+    addFinding(findings, "P1", "MIGRATION_ROLLBACK_PLAN", "Migration rollback plan is missing a required phrase.", { phrase });
+  }
+}
 
 const verdict = findings.some((finding) => finding.severity === "P0" || finding.severity === "P1") ? "FAIL" : "PASS";
 const report = {
@@ -452,6 +555,13 @@ const report = {
     VAULT_WRITES_ROLLBACK_PLAN_PATH,
     MIGRATION_JSON_PATH,
     MIGRATION_MD_PATH,
+    MIGRATION_APPROVAL_JSON_PATH,
+    MIGRATION_APPROVAL_MD_PATH,
+    MIGRATION_SOURCE_INVENTORY_PATH,
+    MIGRATION_MAPPING_WORKBOOK_PATH,
+    MIGRATION_DRY_RUN_JSON_PATH,
+    MIGRATION_DRY_RUN_MD_PATH,
+    MIGRATION_ROLLBACK_PLAN_PATH,
     RELEASE_RECEIPT_PATH,
     OWNER_RECEIPT_PATH,
     GO_LIVE_RECEIPT_PATH,
@@ -467,7 +577,10 @@ const report = {
     vault_document_write_execution_authorized: vaultWritesApproval.boundary?.vault_document_write_execution_authorized_by_this_receipt === true,
     vault_document_uploads_executed_by_approval_receipt: vaultWritesApproval.boundary?.vault_document_uploads_executed_by_this_receipt === true,
     max_document_count: vaultWritesApproval.boundary?.max_document_count ?? null,
-    real_client_data_migration_approved: migration.boundary?.real_client_data_migration_approved === true,
+    real_client_data_migration_approved: migrationApproval.boundary?.real_client_data_migration_approved === true,
+    real_client_data_migration_execution_authorized: migrationApproval.boundary?.real_client_data_migration_execution_authorized_by_this_receipt === true,
+    real_client_rows_migrated_by_approval_receipt: migrationApproval.boundary?.real_client_rows_migrated_by_this_receipt ?? null,
+    migration_execution_receipt_present: migrationApproval.boundary?.migration_execution_receipt_present === true,
     public_release_approved: false,
     external_pilot_distribution_approved: false,
     windows_authenticode_signing_approved: false,
