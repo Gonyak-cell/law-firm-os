@@ -222,6 +222,7 @@
     "matter-desktop:owner-approval:intake:validate": "node scripts/validate-matter-desktop-owner-approval-intake.mjs",
     "matter-desktop:production-go-live:decision:validate": "node scripts/validate-matter-desktop-production-go-live-decision-intake.mjs",
     "matter-desktop:production-go-live:receipt:validate": "node scripts/validate-matter-desktop-production-go-live-receipt.mjs",
+    "matter-desktop:company-wide-rollout:decision:validate": "node scripts/validate-matter-desktop-company-wide-rollout-decision-intake.mjs",
     "matter-desktop:windows-authenticode:preflight:validate": "node scripts/validate-matter-desktop-windows-authenticode-preflight.mjs",
     "matter-desktop:windows-authenticode:approval:intake:validate": "node scripts/validate-matter-desktop-windows-authenticode-approval-intake.mjs",
     "matter-desktop:windows-authenticode:azure:validate": "node scripts/validate-matter-desktop-windows-authenticode-azure-receipt.mjs",

@@ -1,0 +1,78 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-company-wide-rollout-decision-intake.v0.1",
+  "status": "pending_company_wide_rollout_decision",
+  "decision_gate": "company_wide_rollout",
+  "tracker": {
+    "owner_decision_issue": "https://github.com/Gonyak-cell/law-firm-os/issues/165"
+  },
+  "recorded_at": "2026-06-30T07:16:32Z",
+  "recorded_at_original": "2026-06-30 16:16:32 KST",
+  "release": {
+    "tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "target_commitish": "ef493451a1d070412d3d24d4474493afbca3f1a4",
+    "is_prerelease": true,
+    "release_channel": "github_prerelease_lcx_vltui_desktop"
+  },
+  "runtime_target": {
+    "production_web_base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "production_api_lambda": "matter-lawos-api-prod",
+    "deployment_commit": "0ff79586d887a950200ab091a5864a20c174bdf9"
+  },
+  "source_refs": {
+    "production_go_live_receipt": "docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json",
+    "production_go_live_receipt_validation": "docs/desktop/matter-desktop-production-go-live-receipt-validation.json",
+    "nonwindows_execution_closeout_receipt": "docs/desktop/matter-desktop-nonwindows-execution-closeout-receipt-2026-06-30.json",
+    "nonwindows_execution_closeout_validation": "docs/desktop/matter-desktop-nonwindows-execution-closeout-validation.json",
+    "vault_document_write_execution_receipt": "docs/desktop/matter-desktop-vault-document-writes-execution-receipt-2026-06-30.json",
+    "real_client_data_migration_execution_receipt": "docs/desktop/matter-desktop-real-client-data-migration-execution-receipt-2026-06-30.json",
+    "release_receipt": "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json",
+    "hrx_production_smoke": "docs/lazycodex/evidence/matter-web/artifacts/hrx-production-smoke-2026-06-30.json",
+    "lcx_vltui_production_bridge_smoke": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json"
+  },
+  "decision_request": {
+    "response_status": "pending_company_wide_rollout_decision",
+    "required_decision_fields": [
+      "decision_maker",
+      "decision",
+      "rollout_scope",
+      "user_population",
+      "operational_workflows",
+      "support_owner",
+      "communications_owner",
+      "rollback_plan_ref",
+      "start_window",
+      "decision_at",
+      "approval_signature_ref",
+      "recorded_by_human"
+    ],
+    "allowed_decisions": [
+      "approve_company_wide_rollout",
+      "reject_company_wide_rollout",
+      "request_changes"
+    ],
+    "current_blocker": "company_wide_rollout_decision_not_recorded"
+  },
+  "minimum_evidence_before_approval": [
+    "Named-lane production go-live receipt is recorded and validation passes.",
+    "Non-Windows approved-scope execution closeout validation passes.",
+    "Vault document write and real client data migration execution receipts are present with bounded counts.",
+    "HRX and LCX VLTUI production smoke receipts pass.",
+    "Rollback target identification remains possible.",
+    "Company-wide user population, operational workflows, support owner, communications owner, rollout window, and rollback reference are named by a human owner."
+  ],
+  "boundary": {
+    "named_lane_runtime_go_live_recorded": true,
+    "named_lane_execution_closeout_verified": true,
+    "ready_for_company_wide_rollout_decision_input": true,
+    "company_wide_rollout_decision_recorded": false,
+    "company_wide_rollout_approved": false,
+    "company_wide_rollout_executed": false,
+    "public_release_approved": false,
+    "external_pilot_distribution_approved": false,
+    "windows_authenticode_signing_approved": false,
+    "vault_document_writes_outside_named_scope_approved": false,
+    "real_client_data_migration_outside_named_scope_approved": false,
+    "unbounded_bulk_client_data_migration_approved": false
+  }
+}

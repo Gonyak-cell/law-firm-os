@@ -1,0 +1,31 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-company-wide-rollout-decision.validation.v0.1",
+  "generated_at": "2026-06-30T07:16:32Z",
+  "source_refs": [
+    "docs/desktop/matter-desktop-company-wide-rollout-decision-intake-2026-06-30.json",
+    "docs/desktop/matter-desktop-company-wide-rollout-decision-intake-2026-06-30.md",
+    "docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json",
+    "docs/desktop/matter-desktop-production-go-live-receipt-validation.json",
+    "docs/desktop/matter-desktop-nonwindows-execution-closeout-receipt-2026-06-30.json",
+    "docs/desktop/matter-desktop-nonwindows-execution-closeout-validation.json",
+    "docs/desktop/matter-desktop-vault-document-writes-execution-receipt-2026-06-30.json",
+    "docs/desktop/matter-desktop-real-client-data-migration-execution-receipt-2026-06-30.json",
+    "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/hrx-production-smoke-2026-06-30.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json"
+  ],
+  "verdict": "PASS",
+  "summary": {
+    "decision_gate": "company_wide_rollout",
+    "tracker_issue": "https://github.com/Gonyak-cell/law-firm-os/issues/165",
+    "named_lane_runtime_go_live_recorded": true,
+    "named_lane_execution_closeout_verified": true,
+    "ready_for_company_wide_rollout_decision_input": true,
+    "company_wide_rollout_decision_recorded": false,
+    "company_wide_rollout_approved": false,
+    "company_wide_rollout_executed": false,
+    "public_release_approved": false,
+    "finding_count": 0
+  },
+  "findings": []
+}
