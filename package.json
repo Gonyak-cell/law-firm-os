@@ -228,6 +228,8 @@
     "matter-desktop:windows-authenticode:korea-provider:validate": "node scripts/validate-matter-desktop-windows-authenticode-korea-provider-pivot.mjs",
     "matter-desktop:windows-unsigned-release-asset:validate": "node scripts/validate-matter-desktop-windows-unsigned-release-asset.mjs",
     "matter-desktop:nonwindows-release-gates:validate": "node scripts/validate-matter-desktop-nonwindows-release-gates.mjs",
+    "matter-desktop:nonwindows-approved-scope:execute": "node scripts/execute-matter-desktop-nonwindows-approved-scope.mjs",
+    "matter-desktop:nonwindows-execution-closeout:validate": "node scripts/validate-matter-desktop-nonwindows-execution-closeout.mjs",
     "matter-desktop:vault-document-writes:approval:validate": "node scripts/validate-matter-desktop-vault-document-writes-approval-receipt.mjs",
     "matter-desktop:real-client-data-migration:approval:validate": "node scripts/validate-matter-desktop-real-client-data-migration-approval-receipt.mjs",
     "matter-desktop:temporary-release": "npm --workspace apps/desktop run test:smoke && npm --workspace apps/desktop run test:file-bridge && npm run matter-desktop:aws-runtime:smoke && MATTER_NOTARY_KEYCHAIN_PROFILE=matter-notary MATTER_DESKTOP_SIGN=developer-id MATTER_DESKTOP_NOTARIZE=1 npm --workspace apps/desktop run build:mac && npm --workspace apps/desktop run build:win && node scripts/release-matter-desktop-temporary.mjs && npm run matter-desktop:temporary-release:validate && node scripts/validate-matter-desktop-temporary-release-bundle.mjs && node scripts/validate-matter-desktop-release-boundary.mjs && node scripts/validate-matter-desktop-no-public-release-claim.mjs",

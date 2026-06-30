@@ -1,0 +1,39 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-nonwindows-execution-closeout-receipt.v0.1",
+  "status": "approved_scope_execution_verified",
+  "generated_at": "2026-06-30T06:57:12.246Z",
+  "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+  "deployment_commit": "0ff79586d887a950200ab091a5864a20c174bdf9",
+  "execution_ref": "execution:lcx-vltui-nonwindows-approved-scope-2026-06-30",
+  "release": {
+    "tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "release_channel": "github_prerelease_lcx_vltui_desktop"
+  },
+  "source_refs": {
+    "vault_document_write_execution_receipt": "docs/desktop/matter-desktop-vault-document-writes-execution-receipt-2026-06-30.json",
+    "real_client_data_migration_execution_receipt": "docs/desktop/matter-desktop-real-client-data-migration-execution-receipt-2026-06-30.json",
+    "post_execution_smoke": "docs/desktop/matter-desktop-nonwindows-post-execution-smoke-2026-06-30.json",
+    "vault_document_writes_approval": "docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.json",
+    "real_client_data_migration_approval": "docs/desktop/matter-desktop-real-client-data-migration-approval-receipt-2026-06-30.json"
+  },
+  "summary": {
+    "vault_document_writes_executed": true,
+    "real_client_data_migration_executed": true,
+    "vault_documents_written": 1,
+    "client_records_migrated": 1,
+    "matter_records_migrated": 1,
+    "real_client_rows_migrated": 1,
+    "post_execution_smoke_verdict": "PASS",
+    "rollback_possible": true
+  },
+  "boundary": {
+    "approved_scope_only": true,
+    "public_release_approved": false,
+    "company_wide_production_rollout_approved": false,
+    "external_pilot_distribution_approved": false,
+    "windows_authenticode_signing_approved": false,
+    "migration_outside_named_scope_approved": false,
+    "unbounded_bulk_client_data_migration_approved": false
+  }
+}
