@@ -1,14 +1,14 @@
 # LCX-FULL-19 Release Preflight Proof
 
-Generated at: 2026-06-30T10:51:20.759Z
+Generated at: 2026-06-30T12:33:31.196Z
 
-Verdict: PASS
+Verdict: FAIL
 
 Status: preflight_recorded_with_blocked_gates
 
 | TUW | Gate | Claim | Evidence | Boundary |
 | --- | --- | --- | --- | --- |
-| LCX-FULL-19.01 | env/formal release preflight | PASS | (command output) | formal release candidate bundle validated; public release still not claimed |
+| LCX-FULL-19.01 | env/formal release preflight | FAIL | (command output) | formal release validation failed with an unclassified error |
 | LCX-FULL-19.02 | AWS runtime smoke | PASS | (command output) | AWS temporary runtime smoke passed with token/password material suppressed |
 | LCX-FULL-19.03 | web production smoke | BLOCKED | docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json | production smoke is explicitly blocked until required env is present |
 | LCX-FULL-19.04 | release no-public-claim guard | PASS | (command output) | public release/go-live/owner approval claims remain false |

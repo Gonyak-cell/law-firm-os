@@ -1,0 +1,42 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.operating_fit_final_validation.v0.1",
+  "generated_at": "2026-06-30T12:46:46.093Z",
+  "verdict": "PASS",
+  "source_refs": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-21-concept-fit-validation.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-21-korea-saas-fit-validation.json",
+    "docs/lazycodex/lcx-openable-implementation-tuw-traceability-2026-06-30.md",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-19-release-preflight-proof.json"
+  ],
+  "checked_openable_rows": 105,
+  "status_counts": {
+    "closed_repo_implemented": 46,
+    "closed_request_only": 49,
+    "closed_dry_run_only": 7,
+    "blocked_external_receipt_required": 3
+  },
+  "dual_axis": {
+    "original_concept_fit": "PASS",
+    "korea_saas_operating_fit": "PASS"
+  },
+  "release_preflight": {
+    "verdict": "FAIL",
+    "status": "preflight_recorded_with_blocked_gates",
+    "blocked_gates": [
+      "LCX-FULL-19.03"
+    ],
+    "failed_gates": [
+      "LCX-FULL-19.01"
+    ]
+  },
+  "boundary": {
+    "external_non_claims_preserved": true,
+    "public_release_claim": false,
+    "production_go_live_claim": false,
+    "provider_production_write_claim": false,
+    "external_send_claim": false,
+    "payment_movement_claim": false,
+    "tax_invoice_issue_claim": false,
+    "payroll_disbursement_claim": false
+  }
+}

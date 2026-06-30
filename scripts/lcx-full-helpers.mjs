@@ -88,6 +88,17 @@ export const OWNER_DECISION_PACKET_PATH = `${ARTIFACT_DIR}/lcx-full-20-owner-rel
 export const OWNER_DECISION_PACKET_MD_PATH = `${ARTIFACT_DIR}/lcx-full-20-owner-release-decision-packet.md`;
 export const FINAL_RELEASE_PACKET_VALIDATION_PATH = `${ARTIFACT_DIR}/lcx-full-20-final-release-packet-validation.json`;
 export const FINAL_RELEASE_PACKET_VALIDATION_MD_PATH = `${ARTIFACT_DIR}/lcx-full-20-final-release-packet-validation.md`;
+export const OPENABLE_PLAN_PATH = "docs/lazycodex/lcx-openable-implementation-tuw-plan-2026-06-30.md";
+export const OPENABLE_TRACEABILITY_PATH = "docs/lazycodex/lcx-openable-implementation-tuw-traceability-2026-06-30.md";
+export const NO_UNIMPLEMENTED_PLAN_PATH = "docs/lazycodex/lcx-no-unimplemented-implementation-plan-2026-06-30.md";
+export const KOREA_SAAS_RESEARCH_MATRIX_PATH = "docs/lazycodex/lcx-korea-saas-operating-fit-research-matrix-2026-06-30.md";
+export const KOREA_SAAS_IMPLEMENTATION_PLAN_PATH = "docs/lazycodex/lcx-korea-saas-operating-fit-implementation-plan-2026-06-30.md";
+export const CONCEPT_FIT_VALIDATION_PATH = `${ARTIFACT_DIR}/lcx-full-21-concept-fit-validation.json`;
+export const CONCEPT_FIT_VALIDATION_MD_PATH = `${ARTIFACT_DIR}/lcx-full-21-concept-fit-validation.md`;
+export const KOREA_SAAS_FIT_VALIDATION_PATH = `${ARTIFACT_DIR}/lcx-full-21-korea-saas-fit-validation.json`;
+export const KOREA_SAAS_FIT_VALIDATION_MD_PATH = `${ARTIFACT_DIR}/lcx-full-21-korea-saas-fit-validation.md`;
+export const OPERATING_FIT_FINAL_VALIDATION_PATH = `${ARTIFACT_DIR}/lcx-full-21-operating-fit-final-validation.json`;
+export const OPERATING_FIT_FINAL_VALIDATION_MD_PATH = `${ARTIFACT_DIR}/lcx-full-21-operating-fit-final-validation.md`;
 
 export function readText(path) {
   return readFileSync(path, "utf8");

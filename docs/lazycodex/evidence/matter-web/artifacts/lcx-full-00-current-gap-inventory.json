@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.lazycodex.lcx_full.current_gap_inventory.v0.1",
-  "generated_at": "2026-06-30T09:58:31.001Z",
+  "generated_at": "2026-06-30T11:07:08.921Z",
   "tuw_id": "LCX-FULL-00.01",
   "verdict": "PASS",
   "status": "current_gap_frozen",
@@ -8,8 +8,8 @@
     "plan_path": "docs/lazycodex/lcx-full-implementation-tuw-plan-2026-06-30.md",
     "traceability_path": "docs/lazycodex/lcx-full-implementation-tuw-traceability-2026-06-30.md",
     "release_manifest_path": "apps/desktop/dist/release/matter-desktop-v0.1.0-lcx-vltui-20260630/release-manifest.json",
-    "latest_tag_by_creatordate": "matter-desktop-v0.1.0-lcx-vltui-20260630",
-    "head_sha": "d29bfcb20247fbeba96c2fbf402bdfe773477004"
+    "latest_tag_by_creatordate": "matter-desktop-v0.1.0-lcx-full-20260630-1950",
+    "head_sha": "b6eba0647bcd56620af97022b5236e522dc54747"
   },
   "traceability": {
     "parent_count": 21,

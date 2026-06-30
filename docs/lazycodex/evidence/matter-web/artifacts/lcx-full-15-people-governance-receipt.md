@@ -1,6 +1,6 @@
 # LCX-FULL-15 People Governance Receipt
 
-Generated at: 2026-06-30T10:44:33.514Z
+Generated at: 2026-06-30T12:32:48.747Z
 
 Verdict: PASS
 
