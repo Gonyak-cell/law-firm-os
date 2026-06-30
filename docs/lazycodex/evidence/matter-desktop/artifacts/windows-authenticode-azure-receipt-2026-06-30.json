@@ -17,10 +17,20 @@
     "Artifact Signing Identity Verifier",
     "Artifact Signing Certificate Profile Signer"
   ],
+  "portal_identity_validation_attempt": {
+    "surface": "Azure Portal Artifact Signing Account > Identity validation > New identity > Public",
+    "result": "form_reached_not_submitted",
+    "portal_notice": "Artifact Signing is currently available to organizations in the USA, Canada, European Union & United Kingdom.",
+    "submission_blocker": "requires accurate legal organization data, qualifying organization jurisdiction, business identifier, requester identity, and Microsoft terms acceptance"
+  },
   "boundary": {
     "trusted_signing_account_created": true,
     "artifact_signing_identity_verifier_role_assigned": true,
     "artifact_signing_certificate_profile_signer_role_assigned": true,
+    "portal_identity_validation_form_reached": true,
+    "portal_identity_validation_request_submitted": false,
+    "portal_country_scope_warning_observed": true,
+    "legal_identity_attestation_required": true,
     "certificate_profile_created": false,
     "identity_validation_completed": false,
     "signing_execution_allowed": false,

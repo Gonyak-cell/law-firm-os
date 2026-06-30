@@ -19,6 +19,9 @@ Issue: https://github.com/Gonyak-cell/law-firm-os/issues/145
 
 - Artifact Signing Identity Verifier role assigned: true
 - Artifact Signing Certificate Profile Signer role assigned: true
+- Portal identity validation form reached: true
+- Portal identity validation request submitted: false
+- Portal notice: `Artifact Signing is currently available to organizations in the USA, Canada, European Union & United Kingdom.`
 - Certificate profile created: false
 - Identity validation completed: false
 - Signing execution allowed: false

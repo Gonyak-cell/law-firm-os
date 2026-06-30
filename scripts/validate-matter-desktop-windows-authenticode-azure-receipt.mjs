@@ -104,6 +104,10 @@ for (const [key, expected] of Object.entries({
   trusted_signing_account_created: true,
   artifact_signing_identity_verifier_role_assigned: true,
   artifact_signing_certificate_profile_signer_role_assigned: true,
+  portal_identity_validation_form_reached: true,
+  portal_identity_validation_request_submitted: false,
+  portal_country_scope_warning_observed: true,
+  legal_identity_attestation_required: true,
   certificate_profile_created: false,
   identity_validation_completed: false,
   signing_execution_allowed: false,
@@ -136,6 +140,21 @@ for (const role of ["Artifact Signing Identity Verifier", "Artifact Signing Cert
     addFinding(findings, "P1", "ROLE_ASSIGNMENT_MISSING", "Azure receipt is missing a required role assignment.", { role });
   }
 }
+if (receipt.portal_identity_validation_attempt?.result !== "form_reached_not_submitted") {
+  addFinding(findings, "P1", "PORTAL_IDENTITY_VALIDATION_ATTEMPT", "Portal identity validation attempt must remain recorded as reached but not submitted.", {
+    portal_identity_validation_attempt: receipt.portal_identity_validation_attempt
+  });
+}
+if (!receipt.portal_identity_validation_attempt?.portal_notice?.includes("USA, Canada, European Union & United Kingdom")) {
+  addFinding(findings, "P1", "PORTAL_COUNTRY_NOTICE", "Portal identity validation attempt must record the supported organization jurisdiction notice.", {
+    portal_notice: receipt.portal_identity_validation_attempt?.portal_notice
+  });
+}
+if (receipt.portal_identity_validation_attempt?.existing_identity_validations?.length !== 0) {
+  addFinding(findings, "P1", "PORTAL_EXISTING_VALIDATIONS", "Receipt must record no existing identity validations.", {
+    existing_identity_validations: receipt.portal_identity_validation_attempt?.existing_identity_validations
+  });
+}
 if (approvalValidation.verdict !== "PASS" || approvalValidation.summary?.signing_execution_allowed !== false) {
   addFinding(findings, "P1", "APPROVAL_INTAKE_BOUNDARY", "Approval intake must still block signing execution.", {
     verdict: approvalValidation.verdict,
@@ -146,6 +165,10 @@ for (const phrase of [
   "Trusted Signing account | `lawosmattersigning`",
   "Artifact Signing Identity Verifier role assigned: true",
   "Artifact Signing Certificate Profile Signer role assigned: true",
+  "Portal identity validation form reached: true",
+  "Portal identity validation request submitted: false",
+  "Portal country scope warning observed: true",
+  "Legal identity attestation required: true",
   "Certificate profile created: false",
   "Identity validation completed: false",
   "Signing execution allowed: false",
@@ -157,7 +180,7 @@ for (const phrase of [
 const verdict = findings.some((finding) => finding.severity === "P0" || finding.severity === "P1") ? "FAIL" : "PASS";
 const report = {
   schema_version: "law-firm-os.matter-desktop-windows-authenticode-azure-receipt.validation.v0.1",
-  generated_at: "2026-06-30T02:15:08Z",
+  generated_at: "2026-06-30T02:25:00Z",
   source_refs: [RECEIPT_JSON_PATH, RECEIPT_MD_PATH, LAZYCODEX_JSON_PATH, APPROVAL_VALIDATION_PATH],
   verdict,
   summary: {
@@ -165,6 +188,10 @@ const report = {
     trusted_signing_account_created: receipt.boundary?.trusted_signing_account_created === true,
     artifact_signing_identity_verifier_role_assigned: receipt.boundary?.artifact_signing_identity_verifier_role_assigned === true,
     artifact_signing_certificate_profile_signer_role_assigned: receipt.boundary?.artifact_signing_certificate_profile_signer_role_assigned === true,
+    portal_identity_validation_form_reached: receipt.boundary?.portal_identity_validation_form_reached === true,
+    portal_identity_validation_request_submitted: receipt.boundary?.portal_identity_validation_request_submitted === true,
+    portal_country_scope_warning_observed: receipt.boundary?.portal_country_scope_warning_observed === true,
+    legal_identity_attestation_required: receipt.boundary?.legal_identity_attestation_required === true,
     certificate_profile_created: receipt.boundary?.certificate_profile_created === true,
     identity_validation_completed: receipt.boundary?.identity_validation_completed === true,
     signing_execution_allowed: receipt.boundary?.signing_execution_allowed === true,
