@@ -1,0 +1,31 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-owner-approval-receipt.v0.1",
+  "status": "owner_review_gate_approved",
+  "recorded_at": "2026-06-30T00:35:37Z",
+  "recorded_at_original": "2026-06-30 09:35:37 KST",
+  "source": {
+    "source_type": "owner_chat_receipt",
+    "source_ref": "approval:lcx-vltui-desktop-owner-chat-receipt-2026-06-30-0935-kst",
+    "recorded_by_human": true
+  },
+  "owner_response": {
+    "owner": "Jiwon Suh, Product Owner",
+    "decision": "approve_public_release_planning",
+    "reviewed_artifact": "matter-0.1.0-macos.dmg",
+    "user_declared_reviewed_artifact": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "release_url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "artifact_digest": "sha256:cfec77354111419cb01a912fb32b45dd599321d13bd4c710ba5be481773ce8b5",
+    "decision_at": "2026-06-30",
+    "basis": "Owner reviewed the LCX VLTUI desktop prerelease and approved the owner approval gate plus next-step production go-live decision validation."
+  },
+  "scope": {
+    "approves_owner_review_gate": true,
+    "allows_next_step_production_go_live_decision_validation": true,
+    "public_release_approved": false,
+    "company_wide_production_go_live_approved": false,
+    "windows_authenticode_signing_approved": false,
+    "external_pilot_distribution_approved": false,
+    "vault_document_writes_approved": false,
+    "real_client_data_migration_approved": false
+  }
+}

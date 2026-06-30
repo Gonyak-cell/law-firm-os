@@ -8,6 +8,7 @@ const INTAKE_MD_PATH = "docs/desktop/matter-desktop-owner-approval-intake.md";
 const RELEASE_RECEIPT_PATH = "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json";
 const POST_RELEASE_KICKOFF_PATH = "docs/desktop/matter-desktop-lcx-vltui-post-release-kickoff-2026-06-30.md";
 const OWNER_PACKET_PATH = "docs/desktop/matter-desktop-owner-decision-packet.md";
+const OWNER_APPROVAL_RECEIPT_PATH = "docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json";
 const VALIDATION_JSON_PATH = "docs/desktop/matter-desktop-owner-approval-intake-validation.json";
 const VALIDATION_MD_PATH = "docs/desktop/matter-desktop-owner-approval-intake-validation.md";
 
@@ -367,7 +368,8 @@ const report = {
     INTAKE_MD_PATH,
     RELEASE_RECEIPT_PATH,
     POST_RELEASE_KICKOFF_PATH,
-    OWNER_PACKET_PATH
+    OWNER_PACKET_PATH,
+    OWNER_APPROVAL_RECEIPT_PATH
   ],
   verdict,
   summary: {

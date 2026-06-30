@@ -7,8 +7,8 @@ Verdict: PASS
 ## Summary
 
 - release_tag: matter-desktop-v0.1.0-lcx-vltui-20260630
-- pending_response_count: 1
-- real_response_count: 0
+- pending_response_count: 0
+- real_response_count: 1
 - required_review_artifact_count: 7
 - public_release_claim: false
 - production_go_live_claim: false

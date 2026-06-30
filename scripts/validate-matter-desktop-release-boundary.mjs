@@ -85,8 +85,12 @@ for (const phrase of requiredReleaseReceiptPhrases) {
   assert(releaseReceipt.includes(phrase), `release receipt missing boundary phrase: ${phrase}`);
 }
 
+const ownerPacketStatusOk =
+  ownerPacket.includes("Status: owner-decision-not-recorded") ||
+  ownerPacket.includes("Status: owner-approval-gate-recorded");
+assert(ownerPacketStatusOk, "owner decision packet status must be not-recorded or owner-approval-gate-recorded");
+
 const requiredOwnerPacketPhrases = [
-  "Status: owner-decision-not-recorded",
   "| public-release | false |",
   "| owner-approved | false |",
   "notarization",

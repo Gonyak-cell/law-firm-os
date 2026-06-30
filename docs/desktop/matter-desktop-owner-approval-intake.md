@@ -1,8 +1,8 @@
 # matter Desktop Owner Approval Intake
 
-Status: pending-owner-response
+Status: owner-response-received
 
-This file is an owner approval intake template only. It does not approve go-live, does not approve public release, does not approve an external pilot, does not approve Windows Authenticode signing, and does not mutate GitHub release assets.
+This file records the owner response for the LCX VLTUI prerelease owner review gate. It remains an owner approval intake template only for evidence capture: it does not approve go-live, does not approve public release, does not approve an external pilot, does not approve Windows Authenticode signing, and does not mutate GitHub release assets.
 
 ## Source Release
 
@@ -14,11 +14,23 @@ This file is an owner approval intake template only. It does not approve go-live
 | Merge PR | https://github.com/Gonyak-cell/law-firm-os/pull/143 |
 | Merge commit | `f5e34f1e06528d774b6afc7dabbc92da3214d3c1` |
 
-## Pending Owner Response
+## Owner Response
 
-| ID | Tracker | Status | Required Decision |
+| ID | Tracker | Status | Decision |
 | --- | --- | --- | --- |
-| `MDT-LCX-VLTUI-OWNER-001` | https://github.com/Gonyak-cell/law-firm-os/issues/146 | pending_owner_response | approve supervised pilot, approve public release planning, reject public release planning, or request changes |
+| `MDT-LCX-VLTUI-OWNER-001` | https://github.com/Gonyak-cell/law-firm-os/issues/146 | real_owner_response_received | approve_public_release_planning |
+
+## Receipt
+
+| Field | Value |
+| --- | --- |
+| Owner | Jiwon Suh, Product Owner |
+| Reviewed release | `matter-desktop-v0.1.0-lcx-vltui-20260630` |
+| Reviewed concrete artifact | `matter-0.1.0-macos.dmg` |
+| Artifact digest | `sha256:cfec77354111419cb01a912fb32b45dd599321d13bd4c710ba5be481773ce8b5` |
+| Decision date | 2026-06-30 |
+| Received at | 2026-06-30 09:35:37 KST |
+| Signature ref | `docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json` |
 
 ## Required Owner Response Fields
 
@@ -46,7 +58,7 @@ This file is an owner approval intake template only. It does not approve go-live
 
 - Pending response entries do not count as owner evidence.
 - Agent-inferred approval evidence is not allowed.
-- This intake does not modify `docs/desktop/matter-desktop-owner-decision-packet.md`.
+- This intake may update `docs/desktop/matter-desktop-owner-decision-packet.md` for the owner review gate only.
 - This intake does not modify a production go-live receipt.
 - Public release: false
 - Production go-live: false
