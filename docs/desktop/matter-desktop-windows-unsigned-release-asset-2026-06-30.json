@@ -1,0 +1,50 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-windows-unsigned-release-asset.v0.1",
+  "status": "unsigned_windows_package_uploaded_to_prerelease",
+  "recorded_at": "2026-06-30T02:50:54Z",
+  "recorded_at_original": "2026-06-30 11:50:54 KST",
+  "release": {
+    "tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "is_prerelease": true
+  },
+  "asset": {
+    "name": "matter-0.1.0-win32-x64-unsigned.zip",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/download/matter-desktop-v0.1.0-lcx-vltui-20260630/matter-0.1.0-win32-x64-unsigned.zip",
+    "content_type": "application/zip",
+    "size": 154046664,
+    "digest": "sha256:cecbf33a8fc2f42e1923339b245a725fd9de17fa5b1f7119d94ca1c0ec78e005",
+    "state": "uploaded",
+    "created_at": "2026-06-30T02:48:02Z",
+    "updated_at": "2026-06-30T02:48:23Z"
+  },
+  "release_manifest_refresh": {
+    "release_manifest_json_digest": "sha256:2796b504b4cb39502c805f491ebdb85476eca04cd29eda2dd53d29136a9649fc",
+    "checksums_sha256_digest": "sha256:bdc35ada28c03b10a76ab082c09295508bcfba6550e68bb3afe376e557555e3b",
+    "windows_package_zip_checksum_recorded": true
+  },
+  "local_artifact": {
+    "path": "apps/desktop/dist/win/matter-0.1.0-win32-x64-unsigned.zip",
+    "size": 154046664,
+    "sha256": "cecbf33a8fc2f42e1923339b245a725fd9de17fa5b1f7119d94ca1c0ec78e005",
+    "contains_executable": "apps/desktop/dist/win/matter-0.1.0-win32-x64/matter.exe",
+    "executable_sha256": "30fd02e82aa5835cb82992fbce5a2738da1861773f1184f4f9d8f9d128db11fc"
+  },
+  "user_answer": {
+    "windows_package_available_without_authenticode": true,
+    "expected_windows_warning": "Unsigned package may show Unknown Publisher or SmartScreen warnings.",
+    "authenticode_required_for_basic_package_asset": false
+  },
+  "boundary": {
+    "unsigned_windows_package_uploaded_to_release": true,
+    "windows_authenticode_signing": false,
+    "certificate_procured": false,
+    "certificate_fingerprint_recorded": false,
+    "windows_native_install_smoke": "not_run",
+    "public_release_approved": false,
+    "microsoft_store_distribution_approved": false,
+    "external_pilot_distribution_approved": false,
+    "vault_document_writes_approved": false,
+    "real_client_data_migration_approved": false
+  }
+}

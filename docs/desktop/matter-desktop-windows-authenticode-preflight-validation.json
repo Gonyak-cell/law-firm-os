@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.matter-desktop-windows-authenticode-preflight.validation.v0.1",
-  "generated_at": "2026-06-30T01:36:15Z",
+  "generated_at": "2026-06-30T02:50:54Z",
   "source_refs": [
     "docs/desktop/matter-desktop-windows-authenticode-preflight-2026-06-30.json",
     "docs/desktop/matter-desktop-windows-authenticode-preflight-2026-06-30.md",
@@ -14,7 +14,7 @@
   "verdict": "PASS",
   "summary": {
     "github_release_has_windows_installer_asset": false,
-    "github_release_has_windows_package_zip_asset": false,
+    "github_release_has_windows_package_zip_asset": true,
     "github_release_has_windows_manifest_asset": true,
     "local_windows_package_candidate_created": true,
     "windows_authenticode_signing": false,

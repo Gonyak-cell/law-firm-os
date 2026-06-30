@@ -15,6 +15,42 @@
   },
   "assets": [
     {
+      "name": "checksums.sha256",
+      "size": 969,
+      "digest": "sha256:bdc35ada28c03b10a76ab082c09295508bcfba6550e68bb3afe376e557555e3b",
+      "state": "uploaded"
+    },
+    {
+      "name": "desktop-initial-login-ui.png",
+      "size": 74029,
+      "digest": "sha256:22a1dd2e8ae381523a6a898863f966d28a2e33b8c497f990147b6cdd0402f3c0",
+      "state": "uploaded"
+    },
+    {
+      "name": "desktop-screen-qa-result.json",
+      "size": 7607,
+      "digest": "sha256:74e8913423353733eefa99999e1da43c53c824cf5cad8901be1ad82d540b7bbe",
+      "state": "uploaded"
+    },
+    {
+      "name": "desktop-screen-qa.png",
+      "size": 260169,
+      "digest": "sha256:2e2da112f2e538b74af06f1aca3632815f5568077b1f7aa53db0a262242e0b1d",
+      "state": "uploaded"
+    },
+    {
+      "name": "desktop-super-admin-product-ui.png",
+      "size": 260169,
+      "digest": "sha256:2e2da112f2e538b74af06f1aca3632815f5568077b1f7aa53db0a262242e0b1d",
+      "state": "uploaded"
+    },
+    {
+      "name": "macos-build.md",
+      "size": 1617,
+      "digest": "sha256:218e893fe0ec6139cdbc79374a3602bb3196743b3ecaa6eb4e150add84d47897",
+      "state": "uploaded"
+    },
+    {
       "name": "matter-0.1.0-macos.dmg",
       "size": 139588130,
       "digest": "sha256:cfec77354111419cb01a912fb32b45dd599321d13bd4c710ba5be481773ce8b5",
@@ -39,15 +75,9 @@
       "state": "uploaded"
     },
     {
-      "name": "release-manifest.json",
-      "size": 3889,
-      "digest": "sha256:9e5fdf8790a356504c34c0e38cdaa587ba986bb6e20cd8e0685cec3e50c8e42f",
-      "state": "uploaded"
-    },
-    {
-      "name": "checksums.sha256",
-      "size": 845,
-      "digest": "sha256:1e4ae252618f516cb9cbee92f5c96babf4c44329e26bf067e78af0a7ab5bcef4",
+      "name": "matter-0.1.0-win32-x64-unsigned.zip",
+      "size": 154046664,
+      "digest": "sha256:cecbf33a8fc2f42e1923339b245a725fd9de17fa5b1f7119d94ca1c0ec78e005",
       "state": "uploaded"
     },
     {
@@ -63,39 +93,15 @@
       "state": "uploaded"
     },
     {
-      "name": "macos-build.md",
-      "size": 1617,
-      "digest": "sha256:218e893fe0ec6139cdbc79374a3602bb3196743b3ecaa6eb4e150add84d47897",
+      "name": "release-manifest.json",
+      "size": 4277,
+      "digest": "sha256:2796b504b4cb39502c805f491ebdb85476eca04cd29eda2dd53d29136a9649fc",
       "state": "uploaded"
     },
     {
       "name": "windows-build.md",
       "size": 1116,
       "digest": "sha256:ffd8431450e15a200388c7367b60ad1d577b53c3d8c0ba8dca11b44a642c30fb",
-      "state": "uploaded"
-    },
-    {
-      "name": "desktop-screen-qa-result.json",
-      "size": 7607,
-      "digest": "sha256:74e8913423353733eefa99999e1da43c53c824cf5cad8901be1ad82d540b7bbe",
-      "state": "uploaded"
-    },
-    {
-      "name": "desktop-screen-qa.png",
-      "size": 260169,
-      "digest": "sha256:2e2da112f2e538b74af06f1aca3632815f5568077b1f7aa53db0a262242e0b1d",
-      "state": "uploaded"
-    },
-    {
-      "name": "desktop-initial-login-ui.png",
-      "size": 74029,
-      "digest": "sha256:22a1dd2e8ae381523a6a898863f966d28a2e33b8c497f990147b6cdd0402f3c0",
-      "state": "uploaded"
-    },
-    {
-      "name": "desktop-super-admin-product-ui.png",
-      "size": 260169,
-      "digest": "sha256:2e2da112f2e538b74af06f1aca3632815f5568077b1f7aa53db0a262242e0b1d",
       "state": "uploaded"
     }
   ],
@@ -108,7 +114,8 @@
     "formal_release_validate": "PASS",
     "desktop_screen_qa": "PASS",
     "no_public_release_claim": "PASS",
-    "git_diff_check": "PASS"
+    "git_diff_check": "PASS",
+    "windows_unsigned_package_asset_upload": "PASS"
   },
   "non_claims": {
     "public_release": false,

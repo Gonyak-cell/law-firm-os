@@ -1,8 +1,8 @@
 {
   "schema_version": "law-firm-os.matter-desktop-windows-authenticode-preflight.v0.1",
   "status": "blocked_pending_authenticode_provider_and_windows_host",
-  "recorded_at": "2026-06-30T01:36:15Z",
-  "recorded_at_original": "2026-06-30 10:36:15 KST",
+  "recorded_at": "2026-06-30T02:50:54Z",
+  "recorded_at_original": "2026-06-30 11:50:54 KST",
   "issue": "https://github.com/Gonyak-cell/law-firm-os/issues/145",
   "release": {
     "tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
@@ -11,10 +11,11 @@
   },
   "answer_to_current_packaging_question": {
     "github_release_has_windows_installer_asset": false,
+    "github_release_has_windows_package_zip_asset": true,
     "github_release_has_windows_manifest_asset": true,
     "local_windows_package_candidate_created": true,
-    "local_windows_package_candidate_uploaded_to_release": false,
-    "current_release_assessment": "The current GitHub prerelease has Windows manifest/signature evidence, but no .exe, .msi, .msix, .appx, or Windows package zip asset."
+    "local_windows_package_candidate_uploaded_to_release": true,
+    "current_release_assessment": "The current GitHub prerelease has Windows manifest/signature evidence and an unsigned Windows package zip asset, but no signed .exe, .msi, .msix, or .appx installer asset."
   },
   "local_package_candidate": {
     "build_command": "MATTER_DESKTOP_RELEASE_CHANNEL=formal npm --workspace apps/desktop run build:win",
@@ -38,6 +39,7 @@
   },
   "boundary": {
     "windows_package_candidate_created": true,
+    "windows_unsigned_package_zip_uploaded_to_release": true,
     "windows_authenticode_signing": false,
     "windows_native_install_smoke": "not_run_on_darwin",
     "public_release_approved": false,

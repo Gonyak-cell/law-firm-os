@@ -9,9 +9,10 @@ Release: `matter-desktop-v0.1.0-lcx-vltui-20260630`
 ## Current Packaging Answer
 
 - GitHub release Windows installer asset: false
+- GitHub release Windows package ZIP asset: true
 - GitHub release Windows manifest asset: true
 - Local Windows package candidate created: true
-- Local Windows package candidate uploaded to release: false
+- Local Windows package candidate uploaded to release: true
 
 ## Local Package Candidate
 
@@ -22,6 +23,7 @@ Release: `matter-desktop-v0.1.0-lcx-vltui-20260630`
 
 ## Boundary
 
+- Windows unsigned package ZIP uploaded to release: true
 - Windows Authenticode signing: false
 - Windows native install smoke: not_run_on_darwin
 - Public release: false
