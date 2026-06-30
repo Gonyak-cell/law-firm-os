@@ -1,6 +1,6 @@
 # matter Desktop Windows Authenticode Azure Receipt Validation
 
-Generated at: 2026-06-30T02:15:08Z
+Generated at: 2026-06-30T02:25:00Z
 
 Verdict: PASS
 
@@ -10,6 +10,10 @@ Verdict: PASS
 - trusted_signing_account_created: true
 - artifact_signing_identity_verifier_role_assigned: true
 - artifact_signing_certificate_profile_signer_role_assigned: true
+- portal_identity_validation_form_reached: true
+- portal_identity_validation_request_submitted: false
+- portal_country_scope_warning_observed: true
+- legal_identity_attestation_required: true
 - certificate_profile_created: false
 - identity_validation_completed: false
 - signing_execution_allowed: false

@@ -112,4 +112,4 @@ Local date: 2026-06-30
 - Reader copy: `docs/desktop/matter-desktop-windows-authenticode-azure-receipt-2026-06-30.md`
 - Validator: `npm run matter-desktop:windows-authenticode:azure:validate`
 - Validation receipt: `docs/desktop/matter-desktop-windows-authenticode-azure-receipt-validation.json`
-- Current state: `Microsoft.CodeSigning` provider registered, Trusted Signing / Artifact Signing account `lawosmattersigning` created in `amic-platform-rg`, and required user-level Artifact Signing roles assigned; certificate profile remains blocked until Azure identity validation is completed in Azure Portal.
+- Current state: `Microsoft.CodeSigning` provider registered, Trusted Signing / Artifact Signing account `lawosmattersigning` created in `amic-platform-rg`, required user-level Artifact Signing roles assigned, and Azure Portal Public identity validation form reached; request was not submitted because it requires authorized legal organization data, a supported organization jurisdiction, business identifier, requester identity, and Microsoft terms acceptance.
