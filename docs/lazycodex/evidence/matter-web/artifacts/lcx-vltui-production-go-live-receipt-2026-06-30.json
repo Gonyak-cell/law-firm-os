@@ -1,0 +1,34 @@
+{
+  "schema_version": "lawos.lcx_vltui.production_go_live_receipt.v0.1",
+  "status": "production_go_live_receipt_committed",
+  "recorded_at": "2026-06-30T01:15:20Z",
+  "issue": "https://github.com/Gonyak-cell/law-firm-os/issues/144",
+  "release": {
+    "tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "release_channel": "github_prerelease_lcx_vltui_desktop"
+  },
+  "decision": {
+    "decision_maker": "Jiwon Suh, Product Owner",
+    "decision": "approve_production_go_live_receipt",
+    "decision_at": "2026-06-30T01:15:20Z",
+    "approval_signature_ref": "approval:lcx-vltui-desktop-production-go-live-chat-receipt-2026-06-30-1015-kst",
+    "recorded_by_human": true
+  },
+  "evidence": {
+    "owner_approval_gate_recorded": true,
+    "go_live_decision_validator": "PASS",
+    "hrx_production_smoke": "PASS",
+    "lcx_vltui_production_bridge_smoke": "PASS"
+  },
+  "scope": {
+    "approves_lcx_vltui_desktop_prerelease_lane_go_live_receipt": true,
+    "approves_named_lane_runtime_go_live": true,
+    "public_release_approved": false,
+    "company_wide_production_go_live_approved": false,
+    "windows_authenticode_signing_approved": false,
+    "external_pilot_distribution_approved": false,
+    "vault_document_writes_approved": false,
+    "real_client_data_migration_approved": false
+  }
+}

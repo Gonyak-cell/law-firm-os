@@ -19,7 +19,7 @@ Local date: 2026-06-30
 | Workstream | Tracker | Started State | Completion Gate |
 | --- | --- | --- | --- |
 | Owner approval evidence | https://github.com/Gonyak-cell/law-firm-os/issues/146 | Closed, owner approval gate recorded | Explicit owner approval receipt recorded through `docs/desktop/matter-desktop-owner-approval-intake.json` and `npm run matter-desktop:owner-approval:intake:validate`. |
-| Production go-live receipt | https://github.com/Gonyak-cell/law-firm-os/issues/144 | Open, pending final go-live decision | Go-live receipt committed after final decision validation and explicit final decision input. |
+| Production go-live receipt | https://github.com/Gonyak-cell/law-firm-os/issues/144 | Ready to close after receipt merge | Go-live receipt committed after final decision validation and explicit final decision input. |
 | Windows Authenticode signing | https://github.com/Gonyak-cell/law-firm-os/issues/145 | Open, blocked by signing provider/certificate and Windows host verification | Sanitized Authenticode receipt plus Windows native install smoke. |
 
 ## Current Evidence
@@ -41,14 +41,16 @@ Local date: 2026-06-30
 - Post-merge HRX production smoke: PASS
 - Post-merge LCX-VLTUI production bridge smoke: PASS 15/15
 - Owner approval gate: recorded in `docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json`
+- LCX VLTUI desktop prerelease lane go-live receipt: recorded in `docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json`
 
 ## Active Boundaries
 
 - GitHub prerelease: true
 - Public release: false
-- Production go-live: false
-- Actual launch/go-live completed: false
-- Owner final approval: false
+- LCX VLTUI desktop prerelease lane go-live receipt: committed
+- Company-wide production rollout: false
+- Owner review gate: recorded
+- Final go-live decision receipt: recorded
 - External pilot: false
 - App Store distribution: false
 - Microsoft Store distribution: false
@@ -60,7 +62,7 @@ Local date: 2026-06-30
 2. Production go-live receipt must cite the owner approval receipt and final go-live decision validator output before any true claim.
 3. Windows Authenticode receipt must include certificate/provider identity, sanitized signing command evidence, verification output, and Windows native install smoke output.
 4. Post-merge production smoke receipts prove route operability only; they do not replace owner final approval, public release approval, Windows signing, external pilot approval, or real client data migration receipts.
-5. Final go-live decision input is still required before `docs/desktop/matter-desktop-production-go-live-decision-intake.json` can become a committed go-live receipt.
+5. The committed go-live receipt remains scoped to the LCX VLTUI desktop prerelease lane and does not approve public release, company-wide rollout, Windows Authenticode signing, external pilot distribution, Vault document writes, or real client data migration.
 
 ## Owner Approval Intake
 
@@ -76,4 +78,12 @@ Local date: 2026-06-30
 - Reader copy: `docs/desktop/matter-desktop-production-go-live-decision-intake.md`
 - Validator: `npm run matter-desktop:production-go-live:decision:validate`
 - Validation receipt: `docs/desktop/matter-desktop-production-go-live-decision-validation.json`
-- Current state remains pending final decision input and does not count as production go-live approval.
+- Final decision input was recorded in `docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json`.
+
+## Production Go-Live Receipt
+
+- Receipt: `docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json`
+- Reader copy: `docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.md`
+- Validator: `npm run matter-desktop:production-go-live:receipt:validate`
+- Validation receipt: `docs/desktop/matter-desktop-production-go-live-receipt-validation.json`
+- Remaining boundaries: public release, company-wide rollout, Windows Authenticode signing, external pilot distribution, Vault document writes, and real client data migration are still false.
