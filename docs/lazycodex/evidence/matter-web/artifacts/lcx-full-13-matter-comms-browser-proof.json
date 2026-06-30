@@ -1,0 +1,60 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.matter_comms_browser_proof.v0.1",
+  "generated_at": "2026-06-30T09:44:00.738Z",
+  "tuw_id": "LCX-FULL-13.05",
+  "verdict": "PASS",
+  "snapshot": {
+    "vault": {
+      "composer_mounted": true,
+      "provider_blocked_composer": true,
+      "draft_result": true,
+      "send_boundary_action": true,
+      "provider_blocked_result": true,
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\nMatter\n사건 운영\n홈\n사건 목록\n18\n신규 사건\n수임 진행\n종결 처리\n보관 사건\n업무 진행\n문서·자료\n사건 문서\n증거·자료\n양식·템플릿\n인장·날인\n소통·참여\n결재·청구\n리포트·관리\nMatter\n\n사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름을 확인합니다.\n\n새로고침\n홈\n사건 목록\n업무 보드\n일정\n외부 일정\n사건 문서\nMatter Vault\n문서 연결\nVault 미리보기\n등록 Vault 저장소\n새로고침\n문서 연결\n문서 내용은 권한이 있을 때만 표시됩니다.\n문서 작업 사전검사\n문서 사전검사\nMatter app 원천\nMatter/Vault 원천 차단\nfail-closed\n권한 확인\n사전검사 전\nreference-only\nVault 게시\n초안과 사전검사 필요\nwrite=false\n문서 가져오기\n사전검사 전 실행 차단\npreflight-required\n외부 발송\n초안 후 provider-blocked\noutlook_graph=false\n활동\t유형\t제목\t표시 범위\n문서\t상태\t계정\t보호\nSynthetic engagement letter\t사용 중\t[redacted-email]\t보호됨\n문서\t버전\t색인\t보안\ndoc_rp07_synthetic_001\tversion_doc_rp07_synthetic_001_1\ttitle, matter_id, version_id\t보호됨\n표시할 감사 정보가 없습니다\n문서 초안\n템플릿\t유형\t필드\t승인\n위임계약서\t문서\t3개\t승인 필요\n진행상황 안내 메일\t이메일\t3개\t승인 필요\n템플릿 선택 후 초안을 만들 수 있습니다\n초안 생성\n검토 준비\n승인 요청\nVault 등록 요청\n표시할 승인 요청 정보가 없습니다\n이메일 초안\n이메일 초안 준비됨\n초안 생성\n내용 정리\n발송 요청\n이메일 초안이 생성되었습니다.\n수신자와 본문 원문은 숨깁니다.\n외부 발송 연결이 필요해 대기 상태입니다.\n발송 성공 상태로 처리하지 않습니다.\n레코드\nMatter 1\n"
+    },
+    "channel": {
+      "channel_workspace": true,
+      "channel_composer": true,
+      "provider_blocked_result": true,
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\nMatter\n사건 운영\n홈\n사건 목록\n18\n신규 사건\n수임 진행\n종결 처리\n보관 사건\n업무 진행\n문서·자료\n소통·참여\n이메일·메시지\n2\n회의·통화 기록\n공지·공유\n담당자·참여자\n의뢰인 요청\n결재·청구\n리포트·관리\nMatter\n\n사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름을 확인합니다.\n\n새로고침\n홈\n사건 목록\n업무 보드\n일정\n외부 일정\n사건 문서\n이메일·메시지\n소통\n메시지\n내부 기록\n메시지 기록\n외부 연동\n연동 승인 대기\n상태 확인\n외부 연동은 승인과 설정이 필요합니다.\n메시지\t작성\t상태\n레코드\nMatter 1\n상태\n개시 중\n청구\n청구 준비 가능\n책임자\n미지정\n팀\n1\n문서\n0\n활동\n0\n기한\n0\n대화\n0\n청구\n2\n분석\n2\n청구 상태\n청구 준비 가능\n저장\n책임자\n미지정\n변경\n레코드 필드\nMatter 제목 / 청구 준비 상태 / 위험도\n필드 작업\n책임자 일괄 변경\n승인 조건 확인\n승인 확인\n최근 작업 0건\n외부 연동 승인 대기\n권한 기준에 맞춰 표시됩니다."
+    },
+    "page_errors": [],
+    "screenshots": [
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-13-screenshots/matter-vault-email.png",
+      "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-13-screenshots/matter-channel.png"
+    ]
+  },
+  "checks": [
+    {
+      "id": "vault-email-composer-mounted",
+      "passed": true
+    },
+    {
+      "id": "vault-provider-blocked-visible",
+      "passed": true
+    },
+    {
+      "id": "vault-send-boundary-result-visible",
+      "passed": true
+    },
+    {
+      "id": "matter-channel-provider-visible",
+      "passed": true
+    },
+    {
+      "id": "no-page-errors",
+      "passed": true
+    },
+    {
+      "id": "no-forbidden-text",
+      "passed": true
+    }
+  ],
+  "boundary": {
+    "browser_observation_only": true,
+    "external_message_sent_claim": false,
+    "provider_send_complete_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

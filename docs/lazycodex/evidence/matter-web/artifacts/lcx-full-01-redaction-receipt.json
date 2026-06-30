@@ -1,0 +1,50 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.redaction_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:33.511Z",
+  "tuw_ids": [
+    "LCX-FULL-01.04"
+  ],
+  "verdict": "PASS",
+  "case_count": 5,
+  "redacted_cases": [
+    {
+      "name": "provider_url",
+      "output": {
+        "redacted_field_0": "[lcx-full-redacted]"
+      }
+    },
+    {
+      "name": "token",
+      "output": {
+        "nested": {
+          "redacted_field_0": "[lcx-full-redacted]"
+        }
+      }
+    },
+    {
+      "name": "raw_rows",
+      "output": {
+        "redacted_field_0": "[lcx-full-redacted]"
+      }
+    },
+    {
+      "name": "storage_pointer",
+      "output": {
+        "redacted_field_0": "[lcx-full-redacted]"
+      }
+    },
+    {
+      "name": "document_bytes",
+      "output": {
+        "redacted_field_0": "[lcx-full-redacted]"
+      }
+    }
+  ],
+  "boundary": {
+    "denied_private_fields_reach_ui_artifacts": false,
+    "provider_payload_included": false,
+    "raw_rows_included": false,
+    "storage_pointer_included": false,
+    "token_included": false
+  }
+}

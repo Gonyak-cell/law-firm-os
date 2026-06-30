@@ -1,0 +1,54 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.vault_doc_action_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:34.566Z",
+  "tuw_ids": [
+    "LCX-FULL-07.01",
+    "LCX-FULL-07.02",
+    "LCX-FULL-07.03",
+    "LCX-FULL-07.04",
+    "LCX-FULL-07.06"
+  ],
+  "verdict": "PASS",
+  "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-07-vault-docs-browser-proof.json",
+  "upload_preflight_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-upload-preflight-proof.json",
+  "action_boundary_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-browser-qa-proof.json",
+  "actions": [
+    {
+      "action": "version-upload",
+      "state": "matter-required",
+      "owner": "Vault",
+      "write_enabled": "false"
+    },
+    {
+      "action": "metadata-mutation",
+      "state": "matter-required",
+      "owner": "Matter app",
+      "write_enabled": "false"
+    },
+    {
+      "action": "legal-hold",
+      "state": "matter-required",
+      "owner": "Owner 결정 필요",
+      "write_enabled": "false"
+    },
+    {
+      "action": "retention",
+      "state": "matter-required",
+      "owner": "Vault Records",
+      "write_enabled": "false"
+    },
+    {
+      "action": "document-action",
+      "state": "matter-required",
+      "owner": "Matter app + Vault",
+      "write_enabled": "false"
+    }
+  ],
+  "boundary": {
+    "version_upload_request_only": true,
+    "metadata_mutation_complete_claim": false,
+    "legal_hold_owner_decision_claim": false,
+    "vault_document_write_claim": false,
+    "public_release_claim": false
+  }
+}

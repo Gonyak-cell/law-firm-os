@@ -7,7 +7,7 @@
     "LCX-VLTUI-03.04",
     "LCX-VLTUI-03.05"
   ],
-  "generated_at": "2026-06-29T15:55:53.643Z",
+  "generated_at": "2026-06-30T09:31:03.173Z",
   "verdict": "PASS",
   "boundary": {
     "synthetic_route_interception_only": true,

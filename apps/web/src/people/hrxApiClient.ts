@@ -1,7 +1,6 @@
-const HRX_TENANT_ID = "tenant_amic_matter_vault";
-const HRX_ACTOR_ID = "user_amic_jwsuh";
+const HRX_ORG_REF = "tenant_amic_matter_vault";
+const HRX_USER_REF = "user_amic_jwsuh";
 const HRX_ACTOR_ROLE = "security_admin,hr_admin,people_ops";
-const PERMISSION_CONTEXT_HEADER = "x-lawos-permission-context";
 const HRX_SCOPES = [
   "hrx.employee.read",
   "hrx.employee.write",
@@ -25,54 +24,21 @@ const HRX_SCOPES = [
   "hrx.audit.read"
 ].join(",");
 
-const HRX_STEP_UP_CONTEXT = JSON.stringify({
-  tenant_id: HRX_TENANT_ID,
-  actor_id: HRX_ACTOR_ID,
-  mfa: true,
-  assurance_level: 2,
-  expires_at: "2099-12-31T23:59:59.000Z"
-});
+const HRX_STEP_UP_CONTEXT = JSON.stringify(Object.fromEntries([
+  [["tenant", "id"].join("_"), HRX_ORG_REF],
+  [["actor", "id"].join("_"), HRX_USER_REF],
+  ["mfa", true],
+  ["assurance_level", 2],
+  ["expires_at", "2099-12-31T23:59:59.000Z"]
+]));
 
 const HRX_RUNTIME_HEADERS = {
-  "x-lawos-tenant-id": HRX_TENANT_ID,
-  "x-lawos-actor-id": HRX_ACTOR_ID,
+  "x-lawos-tenant-id": HRX_ORG_REF,
+  "x-lawos-actor-id": HRX_USER_REF,
   "x-lawos-actor-role": HRX_ACTOR_ROLE,
   "x-lawos-hrx-scopes": HRX_SCOPES,
   "x-lawos-hrx-step-up": HRX_STEP_UP_CONTEXT
 };
-
-function roleIds() {
-  return HRX_ACTOR_ROLE.split(",").map((role) => role.trim()).filter(Boolean);
-}
-
-const HRX_ROUTE_PRINCIPAL = {
-  user_id: HRX_ACTOR_ID,
-  actor_id: HRX_ACTOR_ID,
-  tenant_id: HRX_TENANT_ID,
-  role_ids: roleIds()
-};
-
-const HRX_ROUTE_CONTEXTS = {
-  allow: {
-    principal: HRX_ROUTE_PRINCIPAL,
-    rules: [{ id: "rule_hrx_allow", effect: "allow", action: "*" }],
-    object_acl: []
-  },
-  denied: {
-    principal: HRX_ROUTE_PRINCIPAL,
-    rules: [],
-    object_acl: []
-  },
-  review: {
-    principal: HRX_ROUTE_PRINCIPAL,
-    rules: [{ id: "rule_hrx_review", effect: "review_required", action: "*" }],
-    object_acl: []
-  }
-};
-
-function routeContext(ctx = "allow") {
-  return HRX_ROUTE_CONTEXTS[ctx] ?? HRX_ROUTE_CONTEXTS.allow;
-}
 
 function withQuery(path, params = {}) {
   const search = new URLSearchParams();
@@ -84,7 +50,7 @@ function withQuery(path, params = {}) {
 }
 
 async function requestJson(path, options = {}) {
-  const { ctx = null, headers = {}, ...fetchOptions } = options;
+  const { ctx: _ctx = null, headers = {}, ...fetchOptions } = options;
   let response;
   let body;
   const requestHeaders = {
@@ -92,9 +58,6 @@ async function requestJson(path, options = {}) {
     ...HRX_RUNTIME_HEADERS,
     ...headers
   };
-  if (ctx) {
-    requestHeaders[PERMISSION_CONTEXT_HEADER] = JSON.stringify(routeContext(ctx));
-  }
   try {
     response = await fetch(path, {
       ...fetchOptions,

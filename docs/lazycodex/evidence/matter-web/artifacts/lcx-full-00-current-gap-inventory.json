@@ -1,0 +1,148 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.current_gap_inventory.v0.1",
+  "generated_at": "2026-06-30T09:58:31.001Z",
+  "tuw_id": "LCX-FULL-00.01",
+  "verdict": "PASS",
+  "status": "current_gap_frozen",
+  "source": {
+    "plan_path": "docs/lazycodex/lcx-full-implementation-tuw-plan-2026-06-30.md",
+    "traceability_path": "docs/lazycodex/lcx-full-implementation-tuw-traceability-2026-06-30.md",
+    "release_manifest_path": "apps/desktop/dist/release/matter-desktop-v0.1.0-lcx-vltui-20260630/release-manifest.json",
+    "latest_tag_by_creatordate": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "head_sha": "d29bfcb20247fbeba96c2fbf402bdfe773477004"
+  },
+  "traceability": {
+    "parent_count": 21,
+    "child_count": 110,
+    "missing_parents": [],
+    "child_counts": {
+      "LCX-FULL-00": 5,
+      "LCX-FULL-01": 5,
+      "LCX-FULL-02": 5,
+      "LCX-FULL-03": 5,
+      "LCX-FULL-04": 5,
+      "LCX-FULL-05": 5,
+      "LCX-FULL-06": 5,
+      "LCX-FULL-07": 6,
+      "LCX-FULL-08": 6,
+      "LCX-FULL-09": 6,
+      "LCX-FULL-10": 6,
+      "LCX-FULL-11": 5,
+      "LCX-FULL-12": 5,
+      "LCX-FULL-13": 5,
+      "LCX-FULL-14": 5,
+      "LCX-FULL-15": 5,
+      "LCX-FULL-16": 5,
+      "LCX-FULL-17": 6,
+      "LCX-FULL-18": 5,
+      "LCX-FULL-19": 5,
+      "LCX-FULL-20": 5
+    }
+  },
+  "release_claims": {
+    "public_release_claim": false,
+    "production_go_live_claim": false,
+    "owner_approval_claim": false,
+    "actual_launch_go_live_claim": false,
+    "app_store_distribution_claim": false,
+    "microsoft_store_distribution_claim": false,
+    "windows_authenticode_signing_claim": false
+  },
+  "people_catalog": {
+    "total": 71,
+    "active": 15,
+    "setup_required": 35,
+    "integration_required": 11,
+    "audit_required": 10
+  },
+  "global_utilities": {
+    "global_utility_count": 6,
+    "normal_section_count": 35,
+    "audit_required_sections": [
+      "requests:requests-force-decision",
+      "settings:settings-advanced"
+    ],
+    "conditional_global_count": 4,
+    "conditional_global_items": [
+      {
+        "id": "calendar",
+        "label": "일정",
+        "status": "decision-required",
+        "decision": "전역 캘린더를 만들 때만 최상위 메뉴로 승격합니다."
+      },
+      {
+        "id": "finance",
+        "label": "청구·재무",
+        "status": "decision-required",
+        "decision": "재무 축을 만들 때 Matter 청구와 개인 비용/정산을 전역화합니다."
+      },
+      {
+        "id": "data-import",
+        "label": "데이터 가져오기",
+        "status": "decision-required",
+        "decision": "공유 검증, 감사, 롤백 큐가 확정될 때 전역 가져오기 허브로 승격합니다."
+      },
+      {
+        "id": "policies",
+        "label": "문서·방침",
+        "status": "decision-required",
+        "decision": "문서 원장은 Vault에 두고 People에는 HR 문서 바로가기를 남깁니다."
+      }
+    ]
+  },
+  "routes": [
+    {
+      "id": "home",
+      "path": "?view=home"
+    },
+    {
+      "id": "client-billing",
+      "path": "?view=clients#client-billing"
+    },
+    {
+      "id": "client-data",
+      "path": "?view=clients#client-data"
+    },
+    {
+      "id": "client-import",
+      "path": "?view=clients#client-import"
+    },
+    {
+      "id": "matter-vault",
+      "path": "?view=matters#matter-vault"
+    },
+    {
+      "id": "matter-import",
+      "path": "?view=matters#matter-import"
+    },
+    {
+      "id": "vault-documents",
+      "path": "?view=vault#vault-documents"
+    },
+    {
+      "id": "people-work-schedule",
+      "path": "?view=people#people-work-schedule"
+    },
+    {
+      "id": "calendar-decision",
+      "path": "?view=calendar#calendar-decision"
+    },
+    {
+      "id": "settings-advanced",
+      "path": "?view=settings#settings-advanced"
+    }
+  ],
+  "baseline_browser_proof": {
+    "path": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-00-baseline-browser-proof.json",
+    "exists": true,
+    "route_count": 10,
+    "verdict": "PASS"
+  },
+  "boundaries": {
+    "no_public_release_claim": true,
+    "no_production_go_live_claim": true,
+    "no_owner_approval_claim": true,
+    "no_windows_authenticode_claim": true,
+    "implementation_freeze_only": true
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.final_release_packet_validation.v0.1",
+  "generated_at": "2026-06-30T10:51:22.199Z",
+  "tuw_parent": "LCX-FULL-20",
+  "verdict": "PASS",
+  "source_refs": [
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-19-release-preflight-proof.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-20-owner-release-decision-packet.json"
+  ],
+  "release_preflight_status": "preflight_recorded_with_blocked_gates",
+  "owner_packet_status": "owner_release_decision_packet_recorded_pending_cutover",
+  "blocked_release_gates": [
+    {
+      "tuw_id": "LCX-FULL-19.03",
+      "label": "web production smoke",
+      "blocked_reason": "LAWOS_VAULT_BRIDGE_TOKEN [redacted] required for production bridge smoke"
+    }
+  ],
+  "boundary": {
+    "public_release_claim": false,
+    "production_go_live_claim": false,
+    "actual_launch_go_live_claim": false,
+    "production_cutover_executed_by_validation": false,
+    "company_wide_rollout_executed_by_validation": false,
+    "owner_final_go_live_approval_recorded": true,
+    "blocked_release_gates_promoted_to_pass": false
+  }
+}

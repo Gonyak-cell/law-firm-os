@@ -30,6 +30,12 @@ export const DEEP_LINK_ROUTE_SPECS = Object.freeze({
     type: "auth_callback",
     path: "/callback",
     allowedQuery: Object.freeze(["code", "state", "issuer"])
+  }),
+  password_reset_confirm: Object.freeze({
+    host: "password-reset",
+    type: "password_reset_confirm",
+    path: "/confirm",
+    allowedQuery: Object.freeze(["token"])
   })
 });
 
@@ -53,10 +59,17 @@ export const DEEP_LINK_AUDIT_EVENTS = Object.freeze({
     permission: null,
     opened: "deep_link.auth_callback.opened",
     denied: "deep_link.auth_callback.denied"
+  }),
+  password_reset_confirm: Object.freeze({
+    permission: null,
+    opened: "deep_link.password_reset_confirm.opened",
+    denied: "deep_link.password_reset_confirm.denied"
   })
 });
 
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]{1,127}$/;
+const RESET_TOKEN_PATTERN = /^[A-Za-z0-9_-]{16,256}$/;
+const REDACTED_RESET_TOKEN = "[reset-token-redacted]";
 const FORBIDDEN_ACTION_HOSTS = new Set([
   "mutate",
   "mutation",
@@ -113,6 +126,15 @@ function queryValue(url, key) {
   return value === null || value === "" ? undefined : value;
 }
 
+export function redactDeepLinkIntent(intent) {
+  if (!intent || typeof intent !== "object") return intent;
+  if (intent.type !== "password_reset_confirm") return { ...intent };
+  return {
+    ...intent,
+    token: REDACTED_RESET_TOKEN
+  };
+}
+
 export function parseMatterDeepLink(candidate) {
   let url;
   try {
@@ -146,6 +168,26 @@ export function parseMatterDeepLink(candidate) {
     };
   }
 
+  if (url.hostname === DEEP_LINK_ROUTE_SPECS.password_reset_confirm.host) {
+    const spec = DEEP_LINK_ROUTE_SPECS.password_reset_confirm;
+    if (url.pathname !== spec.path) {
+      throw new DeepLinkError("INVALID_PASSWORD_RESET_PATH", "Password reset path must be /confirm");
+    }
+    assertKnownQuery(url, spec.allowedQuery);
+    const token = queryValue(url, "token");
+    if (!token) {
+      throw new DeepLinkError("MISSING_PASSWORD_RESET_TOKEN", "Password reset link is missing token");
+    }
+    if (!RESET_TOKEN_PATTERN.test(token)) {
+      throw new DeepLinkError("INVALID_PASSWORD_RESET_TOKEN", "Password reset token shape is invalid");
+    }
+    return {
+      type: spec.type,
+      routeOnly: true,
+      token
+    };
+  }
+
   const spec = Object.values(DEEP_LINK_ROUTE_SPECS).find((route) => route.host === url.hostname);
   if (!spec || !spec.idField) {
     throw new DeepLinkError("UNSUPPORTED_ROUTE", `Unsupported deep link route: ${url.hostname}`);
@@ -176,6 +218,14 @@ export async function openMatterDeepLink({
   const auditSpec = DEEP_LINK_AUDIT_EVENTS[intent.type];
 
   if (intent.type === "auth_callback") {
+    await auditLogger.record({
+      eventName: auditSpec.opened,
+      routeType: intent.type
+    });
+    return { state: "open", intent };
+  }
+
+  if (intent.type === "password_reset_confirm") {
     await auditLogger.record({
       eventName: auditSpec.opened,
       routeType: intent.type

@@ -57,7 +57,7 @@ export const globalUtilityItems = [
       },
       {
         id: "messages-matter-channel",
-        label: "사건 이메일·메시지",
+        label: "Matter 대화",
         source: "Matter",
         icon: FileText,
         badge: "2"
@@ -209,13 +209,13 @@ export const globalUtilityItems = [
       },
       {
         id: "reports-client",
-        label: "Client 리포트",
+        label: "Client 보고서",
         source: "Client",
         icon: FileText
       },
       {
         id: "reports-matter-analytics",
-        label: "사건 리포트",
+        label: "Matter 분석",
         source: "Matter",
         icon: LayoutDashboard
       }

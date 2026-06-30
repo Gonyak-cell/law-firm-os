@@ -1,0 +1,44 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.contracts_browser_proof.v0.1",
+  "generated_at": "2026-06-30T09:43:59.568Z",
+  "tuw_id": "LCX-FULL-11.05",
+  "verdict": "PASS",
+  "snapshot": {
+    "contracts_connected": true,
+    "draft_action_visible": true,
+    "esign_provider_blocked_visible": true,
+    "disabled_count": 1,
+    "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\nClient\nClient 관리\nClient 홈\nClient 목록\n12\n법인·개인 Client\n담당자\n수임 전 업무\nOpportunity\n상담·문의\n4\n접촉 이력\n제안·계약\nClient 관계\n이해상충 확인\n운영\nClient\n\nClient, 담당자, Opportunity, 상담 이력을 한 화면에서 확인합니다.\n\n새로고침\n제안·계약\nVault/e-sign 경계\n계약 초안 생성\nOpportunity와 Vault 문서 참조를 묶어 제안 초안을 만듭니다.\n계약 초안이 생성되었습니다.\n초안 생성\n전자서명 발송\n제공자 연결 확인\n발송 확인\n제안·계약\t상태\t승인\tVault\t전자서명\nCLIENT 정보\nClient 1\n상태\n검토 필요\n대표 당사자\n미지정\n구성원\n2\n연결 Matter\n미지정\n잠재 Client\n1\nOpportunity\n1\n상담·문의\n1\nClient\n1\n담당자\n1\n권한 기준에 맞춰 표시됩니다.\n병합 검토 0건 / 실행 가능 0건\n데이터 보강 상태는 Client 데이터에서 확인합니다.\n보고서와 손익은 Client 리포트에서 확인합니다.\n레코드 작업\nClient name / Client status\n필드 업데이트\n담당자 일괄 변경\n승인 조건 확인\n승인 확인\n최근 작업 0건",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-11-screenshots/client-contracts.png",
+    "page_errors": []
+  },
+  "checks": [
+    {
+      "id": "contracts-route-mounted",
+      "passed": true
+    },
+    {
+      "id": "draft-action-visible",
+      "passed": true
+    },
+    {
+      "id": "esign-provider-blocked-visible",
+      "passed": true
+    },
+    {
+      "id": "no-page-errors",
+      "passed": true
+    },
+    {
+      "id": "no-forbidden-text",
+      "passed": true
+    }
+  ],
+  "boundary": {
+    "browser_observation_only": true,
+    "e_sign_send_complete_claim": false,
+    "envelope_sent_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

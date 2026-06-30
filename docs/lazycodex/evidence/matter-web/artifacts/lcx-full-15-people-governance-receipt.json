@@ -1,0 +1,25 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.people_governance_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:33.514Z",
+  "tuw_ids": [
+    "LCX-FULL-15.01",
+    "LCX-FULL-15.02",
+    "LCX-FULL-15.03",
+    "LCX-FULL-15.04",
+    "LCX-FULL-15.05"
+  ],
+  "verdict": "PASS",
+  "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-15-people-governance-browser-proof.json",
+  "approval_type_state": "configured",
+  "permission_action_state": "owner-audit-required",
+  "field_policy_state": "sensitive-field-guarded",
+  "connected_app_missing_provider_state": "provider-blocked",
+  "connected_app_ready_state": "request-ready",
+  "boundary": {
+    "direct_permission_mutation_performed": false,
+    "sensitive_field_exposed": false,
+    "provider_production_write_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

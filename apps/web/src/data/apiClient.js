@@ -42,6 +42,66 @@ const DEFAULT_PROFILE_PERMISSION_REF = "ui_profile_me";
 const DEFAULT_PROFILE_AUDIT_HINT_REF = "ui_profile_me_probe";
 export const LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos.session.envelope";
 export const LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION = "law-firm-os.desktop-web-session-envelope.v0.1";
+export {
+  advanceExecutionRun,
+  createApprovalRequest,
+  createExecutionRun,
+  decideApprovalRequest,
+  evaluateProviderReceipt,
+  projectConnectorReceipt
+} from "./approvalProviderRunKernel.js";
+export {
+  IMPORT_FIELD_ALLOWLISTS,
+  activateSegment as activateLcxFullSegment,
+  assertImportEnrichmentSafe as assertLcxFullImportEnrichmentSafe,
+  createConsentCoverage as createLcxFullConsentCoverage,
+  createEnrichmentJob as createLcxFullEnrichmentJob,
+  createIdentityCandidates as createLcxFullIdentityCandidates,
+  dryRunImport as dryRunLcxFullImport,
+  executeImportSynthetic as executeLcxFullImportSynthetic,
+  rollbackImport as rollbackLcxFullImport,
+  stageImportSource as stageLcxFullImportSource,
+  validateImportMapping as validateLcxFullImportMapping
+} from "./importEnrichmentKernel.js";
+export {
+  assertExternalProviderWorkflowSafe as assertLcxFullExternalProviderWorkflowSafe,
+  createBillingReconciliation as createLcxFullBillingReconciliation,
+  createContractDraftPackage as createLcxFullContractDraftPackage,
+  createESignSendRequest as createLcxFullESignSendRequest,
+  createInvoiceIssueRequest as createLcxFullInvoiceIssueRequest,
+  createMatterCommsSendRequest as createLcxFullMatterCommsSendRequest,
+  createMatterMessageDraft as createLcxFullMatterMessageDraft,
+  createPaymentSendRequest as createLcxFullPaymentSendRequest,
+  createTaxInvoiceIssueRequest as createLcxFullTaxInvoiceIssueRequest,
+  validateContractSigners as validateLcxFullContractSigners,
+  validateMatterRecipients as validateLcxFullMatterRecipients
+} from "./externalProviderWorkflowKernel.js";
+export {
+  assertPeopleWorkflowSafe as assertLcxFullPeopleWorkflowSafe,
+  buildPeopleReadinessCatalog as buildLcxFullPeopleReadinessCatalog,
+  configurePeopleSetupRows as configureLcxFullPeopleSetupRows,
+  createPeopleGovernancePacket as createLcxFullPeopleGovernancePacket,
+  createPeopleIntegrationRequest as createLcxFullPeopleIntegrationRequest
+} from "./peopleWorkflowKernel.js";
+export {
+  assertGlobalDecisionAuditSafe as assertLcxFullGlobalDecisionAuditSafe,
+  buildAuditRequiredAction as buildLcxFullAuditRequiredAction,
+  buildGlobalDecisionPackets as buildLcxFullGlobalDecisionPackets,
+  buildReceiptReconciliation as buildLcxFullReceiptReconciliation,
+  listGlobalAuditSurfaces as listLcxFullGlobalAuditSurfaces
+} from "./globalDecisionAuditKernel.js";
+export {
+  LCX_FULL_AUDIT_STATES,
+  LCX_FULL_MODEL_DECLARATIONS,
+  LCX_FULL_PROVIDER_RECEIPT_STATES,
+  LCX_FULL_READINESS_STATES,
+  LCX_FULL_SAFE_READINESS_FIXTURES,
+  assertNoForbiddenProjection,
+  projectReadinessRecord,
+  redactLcxFullValue,
+  transitionReadinessState,
+  validateLcxFullReadinessModel
+} from "./readinessModel.js";
 
 const SESSION_DOMAINS = ["client", "matter", "vault", "crm", "default"];
 const SAFE_SESSION_STATES = new Set(["signed_in"]);

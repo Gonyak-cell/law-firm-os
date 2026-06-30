@@ -34,8 +34,12 @@ export function mainWindowOptions(overrides = {}) {
 export async function createMainWindow({ BrowserWindowConstructor, options = {} } = {}) {
   const Constructor = BrowserWindowConstructor ?? (await import("electron")).BrowserWindow;
   const window = new Constructor(mainWindowOptions(options));
-  window.once(MAIN_WINDOW_READY_EVENT, () => {
+  const revealWindow = () => {
+    if (window.isDestroyed?.()) return;
     window.show();
-  });
+    window.focus?.();
+  };
+  window.once(MAIN_WINDOW_READY_EVENT, revealWindow);
+  window.webContents?.once?.("did-finish-load", revealWindow);
   return window;
 }

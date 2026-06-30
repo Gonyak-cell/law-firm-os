@@ -1,0 +1,31 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.people_setup_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:31.837Z",
+  "tuw_ids": [
+    "LCX-FULL-14.01",
+    "LCX-FULL-14.02",
+    "LCX-FULL-14.03",
+    "LCX-FULL-14.04",
+    "LCX-FULL-14.05"
+  ],
+  "verdict": "PASS",
+  "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-14-people-setup-browser-proof.json",
+  "catalog_state": "derived_from_people_feature_catalog",
+  "catalog_total_features": 71,
+  "setup_state": "configured",
+  "configured_sections": [
+    "people-role",
+    "people-work-profile",
+    "people-work-schedule",
+    "people-work-schedule-external",
+    "people-work-type",
+    "people-leave"
+  ],
+  "boundary": {
+    "count_source_hard_coded": false,
+    "payroll_calculation_claim": false,
+    "payroll_disbursement_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

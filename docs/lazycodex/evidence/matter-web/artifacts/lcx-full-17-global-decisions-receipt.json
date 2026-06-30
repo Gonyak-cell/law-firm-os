@@ -1,0 +1,71 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.global_decisions_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:31.875Z",
+  "tuw_ids": [
+    "LCX-FULL-17.01",
+    "LCX-FULL-17.02",
+    "LCX-FULL-17.03",
+    "LCX-FULL-17.04",
+    "LCX-FULL-17.05",
+    "LCX-FULL-17.06"
+  ],
+  "verdict": "PASS",
+  "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-17-global-decisions-browser-proof.json",
+  "decision_packet_state": "owner-decision-required",
+  "decision_rows": [
+    {
+      "decision_id": "global-decision:calendar",
+      "utility_id": "calendar",
+      "label": "일정",
+      "decision_state": "owner-decision-required",
+      "owner_receipt_ref": "",
+      "permanently_promoted": false,
+      "route_count": 1,
+      "production_go_live_claim": false,
+      "public_release_claim": false
+    },
+    {
+      "decision_id": "global-decision:finance",
+      "utility_id": "finance",
+      "label": "청구·재무",
+      "decision_state": "owner-decision-required",
+      "owner_receipt_ref": "",
+      "permanently_promoted": false,
+      "route_count": 5,
+      "production_go_live_claim": false,
+      "public_release_claim": false
+    },
+    {
+      "decision_id": "global-decision:data-import",
+      "utility_id": "data-import",
+      "label": "데이터 가져오기",
+      "decision_state": "owner-decision-required",
+      "owner_receipt_ref": "",
+      "permanently_promoted": false,
+      "route_count": 1,
+      "production_go_live_claim": false,
+      "public_release_claim": false
+    },
+    {
+      "decision_id": "global-decision:policies",
+      "utility_id": "policies",
+      "label": "문서·방침",
+      "decision_state": "owner-decision-required",
+      "owner_receipt_ref": "",
+      "permanently_promoted": false,
+      "route_count": 3,
+      "production_go_live_claim": false,
+      "public_release_claim": false
+    }
+  ],
+  "audit_required_state": "audit-required",
+  "audit_recordable_state": "audit-recordable",
+  "boundary": {
+    "permanent_global_promotion_claim": false,
+    "owner_decision_claim": false,
+    "advanced_settings_executed": false,
+    "go_live_approved": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

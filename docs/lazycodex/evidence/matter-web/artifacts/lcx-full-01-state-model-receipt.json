@@ -1,0 +1,75 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.state_model_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:29.869Z",
+  "tuw_ids": [
+    "LCX-FULL-01.01",
+    "LCX-FULL-01.02",
+    "LCX-FULL-01.03",
+    "LCX-FULL-01.05"
+  ],
+  "verdict": "PASS",
+  "model_names": [
+    "feature_readiness",
+    "approval_request",
+    "connector_receipt",
+    "execution_run",
+    "audit_event",
+    "field_policy_rule",
+    "document_policy_rule"
+  ],
+  "transitions": [
+    {
+      "from": "not_configured",
+      "to": "configured",
+      "expected": true,
+      "result": {
+        "allowed": true,
+        "reason": "ordered_transition"
+      }
+    },
+    {
+      "from": "configured",
+      "to": "approval_requested",
+      "expected": false,
+      "result": {
+        "allowed": false,
+        "reason": "state_skip_blocked"
+      }
+    },
+    {
+      "from": "preflight_passed",
+      "to": "owner_approved",
+      "expected": false,
+      "result": {
+        "allowed": false,
+        "reason": "state_skip_blocked"
+      }
+    },
+    {
+      "from": "owner_approved",
+      "to": "provider_receipt_recorded",
+      "expected": true,
+      "result": {
+        "allowed": true,
+        "reason": "ordered_transition"
+      }
+    },
+    {
+      "from": "owner_approved",
+      "to": "execution_requested",
+      "expected": false,
+      "result": {
+        "allowed": false,
+        "reason": "state_skip_blocked"
+      }
+    }
+  ],
+  "fixture_count": 2,
+  "boundary": {
+    "writes_enabled_by_model": false,
+    "owner_approval_claim": false,
+    "provider_production_write_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.matter_import_browser_proof.v0.1",
+  "generated_at": "2026-06-30T09:36:01.887Z",
+  "tuw_id": "LCX-FULL-08.06",
+  "verdict": "PASS",
+  "snapshot": {
+    "attrs": [
+      {
+        "name": "data-lcx-vltui-06-claim-state",
+        "value": "bounded",
+        "text": "현재 Matter와 권한 컨텍스트를 기준으로 연결 상태만 표시합니다.항목연결 기준상태가져오기사건 자료 매핑과 검증필드 매핑 패널 연결검증중복, 권한, 필수 필드 확인사전 검증 후 실행 승인 대기가져오기는 안전한 사전 검증과 오류 보고서까지 열고, 실제 실행은 승인 전 차단합니다."
+      },
+      {
+        "name": "data-lcx-vltui-06-import-execute-blocked",
+        "value": "true",
+        "text": "가져오기는 안전한 사전 검증과 오류 보고서까지 열고, 실제 실행은 승인 전 차단합니다."
+      },
+      {
+        "name": "data-sf-b-w05-execute-owner-blocked-action",
+        "value": "true",
+        "text": "실행 요청승인 전에는 실제 가져오기를 실행하지 않습니다.실행 요청"
+      }
+    ],
+    "disabled_count": 0,
+    "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\nMatter\n사건 운영\n홈\n사건 목록\n18\n신규 사건\n수임 진행\n종결 처리\n보관 사건\n업무 진행\n문서·자료\n소통·참여\n결재·청구\n리포트·관리\nMatter\n\n사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름을 확인합니다.\n\n새로고침\n홈\n사건 목록\n업무 보드\n일정\n외부 일정\n사건 문서\n자료 가져오기\n가져오기 검증\n현재 Matter와 권한 컨텍스트를 기준으로 연결 상태만 표시합니다.\n항목\t연결 기준\t상태\n가져오기\t사건 자료 매핑과 검증\t필드 매핑 패널 연결\n검증\t중복, 권한, 필수 필드 확인\t사전 검증 후 실행 승인 대기\n가져오기는 안전한 사전 검증과 오류 보고서까지 열고, 실제 실행은 승인 전 차단합니다.\n가져오기\n필드 매핑\n대상 선택\n계정 / 연락처 / Matter / 결제\n작업 생성\n원본 준비\nCSV 구조와 열 정보만 저장합니다.\n원본 준비\n필드 매핑\n허용된 대상 필드만 저장합니다.\n매핑 저장\n사전 검증\n대상 레코드는 변경하지 않습니다.\n검증 실행\n실행 요청\n승인 전에는 실제 가져오기를 실행하지 않습니다.\n실행 요청\n되돌리기와 오류\n승인 기록과 안전한 오류 보고서만 표시합니다.\n확인\n현재 작업\n대기\n상태\n대기\n사전 검증\n대기\n실행\n대기\n항목\t상태\t조치\n검증 요약\t대기\t사전 검증 후 확인\n레코드\nMatter 1\n상태\n개시 중\n청구\n청구 준비 가능\n책임자\n미지정\n팀\n1\n문서\n0\n활동\n0\n기한\n0\n대화\n0\n청구\n2\n분석\n2\n청구 상태\n청구 준비 가능\n저장\n책임자\n미지정\n변경\n레코드 필드\nMatter 제목 / 청구 준비 상태 / 위험도\n필드 작업\n책임자 일괄 변경\n승인 조건 확인\n승인 확인\n최근 작업 0건\n외부 연동 승인 대기\n권한 기준에 맞춰 표시됩니다.",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-08-screenshots/matter-import.png"
+  },
+  "checks": [
+    {
+      "id": "claim-bounded",
+      "passed": true
+    },
+    {
+      "id": "execute-blocked",
+      "passed": true
+    },
+    {
+      "id": "owner-action-visible",
+      "passed": true
+    },
+    {
+      "id": "no-forbidden-text",
+      "passed": true
+    }
+  ],
+  "boundary": {
+    "browser_observation_only": true,
+    "production_import_complete_claim": false,
+    "raw_rows_included": false
+  }
+}

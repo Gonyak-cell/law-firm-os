@@ -1,0 +1,25 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.matter_import_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:30.920Z",
+  "tuw_ids": [
+    "LCX-FULL-08.01",
+    "LCX-FULL-08.02",
+    "LCX-FULL-08.03",
+    "LCX-FULL-08.04",
+    "LCX-FULL-08.05",
+    "LCX-FULL-08.06"
+  ],
+  "verdict": "PASS",
+  "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-08-matter-import-browser-proof.json",
+  "rejected_fields": [
+    "billing_account"
+  ],
+  "dry_run_state": "passed",
+  "execute_state": "executed",
+  "rollback_state": "rolled_back",
+  "boundary": {
+    "production_import_complete_claim": false,
+    "raw_rows_included": false,
+    "target_mutation_count": 0
+  }
+}

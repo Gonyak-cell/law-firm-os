@@ -1,0 +1,25 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.client_data_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:32.817Z",
+  "tuw_ids": [
+    "LCX-FULL-10.01",
+    "LCX-FULL-10.02",
+    "LCX-FULL-10.03",
+    "LCX-FULL-10.04",
+    "LCX-FULL-10.05",
+    "LCX-FULL-10.06"
+  ],
+  "verdict": "PASS",
+  "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-10-client-data-browser-proof.json",
+  "consent_covered": true,
+  "missing_provider_execute_state": "provider-blocked",
+  "identity_candidate_state": "review_required",
+  "segment_activation_state": "provider_blocked",
+  "boundary": {
+    "provider_enrichment_live_claim": false,
+    "provider_receipt_claim": false,
+    "automatic_merge_performed": false,
+    "activation_submitted": false,
+    "production_go_live_claim": false
+  }
+}

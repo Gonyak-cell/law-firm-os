@@ -281,6 +281,8 @@ const sidebarMeta = {
     actions: [
       { label: "최근 작업", view: "home", section: "home-recent", icon: ClipboardList, count: "8" },
       { label: "대시보드", view: "reports", section: "reports-home-dashboard", icon: LayoutDashboard },
+      { label: "Matter 대화", view: "messages", section: "messages-matter-channel", icon: Mail, count: "2" },
+      { label: "Client 데이터 가져오기", view: "data-import", section: "data-import-client", icon: Tags },
       { label: "검토함", view: "requests", section: "requests-review-inbox", icon: ShieldCheck, count: "3" }
     ],
     utilities: []

@@ -25,7 +25,7 @@ export function splashHtml() {
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>${SPLASH_BRAND}</title>
 <style>
-body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;color:#06102d;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;color:#06102d;font-family:Pretendard,SUIT,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .splash{display:grid;justify-items:center;gap:12px}
 .mark{position:relative;width:88px;height:72px}
 .mark-stroke{position:absolute;top:4px;width:20px;height:58px;border-radius:8px;transform:rotate(31deg)}
@@ -50,7 +50,7 @@ export function splashDataUrl() {
 export function fallbackHtml(reason = "startup-timeout") {
   return `<!doctype html>
 <html lang="en">
-<head><meta charset="utf-8" /><title>${SPLASH_BRAND}</title></head>
+<head><meta charset="utf-8" /><title>${SPLASH_BRAND}</title><style>body{font-family:Pretendard,SUIT,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}</style></head>
 <body>
 <main aria-label="${SPLASH_BRAND} 시작 화면">
 <strong>${SPLASH_BRAND}</strong>

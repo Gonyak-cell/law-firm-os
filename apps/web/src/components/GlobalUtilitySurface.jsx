@@ -1,6 +1,7 @@
 import React from "react";
 import { ArrowRight, Link2, ShieldCheck } from "lucide-react";
 import { conditionalGlobalItems, getGlobalUtilityByView, globalUtilityItems } from "../data/globalUtilities.js";
+import { GuardedStateNotice } from "./GuardedState.js";
 import { PageHeader, Panel } from "./primitives.jsx";
 
 function sectionStateLabel(section, utility) {
@@ -89,16 +90,14 @@ function UtilityDetail({ section, utility }) {
         </div>
       )}
       {section.state === "audit_required" && (
-        <div className="live-data-state live-data-review" data-global-audit-required="true">
-          <strong>감사 대상 작업입니다.</strong>
+        <GuardedStateNotice state="audit_required" title="감사 대상 작업입니다." dataAttrs={{ "data-global-audit-required": "true" }}>
           강제 승인/거절 또는 고급 옵션은 권한과 사유 기록이 필요합니다.
-        </div>
+        </GuardedStateNotice>
       )}
       {utility.status === "decision-required" && (
-        <div className="live-data-state live-data-review" data-global-decision-required="true">
-          <strong>조건부 전역화 항목입니다.</strong>
+        <GuardedStateNotice state="owner_blocked" title="조건부 전역화 항목입니다." dataAttrs={{ "data-global-decision-required": "true" }}>
           {utility.decision}
-        </div>
+        </GuardedStateNotice>
       )}
       {utility.id === "notifications" && section.id === "notifications-center" && (
         <div className="live-data-state live-data-empty" data-global-notifications-center="true">

@@ -38,6 +38,8 @@ Channel: `formal`
 - executable exists: true
 - packaged app icon exists: true
 - packaged app source exists: true
+- web renderer prepare state: rebuilt_from_apps_web
+- packaged URL scheme metadata: matter
 - ZIP archive exists: true
 - DMG image exists: true
 - install smoke result: pass

@@ -1,0 +1,28 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.run_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:33.511Z",
+  "tuw_ids": [
+    "LCX-FULL-05.01",
+    "LCX-FULL-05.02",
+    "LCX-FULL-05.03",
+    "LCX-FULL-05.04",
+    "LCX-FULL-05.05"
+  ],
+  "verdict": "PASS",
+  "states": [
+    "not_started",
+    "dry_run_passed",
+    "execute_blocked",
+    "executed",
+    "rolled_back"
+  ],
+  "duplicate_blocked": "duplicate_idempotency_key",
+  "safe_input_hash": "cb1bffbc",
+  "audit_event_count": 8,
+  "boundary": {
+    "external_mutation_ready_claim": false,
+    "external_mutation_performed": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

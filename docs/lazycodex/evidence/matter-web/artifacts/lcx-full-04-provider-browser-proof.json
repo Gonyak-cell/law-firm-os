@@ -1,0 +1,95 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.provider_browser_proof.v0.1",
+  "generated_at": "2026-06-30T09:27:59.190Z",
+  "tuw_id": "LCX-FULL-04.05",
+  "verdict": "PASS",
+  "cases": [
+    {
+      "id": "client-provider-blocked",
+      "path": "?view=clients#client-data",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-04-screenshots/client-provider-blocked.png",
+      "attrs": [
+        {
+          "name": "data-enrichment-provider-admin",
+          "value": "provider-blocked",
+          "text": "외부 연동2개 확인연동 요청"
+        },
+        {
+          "name": "data-segment-activation",
+          "value": "provider-blocked",
+          "text": "대상 그룹 활성화외부 연동 확인과 되돌리기 계획이 필요합니다.활성화 확인"
+        },
+        {
+          "name": "data-sf-b-w07-audit",
+          "value": "true",
+          "text": "외부 응답 원문, 원문 식별자, 토큰, 연락값은 숨깁니다."
+        }
+      ],
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\nClient\nClient 관리\nClient 홈\nClient 목록\n12\n법인·개인 Client\n담당자\n수임 전 업무\n운영\n청구·수금\nClient 리포트\nClient 데이터\nClient 데이터 가져오기\nClient 설정\nClient\n\nClient, 담당자, Opportunity, 상담 이력을 한 화면에서 확인합니다.\n\n새로고침\n데이터 보강\nClient\n외부 연동\n2개 확인\n연동 요청\n동의와 보존\n보강 범위는 담당자 승인 후 적용됩니다.\n승인 확인\n외부 연동 등록\n아직 실행 전\n동의 상태\n아직 실행 전\n외부 연동\t상태\t범위\t외부 연결\nSalesforce Data Cloud\t외부 확인 대기\t기업 정보 / 관계 / Matter 맥락\t아니오\nFullContact 데이터 보강\t외부 확인 대기\t기업 정보 / 연락처 품질\t아니오\n보강 미리보기\n안전 출력\n작업 생성\n보강 작업 대기\n미리보기\n작업 상태\n아직 실행 전\n대상\n대기\n동의\n대기\n신뢰도\n대기\n외부 연결\n대기\n실행 요청\n외부 영수증 없이는 실행되지 않습니다.\n실행 확인\n실행 상태\n아직 실행 전\n결과와 통합 프로필\n읽기\n결과\t상태\t신뢰도\t원문\n프로필\nClient unified profile\n연결\n3\n동의\n승인 대기\n직접 식별자\n아니오\n매칭과 대상 그룹\n승인 관리\n식별자 매칭\n자동 병합 없이 검토 후보만 만듭니다.\n후보 생성\n매칭 상태\n아직 실행 전\n대상 그룹 활성화\n외부 연동 확인과 되돌리기 계획이 필요합니다.\n활성화 확인\n대상 그룹 상태\n아직 실행 전\n감사 경계\n0건\n작업\t대상\t보안\n외부 응답 원문, 원문 식별자, 토큰, 연락값은 숨깁니다.\nCLIENT 정보\nClient 1\n상태\n검토 필요\n대표 당사자\n미지정\n구성원\n2\n연결 Matter\n미지정\n잠재 Client\n1\nOpportunity\n1\n상담·문의\n1\nClient\n1\n담당자\n1\n권한 기준에 맞춰 표시됩니다.\n병합 검토 0건 / 실행 가능 0건\n데이터 보강 상",
+      "forbidden_text_detected": false
+    },
+    {
+      "id": "matter-provider-blocked",
+      "path": "?view=matters#matter-vault",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-04-screenshots/matter-provider-blocked.png",
+      "attrs": [
+        {
+          "name": "data-matter-email-composer",
+          "value": "provider-blocked",
+          "text": "이메일 초안초안 작성 후 발송 경계를 확인할 수 있습니다초안 생성내용 정리발송 요청"
+        },
+        {
+          "name": "data-sf-b-w03-channel-provider-state",
+          "value": "true",
+          "text": "외부 연동 승인 대기"
+        }
+      ],
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\nMatter\n사건 운영\n홈\n사건 목록\n18\n신규 사건\n수임 진행\n종결 처리\n보관 사건\n업무 진행\n문서·자료\n사건 문서\n증거·자료\n양식·템플릿\n인장·날인\n소통·참여\n결재·청구\n리포트·관리\nMatter\n\n사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름을 확인합니다.\n\n새로고침\n홈\n사건 목록\n업무 보드\n일정\n외부 일정\n사건 문서\nMatter Vault\n문서 연결\nVault 미리보기\n등록 Vault 저장소\n새로고침\n문서 연결\n문서 내용은 권한이 있을 때만 표시됩니다.\n문서 작업 사전검사\n문서 사전검사\nMatter app 원천\nMatter/Vault 원천 차단\nfail-closed\n권한 확인\n사전검사 전\nreference-only\nVault 게시\n초안과 사전검사 필요\nwrite=false\n문서 가져오기\n사전검사 전 실행 차단\npreflight-required\n외부 발송\n초안 필요\noutlook_graph=false\n활동\t유형\t제목\t표시 범위\n문서\t상태\t계정\t보호\nSynthetic engagement letter\t사용 중\tjwsuh@amic.kr\t보호됨\n문서\t버전\t색인\t보안\ndoc_rp07_synthetic_001\tversion_doc_rp07_synthetic_001_1\ttitle, matter_id, version_id\t보호됨\n표시할 감사 정보가 없습니다\n문서 초안\n템플릿\t유형\t필드\t승인\n위임계약서\t문서\t3개\t승인 필요\n진행상황 안내 메일\t이메일\t3개\t승인 필요\n템플릿 선택 후 초안을 만들 수 있습니다\n초안 생성\n검토 준비\n승인 요청\nVault 등록 요청\n표시할 승인 요청 정보가 없습니다\n이메일 초안\n초안 작성 후 발송 경계를 확인할 수 있습니다\n초안 생성\n내용 정리\n발송 요청\n레코드\nMatter 1\n상태\n개시 중\n청구\n청구 준비 가능\n책임자\n미지정\n팀\n1\n문서\n0\n활동\n0\n기한\n0\n대화\n0\n청구\n2\n분석\n2\n청구 상태\n청구 준비 가능\n저장\n책",
+      "forbidden_text_detected": false
+    },
+    {
+      "id": "vault-bridge-configured-readonly",
+      "path": "?view=matters#matter-vault",
+      "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-04-screenshots/vault-bridge-configured-readonly.png",
+      "attrs": [
+        {
+          "name": "data-lcx-vltui-03-vault-source-state",
+          "value": "source-ready",
+          "text": "문서 작업 사전검사문서 사전검사Matter app 원천Matter/Vault 원천 확인bridge status read권한 확인사전검사 전reference-onlyVault 게시초안과 사전검사 필요write=false문서 가져오기사전검사 전 실행 차단preflight-required외부 발송초안 필요outlook_grap"
+        },
+        {
+          "name": "data-lcx-vltui-03-publish-write-enabled",
+          "value": "false",
+          "text": "문서 작업 사전검사문서 사전검사Matter app 원천Matter/Vault 원천 확인bridge status read권한 확인사전검사 전reference-onlyVault 게시초안과 사전검사 필요write=false문서 가져오기사전검사 전 실행 차단preflight-required외부 발송초안 필요outlook_grap"
+        }
+      ],
+      "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\nMatter\n사건 운영\n홈\n사건 목록\n18\n신규 사건\n수임 진행\n종결 처리\n보관 사건\n업무 진행\n문서·자료\n사건 문서\n증거·자료\n양식·템플릿\n인장·날인\n소통·참여\n결재·청구\n리포트·관리\nMatter\n\n사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름을 확인합니다.\n\n새로고침\n홈\n사건 목록\n업무 보드\n일정\n외부 일정\n사건 문서\nMatter Vault\n문서 연결\nVault 미리보기\n등록 Vault 저장소\n새로고침\n문서 연결\n문서 내용은 권한이 있을 때만 표시됩니다.\n문서 작업 사전검사\n문서 사전검사\nMatter app 원천\nMatter/Vault 원천 확인\nbridge status read\n권한 확인\n사전검사 전\nreference-only\nVault 게시\n초안과 사전검사 필요\nwrite=false\n문서 가져오기\n사전검사 전 실행 차단\npreflight-required\n외부 발송\n초안 필요\noutlook_graph=false\n활동\t유형\t제목\t표시 범위\n문서\t상태\t계정\t보호\nSynthetic engagement letter\t사용 중\tjwsuh@amic.kr\t보호됨\n문서\t버전\t색인\t보안\ndoc_rp07_synthetic_001\tversion_doc_rp07_synthetic_001_1\ttitle, matter_id, version_id\t보호됨\n표시할 감사 정보가 없습니다\n문서 초안\n템플릿\t유형\t필드\t승인\n위임계약서\t문서\t3개\t승인 필요\n진행상황 안내 메일\t이메일\t3개\t승인 필요\n템플릿 선택 후 초안을 만들 수 있습니다\n초안 생성\n검토 준비\n승인 요청\nVault 등록 요청\n표시할 승인 요청 정보가 없습니다\n이메일 초안\n초안 작성 후 발송 경계를 확인할 수 있습니다\n초안 생성\n내용 정리\n발송 요청\n레코드\nMatter 1\n상태\n개시 중\n청구\n청구 준비 가능\n책임자\n미지정\n팀\n1\n문서\n0\n활동\n0\n기한\n0\n대화\n0\n청구\n2\n분석\n2\n청구 상태\n청구 준비 ",
+      "forbidden_text_detected": false
+    }
+  ],
+  "checks": [
+    {
+      "case": "client-provider-blocked",
+      "passed": true
+    },
+    {
+      "case": "matter-provider-blocked",
+      "passed": true
+    },
+    {
+      "case": "vault-bridge-configured-readonly",
+      "passed": true
+    },
+    {
+      "case": "provider-configured-branch-remains-readonly",
+      "passed": true
+    }
+  ],
+  "boundary": {
+    "browser_observation_only": true,
+    "provider_connected_claim": false,
+    "provider_production_write_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

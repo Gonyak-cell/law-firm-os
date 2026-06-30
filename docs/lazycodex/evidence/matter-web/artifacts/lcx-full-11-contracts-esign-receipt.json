@@ -1,0 +1,25 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.contracts_esign_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:30.646Z",
+  "tuw_ids": [
+    "LCX-FULL-11.01",
+    "LCX-FULL-11.02",
+    "LCX-FULL-11.03",
+    "LCX-FULL-11.04",
+    "LCX-FULL-11.05"
+  ],
+  "verdict": "PASS",
+  "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-11-contracts-browser-proof.json",
+  "draft_state": "drafted",
+  "signer_missing_state": "blocked",
+  "signer_valid_state": "valid",
+  "missing_provider_request_state": "provider-blocked",
+  "request_ready_state": "request-ready",
+  "boundary": {
+    "provider_receipt_claim": false,
+    "envelope_sent_claim": false,
+    "external_signature_request_performed": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

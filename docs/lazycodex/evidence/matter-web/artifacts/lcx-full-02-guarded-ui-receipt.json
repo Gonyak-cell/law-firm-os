@@ -1,0 +1,28 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.guarded_ui_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:31.855Z",
+  "tuw_ids": [
+    "LCX-FULL-02.01",
+    "LCX-FULL-02.02",
+    "LCX-FULL-02.03",
+    "LCX-FULL-02.04",
+    "LCX-FULL-02.05"
+  ],
+  "verdict": "PASS",
+  "component_exports": [
+    "GuardedStatusBadge",
+    "GuardedActionRow",
+    "GuardedReceiptRow",
+    "GuardedActionButton",
+    "GuardedStateNotice"
+  ],
+  "proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-02-guarded-ui-browser-proof.json",
+  "route_count": 6,
+  "boundary": {
+    "writes_enabled": false,
+    "owner_approval_claim": false,
+    "provider_production_write_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

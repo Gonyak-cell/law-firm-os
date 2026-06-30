@@ -1,0 +1,20 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.matter_vault_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:33.510Z",
+  "tuw_ids": [
+    "LCX-FULL-06.01",
+    "LCX-FULL-06.02",
+    "LCX-FULL-06.03",
+    "LCX-FULL-06.05"
+  ],
+  "verdict": "PASS",
+  "full_browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-06-matter-vault-browser-proof.json",
+  "workspace_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-matter-document-workspace-proof.json",
+  "boundary": {
+    "preflight_without_vault_write": true,
+    "publish_exit_state": "request_or_owner_blocked",
+    "import_execute_claim": false,
+    "vault_write_complete_claim": false,
+    "public_release_claim": false
+  }
+}

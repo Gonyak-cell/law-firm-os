@@ -1,0 +1,1438 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>matter launch login dashboard prototype</title>
+  <style>
+    @font-face {
+      font-family: "Pretendard Local";
+      src: url("../../../apps/web/public/fonts/pretendard/Pretendard-Regular.otf") format("opentype");
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: "Pretendard Local";
+      src: url("../../../apps/web/public/fonts/pretendard/Pretendard-SemiBold.otf") format("opentype");
+      font-weight: 600;
+    }
+
+    @font-face {
+      font-family: "Pretendard Local";
+      src: url("../../../apps/web/public/fonts/pretendard/Pretendard-Bold.otf") format("opentype");
+      font-weight: 700;
+    }
+
+    :root {
+      --ink: #06102d;
+      --ink-muted: #506176;
+      --line: #d8dee8;
+      --line-strong: #bfc8d6;
+      --paper: #ffffff;
+      --surface: #f5f7fa;
+      --surface-strong: #eef2f6;
+      --red: #ff2d55;
+      --yellow: #ffcc00;
+      --green: #00ca72;
+      --green-dark: #087a4a;
+      --blue: #1c4f8f;
+      --warning: #8a5d00;
+      --shadow: 0 24px 70px rgba(6, 16, 45, .12);
+      --ease: cubic-bezier(.2, .8, .2, 1);
+      --spring: cubic-bezier(.16, 1.18, .32, 1);
+      --fast: cubic-bezier(.32, .72, 0, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #e9edf3;
+      font-family: "Pretendard Local", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+      overflow: hidden;
+    }
+
+    button,
+    input {
+      font: inherit;
+      letter-spacing: 0;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .prototype-root {
+      position: relative;
+      min-height: 100vh;
+      background:
+        linear-gradient(90deg, rgba(6, 16, 45, .05) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(6, 16, 45, .04) 1px, transparent 1px),
+        #e9edf3;
+      background-size: 64px 64px;
+    }
+
+    .window {
+      position: fixed;
+      inset: 28px;
+      display: grid;
+      grid-template-rows: 42px minmax(0, 1fr);
+      overflow: hidden;
+      border: 1px solid rgba(6, 16, 45, .18);
+      border-radius: 8px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .window-chrome {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfd;
+    }
+
+    .traffic {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .traffic span {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      border: 1px solid rgba(6, 16, 45, .18);
+    }
+
+    .traffic span:nth-child(1) {
+      background: var(--red);
+    }
+
+    .traffic span:nth-child(2) {
+      background: var(--yellow);
+    }
+
+    .traffic span:nth-child(3) {
+      background: var(--green);
+    }
+
+    .chrome-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .replay-button {
+      min-width: 76px;
+      height: 28px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: #fff;
+      color: #263548;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .stage {
+      position: relative;
+      min-height: 0;
+      background: var(--paper);
+      overflow: hidden;
+    }
+
+    .startup-screen,
+    .login-screen,
+    .handoff-screen,
+    .dashboard-screen {
+      position: absolute;
+      inset: 0;
+    }
+
+    .startup-screen {
+      display: grid;
+      place-items: center;
+      background: #fff;
+      z-index: 4;
+      transition: opacity .38s var(--ease), transform .38s var(--ease);
+    }
+
+    .state-login .startup-screen,
+    .state-handoff .startup-screen,
+    .state-dashboard .startup-screen {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(.985);
+    }
+
+    .startup-card {
+      display: grid;
+      place-items: center;
+      gap: 22px;
+      transform: translateY(8px);
+      animation: startupRise .9s var(--ease) both;
+    }
+
+    .logo-image {
+      display: block;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .startup-logo-image {
+      width: min(620px, calc(100vw - 96px));
+      height: auto;
+      transform-origin: 50% 50%;
+      animation:
+        logoImageBuild 1.15s var(--spring) both,
+        logoImageDock .72s var(--ease) 2.45s both;
+    }
+
+    .login-logo-image {
+      height: 48px;
+      margin-bottom: 58px;
+    }
+
+    .handoff-logo {
+      height: 46px;
+    }
+
+    .startup-status {
+      display: grid;
+      gap: 9px;
+      justify-items: center;
+      color: var(--ink-muted);
+      font-size: 14px;
+      opacity: 0;
+      animation: startupStatusIn .36s var(--ease) .72s both;
+    }
+
+    .startup-bar {
+      width: 160px;
+      height: 3px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #dce3ed;
+    }
+
+    .startup-bar span {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: var(--ink);
+      transform-origin: left center;
+      animation: bootBar 1.2s var(--ease) both;
+    }
+
+    .login-screen {
+      display: grid;
+      grid-template-columns: minmax(440px, 48%) minmax(0, 1fr);
+      background: var(--paper);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(18px);
+      z-index: 2;
+      transition: opacity .5s var(--ease), transform .5s var(--ease);
+    }
+
+    .state-login .login-screen {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .state-handoff .login-screen,
+    .state-dashboard .login-screen {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-18px);
+      transition-duration: .34s;
+    }
+
+    .login-copy {
+      display: grid;
+      align-content: center;
+      padding: 62px 74px;
+      border-right: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .login-heading {
+      margin-bottom: 34px;
+    }
+
+    .login-heading h1 {
+      margin: 0 0 12px;
+      font-size: 42px;
+      line-height: 1.08;
+      font-weight: 700;
+    }
+
+    .login-heading p {
+      max-width: 380px;
+      margin: 0;
+      color: var(--ink-muted);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .login-heading button {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--blue);
+      font-weight: 700;
+    }
+
+    .login-form {
+      display: grid;
+      gap: 16px;
+      width: min(100%, 410px);
+    }
+
+    .login-field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .login-field span,
+    .remember-row span,
+    .work-table th {
+      color: #42526a;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .login-field input {
+      height: 52px;
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 0 15px;
+      color: var(--ink);
+      background: #fbfcfd;
+      outline: 3px solid transparent;
+      outline-offset: 0;
+      transition: border-color .18s var(--ease), outline-color .18s var(--ease), background .18s var(--ease);
+    }
+
+    .login-field input:focus {
+      border-color: #455875;
+      background: #fff;
+      outline-color: rgba(6, 16, 45, .1);
+    }
+
+    .login-options {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      min-height: 34px;
+    }
+
+    .remember-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .remember-row input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--ink);
+    }
+
+    .link-button {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .login-submit {
+      position: relative;
+      height: 54px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--ink);
+      color: #fff;
+      font-weight: 700;
+      overflow: hidden;
+      transition: transform .18s var(--ease), background .18s var(--ease);
+    }
+
+    .login-submit:hover {
+      background: #111d3a;
+    }
+
+    .login-submit:active,
+    .login-submit.is-pressing {
+      transform: translateY(1px) scale(.992);
+    }
+
+    .login-submit::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .2), transparent);
+      transform: translateX(-120%);
+    }
+
+    .login-submit.is-pressing::after {
+      animation: buttonSweep .54s var(--ease) both;
+    }
+
+    .session-note {
+      min-height: 18px;
+      color: var(--green-dark);
+      font-size: 12px;
+      font-weight: 700;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity .18s var(--ease), transform .18s var(--ease);
+    }
+
+    .session-note.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .photo-panel {
+      position: relative;
+      overflow: hidden;
+      background: #111827;
+    }
+
+    .photo-panel img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(.92) contrast(.96);
+      transform: scale(1.02);
+    }
+
+    .photo-panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(6, 16, 45, .08), rgba(6, 16, 45, .32));
+    }
+
+    .photo-caption {
+      position: absolute;
+      right: 28px;
+      bottom: 28px;
+      z-index: 1;
+      max-width: 300px;
+      border: 1px solid rgba(255, 255, 255, .36);
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, .9);
+      color: #172033;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .handoff-screen {
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, .96);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 5;
+      transition: opacity .24s var(--ease);
+    }
+
+    .state-handoff .handoff-screen {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .handoff-card {
+      display: grid;
+      justify-items: center;
+      gap: 14px;
+      color: var(--ink);
+      transform: translateY(12px);
+    }
+
+    .state-handoff .handoff-card {
+      animation: handoffRise .42s var(--ease) both;
+    }
+
+    .handoff-logo {
+      animation: handoffPulse .8s var(--ease) infinite alternate;
+    }
+
+    .handoff-card strong {
+      font-size: 18px;
+    }
+
+    .handoff-card p {
+      margin: 0;
+      color: var(--ink-muted);
+      font-size: 14px;
+    }
+
+    .dashboard-screen {
+      display: grid;
+      grid-template-rows: 70px minmax(0, 1fr);
+      background: var(--surface);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(22px) scale(.992);
+      z-index: 1;
+      transition: opacity .54s var(--ease), transform .54s var(--ease);
+    }
+
+    .state-dashboard .dashboard-screen {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 0 24px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+      min-width: 0;
+    }
+
+    .topbar-logo {
+      flex: 0 0 auto;
+      height: 42px;
+    }
+
+    .product-nav {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .product-nav button {
+      height: 36px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 12px;
+      background: transparent;
+      color: #526174;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .product-nav button.active {
+      background: var(--surface-strong);
+      color: var(--ink);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 0 0 auto;
+    }
+
+    .search-box {
+      width: 270px;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px;
+      background: #fbfcfd;
+      color: #526174;
+      font-size: 13px;
+    }
+
+    .icon-button,
+    .primary-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 38px;
+      border-radius: 8px;
+      font-weight: 700;
+    }
+
+    .icon-button {
+      width: 38px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #334155;
+    }
+
+    .primary-action {
+      border: 0;
+      padding: 0 14px;
+      background: var(--ink);
+      color: #fff;
+      font-size: 13px;
+    }
+
+    .app-frame {
+      display: grid;
+      grid-template-columns: 78px minmax(0, 1fr);
+      min-height: 0;
+    }
+
+    .rail {
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      padding: 18px 14px;
+      border-right: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .rail-button {
+      display: grid;
+      place-items: center;
+      width: 50px;
+      height: 50px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .rail-button.active {
+      border-color: var(--line);
+      background: var(--surface);
+      color: var(--ink);
+    }
+
+    .dashboard-main {
+      min-width: 0;
+      overflow: auto;
+      padding: 26px;
+    }
+
+    .surface {
+      display: grid;
+      gap: 20px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .page-header h2 {
+      margin: 0 0 8px;
+      font-size: 29px;
+      line-height: 1.18;
+      font-weight: 700;
+    }
+
+    .page-header p {
+      margin: 0;
+      color: var(--ink-muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .secondary-action {
+      height: 38px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 0 13px;
+      background: #fff;
+      color: #263548;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .ops-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .ops-main {
+      display: grid;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .priority-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric,
+    .queue-panel,
+    .audit-panel,
+    .work-table-wrap {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .metric {
+      display: grid;
+      gap: 9px;
+      min-height: 126px;
+      padding: 16px;
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    .state-dashboard .metric {
+      animation: itemIn .42s var(--ease) both;
+    }
+
+    .state-dashboard .metric:nth-child(2) {
+      animation-delay: .05s;
+    }
+
+    .state-dashboard .metric:nth-child(3) {
+      animation-delay: .1s;
+    }
+
+    .state-dashboard .metric:nth-child(4) {
+      animation-delay: .15s;
+    }
+
+    .metric span {
+      color: #42526a;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .metric strong {
+      font-size: 31px;
+      line-height: 1;
+    }
+
+    .metric small {
+      color: var(--ink-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .metric.good strong {
+      color: var(--green-dark);
+    }
+
+    .metric.review strong {
+      color: var(--warning);
+    }
+
+    .queue-panel {
+      display: grid;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-header strong,
+    .audit-panel > strong {
+      font-size: 16px;
+    }
+
+    .panel-header span {
+      color: var(--ink-muted);
+      font-size: 13px;
+    }
+
+    .queue-row {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) 150px 110px 90px;
+      gap: 14px;
+      align-items: center;
+      min-height: 74px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .queue-row:last-child {
+      border-bottom: 0;
+    }
+
+    .queue-title {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .queue-title strong {
+      font-size: 14px;
+    }
+
+    .queue-title span,
+    .queue-meta {
+      color: var(--ink-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      min-width: 70px;
+      height: 26px;
+      border-radius: 8px;
+      padding: 0 9px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .status.allow {
+      background: #dcf8eb;
+      color: #075f3a;
+    }
+
+    .status.review {
+      background: #fff2c7;
+      color: #755000;
+    }
+
+    .status.guard {
+      background: #e8eef8;
+      color: #29446d;
+    }
+
+    .open-button {
+      height: 32px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: #fff;
+      color: #263548;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .audit-panel {
+      display: grid;
+      align-content: start;
+      gap: 13px;
+      padding: 18px;
+    }
+
+    .audit-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      min-height: 38px;
+      border-bottom: 1px solid #edf1f6;
+      color: #42526a;
+      font-size: 13px;
+    }
+
+    .audit-row:last-child {
+      border-bottom: 0;
+    }
+
+    .work-table-wrap {
+      overflow: hidden;
+    }
+
+    .work-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      background: #fff;
+    }
+
+    .work-table th,
+    .work-table td {
+      height: 48px;
+      border-bottom: 1px solid var(--line);
+      padding: 0 16px;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .work-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .work-table td {
+      color: #263548;
+      font-size: 13px;
+    }
+
+    .work-table .muted {
+      color: var(--ink-muted);
+    }
+
+    .state-dashboard .page-header,
+    .state-dashboard .queue-panel,
+    .state-dashboard .audit-panel,
+    .state-dashboard .work-table-wrap {
+      animation: itemIn .46s var(--ease) both;
+    }
+
+    .state-dashboard .page-header {
+      animation-delay: .06s;
+    }
+
+    .state-dashboard .queue-panel,
+    .state-dashboard .audit-panel {
+      animation-delay: .22s;
+    }
+
+    .state-dashboard .work-table-wrap {
+      animation-delay: .3s;
+    }
+
+    @keyframes logoImageBuild {
+      0% {
+        opacity: 0;
+        transform: translateY(10px) scale(.94);
+      }
+      70% {
+        opacity: 1;
+        transform: translateY(0) scale(1.025);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes logoImageDock {
+      0%,
+      28% {
+        transform: translateY(0) scale(1);
+      }
+      100% {
+        transform: translateY(-118px) scale(.68);
+      }
+    }
+
+    @keyframes startupRise {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes markSettle {
+      0% {
+        opacity: 0;
+        transform: translateY(8px) scale(.94);
+      }
+      70% {
+        opacity: 1;
+        transform: translateY(0) scale(1.02);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes startupStatusIn {
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes bootBar {
+      from {
+        transform: scaleX(0);
+      }
+      to {
+        transform: scaleX(1);
+      }
+    }
+
+    @keyframes buttonSweep {
+      to {
+        transform: translateX(120%);
+      }
+    }
+
+    @keyframes handoffRise {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes handoffPulse {
+      from {
+        transform: scale(.98);
+        opacity: .82;
+      }
+      to {
+        transform: scale(1.03);
+        opacity: 1;
+      }
+    }
+
+    @keyframes itemIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 1120px) {
+      .window {
+        inset: 14px;
+      }
+
+      .login-screen {
+        grid-template-columns: 1fr;
+      }
+
+      .login-copy {
+        padding: 42px;
+        border-right: 0;
+      }
+
+      .photo-panel {
+        display: none;
+      }
+
+      .ops-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .priority-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .search-box {
+        display: none;
+      }
+    }
+
+    @media (max-width: 760px) {
+      body {
+        overflow: auto;
+      }
+
+      .prototype-root {
+        min-height: 100vh;
+      }
+
+      .window {
+        position: relative;
+        inset: auto;
+        min-height: 100vh;
+        border: 0;
+        border-radius: 0;
+      }
+
+      .window-chrome {
+        display: none;
+      }
+
+      .window {
+        grid-template-rows: minmax(0, 1fr);
+      }
+
+      .login-copy {
+        padding: 34px 22px;
+      }
+
+      .login-logo-image {
+        margin-bottom: 34px;
+      }
+
+      .login-heading h1 {
+        font-size: 34px;
+      }
+
+      .dashboard-screen {
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+
+      .topbar {
+        align-items: start;
+        flex-direction: column;
+        padding: 16px;
+      }
+
+      .topbar-left,
+      .product-nav {
+        width: 100%;
+      }
+
+      .topbar-left {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .product-nav {
+        max-width: 100%;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+
+      .topbar-right {
+        width: 100%;
+      }
+
+      .primary-action {
+        flex: 1;
+      }
+
+      .app-frame {
+        grid-template-columns: 1fr;
+      }
+
+      .rail {
+        display: none;
+      }
+
+      .dashboard-main {
+        padding: 16px;
+      }
+
+      .page-header {
+        align-items: start;
+        flex-direction: column;
+      }
+
+      .priority-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .queue-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 16px;
+      }
+
+      .work-table th:nth-child(3),
+      .work-table td:nth-child(3) {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="prototype-root state-booting" id="prototypeRoot">
+    <div class="window" aria-label="matter app prototype">
+      <div class="window-chrome" aria-hidden="true">
+        <div class="traffic"><span></span><span></span><span></span></div>
+        <div class="chrome-title">matter</div>
+        <button class="replay-button" id="replayButton" type="button">다시 보기</button>
+      </div>
+
+      <main class="stage">
+        <section class="startup-screen" aria-label="matter 앱 시작">
+          <div class="startup-card">
+            <img class="logo-image startup-logo-image" src="../brand/matter-by-amic-logo.png" alt="matter by AMIC LAW" />
+            <div class="startup-status" aria-live="polite">
+              <div class="startup-bar"><span></span></div>
+              <span>작업공간을 준비하고 있습니다.</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="login-screen" aria-label="matter 로그인">
+          <div class="login-copy">
+            <img class="logo-image login-logo-image" src="../brand/matter-logo-only.png" alt="matter" />
+            <div class="login-heading">
+              <h1>Log in to matter</h1>
+              <p>
+                Don't have a matter account yet?
+                <button type="button">Sign up now</button>
+              </p>
+            </div>
+            <form class="login-form" id="loginForm">
+              <label class="login-field">
+                <span>Email</span>
+                <input type="email" autocomplete="email" value="operator@matter.local" aria-label="Email" />
+              </label>
+              <label class="login-field">
+                <span>Password</span>
+                <input type="password" autocomplete="current-password" value="matter-demo" aria-label="Password" />
+              </label>
+              <div class="login-options">
+                <label class="remember-row">
+                  <input type="checkbox" checked />
+                  <span>Remember me</span>
+                </label>
+                <button class="link-button" type="button">Forgot password?</button>
+              </div>
+              <button class="login-submit" id="loginButton" type="submit">Log in</button>
+              <div class="session-note" id="sessionNote">세션 확인 완료. Home으로 이동합니다.</div>
+            </form>
+          </div>
+          <aside class="photo-panel" aria-label="Samseong-dong Parnas Tower">
+            <img src="../../../apps/web/src/assets/parnas-tower-login.jpg" alt="Samseong-dong Parnas Tower" />
+            <div class="photo-caption">
+              Samseong-dong Parnas Tower 기준의 split 로그인 화면입니다.
+            </div>
+          </aside>
+        </section>
+
+        <section class="handoff-screen" aria-label="로그인 후 작업공간 준비">
+          <div class="handoff-card">
+            <img class="logo-image handoff-logo" src="../brand/matter-logo-only.png" alt="matter" />
+            <strong>matter 작업공간을 여는 중</strong>
+            <p>Home 대시보드로 이동합니다.</p>
+          </div>
+        </section>
+
+        <section class="dashboard-screen" aria-label="matter Home 대시보드">
+          <header class="topbar">
+            <div class="topbar-left">
+              <img class="logo-image topbar-logo" src="../brand/matter-logo-only.png" alt="matter" />
+              <nav class="product-nav" aria-label="Home Client Matter People Vault">
+                <button class="active" type="button">Home</button>
+                <button type="button">Client</button>
+                <button type="button">Matter</button>
+                <button type="button">People</button>
+                <button type="button">Vault</button>
+              </nav>
+            </div>
+            <div class="topbar-right">
+              <input class="search-box" type="search" value="Matter, 문서, 승인 검색" aria-label="검색" readonly />
+              <button class="icon-button" type="button" aria-label="알림">3</button>
+              <button class="primary-action" type="button">새 Matter</button>
+            </div>
+          </header>
+
+          <div class="app-frame">
+            <aside class="rail" aria-label="축약 내비게이션">
+              <button class="rail-button active" type="button" aria-label="Home">H</button>
+              <button class="rail-button" type="button" aria-label="Client">C</button>
+              <button class="rail-button" type="button" aria-label="Matter">M</button>
+              <button class="rail-button" type="button" aria-label="People">P</button>
+              <button class="rail-button" type="button" aria-label="Vault">V</button>
+            </aside>
+
+            <div class="dashboard-main">
+              <div class="surface">
+                <header class="page-header">
+                  <div>
+                    <h2>오늘의 운영 대기열</h2>
+                    <p>처리할 Matter, 승인 대기, 최근 문서, 동기화 상태를 먼저 확인합니다.</p>
+                  </div>
+                  <button class="secondary-action" type="button">새로고침</button>
+                </header>
+
+                <div class="ops-layout">
+                  <div class="ops-main">
+                    <div class="priority-grid">
+                      <article class="metric">
+                        <span>오늘 처리할 Matter</span>
+                        <strong>12</strong>
+                        <small>마감 임박 4건과 신규 개시 2건이 포함되어 있습니다.</small>
+                      </article>
+                      <article class="metric review">
+                        <span>승인 대기</span>
+                        <strong>3</strong>
+                        <small>구성원 변경과 문서 반출 요청을 검토해야 합니다.</small>
+                      </article>
+                      <article class="metric">
+                        <span>최근 문서</span>
+                        <strong>28</strong>
+                        <small>Vault에 새로 반영된 문서와 초안입니다.</small>
+                      </article>
+                      <article class="metric good">
+                        <span>실패한 동기화</span>
+                        <strong>0</strong>
+                        <small>현재 연결 실패 신호가 없습니다.</small>
+                      </article>
+                    </div>
+
+                    <section class="queue-panel" aria-label="Matter 작업 큐">
+                      <header class="panel-header">
+                        <strong>Matter 작업 큐</strong>
+                        <span>실패, 권한 없음, 빈 상태를 구분해 표시합니다.</span>
+                      </header>
+                      <div class="queue-row">
+                        <div class="queue-title">
+                          <strong>Matter 목록</strong>
+                          <span>개시, 상태, 담당자 변경 요청 확인</span>
+                        </div>
+                        <span class="queue-meta">12건 활성</span>
+                        <span class="status allow">허용</span>
+                        <button class="open-button" type="button">열기</button>
+                      </div>
+                      <div class="queue-row">
+                        <div class="queue-title">
+                          <strong>승인·구성원 확인</strong>
+                          <span>외부 공유와 담당 변호사 변경 검토</span>
+                        </div>
+                        <span class="queue-meta">3건 검토</span>
+                        <span class="status review">검토</span>
+                        <button class="open-button" type="button">열기</button>
+                      </div>
+                      <div class="queue-row">
+                        <div class="queue-title">
+                          <strong>최근 문서 확인</strong>
+                          <span>Vault 반영, 법적 보존, 반출 이력</span>
+                        </div>
+                        <span class="queue-meta">28건</span>
+                        <span class="status guard">감사</span>
+                        <button class="open-button" type="button">열기</button>
+                      </div>
+                    </section>
+                  </div>
+
+                  <aside class="audit-panel" aria-label="권한 감사 요약">
+                    <strong>권한·감사 요약</strong>
+                    <div class="audit-row"><span>Client</span><em class="status allow">허용</em></div>
+                    <div class="audit-row"><span>Matter</span><em class="status review">검토</em></div>
+                    <div class="audit-row"><span>People</span><em class="status allow">허용</em></div>
+                    <div class="audit-row"><span>Vault</span><em class="status guard">감사</em></div>
+                    <div class="audit-row"><span>Portal</span><em class="status allow">허용</em></div>
+                  </aside>
+                </div>
+
+                <div class="work-table-wrap" aria-label="빠른 작업 목록">
+                  <table class="work-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">작업</th>
+                        <th scope="col">Matter</th>
+                        <th scope="col">담당</th>
+                        <th scope="col">상태</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Closing checklist 확인</td>
+                        <td class="muted">M-2406-018</td>
+                        <td>기업자문팀</td>
+                        <td><span class="status review">검토</span></td>
+                      </tr>
+                      <tr>
+                        <td>Vault 문서 승인</td>
+                        <td class="muted">M-2406-022</td>
+                        <td>송무팀</td>
+                        <td><span class="status guard">감사</span></td>
+                      </tr>
+                      <tr>
+                        <td>신규 Matter 개시</td>
+                        <td class="muted">M-2406-031</td>
+                        <td>Intake</td>
+                        <td><span class="status allow">허용</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const root = document.getElementById("prototypeRoot");
+    const form = document.getElementById("loginForm");
+    const loginButton = document.getElementById("loginButton");
+    const replayButton = document.getElementById("replayButton");
+    const sessionNote = document.getElementById("sessionNote");
+    const startupLogo = document.querySelector(".startup-logo-image");
+
+    let bootTimer = null;
+    let dashboardTimer = null;
+
+    function setState(state) {
+      root.classList.remove("state-booting", "state-login", "state-handoff", "state-dashboard");
+      root.classList.add(state);
+    }
+
+    function restartLogoAnimation() {
+      startupLogo.style.animation = "none";
+      root.offsetWidth;
+      startupLogo.style.animation = "";
+    }
+
+    function boot() {
+      window.clearTimeout(bootTimer);
+      window.clearTimeout(dashboardTimer);
+      restartLogoAnimation();
+      loginButton.classList.remove("is-pressing");
+      sessionNote.classList.remove("is-visible");
+      setState("state-booting");
+      bootTimer = window.setTimeout(() => setState("state-login"), 3300);
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      loginButton.classList.add("is-pressing");
+      sessionNote.classList.add("is-visible");
+      window.clearTimeout(dashboardTimer);
+      window.setTimeout(() => setState("state-handoff"), 360);
+      dashboardTimer = window.setTimeout(() => {
+        loginButton.classList.remove("is-pressing");
+        setState("state-dashboard");
+      }, 980);
+    });
+
+    replayButton.addEventListener("click", boot);
+    window.addEventListener("load", boot);
+  </script>
+</body>
+</html>

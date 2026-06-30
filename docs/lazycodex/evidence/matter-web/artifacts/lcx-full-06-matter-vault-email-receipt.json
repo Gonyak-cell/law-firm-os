@@ -1,0 +1,17 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.matter_vault_email_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:34.182Z",
+  "tuw_ids": [
+    "LCX-FULL-06.04"
+  ],
+  "verdict": "PASS",
+  "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-06-matter-vault-browser-proof.json",
+  "email_send_state": "draft-required",
+  "boundary": {
+    "external_email_draft_package_visible": true,
+    "external_email_send_claim": false,
+    "provider_receipt_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

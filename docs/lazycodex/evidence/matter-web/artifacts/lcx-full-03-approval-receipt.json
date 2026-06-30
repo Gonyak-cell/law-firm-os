@@ -1,0 +1,26 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.approval_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:30.644Z",
+  "tuw_ids": [
+    "LCX-FULL-03.01",
+    "LCX-FULL-03.02",
+    "LCX-FULL-03.03",
+    "LCX-FULL-03.04",
+    "LCX-FULL-03.05"
+  ],
+  "verdict": "PASS",
+  "approval_states": [
+    "requested",
+    "approved",
+    "rejected",
+    "expired"
+  ],
+  "agent_inferred_approval_blocked": "human_owner_receipt_required",
+  "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-03-approval-browser-proof.json",
+  "boundary": {
+    "owner_approval_claim": "receipt_recorded_not_launch_approval",
+    "production_go_live_claim": false,
+    "public_release_claim": false,
+    "provider_production_write_claim": false
+  }
+}

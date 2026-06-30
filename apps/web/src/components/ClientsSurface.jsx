@@ -327,7 +327,14 @@ function ClientActivitiesPanel({ result, createResult, patchResult, createPendin
 }
 
 function ClientContractsPanel({ result, createResult, patchResult, createPending, patchPending, onCreate, onProviderCheck }) {
-  const state = renderLiveState(result, "제안·계약");
+  const state =
+    result === null ||
+    result?.kind === "error" ||
+    result?.uiState === "denied" ||
+    result?.uiState === "review_required" ||
+    result?.outcome === "review_required"
+      ? renderLiveState(result, "제안·계약")
+      : null;
   if (state) return state;
   const proposals = resultItems(result);
   const selectedProposal = proposals[0] ?? null;

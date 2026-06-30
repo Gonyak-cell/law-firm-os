@@ -1,0 +1,28 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.people_integrations_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:34.869Z",
+  "tuw_ids": [
+    "LCX-FULL-16.01",
+    "LCX-FULL-16.02",
+    "LCX-FULL-16.03",
+    "LCX-FULL-16.04",
+    "LCX-FULL-16.05"
+  ],
+  "verdict": "PASS",
+  "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-16-people-integrations-browser-proof.json",
+  "e_contract_missing_provider_state": "provider-blocked",
+  "e_contract_request_state": "request-ready",
+  "payroll_request_state": "request-ready",
+  "message_request_state": "request-ready",
+  "company_registry_request_state": "request-ready",
+  "sandbox_registry_state": "provider-blocked",
+  "boundary": {
+    "external_send_performed": false,
+    "payroll_calculation_performed": false,
+    "payroll_disbursement_performed": false,
+    "sandbox_receipt_promoted_to_production": false,
+    "provider_production_write_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

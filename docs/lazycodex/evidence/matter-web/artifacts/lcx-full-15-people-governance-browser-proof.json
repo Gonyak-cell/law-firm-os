@@ -1,0 +1,101 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.people_governance_browser_proof.v0.1",
+  "generated_at": "2026-06-30T09:51:45.477Z",
+  "tuw_id": "LCX-FULL-15.05",
+  "verdict": "PASS",
+  "snapshot": {
+    "attrs": [
+      {
+        "name": "data-global-utility-surface",
+        "value": "settings",
+        "text": "설정회사 설정, 권한, 보안, 연동, 결제, 지원, 고급 옵션, 태그 관리를 전역 설정으로 이동합니다.전역 메뉴회사 설정권한보안연동결제지원고급 옵션태그 관리회사 설정people 메뉴에서 이 전역 항목으로 연결합니다.People권한people 메뉴에서 이 전역 항목으로 연결합니다.People보안people 메뉴에서 이 전역"
+      },
+      {
+        "name": "data-global-utility-card",
+        "value": "settings-company",
+        "text": "회사 설정people 메뉴에서 이 전역 항목으로 연결합니다.People"
+      },
+      {
+        "name": "data-global-utility-card",
+        "value": "settings-permissions",
+        "text": "권한people 메뉴에서 이 전역 항목으로 연결합니다.People"
+      },
+      {
+        "name": "data-global-utility-card",
+        "value": "settings-security",
+        "text": "보안people 메뉴에서 이 전역 항목으로 연결합니다.People"
+      },
+      {
+        "name": "data-global-utility-card",
+        "value": "settings-integrations",
+        "text": "연동people 메뉴에서 이 전역 항목으로 연결합니다.People"
+      },
+      {
+        "name": "data-global-utility-card",
+        "value": "settings-billing",
+        "text": "결제people 메뉴에서 이 전역 항목으로 연결합니다.People"
+      },
+      {
+        "name": "data-global-utility-card",
+        "value": "settings-support",
+        "text": "지원people 메뉴에서 이 전역 항목으로 연결합니다.People"
+      },
+      {
+        "name": "data-global-utility-card",
+        "value": "settings-advanced",
+        "text": "고급 옵션people 메뉴에서 이 전역 항목으로 연결합니다.People"
+      },
+      {
+        "name": "data-global-utility-card",
+        "value": "settings-tags",
+        "text": "태그 관리전역 메뉴에서 직접 여는 항목입니다.Workspace"
+      },
+      {
+        "name": "data-global-legacy-routes",
+        "value": "true",
+        "text": "people#people-admin"
+      },
+      {
+        "name": "data-global-conditional-preview",
+        "value": "true",
+        "text": "일정조건부청구·재무조건부데이터 가져오기조건부문서·방침조건부"
+      }
+    ],
+    "body_sample": "matter\nHome\nClient\nMatter\nPeople\nVault\n/\n새로 만들기\n합류코드 전송\n서\n3\n한국어\n설정\n회사 설정\n권한\n보안\n연동\n결제\n지원\n고급 옵션\n태그 관리\n설정\n\n회사 설정, 권한, 보안, 연동, 결제, 지원, 고급 옵션, 태그 관리를 전역 설정으로 이동합니다.\n\n전역 메뉴\n회사 설정\n권한\n보안\n연동\n결제\n지원\n고급 옵션\n태그 관리\n회사 설정\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n권한\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n보안\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n연동\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n결제\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n지원\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n고급 옵션\npeople 메뉴에서 이 전역 항목으로 연결합니다.\nPeople\n태그 관리\n전역 메뉴에서 직접 여는 항목입니다.\nWorkspace\n권한\n전역\n설정\n\npeople 메뉴에서 이 전역 항목으로 연결합니다.\n\n소스\nPeople\n상태\n전역\n연결\n1개\npeople#people-admin\n일정\n조건부\n청구·재무\n조건부\n데이터 가져오기\n조건부\n문서·방침\n조건부",
+    "screenshot": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-15-screenshots/people-admin.png",
+    "page_errors": []
+  },
+  "checks": [
+    {
+      "id": "settings-surface-mounted",
+      "passed": true
+    },
+    {
+      "id": "permissions-card-visible",
+      "passed": true
+    },
+    {
+      "id": "people-admin-legacy-route-visible",
+      "passed": true
+    },
+    {
+      "id": "conditional-preview-visible",
+      "passed": true
+    },
+    {
+      "id": "no-page-errors",
+      "passed": true
+    },
+    {
+      "id": "no-forbidden-text",
+      "passed": true
+    }
+  ],
+  "boundary": {
+    "browser_observation_only": true,
+    "direct_permission_mutation_claim": false,
+    "provider_production_write_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

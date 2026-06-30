@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.provider_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:35.348Z",
+  "tuw_ids": [
+    "LCX-FULL-04.01",
+    "LCX-FULL-04.02",
+    "LCX-FULL-04.03",
+    "LCX-FULL-04.05"
+  ],
+  "verdict": "PASS",
+  "cases": [
+    {
+      "name": "missing",
+      "allowed": false,
+      "reason": "provider_receipt_missing"
+    },
+    {
+      "name": "sandbox",
+      "allowed": false,
+      "reason": "production_provider_receipt_required"
+    },
+    {
+      "name": "wrong-scope",
+      "allowed": false,
+      "reason": "provider_receipt_scope_missing"
+    },
+    {
+      "name": "valid-production",
+      "allowed": true,
+      "reason": "provider_receipt_valid"
+    }
+  ],
+  "provider_projection_safe": true,
+  "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-04-provider-browser-proof.json",
+  "boundary": {
+    "provider_connected_claim": false,
+    "provider_production_write_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

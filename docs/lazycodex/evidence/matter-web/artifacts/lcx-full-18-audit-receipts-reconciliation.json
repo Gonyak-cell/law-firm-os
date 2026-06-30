@@ -1,0 +1,48 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.audit_receipts_reconciliation.v0.1",
+  "generated_at": "2026-06-30T10:44:33.554Z",
+  "tuw_ids": [
+    "LCX-FULL-18.01",
+    "LCX-FULL-18.02",
+    "LCX-FULL-18.03",
+    "LCX-FULL-18.04",
+    "LCX-FULL-18.05"
+  ],
+  "verdict": "PASS",
+  "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-18-audit-browser-proof.json",
+  "checked_artifact_count": 42,
+  "covered_parents": [
+    "LCX-FULL-00",
+    "LCX-FULL-01",
+    "LCX-FULL-02",
+    "LCX-FULL-03",
+    "LCX-FULL-04",
+    "LCX-FULL-05",
+    "LCX-FULL-06",
+    "LCX-FULL-07",
+    "LCX-FULL-08",
+    "LCX-FULL-09",
+    "LCX-FULL-10",
+    "LCX-FULL-11",
+    "LCX-FULL-12",
+    "LCX-FULL-13",
+    "LCX-FULL-14",
+    "LCX-FULL-15",
+    "LCX-FULL-16",
+    "LCX-FULL-17",
+    "LCX-FULL-18"
+  ],
+  "actual_reconciliation_state": "passed",
+  "blocked_action_count": 112,
+  "missing_stale_probe": {
+    "missing_count": 1,
+    "stale_count": 1,
+    "flagged": true
+  },
+  "boundary": {
+    "raw_payload_export_allowed": false,
+    "receipt_export_complete_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

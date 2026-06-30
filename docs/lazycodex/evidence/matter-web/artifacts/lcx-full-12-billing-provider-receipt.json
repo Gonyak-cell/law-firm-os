@@ -1,0 +1,26 @@
+{
+  "schema_version": "law-firm-os.lazycodex.lcx_full.billing_provider_receipt.v0.1",
+  "generated_at": "2026-06-30T10:44:31.837Z",
+  "tuw_ids": [
+    "LCX-FULL-12.01",
+    "LCX-FULL-12.02",
+    "LCX-FULL-12.03",
+    "LCX-FULL-12.04",
+    "LCX-FULL-12.05"
+  ],
+  "verdict": "PASS",
+  "browser_proof": "docs/lazycodex/evidence/matter-web/artifacts/lcx-full-12-billing-browser-proof.json",
+  "invoice_blocked_state": "provider-blocked",
+  "invoice_request_state": "request-ready",
+  "payment_request_state": "request-ready",
+  "tax_invoice_request_state": "request-ready",
+  "reconciliation_state": "readback-safe",
+  "boundary": {
+    "invoice_issue_complete_claim": false,
+    "money_movement_performed": false,
+    "tax_invoice_issued_external": false,
+    "provider_production_write_claim": false,
+    "production_go_live_claim": false,
+    "public_release_claim": false
+  }
+}

@@ -1,30 +1,15 @@
 # LCX-VLTUI Production Smoke
 
-Generated at: 2026-06-29T16:29:05.169Z
+Generated at: 2026-06-30T10:51:01.397Z
 
-Verdict: PASS
+Verdict: BLOCKED
 
 Base URL: https://d2mthcc8vp3cr2.cloudfront.net
 
-Deployment commit: fc0482d59122b476589262d5fdb5b2d4618477ba
+Deployment commit: unknown
 
 | Check | Passed | Detail |
 | --- | --- | --- |
-| cloudfront-root-new-assets | true | root=200, assets=index-C4I169hQ.js/index-COfWDa_0.css |
-| health-context-profile | true | profile present |
-| health-context-matter-core | true | matter-core present |
-| health-context-vault-dms | true | vault-dms present |
-| health-context-crm-intake | true | crm-intake present |
-| profile-session-principal | true | status=200, ui_state=populated |
-| client-crm-sections | true | opportunities=1, activities=1, proposals=1 |
-| matter-list | true | status=200, matters=1 |
-| matter-workspace-sections | true | command_center=200, timeline=200, vault_summary=200 |
-| vault-documents | true | status=200, documents=1 |
-| vault-bridge-status | true | status=200, source_mode=matter_app_api |
-| vault-bridge-client-upsert | true | status=200, action=reused |
-| vault-bridge-matter-upsert | true | status=200, action=reused |
-| vault-bridge-lookup | true | status=200, matches=1 |
-| vault-upload-preflight-guarded | true | status=200, allowed_next_step=permission_check_only |
 
 ## Boundary
 

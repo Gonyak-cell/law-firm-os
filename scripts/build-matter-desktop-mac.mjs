@@ -22,6 +22,7 @@ const macosDir = join(contentsDir, "MacOS");
 const resourcesDir = join(contentsDir, "Resources");
 const executablePath = join(macosDir, "matter");
 const appSourceDir = join(resourcesDir, "app");
+const desktopRendererWebIndex = join(desktopRoot, "src/renderer/web/index.html");
 const iconPath = join(desktopRoot, "build/icon.icns");
 const packagedIconFile = "matter.icns";
 const packagedIconPath = join(resourcesDir, packagedIconFile);
@@ -127,6 +128,16 @@ async function applyMatterBundleIcon(targetAppBundle) {
     `Set :CFBundleIconFile ${packagedIconFile}`,
     targetInfoPlist
   ]);
+  await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Delete :CFBundleURLTypes", targetInfoPlist]).catch(() => {});
+  await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Add :CFBundleURLTypes array", targetInfoPlist]);
+  await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Add :CFBundleURLTypes:0 dict", targetInfoPlist]);
+  await execFileAsync("/usr/libexec/PlistBuddy", [
+    "-c",
+    `Add :CFBundleURLTypes:0:CFBundleURLName string ${appBundleId}`,
+    targetInfoPlist
+  ]);
+  await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Add :CFBundleURLTypes:0:CFBundleURLSchemes array", targetInfoPlist]);
+  await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string matter", targetInfoPlist]);
 }
 
 if (!existsSync(join(repoRoot, "node_modules/electron/dist/Electron.app"))) {
@@ -136,9 +147,16 @@ if (!existsSync(iconPath)) {
   throw new Error("Matter desktop app icon is missing. Generate apps/desktop/build/icon.icns first.");
 }
 
-await execFileAsync(process.execPath, [join(scriptDir, "prepare-matter-desktop-web-renderer.mjs")], {
-  cwd: repoRoot
-});
+let webRendererPrepareState = "rebuilt_from_apps_web";
+try {
+  await execFileAsync(process.execPath, [join(scriptDir, "prepare-matter-desktop-web-renderer.mjs")], {
+    cwd: repoRoot
+  });
+} catch (error) {
+  if (formalRelease || !existsSync(desktopRendererWebIndex)) throw error;
+  webRendererPrepareState = "reused_existing_desktop_renderer_internal_only";
+  console.warn(`Desktop web renderer prepare failed; reusing existing desktop renderer for internal build only: ${firstLine(error.stderr ?? error.message)}`);
+}
 
 const osxSign = await signingOptions();
 const osxNotarize = notarizationOptions();
@@ -267,6 +285,8 @@ Channel: \`${releaseChannel}\`
 - executable exists: ${existsSync(executablePath)}
 - packaged app icon exists: ${existsSync(packagedIconPath)}
 - packaged app source exists: ${existsSync(appSourceDir)}
+- web renderer prepare state: ${webRendererPrepareState}
+- packaged URL scheme metadata: matter
 - ZIP archive exists: ${existsSync(zipPath)}
 - DMG image exists: ${existsSync(dmgPath)}
 - install smoke result: pass
@@ -305,6 +325,7 @@ console.log(
       install_smoke_result: "pass",
       packaged_app_icon: existsSync(packagedIconPath),
       electron_runtime_packaged: true,
+      web_renderer_prepare_state: webRendererPrepareState,
       public_release: false,
       owner_approval: false
     },

@@ -26,7 +26,8 @@ test("deep links deny action execution query parameters on allowed routes", () =
     "matter://matter/MAT-248?download=true",
     "matter://document/doc_123?action=download",
     "matter://task/task_123?billing_write=true",
-    "matter://auth/callback?code=abc&state=def&issuer=idp&delivery_execution=true"
+    "matter://auth/callback?code=abc&state=def&issuer=idp&delivery_execution=true",
+    "matter://password-reset/confirm?token=abcdefghijklmnopqrstuvwxyzABCDE_123456&action=login"
   ];
 
   for (const link of links) {

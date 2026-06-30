@@ -7,8 +7,8 @@
   <style>
     :root {
       color-scheme: light;
-      --ink: #06102d;
-      --ink-2: #17203f;
+      --ink: #24242a;
+      --ink-2: #36363c;
       --muted: #6b7284;
       --line: rgba(6, 16, 45, 0.1);
       --soft-line: rgba(6, 16, 45, 0.07);
@@ -19,10 +19,14 @@
       --green: #00ca72;
       --green-dark: #0f3a32;
       --danger: #a23a35;
+      --reference-green: #98d93e;
+      --reference-pink: #f3b2ea;
+      --reference-blue: #5165f6;
+      --reference-blue-dark: #4356da;
       --shadow: 0 24px 84px rgba(6, 16, 45, 0.1);
       --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
       --spring: cubic-bezier(0.16, 1.18, 0.32, 1);
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      font-family: Pretendard, SUIT, Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
       background: #ffffff;
       color: var(--ink);
       font-size: 16px;
@@ -66,7 +70,7 @@
 
     button:hover {
       background: #0a1738;
-      box-shadow: 0 12px 28px rgba(6, 16, 45, 0.16);
+      box-shadow: none;
       transform: translateY(-1px);
     }
 
@@ -107,7 +111,8 @@
     select:focus,
     input:focus {
       border-color: rgba(0, 202, 114, 0.58);
-      box-shadow: 0 0 0 4px rgba(0, 202, 114, 0.12);
+      outline: 3px solid rgba(0, 202, 114, 0.16);
+      outline-offset: 1px;
     }
 
     h1,
@@ -118,30 +123,37 @@
     }
 
     .app {
+      position: relative;
       min-height: 100vh;
       background: #ffffff;
+      overflow: hidden;
     }
 
     .connection-status {
       position: fixed;
-      right: 24px;
-      top: 22px;
+      right: 38px;
+      top: 30px;
       z-index: 40;
       display: inline-flex;
       align-items: center;
       gap: 8px;
       min-height: 34px;
-      border: 1px solid rgba(6, 16, 45, 0.11);
-      border-radius: 8px;
+      border: 1px solid rgba(36, 36, 42, 0.1);
+      border-radius: 999px;
       padding: 0 13px;
       background: rgba(255, 255, 255, 0.9);
-      color: rgba(6, 16, 45, 0.7);
+      color: rgba(36, 36, 42, 0.62);
       font-size: 12px;
       font-weight: 700;
       white-space: nowrap;
-      backdrop-filter: blur(16px);
       pointer-events: none;
+      opacity: 0.01;
       transition: opacity 0.28s var(--ease), transform 0.28s var(--ease);
+    }
+
+    .connection-status:focus-within,
+    .connection-status:hover {
+      opacity: 1;
     }
 
     body.is-authenticated .connection-status {
@@ -169,9 +181,10 @@
       z-index: 1;
       min-height: 100vh;
       box-sizing: border-box;
-      display: grid;
-      place-items: center;
-      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 86px 24px 156px;
       opacity: 1;
       visibility: visible;
       transition:
@@ -185,7 +198,6 @@
       pointer-events: none;
       opacity: 0;
       transform: translateY(18px);
-      filter: blur(8px);
       visibility: hidden;
       transition:
         opacity 0.46s var(--ease),
@@ -196,16 +208,83 @@
 
     .auth-stack {
       position: relative;
-      width: min(720px, calc(100vw - 32px));
-      min-height: min(720px, calc(100vh - 32px));
-      display: grid;
-      place-items: center;
+      z-index: 2;
+      width: min(580px, calc(100vw - 48px));
+      min-height: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .auth-decor {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .auth-star {
+      position: absolute;
+      left: clamp(-180px, -8vw, -76px);
+      top: clamp(92px, 15vh, 136px);
+      width: clamp(310px, 25vw, 430px);
+      height: clamp(310px, 25vw, 430px);
+      transform: rotate(-14deg);
+    }
+
+    .auth-star span {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 96%;
+      height: 22%;
+      border-radius: 0;
+      background: var(--reference-green);
+      transform: translate(-50%, -50%) rotate(var(--angle));
+      transform-origin: center;
+    }
+
+    .auth-flower {
+      position: absolute;
+      right: clamp(-160px, -7vw, -84px);
+      top: clamp(340px, 42vh, 430px);
+      width: clamp(260px, 20vw, 338px);
+      height: clamp(260px, 20vw, 338px);
+      border-radius: 50%;
+      background: var(--reference-pink);
+    }
+
+    .auth-flower::before,
+    .auth-flower::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      background: var(--reference-pink);
+    }
+
+    .auth-flower::before {
+      inset: -38px 42px 52px -18px;
+      box-shadow:
+        116px -16px 0 18px var(--reference-pink),
+        184px 62px 0 8px var(--reference-pink),
+        118px 166px 0 10px var(--reference-pink),
+        12px 128px 0 4px var(--reference-pink);
+    }
+
+    .auth-flower::after {
+      left: -66px;
+      top: 84px;
+      width: 152px;
+      height: 152px;
     }
 
     .brand-lockup {
-      --mark-size: 150px;
-      --word-size: 136px;
-      --word-target: 0px;
+      --mark-size: 74px;
+      --word-size: 66px;
+      --word-target: 166px;
+      --dock-translate-x: calc(-50vw + 76px);
+      --dock-translate-y: -104px;
       position: relative;
       display: inline-flex;
       align-items: center;
@@ -215,14 +294,13 @@
       overflow: visible;
       transform-origin: 50% 50%;
       z-index: 2;
-      animation:
-        brandGap 0.86s var(--ease) 1.52s both,
-        brandSettle 0.72s var(--ease) 2.45s both;
+      margin-bottom: 22px;
+      animation: brandLoginIntro 1900ms var(--ease) both;
     }
 
     .matter-mark {
       position: relative;
-      width: calc(var(--mark-size) * 1.25);
+      width: calc(var(--mark-size) * 1.24);
       height: var(--mark-size);
       flex: 0 0 auto;
     }
@@ -233,7 +311,7 @@
       height: 100%;
       object-fit: contain;
       will-change: transform, opacity;
-      animation: matterMarkImageIn 1.15s var(--spring) both;
+      animation: matterMarkImageIn 520ms var(--spring) both;
     }
 
     .matter-word-wrap {
@@ -242,8 +320,9 @@
       align-items: center;
       width: 0;
       overflow: hidden;
+      opacity: 0;
       clip-path: inset(-0.18em 100% -0.18em 0);
-      animation: wordReveal 0.86s var(--ease) 1.52s both;
+      animation: matterWordLoginReveal 1900ms var(--ease) both;
     }
 
     .matter-word {
@@ -253,69 +332,106 @@
       font-family: Comfortaa, "Avenir Next", "SF Pro Rounded", Inter, -apple-system, BlinkMacSystemFont, sans-serif;
       font-size: var(--word-size);
       font-weight: 300;
-      letter-spacing: 0.035em;
-      transform: translateX(-0.42em) scaleX(0.9);
+      letter-spacing: 0;
+      transform: translateX(-0.32em) scaleX(0.92);
       transform-origin: 0 50%;
-      animation: wordPop 0.82s var(--spring) 1.52s both;
+      animation: matterWordLoginPop 1900ms var(--ease) both;
     }
 
     .matter-word span {
       display: inline-block;
       opacity: 0;
-      transform: translateX(-0.35em) scale(0.92);
-      animation: letterPop 0.58s var(--spring) both;
+      transform: translateX(-0.24em) scale(0.96);
+      animation: matterLetterLoginPop 1900ms var(--ease) both;
     }
 
-    .matter-word span:nth-child(1) { animation-delay: 1.54s; }
-    .matter-word span:nth-child(2) { animation-delay: 1.59s; }
-    .matter-word span:nth-child(3) { animation-delay: 1.64s; }
-    .matter-word span:nth-child(4) { animation-delay: 1.69s; }
-    .matter-word span:nth-child(5) { animation-delay: 1.74s; }
-    .matter-word span:nth-child(6) { animation-delay: 1.79s; }
+    .matter-word span:nth-child(1) { animation-delay: 0ms; }
+    .matter-word span:nth-child(2) { animation-delay: 40ms; }
+    .matter-word span:nth-child(3) { animation-delay: 80ms; }
+    .matter-word span:nth-child(4) { animation-delay: 120ms; }
+    .matter-word span:nth-child(5) { animation-delay: 160ms; }
+    .matter-word span:nth-child(6) { animation-delay: 200ms; }
 
     .login-panel {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: min(412px, 100%);
-      border: 1px solid rgba(6, 16, 45, 0.08);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.96);
-      box-shadow: var(--shadow);
+      position: relative;
+      width: min(580px, 100%);
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
       opacity: 0;
-      transform: translate(-50%, calc(-50% + 108px));
-      filter: blur(10px);
+      transform: translateY(12px);
+      filter: none;
       z-index: 1;
-      animation: panelIn 0.68s var(--ease) 2.72s both;
+      animation: loginPanelAfterBrand 520ms var(--ease) 1500ms both;
     }
 
     .login-form {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: clamp(12px, 1.7vh, 18px);
+      padding: 0;
+      text-align: center;
+    }
+
+    .login-heading {
       display: grid;
-      gap: 10px;
-      padding: 20px 24px 18px;
+      gap: clamp(12px, 1.9vh, 18px);
+      margin-bottom: clamp(22px, 4vh, 34px);
+    }
+
+    .login-heading h1 {
+      color: var(--ink);
+      font-size: 38px;
+      font-weight: 760;
+      letter-spacing: 0;
+      line-height: 1.05;
+    }
+
+    .login-heading p {
+      color: rgba(36, 36, 42, 0.76);
+      font-size: 18px;
+      font-weight: 440;
+      line-height: 1.35;
     }
 
     .login-form input {
-      min-height: 38px;
+      min-height: clamp(52px, 7vh, 64px);
+      border-color: #d7d7dc;
+      border-radius: 8px;
+      padding: 0 18px;
+      color: var(--ink-2);
+      font-size: 18px;
+      font-weight: 430;
+      line-height: 1;
     }
 
-    .login-form button {
-      min-height: 38px;
+    .login-form input::placeholder {
+      color: rgba(36, 36, 42, 0.48);
+    }
+
+    .login-form input:focus {
+      border-color: rgba(81, 101, 246, 0.72);
+      outline: 3px solid rgba(81, 101, 246, 0.14);
+      outline-offset: 1px;
     }
 
     .field {
-      display: grid;
-      gap: 5px;
-      opacity: 0;
-      transform: translateY(10px);
-      animation: fieldIn 0.44s var(--ease) both;
+      position: relative;
+      display: block;
+      opacity: 1;
+      transform: none;
     }
 
-    .field:nth-child(1) { animation-delay: 2.88s; }
-    .field:nth-child(2) { animation-delay: 2.94s; }
-    .field:nth-child(3) { animation-delay: 3s; }
-    .field:nth-child(4) { animation-delay: 3.06s; }
-    .field:nth-child(5) { animation-delay: 3.12s; }
+    .auth-mode-panel {
+      display: grid;
+      gap: clamp(12px, 1.7vh, 18px);
+    }
+
+    .auth-mode-panel[hidden] {
+      display: none;
+    }
 
     .field span,
     .meta-row strong {
@@ -324,41 +440,310 @@
       font-weight: 760;
     }
 
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      border: 0;
+      padding: 0;
+    }
+
+    .password-field input {
+      padding-right: 60px;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      width: 38px;
+      min-width: 38px;
+      height: 38px;
+      min-height: 38px;
+      border-radius: 999px;
+      padding: 0;
+      background: transparent;
+      color: #4b5563;
+      transform: translateY(-50%);
+      box-shadow: none;
+    }
+
+    .password-toggle:hover {
+      background: #f3f4f6;
+      box-shadow: none;
+      transform: translateY(-50%);
+    }
+
+    .eye-icon {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 22px;
+      height: 14px;
+      border: 2px solid currentColor;
+      border-radius: 50% / 62%;
+      transform: translate(-50%, -50%);
+    }
+
+    .eye-icon::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      transform: translate(-50%, -50%);
+    }
+
     .login-actions,
+    .reset-actions,
     .check-actions {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      opacity: 0;
-      transform: translateY(10px);
-      animation: fieldIn 0.44s var(--ease) 3.18s both;
     }
 
     .login-actions {
-      animation-delay: 3.24s;
+      margin-top: 0;
     }
 
     .login-actions button {
       flex: 1 1 0;
+      min-height: clamp(52px, 7vh, 64px);
+      border-radius: 8px;
+      background: var(--reference-blue);
+      color: #ffffff;
+      font-size: 19px;
+      font-weight: 760;
+      letter-spacing: 0;
+    }
+
+    .login-actions button:hover {
+      background: var(--reference-blue-dark);
+      box-shadow: none;
+      transform: none;
+    }
+
+    .reset-copy {
+      color: rgba(36, 36, 42, 0.76);
+      font-size: 17px;
+      font-weight: 480;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .reset-detail {
+      color: rgba(36, 36, 42, 0.58);
+      font-size: 14px;
+      font-weight: 560;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .reset-status-card {
+      display: grid;
+      gap: 6px;
+      border: 1px solid rgba(6, 16, 45, 0.08);
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: #fafbfc;
+      text-align: left;
+    }
+
+    .reset-status-card strong {
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 780;
+    }
+
+    .reset-status-card span {
+      color: rgba(36, 36, 42, 0.62);
+      font-size: 13px;
+      font-weight: 560;
+      line-height: 1.4;
+    }
+
+    .reset-actions {
+      margin-top: 2px;
+    }
+
+    .reset-actions button {
+      flex: 1 1 0;
+      min-height: 50px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 760;
+    }
+
+    .reset-actions button.primary-action {
+      background: var(--reference-blue);
+      color: #ffffff;
+    }
+
+    .reset-actions button.primary-action:hover {
+      background: var(--reference-blue-dark);
+      box-shadow: none;
+      transform: none;
+    }
+
+    .reset-token-field[hidden],
+    .reset-token-note[hidden] {
+      display: none;
+    }
+
+    .auth-link,
+    .auth-text-button,
+    .legal-link {
+      min-height: auto;
+      border-radius: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--reference-blue);
+      font-size: inherit;
+      font-weight: 760;
+      line-height: inherit;
+      box-shadow: none;
+    }
+
+    .auth-link:hover,
+    .auth-text-button:hover,
+    .legal-link:hover {
+      background: transparent;
+      box-shadow: none;
+      transform: none;
+      text-decoration: underline;
+    }
+
+    .auth-link {
+      align-self: center;
+      margin: clamp(8px, 1.6vh, 18px) 0 clamp(6px, 1.3vh, 16px);
+      font-size: 18px;
+    }
+
+    .auth-note {
+      color: rgba(36, 36, 42, 0.58);
+      font-size: 17px;
+      font-weight: 520;
+      line-height: 1.35;
     }
 
     .login-result {
-      min-height: 30px;
-      max-height: 30px;
-      border: 1px solid rgba(6, 16, 45, 0.08);
-      border-radius: 8px;
-      padding: 6px 10px;
-      background: #fafbfc;
-      color: rgba(6, 16, 45, 0.7);
-      font-size: 11px;
-      font-weight: 650;
+      min-height: 18px;
+      margin-top: 0;
+      color: rgba(36, 36, 42, 0.58);
+      font-size: 13px;
+      font-weight: 560;
       line-height: 1.35;
+      text-align: center;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .login-result:empty {
+      display: none;
+    }
+
+    body[data-auth-mode="reset_confirm"] .auth-stage {
+      padding-top: 34px;
+      padding-bottom: 64px;
+    }
+
+    body[data-auth-mode="reset_confirm"] .auth-stack {
+      transform: translateY(-96px);
+    }
+
+    body[data-auth-mode="reset_confirm"] .brand-lockup {
+      --mark-size: 46px;
+      --word-size: 42px;
+      margin-bottom: 10px;
+      animation: none;
+      transform: none;
+      display: none;
+    }
+
+    body[data-auth-mode="reset_confirm"] .matter-mark img {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+
+    body[data-auth-mode="reset_confirm"] .matter-word-wrap {
+      display: none;
+    }
+
+    body[data-auth-mode="reset_confirm"] .login-form {
+      gap: 10px;
+    }
+
+    body[data-auth-mode="reset_confirm"] .login-heading {
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    body[data-auth-mode="reset_confirm"] .login-heading h1 {
+      font-size: 30px;
+    }
+
+    body[data-auth-mode="reset_confirm"] .login-heading p,
+    body[data-auth-mode="reset_confirm"] .reset-copy {
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    body[data-auth-mode="reset_confirm"] .login-form input {
+      min-height: 46px;
+      font-size: 16px;
+    }
+
+    body[data-auth-mode="reset_confirm"] .reset-status-card {
+      padding: 10px 14px;
+    }
+
+    body[data-auth-mode="reset_confirm"] .reset-detail {
+      font-size: 12px;
+    }
+
+    body[data-auth-mode="reset_confirm"] .reset-actions button {
+      min-height: 44px;
+    }
+
+    body[data-auth-mode="reset_confirm"] .auth-footer {
       opacity: 0;
-      transform: translateY(10px);
-      animation: fieldIn 0.44s var(--ease) 3.3s both;
+      pointer-events: none;
+    }
+
+    .auth-footer {
+      position: fixed;
+      left: 52px;
+      right: 52px;
+      bottom: 38px;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      color: rgba(36, 36, 42, 0.32);
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .legal-links {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+    }
+
+    .legal-link {
+      color: rgba(36, 36, 42, 0.34);
+      font-size: 16px;
+      font-weight: 540;
     }
 
     .app-shell {
@@ -395,6 +780,46 @@
       align-items: center;
       gap: 8px;
       min-width: 0;
+      opacity: 1;
+    }
+
+    body.logo-handoff-active.is-authenticated .auth-stage {
+      pointer-events: none;
+      opacity: 1;
+      transform: none;
+      visibility: visible;
+      transition: none;
+    }
+
+    body.logo-handoff-active.is-authenticated .app-shell {
+      pointer-events: none;
+      opacity: 0;
+      transform: none;
+      animation: appShellAfterLogoHandoff 1240ms cubic-bezier(0.2, 0.82, 0.2, 1) both;
+    }
+
+    body.logo-handoff-active .auth-decor,
+    body.logo-handoff-active .login-panel,
+    body.logo-handoff-active .auth-footer {
+      opacity: 0;
+      transition: opacity 0.18s var(--ease);
+    }
+
+    body.logo-handoff-active .login-panel {
+      animation: none;
+      transform: translateY(0);
+    }
+
+    body.logo-handoff-active .brand-lockup {
+      animation: logoDockToHeader 1240ms cubic-bezier(0.2, 0.82, 0.2, 1) both;
+    }
+
+    body.logo-handoff-active .brand-lockup .matter-word-wrap {
+      display: none;
+    }
+
+    body.logo-handoff-active .dock-brand {
+      opacity: 0;
     }
 
     .dock-brand .matter-mark {
@@ -567,60 +992,125 @@
     @keyframes matterMarkImageIn {
       0% {
         opacity: 0;
-        transform: translateY(0.18em) scale(0.82);
+        transform: translateY(0.14em) scale(0.86);
       }
+
       100% {
         opacity: 1;
         transform: translate(0, 0) scale(1);
       }
     }
 
-    @keyframes brandGap {
-      to {
+    @keyframes brandLoginIntro {
+      0%,
+      20% {
+        gap: 0;
+        transform: translateY(176px) scale(1.2);
+      }
+
+      36%,
+      70% {
         gap: calc(var(--mark-size) * 0.2);
+        transform: translateY(176px) scale(1.2);
+      }
+
+      100% {
+        gap: 0;
+        transform: translateY(0) scale(1);
       }
     }
 
-    @keyframes wordReveal {
-      to {
+    @keyframes matterWordLoginReveal {
+      0%,
+      22% {
+        width: 0;
+        opacity: 0;
+        clip-path: inset(-0.18em 100% -0.18em 0);
+      }
+
+      36%,
+      70% {
         width: var(--word-target);
+        opacity: 1;
         clip-path: inset(-0.18em -0.12em -0.18em 0);
       }
-    }
 
-    @keyframes wordPop {
-      to {
-        transform: translateX(0) scaleX(1);
+      88%,
+      100% {
+        width: 0;
+        opacity: 0;
+        clip-path: inset(-0.18em 100% -0.18em 0);
       }
     }
 
-    @keyframes letterPop {
-      to {
+    @keyframes matterWordLoginPop {
+      0%,
+      24% {
+        transform: translateX(-0.32em) scaleX(0.92);
+      }
+
+      36%,
+      70% {
+        transform: translateX(0) scaleX(1);
+      }
+
+      88%,
+      100% {
+        transform: translateX(-0.08em) scaleX(0.98);
+      }
+    }
+
+    @keyframes matterLetterLoginPop {
+      0%,
+      28% {
+        opacity: 0;
+        transform: translateX(-0.24em) scale(0.96);
+      }
+
+      40%,
+      70% {
         opacity: 1;
         transform: translateX(0) scale(1);
       }
+
+      88%,
+      100% {
+        opacity: 0;
+        transform: translateX(-0.08em) scale(0.98);
+      }
     }
 
-    @keyframes brandSettle {
-      0%,
-      28% {
+    @keyframes loginPanelAfterBrand {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes logoDockToHeader {
+      0% {
+        opacity: 1;
         transform: translateY(0) scale(1);
       }
 
-      to {
-        transform: translateY(-236px) scale(0.64);
-      }
-    }
-
-    @keyframes panelIn {
-      to {
+      82% {
         opacity: 1;
-        transform: translate(-50%, calc(-50% + 88px));
-        filter: blur(0);
+        transform: translate(var(--dock-translate-x), var(--dock-translate-y)) scale(0.62);
+      }
+
+      to {
+        opacity: 0;
+        transform: translate(var(--dock-translate-x), var(--dock-translate-y)) scale(0.62);
       }
     }
 
-    @keyframes fieldIn {
+    @keyframes appShellAfterLogoHandoff {
+      0%,
+      76% {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -629,22 +1119,64 @@
 
     @media (max-width: 860px) {
       .connection-status {
-        position: static;
-        justify-self: center;
-        margin: 16px auto 0;
+        right: 20px;
+        top: 20px;
       }
 
       .auth-stage {
-        padding: 28px 18px 36px;
+        padding: 72px 20px 150px;
+        align-items: flex-start;
       }
 
       .brand-lockup {
-        --mark-size: 118px;
-        --word-size: 108px;
+        --mark-size: 64px;
+        --word-size: 58px;
+        --word-target: 148px;
+        --dock-translate-x: calc(-50vw + 68px);
+        --dock-translate-y: -76px;
       }
 
       .login-panel {
-        width: min(380px, 100%);
+        width: min(520px, 100%);
+      }
+
+      .login-heading h1 {
+        font-size: 34px;
+      }
+
+      .login-heading p,
+      .auth-link,
+      .auth-note {
+        font-size: 16px;
+      }
+
+      .auth-star {
+        left: -190px;
+        top: 112px;
+        width: 330px;
+        height: 330px;
+      }
+
+      .auth-flower {
+        right: -164px;
+        top: 420px;
+        width: 278px;
+        height: 278px;
+      }
+
+      .auth-footer {
+        left: 20px;
+        right: 20px;
+        bottom: 28px;
+        font-size: 12px;
+      }
+
+      .legal-links {
+        gap: 18px;
+      }
+
+      .legal-link {
+        font-size: 12px;
       }
 
       .app-shell {
@@ -670,44 +1202,102 @@
       }
     }
 
+    @media (max-height: 900px) {
+      .auth-stage {
+        padding: 42px 24px 92px;
+      }
+
+      .brand-lockup {
+        --mark-size: 64px;
+        --word-size: 58px;
+        margin-bottom: 14px;
+      }
+
+      .login-form {
+        gap: 10px;
+      }
+
+      .login-heading {
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .login-heading h1 {
+        font-size: 32px;
+      }
+
+      .login-heading p,
+      .reset-copy {
+        font-size: 15px;
+      }
+
+      .login-form input {
+        min-height: 48px;
+        font-size: 16px;
+      }
+
+      .reset-status-card {
+        padding: 10px 14px;
+      }
+
+      .reset-detail {
+        font-size: 12px;
+      }
+
+      .reset-actions button {
+        min-height: 44px;
+      }
+
+      .auth-footer {
+        bottom: 20px;
+        font-size: 13px;
+      }
+
+      .legal-link {
+        font-size: 13px;
+      }
+    }
+
     @media (max-width: 520px) {
       .brand-lockup {
-        --mark-size: 86px;
-        --word-size: 78px;
+        --mark-size: 54px;
+        --word-size: 48px;
+        --word-target: 130px;
       }
 
       .login-panel {
         width: min(340px, calc(100vw - 36px));
-        transform: translate(-50%, calc(-50% + 124px));
       }
 
-      .login-form {
-        padding: 24px;
+      .login-form input,
+      .login-actions button {
+        min-height: 56px;
+        font-size: 16px;
+      }
+
+      .login-heading {
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .login-heading h1 {
+        font-size: 30px;
+      }
+
+      .auth-note {
+        font-size: 14px;
+      }
+
+      .auth-footer {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
       }
 
       .reset-actions button,
       .login-actions button,
       .check-actions button {
         flex-basis: 100%;
-      }
-
-      @keyframes brandSettle {
-        0%,
-        28% {
-          transform: translateY(0) scale(1);
-        }
-
-        to {
-          transform: translateY(-122px) scale(0.72);
-        }
-      }
-
-      @keyframes panelIn {
-        to {
-          opacity: 1;
-          transform: translate(-50%, calc(-50% + 108px));
-          filter: blur(0);
-        }
       }
     }
 
@@ -724,6 +1314,22 @@
       .auth-stage {
         opacity: 1;
       }
+
+      .brand-lockup,
+      .matter-mark img,
+      .matter-word-wrap,
+      .matter-word,
+      .matter-word span,
+      .login-panel {
+        animation: none !important;
+        opacity: 1;
+        transform: none;
+      }
+
+      .matter-word-wrap,
+      body.logo-handoff-active .brand-lockup .matter-word-wrap {
+        display: none;
+      }
     }
   </style>
 </head>
@@ -735,6 +1341,16 @@
     </div>
 
     <main class="auth-stage" data-auth-stage>
+      <div class="auth-decor" aria-hidden="true">
+        <div class="auth-star">
+          <span style="--angle: 0deg"></span>
+          <span style="--angle: 45deg"></span>
+          <span style="--angle: 90deg"></span>
+          <span style="--angle: 135deg"></span>
+        </div>
+        <div class="auth-flower"></div>
+      </div>
+
       <div class="auth-stack">
         <div class="brand-lockup" data-launch-logo-flow aria-label="matter">
           <span class="matter-mark" aria-hidden="true">
@@ -747,26 +1363,101 @@
           </span>
         </div>
 
-        <section class="login-panel" aria-label="matter 로그인">
-          <div class="login-form">
-            <label class="field">
-              <span>이메일</span>
-              <input data-login-email aria-label="Email login" autocomplete="email" inputmode="email" type="email" />
-            </label>
-            <label class="field">
-              <span>비밀번호</span>
-              <input data-login-password aria-label="Password login" autocomplete="current-password" type="password" />
-            </label>
-            <div class="login-actions">
-              <button type="button" data-matter-login>로그인</button>
+        <section class="login-panel" aria-label="matter sign in">
+          <div class="login-form" data-auth-mode="sign_in">
+            <div class="login-heading">
+              <h1 data-auth-title>Sign in</h1>
+              <p data-auth-subtitle>matter 계정으로 계속 진행하세요.</p>
             </div>
-            <div class="login-result result" data-login-result>이메일과 비밀번호로 로그인하세요.</div>
+
+            <div class="auth-mode-panel" data-auth-mode-panel="sign_in">
+              <label class="field">
+                <span class="sr-only">이메일</span>
+                <input data-login-email aria-label="이메일 로그인" autocomplete="email" inputmode="email" type="email" placeholder="이메일 주소" />
+              </label>
+              <label class="field password-field">
+                <span class="sr-only">비밀번호</span>
+                <input data-login-password aria-label="비밀번호" autocomplete="current-password" type="password" placeholder="비밀번호" />
+                <button type="button" class="password-toggle" data-password-toggle data-password-toggle-target="login-password" aria-label="비밀번호 보기">
+                  <span class="eye-icon" aria-hidden="true"></span>
+                </button>
+              </label>
+              <div class="login-actions">
+                <button type="button" data-matter-login>계속</button>
+              </div>
+              <button type="button" class="auth-link" data-forgot-password>비밀번호를 잊으셨나요?</button>
+              <p class="auth-note">계정이 없나요? <button type="button" class="auth-text-button" data-account-help>접근 권한 요청</button></p>
+              <p class="auth-note">로그인에 문제가 있나요? <button type="button" class="auth-text-button" data-signin-help>지원 문의</button></p>
+            </div>
+
+            <div class="auth-mode-panel" data-auth-mode-panel="reset_requested" hidden>
+              <p class="reset-copy">비밀번호 설정 안내를 보냈습니다. 안내를 받은 뒤 새 비밀번호를 설정하세요.</p>
+              <div class="reset-status-card">
+                <strong data-reset-request-email>입력한 이메일</strong>
+                <span>등록 여부와 관계없이 같은 안내를 보여드립니다.</span>
+              </div>
+              <div class="reset-actions">
+                <button type="button" class="primary-action" data-open-reset-confirm>비밀번호 설정</button>
+                <button type="button" class="secondary" data-resend-password-reset>다시 보내기</button>
+                <button type="button" class="secondary" data-return-to-signin>로그인으로 돌아가기</button>
+              </div>
+            </div>
+
+            <div class="auth-mode-panel" data-auth-mode-panel="reset_confirm" hidden>
+              <p class="reset-copy">메일의 설정 링크를 열었거나 안내받은 코드를 입력한 뒤 새 비밀번호를 설정하세요.</p>
+              <div class="reset-status-card">
+                <strong data-reset-confirm-email>입력한 이메일</strong>
+                <span class="reset-token-note" data-reset-token-note hidden>설정 링크가 확인되었습니다. 보안상 코드는 화면에 표시하지 않습니다.</span>
+                <span class="reset-token-note" data-reset-token-manual-note>안내받은 코드는 한 번만 사용할 수 있습니다.</span>
+              </div>
+              <label class="field reset-token-field" data-reset-token-field>
+                <span class="sr-only">설정 코드</span>
+                <input data-reset-token aria-label="설정 코드" autocomplete="one-time-code" type="text" placeholder="설정 코드" />
+              </label>
+              <label class="field password-field">
+                <span class="sr-only">새 비밀번호</span>
+                <input data-reset-new-password aria-label="새 비밀번호" autocomplete="new-password" type="password" placeholder="새 비밀번호" />
+                <button type="button" class="password-toggle" data-password-toggle data-password-toggle-target="reset-new-password" aria-label="새 비밀번호 보기">
+                  <span class="eye-icon" aria-hidden="true"></span>
+                </button>
+              </label>
+              <label class="field password-field">
+                <span class="sr-only">새 비밀번호 확인</span>
+                <input data-reset-confirm-password aria-label="새 비밀번호 확인" autocomplete="new-password" type="password" placeholder="새 비밀번호 확인" />
+                <button type="button" class="password-toggle" data-password-toggle data-password-toggle-target="reset-confirm-password" aria-label="새 비밀번호 확인 보기">
+                  <span class="eye-icon" aria-hidden="true"></span>
+                </button>
+              </label>
+              <p class="reset-detail">비밀번호는 8자 이상이어야 합니다.</p>
+              <div class="reset-actions">
+                <button type="button" class="primary-action" data-reset-confirm-submit>비밀번호 설정</button>
+                <button type="button" class="secondary" data-return-to-signin>로그인으로 돌아가기</button>
+              </div>
+            </div>
+
+            <div class="auth-mode-panel" data-auth-mode-panel="reset_success" hidden>
+              <p class="reset-copy">비밀번호가 설정되었습니다. 새 비밀번호로 로그인하세요.</p>
+              <div class="reset-actions">
+                <button type="button" class="primary-action" data-return-to-signin>로그인으로 돌아가기</button>
+              </div>
+            </div>
+
+            <div class="login-result result" data-login-result></div>
           </div>
         </section>
       </div>
+
+      <footer class="auth-footer" aria-label="matter footer">
+        <span>© 2026 AMIC Law. All rights reserved.</span>
+        <nav class="legal-links" aria-label="정책 링크">
+          <button type="button" class="legal-link" data-legal-help="security">Security</button>
+          <button type="button" class="legal-link" data-legal-help="legal">Legal</button>
+          <button type="button" class="legal-link" data-legal-help="privacy">Privacy</button>
+        </nav>
+      </footer>
     </main>
 
-    <section class="app-shell" aria-label="matter 작업공간">
+    <section class="app-shell" aria-label="matter 워크스페이스">
       <header class="app-header">
         <div class="dock-brand" aria-label="matter">
           <span class="matter-mark" aria-hidden="true">
@@ -828,17 +1519,41 @@
     const state = {
       accounts: [],
       session: { state: "signed_out" },
-      features: []
+      features: [],
+      authMode: "sign_in",
+      resetEmail: "",
+      resetTokenFromDeepLink: ""
     };
 
     const nodes = {
+      loginForm: document.querySelector("[data-auth-mode]"),
+      authTitle: document.querySelector("[data-auth-title]"),
+      authSubtitle: document.querySelector("[data-auth-subtitle]"),
+      authModePanels: document.querySelectorAll("[data-auth-mode-panel]"),
       runtimeDot: document.querySelector("[data-runtime-dot]"),
       runtimeLabel: document.querySelector("[data-runtime-label]"),
       accountCount: document.querySelector("[data-account-count]"),
       loginEmailInput: document.querySelector("[data-login-email]"),
       loginPasswordInput: document.querySelector("[data-login-password]"),
+      passwordToggles: document.querySelectorAll("[data-password-toggle]"),
       loginButton: document.querySelector("[data-matter-login]"),
       logoutButton: document.querySelector("[data-matter-logout]"),
+      forgotPasswordButton: document.querySelector("[data-forgot-password]"),
+      resetRequestEmail: document.querySelector("[data-reset-request-email]"),
+      resetConfirmEmail: document.querySelector("[data-reset-confirm-email]"),
+      resetTokenInput: document.querySelector("[data-reset-token]"),
+      resetTokenField: document.querySelector("[data-reset-token-field]"),
+      resetTokenNote: document.querySelector("[data-reset-token-note]"),
+      resetTokenManualNote: document.querySelector("[data-reset-token-manual-note]"),
+      resetNewPasswordInput: document.querySelector("[data-reset-new-password]"),
+      resetConfirmPasswordInput: document.querySelector("[data-reset-confirm-password]"),
+      openResetConfirmButton: document.querySelector("[data-open-reset-confirm]"),
+      resendPasswordResetButton: document.querySelector("[data-resend-password-reset]"),
+      resetConfirmSubmitButton: document.querySelector("[data-reset-confirm-submit]"),
+      returnToSigninButtons: document.querySelectorAll("[data-return-to-signin]"),
+      accountHelpButton: document.querySelector("[data-account-help]"),
+      signinHelpButton: document.querySelector("[data-signin-help]"),
+      legalHelpButtons: document.querySelectorAll("[data-legal-help]"),
       dashboardCheckButton: document.querySelector("[data-check-dashboard]"),
       adminCheckButton: document.querySelector("[data-check-admin]"),
       loginResult: document.querySelector("[data-login-result]"),
@@ -868,20 +1583,91 @@
       return nodes.loginEmailInput.value.trim();
     }
 
+    function activeResetToken() {
+      return state.resetTokenFromDeepLink || nodes.resetTokenInput.value.trim();
+    }
+
     function clearPasswordFields() {
       nodes.loginPasswordInput.value = "";
     }
 
+    function clearResetSensitiveFields() {
+      state.resetTokenFromDeepLink = "";
+      nodes.resetTokenInput.value = "";
+      nodes.resetNewPasswordInput.value = "";
+      nodes.resetConfirmPasswordInput.value = "";
+      setPasswordVisible(nodes.loginPasswordInput, document.querySelector("[data-password-toggle-target='login-password']"), false, "비밀번호");
+      setPasswordVisible(nodes.resetNewPasswordInput, document.querySelector("[data-password-toggle-target='reset-new-password']"), false, "새 비밀번호");
+      setPasswordVisible(nodes.resetConfirmPasswordInput, document.querySelector("[data-password-toggle-target='reset-confirm-password']"), false, "새 비밀번호 확인");
+    }
+
+    function setPasswordVisible(input, button, isVisible, label) {
+      if (!input || !button) return;
+      input.type = isVisible ? "text" : "password";
+      button.setAttribute("aria-label", isVisible ? `${label} 숨기기` : `${label} 보기`);
+      button.dataset.visible = isVisible ? "true" : "false";
+    }
+
+    const AUTH_COPY = {
+      sign_in: {
+        title: "Sign in",
+        subtitle: "matter 계정으로 계속 진행하세요."
+      },
+      reset_requested: {
+        title: "비밀번호 설정",
+        subtitle: "안내 메일을 확인하세요."
+      },
+      reset_confirm: {
+        title: "비밀번호 설정",
+        subtitle: "새 비밀번호를 입력하세요."
+      },
+      reset_success: {
+        title: "Sign in",
+        subtitle: "matter 계정으로 계속 진행하세요."
+      }
+    };
+
+    function renderResetContext() {
+      const email = state.resetEmail || loginEmail() || "입력한 이메일";
+      nodes.resetRequestEmail.textContent = email;
+      nodes.resetConfirmEmail.textContent = email;
+      const hasDeepLinkToken = Boolean(state.resetTokenFromDeepLink);
+      nodes.resetTokenField.hidden = hasDeepLinkToken;
+      nodes.resetTokenNote.hidden = !hasDeepLinkToken;
+      nodes.resetTokenManualNote.hidden = hasDeepLinkToken;
+      if (hasDeepLinkToken) nodes.resetTokenInput.value = "";
+    }
+
+    function setAuthMode(mode, { message = "", email = "", resetToken = "" } = {}) {
+      state.authMode = mode;
+      if (email) state.resetEmail = email;
+      if (resetToken) state.resetTokenFromDeepLink = resetToken;
+      if (mode === "sign_in") {
+        state.resetEmail = "";
+        clearResetSensitiveFields();
+      }
+      document.body.dataset.authMode = mode;
+      nodes.loginForm.dataset.authMode = mode;
+      nodes.authModePanels.forEach((panel) => {
+        panel.hidden = panel.dataset.authModePanel !== mode;
+      });
+      nodes.authTitle.textContent = AUTH_COPY[mode]?.title ?? AUTH_COPY.sign_in.title;
+      nodes.authSubtitle.textContent = AUTH_COPY[mode]?.subtitle ?? AUTH_COPY.sign_in.subtitle;
+      renderResetContext();
+      nodes.loginResult.textContent = message;
+    }
+
     function setAuthenticated(isAuthenticated) {
       document.body.classList.toggle("is-authenticated", Boolean(isAuthenticated));
+      if (!isAuthenticated) document.body.classList.remove("logo-handoff-active");
     }
 
     function renderRuntime(runtime) {
       const ok = Boolean(runtime?.configured);
       nodes.runtimeDot.className = `connection-dot ${ok ? "ok" : "bad"}`;
       nodes.runtimeLabel.textContent = ok
-        ? "작업공간 연결됨"
-        : "작업공간 연결이 필요합니다.";
+        ? "워크스페이스 연결됨"
+        : "워크스페이스 연결이 필요합니다.";
     }
 
     function renderAccounts(accounts) {
@@ -1011,14 +1797,25 @@
       };
     }
 
+    let logoHandoffTimer = 0;
+
+    function startLogoHandoff() {
+      window.clearTimeout(logoHandoffTimer);
+      document.body.classList.add("logo-handoff-active");
+      logoHandoffTimer = window.setTimeout(() => {
+        document.body.classList.remove("logo-handoff-active");
+      }, 1300);
+    }
+
     function handoffToProductUi(session) {
       if (!(session?.state === "signed_in" || session?.email)) return;
+      startLogoHandoff();
       document.body.dataset.productHandoff = "apps-web";
-      nodes.loginResult.textContent = `${session.email} 계정으로 로그인했습니다. matter 작업공간을 여는 중입니다.`;
+      nodes.loginResult.textContent = `${session.email} 계정으로 로그인했습니다. matter 워크스페이스를 여는 중입니다.`;
       const target = productUiTarget(session);
       window.setTimeout(() => {
         window.location.assign(target);
-      }, 350);
+      }, 1360);
     }
 
     async function refresh() {
@@ -1039,16 +1836,106 @@
       const response = await api.login({ email, password });
       renderSession(response.session);
       renderFeatures(response.features ?? []);
+      if (response.ok) clearPasswordFields();
       nodes.loginResult.textContent = response.ok
         ? `${response.session.email} 계정으로 로그인했습니다.`
         : "로그인하지 못했습니다.";
       if (response.ok) handoffToProductUi(response.session);
     }
 
+    async function requestPasswordReset({ keepMode = false } = {}) {
+      const email = loginEmail() || state.resetEmail;
+      if (!email) {
+        nodes.loginResult.textContent = "이메일 주소를 먼저 입력하세요.";
+        nodes.loginEmailInput.focus();
+        return;
+      }
+      if (!api?.requestPasswordReset) {
+        nodes.loginResult.textContent = "현재 앱에서는 비밀번호 설정 안내를 사용할 수 없습니다.";
+        return;
+      }
+      state.resetEmail = email;
+      const response = await api.requestPasswordReset({ email });
+      if (response.ok || response.accepted) {
+        setAuthMode("reset_requested", { email, message: keepMode ? "비밀번호 설정 안내를 다시 보냈습니다." : "" });
+        return;
+      }
+      nodes.loginResult.textContent = "비밀번호 안내 요청을 처리하지 못했습니다.";
+    }
+
+    async function confirmPasswordResetFromForm() {
+      if (!api?.confirmPasswordReset) {
+        nodes.loginResult.textContent = "현재 앱에서는 비밀번호 설정을 완료할 수 없습니다.";
+        return;
+      }
+      const token = activeResetToken();
+      const password = nodes.resetNewPasswordInput.value;
+      const passwordConfirm = nodes.resetConfirmPasswordInput.value;
+      if (!token) {
+        nodes.loginResult.textContent = "설정 코드가 필요합니다.";
+        nodes.resetTokenInput.focus();
+        return;
+      }
+      if (password.length < 8) {
+        nodes.loginResult.textContent = "비밀번호는 8자 이상이어야 합니다.";
+        nodes.resetNewPasswordInput.focus();
+        return;
+      }
+      if (password !== passwordConfirm) {
+        nodes.loginResult.textContent = "새 비밀번호가 서로 다릅니다.";
+        nodes.resetConfirmPasswordInput.focus();
+        return;
+      }
+      const response = await api.confirmPasswordReset({ token, password });
+      clearResetSensitiveFields();
+      if (response.ok || response.accepted || response.activated) {
+        setAuthMode("reset_success", { email: state.resetEmail });
+        return;
+      }
+      if (response.reason === "password_too_short") {
+        nodes.loginResult.textContent = "비밀번호는 8자 이상이어야 합니다.";
+        return;
+      }
+      if (response.reason === "invalid_reset_token") {
+        nodes.loginResult.textContent = "설정 링크가 만료되었거나 이미 사용되었습니다.";
+        return;
+      }
+      nodes.loginResult.textContent = "비밀번호 설정을 완료하지 못했습니다.";
+    }
+
+    function openResetConfirm({ resetToken = "", message = "" } = {}) {
+      setAuthMode("reset_confirm", {
+        email: state.resetEmail || loginEmail(),
+        resetToken,
+        message
+      });
+      if (!resetToken) nodes.resetTokenInput.focus();
+      else nodes.resetNewPasswordInput.focus();
+    }
+
+    function showAccountHelp() {
+      nodes.loginResult.textContent = "워크스페이스 관리자에게 matter 계정 추가를 요청하세요.";
+    }
+
+    function showSigninHelp() {
+      nodes.loginResult.textContent = "등록된 matter 이메일로 로그인하고, 필요하면 비밀번호 안내를 요청하세요.";
+    }
+
+    function showLegalHelp(event) {
+      const topic = event.currentTarget.dataset.legalHelp;
+      const labels = {
+        security: "보안 정보는 워크스페이스 관리자가 확인할 수 있습니다.",
+        legal: "법적 고지는 내부 배포 문서에서 확인할 수 있습니다.",
+        privacy: "개인정보 안내는 내부 배포 문서에서 확인할 수 있습니다."
+      };
+      nodes.loginResult.textContent = labels[topic] ?? "관련 안내는 내부 배포 문서에서 확인할 수 있습니다.";
+    }
+
     async function logout() {
       const session = await api.logout();
       renderSession(session);
       renderFeatures([]);
+      setAuthMode("sign_in", { message: "로그아웃되었습니다." });
       nodes.loginResult.textContent = "로그아웃되었습니다.";
       nodes.checkResult.textContent = "계정을 선택하고 로그인한 뒤 기능을 확인하세요.";
     }
@@ -1062,6 +1949,35 @@
     nodes.loginButton.addEventListener("click", () => login().catch((error) => {
       nodes.loginResult.textContent = "로그인 요청을 처리하지 못했습니다.";
     }));
+    nodes.passwordToggles.forEach((button) => {
+      button.addEventListener("click", () => {
+        const targets = {
+          "login-password": { input: nodes.loginPasswordInput, label: "비밀번호" },
+          "reset-new-password": { input: nodes.resetNewPasswordInput, label: "새 비밀번호" },
+          "reset-confirm-password": { input: nodes.resetConfirmPasswordInput, label: "새 비밀번호 확인" }
+        };
+        const target = targets[button.dataset.passwordToggleTarget];
+        if (!target) return;
+        setPasswordVisible(target.input, button, target.input.type === "password", target.label);
+      });
+    });
+    nodes.forgotPasswordButton.addEventListener("click", () => requestPasswordReset().catch((error) => {
+      nodes.loginResult.textContent = "비밀번호 안내 요청을 처리하지 못했습니다.";
+    }));
+    nodes.openResetConfirmButton.addEventListener("click", () => openResetConfirm());
+    nodes.resendPasswordResetButton.addEventListener("click", () => requestPasswordReset({ keepMode: true }).catch((error) => {
+      nodes.loginResult.textContent = "비밀번호 안내 재전송을 처리하지 못했습니다.";
+    }));
+    nodes.resetConfirmSubmitButton.addEventListener("click", () => confirmPasswordResetFromForm().catch((error) => {
+      clearResetSensitiveFields();
+      nodes.loginResult.textContent = "비밀번호 설정을 완료하지 못했습니다.";
+    }));
+    nodes.returnToSigninButtons.forEach((button) => {
+      button.addEventListener("click", () => setAuthMode("sign_in"));
+    });
+    nodes.accountHelpButton.addEventListener("click", showAccountHelp);
+    nodes.signinHelpButton.addEventListener("click", showSigninHelp);
+    nodes.legalHelpButtons.forEach((button) => button.addEventListener("click", showLegalHelp));
     nodes.logoutButton.addEventListener("click", () => logout().catch((error) => {
       nodes.loginResult.textContent = "로그아웃 요청을 처리하지 못했습니다.";
     }));
@@ -1074,6 +1990,14 @@
 
     refresh().catch((error) => {
       renderRuntime({ configured: false });
+    });
+
+    api?.onPasswordResetDeepLink?.((intent) => {
+      if (intent?.type !== "password_reset_confirm" || typeof intent.token !== "string" || !intent.token) return;
+      openResetConfirm({
+        resetToken: intent.token,
+        message: "비밀번호 설정 링크가 확인되었습니다."
+      });
     });
   </script>
 </body>

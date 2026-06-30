@@ -67,3 +67,18 @@ test("opening auth callback records audit without workspace permission precheck"
   assert.equal(result.intent.type, "auth_callback");
   assert.equal(harness.auditEvents[0].eventName, "deep_link.auth_callback.opened");
 });
+
+test("opening password reset confirm records audit without workspace permission precheck", async () => {
+  const harness = openHarness();
+  const result = await openMatterDeepLink({
+    url: "matter://password-reset/confirm?token=abcdefghijklmnopqrstuvwxyzABCDE_123456",
+    permissionClient: harness.permissionClient,
+    auditLogger: harness.auditLogger
+  });
+
+  assert.deepEqual(harness.order, ["audit"]);
+  assert.equal(result.state, "open");
+  assert.equal(result.intent.type, "password_reset_confirm");
+  assert.equal(result.intent.routeOnly, true);
+  assert.equal(harness.auditEvents[0].eventName, "deep_link.password_reset_confirm.opened");
+});

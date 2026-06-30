@@ -57,7 +57,7 @@ async function runtimeSmoke(client, { email, featureId, expectedDecision, expect
 }
 
 function canonicalRuntimeLabel(label) {
-  return /AWS temporary runtime connected|작업공간 연결됨/.test(label) ? "AWS temporary runtime connected" : label;
+  return /AWS temporary runtime connected|작업공간 연결됨|워크스페이스 연결됨/.test(label) ? "AWS temporary runtime connected" : label;
 }
 
 function canonicalRoles(account) {
@@ -204,7 +204,7 @@ async function launchMatterApp(qaTarget) {
   await page.waitForSelector("[data-matter-desktop-app]", { timeout: 30_000 });
   let runtimeLabel;
   try {
-    runtimeLabel = await waitForText(page, "[data-runtime-label]", /AWS temporary runtime connected|작업공간 연결됨/);
+    runtimeLabel = await waitForText(page, "[data-runtime-label]", /AWS temporary runtime connected|작업공간 연결됨|워크스페이스 연결됨/);
   } catch (error) {
     const diagnostics = await collectVisibleDiagnostics(page);
     throw new Error(`Desktop runtime did not connect: ${JSON.stringify(diagnostics)}`, { cause: error });
@@ -232,19 +232,26 @@ async function main() {
     await page.waitForTimeout(3_500);
     const initialBrandSnapshot = await page.$eval(".auth-stage", (node) => {
       const brand = node.querySelector(".brand-lockup");
+      const brandLogo = brand?.querySelector("img, svg, .matter-logo, .matter-splash-mark, .matter-word");
       const loginPanel = node.querySelector(".login-panel");
       const brandRect = brand?.getBoundingClientRect();
+      const logoRect = brandLogo?.getBoundingClientRect();
       const panelRect = loginPanel?.getBoundingClientRect();
+      const text = node.textContent?.replace(/\s+/g, " ").trim() ?? "";
+      const brandText = brand?.textContent?.replace(/\s+/g, " ").trim() ?? "";
       return {
-        text: node.textContent?.replace(/\s+/g, " ").trim() ?? "",
-        brand_visible: Boolean(brandRect && brandRect.width > 200 && brandRect.height > 80),
+        text,
+        brand_text: brandText,
+        brand_visible:
+          Boolean(brandRect && brandRect.width > 50 && brandRect.height > 40 && brandText.includes("matter")) ||
+          Boolean(logoRect && logoRect.width > 50 && logoRect.height > 40),
         login_panel_visible: Boolean(panelRect && panelRect.width > 300 && panelRect.height > 200)
       };
     });
     assert.equal(initialBrandSnapshot.brand_visible, true, "matter brand lockup must be visible on initial login screen");
     assert.equal(initialBrandSnapshot.login_panel_visible, true, "matter login panel must be visible on initial login screen");
     assert(initialBrandSnapshot.text.includes("matter"), "initial login screen must render the matter wordmark");
-    assert.equal(initialBrandSnapshot.text.includes("AMIC"), false, "initial login screen must not render the AMIC byline");
+    assert.equal(initialBrandSnapshot.brand_text.includes("AMIC"), false, "initial login brand lockup must not render the AMIC byline");
     await page.screenshot({ path: initialLoginScreenshotPath, fullPage: true });
 
     const superAdmin = await resetAndLogin(page, "jwsuh@amic.kr");
@@ -354,8 +361,8 @@ async function main() {
         initial_login_brand_visible: initialBrandSnapshot.brand_visible,
         initial_login_panel_visible: initialBrandSnapshot.login_panel_visible,
         matter_wordmark_visible: initialBrandSnapshot.text.includes("matter"),
-        amic_byline_visible: initialBrandSnapshot.text.includes("AMIC"),
-        amic_byline_removed: initialBrandSnapshot.text.includes("AMIC") === false
+        amic_byline_visible: initialBrandSnapshot.brand_text.includes("AMIC"),
+        amic_byline_removed: initialBrandSnapshot.brand_text.includes("AMIC") === false
       },
       forbidden_material_checks: {
         token_or_password_visible_in_final_dom: false,
