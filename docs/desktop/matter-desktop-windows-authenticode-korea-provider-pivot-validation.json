@@ -1,0 +1,23 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-windows-authenticode-korea-provider-pivot.validation.v0.1",
+  "generated_at": "2026-06-30T02:45:00Z",
+  "source_refs": [
+    "docs/desktop/matter-desktop-windows-authenticode-korea-provider-pivot-2026-06-30.json",
+    "docs/desktop/matter-desktop-windows-authenticode-korea-provider-pivot-2026-06-30.md",
+    "docs/lazycodex/evidence/matter-desktop/artifacts/windows-authenticode-korea-provider-pivot-2026-06-30.json",
+    "docs/desktop/matter-desktop-windows-authenticode-azure-receipt-validation.json"
+  ],
+  "verdict": "PASS",
+  "summary": {
+    "target_jurisdiction": "KR/Seoul",
+    "azure_public_identity_validation_viable_for_korea_seoul": false,
+    "external_provider_required": true,
+    "external_provider_selected": false,
+    "certificate_procured": false,
+    "signing_execution_allowed": false,
+    "windows_authenticode_signing": false,
+    "windows_native_install_smoke": "not_run",
+    "finding_count": 0
+  },
+  "findings": []
+}
