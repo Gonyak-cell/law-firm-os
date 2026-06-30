@@ -1,5 +1,6 @@
 import https from "node:https";
 import { createHash, createHmac, pbkdf2Sync, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
+import { readFileSync } from "node:fs";
 import {
   MATTER_VAULT_USER_REGISTRATION_SEED,
   findRegisteredAccountByEmail,
@@ -55,6 +56,14 @@ const PASSWORD_HASH_ITERATIONS = 120_000;
 const PASSWORD_MIN_LENGTH = 8;
 const MAX_PERSISTED_RESET_TOKENS = 20;
 const MAX_PERSISTED_OUTBOX_MESSAGES = 20;
+const PASSWORD_RESET_EMAIL_DELIVERY_SES_V2 = "sesv2";
+const PASSWORD_RESET_LOGO_CONTENT_ID = "matter-app-logo";
+const PASSWORD_RESET_LOGO_FILE_NAME = "icon-source-mark.png";
+const PASSWORD_RESET_LOGO_MIME_TYPE = "image/png";
+const PASSWORD_RESET_LOGO_CANDIDATES = Object.freeze([
+  new URL(`./${PASSWORD_RESET_LOGO_FILE_NAME}`, import.meta.url),
+  new URL("../../desktop/build/icon-source-mark.png", import.meta.url)
+]);
 
 const memoryAuthState = (globalThis.__matterDesktopAuthState ??= {
   passwordCredentials: new Map(),
@@ -236,6 +245,70 @@ function awsJsonRpcRequest({ service, target, body }) {
   });
 }
 
+function awsRestJsonRequest({ service, method = "POST", hostname, path, body, region: requestedRegion }) {
+  const region = requestedRegion ?? process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION ?? "ap-northeast-2";
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+  const sessionToken = process.env.AWS_SESSION_TOKEN;
+  if (!accessKeyId || !secretAccessKey) throw new Error("aws_credentials_unavailable");
+
+  const payload = JSON.stringify(body);
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const dateStamp = amzDate.slice(0, 8);
+  const headers = {
+    "content-type": "application/json",
+    host: hostname,
+    "x-amz-date": amzDate
+  };
+  if (sessionToken) headers["x-amz-security-token"] = sessionToken;
+
+  const signedHeaderNames = Object.keys(headers).sort();
+  const canonicalHeaders = signedHeaderNames.map((name) => `${name}:${headers[name]}\n`).join("");
+  const signedHeaders = signedHeaderNames.join(";");
+  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
+  const canonicalRequest = [method, path, "", canonicalHeaders, signedHeaders, sha256Hex(payload)].join("\n");
+  const stringToSign = ["AWS4-HMAC-SHA256", amzDate, credentialScope, sha256Hex(canonicalRequest)].join("\n");
+  const signingKey = hmac(hmac(hmac(hmac(`AWS4${secretAccessKey}`, dateStamp), region), service), "aws4_request");
+  const signature = hmac(signingKey, stringToSign, "hex");
+
+  return new Promise((resolvePromise, reject) => {
+    const request = https.request(
+      {
+        method,
+        hostname,
+        path,
+        headers: {
+          ...headers,
+          authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
+          "content-length": Buffer.byteLength(payload)
+        }
+      },
+      (res) => {
+        let data = "";
+        res.setEncoding("utf8");
+        res.on("data", (chunk) => {
+          data += chunk;
+        });
+        res.on("end", () => {
+          const parsed = data ? JSON.parse(data) : {};
+          if (res.statusCode >= 400) {
+            const error = new Error(parsed.__type ?? parsed.code ?? `aws_${service}_error`);
+            error.statusCode = res.statusCode;
+            error.body = parsed;
+            reject(error);
+            return;
+          }
+          resolvePromise(parsed);
+        });
+      }
+    );
+    request.on("error", reject);
+    request.write(payload);
+    request.end();
+  });
+}
+
 async function loadAuthState() {
   const secretName = persistentAuthStateSecretName();
   if (!secretName) return memoryAuthState;
@@ -373,7 +446,261 @@ function publicResetUrl(token) {
   return `matter://password-reset/confirm?token=${encodeURIComponent(token)}`;
 }
 
-function requestPasswordReset(body = {}, state) {
+let passwordResetLogoPngBase64;
+
+function passwordResetLogo() {
+  if (passwordResetLogoPngBase64) return passwordResetLogoPngBase64;
+  for (const candidate of PASSWORD_RESET_LOGO_CANDIDATES) {
+    try {
+      passwordResetLogoPngBase64 = readFileSync(candidate).toString("base64");
+      return passwordResetLogoPngBase64;
+    } catch {
+      // Try the next packaged/source-tree logo location.
+    }
+  }
+  return "";
+}
+
+function passwordResetEmailConfig(env = process.env) {
+  const delivery = String(env.MATTER_PASSWORD_RESET_EMAIL_DELIVERY ?? env.MATTER_DESKTOP_PASSWORD_RESET_EMAIL_DELIVERY ?? "")
+    .trim()
+    .toLowerCase();
+  const requested = delivery === PASSWORD_RESET_EMAIL_DELIVERY_SES_V2 || delivery === "ses" || delivery === "aws_ses_v2";
+  const fromEmail = String(env.MATTER_PASSWORD_RESET_EMAIL_FROM ?? env.MATTER_DESKTOP_PASSWORD_RESET_EMAIL_FROM ?? "").trim();
+  const fromName = String(
+    env.MATTER_PASSWORD_RESET_EMAIL_FROM_NAME ??
+      env.MATTER_DESKTOP_PASSWORD_RESET_EMAIL_FROM_NAME ??
+      "Matter Desktop App Services"
+  ).trim();
+  const replyToEmail = String(env.MATTER_PASSWORD_RESET_EMAIL_REPLY_TO ?? env.MATTER_DESKTOP_PASSWORD_RESET_EMAIL_REPLY_TO ?? "").trim();
+  const region = String(
+    env.MATTER_PASSWORD_RESET_EMAIL_REGION ?? env.MATTER_DESKTOP_PASSWORD_RESET_EMAIL_REGION ?? env.AWS_REGION ?? env.AWS_DEFAULT_REGION ?? "ap-northeast-2"
+  ).trim();
+  return {
+    requested,
+    configured: requested && Boolean(fromEmail),
+    mode: requested ? "sesv2_email" : "synthetic_email_outbox",
+    provider: requested ? PASSWORD_RESET_EMAIL_DELIVERY_SES_V2 : "synthetic_outbox",
+    fromEmail,
+    fromName,
+    replyToEmail,
+    region,
+    reason: requested && !fromEmail ? "password_reset_email_from_required" : undefined
+  };
+}
+
+function passwordResetEmailSubject() {
+  return "matter 비밀번호 설정";
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function formattedEmailAddress({ name, email }) {
+  const address = String(email ?? "").trim();
+  const displayName = String(name ?? "").trim();
+  return displayName ? `${displayName} <${address}>` : address;
+}
+
+function emailHeaderValue(value) {
+  return String(value ?? "").replace(/[\r\n]+/g, " ").trim();
+}
+
+function base64Utf8(value) {
+  return Buffer.from(String(value), "utf8").toString("base64");
+}
+
+function base64MimeLines(value) {
+  return String(value).match(/.{1,76}/g)?.join("\r\n") ?? "";
+}
+
+function encodedMimeWord(value) {
+  return `=?UTF-8?B?${base64Utf8(value)}?=`;
+}
+
+function passwordResetEmailText({ resetUrl, resetToken, expiresAt }) {
+  return [
+    "matter OS 비밀번호 설정",
+    "",
+    "요청하신 matter OS 비밀번호 설정 링크입니다.",
+    "아래 링크를 열어 새 비밀번호를 설정하세요.",
+    resetUrl,
+    "",
+    "앱에서 코드를 직접 입력해야 하는 경우 아래 설정 코드를 사용하세요.",
+    resetToken,
+    "",
+    `이 링크와 코드는 ${expiresAt}까지 한 번만 사용할 수 있습니다.`,
+    "본인이 요청하지 않았다면 이 메일을 무시하세요."
+  ].join("\n");
+}
+
+function passwordResetEmailHtml({ resetUrl, resetToken, expiresAt, logoSrc = `cid:${PASSWORD_RESET_LOGO_CONTENT_ID}` }) {
+  const safeResetUrl = escapeHtml(resetUrl);
+  const safeResetToken = escapeHtml(resetToken);
+  const safeExpiresAt = escapeHtml(expiresAt);
+  const safeLogoSrc = escapeHtml(logoSrc);
+  return [
+    "<!doctype html>",
+    '<html lang="ko">',
+    '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>',
+    '<body style="margin:0;padding:0;background:#f5f4f0;color:#1f2933;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Malgun Gothic,sans-serif;">',
+    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f4f0;margin:0;padding:28px 0;">',
+    '<tr><td align="center" style="padding:0 16px;">',
+    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border:1px solid #ded8cc;border-radius:8px;overflow:hidden;">',
+    '<tr><td style="padding:22px 28px 18px;border-bottom:1px solid #ece7de;background:#ffffff;">',
+    '<table role="presentation" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">',
+    '<tr>',
+    `<td style="padding:0 12px 0 0;vertical-align:middle;"><img src="${safeLogoSrc}" width="58" height="39" alt="matter" style="display:block;width:58px;height:39px;border:0;outline:none;text-decoration:none;"></td>`,
+    '<td style="padding:0;vertical-align:middle;">',
+    '<div style="font-size:17px;line-height:23px;font-weight:700;letter-spacing:0;color:#17212b;">Matter Desktop App Services</div>',
+    '<div style="font-size:12px;line-height:18px;color:#6b7280;margin-top:3px;">AMIC 내부 계정 보안 알림</div>',
+    "</td>",
+    "</tr>",
+    "</table>",
+    "</td></tr>",
+    '<tr><td style="padding:28px;">',
+    '<h1 style="margin:0 0 12px;font-size:24px;line-height:32px;font-weight:700;letter-spacing:0;color:#17212b;">비밀번호를 설정하세요</h1>',
+    '<p style="margin:0 0 22px;font-size:15px;line-height:24px;color:#374151;">요청하신 matter OS 비밀번호 설정 링크입니다. 아래 버튼을 열어 새 비밀번호를 설정하세요.</p>',
+    `<p style="margin:0 0 24px;"><a href="${safeResetUrl}" style="display:inline-block;background:#17212b;color:#ffffff;text-decoration:none;border-radius:6px;padding:12px 18px;font-size:15px;line-height:20px;font-weight:700;">비밀번호 설정 열기</a></p>`,
+    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e5dfd4;border-radius:8px;background:#faf9f6;margin:0 0 20px;">',
+    '<tr><td style="padding:16px 18px;">',
+    '<div style="font-size:13px;line-height:20px;color:#4b5563;margin-bottom:8px;">앱에서 코드를 직접 입력해야 하는 경우</div>',
+    `<div style="font-family:SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;font-size:15px;line-height:22px;color:#111827;word-break:break-all;background:#ffffff;border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;">${safeResetToken}</div>`,
+    "</td></tr>",
+    "</table>",
+    `<p style="margin:0 0 10px;font-size:13px;line-height:21px;color:#4b5563;">이 링크와 코드는 <strong style="color:#17212b;">${safeExpiresAt}</strong>까지 한 번만 사용할 수 있습니다.</p>`,
+    '<p style="margin:0;font-size:13px;line-height:21px;color:#6b7280;">본인이 요청하지 않았다면 이 메일을 무시하세요. 기존 비밀번호나 세션은 이 메일만으로 변경되지 않습니다.</p>',
+    "</td></tr>",
+    '<tr><td style="padding:18px 28px;border-top:1px solid #ece7de;background:#fbfaf8;">',
+    '<p style="margin:0;font-size:12px;line-height:18px;color:#6b7280;">matter OS는 AMIC 내부 업무 계정에 한해 이 알림을 보냅니다.</p>',
+    "</td></tr>",
+    "</table>",
+    "</td></tr>",
+    "</table>",
+    "</body>",
+    "</html>"
+  ].join("");
+}
+
+function passwordResetRawEmail({ config, to, resetUrl, resetToken, expiresAt }) {
+  const rootBoundary = `matter-reset-root-${randomUUID()}`;
+  const alternativeBoundary = `matter-reset-alt-${randomUUID()}`;
+  const from = emailHeaderValue(formattedEmailAddress({ name: config.fromName, email: config.fromEmail }));
+  const recipient = emailHeaderValue(to);
+  const logoBase64 = passwordResetLogo();
+  const headers = [
+    `From: ${from}`,
+    `To: ${recipient}`,
+    `Subject: ${encodedMimeWord(passwordResetEmailSubject())}`,
+    "MIME-Version: 1.0",
+    ...(config.replyToEmail ? [`Reply-To: ${emailHeaderValue(config.replyToEmail)}`] : []),
+    `Content-Type: multipart/related; boundary="${rootBoundary}"`
+  ];
+  const textBody = base64MimeLines(base64Utf8(passwordResetEmailText({ resetUrl, resetToken, expiresAt })));
+  const htmlBody = base64MimeLines(base64Utf8(passwordResetEmailHtml({ resetUrl, resetToken, expiresAt })));
+  const parts = [
+    ...headers,
+    "",
+    `--${rootBoundary}`,
+    `Content-Type: multipart/alternative; boundary="${alternativeBoundary}"`,
+    "",
+    `--${alternativeBoundary}`,
+    "Content-Type: text/plain; charset=UTF-8",
+    "Content-Transfer-Encoding: base64",
+    "",
+    textBody,
+    `--${alternativeBoundary}`,
+    "Content-Type: text/html; charset=UTF-8",
+    "Content-Transfer-Encoding: base64",
+    "",
+    htmlBody,
+    `--${alternativeBoundary}--`
+  ];
+  if (logoBase64) {
+    parts.push(
+      `--${rootBoundary}`,
+      `Content-Type: ${PASSWORD_RESET_LOGO_MIME_TYPE}; name="matter-logo.png"`,
+      "Content-Transfer-Encoding: base64",
+      `Content-ID: <${PASSWORD_RESET_LOGO_CONTENT_ID}>`,
+      'Content-Disposition: inline; filename="matter-logo.png"',
+      "",
+      base64MimeLines(logoBase64)
+    );
+  }
+  parts.push(`--${rootBoundary}--`, "");
+  return Buffer.from(parts.join("\r\n"), "utf8").toString("base64");
+}
+
+async function sendPasswordResetSesEmail({ config, to, resetUrl, resetToken, expiresAt }) {
+  const result = await awsRestJsonRequest({
+    service: "ses",
+    region: config.region,
+    hostname: `email.${config.region}.amazonaws.com`,
+    path: "/v2/email/outbound-emails",
+    body: {
+      FromEmailAddress: formattedEmailAddress({ name: config.fromName, email: config.fromEmail }),
+      Destination: {
+        ToAddresses: [to]
+      },
+      ...(config.replyToEmail ? { ReplyToAddresses: [config.replyToEmail] } : {}),
+      Content: {
+        Raw: {
+          Data: passwordResetRawEmail({ config, to, resetUrl, resetToken, expiresAt })
+        }
+      }
+    }
+  });
+  return result.MessageId;
+}
+
+async function deliverPasswordResetEmail({ to, resetUrl, resetToken, expiresAt }) {
+  const config = passwordResetEmailConfig();
+  if (!config.configured) {
+    return {
+      mode: config.mode,
+      provider: config.provider,
+      status: "stored",
+      reason: config.reason,
+      token_material_returned: false
+    };
+  }
+
+  try {
+    const messageId = await sendPasswordResetSesEmail({ config, to, resetUrl, resetToken, expiresAt });
+    return {
+      mode: config.mode,
+      provider: config.provider,
+      status: "sent",
+      message_id: messageId,
+      token_material_returned: false
+    };
+  } catch (error) {
+    return {
+      mode: config.mode,
+      provider: config.provider,
+      status: "failed",
+      reason: error.body?.message ?? error.message ?? "password_reset_email_send_failed",
+      token_material_returned: false
+    };
+  }
+}
+
+function passwordResetPublicDelivery() {
+  const config = passwordResetEmailConfig();
+  return {
+    mode: config.mode,
+    status: "accepted",
+    token_material_returned: false,
+    message_id_returned: false
+  };
+}
+
+async function requestPasswordReset(body = {}, state) {
   const email = normalizeEmail(body.email);
   const user = findUser(email);
   if (user) {
@@ -391,7 +718,7 @@ function requestPasswordReset(body = {}, state) {
       expires_at: expiresAt,
       used_at: null
     });
-    state.outbox.push({
+    const message = {
       id: `synthetic-reset-${state.outbox.length + 1}`,
       to: user.email,
       subject: "matter password reset",
@@ -400,17 +727,20 @@ function requestPasswordReset(body = {}, state) {
       reset_token: token,
       expires_at: expiresAt,
       created_at: new Date().toISOString()
+    };
+    state.outbox.push(message);
+    message.delivery = await deliverPasswordResetEmail({
+      to: user.email,
+      resetUrl: message.reset_url,
+      resetToken: token,
+      expiresAt
     });
     pruneAuthState(state);
   }
   return response(200, {
     ok: true,
     accepted: true,
-    email_delivery: {
-      mode: "synthetic_email_outbox",
-      status: "accepted",
-      token_material_returned: false
-    },
+    email_delivery: passwordResetPublicDelivery(),
     token_material_returned: false
   });
 }
@@ -528,6 +858,7 @@ function routeFromEvent(event = {}) {
 }
 
 function health() {
+  const emailConfig = passwordResetEmailConfig();
   return response(200, {
     ok: true,
     service: "matter-temp-desktop-runtime",
@@ -540,7 +871,10 @@ function health() {
     operator_token_required_for_runtime_routes: true,
     operator_token_configured: Boolean(process.env.OPERATOR_TOKEN_SHA256),
     password_login_required: true,
-    password_reset_delivery_mode: "synthetic_email_outbox",
+    password_reset_delivery_mode: emailConfig.mode,
+    password_reset_email_provider: emailConfig.provider,
+    password_reset_email_configured: emailConfig.configured,
+    password_reset_email_reason: emailConfig.reason,
     password_credential_store: persistentAuthStateSecretName() ? "aws_secrets_manager" : "ephemeral_lambda_memory",
     production_ready_completed: false,
     public_release_completed: false
@@ -577,7 +911,7 @@ export async function handler(event = {}) {
     const authError = requireOperatorToken(event);
     if (authError) return authError;
     const state = await loadAuthState();
-    const result = requestPasswordReset(parseBody(event), state);
+    const result = await requestPasswordReset(parseBody(event), state);
     await saveAuthState(state);
     return result;
   }
