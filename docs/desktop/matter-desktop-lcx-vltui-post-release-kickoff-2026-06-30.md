@@ -20,7 +20,7 @@ Local date: 2026-06-30
 | --- | --- | --- | --- |
 | Owner approval evidence | https://github.com/Gonyak-cell/law-firm-os/issues/146 | Closed, owner approval gate recorded | Explicit owner approval receipt recorded through `docs/desktop/matter-desktop-owner-approval-intake.json` and `npm run matter-desktop:owner-approval:intake:validate`. |
 | Production go-live receipt | https://github.com/Gonyak-cell/law-firm-os/issues/144 | Ready to close after receipt merge | Go-live receipt committed after final decision validation and explicit final decision input. |
-| Windows Authenticode signing | https://github.com/Gonyak-cell/law-firm-os/issues/145 | Open, blocked by signing provider/certificate and Windows host verification | Sanitized Authenticode receipt plus Windows native install smoke. |
+| Windows Authenticode signing | https://github.com/Gonyak-cell/law-firm-os/issues/145 | Open, package candidate created but blocked by signing provider/certificate and Windows host verification | Sanitized Authenticode receipt plus Windows native install smoke. |
 
 ## Current Evidence
 
@@ -42,6 +42,7 @@ Local date: 2026-06-30
 - Post-merge LCX-VLTUI production bridge smoke: PASS 15/15
 - Owner approval gate: recorded in `docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json`
 - LCX VLTUI desktop prerelease lane go-live receipt: recorded in `docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json`
+- Windows package candidate: created locally as `apps/desktop/dist/win/matter-0.1.0-win32-x64-unsigned.zip`
 
 ## Active Boundaries
 
@@ -55,6 +56,7 @@ Local date: 2026-06-30
 - App Store distribution: false
 - Microsoft Store distribution: false
 - Windows Authenticode signing: false
+- Windows package candidate uploaded to release: false
 
 ## Next Receipt Requirements
 
@@ -87,3 +89,11 @@ Local date: 2026-06-30
 - Validator: `npm run matter-desktop:production-go-live:receipt:validate`
 - Validation receipt: `docs/desktop/matter-desktop-production-go-live-receipt-validation.json`
 - Remaining boundaries: public release, company-wide rollout, Windows Authenticode signing, external pilot distribution, Vault document writes, and real client data migration are still false.
+
+## Windows Authenticode Preflight
+
+- Preflight: `docs/desktop/matter-desktop-windows-authenticode-preflight-2026-06-30.json`
+- Reader copy: `docs/desktop/matter-desktop-windows-authenticode-preflight-2026-06-30.md`
+- Validator: `npm run matter-desktop:windows-authenticode:preflight:validate`
+- Validation receipt: `docs/desktop/matter-desktop-windows-authenticode-preflight-validation.json`
+- Current state: local unsigned Windows package candidate exists, but current GitHub release still has no Windows installer/package asset and #145 remains blocked by Authenticode provider plus Windows-host verification.

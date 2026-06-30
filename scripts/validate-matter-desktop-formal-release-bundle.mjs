@@ -70,7 +70,7 @@ assert(macosReceipt.includes("Channel: `formal`"), "macOS receipt must record fo
 assert(windowsReceipt.includes("App ID: `com.amic.matter.desktop`"), "Windows receipt must use formal app id");
 assert(windowsReceipt.includes("Channel: `formal`"), "Windows receipt must record formal channel");
 assert(windowsReceipt.includes("Windows Authenticode signing: false"), "Windows formal candidate must not claim Authenticode signing");
-assert.equal(manifest.artifacts.length, 7);
+assert.equal(manifest.artifacts.length, 8);
 
 for (const artifact of manifest.artifacts) {
   const artifactPath = path.join(ROOT, artifact.path);
@@ -89,6 +89,7 @@ const requiredReceiptPhrases = [
   "macOS ZIP archive | `apps/desktop/dist/mac/matter-0.1.0-macos.zip`",
   "macOS DMG image | `apps/desktop/dist/mac/matter-0.1.0-macos.dmg`",
   "Windows formal manifest | `apps/desktop/dist/win/matter-0.1.0-win-installer-manifest.json`",
+  "Windows unsigned package ZIP | `apps/desktop/dist/win/matter-0.1.0-win32-x64-unsigned.zip`",
   "Developer ID signing | applied",
   "notarization requested | true",
   "notarization state | submitted_and_accepted_by_notarytool",
