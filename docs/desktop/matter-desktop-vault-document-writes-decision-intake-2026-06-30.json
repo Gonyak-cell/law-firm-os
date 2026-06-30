@@ -1,7 +1,8 @@
 {
   "schema_version": "law-firm-os.matter-desktop-vault-document-writes-decision-intake.v0.1",
-  "status": "pending_owner_decision",
+  "status": "owner_decision_recorded",
   "decision_gate": "vault_document_writes",
+  "approval_receipt": "docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.json",
   "tracker": {
     "owner_decision_issue": "https://github.com/Gonyak-cell/law-firm-os/issues/159"
   },
@@ -25,7 +26,7 @@
     "github_release_receipt": "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json"
   },
   "decision_request": {
-    "response_status": "pending_owner_decision",
+    "response_status": "owner_decision_recorded",
     "required_decision_fields": [
       "decision_maker",
       "decision",
@@ -44,7 +45,13 @@
       "reject_vault_document_writes",
       "request_changes"
     ],
-    "current_blocker": "vault_document_write_owner_decision_not_recorded"
+    "current_blocker": null
+  },
+  "owner_decision": {
+    "decision_maker": "Jiwon Suh, Product Owner",
+    "decision": "approve_vault_document_writes",
+    "approval_signature_ref": "approval:vault-document-writes-lcx-vltui-2026-06-30-1310-kst",
+    "recorded_by_human": true
   },
   "minimum_evidence_before_approval": [
     "Vault target tenant and storage path named without exposing secrets.",
@@ -54,7 +61,7 @@
     "Dry-run or upload-preflight proof reviewed."
   ],
   "boundary": {
-    "vault_document_writes_approved": false,
+    "vault_document_writes_approved": true,
     "vault_document_write_execution_authorized_by_this_file": false,
     "vault_document_uploads_executed": false,
     "real_client_data_migration_approved": false,

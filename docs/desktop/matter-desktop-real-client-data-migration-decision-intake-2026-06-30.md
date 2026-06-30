@@ -10,6 +10,7 @@ Status: pending-owner-decision
 | Release | `matter-desktop-v0.1.0-lcx-vltui-20260630` |
 | Tracker | https://github.com/Gonyak-cell/law-firm-os/issues/160 |
 | Upstream write gate | `vault_document_writes` |
+| Upstream write approval | `docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.json` |
 
 ## Required Owner Response
 

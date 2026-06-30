@@ -1,0 +1,70 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-vault-document-writes-approval-receipt.v0.1",
+  "status": "vault_document_writes_approved",
+  "recorded_at": "2026-06-30T04:10:00Z",
+  "recorded_at_original": "2026-06-30 13:10:00 KST",
+  "source": {
+    "source_type": "owner_chat_vault_document_writes_approval",
+    "source_ref": "approval:vault-document-writes-lcx-vltui-2026-06-30-1310-kst",
+    "recorded_by_human": true
+  },
+  "decision": {
+    "decision_maker": "Jiwon Suh, Product Owner",
+    "decision": "approve_vault_document_writes",
+    "write_scope": "LCX VLTUI desktop named lane only; bounded Matter/Client/Vault bridge write verification after existing production bridge smoke PASS",
+    "vault_target": "production Vault bridge target configured for Law Firm OS; tenant/storage path resolved by approved runtime configuration; no secrets recorded in this receipt",
+    "source_system": "Law Firm OS Matter app API and LCX VLTUI desktop bridge",
+    "max_document_count": 10,
+    "audit_log_location": "docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.json",
+    "rollback_plan_ref": "docs/desktop/matter-desktop-vault-document-writes-rollback-plan-2026-06-30.md",
+    "decision_at": "2026-06-30T04:10:00Z",
+    "decision_at_original": "2026-06-30 13:10:00 KST",
+    "approval_signature_ref": "approval:vault-document-writes-lcx-vltui-2026-06-30-1310-kst",
+    "recorded_by_human": true
+  },
+  "release": {
+    "tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "target_commitish": "ef493451a1d070412d3d24d4474493afbca3f1a4",
+    "is_prerelease": true,
+    "release_channel": "github_prerelease_lcx_vltui_desktop"
+  },
+  "runtime_target": {
+    "production_web_base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "production_api_lambda": "matter-lawos-api-prod",
+    "deployment_commit": "0ff79586d887a950200ab091a5864a20c174bdf9"
+  },
+  "source_refs": {
+    "owner_decision_issue": "https://github.com/Gonyak-cell/law-firm-os/issues/159",
+    "decision_intake": "docs/desktop/matter-desktop-vault-document-writes-decision-intake-2026-06-30.json",
+    "rollback_plan": "docs/desktop/matter-desktop-vault-document-writes-rollback-plan-2026-06-30.md",
+    "production_go_live_receipt": "docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json",
+    "lcx_vltui_production_bridge_smoke": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json",
+    "github_release_receipt": "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json"
+  },
+  "scope": {
+    "approves_vault_document_writes": true,
+    "approves_bounded_bridge_write_verification": true,
+    "vault_document_write_execution_authorized": true,
+    "max_document_count": 10,
+    "public_release_approved": false,
+    "company_wide_production_rollout_approved": false,
+    "external_pilot_distribution_approved": false,
+    "windows_authenticode_signing_approved": false,
+    "real_client_data_migration_approved": false,
+    "write_outside_named_scope_approved": false
+  },
+  "boundary": {
+    "vault_document_writes_approved": true,
+    "vault_document_write_execution_authorized_by_this_receipt": true,
+    "vault_document_uploads_executed_by_this_receipt": false,
+    "max_document_count": 10,
+    "real_client_data_migration_approved": false,
+    "real_client_data_used_by_this_receipt": false,
+    "public_release_approved": false,
+    "company_wide_production_rollout_approved": false,
+    "external_pilot_distribution_approved": false,
+    "windows_authenticode_signing_approved": false,
+    "write_outside_named_scope_approved": false
+  }
+}

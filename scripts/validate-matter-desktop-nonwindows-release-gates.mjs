@@ -7,6 +7,9 @@ const READINESS_JSON_PATH = "docs/desktop/matter-desktop-internal-prerelease-dis
 const READINESS_MD_PATH = "docs/desktop/matter-desktop-internal-prerelease-distribution-readiness-2026-06-30.md";
 const VAULT_WRITES_JSON_PATH = "docs/desktop/matter-desktop-vault-document-writes-decision-intake-2026-06-30.json";
 const VAULT_WRITES_MD_PATH = "docs/desktop/matter-desktop-vault-document-writes-decision-intake-2026-06-30.md";
+const VAULT_WRITES_APPROVAL_JSON_PATH = "docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.json";
+const VAULT_WRITES_APPROVAL_MD_PATH = "docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.md";
+const VAULT_WRITES_ROLLBACK_PLAN_PATH = "docs/desktop/matter-desktop-vault-document-writes-rollback-plan-2026-06-30.md";
 const MIGRATION_JSON_PATH = "docs/desktop/matter-desktop-real-client-data-migration-decision-intake-2026-06-30.json";
 const MIGRATION_MD_PATH = "docs/desktop/matter-desktop-real-client-data-migration-decision-intake-2026-06-30.md";
 const RELEASE_RECEIPT_PATH = "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json";
@@ -96,8 +99,12 @@ function checkPendingDecisionIntake(findings, name, intake, options) {
       actual: intake.schema_version
     });
   }
-  if (intake.status !== "pending_owner_decision" || intake.decision_request?.response_status !== "pending_owner_decision") {
-    addFinding(findings, "P1", `${name}_STATUS`, "Decision intake must remain pending until a real owner decision is supplied.", {
+  const expectedStatus = options.status ?? "pending_owner_decision";
+  const expectedResponseStatus = options.responseStatus ?? expectedStatus;
+  if (intake.status !== expectedStatus || intake.decision_request?.response_status !== expectedResponseStatus) {
+    addFinding(findings, "P1", `${name}_STATUS`, "Decision intake status drifted.", {
+      expected_status: expectedStatus,
+      expected_response_status: expectedResponseStatus,
       status: intake.status,
       response_status: intake.decision_request?.response_status
     });
@@ -162,9 +169,9 @@ function renderMarkdown(report) {
   }
   lines.push("", "## Boundary", "");
   lines.push("- Internal prerelease distribution readiness is recorded for the named lane only.");
-  lines.push("- Vault document writes remain pending owner decision.");
+  lines.push("- Vault document writes are approved only for the bounded named-lane write verification receipt.");
   lines.push("- Real client data migration remains pending owner decision.");
-  lines.push("- Public release, external pilot distribution, Windows Authenticode signing, company-wide rollout, Vault write execution, and real client migration execution remain out of scope.");
+  lines.push("- Public release, external pilot distribution, Windows Authenticode signing, company-wide rollout, Vault writes outside the approved scope, and real client migration execution remain out of scope.");
   return `${lines.join("\n")}\n`;
 }
 
@@ -174,6 +181,9 @@ for (const path of [
   READINESS_MD_PATH,
   VAULT_WRITES_JSON_PATH,
   VAULT_WRITES_MD_PATH,
+  VAULT_WRITES_APPROVAL_JSON_PATH,
+  VAULT_WRITES_APPROVAL_MD_PATH,
+  VAULT_WRITES_ROLLBACK_PLAN_PATH,
   MIGRATION_JSON_PATH,
   MIGRATION_MD_PATH,
   RELEASE_RECEIPT_PATH,
@@ -189,6 +199,9 @@ const readiness = existsSync(READINESS_JSON_PATH) ? readJson(READINESS_JSON_PATH
 const readinessMd = existsSync(READINESS_MD_PATH) ? readText(READINESS_MD_PATH) : "";
 const vaultWrites = existsSync(VAULT_WRITES_JSON_PATH) ? readJson(VAULT_WRITES_JSON_PATH) : {};
 const vaultWritesMd = existsSync(VAULT_WRITES_MD_PATH) ? readText(VAULT_WRITES_MD_PATH) : "";
+const vaultWritesApproval = existsSync(VAULT_WRITES_APPROVAL_JSON_PATH) ? readJson(VAULT_WRITES_APPROVAL_JSON_PATH) : {};
+const vaultWritesApprovalMd = existsSync(VAULT_WRITES_APPROVAL_MD_PATH) ? readText(VAULT_WRITES_APPROVAL_MD_PATH) : "";
+const vaultWritesRollbackPlan = existsSync(VAULT_WRITES_ROLLBACK_PLAN_PATH) ? readText(VAULT_WRITES_ROLLBACK_PLAN_PATH) : "";
 const migration = existsSync(MIGRATION_JSON_PATH) ? readJson(MIGRATION_JSON_PATH) : {};
 const migrationMd = existsSync(MIGRATION_MD_PATH) ? readText(MIGRATION_MD_PATH) : "";
 const releaseReceipt = existsSync(RELEASE_RECEIPT_PATH) ? readJson(RELEASE_RECEIPT_PATH) : {};
@@ -300,6 +313,8 @@ checkPendingDecisionIntake(findings, "VAULT_WRITES", vaultWrites, {
   schemaVersion: "law-firm-os.matter-desktop-vault-document-writes-decision-intake.v0.1",
   decisionGate: "vault_document_writes",
   issueUrl: "https://github.com/Gonyak-cell/law-firm-os/issues/159",
+  status: "owner_decision_recorded",
+  responseStatus: "owner_decision_recorded",
   checkRuntime: true,
   requiredFields: [
     "decision_maker",
@@ -316,7 +331,7 @@ checkPendingDecisionIntake(findings, "VAULT_WRITES", vaultWrites, {
   ],
   allowedDecisions: ["approve_vault_document_writes", "reject_vault_document_writes", "request_changes"],
   boundary: {
-    vault_document_writes_approved: false,
+    vault_document_writes_approved: true,
     vault_document_write_execution_authorized_by_this_file: false,
     vault_document_uploads_executed: false,
     real_client_data_migration_approved: false,
@@ -327,13 +342,60 @@ checkPendingDecisionIntake(findings, "VAULT_WRITES", vaultWrites, {
     windows_authenticode_signing_approved: false
   }
 });
+if (vaultWrites.approval_receipt !== VAULT_WRITES_APPROVAL_JSON_PATH) {
+  addFinding(findings, "P1", "VAULT_WRITES_APPROVAL_RECEIPT", "Vault writes intake must point to the approval receipt.", {
+    expected: VAULT_WRITES_APPROVAL_JSON_PATH,
+    actual: vaultWrites.approval_receipt
+  });
+}
+if (vaultWritesApproval.schema_version !== "law-firm-os.matter-desktop-vault-document-writes-approval-receipt.v0.1") {
+  addFinding(findings, "P1", "VAULT_WRITES_APPROVAL_SCHEMA", "Unexpected Vault document writes approval schema version.", {
+    actual: vaultWritesApproval.schema_version
+  });
+}
+if (vaultWritesApproval.status !== "vault_document_writes_approved") {
+  addFinding(findings, "P1", "VAULT_WRITES_APPROVAL_STATUS", "Vault document writes approval receipt must be approved.", {
+    actual: vaultWritesApproval.status
+  });
+}
+for (const [key, expected] of Object.entries({
+  vault_document_writes_approved: true,
+  vault_document_write_execution_authorized_by_this_receipt: true,
+  vault_document_uploads_executed_by_this_receipt: false,
+  max_document_count: 10,
+  real_client_data_migration_approved: false,
+  real_client_data_used_by_this_receipt: false,
+  public_release_approved: false,
+  company_wide_production_rollout_approved: false,
+  external_pilot_distribution_approved: false,
+  windows_authenticode_signing_approved: false,
+  write_outside_named_scope_approved: false
+})) {
+  if (vaultWritesApproval.boundary?.[key] !== expected) {
+    addFinding(findings, expected === false ? "P0" : "P1", `VAULT_WRITES_APPROVAL_BOUNDARY_${key}`, "Vault writes approval boundary drifted.", {
+      expected,
+      actual: vaultWritesApproval.boundary?.[key]
+    });
+  }
+}
 checkMarkdown(findings, VAULT_WRITES_MD_PATH, vaultWritesMd, [
-  "Status: pending-owner-decision",
-  "Vault document writes: false",
+  "Status: owner-decision-recorded",
+  "Vault document writes: true",
   "Vault document write execution authorized by this file: false",
   "Vault document uploads executed: false",
   "Real client data migration: false"
 ]);
+checkMarkdown(findings, VAULT_WRITES_APPROVAL_MD_PATH, vaultWritesApprovalMd, [
+  "Status: vault-document-writes-approved",
+  "Vault document writes approved: true",
+  "Vault document uploads executed by this receipt: false",
+  "Real client data migration: false"
+]);
+for (const phrase of ["Status: rollback-plan-ready", "approved maximum of 10 documents", "does not approve real client data migration"]) {
+  if (!vaultWritesRollbackPlan.includes(phrase)) {
+    addFinding(findings, "P1", "VAULT_WRITES_ROLLBACK_PLAN", "Rollback plan is missing a required phrase.", { phrase });
+  }
+}
 
 checkPendingDecisionIntake(findings, "MIGRATION", migration, {
   schemaVersion: "law-firm-os.matter-desktop-real-client-data-migration-decision-intake.v0.1",
@@ -385,6 +447,9 @@ const report = {
     READINESS_MD_PATH,
     VAULT_WRITES_JSON_PATH,
     VAULT_WRITES_MD_PATH,
+    VAULT_WRITES_APPROVAL_JSON_PATH,
+    VAULT_WRITES_APPROVAL_MD_PATH,
+    VAULT_WRITES_ROLLBACK_PLAN_PATH,
     MIGRATION_JSON_PATH,
     MIGRATION_MD_PATH,
     RELEASE_RECEIPT_PATH,
@@ -398,7 +463,10 @@ const report = {
     internal_prerelease_distribution_readiness_recorded: readiness.boundary?.internal_prerelease_distribution_readiness_recorded === true,
     vault_document_writes_pending_owner_decision: vaultWrites.status === "pending_owner_decision",
     real_client_data_migration_pending_owner_decision: migration.status === "pending_owner_decision",
-    vault_document_writes_approved: vaultWrites.boundary?.vault_document_writes_approved === true,
+    vault_document_writes_approved: vaultWritesApproval.boundary?.vault_document_writes_approved === true,
+    vault_document_write_execution_authorized: vaultWritesApproval.boundary?.vault_document_write_execution_authorized_by_this_receipt === true,
+    vault_document_uploads_executed_by_approval_receipt: vaultWritesApproval.boundary?.vault_document_uploads_executed_by_this_receipt === true,
+    max_document_count: vaultWritesApproval.boundary?.max_document_count ?? null,
     real_client_data_migration_approved: migration.boundary?.real_client_data_migration_approved === true,
     public_release_approved: false,
     external_pilot_distribution_approved: false,
