@@ -1,6 +1,6 @@
 # matter Desktop Vault Document Writes Decision Intake
 
-Status: pending-owner-decision
+Status: owner-decision-recorded
 
 ## Decision Gate
 
@@ -11,6 +11,7 @@ Status: pending-owner-decision
 | Tracker | https://github.com/Gonyak-cell/law-firm-os/issues/159 |
 | Runtime target | `https://d2mthcc8vp3cr2.cloudfront.net` |
 | API Lambda | `matter-lawos-api-prod` |
+| Approval receipt | `docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.json` |
 
 ## Required Owner Response
 
@@ -44,7 +45,7 @@ Required fields:
 
 ## Boundary
 
-- Vault document writes: false
+- Vault document writes: true
 - Vault document write execution authorized by this file: false
 - Vault document uploads executed: false
 - Real client data migration: false

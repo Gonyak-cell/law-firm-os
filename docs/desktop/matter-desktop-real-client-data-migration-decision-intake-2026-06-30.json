@@ -17,6 +17,7 @@
   "source_refs": {
     "production_go_live_receipt": "docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json",
     "vault_document_writes_decision_intake": "docs/desktop/matter-desktop-vault-document-writes-decision-intake-2026-06-30.json",
+    "vault_document_writes_approval_receipt": "docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.json",
     "lcx_vltui_production_bridge_smoke": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json"
   },
   "decision_request": {
