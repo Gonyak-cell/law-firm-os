@@ -1,0 +1,41 @@
+{
+  "schema_version": "lawos.lcx_vltui.production_go_live_decision_intake.v0.1",
+  "status": "pending_final_go_live_decision",
+  "recorded_at": "2026-06-30T00:56:14Z",
+  "issue": "https://github.com/Gonyak-cell/law-firm-os/issues/144",
+  "release": {
+    "tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "release_channel": "github_prerelease_lcx_vltui_desktop"
+  },
+  "runtime_target": {
+    "production_web_base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "production_api_lambda": "matter-lawos-api-prod",
+    "deployment_commit": "0ff79586d887a950200ab091a5864a20c174bdf9"
+  },
+  "evidence_ready": {
+    "owner_approval_gate_recorded": true,
+    "owner_receipt_ref": "docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json",
+    "hrx_production_smoke": "PASS",
+    "lcx_vltui_production_bridge_smoke": "PASS"
+  },
+  "next_required_input": {
+    "status": "pending_final_go_live_decision",
+    "allowed_decisions": [
+      "approve_production_go_live_receipt",
+      "reject_production_go_live",
+      "request_changes"
+    ]
+  },
+  "boundary": {
+    "final_go_live_decision_recorded": false,
+    "production_go_live_receipt_committed": false,
+    "actual_launch_go_live_completed": false,
+    "public_release_approved": false,
+    "company_wide_production_go_live_approved": false,
+    "windows_authenticode_signing_approved": false,
+    "external_pilot_distribution_approved": false,
+    "vault_document_writes_approved": false,
+    "real_client_data_migration_approved": false
+  }
+}

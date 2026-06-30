@@ -1,0 +1,61 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-production-go-live-decision-intake.v0.1",
+  "status": "pending_final_go_live_decision",
+  "recorded_at": "2026-06-30T00:56:14Z",
+  "recorded_at_original": "2026-06-30 09:56:14 KST",
+  "release": {
+    "tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "target_commitish": "ef493451a1d070412d3d24d4474493afbca3f1a4",
+    "is_prerelease": true,
+    "release_channel": "github_prerelease_lcx_vltui_desktop"
+  },
+  "tracker": {
+    "production_go_live_issue": "https://github.com/Gonyak-cell/law-firm-os/issues/144",
+    "owner_approval_issue": "https://github.com/Gonyak-cell/law-firm-os/issues/146",
+    "windows_authenticode_issue": "https://github.com/Gonyak-cell/law-firm-os/issues/145"
+  },
+  "runtime_target": {
+    "production_web_base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "production_api_lambda": "matter-lawos-api-prod",
+    "deployment_commit": "0ff79586d887a950200ab091a5864a20c174bdf9",
+    "hrx_production_smoke_receipt": "docs/lazycodex/evidence/matter-web/artifacts/hrx-production-smoke-2026-06-30.json",
+    "lcx_vltui_production_smoke_receipt": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json"
+  },
+  "required_source_refs": {
+    "owner_approval_receipt": "docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json",
+    "owner_approval_validation": "docs/desktop/matter-desktop-owner-approval-intake-validation.json",
+    "release_receipt": "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json",
+    "post_release_kickoff": "docs/desktop/matter-desktop-lcx-vltui-post-release-kickoff-2026-06-30.md"
+  },
+  "final_decision_request": {
+    "response_status": "pending_final_go_live_decision",
+    "required_decision_fields": [
+      "decision_maker",
+      "decision",
+      "basis",
+      "decision_at",
+      "approval_signature_ref",
+      "recorded_by_human"
+    ],
+    "allowed_decisions": [
+      "approve_production_go_live_receipt",
+      "reject_production_go_live",
+      "request_changes"
+    ],
+    "current_blocker": "final_go_live_decision_not_recorded"
+  },
+  "boundary": {
+    "owner_approval_gate_recorded": true,
+    "ready_for_final_go_live_decision_input": true,
+    "final_go_live_decision_recorded": false,
+    "production_go_live_receipt_committed": false,
+    "actual_launch_go_live_completed": false,
+    "public_release_approved": false,
+    "company_wide_production_go_live_approved": false,
+    "windows_authenticode_signing_approved": false,
+    "external_pilot_distribution_approved": false,
+    "vault_document_writes_approved": false,
+    "real_client_data_migration_approved": false
+  }
+}
