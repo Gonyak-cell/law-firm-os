@@ -28,7 +28,7 @@ Local date: 2026-06-30
 - macOS strict codesign: pass
 - macOS Gatekeeper assessment: pass
 - macOS notarization: submitted and accepted by notarytool
-- GitHub release assets: 14 uploaded
+- GitHub release assets: 15 uploaded
 - Desktop smoke: PASS 59/59
 - Web UI regression: PASS 17/17
 - Web build: PASS
@@ -42,7 +42,7 @@ Local date: 2026-06-30
 - Post-merge LCX-VLTUI production bridge smoke: PASS 15/15
 - Owner approval gate: recorded in `docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json`
 - LCX VLTUI desktop prerelease lane go-live receipt: recorded in `docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json`
-- Windows package candidate: created locally as `apps/desktop/dist/win/matter-0.1.0-win32-x64-unsigned.zip`
+- Windows package candidate: uploaded to the GitHub prerelease as `matter-0.1.0-win32-x64-unsigned.zip`
 
 ## Active Boundaries
 
@@ -96,7 +96,15 @@ Local date: 2026-06-30
 - Reader copy: `docs/desktop/matter-desktop-windows-authenticode-preflight-2026-06-30.md`
 - Validator: `npm run matter-desktop:windows-authenticode:preflight:validate`
 - Validation receipt: `docs/desktop/matter-desktop-windows-authenticode-preflight-validation.json`
-- Current state: local unsigned Windows package candidate exists, but current GitHub release still has no Windows installer/package asset and #145 remains blocked by Authenticode provider plus Windows-host verification.
+- Current state: unsigned Windows package zip is uploaded to the GitHub prerelease, but #145 remains blocked by Authenticode provider plus Windows-host verification for signed Windows distribution.
+
+## Windows Unsigned Release Asset
+
+- Receipt: `docs/desktop/matter-desktop-windows-unsigned-release-asset-2026-06-30.json`
+- Reader copy: `docs/desktop/matter-desktop-windows-unsigned-release-asset-2026-06-30.md`
+- Validator: `npm run matter-desktop:windows-unsigned-release-asset:validate`
+- Validation receipt: `docs/desktop/matter-desktop-windows-unsigned-release-asset-validation.json`
+- Current state: Windows package is available as an unsigned prerelease asset; Windows Authenticode signing, Windows native install smoke, public release, Microsoft Store distribution, external pilot, Vault document writes, and real client data migration remain false.
 
 ## Windows Authenticode Approval Intake
 

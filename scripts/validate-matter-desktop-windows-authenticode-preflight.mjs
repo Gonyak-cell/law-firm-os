@@ -111,10 +111,15 @@ const hasManifestAsset = assetNames.includes("matter-0.1.0-win-installer-manifes
 const hasInstallerAsset = assetNames.some((name) => /\.(exe|msi|msix|appx)$/i.test(name));
 const hasWindowsPackageZipAsset = assetNames.some((name) => /win32-x64.*\.zip$/i.test(name));
 if (!hasManifestAsset) addFinding(findings, "P1", "RELEASE_MANIFEST_ASSET_MISSING", "GitHub release receipt must still show the Windows manifest asset.", { assetNames });
-if (hasInstallerAsset || hasWindowsPackageZipAsset) {
-  addFinding(findings, "P1", "RELEASE_PACKAGE_ASSET_DRIFT", "Preflight expects current GitHub release to have no Windows installer/package asset yet.", {
+if (hasInstallerAsset) {
+  addFinding(findings, "P1", "RELEASE_INSTALLER_ASSET_DRIFT", "Preflight expects current GitHub release to have no signed Windows installer asset yet.", {
     hasInstallerAsset,
     hasWindowsPackageZipAsset,
+    assetNames
+  });
+}
+if (!hasWindowsPackageZipAsset) {
+  addFinding(findings, "P1", "RELEASE_UNSIGNED_PACKAGE_ASSET_MISSING", "GitHub release receipt must show the unsigned Windows package zip asset.", {
     assetNames
   });
 }
@@ -148,9 +153,10 @@ if (!windowsBuild.includes("Windows Authenticode signing: false") || !windowsBui
 
 for (const [key, expected] of Object.entries({
   github_release_has_windows_installer_asset: false,
+  github_release_has_windows_package_zip_asset: true,
   github_release_has_windows_manifest_asset: true,
   local_windows_package_candidate_created: true,
-  local_windows_package_candidate_uploaded_to_release: false
+  local_windows_package_candidate_uploaded_to_release: true
 })) {
   if (preflight.answer_to_current_packaging_question?.[key] !== expected) {
     addFinding(findings, "P1", `PACKAGING_ANSWER_${key}`, "Packaging answer field drifted.", {
@@ -177,6 +183,7 @@ for (const [key, expected] of Object.entries({
 
 for (const [key, expected] of Object.entries({
   windows_package_candidate_created: true,
+  windows_unsigned_package_zip_uploaded_to_release: true,
   windows_authenticode_signing: false,
   public_release_approved: false,
   company_wide_production_go_live_approved: false,
@@ -206,7 +213,10 @@ if (PLACEHOLDER_PATTERN.test(preflightMd)) {
 }
 for (const phrase of [
   "GitHub release Windows installer asset: false",
+  "GitHub release Windows package ZIP asset: true",
   "Local Windows package candidate created: true",
+  "Local Windows package candidate uploaded to release: true",
+  "Windows unsigned package ZIP uploaded to release: true",
   "Windows Authenticode signing: false",
   "Windows native install smoke: not_run_on_darwin"
 ]) {
@@ -216,7 +226,7 @@ for (const phrase of [
 const verdict = findings.some((finding) => finding.severity === "P0" || finding.severity === "P1") ? "FAIL" : "PASS";
 const report = {
   schema_version: "law-firm-os.matter-desktop-windows-authenticode-preflight.validation.v0.1",
-  generated_at: "2026-06-30T01:36:15Z",
+  generated_at: "2026-06-30T02:50:54Z",
   source_refs: [
     PREFLIGHT_JSON_PATH,
     PREFLIGHT_MD_PATH,

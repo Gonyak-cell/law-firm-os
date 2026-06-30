@@ -9,11 +9,12 @@ Release: https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-
 ## Current Packaging Answer
 
 - GitHub release Windows installer asset: false
+- GitHub release Windows package ZIP asset: true
 - GitHub release Windows manifest asset: true
 - Local Windows package candidate created: true
-- Local Windows package candidate uploaded to release: false
+- Local Windows package candidate uploaded to release: true
 
-The current GitHub prerelease has Windows manifest/signature evidence, but no `.exe`, `.msi`, `.msix`, `.appx`, or Windows package zip asset.
+The current GitHub prerelease has Windows manifest/signature evidence and an unsigned Windows package zip asset, but no signed `.exe`, `.msi`, `.msix`, or `.appx` installer asset.
 
 ## Local Package Candidate
 
@@ -39,6 +40,7 @@ The current GitHub prerelease has Windows manifest/signature evidence, but no `.
 ## Boundary
 
 - Windows package candidate created: true
+- Windows unsigned package ZIP uploaded to release: true
 - Windows Authenticode signing: false
 - Windows native install smoke: not_run_on_darwin
 - Public release: false
