@@ -1,0 +1,26 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-production-go-live-decision.validation.v0.1",
+  "generated_at": "2026-06-30T00:56:14Z",
+  "source_refs": [
+    "docs/desktop/matter-desktop-production-go-live-decision-intake.json",
+    "docs/desktop/matter-desktop-production-go-live-decision-intake.md",
+    "docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json",
+    "docs/desktop/matter-desktop-owner-approval-intake-validation.json",
+    "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/hrx-production-smoke-2026-06-30.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json"
+  ],
+  "verdict": "PASS",
+  "summary": {
+    "owner_approval_gate_recorded": true,
+    "ready_for_final_go_live_decision_input": true,
+    "final_go_live_decision_recorded": false,
+    "production_go_live_receipt_committed": false,
+    "actual_launch_go_live_completed": false,
+    "public_release_approved": false,
+    "lcx_production_smoke_verdict": "PASS",
+    "hrx_production_smoke_verdict": "PASS",
+    "finding_count": 0
+  },
+  "findings": []
+}
