@@ -1,0 +1,67 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-vault-document-writes-decision-intake.v0.1",
+  "status": "pending_owner_decision",
+  "decision_gate": "vault_document_writes",
+  "tracker": {
+    "owner_decision_issue": "https://github.com/Gonyak-cell/law-firm-os/issues/159"
+  },
+  "recorded_at": "2026-06-30T03:58:37Z",
+  "recorded_at_original": "2026-06-30 12:58:37 KST",
+  "release": {
+    "tag": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "url": "https://github.com/Gonyak-cell/law-firm-os/releases/tag/matter-desktop-v0.1.0-lcx-vltui-20260630",
+    "target_commitish": "ef493451a1d070412d3d24d4474493afbca3f1a4",
+    "is_prerelease": true,
+    "release_channel": "github_prerelease_lcx_vltui_desktop"
+  },
+  "runtime_target": {
+    "production_web_base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+    "production_api_lambda": "matter-lawos-api-prod",
+    "deployment_commit": "0ff79586d887a950200ab091a5864a20c174bdf9"
+  },
+  "source_refs": {
+    "production_go_live_receipt": "docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json",
+    "lcx_vltui_production_bridge_smoke": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json",
+    "github_release_receipt": "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json"
+  },
+  "decision_request": {
+    "response_status": "pending_owner_decision",
+    "required_decision_fields": [
+      "decision_maker",
+      "decision",
+      "write_scope",
+      "vault_target",
+      "source_system",
+      "max_document_count",
+      "audit_log_location",
+      "rollback_plan_ref",
+      "decision_at",
+      "approval_signature_ref",
+      "recorded_by_human"
+    ],
+    "allowed_decisions": [
+      "approve_vault_document_writes",
+      "reject_vault_document_writes",
+      "request_changes"
+    ],
+    "current_blocker": "vault_document_write_owner_decision_not_recorded"
+  },
+  "minimum_evidence_before_approval": [
+    "Vault target tenant and storage path named without exposing secrets.",
+    "Document write scope bounded by matter/client lane and maximum count.",
+    "Audit log destination named.",
+    "Rollback or delete-remediation plan referenced.",
+    "Dry-run or upload-preflight proof reviewed."
+  ],
+  "boundary": {
+    "vault_document_writes_approved": false,
+    "vault_document_write_execution_authorized_by_this_file": false,
+    "vault_document_uploads_executed": false,
+    "real_client_data_migration_approved": false,
+    "real_client_data_used": false,
+    "public_release_approved": false,
+    "company_wide_production_rollout_approved": false,
+    "external_pilot_distribution_approved": false,
+    "windows_authenticode_signing_approved": false
+  }
+}
