@@ -1,0 +1,30 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-nonwindows-release-gates.validation.v0.1",
+  "generated_at": "2026-06-30T03:58:37Z",
+  "source_refs": [
+    "docs/desktop/matter-desktop-internal-prerelease-distribution-readiness-2026-06-30.json",
+    "docs/desktop/matter-desktop-internal-prerelease-distribution-readiness-2026-06-30.md",
+    "docs/desktop/matter-desktop-vault-document-writes-decision-intake-2026-06-30.json",
+    "docs/desktop/matter-desktop-vault-document-writes-decision-intake-2026-06-30.md",
+    "docs/desktop/matter-desktop-real-client-data-migration-decision-intake-2026-06-30.json",
+    "docs/desktop/matter-desktop-real-client-data-migration-decision-intake-2026-06-30.md",
+    "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json",
+    "docs/desktop/matter-desktop-owner-approval-receipt-2026-06-30.json",
+    "docs/desktop/matter-desktop-production-go-live-receipt-2026-06-30.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/hrx-production-smoke-2026-06-30.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json"
+  ],
+  "verdict": "PASS",
+  "summary": {
+    "internal_prerelease_distribution_readiness_recorded": true,
+    "vault_document_writes_pending_owner_decision": true,
+    "real_client_data_migration_pending_owner_decision": true,
+    "vault_document_writes_approved": false,
+    "real_client_data_migration_approved": false,
+    "public_release_approved": false,
+    "external_pilot_distribution_approved": false,
+    "windows_authenticode_signing_approved": false,
+    "finding_count": 0
+  },
+  "findings": []
+}
