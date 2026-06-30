@@ -1,0 +1,31 @@
+{
+  "schema_version": "lawos.matter_desktop.windows_authenticode_azure_receipt.v0.1",
+  "status": "trusted_signing_account_created_pending_identity_validation",
+  "recorded_at": "2026-06-30T02:15:08Z",
+  "issue": "https://github.com/Gonyak-cell/law-firm-os/issues/145",
+  "azure": {
+    "resource_group": "amic-platform-rg",
+    "location": "Korea Central",
+    "provider_namespace": "Microsoft.CodeSigning",
+    "provider_registration_state": "Registered",
+    "trusted_signing_account_name": "lawosmattersigning",
+    "trusted_signing_account_uri": "https://krc.codesigning.azure.net/",
+    "trusted_signing_account_sku": "Basic",
+    "trusted_signing_account_provisioning_state": "Succeeded"
+  },
+  "role_assignments": [
+    "Artifact Signing Identity Verifier",
+    "Artifact Signing Certificate Profile Signer"
+  ],
+  "boundary": {
+    "trusted_signing_account_created": true,
+    "artifact_signing_identity_verifier_role_assigned": true,
+    "artifact_signing_certificate_profile_signer_role_assigned": true,
+    "certificate_profile_created": false,
+    "identity_validation_completed": false,
+    "signing_execution_allowed": false,
+    "windows_authenticode_signing": false,
+    "windows_native_install_smoke": "not_run",
+    "public_release": false
+  }
+}
