@@ -1,0 +1,30 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-real-client-data-migration-approval.validation.v0.1",
+  "generated_at": "2026-06-30T06:20:00Z",
+  "source_refs": [
+    "docs/desktop/matter-desktop-real-client-data-migration-approval-receipt-2026-06-30.json",
+    "docs/desktop/matter-desktop-real-client-data-migration-approval-receipt-2026-06-30.md",
+    "docs/desktop/matter-desktop-real-client-data-migration-source-inventory-2026-06-30.json",
+    "docs/desktop/matter-desktop-real-client-data-migration-mapping-workbook-2026-06-30.json",
+    "docs/desktop/matter-desktop-real-client-data-migration-dry-run-receipt-2026-06-30.json",
+    "docs/desktop/matter-desktop-real-client-data-migration-dry-run-receipt-2026-06-30.md",
+    "docs/desktop/matter-desktop-real-client-data-migration-rollback-plan-2026-06-30.md",
+    "docs/desktop/matter-desktop-real-client-data-migration-decision-intake-2026-06-30.json",
+    "docs/desktop/matter-desktop-vault-document-writes-approval-receipt-2026-06-30.json",
+    "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json",
+    "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json"
+  ],
+  "verdict": "PASS",
+  "summary": {
+    "real_client_data_migration_approved": true,
+    "real_client_data_migration_execution_authorized": true,
+    "real_client_rows_migrated_by_this_receipt": 0,
+    "migration_execution_receipt_present": false,
+    "source_inventory_ready": true,
+    "mapping_workbook_ready": true,
+    "dry_run_pass": true,
+    "public_release_approved": false,
+    "finding_count": 0
+  },
+  "findings": []
+}
