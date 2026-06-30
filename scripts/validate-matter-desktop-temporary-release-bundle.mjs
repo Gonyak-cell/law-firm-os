@@ -54,7 +54,7 @@ assert.deepEqual(
   "manifest must record current Developer ID signed and notarized release boundary",
 );
 assert.match(manifest.macos_signing.resolved_signing_identity, /^Developer ID Application:/);
-assert.equal(manifest.artifacts.length, 7);
+assert.equal(manifest.artifacts.length, 8);
 
 for (const artifact of manifest.artifacts) {
   const artifactPath = path.join(ROOT, artifact.path);
@@ -76,6 +76,7 @@ const requiredReceiptPhrases = [
   "notarization credential source | present",
   "notarization state | submitted_and_accepted_by_notarytool",
   "Windows internal manifest",
+  "Windows unsigned package ZIP",
   "Public release: false",
   "Production go-live: false",
   "Owner approval: false",

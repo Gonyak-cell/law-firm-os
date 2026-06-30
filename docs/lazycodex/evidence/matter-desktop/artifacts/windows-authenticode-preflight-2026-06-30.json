@@ -1,0 +1,25 @@
+{
+  "schema_version": "lawos.matter_desktop.windows_authenticode_preflight.v0.1",
+  "status": "blocked_pending_authenticode_provider_and_windows_host",
+  "recorded_at": "2026-06-30T01:36:15Z",
+  "issue": "https://github.com/Gonyak-cell/law-firm-os/issues/145",
+  "release": "matter-desktop-v0.1.0-lcx-vltui-20260630",
+  "current_packaging_answer": {
+    "github_release_has_windows_installer_asset": false,
+    "github_release_has_windows_manifest_asset": true,
+    "local_windows_package_candidate_created": true,
+    "local_windows_package_candidate_uploaded_to_release": false
+  },
+  "local_package_candidate": {
+    "executable": "apps/desktop/dist/win/matter-0.1.0-win32-x64/matter.exe",
+    "executable_sha256": "30fd02e82aa5835cb82992fbce5a2738da1861773f1184f4f9d8f9d128db11fc",
+    "unsigned_package_zip": "apps/desktop/dist/win/matter-0.1.0-win32-x64-unsigned.zip",
+    "unsigned_package_zip_sha256": "cecbf33a8fc2f42e1923339b245a725fd9de17fa5b1f7119d94ca1c0ec78e005"
+  },
+  "boundary": {
+    "windows_authenticode_signing": false,
+    "windows_native_install_smoke": "not_run_on_darwin",
+    "public_release": false,
+    "company_wide_production_rollout": false
+  }
+}

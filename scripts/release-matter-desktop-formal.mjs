@@ -53,6 +53,13 @@ const artifacts = [
     kind: "formal_detached_signature",
   },
   {
+    id: "windows_package_zip",
+    path: `apps/desktop/dist/win/matter-${version}-win32-x64-unsigned.zip`,
+    display_path: `apps/desktop/dist/win/matter-${version}-win32-x64-unsigned.zip`,
+    platform: "win32",
+    kind: "unsigned_windows_package_zip",
+  },
+  {
     id: "macos_build_receipt",
     path: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
     display_path: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
@@ -142,6 +149,7 @@ await writeFile(
 const macZip = artifactRecords.find((artifact) => artifact.id === "macos_zip_archive");
 const macDmg = artifactRecords.find((artifact) => artifact.id === "macos_dmg_image");
 const winManifest = artifactRecords.find((artifact) => artifact.id === "windows_manifest");
+const winZip = artifactRecords.find((artifact) => artifact.id === "windows_package_zip");
 
 const releaseReceipt = `# matter Desktop Formal Release Candidate Receipt
 
@@ -172,6 +180,8 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 | macOS DMG SHA-256 | \`${macDmg.sha256}\` |
 | Windows formal manifest | \`apps/desktop/dist/win/matter-${version}-win-installer-manifest.json\` |
 | Windows formal manifest SHA-256 | \`${winManifest.sha256}\` |
+| Windows unsigned package ZIP | \`apps/desktop/dist/win/matter-${version}-win32-x64-unsigned.zip\` |
+| Windows unsigned package ZIP SHA-256 | \`${winZip.sha256}\` |
 
 ## macOS Signing and Notarization
 

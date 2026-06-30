@@ -1,0 +1,25 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-windows-authenticode-preflight.validation.v0.1",
+  "generated_at": "2026-06-30T01:36:15Z",
+  "source_refs": [
+    "docs/desktop/matter-desktop-windows-authenticode-preflight-2026-06-30.json",
+    "docs/desktop/matter-desktop-windows-authenticode-preflight-2026-06-30.md",
+    "docs/lazycodex/evidence/matter-desktop/artifacts/windows-authenticode-preflight-2026-06-30.json",
+    "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md",
+    "docs/desktop/matter-desktop-lcx-vltui-github-release-receipt-2026-06-30.json",
+    "apps/desktop/dist/win/matter-0.1.0-win32-x64/matter.exe",
+    "apps/desktop/dist/win/matter-0.1.0-win32-x64-unsigned.zip",
+    "apps/desktop/dist/win/matter-0.1.0-win-installer-manifest.json"
+  ],
+  "verdict": "PASS",
+  "summary": {
+    "github_release_has_windows_installer_asset": false,
+    "github_release_has_windows_package_zip_asset": false,
+    "github_release_has_windows_manifest_asset": true,
+    "local_windows_package_candidate_created": true,
+    "windows_authenticode_signing": false,
+    "windows_native_install_smoke": "not_run_on_darwin",
+    "finding_count": 0
+  },
+  "findings": []
+}
