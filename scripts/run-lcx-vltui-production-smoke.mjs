@@ -8,6 +8,7 @@ const ARTIFACT_DIR = "docs/lazycodex/evidence/matter-web/artifacts";
 const JSON_PATH = `${ARTIFACT_DIR}/lcx-vltui-production-smoke-2026-06-29.json`;
 const MD_PATH = `${ARTIFACT_DIR}/lcx-vltui-production-smoke-2026-06-29.md`;
 const AWS_PROFILE = process.env.LAWOS_VAULT_BRIDGE_AWS_PROFILE ?? process.env.AWS_PROFILE ?? "matter-prod-deploy-admin";
+const AWS_SSO_LOGIN_PROFILE = process.env.LAWOS_VAULT_BRIDGE_SSO_LOGIN_PROFILE ?? "amic-vault-staging-admin";
 const AWS_REGION = process.env.LAWOS_AWS_REGION ?? process.env.AWS_REGION ?? "ap-northeast-2";
 const API_LAMBDA_FUNCTION = process.env.LAWOS_API_LAMBDA_FUNCTION_NAME ?? "matter-lawos-api-prod";
 const BRIDGE_TOKEN_INFO = resolveBridgeToken();
@@ -24,7 +25,7 @@ function classifyBridgeTokenResolutionFailure(output = "") {
   if (/Token has expired|retrieving token from sso|SSO.*expired/i.test(output)) {
     return {
       code: "AWS_SSO_SESSION_EXPIRED",
-      reason: `AWS SSO session expired for profile ${AWS_PROFILE}; run aws sso login --profile ${AWS_PROFILE}`,
+      reason: `AWS SSO session expired for profile ${AWS_PROFILE}; run aws sso login --profile ${AWS_SSO_LOGIN_PROFILE}`,
       missingRequiredEnv: ["AWS_SSO_SESSION"]
     };
   }
