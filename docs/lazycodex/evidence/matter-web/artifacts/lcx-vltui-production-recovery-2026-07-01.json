@@ -1,0 +1,62 @@
+{
+  "schema_version": "lawos.lcx_vltui.production_recovery_receipt.v0.1",
+  "recorded_at": "2026-07-01T13:58:21.242Z",
+  "reason": "Restore LAWOS_VAULT_BRIDGE_TOKEN-backed production smoke and deploy current client/matter-code runtime",
+  "source": {
+    "branch": "codex/lcx-vltui-owner-approval-intake",
+    "commit": "48dd2da5983203987bb3e065d17d25fbc94ee26f",
+    "commit_message": "Release matter desktop v0.1.5 matter codes"
+  },
+  "aws_identity": {
+    "profile": "matter-prod-deploy-admin",
+    "region": "ap-northeast-2"
+  },
+  "api_deployment": {
+    "lambda_redeployed_in_this_receipt": true,
+    "lambda_function_name": "matter-lawos-api-prod",
+    "lambda_runtime": "nodejs22.x",
+    "lambda_last_modified": "2026-07-01T13:56:52.000+0000",
+    "lambda_state": "Active",
+    "lambda_last_update_status": "Successful",
+    "lambda_code_sha256": "JkmVa+Y4Yw6EPHirX8Aophcsea8eL5CuqgozX6w11k8=",
+    "lambda_revision_id": "bec89b7c-d65a-4032-aee2-ffa4326dfc3e",
+    "lambda_environment": {
+      "LAWOS_DEPLOYMENT_COMMIT": "48dd2da5983203987bb3e065d17d25fbc94ee26f",
+      "LAWOS_DEPLOYMENT_MODE": "aws_lambda_function_url",
+      "LAWOS_VAULT_BRIDGE_TOKEN_present": true,
+      "LAWOS_VAULT_BRIDGE_TOKEN_length": 64,
+      "secret_values_recorded": false
+    },
+    "zip_packaging": {
+      "zip_path": "/tmp/matter-lawos-api-prod-48dd2da59-current-matter-codes.zip",
+      "zip_sha256": "2649956be638630e843c78ab5fc028a6172c79af1e2f90aeaa0a335fac35d64f",
+      "zip_bytes": 3457475,
+      "included_runtime_roots": [
+        "apps/api/src",
+        "apps/api/package.json",
+        "packages",
+        "package.json",
+        "package-lock.json",
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+        "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json"
+      ]
+    },
+    "rollback_pointer": {
+      "last_modified": "2026-06-29T16:48:04.000+0000",
+      "code_sha256": "eYn3MvpNpAPmqwugVnDTyUtgXs+nNlbfKaRuAx+hVak=",
+      "revision_id": "694b49fa-ad73-41ea-b890-c70a2130a8e7",
+      "deployment_commit": "0ff79586d887a950200ab091a5864a20c174bdf9"
+    }
+  },
+  "verification": {
+    "production_smoke_command": "LAWOS_VAULT_BRIDGE_TOKEN=<redacted> LAWOS_DEPLOYMENT_COMMIT=$(git rev-parse HEAD) npm run lcx:vltui:production-smoke",
+    "production_smoke_json": "docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-smoke-2026-06-29.json",
+    "verdict": "PASS",
+    "check_count": 15,
+    "synthetic_bridge_writes_only": true,
+    "vault_document_write_enabled": false,
+    "real_client_data_used": false,
+    "public_release_claim": false,
+    "company_wide_go_live_claim": false
+  }
+}

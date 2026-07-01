@@ -54,5 +54,5 @@ This release candidate packages the current AMIC Client and Matter Code inventor
 - Windows NSIS installer: generated
 - Windows native install smoke: not run on this macOS host
 - Windows Authenticode signing: false
-- Production bridge smoke: blocked locally because `LAWOS_VAULT_BRIDGE_TOKEN` was not present
+- Production bridge smoke: pass after sourcing `LAWOS_VAULT_BRIDGE_TOKEN` from the production Lambda environment and redeploying `matter-lawos-api-prod` to commit `48dd2da5983203987bb3e065d17d25fbc94ee26f`
 - Public/external release: false

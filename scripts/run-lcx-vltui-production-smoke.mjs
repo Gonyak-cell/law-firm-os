@@ -265,7 +265,7 @@ const bridgePermissionHeaders = {
   ...bridgeAuthHeaders(),
   ...permissionHeaders({ tenant: "tenant_vault_bridge" })
 };
-const bridgeLookup = await readJson("/api/matters/vault-bridge/matter-lookup?tenant_id=tenant_vault_bridge&permission_ref=lcx_vltui_production_lookup&audit_hint_ref=lcx_vltui_production_lookup_probe&q=LCX-VLTUI-PROD%2FCivil", {
+const bridgeLookup = await readJson("/api/matters/vault-bridge/matter-lookup?tenant_id=tenant_vault_bridge&permission_ref=lcx_vltui_production_lookup&audit_hint_ref=lcx_vltui_production_lookup_probe&q=LCX-VLTUI-PROD%2FLIT%2FCIV", {
   headers: bridgePermissionHeaders
 });
 record(checks, "vault-bridge-lookup", bridgeLookup.status === 200 && safeCount(bridgeLookup.body?.items) > 0 && bridgeLookup.body.items.every((item) => !("document_bytes" in item) && !("storage_pointer" in item)), {

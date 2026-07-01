@@ -52,6 +52,13 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 - Windows Authenticode signing: false
 - Windows native install smoke: not_run_on_darwin
 
+## Production Bridge Smoke
+
+- `matter-lawos-api-prod` redeployed to commit `48dd2da5983203987bb3e065d17d25fbc94ee26f`
+- `LAWOS_VAULT_BRIDGE_TOKEN` restored from the production Lambda environment without recording the secret value
+- `npm run lcx:vltui:production-smoke`: pass, 15 checks
+- Production smoke writes remain synthetic bridge writes only; Vault document writes, public release, owner final approval, and company-wide go-live are not claimed
+
 ## Non-Claims
 
 - Public release: false
