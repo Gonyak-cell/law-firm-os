@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
+import { readLambdaEnvironmentWithSsoAutoLogin } from "./lib/aws-sso-lambda-env.mjs";
 
 const BASE_URL = (process.env.LAWOS_PRODUCTION_BASE_URL ?? "https://d2mthcc8vp3cr2.cloudfront.net").replace(/\/+$/, "");
 const ARTIFACT_DIR = "docs/lazycodex/evidence/matter-web/artifacts";
@@ -21,28 +21,6 @@ function nonEmpty(value) {
   return typeof value === "string" && value.trim() ? value.trim() : "";
 }
 
-function classifyBridgeTokenResolutionFailure(output = "") {
-  if (/Token has expired|retrieving token from sso|SSO.*expired/i.test(output)) {
-    return {
-      code: "AWS_SSO_SESSION_EXPIRED",
-      reason: `AWS SSO session expired for profile ${AWS_PROFILE}; run aws sso login --profile ${AWS_SSO_LOGIN_PROFILE}`,
-      missingRequiredEnv: ["AWS_SSO_SESSION"]
-    };
-  }
-  if (/could not be found|ResourceNotFoundException/i.test(output)) {
-    return {
-      code: "LAWOS_API_LAMBDA_NOT_FOUND",
-      reason: `Could not read ${API_LAMBDA_FUNCTION} to resolve LAWOS_VAULT_BRIDGE_TOKEN`,
-      missingRequiredEnv: ["LAWOS_API_LAMBDA_FUNCTION_NAME"]
-    };
-  }
-  return {
-    code: "LAWOS_VAULT_BRIDGE_TOKEN_UNRESOLVED",
-    reason: "LAWOS_VAULT_BRIDGE_TOKEN is not in the local environment and could not be resolved from the production Lambda environment",
-    missingRequiredEnv: ["LAWOS_VAULT_BRIDGE_TOKEN"]
-  };
-}
-
 function resolveBridgeToken() {
   const explicitToken = nonEmpty(process.env.LAWOS_VAULT_BRIDGE_TOKEN);
   if (explicitToken) return { token: explicitToken, source: "process_env" };
@@ -56,61 +34,36 @@ function resolveBridgeToken() {
     };
   }
 
-  const result = spawnSync("aws", [
-    "lambda",
-    "get-function-configuration",
-    "--function-name",
-    API_LAMBDA_FUNCTION,
-    "--query",
-    "Environment.Variables",
-    "--output",
-    "json"
-  ], {
-    encoding: "utf8",
-    env: { ...process.env, AWS_PROFILE, AWS_REGION },
-    maxBuffer: 1024 * 1024
+  const lambdaEnvResult = readLambdaEnvironmentWithSsoAutoLogin({
+    awsProfile: AWS_PROFILE,
+    awsRegion: AWS_REGION,
+    lambdaFunctionName: API_LAMBDA_FUNCTION,
+    ssoLoginProfile: AWS_SSO_LOGIN_PROFILE
   });
-
-  if (result.error) {
-    return {
-      token: "",
-      source: "lambda_environment",
-      code: "AWS_CLI_UNAVAILABLE",
-      blockedReason: `AWS CLI was not available to resolve LAWOS_VAULT_BRIDGE_TOKEN: ${result.error.message}`,
-      missingRequiredEnv: ["LAWOS_VAULT_BRIDGE_TOKEN"]
-    };
-  }
-
-  let lambdaEnv = {};
-  if (result.status === 0) {
-    try {
-      lambdaEnv = JSON.parse(result.stdout || "{}");
-    } catch {
-      lambdaEnv = {};
-    }
-  }
+  const lambdaEnv = lambdaEnvResult.values;
   const token = nonEmpty(lambdaEnv.LAWOS_VAULT_BRIDGE_TOKEN);
-  if (result.status === 0 && token) {
+  if (token) {
     return {
       token,
       source: "lambda_environment",
       awsProfile: AWS_PROFILE,
       awsRegion: AWS_REGION,
       lambdaFunctionName: API_LAMBDA_FUNCTION,
-      deploymentCommit: nonEmpty(lambdaEnv.LAWOS_DEPLOYMENT_COMMIT) || null
+      deploymentCommit: nonEmpty(lambdaEnv.LAWOS_DEPLOYMENT_COMMIT) || null,
+      ssoLogin: lambdaEnvResult.ssoLogin
     };
   }
 
-  const failure = classifyBridgeTokenResolutionFailure(`${result.stderr ?? ""}\n${result.stdout ?? ""}`);
   return {
     token: "",
     source: "lambda_environment",
     awsProfile: AWS_PROFILE,
     awsRegion: AWS_REGION,
     lambdaFunctionName: API_LAMBDA_FUNCTION,
-    code: failure.code,
-    blockedReason: failure.reason,
-    missingRequiredEnv: failure.missingRequiredEnv
+    code: lambdaEnvResult.code,
+    blockedReason: lambdaEnvResult.error,
+    missingRequiredEnv: lambdaEnvResult.missingRequiredEnv,
+    ssoLogin: lambdaEnvResult.ssoLogin
   };
 }
 
@@ -268,6 +221,7 @@ if (!BRIDGE_TOKEN) {
       aws_profile: BRIDGE_TOKEN_INFO.awsProfile ?? AWS_PROFILE,
       aws_region: BRIDGE_TOKEN_INFO.awsRegion ?? AWS_REGION,
       lambda_function_name: BRIDGE_TOKEN_INFO.lambdaFunctionName ?? API_LAMBDA_FUNCTION,
+      sso_login: BRIDGE_TOKEN_INFO.ssoLogin ?? null,
       secret_value_recorded: false
     },
     checks: [],
@@ -407,6 +361,7 @@ const report = {
     aws_profile: BRIDGE_TOKEN_INFO.awsProfile ?? null,
     aws_region: BRIDGE_TOKEN_INFO.awsRegion ?? null,
     lambda_function_name: BRIDGE_TOKEN_INFO.lambdaFunctionName ?? null,
+    sso_login: BRIDGE_TOKEN_INFO.ssoLogin ?? null,
     secret_value_recorded: false
   },
   checks,

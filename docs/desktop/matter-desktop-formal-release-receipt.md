@@ -56,6 +56,7 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 
 - `matter-lawos-api-prod` redeployed to commit `3d7d9da36288549cbb2f90ab4e88b6faa9cfa72c`
 - `LAWOS_VAULT_BRIDGE_TOKEN` restored from the production Lambda environment without recording the secret value
+- AWS SSO auto-login fallback enabled: if the Lambda environment read hits an expired SSO session, the smoke/upsert scripts run `aws sso login --profile amic-vault-staging-admin` once and retry the Lambda read
 - `npm run lcx:vltui:production-smoke`: pass, 15 checks
 - Production smoke writes remain synthetic bridge writes only; Vault document writes, public release, owner final approval, and company-wide go-live are not claimed
 

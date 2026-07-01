@@ -55,6 +55,7 @@ This release candidate packages the current AMIC Client and Matter Code inventor
 - Windows native install smoke: not run on this macOS host
 - Windows Authenticode signing: false
 - Production bridge smoke: pass after sourcing `LAWOS_VAULT_BRIDGE_TOKEN` from the production Lambda environment and redeploying `matter-lawos-api-prod` to commit `3d7d9da36288549cbb2f90ab4e88b6faa9cfa72c`
+- AWS SSO auto-login fallback: enabled for production smoke and current inventory bridge upsert; expired sessions trigger one `aws sso login --profile amic-vault-staging-admin` attempt before retrying the Lambda environment read
 - Production bridge current inventory write: pass, 99 client upserts and 148 matter upserts completed through the production bridge endpoints; receipt `docs/lazycodex/evidence/matter-web/artifacts/amic-current-production-bridge-upsert-2026-07-01.json`
 - Production Matter inventory readback: pass, 149 matters returned and required current codes including `제이에스테크/DEAL/Project Jade`, `새빗켐/DEAL/Project Tempus`, and `유진이엔티/DEAL/Project Horizon` found; receipt `docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-matter-code-verify-2026-07-01.json`
 - Release manifest bridge state: `production_bridge_write_claim=true`, `production_matter_code_reflection_claim=true`, `public_release_claim=false`, `production_go_live_claim=false`

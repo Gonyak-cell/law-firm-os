@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { AMIC_CURRENT_MATTER_CLIENTS, AMIC_CURRENT_MATTER_CODE_CANDIDATES } from "../packages/matter/src/amic-matter-code-candidates.js";
+import { readLambdaEnvironmentWithSsoAutoLogin } from "./lib/aws-sso-lambda-env.mjs";
 
 const BASE_URL = (process.env.LAWOS_PRODUCTION_BASE_URL ?? "https://d2mthcc8vp3cr2.cloudfront.net").replace(/\/+$/, "");
 const AWS_PROFILE = process.env.LAWOS_VAULT_BRIDGE_AWS_PROFILE ?? process.env.AWS_PROFILE ?? "matter-prod-deploy-admin";
@@ -34,39 +34,15 @@ function nonEmpty(value) {
 }
 
 function resolveLambdaEnvironment() {
-  const result = spawnSync("aws", [
-    "lambda",
-    "get-function-configuration",
-    "--function-name",
-    API_LAMBDA_FUNCTION,
-    "--query",
-    "Environment.Variables",
-    "--output",
-    "json"
-  ], {
-    encoding: "utf8",
-    env: { ...process.env, AWS_PROFILE, AWS_REGION },
-    maxBuffer: 1024 * 1024
+  const result = readLambdaEnvironmentWithSsoAutoLogin({
+    awsProfile: AWS_PROFILE,
+    awsRegion: AWS_REGION,
+    lambdaFunctionName: API_LAMBDA_FUNCTION,
+    ssoLoginProfile: AWS_SSO_LOGIN_PROFILE
   });
-
-  if (result.error) {
-    return { error: `AWS CLI unavailable: ${result.error.message}`, values: {} };
-  }
-  if (result.status !== 0) {
-    const output = `${result.stderr ?? ""}\n${result.stdout ?? ""}`;
-    const ssoExpired = /Token has expired|retrieving token from sso|SSO.*expired/i.test(output);
-    return {
-      error: ssoExpired
-        ? `AWS SSO session expired for profile ${AWS_PROFILE}; run aws sso login --profile ${AWS_SSO_LOGIN_PROFILE}`
-        : `Could not read ${API_LAMBDA_FUNCTION} Lambda environment`,
-      values: {}
-    };
-  }
-  try {
-    return { error: "", values: JSON.parse(result.stdout || "{}") };
-  } catch {
-    return { error: "Could not parse Lambda environment response", values: {} };
-  }
+  return result.error
+    ? { error: result.error, code: result.code, missingRequiredEnv: result.missingRequiredEnv, values: {}, ssoLogin: result.ssoLogin }
+    : { error: "", values: result.values, ssoLogin: result.ssoLogin };
 }
 
 function authHeaders(token) {
@@ -247,6 +223,7 @@ if (!token) {
     verdict: "BLOCKED",
     blocked_reason: lambdaEnv.error || "LAWOS_VAULT_BRIDGE_TOKEN could not be resolved",
     token_source: nonEmpty(process.env.LAWOS_VAULT_BRIDGE_TOKEN) ? "process_env" : "lambda_environment",
+    sso_login: lambdaEnv.ssoLogin ?? null,
     secret_value_recorded: false,
     client_upserts: { total: 0 },
     matter_upserts: { total: 0 },
@@ -313,6 +290,7 @@ const report = {
   tenant_id: TENANT,
   verdict: "PASS",
   token_source: nonEmpty(process.env.LAWOS_VAULT_BRIDGE_TOKEN) ? "process_env" : "lambda_environment",
+  sso_login: lambdaEnv.ssoLogin ?? null,
   lambda_function_name: API_LAMBDA_FUNCTION,
   lambda_deployment_commit: lambdaEnv.values.LAWOS_DEPLOYMENT_COMMIT ?? null,
   source_revision: SOURCE_REVISION,

@@ -1,10 +1,16 @@
 {
   "schema_version": "lawos.amic_current.production_bridge_upsert.v0.1",
-  "generated_at": "2026-07-01T14:57:26.620Z",
+  "generated_at": "2026-07-01T15:04:10.735Z",
   "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
   "tenant_id": "tenant_rp05_synthetic",
   "verdict": "PASS",
   "token_source": "lambda_environment",
+  "sso_login": {
+    "attempted": false,
+    "profile": "amic-vault-staging-admin",
+    "status": null,
+    "auto_login_enabled": true
+  },
   "lambda_function_name": "matter-lawos-api-prod",
   "lambda_deployment_commit": "3d7d9da36288549cbb2f90ab4e88b6faa9cfa72c",
   "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
@@ -13,15 +19,15 @@
   "client_upserts": {
     "total": 99,
     "actions": {
-      "skipped_idempotent": 99
+      "reused": 99
     },
     "failed": []
   },
   "matter_upserts": {
     "total": 148,
     "actions": {
-      "skipped_idempotent": 111,
-      "reused": 37
+      "reused": 111,
+      "skipped_idempotent": 37
     },
     "failed": []
   },

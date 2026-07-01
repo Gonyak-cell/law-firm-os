@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.production_matter_code_inventory_verify.v0.1",
-  "recorded_at": "2026-07-01T14:57:26.620Z",
+  "recorded_at": "2026-07-01T15:04:10.735Z",
   "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
   "endpoint": "/api/matters",
   "tenant_id": "tenant_rp05_synthetic",

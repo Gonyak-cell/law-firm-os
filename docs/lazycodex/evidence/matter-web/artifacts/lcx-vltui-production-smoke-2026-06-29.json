@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.lcx_vltui.production_smoke.v0.1",
-  "generated_at": "2026-07-01T14:55:58.146Z",
+  "generated_at": "2026-07-01T15:03:01.671Z",
   "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
   "deployment_commit": "3d7d9da36288549cbb2f90ab4e88b6faa9cfa72c",
   "verdict": "PASS",
@@ -9,6 +9,12 @@
     "aws_profile": "matter-prod-deploy-admin",
     "aws_region": "ap-northeast-2",
     "lambda_function_name": "matter-lawos-api-prod",
+    "sso_login": {
+      "attempted": false,
+      "profile": "amic-vault-staging-admin",
+      "status": null,
+      "auto_login_enabled": true
+    },
     "secret_value_recorded": false
   },
   "checks": [
