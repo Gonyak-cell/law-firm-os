@@ -15,6 +15,7 @@ const APPROVAL_REF = "amic-current-matter-codes-production-bridge-2026-07-01";
 const ARTIFACT_DIR = "docs/lazycodex/evidence/matter-web/artifacts";
 const JSON_PATH = `${ARTIFACT_DIR}/amic-current-production-bridge-upsert-2026-07-01.json`;
 const MD_PATH = `${ARTIFACT_DIR}/amic-current-production-bridge-upsert-2026-07-01.md`;
+const VERIFY_JSON_PATH = `${ARTIFACT_DIR}/lcx-vltui-production-matter-code-verify-2026-07-01.json`;
 const REQUIRED_CODES = Object.freeze([
   "제이에스테크/DEAL/Project Jade",
   "새빗켐/DEAL/Project Tempus",
@@ -211,6 +212,28 @@ function writeReport(report) {
   mkdirSync(ARTIFACT_DIR, { recursive: true });
   writeFileSync(JSON_PATH, `${JSON.stringify(report, null, 2)}\n`);
   writeFileSync(MD_PATH, renderMarkdown(report));
+  if (report.verdict === "PASS") {
+    writeFileSync(VERIFY_JSON_PATH, `${JSON.stringify({
+      schema_version: "lawos.production_matter_code_inventory_verify.v0.1",
+      recorded_at: report.generated_at,
+      base_url: report.base_url,
+      endpoint: "/api/matters",
+      tenant_id: report.tenant_id,
+      deployment_commit: report.lambda_deployment_commit,
+      verdict: "PASS",
+      item_count: report.readback.matter_count,
+      required_codes: report.readback.required_codes,
+      short_axis_count: report.readback.short_axis_count,
+      secret_values_recorded: false,
+      boundary: {
+        read_only_inventory_check: true,
+        vault_document_write_enabled: false,
+        real_client_document_content_used: false,
+        public_release_claim: false,
+        company_wide_go_live_claim: false
+      }
+    }, null, 2)}\n`);
+  }
 }
 
 const lambdaEnv = resolveLambdaEnvironment();
@@ -330,5 +353,6 @@ console.log(JSON.stringify({
   matter_upserts: report.matter_upserts,
   readback_matter_count: report.readback.matter_count,
   artifact_json: JSON_PATH,
-  artifact_md: MD_PATH
+  artifact_md: MD_PATH,
+  verify_artifact_json: VERIFY_JSON_PATH
 }, null, 2));

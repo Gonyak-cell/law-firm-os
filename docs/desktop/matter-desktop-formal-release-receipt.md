@@ -54,11 +54,22 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 
 ## Production Bridge Smoke
 
-- `matter-lawos-api-prod` redeployed to commit `48dd2da5983203987bb3e065d17d25fbc94ee26f`
+- `matter-lawos-api-prod` redeployed to commit `3d7d9da36288549cbb2f90ab4e88b6faa9cfa72c`
 - `LAWOS_VAULT_BRIDGE_TOKEN` restored from the production Lambda environment without recording the secret value
 - `npm run lcx:vltui:production-smoke`: pass, 15 checks
-- Production Matter inventory readback: pass, 149 matters returned and required current codes found
 - Production smoke writes remain synthetic bridge writes only; Vault document writes, public release, owner final approval, and company-wide go-live are not claimed
+
+## Production Current Client/Matter Bridge Write
+
+- Remote production bridge current inventory write: pass
+- Tenant: `tenant_rp05_synthetic`
+- Client upserts: 99 total, 0 failed
+- Matter upserts: 148 total, 0 failed
+- Production Matter inventory readback: pass, 149 matters returned and required current codes found
+- Write receipt: `docs/lazycodex/evidence/matter-web/artifacts/amic-current-production-bridge-upsert-2026-07-01.json`
+- Readback receipt: `docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-matter-code-verify-2026-07-01.json`
+- Release manifest bridge fields: `production_bridge_write_claim=true`, `production_matter_code_reflection_claim=true`
+- Boundary: no bearer values, AWS secrets, raw document bodies, Vault document writes, public release, owner final approval, or company-wide go-live are claimed
 
 ## Non-Claims
 

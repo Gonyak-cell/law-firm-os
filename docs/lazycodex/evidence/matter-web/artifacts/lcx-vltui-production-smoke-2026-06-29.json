@@ -1,8 +1,8 @@
 {
   "schema_version": "lawos.lcx_vltui.production_smoke.v0.1",
-  "generated_at": "2026-07-01T14:04:29.970Z",
+  "generated_at": "2026-07-01T14:55:58.146Z",
   "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
-  "deployment_commit": "48dd2da5983203987bb3e065d17d25fbc94ee26f",
+  "deployment_commit": "3d7d9da36288549cbb2f90ab4e88b6faa9cfa72c",
   "verdict": "PASS",
   "bridge_token_resolution": {
     "source": "lambda_environment",
@@ -93,14 +93,14 @@
       "id": "vault-bridge-client-upsert",
       "passed": true,
       "details": {
-        "summary": "status=200, action=skipped_idempotent"
+        "summary": "status=201, action=created"
       }
     },
     {
       "id": "vault-bridge-matter-upsert",
       "passed": true,
       "details": {
-        "summary": "status=200, action=skipped_idempotent"
+        "summary": "status=201, action=created"
       }
     },
     {

@@ -1,0 +1,82 @@
+{
+  "schema_version": "lawos.amic_current.production_bridge_upsert.v0.1",
+  "generated_at": "2026-07-01T14:57:26.620Z",
+  "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+  "tenant_id": "tenant_rp05_synthetic",
+  "verdict": "PASS",
+  "token_source": "lambda_environment",
+  "lambda_function_name": "matter-lawos-api-prod",
+  "lambda_deployment_commit": "3d7d9da36288549cbb2f90ab4e88b6faa9cfa72c",
+  "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+  "approval_ref": "amic-current-matter-codes-production-bridge-2026-07-01",
+  "secret_value_recorded": false,
+  "client_upserts": {
+    "total": 99,
+    "actions": {
+      "skipped_idempotent": 99
+    },
+    "failed": []
+  },
+  "matter_upserts": {
+    "total": 148,
+    "actions": {
+      "skipped_idempotent": 111,
+      "reused": 37
+    },
+    "failed": []
+  },
+  "readback": {
+    "matter_count": 149,
+    "required_codes": [
+      {
+        "code": "제이에스테크/DEAL/Project Jade",
+        "found": true
+      },
+      {
+        "code": "새빗켐/DEAL/Project Tempus",
+        "found": true
+      },
+      {
+        "code": "성일하이텍/DEAL/Project S",
+        "found": true
+      },
+      {
+        "code": "포이스/DEAL/Project Fausta",
+        "found": true
+      },
+      {
+        "code": "위즈코어/DEAL/Project Wiz",
+        "found": true
+      },
+      {
+        "code": "엠피닉스/DEAL/Project Phoenix",
+        "found": true
+      },
+      {
+        "code": "유진이엔티/DEAL/Project Horizon",
+        "found": true
+      },
+      {
+        "code": "타이탄컴퍼니/DEAL/Project Titan",
+        "found": true
+      },
+      {
+        "code": "성진종합전기/DEAL/Project Switch",
+        "found": true
+      },
+      {
+        "code": "귀한사람들/Advisory/retainer",
+        "found": true
+      }
+    ],
+    "short_axis_count": 0
+  },
+  "boundary": {
+    "remote_production_bridge_write_executed": true,
+    "real_client_matter_code_inventory_used": true,
+    "raw_document_content_used": false,
+    "vault_document_write_enabled": false,
+    "public_release_claim": false,
+    "company_wide_go_live_claim": false
+  }
+}

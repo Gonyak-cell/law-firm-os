@@ -1,10 +1,10 @@
 {
   "schema_version": "lawos.production_matter_code_inventory_verify.v0.1",
-  "recorded_at": "2026-07-01T14:00:03.220Z",
+  "recorded_at": "2026-07-01T14:57:26.620Z",
   "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
   "endpoint": "/api/matters",
   "tenant_id": "tenant_rp05_synthetic",
-  "deployment_commit": "48dd2da5983203987bb3e065d17d25fbc94ee26f",
+  "deployment_commit": "3d7d9da36288549cbb2f90ab4e88b6faa9cfa72c",
   "verdict": "PASS",
   "item_count": 149,
   "required_codes": [
