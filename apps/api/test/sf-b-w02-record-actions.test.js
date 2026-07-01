@@ -100,7 +100,7 @@ test("SF-B-W02R health and field registries expose safe record action metadata",
     assert.equal(matterFields.body.item.object_name, "matter");
     assert.deepEqual(
       matterFields.body.item.fields.map((field) => field.field),
-      ["title", "wip_status", "risk_level"],
+      ["title", "matter_code", "wip_status", "risk_level"],
     );
     assert.equal(JSON.stringify(matterFields.body).includes("owner_user_id"), true);
     assert.equal(JSON.stringify(matterFields.body.fields ?? {}).includes("owner_user_id"), false);
@@ -135,6 +135,19 @@ test("SF-B-W02R field update patches Matter safely and exposes record action aud
     assert.equal(update.body.item.raw_user_id_included, false);
     assert.equal("owner_user_id" in update.body.item, false);
 
+    const codeUpdate = await json(baseUrl, "/api/record-actions/matter/matter_rp05_synthetic_opening/field-update", {
+      tenantId: MATTER_TENANT,
+      method: "POST",
+      body: JSON.stringify(recordActionBody(MATTER_TENANT, {
+        idempotency_key: "sf-b-w02-matter-code-field-update",
+        field_updates: { matter_code: "AMIC/LIT/수정사건" },
+        reason: "record_field_update",
+      })),
+    });
+    assert.equal(codeUpdate.status, 200);
+    assert.equal(codeUpdate.body.item.matter_code, "AMIC/LIT/수정사건");
+    assert.deepEqual(codeUpdate.body.field_patch.changed_fields, ["matter_code"]);
+
     const replay = await json(baseUrl, "/api/record-actions/matter/matter_rp05_synthetic_opening/field-update", {
       tenantId: MATTER_TENANT,
       method: "POST",
@@ -153,7 +166,7 @@ test("SF-B-W02R field update patches Matter safely and exposes record action aud
       { tenantId: MATTER_TENANT },
     );
     assert.equal(audit.status, 200);
-    assert.equal(audit.body.items.length, 1);
+    assert.equal(audit.body.items.length, 2);
     assert.equal(audit.body.items[0].actor_ref_included, false);
     assert.equal(audit.body.items[0].raw_values_included, false);
 
@@ -167,6 +180,17 @@ test("SF-B-W02R field update patches Matter safely and exposes record action aud
     });
     assert.equal(invalid.status, 400);
     assert.equal(invalid.body.ui_state, "blocked");
+
+    const invalidCode = await json(baseUrl, "/api/record-actions/matter/matter_rp05_synthetic_opening/field-update", {
+      tenantId: MATTER_TENANT,
+      method: "POST",
+      body: JSON.stringify(recordActionBody(MATTER_TENANT, {
+        idempotency_key: "sf-b-w02-invalid-matter-code-field-update",
+        field_updates: { matter_code: "AMIC/General/잘못된축" },
+      })),
+    });
+    assert.equal(invalidCode.status, 400);
+    assert.equal(invalidCode.body.ui_state, "blocked");
 
     const denied = await json(
       baseUrl,

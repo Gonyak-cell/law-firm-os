@@ -386,6 +386,7 @@
     "unauthorized_object_name"
   ],
   "public_exports": [
+    "AMIC_CURRENT_CLIENT_CANDIDATES",
     "MASTER_DATA_API_REFERENCE_SURFACE",
     "MASTER_DATA_AUDIT_SOURCE",
     "MASTER_DATA_CONTACT_POINT_TYPES",
@@ -469,6 +470,7 @@
     "createBillingProfileService",
     "createClientGroupService",
     "createContactPointService",
+    "createCrmCanonicalWriteService",
     "createMasterDataApiReferenceCatalog",
     "createMasterDataApiReferenceFixture",
     "createMasterDataBillingProfile",

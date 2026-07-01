@@ -56,7 +56,7 @@ function openingPayload(overrides = {}) {
       client_id: "client_rp04_amic",
       legal_client_party_id: "party_rp04_amic",
       billing_client_party_id: "party_rp04_amic",
-      matter_type_english: "litigation",
+      matter_type_english: "LIT",
       matter_detail_type_korean: "계약분쟁",
       source_revision: "api-opening-test-revision",
       title: "API opened matter",
@@ -184,8 +184,10 @@ test("G4 Matter list is repository-backed, permission-trimmed, and count-leak sa
     const { status, body } = await json(baseUrl, `/api/matters?${BASE_QUERY}`);
     assert.equal(status, 200);
     assert.equal(body.outcome, "passed");
-    assert.equal(body.items.length, 1);
+    assert.equal(body.items.length, 25);
     assert.equal(body.items[0].matter_id, "matter_rp05_synthetic_opening");
+    assert.ok(body.items.some((item) => item.matter_code === "고구려푸드/LIT/민사사건"));
+    assert.equal(body.page_info.next_cursor, "25");
     assert.equal(body.page_info.omitted_matter_count, null);
     assert.equal(body.count_leak_prevented, true);
     assert.equal(body.production_ready_claim, false);
@@ -221,7 +223,7 @@ test("G4 Matter opening write persists, audits, and replays idempotently across 
     assert.equal(created.status, 201);
     assert.equal(created.body.outcome, "created");
     assert.equal(created.body.item.matter_id, "matter_api_open_001");
-    assert.equal(created.body.item.matter_code, "AMIC API/litigation/계약분쟁");
+    assert.equal(created.body.item.matter_code, "AMIC API/LIT/계약분쟁");
     assert.equal(created.body.item.matter_number, "M-TENANT-RP05-API-OPEN-001");
     assert.equal(created.body.item.client_id, "client_rp04_amic");
     assert.equal(created.body.state_idempotent, true);
@@ -239,7 +241,7 @@ test("G4 Matter opening write persists, audits, and replays idempotently across 
   await withServer(async (baseUrl) => {
     const detail = await json(baseUrl, `/api/matters/matter_api_open_001?${BASE_QUERY}`);
     assert.equal(detail.status, 200);
-    assert.equal(detail.body.item.matter_code, "AMIC API/litigation/계약분쟁");
+    assert.equal(detail.body.item.matter_code, "AMIC API/LIT/계약분쟁");
     assert.equal(detail.body.item.matter_id, "matter_api_open_001");
     assert.equal(detail.body.client_report.unauthorized_count_leaked, false);
   }, { matterStorePath: storePath });

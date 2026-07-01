@@ -4,6 +4,8 @@ import {
   createMatterCoreSyntheticFixture,
   createMatterDocumentEmailBuilderService,
   createMatterRepository,
+  AMIC_CURRENT_MATTER_CLIENTS,
+  AMIC_CURRENT_MATTER_CODE_CANDIDATES,
   upsertMatterAppClientFromVaultContract,
   upsertMatterAppMatterFromVaultContract,
 } from "../../../packages/matter/src/index.js";
@@ -140,11 +142,11 @@ function createMatterRuntimeSeed() {
     if (record.model_type === "Matter") {
       return {
         ...record,
-        matter_code: "AMIC/general/합성개시",
+        matter_code: "AMIC/LIT/합성개시",
         matter_name: record.title,
         matter_number: "M-TENANT-RP05-0001",
         client_display_name: "AMIC synthetic client",
-        matter_type_english: "general",
+        matter_type_english: "LIT",
         matter_detail_type_korean: "합성개시",
         source_revision: "runtime-seed-rp05",
         legal_client_party_id: "party_rp04_amic",
@@ -183,10 +185,10 @@ function createMatterRuntimeSeed() {
     matter_id: "matter_rp05_silent_wall",
     tenant_id: fixture.tenant_id,
     client_id: "client_rp05_silent",
-    matter_code: "Silent/general/윤리장벽",
+    matter_code: "Silent/LIT/윤리장벽",
     matter_name: "Silent ethical wall matter",
     client_display_name: "Silent synthetic client",
-    matter_type_english: "general",
+    matter_type_english: "LIT",
     matter_detail_type_korean: "윤리장벽",
     source_revision: "runtime-seed-rp05",
     legal_client_party_id: "party_rp05_silent",
@@ -203,6 +205,49 @@ function createMatterRuntimeSeed() {
     risk_level: "restricted",
     silent: true,
   });
+  for (const client of AMIC_CURRENT_MATTER_CLIENTS) {
+    records.push({
+      model_type: "MatterClient",
+      tenant_id: fixture.tenant_id,
+      client_id: client.client_id,
+      client_display_name: client.client_display_name,
+      client_short_name: client.client_short_name,
+      status: "active",
+      source_revision: client.source_revision,
+      created_by: "amic_current_onedrive_import",
+      created_at: "2026-07-01T00:00:00.000+09:00",
+      updated_by: "amic_current_onedrive_import",
+      updated_at: "2026-07-01T00:00:00.000+09:00",
+    });
+  }
+  for (const matter of AMIC_CURRENT_MATTER_CODE_CANDIDATES) {
+    records.push({
+      model_type: "Matter",
+      matter_id: matter.matter_id,
+      tenant_id: fixture.tenant_id,
+      client_id: matter.client_id,
+      matter_code: matter.matter_code,
+      matter_name: matter.matter_name,
+      client_display_name: matter.client_display_name,
+      matter_type_english: matter.matter_type_english,
+      matter_detail_type_korean: matter.matter_detail_type_korean,
+      practice_group: matter.matter_axis,
+      source_revision: matter.source_revision,
+      legal_client_party_id: matter.client_id,
+      billing_client_party_id: matter.client_id,
+      title: matter.title,
+      status: matter.status,
+      created_by: "amic_current_onedrive_import",
+      created_at: "2026-07-01T00:00:00.000+09:00",
+      matter_number: matter.matter_number,
+      permission_envelope_id: `perm:${fixture.tenant_id}:${matter.matter_id}`,
+      audit_trace_id: `audit:${fixture.tenant_id}:${matter.matter_id}`,
+      document_count: 0,
+      wip_status: matter.review_required ? "review_required" : "not_started",
+      risk_level: matter.review_required ? "elevated" : "standard",
+      opened_at: "2026-07-01T00:00:00.000+09:00",
+    });
+  }
   for (const view of DEFAULT_MATTER_LIST_VIEWS) {
     records.push({
       model_type: "MatterListView",
@@ -830,6 +875,7 @@ function serializeRecentMatterView(record, runtime) {
     matter_id: record.matter_id,
     object_type: "Matter",
     title: safeMatter.title,
+    matter_code: safeMatter.matter_code,
     matter_number: safeMatter.matter_number,
     status: safeMatter.status,
     viewed_at: record.viewed_at,

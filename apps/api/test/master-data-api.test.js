@@ -4,6 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { startApiServer } from "../src/server.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
+import { AMIC_CURRENT_CLIENT_CANDIDATES } from "../../../packages/master-data/src/index.js";
 
 const TENANT = "tenant_rp04_synthetic";
 const BASE_QUERY = `tenant_id=${TENANT}&actor_user_id=user_rp04_owner&permission_ref=perm_ref_rp04_read&audit_hint_ref=audit_hint_rp04_read`;
@@ -40,7 +41,8 @@ test("GET /api/health returns the service descriptor without permission context"
   assert.equal(status, 200);
   assert.equal(body.status, "ok");
   assert.equal(body.service, "@law-firm-os/api");
-  assert.equal(body.synthetic_only, true);
+  assert.equal(body.synthetic_only, false);
+  assert.equal(body.uses_real_client_data, true);
   assert.equal(body.permission_gate.default_decision, "deny");
   assert.equal(body.permission_gate.fail_closed, true);
   assert.deepEqual(body.permission_gate.decision_order.at(-1), "fail_closed_no_match");
@@ -48,20 +50,96 @@ test("GET /api/health returns the service descriptor without permission context"
   assert.equal(body.bounded_contexts[0].contract_schema_version, "law-firm-os.master-data-contract.v0.21");
 });
 
-test("records happy path returns tenant-scoped synthetic items with matter-core enrichment", async () => {
+test("desktop file-origin API calls receive CORS headers and preflight success", async () => {
+  const options = await fetch(`${baseUrl}/master-data/records?${BASE_QUERY}`, {
+    method: "OPTIONS",
+    headers: {
+      origin: "null",
+      "access-control-request-method": "GET",
+      "access-control-request-headers": PERMISSION_CONTEXT_HEADER
+    }
+  });
+  assert.equal(options.status, 204);
+  assert.equal(options.headers.get("access-control-allow-origin"), "*");
+  assert.match(options.headers.get("access-control-allow-headers") ?? "", new RegExp(PERMISSION_CONTEXT_HEADER));
+
+  const response = await fetch(`${baseUrl}/api/health`, { headers: { origin: "null" } });
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("access-control-allow-origin"), "*");
+});
+
+test("records happy path returns tenant-scoped AMIC items with matter-core enrichment", async () => {
   const { status, body } = await get(`/master-data/records?${BASE_QUERY}`, allowContext());
   assert.equal(status, 200);
   assert.equal(body.outcome, "passed");
-  assert.equal(body.items.length, 7); // 8 fixture records minus the Relationship row
-  assert.equal(body.page_info.returned_count, 7);
+  assert.equal(body.items.length, 25);
+  assert.equal(body.page_info.returned_count, 25);
   assert.equal(body.page_info.omitted_item_count, 0);
   assert.equal(body.audit_hint_ref, "audit_hint_rp04_read");
   for (const item of body.items) {
     assert.equal(item.tenant_id, TENANT);
-    assert.equal(item.synthetic_only, true);
     assert.equal(item.matter_core_enrichment.runtime_seed_crosswalk, true);
     assert.equal(item.matter_core_enrichment.matter_id, "matter_rp05_synthetic_opening");
   }
+});
+
+test("ClientGroup records include current AMIC client names without legacy archive rows", async () => {
+  const { status, body } = await get(`/master-data/records?${BASE_QUERY}&model_type=ClientGroup&limit=100`, allowContext());
+  assert.equal(status, 200);
+  assert.equal(body.outcome, "passed");
+  assert.equal(body.items.length, 100);
+  assert.equal(body.page_info.next_cursor, "100");
+  const nextPage = await get(`/master-data/records?${BASE_QUERY}&model_type=ClientGroup&limit=100&cursor=100`, allowContext());
+  assert.equal(nextPage.status, 200);
+  assert.equal(nextPage.body.outcome, "passed");
+  assert.equal(nextPage.body.items.length, AMIC_CURRENT_CLIENT_CANDIDATES.length + 1 - 100);
+  assert.equal(nextPage.body.page_info.next_cursor, null);
+  const allItems = [...body.items, ...nextPage.body.items];
+  const currentClientItems = allItems.filter((item) => item.client_source_ref === "amic_current_onedrive_folder_inventory_2026_07_01");
+  assert.equal(currentClientItems.length, AMIC_CURRENT_CLIENT_CANDIDATES.length);
+  const names = currentClientItems.map((item) => item.display_name);
+  assert.ok(names.includes("고구려푸드"));
+  assert.ok(names.includes("하이로닉"));
+  assert.equal(names.includes("고구려푸드 주식회사"), false);
+  assert.equal(names.some((name) => /선생님|원장님|회장님|교수님|작가|강제집행면탈|조세범|^Pjt\.|^Project\b/.test(name)), false);
+  for (const expectedName of ["송수연", "한승민", "허유지", "장정도", "강영권", "임인홍", "황진수"]) {
+    assert.ok(names.includes(expectedName));
+  }
+  for (const expectedName of [
+    "홀딩핸즈앤코 외 12명",
+    "한흥수 외 6명",
+    "노윤현 외 19명",
+    "최재헌 외 2명",
+    "이강명 외 1명",
+    "강상도 외 16명",
+    "박민규 외 5명",
+    "권도균 외 11명",
+    "펜타스톤-오라이언-온앤업 신기술투자조합",
+    "봉경환 외 4명",
+    "박태오",
+    "SMEJ Holdings, INC. 외 1명",
+    "롯데에너지머티리얼즈",
+    "김정환",
+    "오윤록 외 1명",
+    "에이치엘엘중앙",
+  ]) {
+    assert.ok(names.includes(expectedName));
+  }
+  for (const removedProjectSellerName of ["코오롱글로텍", "강상도", "Katelynn Yun-Yu Owyang", "SMEJ Holdings, INC.", "에스엠스튜디오스"]) {
+    assert.equal(names.includes(removedProjectSellerName), false);
+  }
+  const goguryeo = allItems.find((item) => item.display_name === "고구려푸드");
+  assert.equal(goguryeo.legal_form, "주식회사");
+  assert.equal(goguryeo.canonical_display_name, "고구려푸드 주식회사");
+  assert.equal(goguryeo.client_source_ref, "amic_current_onedrive_folder_inventory_2026_07_01");
+  assert.equal(goguryeo.source_lanes.some((lane) => lane.startsWith("999_")), false);
+  const lotteEnergyMaterials = allItems.find((item) => item.display_name === "롯데에너지머티리얼즈");
+  assert.equal(lotteEnergyMaterials.legal_form, "주식회사");
+  assert.equal(lotteEnergyMaterials.canonical_display_name, "롯데에너지머티리얼즈 주식회사");
+  const hllJoongang = allItems.find((item) => item.display_name === "에이치엘엘중앙");
+  assert.equal(hllJoongang.legal_form, "주식회사");
+  assert.equal(hllJoongang.canonical_display_name, "에이치엘엘중앙 주식회사");
+  assert.equal(AMIC_CURRENT_CLIENT_CANDIDATES.length, 108);
 });
 
 test("records model_type filter and cursor pagination are deterministic", async () => {
@@ -74,7 +152,7 @@ test("records model_type filter and cursor pagination are deterministic", async 
     allowContext(),
   );
   assert.equal(second.body.items.length, 1);
-  assert.equal(second.body.page_info.next_cursor, null);
+  assert.equal(second.body.page_info.next_cursor, "2");
   assert.notEqual(first.body.items[0].entity_id, second.body.items[0].entity_id);
 });
 

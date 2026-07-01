@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from "electron";
 
 export const PRELOAD_CHANNEL_ALLOWLIST = Object.freeze({
   status: "session:status",
+  claimLogoIntro: "session:logo-intro:claim",
   runtime: "session:runtime",
   accounts: "session:accounts",
   requestPasswordReset: "session:password-reset:request",
@@ -36,7 +37,9 @@ function onAllowedEvent(eventName, handler) {
 }
 
 export const sessionApi = Object.freeze({
+  desktopApiBaseUrl: process.env.MATTER_DESKTOP_API_BASE_URL ?? "",
   status: () => invokeAllowed("status"),
+  claimLogoIntro: () => invokeAllowed("claimLogoIntro"),
   runtime: () => invokeAllowed("runtime"),
   accounts: () => invokeAllowed("accounts"),
   requestPasswordReset: (payload) => invokeAllowed("requestPasswordReset", payload),

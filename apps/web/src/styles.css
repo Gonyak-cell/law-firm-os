@@ -7499,6 +7499,35 @@ html[data-theme="dark"] .public-preview {
   min-width: 82px;
 }
 
+.record-action-edit-form {
+  display: grid;
+  grid-template-columns: minmax(160px, 240px) auto;
+  align-items: end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.record-action-edit-form label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  color: var(--am-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.record-action-edit-form input {
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  padding: 0 9px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text);
+  font: inherit;
+}
+
 .feature-gap-card {
   display: grid;
   gap: 7px;
@@ -9374,6 +9403,8 @@ html[data-theme="dark"] .public-preview {
   .record-summary-grid,
   .matter-list-view-panel,
   .matter-bulk-action-bar,
+  .record-action-edit-strip,
+  .record-action-edit-form,
   .activity-filter-tabs,
   .matter-selectable-header,
   .matter-selectable-row,

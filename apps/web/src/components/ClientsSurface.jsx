@@ -76,6 +76,10 @@ function clientStatus(value) {
   return "사용 중";
 }
 
+function clientLegalForm(value) {
+  return businessLabel(value, "해당 없음");
+}
+
 function pipelineStatus(value) {
   if (value === "qualified") return "상담 진행";
   if (value === "active") return "제안 준비";
@@ -158,6 +162,7 @@ function proposalStateLabel(value) {
 
 function recordFieldLabel(value) {
   const text = String(value ?? "").trim();
+  if (text === "Client name") return "Client 이름";
   if (text === "Client display name") return "Client 표시 이름";
   if (text === "Account status") return "Client 상태";
   if (text === "Contact status") return "담당자 상태";
@@ -175,6 +180,28 @@ function actionMessage(result, successText) {
 
 function resultItems(result) {
   return result?.kind === "data" && Array.isArray(result.items) ? result.items : [];
+}
+
+async function fetchAllMasterDataRecords(params) {
+  const collected = [];
+  let cursor = null;
+  let pageResult = null;
+  for (let page = 0; page < 20; page += 1) {
+    pageResult = await fetchMasterDataRecords({ ...params, cursor });
+    if (pageResult.kind !== "data") return pageResult;
+    collected.push(...resultItems(pageResult));
+    cursor = pageResult.pageInfo?.next_cursor ?? null;
+    if (!cursor) break;
+  }
+  return {
+    ...pageResult,
+    items: collected,
+    pageInfo: {
+      ...(pageResult?.pageInfo ?? {}),
+      returned_count: collected.length,
+      next_cursor: null
+    }
+  };
 }
 
 function guardedResultForContext(ctx) {
@@ -530,6 +557,7 @@ function ClientRecordPanel({ client, leadCount, opportunityCount, intakeCount, a
       </div>
       <div className="property-grid tight">
         <Property label="상태" value={client ? clientStatus(client.status) : "대기"} />
+        <Property label="법인 형태" value={client ? clientLegalForm(client.legal_form) : "해당 없음"} />
         <Property label="대표 당사자" value={client?.primary_entity_id ?? client?.primary_party_id ?? "미지정"} />
         <Property label="구성원" value={client ? String(clientMembers(client)) : "0"} />
         <Property label="연결 Matter" value={businessLabel(client?.matter_core_enrichment?.matter_title, "미지정")} />
@@ -576,12 +604,23 @@ function ClientRecordPanel({ client, leadCount, opportunityCount, intakeCount, a
   );
 }
 
-function RecordActionSummary({ fieldsResult, auditResult, updateResult, ownerResult, pending, ownerPending, onFieldUpdate, onOwnerBlocked }) {
+function RecordActionSummary({
+  fieldsResult,
+  auditResult,
+  updateResult,
+  ownerResult,
+  pending,
+  ownerPending,
+  editValue,
+  onEditValueChange,
+  onFieldUpdate,
+  onOwnerBlocked
+}) {
   const fields = fieldsResult?.kind === "data" && Array.isArray(fieldsResult.item?.fields) ? fieldsResult.item.fields : [];
   const audits = resultItems(auditResult);
   return (
     <div className="clients-live-stack" data-sf-b-w02-record-actions-panel="true">
-      <div className="record-action-strip" data-sf-b-w02-field-registry="true">
+      <div className="record-action-strip record-action-edit-strip" data-sf-b-w02-field-registry="true">
         <div>
           <strong>레코드 작업</strong>
           <span>{fields.length > 0 ? fields.map((field) => recordFieldLabel(field.label)).join(" / ") : "허용 필드 확인 중"}</span>
@@ -592,10 +631,16 @@ function RecordActionSummary({ fieldsResult, auditResult, updateResult, ownerRes
             successText="허용된 필드가 업데이트되었습니다."
           />
         </div>
-        <button className="secondary-button" type="button" disabled={pending} onClick={onFieldUpdate}>
-          <ShieldCheck size={15} />
-          필드 업데이트
-        </button>
+        <form className="record-action-edit-form" onSubmit={onFieldUpdate}>
+          <label>
+            <span>Client 이름</span>
+            <input value={editValue} onChange={(event) => onEditValueChange(event.target.value)} />
+          </label>
+          <button className="secondary-button" type="submit" disabled={pending || !editValue.trim()}>
+            <ShieldCheck size={15} />
+            저장
+          </button>
+        </form>
       </div>
       {updateResult?.kind === "data" && updateResult.fieldPatch && (
         <div className="record-boundary-note" data-sf-b-w02-field-update-result="true">
@@ -1170,6 +1215,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   const [accountRecordActionResult, setAccountRecordActionResult] = useState(null);
   const [contactRecordActionResult, setContactRecordActionResult] = useState(null);
   const [legalPeopleClientResult, setLegalPeopleClientResult] = useState(null);
+  const [clientRecordEditValue, setClientRecordEditValue] = useState("");
   const [handoffPending, setHandoffPending] = useState(false);
   const [conflictPending, setConflictPending] = useState(false);
   const [clearancePending, setClearancePending] = useState(false);
@@ -1201,13 +1247,20 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
         cancelled = true;
       };
     }
-    fetchMasterDataRecords({
+    fetchAllMasterDataRecords({
       ctx: liveCtx,
       modelType: "ClientGroup",
+      limit: 100,
       permissionRef: CLIENTS_PERMISSION_REF,
       auditHintRef: CLIENTS_AUDIT_HINT_REF
     }).then((next) => {
-      if (!cancelled) setClientsResult(next);
+      if (!cancelled) {
+        setClientsResult(
+          next.kind === "data"
+            ? { ...next, items: resultItems(next).filter((item) => item.synthetic_only !== true) }
+            : next
+        );
+      }
     });
     return () => {
       cancelled = true;
@@ -1344,6 +1397,10 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     clientsResult?.uiState === "denied" ||
     clientsResult?.uiState === "review_required" ||
     clientsResult?.outcome === "review_required";
+
+  useEffect(() => {
+    setClientRecordEditValue(selectedClient?.display_name ?? "");
+  }, [selectedClientId, selectedClient?.display_name]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1652,13 +1709,16 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     }
   }
 
-  async function handleClientRecordActionFieldUpdate() {
+  async function handleClientRecordActionFieldUpdate(event) {
+    event?.preventDefault?.();
     if (!selectedClientId) return;
+    const displayName = clientRecordEditValue.trim();
+    if (!displayName) return;
     setClientRecordActionPending(true);
     const next = await updateRecordActionField({
       objectName: "client",
       recordId: selectedClientId,
-      fieldUpdates: { display_name: "Client 작업 검토" },
+      fieldUpdates: { display_name: displayName },
       ctx: liveCtx
     });
     setClientRecordActionUpdateResult(next);
@@ -1953,6 +2013,8 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
             ownerResult={clientRecordActionOwnerResult}
             pending={clientRecordActionPending}
             ownerPending={clientRecordActionOwnerPending}
+            editValue={clientRecordEditValue}
+            onEditValueChange={setClientRecordEditValue}
             onFieldUpdate={handleClientRecordActionFieldUpdate}
             onOwnerBlocked={handleClientOwnerBlockedAction}
           />

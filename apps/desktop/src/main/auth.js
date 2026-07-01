@@ -75,6 +75,7 @@ export function sanitizeRendererPayload(value) {
 export class MainProcessAuthCoordinator {
   #pending = null;
   #session = { state: "signed_out" };
+  #logoIntroClaimed = false;
   #secureStore;
   #cacheStores;
   #now;
@@ -132,6 +133,17 @@ export class MainProcessAuthCoordinator {
 
   sessionStatus() {
     return { ...this.#session };
+  }
+
+  claimLogoIntro() {
+    const play = !this.#logoIntroClaimed;
+    this.#logoIntroClaimed = true;
+    return {
+      ok: true,
+      play_logo_animation: play,
+      animation_scope: "app_process",
+      token_material_returned: false
+    };
   }
 
   runtimeStatus() {

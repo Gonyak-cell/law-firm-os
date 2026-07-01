@@ -17,6 +17,12 @@ const JSON_HEADERS = Object.freeze({
   "access-control-allow-methods": "GET,POST,OPTIONS",
   "access-control-allow-headers": "authorization,content-type,x-matter-actor-email"
 });
+const HTML_HEADERS = Object.freeze({
+  "content-type": "text/html; charset=utf-8",
+  "cache-control": "no-store",
+  "referrer-policy": "no-referrer",
+  "x-content-type-options": "nosniff"
+});
 
 const FEATURE_CATALOG = Object.freeze([
   {
@@ -60,6 +66,7 @@ const PASSWORD_RESET_EMAIL_DELIVERY_SES_V2 = "sesv2";
 const PASSWORD_RESET_LOGO_CONTENT_ID = "matter-app-logo";
 const PASSWORD_RESET_LOGO_FILE_NAME = "icon-source-mark.png";
 const PASSWORD_RESET_LOGO_MIME_TYPE = "image/png";
+const PASSWORD_RESET_TOKEN_PATTERN = /^[A-Za-z0-9_-]{16,256}$/;
 const PASSWORD_RESET_LOGO_CANDIDATES = Object.freeze([
   new URL(`./${PASSWORD_RESET_LOGO_FILE_NAME}`, import.meta.url),
   new URL("../../desktop/build/icon-source-mark.png", import.meta.url)
@@ -77,6 +84,14 @@ function response(statusCode, body) {
     statusCode,
     headers: JSON_HEADERS,
     body: JSON.stringify(body)
+  };
+}
+
+function htmlResponse(statusCode, body) {
+  return {
+    statusCode,
+    headers: HTML_HEADERS,
+    body
   };
 }
 
@@ -446,6 +461,49 @@ function publicResetUrl(token) {
   return `matter://password-reset/confirm?token=${encodeURIComponent(token)}`;
 }
 
+function publicResetOpenUrl(token, event = {}, env = process.env) {
+  const configured = String(
+    env.MATTER_PASSWORD_RESET_OPEN_BASE_URL ??
+      env.MATTER_DESKTOP_PASSWORD_RESET_OPEN_BASE_URL ??
+      ""
+  ).trim().replace(/\/+$/, "");
+  if (configured) {
+    return `${configured}/api/desktop/password-reset/open?token=${encodeURIComponent(token)}`;
+  }
+  const host = headerValue(event.headers, "x-forwarded-host") ??
+    headerValue(event.headers, "host") ??
+    event.requestContext?.domainName;
+  if (!host) return publicResetUrl(token);
+  const protocol = headerValue(event.headers, "x-forwarded-proto") ?? "https";
+  const stage = event.requestContext?.stage;
+  const stagePrefix = stage && stage !== "$default" ? `/${stage}` : "";
+  return `${protocol}://${host}${stagePrefix}/api/desktop/password-reset/open?token=${encodeURIComponent(token)}`;
+}
+
+function passwordResetOpenPage(token) {
+  const resetUrl = publicResetUrl(token);
+  const safeResetUrl = escapeHtml(resetUrl);
+  const safeResetToken = escapeHtml(token);
+  return htmlResponse(200, [
+    "<!doctype html>",
+    '<html lang="ko">',
+    '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
+    "<title>matter 비밀번호 설정</title>",
+    '<style>body{margin:0;background:#f7f6f2;color:#17212b;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Apple SD Gothic Neo,Noto Sans KR,sans-serif}.wrap{max-width:560px;margin:48px auto;padding:0 20px}.panel{background:#fff;border:1px solid #ded8cc;border-radius:8px;padding:28px}h1{margin:0 0 12px;font-size:26px;line-height:34px}p{font-size:15px;line-height:24px;color:#4b5563}.button{display:inline-block;margin:8px 0 22px;background:#17212b;color:#fff;text-decoration:none;border-radius:6px;padding:12px 18px;font-weight:700}.code{font-family:SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;word-break:break-all;background:#faf9f6;border:1px solid #e5dfd4;border-radius:6px;padding:12px;color:#111827}.hint{font-size:13px;color:#6b7280}</style>',
+    "</head>",
+    "<body>",
+    '<main class="wrap"><section class="panel">',
+    "<h1>비밀번호를 설정하세요</h1>",
+    "<p>아래 버튼을 눌러 matter 앱을 열고 새 비밀번호를 설정하세요. 브라우저가 앱 열기를 묻는 경우 허용을 선택하세요.</p>",
+    `<a class="button" href="${safeResetUrl}">matter 앱에서 열기</a>`,
+    '<p class="hint">앱이 자동으로 열리지 않으면 로그인 화면의 비밀번호 설정 화면에서 아래 코드를 직접 입력하세요.</p>',
+    `<div class="code">${safeResetToken}</div>`,
+    "</section></main>",
+    "</body>",
+    "</html>"
+  ].join(""));
+}
+
 let passwordResetLogoPngBase64;
 
 function passwordResetLogo() {
@@ -523,12 +581,15 @@ function encodedMimeWord(value) {
   return `=?UTF-8?B?${base64Utf8(value)}?=`;
 }
 
-function passwordResetEmailText({ resetUrl, resetToken, expiresAt }) {
+function passwordResetEmailText({ resetUrl, resetOpenUrl, resetToken, expiresAt }) {
   return [
     "matter OS 비밀번호 설정",
     "",
     "요청하신 matter OS 비밀번호 설정 링크입니다.",
     "아래 링크를 열어 새 비밀번호를 설정하세요.",
+    resetOpenUrl,
+    "",
+    "브라우저에서 앱이 열리지 않는 경우 아래 앱 링크를 직접 열 수 있습니다.",
     resetUrl,
     "",
     "앱에서 코드를 직접 입력해야 하는 경우 아래 설정 코드를 사용하세요.",
@@ -539,8 +600,9 @@ function passwordResetEmailText({ resetUrl, resetToken, expiresAt }) {
   ].join("\n");
 }
 
-function passwordResetEmailHtml({ resetUrl, resetToken, expiresAt, logoSrc = `cid:${PASSWORD_RESET_LOGO_CONTENT_ID}` }) {
+function passwordResetEmailHtml({ resetUrl, resetOpenUrl, resetToken, expiresAt, logoSrc = `cid:${PASSWORD_RESET_LOGO_CONTENT_ID}` }) {
   const safeResetUrl = escapeHtml(resetUrl);
+  const safeResetOpenUrl = escapeHtml(resetOpenUrl);
   const safeResetToken = escapeHtml(resetToken);
   const safeExpiresAt = escapeHtml(expiresAt);
   const safeLogoSrc = escapeHtml(logoSrc);
@@ -566,11 +628,12 @@ function passwordResetEmailHtml({ resetUrl, resetToken, expiresAt, logoSrc = `ci
     '<tr><td style="padding:28px;">',
     '<h1 style="margin:0 0 12px;font-size:24px;line-height:32px;font-weight:700;letter-spacing:0;color:#17212b;">비밀번호를 설정하세요</h1>',
     '<p style="margin:0 0 22px;font-size:15px;line-height:24px;color:#374151;">요청하신 matter OS 비밀번호 설정 링크입니다. 아래 버튼을 열어 새 비밀번호를 설정하세요.</p>',
-    `<p style="margin:0 0 24px;"><a href="${safeResetUrl}" style="display:inline-block;background:#17212b;color:#ffffff;text-decoration:none;border-radius:6px;padding:12px 18px;font-size:15px;line-height:20px;font-weight:700;">비밀번호 설정 열기</a></p>`,
+    `<p style="margin:0 0 24px;"><a href="${safeResetOpenUrl}" style="display:inline-block;background:#17212b;color:#ffffff;text-decoration:none;border-radius:6px;padding:12px 18px;font-size:15px;line-height:20px;font-weight:700;">비밀번호 설정 열기</a></p>`,
     '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e5dfd4;border-radius:8px;background:#faf9f6;margin:0 0 20px;">',
     '<tr><td style="padding:16px 18px;">',
     '<div style="font-size:13px;line-height:20px;color:#4b5563;margin-bottom:8px;">앱에서 코드를 직접 입력해야 하는 경우</div>',
     `<div style="font-family:SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;font-size:15px;line-height:22px;color:#111827;word-break:break-all;background:#ffffff;border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;">${safeResetToken}</div>`,
+    `<div style="font-size:12px;line-height:18px;color:#6b7280;margin-top:10px;word-break:break-all;">앱 링크: ${safeResetUrl}</div>`,
     "</td></tr>",
     "</table>",
     `<p style="margin:0 0 10px;font-size:13px;line-height:21px;color:#4b5563;">이 링크와 코드는 <strong style="color:#17212b;">${safeExpiresAt}</strong>까지 한 번만 사용할 수 있습니다.</p>`,
@@ -587,7 +650,7 @@ function passwordResetEmailHtml({ resetUrl, resetToken, expiresAt, logoSrc = `ci
   ].join("");
 }
 
-function passwordResetRawEmail({ config, to, resetUrl, resetToken, expiresAt }) {
+function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, resetToken, expiresAt }) {
   const rootBoundary = `matter-reset-root-${randomUUID()}`;
   const alternativeBoundary = `matter-reset-alt-${randomUUID()}`;
   const from = emailHeaderValue(formattedEmailAddress({ name: config.fromName, email: config.fromEmail }));
@@ -601,8 +664,8 @@ function passwordResetRawEmail({ config, to, resetUrl, resetToken, expiresAt }) 
     ...(config.replyToEmail ? [`Reply-To: ${emailHeaderValue(config.replyToEmail)}`] : []),
     `Content-Type: multipart/related; boundary="${rootBoundary}"`
   ];
-  const textBody = base64MimeLines(base64Utf8(passwordResetEmailText({ resetUrl, resetToken, expiresAt })));
-  const htmlBody = base64MimeLines(base64Utf8(passwordResetEmailHtml({ resetUrl, resetToken, expiresAt })));
+  const textBody = base64MimeLines(base64Utf8(passwordResetEmailText({ resetUrl, resetOpenUrl, resetToken, expiresAt })));
+  const htmlBody = base64MimeLines(base64Utf8(passwordResetEmailHtml({ resetUrl, resetOpenUrl, resetToken, expiresAt })));
   const parts = [
     ...headers,
     "",
@@ -636,7 +699,7 @@ function passwordResetRawEmail({ config, to, resetUrl, resetToken, expiresAt }) 
   return Buffer.from(parts.join("\r\n"), "utf8").toString("base64");
 }
 
-async function sendPasswordResetSesEmail({ config, to, resetUrl, resetToken, expiresAt }) {
+async function sendPasswordResetSesEmail({ config, to, resetUrl, resetOpenUrl, resetToken, expiresAt }) {
   const result = await awsRestJsonRequest({
     service: "ses",
     region: config.region,
@@ -650,7 +713,7 @@ async function sendPasswordResetSesEmail({ config, to, resetUrl, resetToken, exp
       ...(config.replyToEmail ? { ReplyToAddresses: [config.replyToEmail] } : {}),
       Content: {
         Raw: {
-          Data: passwordResetRawEmail({ config, to, resetUrl, resetToken, expiresAt })
+          Data: passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, resetToken, expiresAt })
         }
       }
     }
@@ -658,7 +721,7 @@ async function sendPasswordResetSesEmail({ config, to, resetUrl, resetToken, exp
   return result.MessageId;
 }
 
-async function deliverPasswordResetEmail({ to, resetUrl, resetToken, expiresAt }) {
+async function deliverPasswordResetEmail({ to, resetUrl, resetOpenUrl, resetToken, expiresAt }) {
   const config = passwordResetEmailConfig();
   if (!config.configured) {
     return {
@@ -671,7 +734,7 @@ async function deliverPasswordResetEmail({ to, resetUrl, resetToken, expiresAt }
   }
 
   try {
-    const messageId = await sendPasswordResetSesEmail({ config, to, resetUrl, resetToken, expiresAt });
+    const messageId = await sendPasswordResetSesEmail({ config, to, resetUrl, resetOpenUrl, resetToken, expiresAt });
     return {
       mode: config.mode,
       provider: config.provider,
@@ -700,7 +763,7 @@ function passwordResetPublicDelivery() {
   };
 }
 
-async function requestPasswordReset(body = {}, state) {
+async function requestPasswordReset(body = {}, state, event = {}) {
   const email = normalizeEmail(body.email);
   const user = findUser(email);
   if (user) {
@@ -724,6 +787,7 @@ async function requestPasswordReset(body = {}, state) {
       subject: "matter password reset",
       body: "Use this one-time matter reset link to set your desktop password.",
       reset_url: publicResetUrl(token),
+      reset_open_url: publicResetOpenUrl(token, event),
       reset_token: token,
       expires_at: expiresAt,
       created_at: new Date().toISOString()
@@ -732,6 +796,7 @@ async function requestPasswordReset(body = {}, state) {
     message.delivery = await deliverPasswordResetEmail({
       to: user.email,
       resetUrl: message.reset_url,
+      resetOpenUrl: message.reset_open_url,
       resetToken: token,
       expiresAt
     });
@@ -887,6 +952,14 @@ export async function handler(event = {}) {
 
   if ((path === "/" || path === "/health") && method === "GET") return health();
 
+  if (path === "/api/desktop/password-reset/open" && method === "GET") {
+    const token = String(event.queryStringParameters?.token ?? "");
+    if (!PASSWORD_RESET_TOKEN_PATTERN.test(token)) {
+      return htmlResponse(400, "<!doctype html><html><body>Invalid password reset link.</body></html>");
+    }
+    return passwordResetOpenPage(token);
+  }
+
   if (path === "/api/desktop/accounts" && method === "GET") {
     const authError = requireOperatorToken(event);
     if (authError) return authError;
@@ -911,7 +984,7 @@ export async function handler(event = {}) {
     const authError = requireOperatorToken(event);
     if (authError) return authError;
     const state = await loadAuthState();
-    const result = await requestPasswordReset(parseBody(event), state);
+    const result = await requestPasswordReset(parseBody(event), state, event);
     await saveAuthState(state);
     return result;
   }

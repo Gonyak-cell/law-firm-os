@@ -89,6 +89,8 @@ test("session IPC exposes account login and smoke without renderer token materia
 
   assert.deepEqual(registration.channels.sort(), Object.values(SESSION_CHANNELS).sort());
   assert.equal((await ipcMain.invoke(SESSION_CHANNELS.runtime)).configured, true);
+  assert.equal((await ipcMain.invoke(SESSION_CHANNELS.claimLogoIntro)).play_logo_animation, true);
+  assert.equal((await ipcMain.invoke(SESSION_CHANNELS.claimLogoIntro)).play_logo_animation, false);
   assert.equal((await ipcMain.invoke(SESSION_CHANNELS.accounts)).users.length, 2);
   assert.equal((await ipcMain.invoke(SESSION_CHANNELS.requestPasswordReset, { email: "jwsuh@amic.kr" })).accepted, true);
   const resetEmail = await ipcMain.invoke(SESSION_CHANNELS.latestResetEmail, { email: "jwsuh@amic.kr" });

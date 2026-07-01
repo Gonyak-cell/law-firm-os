@@ -38,6 +38,30 @@ test("runtime config loads AWS execute-api URL and operator credential from loca
   assert.equal(config.tenantId, "tenant_amic_matter_vault");
 });
 
+test("runtime config finds local env from app bundle ancestors when cwd is not the repo", () => {
+  const envText = [
+    "MATTER_VAULT_R4_PRODUCTION_BASE_URL=https://example.execute-api.ap-northeast-2.amazonaws.com/staging/",
+    "MATTER_VAULT_R4_OPERATOR_TOKEN=runtime-secret"
+  ].join("\n");
+  const repoEnvPath = "/workspace/law-firm-os/.env.matter-vault-r4.local";
+
+  const config = loadMatterVaultRuntimeConfig({
+    env: {},
+    cwd: "/",
+    moduleDirectory: "/workspace/law-firm-os/apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/main",
+    existsSyncImpl: (candidate) => candidate === repoEnvPath,
+    readFileSyncImpl: (candidate) => {
+      assert.equal(candidate, repoEnvPath);
+      return envText;
+    }
+  });
+
+  assert.equal(config.envPath, repoEnvPath);
+  assert.equal(config.envFilePresent, true);
+  assert.equal(config.baseUrl, "https://example.execute-api.ap-northeast-2.amazonaws.com/staging");
+  assert.equal(config.operatorToken, "runtime-secret");
+});
+
 test("runtime client keeps bearer credential in main-process fetch and returns sanitized account data", async () => {
   const calls = [];
   const client = createMatterVaultAwsRuntimeClient({

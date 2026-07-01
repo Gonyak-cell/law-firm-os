@@ -1,4 +1,5 @@
 export * from "./model.js";
+export * from "./amic-client-candidates.js";
 export * from "./registry.js";
 export * from "./repository.js";
 export * from "./migrations/index.js";

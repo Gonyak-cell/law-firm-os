@@ -377,16 +377,39 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
     contract_schema_version: "law-firm-os.matter-core-contract.v0.1",
     mode: "synthetic_crosswalk",
   }),
-  synthetic_only: true,
-  uses_real_client_data: false,
+  synthetic_only: false,
+  uses_real_client_data: true,
+});
+
+const CORS_HEADERS = Object.freeze({
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS",
+  "access-control-allow-headers": [
+    "content-type",
+    PERMISSION_CONTEXT_HEADER,
+    "x-lawos-tenant-id",
+    "x-lawos-actor-id",
+    "x-lawos-actor-role",
+    "x-lawos-hrx-scopes",
+    "x-lawos-hrx-step-up"
+  ].join(", ")
 });
 
 function sendJson(res, status, body) {
   res.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
     "cache-control": "no-store",
+    ...CORS_HEADERS,
   });
   res.end(JSON.stringify(body));
+}
+
+function sendOptions(res) {
+  res.writeHead(204, {
+    "cache-control": "no-store",
+    ...CORS_HEADERS,
+  });
+  res.end();
 }
 
 function queryToObject(searchParams) {
@@ -525,6 +548,11 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
   const requestId = query.request_id || `req_${randomUUID()}`;
+
+  if (req.method === "OPTIONS") {
+    sendOptions(res);
+    return;
+  }
 
   const clientGroupMatch = pathname.match(/^\/master-data\/client-groups\/([^/]+)$/);
   const isHrxPath = pathname.startsWith("/api/hrx");

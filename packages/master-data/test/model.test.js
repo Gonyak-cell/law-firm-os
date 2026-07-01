@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import {
+  AMIC_CURRENT_CLIENT_CANDIDATES,
   MASTER_DATA_CP156_HIDDEN_SOURCE_FIELDS,
   MASTER_DATA_CP156_PACK_BINDING,
   MASTER_DATA_CP156_NO_WRITE_ATTESTATION,
@@ -1041,9 +1042,48 @@ test("CP00-156 coverage, Hermes packet, Claude packet, and handoff remain produc
   assert.equal(coverage.summary.by_deliverable.claude_review, 3);
 
   const fixture = createMasterDataSyntheticFixture();
-  assert.equal(fixture.synthetic_only, true);
-  assert.equal(fixture.uses_real_client_data, false);
-  assert.equal(fixture.records.length, 8);
+  assert.equal(fixture.synthetic_only, false);
+  assert.equal(fixture.uses_real_client_data, true);
+  assert.equal(fixture.records.length, AMIC_CURRENT_CLIENT_CANDIDATES.length * 3 + 8);
+  assert.equal(AMIC_CURRENT_CLIENT_CANDIDATES.length, 108);
+  assert.equal(AMIC_CURRENT_CLIENT_CANDIDATES.some((candidate) => candidate.source_lanes.some((lane) => lane.startsWith("999_"))), false);
+  const candidateNames = AMIC_CURRENT_CLIENT_CANDIDATES.map((candidate) => candidate.display_name);
+  assert.equal(candidateNames.some((name) => /선생님|원장님|회장님|교수님|작가|강제집행면탈|조세범|^Pjt\.|^Project\b/.test(name)), false);
+  for (const expectedName of ["송수연", "한승민", "허유지", "장정도", "강영권", "임인홍", "황진수"]) {
+    assert.ok(candidateNames.includes(expectedName));
+  }
+  for (const expectedName of [
+    "홀딩핸즈앤코 외 12명",
+    "한흥수 외 6명",
+    "노윤현 외 19명",
+    "최재헌 외 2명",
+    "이강명 외 1명",
+    "강상도 외 16명",
+    "박민규 외 5명",
+    "권도균 외 11명",
+    "펜타스톤-오라이언-온앤업 신기술투자조합",
+    "봉경환 외 4명",
+    "박태오",
+    "SMEJ Holdings, INC. 외 1명",
+    "롯데에너지머티리얼즈",
+    "김정환",
+    "오윤록 외 1명",
+    "에이치엘엘중앙",
+  ]) {
+    assert.ok(candidateNames.includes(expectedName));
+  }
+  for (const removedProjectSellerName of ["코오롱글로텍", "강상도", "Katelynn Yun-Yu Owyang", "SMEJ Holdings, INC.", "에스엠스튜디오스"]) {
+    assert.equal(candidateNames.includes(removedProjectSellerName), false);
+  }
+  const goguryeo = fixture.records.find((record) => record.model_type === "ClientGroup" && record.display_name === "고구려푸드");
+  assert.equal(goguryeo?.canonical_display_name, "고구려푸드 주식회사");
+  assert.equal(goguryeo?.legal_form, "주식회사");
+  const lotteEnergyMaterials = fixture.records.find((record) => record.model_type === "ClientGroup" && record.display_name === "롯데에너지머티리얼즈");
+  assert.equal(lotteEnergyMaterials?.canonical_display_name, "롯데에너지머티리얼즈 주식회사");
+  assert.equal(lotteEnergyMaterials?.legal_form, "주식회사");
+  const hllJoongang = fixture.records.find((record) => record.model_type === "ClientGroup" && record.display_name === "에이치엘엘중앙");
+  assert.equal(hllJoongang?.canonical_display_name, "에이치엘엘중앙 주식회사");
+  assert.equal(hllJoongang?.legal_form, "주식회사");
 
   const hermes = createMasterDataCp156HermesEvidencePacket(cp156PlanPack);
   const claude = createMasterDataCp156ClaudeReviewPacket(cp156PlanPack);

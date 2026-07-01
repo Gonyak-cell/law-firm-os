@@ -1,7 +1,9 @@
 import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, parse, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const DEFAULT_ENV_FILE = ".env.matter-vault-r4.local";
+const moduleDir = dirname(fileURLToPath(import.meta.url));
 const FORBIDDEN_RESPONSE_FIELDS = new Set([
   "access_token",
   "refresh_token",
@@ -46,13 +48,40 @@ function valueFrom(env, fileValues, keys) {
   return "";
 }
 
+function envPathCandidates({ env = process.env, cwd = process.cwd(), moduleDirectory = moduleDir } = {}) {
+  if (env.MATTER_DESKTOP_ENV_FILE) return [resolve(env.MATTER_DESKTOP_ENV_FILE)];
+  const starts = [cwd, moduleDirectory].filter(Boolean).map((candidate) => resolve(candidate));
+  const seen = new Set();
+  const candidates = [];
+  for (const start of starts) {
+    let current = start;
+    while (!seen.has(current)) {
+      seen.add(current);
+      candidates.push(resolve(current, DEFAULT_ENV_FILE));
+      const parent = dirname(current);
+      if (parent === current || current === parse(current).root) break;
+      current = parent;
+    }
+  }
+  return candidates;
+}
+
+function selectEnvPath({ env, cwd, moduleDirectory, existsSyncImpl }) {
+  const candidates = envPathCandidates({ env, cwd, moduleDirectory });
+  return candidates.find((candidate) => existsSyncImpl(candidate)) ?? candidates[0];
+}
+
 export function loadMatterVaultRuntimeConfig({
   env = process.env,
-  envPath = env.MATTER_DESKTOP_ENV_FILE ?? resolve(process.cwd(), DEFAULT_ENV_FILE),
+  envPath,
+  cwd = process.cwd(),
+  moduleDirectory = moduleDir,
   existsSyncImpl = existsSync,
   readFileSyncImpl = readFileSync
 } = {}) {
-  const absoluteEnvPath = resolve(envPath);
+  const absoluteEnvPath = resolve(
+    envPath ?? selectEnvPath({ env, cwd, moduleDirectory, existsSyncImpl })
+  );
   const fileValues = existsSyncImpl(absoluteEnvPath) ? parseDotEnv(readFileSyncImpl(absoluteEnvPath, "utf8")) : {};
   const baseUrl = valueFrom(env, fileValues, [
     "MATTER_VAULT_R4_PRODUCTION_BASE_URL",

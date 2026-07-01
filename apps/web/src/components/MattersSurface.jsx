@@ -277,6 +277,10 @@ function matterNumberLabel(value, index = 0) {
   return text;
 }
 
+function matterCodeLabel(item, index = 0) {
+  return matterNumberLabel(item?.matter_code ?? item?.matter_number, index);
+}
+
 function matterTitleLabel(value, index = 0) {
   const text = String(value ?? "").trim();
   if (!text || /synthetic|rp0|_[a-z0-9]/i.test(text)) return `Matter ${index + 1}`;
@@ -637,6 +641,7 @@ function activityTitleLabel(value, index = 0) {
 function recordFieldLabel(value) {
   const text = String(value ?? "").trim();
   if (text === "Matter title") return "Matter 제목";
+  if (text === "Matter code") return "Matter code";
   if (text === "WIP status") return "청구 준비 상태";
   if (text === "Risk") return "위험도";
   if (text === "Risk level") return "위험도";
@@ -824,6 +829,8 @@ function MatterRecordPanel({
   recordActionBulkResult,
   recordActionPending,
   recordActionBulkPending,
+  matterCodeEditValue,
+  onMatterCodeEditChange,
   onRecordActionFieldUpdate,
   onRecordActionOwnerBlocked
 }) {
@@ -840,7 +847,7 @@ function MatterRecordPanel({
     <aside className="record-side-panel" data-matter-record-workspace="right-panel">
       <div className="record-side-header">
         <span className="eyebrow">레코드</span>
-        <strong>{matterNumberLabel(matter?.matter_number)}</strong>
+        <strong>{matterCodeLabel(matter)}</strong>
       </div>
       <div className="property-grid tight">
         <Property label="상태" value={matter ? matterStatus(matter.status) : "대기"} />
@@ -915,7 +922,7 @@ function MatterRecordPanel({
           <span>책임자 변경이 기록되었습니다.</span>
         </div>
       )}
-      <div className="record-action-strip" data-sf-b-w02-matter-record-actions="true">
+      <div className="record-action-strip record-action-edit-strip" data-sf-b-w02-matter-record-actions="true">
         <div>
           <strong>레코드 필드</strong>
           <span>{recordActionFields.length > 0 ? recordActionFields.map((field) => recordFieldLabel(field.label)).join(" / ") : "허용 필드 확인 중"}</span>
@@ -926,10 +933,16 @@ function MatterRecordPanel({
             successText="레코드 필드가 업데이트되었습니다."
           />
         </div>
-        <button className="secondary-button" type="button" disabled={!matter || recordActionPending} onClick={onRecordActionFieldUpdate}>
-          <Pencil size={15} />
-          필드 작업
-        </button>
+        <form className="record-action-edit-form" onSubmit={onRecordActionFieldUpdate}>
+          <label>
+            <span>Matter code</span>
+            <input value={matterCodeEditValue} onChange={(event) => onMatterCodeEditChange(event.target.value)} />
+          </label>
+          <button className="secondary-button" type="submit" disabled={!matter || recordActionPending || !matterCodeEditValue.trim()}>
+            <Pencil size={15} />
+            저장
+          </button>
+        </form>
       </div>
       {recordActionUpdateResult?.kind === "data" && recordActionUpdateResult.fieldPatch && (
         <div className="record-boundary-note" data-sf-b-w02-matter-record-action-result="true">
@@ -1007,7 +1020,7 @@ function RecentlyViewedPanel({ result }) {
       <DataTable
         columns={["최근 본 항목", "제목", "상태", "일시"]}
         rows={rows.map((item, index) => [
-          matterNumberLabel(item.matter_number, index),
+          matterCodeLabel(item, index),
           matterTitleLabel(item.title, index),
           matterStatus(item.status),
           viewedAtLabel(item.viewed_at)
@@ -1145,7 +1158,7 @@ function MatterSelectableList({
               <input
                 type="checkbox"
                 checked={checked}
-                aria-label={`${matterNumberLabel(item.matter_number, index)} 선택`}
+                aria-label={`${matterCodeLabel(item, index)} 선택`}
                 data-matter-bulk-select-row="true"
                 onChange={(event) => onToggleMatter(item.matter_id, event.target.checked)}
               />
@@ -1156,7 +1169,7 @@ function MatterSelectableList({
               aria-pressed={selected}
               onClick={() => onSelectMatter(item.matter_id)}
             >
-              <strong>{matterNumberLabel(item.matter_number, index)}</strong>
+              <strong>{matterCodeLabel(item, index)}</strong>
               <span>{matterTitleLabel(item.title, index)}</span>
               <span>{matterStatus(item.status)}</span>
               <span>{billingStatus(item.wip_status)}</span>
@@ -2016,6 +2029,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [selectedMatterId, setSelectedMatterId] = useState(null);
   const [selectedMatterIds, setSelectedMatterIds] = useState([]);
   const [activeListViewId, setActiveListViewId] = useState(null);
+  const [matterCodeEditValue, setMatterCodeEditValue] = useState("");
   const currentSection = MATTER_SECTIONS.has(activeSection) ? activeSection : "matter-home";
 
   useEffect(() => {
@@ -2100,6 +2114,10 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
       setSelectedMatterId(visibleMatters[0].matter_id);
     }
   }, [visibleMatters, selectedMatterId]);
+
+  useEffect(() => {
+    setMatterCodeEditValue(selectedMatter?.matter_code ?? "");
+  }, [activeMatterId, selectedMatter?.matter_code]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2355,6 +2373,34 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
       applyMatterUpdate({
         ...selectedMatter,
         matter_id: activeMatterId,
+        risk_level: next.item.risk_level ?? selectedMatter?.risk_level,
+        title: next.item.title ?? selectedMatter?.title,
+        status: next.item.status ?? selectedMatter?.status,
+      });
+      const audit = await fetchRecordActionAudit({ objectName: "matter", recordId: activeMatterId, ctx: liveCtx });
+      setRecordActionAuditResult(audit);
+    }
+  }
+
+  async function handleMatterCodeFieldUpdate(event) {
+    event?.preventDefault?.();
+    if (!activeMatterId) return;
+    const matterCode = matterCodeEditValue.trim();
+    if (!matterCode) return;
+    setRecordActionPending(true);
+    const next = await updateRecordActionField({
+      objectName: "matter",
+      recordId: activeMatterId,
+      fieldUpdates: { matter_code: matterCode },
+      ctx: liveCtx
+    });
+    setRecordActionUpdateResult(next);
+    setRecordActionPending(false);
+    if (next.kind === "data" && next.item) {
+      applyMatterUpdate({
+        ...selectedMatter,
+        matter_id: activeMatterId,
+        matter_code: next.item.matter_code ?? selectedMatter?.matter_code,
         risk_level: next.item.risk_level ?? selectedMatter?.risk_level,
         title: next.item.title ?? selectedMatter?.title,
         status: next.item.status ?? selectedMatter?.status,
@@ -3070,7 +3116,9 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             recordActionBulkResult={recordActionBulkResult}
             recordActionPending={recordActionPending}
             recordActionBulkPending={recordActionBulkPending}
-            onRecordActionFieldUpdate={handleRecordActionFieldUpdate}
+            matterCodeEditValue={matterCodeEditValue}
+            onMatterCodeEditChange={setMatterCodeEditValue}
+            onRecordActionFieldUpdate={handleMatterCodeFieldUpdate}
             onRecordActionOwnerBlocked={handleRecordActionOwnerBlocked}
           />
         )}

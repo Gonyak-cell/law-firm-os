@@ -16,7 +16,31 @@ const CLIENT_LEGAL_SUFFIXES = Object.freeze([
   "LLP",
 ]);
 const CLIENT_LEGAL_PREFIXES = Object.freeze(["(주)", "㈜"]);
-const VAULT_APPROVED_MATTER_TYPE_ENGLISH = Object.freeze(["Criminal", "Civil", "Advisory", "M&A"]);
+const CANONICAL_MATTER_CODE_AXES = Object.freeze(["LIT", "ADV", "DEAL"]);
+const MATTER_CODE_AXIS_ALIASES = Object.freeze({
+  LIT: "LIT",
+  litigation: "LIT",
+  Civil: "LIT",
+  civil: "LIT",
+  Criminal: "LIT",
+  criminal: "LIT",
+  Administrative: "LIT",
+  administrative: "LIT",
+  행정: "LIT",
+  민사: "LIT",
+  형사: "LIT",
+  ADV: "ADV",
+  Advisory: "ADV",
+  advisory: "ADV",
+  기업자문: "ADV",
+  DEAL: "DEAL",
+  "M&A": "DEAL",
+  mna: "DEAL",
+  ma: "DEAL",
+  신주투자: "DEAL",
+  매각자문: "DEAL",
+  인수자문: "DEAL",
+});
 
 function freeze(value) {
   return Object.freeze(value);
@@ -116,10 +140,7 @@ export function mapVaultMatterAppMatterUpsertRequest(request = {}, { actor_id, c
   const tenantId = requiredString(request, "tenantRef");
   const clientId = requiredString(request, "clientId");
   const matterCode = requiredString(request, "matterCode");
-  const matterTypeEnglish = requiredString(request, "matterTypeEnglish");
-  if (!VAULT_APPROVED_MATTER_TYPE_ENGLISH.includes(matterTypeEnglish)) {
-    throw new Error(`matterTypeEnglish must be one of ${VAULT_APPROVED_MATTER_TYPE_ENGLISH.join(", ")}`);
-  }
+  const matterTypeEnglish = normalizeMatterCodeAxis(requiredString(request, "matterTypeEnglish"));
   const matterDetailTypeKorean = requiredString(request, "matterDetailTypeKorean");
   const clientShortName = client?.client_short_name ?? request.clientShortName;
   const expectedCode = deriveMatterCode({
@@ -127,7 +148,9 @@ export function mapVaultMatterAppMatterUpsertRequest(request = {}, { actor_id, c
     matter_type_english: matterTypeEnglish,
     matter_detail_type_korean: matterDetailTypeKorean,
   });
-  if (matterCode !== expectedCode) throw new Error("matterCode must match clientShortName/matterTypeEnglish/matterDetailTypeKorean");
+  if (normalizeMatterCode(matterCode) !== expectedCode) {
+    throw new Error("matterCode must match clientShortName/matterTypeEnglish/matterDetailTypeKorean");
+  }
   const sourceRevision = sourceRevisionOrApprovalRef(request);
   const matterId = compact(request.matterAppMatterId) || stableId("matter", [tenantId, matterCode]);
   return freeze({
@@ -139,7 +162,7 @@ export function mapVaultMatterAppMatterUpsertRequest(request = {}, { actor_id, c
       matter_id: matterId,
       client_id: clientId,
       client_display_name: requiredString(request, "clientDisplayName"),
-      matter_code: matterCode,
+      matter_code: expectedCode,
       matter_name: requiredString(request, "matterName"),
       title: requiredString(request, "matterName"),
       matter_type_english: matterTypeEnglish,
@@ -165,6 +188,21 @@ function normalizeMatterCodeSegment(value, field) {
   const segment = requiredString({ [field]: value }, field);
   if (segment.includes("/")) throw new Error(`${field} cannot contain /`);
   return segment;
+}
+
+function normalizeMatterCodeAxis(value) {
+  const axis = normalizeMatterCodeSegment(value, "matter_type_english");
+  const canonical = MATTER_CODE_AXIS_ALIASES[axis];
+  if (!canonical) throw new Error(`matterTypeEnglish must be one of ${CANONICAL_MATTER_CODE_AXES.join(", ")}`);
+  return canonical;
+}
+
+function normalizeMatterCode(value) {
+  const matterCode = requiredString({ matter_code: value }, "matter_code");
+  const segments = matterCode.split("/");
+  if (segments.length !== 3) return matterCode;
+  const axis = MATTER_CODE_AXIS_ALIASES[compact(segments[1])] ?? compact(segments[1]);
+  return [compact(segments[0]), axis, compact(segments[2])].join("/");
 }
 
 export function normalizeMatterClientShortName({
@@ -202,7 +240,7 @@ export function deriveMatterCode({
 } = {}) {
   const segments = [
     normalizeMatterCodeSegment(client_short_name, "client_short_name"),
-    normalizeMatterCodeSegment(matter_type_english, "matter_type_english"),
+    normalizeMatterCodeAxis(matter_type_english),
     normalizeMatterCodeSegment(matter_detail_type_korean, "matter_detail_type_korean"),
   ];
   const matterCode = segments.join("/");
@@ -211,11 +249,14 @@ export function deriveMatterCode({
 }
 
 export function validateMatterCode(matter_code) {
-  const value = requiredString({ matter_code }, "matter_code");
+  const value = normalizeMatterCode(matter_code);
   const segments = value.split("/");
   const errors = [];
   if (segments.length !== 3 || segments.some((segment) => compact(segment) === "")) {
     errors.push("matter_code_must_have_three_segments");
+  }
+  if (segments.length === 3 && !CANONICAL_MATTER_CODE_AXES.includes(segments[1])) {
+    errors.push("matter_code_axis_must_be_lit_adv_or_deal");
   }
   if (value.length > 120) errors.push("matter_code_too_long");
   return freeze({

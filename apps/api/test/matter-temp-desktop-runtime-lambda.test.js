@@ -133,7 +133,11 @@ test("configured SESv2 reset delivery sends registered reset mail without return
           event({
             method: "POST",
             path: "/api/desktop/password-reset/request",
-            headers: authHeaders(),
+            headers: {
+              ...authHeaders(),
+              host: "runtime.example.test",
+              "x-forwarded-proto": "https"
+            },
             body: { email: "jwsuh@amic.kr" }
           })
         );
@@ -165,12 +169,15 @@ test("configured SESv2 reset delivery sends registered reset mail without return
         assert.match(rawEmail, /Content-Disposition: inline; filename="matter-logo\.png"/);
         const textPart = decodeBase64MimePart(rawEmail, "Content-Type: text/plain");
         const htmlPart = decodeBase64MimePart(rawEmail, "Content-Type: text/html");
+        assert.match(textPart, /https:\/\/runtime\.example\.test\/api\/desktop\/password-reset\/open\?token=/);
         assert.match(textPart, /matter:\/\/password-reset\/confirm\?token=/);
         assert.match(textPart, /matter OS 비밀번호 설정/);
         assert.match(htmlPart, /<h1[^>]*>비밀번호를 설정하세요<\/h1>/);
         assert.match(htmlPart, /<img src="cid:matter-app-logo"[^>]+alt="matter"/);
         assert.match(htmlPart, /Matter Desktop App Services/);
         assert.match(htmlPart, /비밀번호 설정 열기/);
+        assert.match(htmlPart, /https:\/\/runtime\.example\.test\/api\/desktop\/password-reset\/open\?token=/);
+        assert.match(htmlPart, /앱 링크: matter:\/\/password-reset\/confirm\?token=/);
         assert.match(htmlPart, /AMIC 내부 계정 보안 알림/);
 
         const latestEmail = await handler(
@@ -183,6 +190,7 @@ test("configured SESv2 reset delivery sends registered reset mail without return
         );
         assert.equal(json(latestEmail).email_message.delivery.status, "sent");
         assert.equal(json(latestEmail).email_message.delivery.message_id, "ses-message-1");
+        assert.match(json(latestEmail).email_message.reset_open_url, /^https:\/\/runtime\.example\.test\/api\/desktop\/password-reset\/open\?token=/);
 
         const unknown = await handler(
           event({
@@ -335,6 +343,32 @@ test("temporary desktop runtime completes reset email, password setup, and passw
   );
   assert.equal(reused.statusCode, 401);
   assert.equal(json(reused).reason, "invalid_reset_token");
+});
+
+test("password reset email open page bridges browser clicks to the desktop app link", async () => {
+  const token = "abcdefghijklmnopqrstuvwxyzABCDE_123456";
+  const page = await handler(
+    event({
+      method: "GET",
+      path: "/api/desktop/password-reset/open",
+      queryStringParameters: { token }
+    })
+  );
+
+  assert.equal(page.statusCode, 200);
+  assert.equal(page.headers["content-type"], "text/html; charset=utf-8");
+  assert.match(page.body, /matter 앱에서 열기/);
+  assert.match(page.body, new RegExp(`matter://password-reset/confirm\\?token=${token}`));
+  assert.match(page.body, new RegExp(token));
+
+  const invalid = await handler(
+    event({
+      method: "GET",
+      path: "/api/desktop/password-reset/open",
+      queryStringParameters: { token: "short" }
+    })
+  );
+  assert.equal(invalid.statusCode, 400);
 });
 
 test("temporary desktop runtime accepts unknown reset requests without account disclosure", async () => {

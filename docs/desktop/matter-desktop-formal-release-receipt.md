@@ -8,12 +8,12 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 
 | Field | Value |
 | --- | --- |
-| Release ID | `matter-desktop-v0.1.2` |
-| Manifest | `apps/desktop/dist/release/matter-desktop-v0.1.2/release-manifest.json` |
-| Checksums | `apps/desktop/dist/release/matter-desktop-v0.1.2/checksums.sha256` |
+| Release ID | `matter-desktop-v0.1.3` |
+| Manifest | `apps/desktop/dist/release/matter-desktop-v0.1.3/release-manifest.json` |
+| Checksums | `apps/desktop/dist/release/matter-desktop-v0.1.3/checksums.sha256` |
 | Channel | `formal-candidate` |
 | App ID | `com.amic.matter.desktop` |
-| GitHub tag candidate | `matter-desktop-v0.1.2` |
+| GitHub tag candidate | `matter-desktop-v0.1.3` |
 | Custom domain requirement | false |
 
 ## Release Artifacts
@@ -21,31 +21,31 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 | Artifact | Result |
 | --- | --- |
 | macOS app bundle | `apps/desktop/dist/mac/matter.app` |
-| macOS ZIP archive | `apps/desktop/dist/mac/matter-0.1.2-macos.zip` |
-| macOS ZIP SHA-256 | `a3fce5c99f36566f57746b1bb172a8107e05f24c10b5deaa7c760069168535cf` |
-| macOS DMG image | `apps/desktop/dist/mac/matter-0.1.2-macos.dmg` |
-| macOS DMG SHA-256 | `eceeba7a2bbc5431d7013709dc571523348d60dc3d9d9cdea3421d81aeb69d3f` |
-| Windows formal manifest | `apps/desktop/dist/win/matter-0.1.2-win-installer-manifest.json` |
-| Windows formal manifest SHA-256 | `0a44baf9fe6ed9c2eda94fe61fe28f62abf26f66369fd9f92c8f01ec0ea4b85e` |
-| Windows formal installer | `apps/desktop/dist/matter-0.1.2-win-x64.exe` |
-| Windows formal installer SHA-256 | `2ef2985eb53adeaebace5af6a4848d54c8c05800d8aafa453c34e8dc7cf6eab7` |
-| Windows installer blockmap | `apps/desktop/dist/matter-0.1.2-win-x64.exe.blockmap` |
-| Windows installer blockmap SHA-256 | `6a658c1c4f79867d02ec2ed731abeb06d90a61220b0a9c7bfbaf132ff0295286` |
+| macOS ZIP archive | `apps/desktop/dist/mac/matter-0.1.3-macos.zip` |
+| macOS ZIP SHA-256 | `59a7f692369081f3d79478078cdf1ccc740e1a02cf34ebd5457c9fc04e053001` |
+| macOS DMG image | `apps/desktop/dist/mac/matter-0.1.3-macos.dmg` |
+| macOS DMG SHA-256 | `f8617b10c5b8bc195b4cfef4ec756dcdbdc7be0951fba821d4943d15a1d026b2` |
+| Windows formal manifest | `apps/desktop/dist/win/matter-0.1.3-win-installer-manifest.json` |
+| Windows formal manifest SHA-256 | `28cd62f94a6d3f715684e0b3eb8f14217fe0212be655b2b6cbac2729372663e0` |
+| Windows formal installer | `apps/desktop/dist/matter-0.1.3-win-x64.exe` |
+| Windows formal installer SHA-256 | `aab707905bce485f0bf181c7893cc8e683d2c6a8c72ab57511229e8abd9a7f98` |
+| Windows installer blockmap | `apps/desktop/dist/matter-0.1.3-win-x64.exe.blockmap` |
+| Windows installer blockmap SHA-256 | `b2bcd78254327771c2954c6da62784b314cf8c4e1b740dc526f81e7748d49639` |
 
 ## macOS Signing and Notarization
 
 | Field | Value |
 | --- | --- |
-| Developer ID signing | applied |
-| Requested signing mode | `developer-id` |
-| Resolved signing identity | `Developer ID Application: Jiwon Suh (LHDXU66NX3)` |
-| codesign verify | pass |
-| strict codesign verify | pass |
-| gatekeeper assess | pass |
+| Developer ID signing | not_applied_internal_package |
+| Requested signing mode | `internal` |
+| Resolved signing identity | `not_applied_internal_package` |
+| codesign verify | not_distribution_ready: /Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present |
+| strict codesign verify | not_distribution_ready: /Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present |
+| gatekeeper assess | not_distribution_ready: /Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present |
 | public distribution approval | not claimed |
-| notarization requested | true |
-| notarization credential source | present |
-| notarization state | submitted_and_accepted_by_notarytool |
+| notarization requested | false |
+| notarization credential source | missing |
+| notarization state | not_submitted_internal_only |
 
 ## Windows State
 

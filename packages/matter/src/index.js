@@ -30,3 +30,4 @@ export * from "./matter-opening-service.js";
 export * from "./timeline-repository.js";
 export * from "./activity-calendar-channel-service.js";
 export * from "./document-email-builder-service.js";
+export * from "./amic-matter-code-candidates.js";

@@ -7,6 +7,7 @@ import {
 } from "./aws-runtime.js";
 import { MainProcessAuthCoordinator } from "./auth.js";
 import { parseMatterDeepLink, redactDeepLinkIntent } from "./deepLinks.js";
+import { startDesktopLocalApiServer, stopDesktopLocalApiServer } from "./local-api.js";
 import { assertApprovedRendererUrl, installNavigationGuards } from "./origin-policy.js";
 import { registerSessionIpcHandlers } from "./session-ipc.js";
 import { createMainWindow } from "./window.js";
@@ -44,6 +45,10 @@ export const PASSWORD_RESET_DEEP_LINK_CHANNEL = "desktop:password-reset:confirm"
 
 export function configureDesktopAppIcon(app) {
   app.dock?.setIcon?.(desktopWindowIconPath());
+}
+
+export function configureDesktopProtocol(app) {
+  return app.setAsDefaultProtocolClient?.("matter") === true;
 }
 
 export function rendererTargetFromEnv(env = process.env) {
@@ -122,6 +127,10 @@ export async function startElectronApp() {
   });
   await app.whenReady();
   configureDesktopAppIcon(app);
+  configureDesktopProtocol(app);
+  const localApi = await startDesktopLocalApiServer();
+  if (localApi?.baseUrl) process.env.MATTER_DESKTOP_API_BASE_URL = localApi.baseUrl;
+  app.on("before-quit", () => stopDesktopLocalApiServer(localApi));
   const runtimeClient = runtimeClientFromEnv();
   const coordinator = new MainProcessAuthCoordinator({ runtimeClient });
   const shell = await startDesktopShell({

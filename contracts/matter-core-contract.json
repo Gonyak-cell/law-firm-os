@@ -81,8 +81,13 @@
     "client_model": "MatterClient",
     "matter_model": "Matter",
     "matter_code_field": "matter_code",
-    "matter_code_format": "[client_short_name]/[matter_type_english]/[matter_detail_type_korean]",
+    "matter_code_format": "[client_short_name]/[LIT|ADV|DEAL]/[matter_detail_type_korean]",
     "matter_code_max_length": 120,
+    "matter_code_axes": [
+      "LIT",
+      "ADV",
+      "DEAL"
+    ],
     "vault_write_contract_entrypoints": [
       "upsertMatterAppClientFromVaultContract",
       "upsertMatterAppMatterFromVaultContract"

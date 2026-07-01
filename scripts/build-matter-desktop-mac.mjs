@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
-import { copyFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { packager } from "@electron/packager";
 import { sign } from "@electron/osx-sign";
@@ -140,6 +140,24 @@ async function applyMatterBundleIcon(targetAppBundle) {
   await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string matter", targetInfoPlist]);
 }
 
+async function copyDesktopLocalApiRuntime(targetAppBundle) {
+  const targetAppSourceDir = join(targetAppBundle, "Contents", "Resources", "app");
+  const runtimeDir = join(targetAppSourceDir, "runtime");
+  const apiRuntimeSrcDir = join(runtimeDir, "apps/api/src");
+  await rm(runtimeDir, { recursive: true, force: true });
+  await mkdir(join(runtimeDir, "apps/api"), { recursive: true });
+  await cp(join(repoRoot, "apps/api/src"), apiRuntimeSrcDir, { recursive: true });
+  await copyFile(
+    join(repoRoot, "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json"),
+    join(apiRuntimeSrcDir, "matter-vault-user-registration-seed.json"),
+  );
+  await copyFile(
+    join(repoRoot, "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json"),
+    join(apiRuntimeSrcDir, "hrx-member-roster-source-of-truth.json"),
+  );
+  await cp(join(repoRoot, "packages"), join(runtimeDir, "packages"), { recursive: true });
+}
+
 if (!existsSync(join(repoRoot, "node_modules/electron/dist/Electron.app"))) {
   throw new Error("Electron runtime is missing. Run `npm install --workspace apps/desktop` first.");
 }
@@ -191,6 +209,7 @@ try {
   });
   const generatedAppBundle = join(generatedAppRoot, "matter.app");
   await applyMatterBundleIcon(generatedAppBundle);
+  await copyDesktopLocalApiRuntime(generatedAppBundle);
 
   if (osxSign) {
     await sign({

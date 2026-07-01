@@ -40,6 +40,34 @@ const HRX_RUNTIME_HEADERS = {
   "x-lawos-hrx-step-up": HRX_STEP_UP_CONTEXT
 };
 
+function desktopApiBaseUrl() {
+  if (typeof window === "undefined" || window.location?.protocol !== "file:") return "";
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("desktop") !== "1") return "";
+  const sessionBaseUrl = window.matterSession?.desktopApiBaseUrl;
+  const rawBaseUrl = typeof sessionBaseUrl === "string" && sessionBaseUrl.trim()
+    ? sessionBaseUrl
+    : params.get("desktop_api_base_url");
+  if (typeof rawBaseUrl !== "string" || !rawBaseUrl.trim()) return "";
+  try {
+    const url = new URL(rawBaseUrl);
+    if (!["127.0.0.1", "localhost"].includes(url.hostname)) return "";
+    return url.origin;
+  } catch {
+    return "";
+  }
+}
+
+function apiRequestUrl(input) {
+  if (typeof input !== "string" || !input.startsWith("/")) return input;
+  const baseUrl = desktopApiBaseUrl();
+  return baseUrl ? `${baseUrl}${input}` : input;
+}
+
+function apiFetch(input, init) {
+  return fetch(apiRequestUrl(input), init);
+}
+
 function withQuery(path, params = {}) {
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
@@ -59,7 +87,7 @@ async function requestJson(path, options = {}) {
     ...headers
   };
   try {
-    response = await fetch(path, {
+    response = await apiFetch(path, {
       ...fetchOptions,
       credentials: "same-origin",
       headers: requestHeaders

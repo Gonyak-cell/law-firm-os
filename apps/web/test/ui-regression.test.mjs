@@ -131,7 +131,7 @@ test("matter startup branding uses shared splash and brand constants", async () 
   assert.doesNotMatch(i18nSource, /Project Atlas/);
 });
 
-test("desktop post-login route docks logo before five-axis contextual shell", async () => {
+test("desktop post-login route skips repeated logo splash before five-axis contextual shell", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const navSource = await readWebFile("src/data/nav.js");
@@ -139,7 +139,7 @@ test("desktop post-login route docks logo before five-axis contextual shell", as
   const stylesSource = await readWebFile("src/styles.css");
   const desktopSource = await readFile(resolve(webRoot, "../desktop/src/renderer/offline.html"), "utf8");
 
-  assert.match(desktopSource, /web\/index\.html\?desktop=1&view=home&data=live&ctx=allow&splash=1/);
+  assert.match(desktopSource, /web\/index\.html\?desktop=1&view=home&data=live&ctx=allow&splash=0/);
   assert.match(desktopSource, /LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos\.session\.envelope"/);
   assert.match(desktopSource, /LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION = "law-firm-os\.desktop-web-session-envelope\.v0\.1"/);
   assert.match(desktopSource, /function desktopSessionEnvelope/);
@@ -151,13 +151,18 @@ test("desktop post-login route docks logo before five-axis contextual shell", as
   assert.doesNotMatch(desktopSource, /localStorage|sessionStorage|indexedDB/);
   assert.doesNotMatch(desktopSource, /access_token|refresh_token|id_token|raw_cookie|Bearer/);
   assert.match(desktopSource, /data-launch-logo-flow/);
-  assert.match(desktopSource, /\.auth-stage[\s\S]*place-items:\s*center/);
-  assert.match(desktopSource, /\.brand-lockup[\s\S]*brandGap[\s\S]*brandSettle/);
-  assert.match(desktopSource, /\.matter-word-wrap[\s\S]*wordReveal/);
+  assert.match(desktopSource, /data-logo-intro="pending"/);
+  assert.match(desktopSource, /claimLogoIntro/);
+  assert.match(desktopSource, /\.auth-stage[\s\S]*display:\s*flex[\s\S]*align-items:\s*center[\s\S]*justify-content:\s*center/);
+  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.brand-lockup[\s\S]*brandLoginIntro 1900ms/);
+  assert.match(desktopSource, /body\[data-logo-intro="play"\] \.matter-word-wrap[\s\S]*matterWordLoginReveal 1900ms/);
+  assert.match(desktopSource, /productUiTarget\(session, \{ splash: false \}\)/);
   assert.match(desktopSource, /setMatterWordTarget/);
-  assert.match(desktopSource, /@keyframes wordReveal[\s\S]*width:\s*var\(--word-target\)/);
+  assert.match(desktopSource, /@keyframes matterWordLoginReveal[\s\S]*width:\s*var\(--word-target\)/);
   assert.match(desktopSource, /<span class="matter-word">[\s\S]*<span>m<\/span><span>a<\/span><span>t<\/span><span>t<\/span><span>e<\/span><span>r<\/span>/);
   assert.match(desktopSource, /\.\.\/\.\.\/build\/icon-source-mark\.png/);
+  assert.doesNotMatch(desktopSource, /logo-handoff-active/);
+  assert.doesNotMatch(desktopSource, /logoDockToHeader/);
   assert.doesNotMatch(desktopSource, /launch-splash/);
   assert.doesNotMatch(desktopSource, /matter-bar/);
   assert.doesNotMatch(desktopSource, /matter-dot/);
@@ -273,7 +278,7 @@ test("avatar profile opens a matter-consistent personal profile surface without 
   assert.doesNotMatch(navSource, /id: "profile"/);
 });
 
-test("login surfaces accept only email and password", async () => {
+test("login surfaces keep credentials bounded and desktop supports password setup", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const authSource = await readWebFile("src/components/AuthSurface.jsx");
   const stylesSource = await readWebFile("src/styles.css");
@@ -301,8 +306,12 @@ test("login surfaces accept only email and password", async () => {
 
   assert.match(desktopSource, /data-login-email/);
   assert.match(desktopSource, /data-login-password/);
+  assert.match(desktopSource, /data-auth-mode-panel="reset_confirm"/);
+  assert.match(desktopSource, /data-reset-token/);
+  assert.match(desktopSource, /data-reset-new-password/);
+  assert.match(desktopSource, /data-reset-confirm-password/);
   assert.match(desktopSource, /api\.login\(\{ email, password \}\)/);
-  assert.doesNotMatch(desktopSource, /data-account-select|data-reset-token|data-reset-request|data-reset-confirm|새 비밀번호|재설정 토큰/);
+  assert.doesNotMatch(desktopSource, /data-account-select|latestResetEmail|email_message|reset_url|operatorToken/);
 });
 
 test("command center groups all backend coverage into four product axes", async () => {
@@ -425,6 +434,13 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /data-cmp-g2-live-clients="true"/);
   assert.match(clientsSource, /data-salesforce-client-workspace="list-detail-right-panel"/);
   assert.match(clientsSource, /fetchMasterDataRecords/);
+  assert.match(apiClientSource, /cursor = null/);
+  assert.match(apiClientSource, /params\.set\("cursor"/);
+  assert.match(clientsSource, /fetchAllMasterDataRecords/);
+  assert.match(clientsSource, /modelType: "ClientGroup",\s*limit: 100/);
+  assert.match(clientsSource, /item\.synthetic_only !== true/);
+  assert.match(clientsSource, /Property label="법인 형태"/);
+  assert.match(clientsSource, /clientLegalForm/);
   assert.match(clientsSource, /fetchCrmLeads/);
   assert.match(clientsSource, /fetchCrmOpportunities/);
   assert.match(clientsSource, /fetchIntakeRequests/);
@@ -823,6 +839,15 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION = "law-firm-os\.desktop-web-session-envelope\.v0\.1"/);
   assert.match(apiClientSource, /export function readLawosSessionEnvelope/);
   assert.match(apiClientSource, /FORBIDDEN_SESSION_TEXT/);
+  assert.match(apiClientSource, /function desktopApiBaseUrl/);
+  assert.match(apiClientSource, /window\.matterSession\?\.desktopApiBaseUrl/);
+  assert.match(apiClientSource, /params\.get\("desktop_api_base_url"\)/);
+  assert.match(apiClientSource, /function apiFetch/);
+  assert.match(apiClientSource, /apiFetch\(`\/master-data\/records/);
+  assert.match(peopleApiSource, /function desktopApiBaseUrl/);
+  assert.match(peopleApiSource, /window\.matterSession\?\.desktopApiBaseUrl/);
+  assert.match(peopleApiSource, /params\.get\("desktop_api_base_url"\)/);
+  assert.match(peopleApiSource, /apiFetch\(path/);
   assert.match(apiClientSource, /session_principal_source: "desktop_web_session_envelope"/);
   assert.match(apiClientSource, /permissionContextFor\(ctx, PERMISSION_CONTEXTS, "client"\)/);
   assert.match(apiClientSource, /permissionContextFor\(ctx, MATTER_PERMISSION_CONTEXTS, "matter"\)/);

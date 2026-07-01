@@ -9,6 +9,7 @@ import {
   MASTER_DATA_RELATIONSHIP_DIRECTIONS,
   getMasterDataModelDefinition,
 } from "./registry.js";
+import { AMIC_CURRENT_CLIENT_CANDIDATES } from "./amic-client-candidates.js";
 
 function freezeRecord(record) {
   return Object.freeze(record);
@@ -77,6 +78,10 @@ export function createMasterDataEntity(input) {
     entity_id: input.entity_id,
     entity_kind: input.entity_kind,
     display_name: input.display_name,
+    canonical_display_name: input.canonical_display_name ?? input.display_name,
+    legal_form: input.legal_form ?? null,
+    client_source_ref: input.client_source_ref ?? null,
+    source_lanes: Object.freeze([...(input.source_lanes ?? [])]),
     identity_key: input.identity_key ?? `${input.tenant_id}:${input.entity_kind}:${input.display_name.toLowerCase()}`,
   });
 }
@@ -88,6 +93,10 @@ export function createMasterDataPerson(input) {
     party_id: input.party_id ?? null,
     entity_id: input.entity_id,
     display_name: input.display_name,
+    canonical_display_name: input.canonical_display_name ?? input.display_name,
+    legal_form: input.legal_form ?? null,
+    client_source_ref: input.client_source_ref ?? null,
+    source_lanes: Object.freeze([...(input.source_lanes ?? [])]),
     email: input.email ?? null,
     phone: input.phone ?? null,
     identity_key: input.identity_key ?? `${input.tenant_id}:person:${normalizeSearchValue(input.display_name)}`,
@@ -101,6 +110,10 @@ export function createMasterDataOrganization(input) {
     party_id: input.party_id ?? null,
     entity_id: input.entity_id,
     display_name: input.display_name,
+    canonical_display_name: input.canonical_display_name ?? input.display_name,
+    legal_form: input.legal_form ?? null,
+    client_source_ref: input.client_source_ref ?? null,
+    source_lanes: Object.freeze([...(input.source_lanes ?? [])]),
     registration_number: input.registration_number ?? null,
     identity_key: input.identity_key ?? `${input.tenant_id}:organization:${normalizeSearchValue(input.display_name)}`,
     security_attribute: input.security_attribute ?? "standard",
@@ -147,8 +160,14 @@ export function createMasterDataClientGroup(input) {
     ...baseRecord("ClientGroup", input),
     client_group_id: input.client_group_id,
     display_name: input.display_name,
+    canonical_display_name: input.canonical_display_name ?? input.display_name,
+    legal_form: input.legal_form ?? null,
+    candidate_type: input.candidate_type ?? null,
+    client_source_ref: input.client_source_ref ?? null,
+    source_lanes: Object.freeze([...(input.source_lanes ?? [])]),
     member_entity_ids: Object.freeze([...(input.member_entity_ids ?? [])]),
     member_party_ids: Object.freeze([...(input.member_party_ids ?? [])]),
+    primary_entity_id: input.primary_entity_id ?? null,
     primary_party_id: input.primary_party_id ?? null,
     billing_profile_id: input.billing_profile_id ?? null,
     confidentiality: input.confidentiality ?? "confidential",
@@ -217,6 +236,77 @@ const FACTORIES = Object.freeze({
   BillingProfile: createMasterDataBillingProfile,
 });
 
+const AMIC_CURRENT_CLIENT_SOURCE_REF = "amic_current_onedrive_folder_inventory_2026_07_01";
+
+function clientCandidateEntityKind(candidate) {
+  return candidate.candidate_type === "organization_candidate" ? "organization" : "person";
+}
+
+function createAmicCurrentClientCandidateRecords({ tenant_id, owner_user_id }) {
+  return AMIC_CURRENT_CLIENT_CANDIDATES.flatMap((candidate, index) => {
+    const sequence = String(index + 1).padStart(3, "0");
+    const entityKind = clientCandidateEntityKind(candidate);
+    const entity = createMasterDataEntity({
+      entity_id: `entity_rp04_amic_client_${sequence}`,
+      tenant_id,
+      entity_kind: entityKind,
+      display_name: candidate.display_name,
+      canonical_display_name: candidate.canonical_display_name,
+      legal_form: candidate.legal_form,
+      candidate_type: candidate.candidate_type,
+      client_source_ref: AMIC_CURRENT_CLIENT_SOURCE_REF,
+      source_lanes: candidate.source_lanes,
+      status: "active",
+      owner_user_id,
+      synthetic_only: false,
+    });
+    const party =
+      entityKind === "organization"
+        ? createMasterDataOrganization({
+            organization_id: `org_rp04_amic_client_${sequence}`,
+            tenant_id,
+            entity_id: entity.entity_id,
+            display_name: candidate.display_name,
+            canonical_display_name: candidate.canonical_display_name,
+            legal_form: candidate.legal_form,
+            client_source_ref: AMIC_CURRENT_CLIENT_SOURCE_REF,
+            source_lanes: candidate.source_lanes,
+            status: "active",
+            owner_user_id,
+            synthetic_only: false,
+          })
+        : createMasterDataPerson({
+            person_id: `person_rp04_amic_client_${sequence}`,
+            tenant_id,
+            entity_id: entity.entity_id,
+            display_name: candidate.display_name,
+            canonical_display_name: candidate.canonical_display_name,
+            legal_form: candidate.legal_form,
+            client_source_ref: AMIC_CURRENT_CLIENT_SOURCE_REF,
+            source_lanes: candidate.source_lanes,
+            status: "active",
+            owner_user_id,
+            synthetic_only: false,
+          });
+    const clientGroup = createMasterDataClientGroup({
+      client_group_id: `client_group_rp04_amic_client_${sequence}`,
+      tenant_id,
+      display_name: candidate.display_name,
+      canonical_display_name: candidate.canonical_display_name,
+      legal_form: candidate.legal_form,
+      candidate_type: candidate.candidate_type,
+      client_source_ref: AMIC_CURRENT_CLIENT_SOURCE_REF,
+      source_lanes: candidate.source_lanes,
+      status: "active",
+      owner_user_id,
+      member_entity_ids: [entity.entity_id],
+      primary_entity_id: entity.entity_id,
+      synthetic_only: false,
+    });
+    return [entity, party, clientGroup];
+  });
+}
+
 export function createMasterDataRecord(modelType, input) {
   const factory = FACTORIES[modelType];
   if (!factory) throw new Error(`Unknown Master Data model type ${modelType}`);
@@ -226,6 +316,7 @@ export function createMasterDataRecord(modelType, input) {
 export function createMasterDataSyntheticFixture() {
   const tenant_id = "tenant_rp04_synthetic";
   const owner_user_id = "user_rp04_owner";
+  const amicCurrentClientRecords = createAmicCurrentClientCandidateRecords({ tenant_id, owner_user_id });
   const entity = createMasterDataEntity({
     entity_id: "entity_rp04_org_amic",
     tenant_id,
@@ -299,9 +390,19 @@ export function createMasterDataSyntheticFixture() {
     fixture_id: "master_data_cp156_synthetic_fixture",
     tenant_id,
     owner_user_id,
-    records: Object.freeze([entity, organization, personEntity, person, clientGroup, relationship, contactPoint, billingProfile]),
-    synthetic_only: true,
-    uses_real_client_data: false,
+    records: Object.freeze([
+      ...amicCurrentClientRecords,
+      entity,
+      organization,
+      personEntity,
+      person,
+      clientGroup,
+      relationship,
+      contactPoint,
+      billingProfile,
+    ]),
+    synthetic_only: false,
+    uses_real_client_data: true,
     writes_product_state: false,
     evaluates_runtime_permission: false,
     writes_audit_event: false,

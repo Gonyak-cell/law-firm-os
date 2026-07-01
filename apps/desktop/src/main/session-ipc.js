@@ -1,5 +1,6 @@
 export const SESSION_CHANNELS = Object.freeze({
   status: "session:status",
+  claimLogoIntro: "session:logo-intro:claim",
   runtime: "session:runtime",
   accounts: "session:accounts",
   requestPasswordReset: "session:password-reset:request",
@@ -17,6 +18,7 @@ export function registerSessionIpcHandlers({ ipcMain, coordinator }) {
 
   const handlers = [
     [SESSION_CHANNELS.status, () => coordinator.sessionStatus()],
+    [SESSION_CHANNELS.claimLogoIntro, () => coordinator.claimLogoIntro()],
     [SESSION_CHANNELS.runtime, () => coordinator.runtimeStatus()],
     [SESSION_CHANNELS.accounts, () => coordinator.accounts()],
     [SESSION_CHANNELS.requestPasswordReset, (_event, payload) => coordinator.requestPasswordReset(payload)],

@@ -109,6 +109,34 @@ const SAFE_REVIEW_STATES = new Set(["allow", "review", "denied"]);
 const SAFE_REF_PATTERN = /^[A-Za-z0-9._:-]{1,160}$/;
 const FORBIDDEN_SESSION_TEXT = /(password|reset|bearer|cookie|secret|credential|authorization|token|sk-)/i;
 
+function desktopApiBaseUrl() {
+  if (typeof window === "undefined" || window.location?.protocol !== "file:") return "";
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("desktop") !== "1") return "";
+  const sessionBaseUrl = window.matterSession?.desktopApiBaseUrl;
+  const rawBaseUrl = typeof sessionBaseUrl === "string" && sessionBaseUrl.trim()
+    ? sessionBaseUrl
+    : params.get("desktop_api_base_url");
+  if (typeof rawBaseUrl !== "string" || !rawBaseUrl.trim()) return "";
+  try {
+    const url = new URL(rawBaseUrl);
+    if (!["127.0.0.1", "localhost"].includes(url.hostname)) return "";
+    return url.origin;
+  } catch {
+    return "";
+  }
+}
+
+function apiRequestUrl(input) {
+  if (typeof input !== "string" || !input.startsWith("/")) return input;
+  const baseUrl = desktopApiBaseUrl();
+  return baseUrl ? `${baseUrl}${input}` : input;
+}
+
+function apiFetch(input, init) {
+  return fetch(apiRequestUrl(input), init);
+}
+
 const PRINCIPAL = {
   user_id: "matter_client_operator",
   tenant_id: TENANT_ID,
@@ -591,6 +619,7 @@ export async function fetchMasterDataRecords({
   modelType = null,
   filters = null,
   limit = 25,
+  cursor = null,
   permissionRef = DEFAULT_PERMISSION_REF,
   auditHintRef = DEFAULT_AUDIT_HINT_REF
 } = {}) {
@@ -602,13 +631,14 @@ export async function fetchMasterDataRecords({
     limit: String(limit)
   });
   if (modelType) params.set("model_type", modelType);
+  if (cursor) params.set("cursor", String(cursor));
   if (filters && typeof filters === "object" && !Array.isArray(filters)) {
     params.set("filters", JSON.stringify(filters));
   }
 
   let body;
   try {
-    const response = await fetch(`/master-data/records?${params.toString()}`, {
+    const response = await apiFetch(`/master-data/records?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -654,7 +684,7 @@ export async function fetchUserProfile({
   let response;
   let body;
   try {
-    response = await fetch(`/api/profile/me?${params.toString()}`, {
+    response = await apiFetch(`/api/profile/me?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -701,44 +731,51 @@ export async function fetchUserProfile({
 
 export async function fetchMatterRecords({
   ctx = "allow",
-  limit = 25,
+  limit = 100,
   permissionRef = DEFAULT_MATTER_PERMISSION_REF,
   auditHintRef = DEFAULT_MATTER_AUDIT_HINT_REF
 } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
-  const params = new URLSearchParams({
-    tenant_id: MATTER_TENANT_ID,
-    permission_ref: permissionRef,
-    audit_hint_ref: auditHintRef,
-    limit: String(limit)
-  });
-
-  let body;
+  const items = [];
+  let body = null;
+  let cursor = null;
+  let pageCount = 0;
   try {
-    const response = await fetch(`/api/matters?${params.toString()}`, {
-      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
-    });
-    body = await response.json();
+    do {
+      const params = new URLSearchParams({
+        tenant_id: MATTER_TENANT_ID,
+        permission_ref: permissionRef,
+        audit_hint_ref: auditHintRef,
+        limit: String(limit)
+      });
+      if (cursor) params.set("cursor", cursor);
+      const response = await apiFetch(`/api/matters?${params.toString()}`, {
+        headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+      });
+      body = await response.json();
+      const hasMatterShape =
+        body !== null &&
+        typeof body === "object" &&
+        !Array.isArray(body) &&
+        ["request_id", "outcome", "items", "safe_error_codes", "audit_hint_ref", "ui_state", "production_ready_claim"]
+          .every((key) => key in body) &&
+        Array.isArray(body.items);
+      if (!hasMatterShape) return { kind: "error" };
+      items.push(...body.items);
+      cursor = body.page_info?.next_cursor ?? null;
+      pageCount += 1;
+    } while (cursor && pageCount < 20);
   } catch {
     return { kind: "error" };
   }
-
-  const hasMatterShape =
-    body !== null &&
-    typeof body === "object" &&
-    !Array.isArray(body) &&
-    ["request_id", "outcome", "items", "safe_error_codes", "audit_hint_ref", "ui_state", "production_ready_claim"]
-      .every((key) => key in body) &&
-    Array.isArray(body.items);
-  if (!hasMatterShape) return { kind: "error" };
 
   return {
     kind: "data",
     requestId: body.request_id,
     uiState: body.ui_state,
     outcome: body.outcome,
-    items: body.items,
-    pageInfo: body.page_info ?? null,
+    items,
+    pageInfo: body.page_info ? { ...body.page_info, returned_count: items.length } : null,
     safeErrorCodes: body.safe_error_codes,
     auditHintRef: body.audit_hint_ref,
     countLeakPrevented: body.count_leak_prevented === true,
@@ -762,7 +799,7 @@ export async function fetchMatterListViews({
 
   let body;
   try {
-    const response = await fetch(`/api/matters/list-views?${params.toString()}`, {
+    const response = await apiFetch(`/api/matters/list-views?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -808,7 +845,7 @@ export async function fetchMatterRecentlyViewed({
 
   let body;
   try {
-    const response = await fetch(`/api/matters/recently-viewed?${params.toString()}`, {
+    const response = await apiFetch(`/api/matters/recently-viewed?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -842,7 +879,7 @@ async function writeMatterRuntime({ method = "POST", path, payload, ctx = "allow
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   let body;
   try {
-    const response = await fetch(path, {
+    const response = await apiFetch(path, {
       method,
       headers: {
         "content-type": "application/json",
@@ -907,7 +944,7 @@ async function fetchMatterRuntimeCollection({
 
   let body;
   try {
-    const response = await fetch(`${path}?${params.toString()}`, {
+    const response = await apiFetch(`${path}?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -947,7 +984,7 @@ async function fetchMatterRuntimeItem({
 
   let body;
   try {
-    const response = await fetch(`${path}?${params.toString()}`, {
+    const response = await apiFetch(`${path}?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -1011,7 +1048,7 @@ async function fetchAdminPermissionCollection({ path, ctx = "allow" } = {}) {
 
   let body;
   try {
-    const response = await fetch(`${path}?${params.toString()}`, {
+    const response = await apiFetch(`${path}?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -1028,7 +1065,7 @@ async function writeAdminPermissionRuntime({ method = "POST", path, payload, ctx
   const context = ADMIN_PERMISSION_CONTEXTS[ctx] ?? ADMIN_PERMISSION_CONTEXTS.allow;
   let body;
   try {
-    const response = await fetch(path, {
+    const response = await apiFetch(path, {
       method,
       headers: {
         "content-type": "application/json",
@@ -1231,7 +1268,7 @@ async function fetchDataCloudCollection({ path, ctx = "allow" } = {}) {
 
   let body;
   try {
-    const response = await fetch(`${path}?${params.toString()}`, {
+    const response = await apiFetch(`${path}?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -1248,7 +1285,7 @@ async function writeDataCloudRuntime({ path, payload, ctx = "allow" } = {}) {
   const context = DATA_CLOUD_PERMISSION_CONTEXTS[ctx] ?? DATA_CLOUD_PERMISSION_CONTEXTS.allow;
   let body;
   try {
-    const response = await fetch(path, {
+    const response = await apiFetch(path, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -1396,7 +1433,7 @@ async function fetchImportDataCollection({ path, ctx = "allow" } = {}) {
 
   let body;
   try {
-    const response = await fetch(`${path}?${params.toString()}`, {
+    const response = await apiFetch(`${path}?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -1621,7 +1658,7 @@ async function fetchRecordActionRuntime({ objectName, suffix, ctx = "allow" } = 
   });
   let body;
   try {
-    const response = await fetch(`/api/record-actions/${runtime.objectName}${suffix}?${params.toString()}`, {
+    const response = await apiFetch(`/api/record-actions/${runtime.objectName}${suffix}?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(runtime.context) }
     });
     body = await response.json();
@@ -1638,7 +1675,7 @@ async function writeRecordActionRuntime({ objectName, suffix, payload, ctx = "al
   const runtime = recordActionRuntime(objectName, ctx);
   let body;
   try {
-    const response = await fetch(`/api/record-actions/${runtime.objectName}${suffix}`, {
+    const response = await apiFetch(`/api/record-actions/${runtime.objectName}${suffix}`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -2285,7 +2322,7 @@ export async function fetchMatterCommandCenter({
 
   let body;
   try {
-    const response = await fetch(`/api/matters/${encodeURIComponent(matterId)}/command-center?${params.toString()}`, {
+    const response = await apiFetch(`/api/matters/${encodeURIComponent(matterId)}/command-center?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -2333,7 +2370,7 @@ export async function fetchMatterVaultSummary({
 
   let body;
   try {
-    const response = await fetch(`/api/matters/${encodeURIComponent(matterId)}/vault-summary?${params.toString()}`, {
+    const response = await apiFetch(`/api/matters/${encodeURIComponent(matterId)}/vault-summary?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -2377,7 +2414,7 @@ export async function fetchMatterTimeline({
 
   let body;
   try {
-    const response = await fetch(`/api/matters/${encodeURIComponent(matterId)}/timeline?${params.toString()}`, {
+    const response = await apiFetch(`/api/matters/${encodeURIComponent(matterId)}/timeline?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -2412,7 +2449,7 @@ export async function fetchMatterAudit({
 
   let body;
   try {
-    const response = await fetch(`/api/matters/audit?${params.toString()}`, {
+    const response = await apiFetch(`/api/matters/audit?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -2456,7 +2493,7 @@ export async function fetchVaultDocuments({
 
   let body;
   try {
-    const response = await fetch(`/api/vault/documents?${params.toString()}`, {
+    const response = await apiFetch(`/api/vault/documents?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -2495,7 +2532,7 @@ export async function fetchVaultBridgeStatus({ ctx = "allow", bridgeToken = null
   let response;
   let body;
   try {
-    response = await fetch("/api/matters/vault-bridge/status", { headers });
+    response = await apiFetch("/api/matters/vault-bridge/status", { headers });
     body = await response.json();
   } catch {
     return { kind: "error" };
@@ -2553,7 +2590,7 @@ export async function fetchVaultMatterLookup({ ctx = "allow", query = "", bridge
   let response;
   let body;
   try {
-    response = await fetch(`/api/matters/vault-bridge/matter-lookup?${params.toString()}`, { headers });
+    response = await apiFetch(`/api/matters/vault-bridge/matter-lookup?${params.toString()}`, { headers });
     body = await response.json();
   } catch {
     return { kind: "error" };
@@ -2624,7 +2661,7 @@ export async function fetchVaultUploadPreflight({
   let response;
   let body;
   try {
-    response = await fetch("/api/matters/vault-bridge/upload-preflight", {
+    response = await apiFetch("/api/matters/vault-bridge/upload-preflight", {
       method: "POST",
       headers: { ...headers, "content-type": "application/json" },
       body: JSON.stringify(payload)
@@ -2693,7 +2730,7 @@ async function fetchMatterVaultCollection({
 
   let body;
   try {
-    const response = await fetch(`${path}?${params.toString()}`, {
+    const response = await apiFetch(`${path}?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -2769,7 +2806,7 @@ async function fetchCrmIntakeCollection({
 
   let body;
   try {
-    const response = await fetch(`${path}?${params.toString()}`, {
+    const response = await apiFetch(`${path}?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -2816,7 +2853,7 @@ async function postCrmIntakeRuntime({ path, payload, ctx = "allow" } = {}) {
   const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
   let body;
   try {
-    const response = await fetch(path, {
+    const response = await apiFetch(path, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -2854,7 +2891,7 @@ async function patchCrmIntakeRuntime({ path, payload, ctx = "allow" } = {}) {
   const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
   let body;
   try {
-    const response = await fetch(path, {
+    const response = await apiFetch(path, {
       method: "PATCH",
       headers: {
         "content-type": "application/json",
@@ -3329,7 +3366,7 @@ async function fetchFinanceCollection({
 
   let body;
   try {
-    const response = await fetch(`${path}?${params.toString()}`, {
+    const response = await apiFetch(`${path}?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -3364,7 +3401,7 @@ async function postFinanceRuntime({ path, payload, ctx = "allow" } = {}) {
   const context = FINANCE_PERMISSION_CONTEXTS[ctx] ?? FINANCE_PERMISSION_CONTEXTS.allow;
   let body;
   try {
-    const response = await fetch(path, {
+    const response = await apiFetch(path, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -3493,7 +3530,7 @@ export async function fetchAnalyticsDashboards({
 
   let body;
   try {
-    const response = await fetch(`/api/analytics/dashboards?${params.toString()}`, {
+    const response = await apiFetch(`/api/analytics/dashboards?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -3551,7 +3588,7 @@ async function postAnalyticsRuntime({ path, payload, ctx = "allow" } = {}) {
   const context = ANALYTICS_PERMISSION_CONTEXTS[ctx] ?? ANALYTICS_PERMISSION_CONTEXTS.allow;
   let body;
   try {
-    const response = await fetch(path, {
+    const response = await apiFetch(path, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -3592,7 +3629,7 @@ export async function fetchAnalyticsClientProfitability({
   });
   let body;
   try {
-    const response = await fetch(`/api/analytics/client-profitability?${params.toString()}`, {
+    const response = await apiFetch(`/api/analytics/client-profitability?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -3615,7 +3652,7 @@ export async function fetchAnalyticsMatterProfitability({
   });
   let body;
   try {
-    const response = await fetch(`/api/analytics/matter-profitability?${params.toString()}`, {
+    const response = await apiFetch(`/api/analytics/matter-profitability?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -3760,7 +3797,7 @@ async function fetchReportRuntime({ path, ctx = "allow" } = {}) {
   });
   let body;
   try {
-    const response = await fetch(`${path}?${params.toString()}`, {
+    const response = await apiFetch(`${path}?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -3774,7 +3811,7 @@ async function writeReportRuntime({ path, payload, method = "POST", ctx = "allow
   const context = REPORT_PERMISSION_CONTEXTS[ctx] ?? REPORT_PERMISSION_CONTEXTS.allow;
   let body;
   try {
-    const response = await fetch(path, {
+    const response = await apiFetch(path, {
       method,
       headers: {
         "content-type": "application/json",
@@ -3863,7 +3900,7 @@ export async function fetchAiReviewQueue({
   });
   let body;
   try {
-    const response = await fetch(`/api/ai/review-queue?${params.toString()}`, {
+    const response = await apiFetch(`/api/ai/review-queue?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -3905,7 +3942,7 @@ async function fetchPortalCollection({
   });
   let body;
   try {
-    const response = await fetch(`${path}?${params.toString()}`, {
+    const response = await apiFetch(`${path}?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -3960,7 +3997,7 @@ export async function fetchUiReadinessChecks({
   if (routeId) params.set("route_id", routeId);
   let body;
   try {
-    const response = await fetch(`/api/ui/readiness?${params.toString()}`, {
+    const response = await apiFetch(`/api/ui/readiness?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -4001,7 +4038,7 @@ export async function fetchEnterpriseReadinessItems({
   });
   let body;
   try {
-    const response = await fetch(`/api/enterprise/readiness?${params.toString()}`, {
+    const response = await apiFetch(`/api/enterprise/readiness?${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();

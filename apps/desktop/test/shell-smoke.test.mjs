@@ -6,6 +6,7 @@ import {
   PASSWORD_RESET_DEEP_LINK_CHANNEL,
   collectMatterDeepLinkArgs,
   configureDesktopAppIcon,
+  configureDesktopProtocol,
   desktopPreloadPath,
   desktopWindowIconPath,
   isMainEntryPoint,
@@ -14,6 +15,10 @@ import {
   sendPasswordResetDeepLink,
   startDesktopShell
 } from "../src/main/main.js";
+import {
+  desktopApiServerEntryCandidates,
+  resolveDesktopApiServerEntry
+} from "../src/main/local-api.js";
 
 class FakeBrowserWindow {
   constructor(options) {
@@ -61,6 +66,7 @@ class FakeBrowserWindow {
 
 test("desktop shell starts with packaged renderer target, preload, and hardened options", async () => {
   const { window, target } = await startDesktopShell({ BrowserWindowConstructor: FakeBrowserWindow });
+  const preloadSource = readFileSync(new URL("../src/preload/session.cjs", import.meta.url), "utf8");
 
   assert.equal(target, packagedRendererUrl());
   assert.equal(window.loadedURL, packagedRendererUrl());
@@ -76,6 +82,21 @@ test("desktop shell starts with packaged renderer target, preload, and hardened 
   window.readyEvent.handler();
   assert.equal(window.shown, true);
   assert.equal(window.focused, true);
+  assert.match(preloadSource, /desktopApiBaseUrl/);
+  assert.match(preloadSource, /claimLogoIntro/);
+});
+
+test("desktop shell can resolve bundled or repo-local API server for web renderer data", () => {
+  const packagedStart = "/App/Contents/Resources/app/src/main";
+  const packagedEntry = "/App/Contents/Resources/app/runtime/apps/api/src/server.js";
+  assert.equal(desktopApiServerEntryCandidates({ start: packagedStart })[0], packagedEntry);
+  assert.equal(
+    resolveDesktopApiServerEntry({
+      start: packagedStart,
+      existsSyncImpl: (candidate) => candidate === packagedEntry
+    }),
+    packagedEntry
+  );
 });
 
 test("desktop shell hands password reset deep link intent to renderer without exposing it in return value", async () => {
@@ -138,6 +159,19 @@ test("desktop app configures the macOS Dock icon from the packaged matter mark",
   });
 
   assert.deepEqual(calls, [desktopWindowIconPath()]);
+});
+
+test("desktop app registers matter deep links with the OS protocol handler", () => {
+  const calls = [];
+  const registered = configureDesktopProtocol({
+    setAsDefaultProtocolClient(scheme) {
+      calls.push(scheme);
+      return true;
+    }
+  });
+
+  assert.equal(registered, true);
+  assert.deepEqual(calls, ["matter"]);
 });
 
 test("macOS app bundle uses matter.icns instead of inherited Electron icon metadata", () => {
