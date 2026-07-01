@@ -81,12 +81,19 @@
     "client_model": "MatterClient",
     "matter_model": "Matter",
     "matter_code_field": "matter_code",
-    "matter_code_format": "[client_short_name]/[LIT|ADV|DEAL]/[matter_detail_type_korean]",
+    "client_case_role_field": "client_case_role",
+    "matter_code_format": "[client_short_name]/[Advisory|DEAL|Dispute]/[matter_detail_type_korean] or [client_short_name]/LIT/[CIV|CRM|ADM]/[matter_detail_type_korean]",
     "matter_code_max_length": 120,
     "matter_code_axes": [
       "LIT",
-      "ADV",
-      "DEAL"
+      "Advisory",
+      "DEAL",
+      "Dispute"
+    ],
+    "litigation_axes": [
+      "CIV",
+      "CRM",
+      "ADM"
     ],
     "vault_write_contract_entrypoints": [
       "upsertMatterAppClientFromVaultContract",
@@ -100,6 +107,8 @@
     "optional_vault_projection_fields": [
       "practiceGroup",
       "responsibleLawyer",
+      "clientCaseRole",
+      "clientCaseRoleConfidence",
       "openedAt",
       "closedAt",
       "sourceUpdatedAt",

@@ -16,30 +16,43 @@ const CLIENT_LEGAL_SUFFIXES = Object.freeze([
   "LLP",
 ]);
 const CLIENT_LEGAL_PREFIXES = Object.freeze(["(주)", "㈜"]);
-const CANONICAL_MATTER_CODE_AXES = Object.freeze(["LIT", "ADV", "DEAL"]);
+const CANONICAL_MATTER_CODE_AXES = Object.freeze(["LIT", "Advisory", "DEAL", "Dispute"]);
+const CANONICAL_LITIGATION_AXES = Object.freeze(["CIV", "CRM", "ADM"]);
 const MATTER_CODE_AXIS_ALIASES = Object.freeze({
   LIT: "LIT",
   litigation: "LIT",
-  Civil: "LIT",
-  civil: "LIT",
-  Criminal: "LIT",
-  criminal: "LIT",
-  Administrative: "LIT",
-  administrative: "LIT",
-  행정: "LIT",
-  민사: "LIT",
-  형사: "LIT",
-  ADV: "ADV",
-  Advisory: "ADV",
-  advisory: "ADV",
-  기업자문: "ADV",
+  ADV: "Advisory",
+  Advisory: "Advisory",
+  advisory: "Advisory",
+  기업자문: "Advisory",
   DEAL: "DEAL",
+  DISP: "Dispute",
+  DIST: "Dispute",
+  Dispute: "Dispute",
+  dispute: "Dispute",
+  분쟁: "Dispute",
   "M&A": "DEAL",
   mna: "DEAL",
   ma: "DEAL",
   신주투자: "DEAL",
   매각자문: "DEAL",
   인수자문: "DEAL",
+});
+const LITIGATION_AXIS_ALIASES = Object.freeze({
+  CIV: "CIV",
+  Civil: "CIV",
+  civil: "CIV",
+  민사: "CIV",
+  CRM: "CRM",
+  CRIM: "CRM",
+  Criminal: "CRM",
+  criminal: "CRM",
+  형사: "CRM",
+  ADM: "ADM",
+  Admin: "ADM",
+  Administrative: "ADM",
+  administrative: "ADM",
+  행정: "ADM",
 });
 
 function freeze(value) {
@@ -140,12 +153,18 @@ export function mapVaultMatterAppMatterUpsertRequest(request = {}, { actor_id, c
   const tenantId = requiredString(request, "tenantRef");
   const clientId = requiredString(request, "clientId");
   const matterCode = requiredString(request, "matterCode");
-  const matterTypeEnglish = normalizeMatterCodeAxis(requiredString(request, "matterTypeEnglish"));
+  const matterType = normalizeMatterType(requiredString(request, "matterTypeEnglish"));
+  const matterTypeEnglish = matterType.axis;
+  const matterLitigationAxis = normalizeMatterLitigationAxis(
+    request.matterLitigationAxis ?? request.litigationAxis ?? request.litigationTypeEnglish ?? matterType.litigation_axis,
+    { required: matterTypeEnglish === "LIT" },
+  );
   const matterDetailTypeKorean = requiredString(request, "matterDetailTypeKorean");
   const clientShortName = client?.client_short_name ?? request.clientShortName;
   const expectedCode = deriveMatterCode({
     client_short_name: clientShortName,
     matter_type_english: matterTypeEnglish,
+    matter_litigation_axis: matterLitigationAxis,
     matter_detail_type_korean: matterDetailTypeKorean,
   });
   if (normalizeMatterCode(matterCode) !== expectedCode) {
@@ -166,7 +185,10 @@ export function mapVaultMatterAppMatterUpsertRequest(request = {}, { actor_id, c
       matter_name: requiredString(request, "matterName"),
       title: requiredString(request, "matterName"),
       matter_type_english: matterTypeEnglish,
+      matter_litigation_axis: matterLitigationAxis,
       matter_detail_type_korean: matterDetailTypeKorean,
+      client_case_role: request.clientCaseRole ?? request.client_case_role ?? null,
+      client_case_role_confidence: request.clientCaseRoleConfidence ?? request.client_case_role_confidence ?? null,
       practice_group: request.practiceGroup ?? null,
       responsible_lawyer: request.responsibleLawyer ?? null,
       opened_at: request.openedAt ?? null,
@@ -197,12 +219,36 @@ function normalizeMatterCodeAxis(value) {
   return canonical;
 }
 
+function normalizeMatterType(value) {
+  const axis = normalizeMatterCodeSegment(value, "matter_type_english");
+  if (LITIGATION_AXIS_ALIASES[axis]) {
+    return freeze({ axis: "LIT", litigation_axis: LITIGATION_AXIS_ALIASES[axis] });
+  }
+  return freeze({ axis: normalizeMatterCodeAxis(axis), litigation_axis: null });
+}
+
+function normalizeMatterLitigationAxis(value, { required = false } = {}) {
+  const raw = compact(value);
+  if (!raw) {
+    if (required) throw new Error(`matterLitigationAxis must be one of ${CANONICAL_LITIGATION_AXES.join(", ")}`);
+    return null;
+  }
+  const canonical = LITIGATION_AXIS_ALIASES[raw];
+  if (!canonical) throw new Error(`matterLitigationAxis must be one of ${CANONICAL_LITIGATION_AXES.join(", ")}`);
+  return canonical;
+}
+
 function normalizeMatterCode(value) {
   const matterCode = requiredString({ matter_code: value }, "matter_code");
-  const segments = matterCode.split("/");
-  if (segments.length !== 3) return matterCode;
+  const segments = matterCode.split("/").map((segment) => compact(segment));
+  if (segments.length !== 3 && segments.length !== 4) return matterCode;
   const axis = MATTER_CODE_AXIS_ALIASES[compact(segments[1])] ?? compact(segments[1]);
-  return [compact(segments[0]), axis, compact(segments[2])].join("/");
+  if (segments.length === 3) {
+    const litigationAxis = LITIGATION_AXIS_ALIASES[compact(segments[1])];
+    if (litigationAxis) return [segments[0], "LIT", litigationAxis, segments[2]].join("/");
+    return [segments[0], axis, segments[2]].join("/");
+  }
+  return [segments[0], axis, LITIGATION_AXIS_ALIASES[segments[2]] ?? segments[2], segments[3]].join("/");
 }
 
 export function normalizeMatterClientShortName({
@@ -236,13 +282,19 @@ export function normalizeMatterClientShortName({
 export function deriveMatterCode({
   client_short_name,
   matter_type_english,
+  matter_litigation_axis,
   matter_detail_type_korean,
 } = {}) {
+  const matterType = normalizeMatterType(matter_type_english);
   const segments = [
     normalizeMatterCodeSegment(client_short_name, "client_short_name"),
-    normalizeMatterCodeAxis(matter_type_english),
-    normalizeMatterCodeSegment(matter_detail_type_korean, "matter_detail_type_korean"),
+    matterType.axis,
   ];
+  const litigationAxis = normalizeMatterLitigationAxis(matter_litigation_axis ?? matterType.litigation_axis, {
+    required: matterType.axis === "LIT",
+  });
+  if (matterType.axis === "LIT") segments.push(litigationAxis);
+  segments.push(normalizeMatterCodeSegment(matter_detail_type_korean, "matter_detail_type_korean"));
   const matterCode = segments.join("/");
   if (matterCode.length > 120) throw new RangeError("matter_code must be 120 characters or less");
   return matterCode;
@@ -252,11 +304,16 @@ export function validateMatterCode(matter_code) {
   const value = normalizeMatterCode(matter_code);
   const segments = value.split("/");
   const errors = [];
-  if (segments.length !== 3 || segments.some((segment) => compact(segment) === "")) {
-    errors.push("matter_code_must_have_three_segments");
+  if (![3, 4].includes(segments.length) || segments.some((segment) => compact(segment) === "")) {
+    errors.push("matter_code_must_have_three_segments_or_lit_four_segments");
   }
-  if (segments.length === 3 && !CANONICAL_MATTER_CODE_AXES.includes(segments[1])) {
-    errors.push("matter_code_axis_must_be_lit_adv_or_deal");
+  if (segments.length >= 3 && !CANONICAL_MATTER_CODE_AXES.includes(segments[1])) {
+    errors.push("matter_code_axis_must_be_lit_advisory_deal_or_dispute");
+  }
+  if (segments.length === 3 && segments[1] === "LIT") errors.push("lit_matter_code_must_include_civ_crm_or_adm");
+  if (segments.length === 4 && segments[1] !== "LIT") errors.push("only_lit_matter_code_can_have_four_segments");
+  if (segments.length === 4 && !CANONICAL_LITIGATION_AXES.includes(segments[2])) {
+    errors.push("litigation_axis_must_be_civ_crm_or_adm");
   }
   if (value.length > 120) errors.push("matter_code_too_long");
   return freeze({
@@ -274,6 +331,7 @@ export function reserveMatterCode({
   matter_code,
   client_short_name,
   matter_type_english,
+  matter_litigation_axis,
   matter_detail_type_korean,
   idempotency_key,
 } = {}) {
@@ -284,7 +342,7 @@ export function reserveMatterCode({
 
   const nextCode = compact(matter_code)
     ? validateMatterCode(matter_code).matter_code
-    : deriveMatterCode({ client_short_name, matter_type_english, matter_detail_type_korean });
+    : deriveMatterCode({ client_short_name, matter_type_english, matter_litigation_axis, matter_detail_type_korean });
   const validation = validateMatterCode(nextCode);
   if (!validation.valid) throw new Error(`Matter code invalid: ${validation.errors.join(", ")}`);
 
@@ -386,6 +444,7 @@ export function upsertCanonicalMatterIdentity({
     matter_code: matter.matter_code,
     client_short_name: clientResult.client.client_short_name,
     matter_type_english: matter.matter_type_english,
+    matter_litigation_axis: matter.matter_litigation_axis,
     matter_detail_type_korean: matter.matter_detail_type_korean,
     idempotency_key: `${idempotency_key}:matter-code`,
   });

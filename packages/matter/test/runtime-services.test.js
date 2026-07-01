@@ -109,13 +109,25 @@ test("Matter numbering blocks duplicate matter numbers and supports idempotent r
 
 test("Matter canonical identity upsert stores client and tenant-unique matter code idempotently", () => {
   const repository = createMatterRepository();
-  assert.equal(validateMatterCode("AMIC/LIT/계약분쟁").valid, true);
-  assert.equal(validateMatterCode("AMIC/Civil/계약분쟁").matter_code, "AMIC/LIT/계약분쟁");
+  assert.equal(validateMatterCode("AMIC/LIT/CIV/계약분쟁").valid, true);
+  assert.equal(validateMatterCode("AMIC/Civil/계약분쟁").matter_code, "AMIC/LIT/CIV/계약분쟁");
+  assert.equal(validateMatterCode("AMIC/LIT/계약분쟁").valid, false);
+  assert.equal(validateMatterCode("AMIC/DISP/내용증명").matter_code, "AMIC/Dispute/내용증명");
+  assert.equal(validateMatterCode("AMIC/Dispute/내용증명").valid, true);
+  assert.equal(
+    deriveMatterCode({
+      client_short_name: "AMIC",
+      matter_type_english: "Dispute",
+      matter_detail_type_korean: "내용증명",
+    }),
+    "AMIC/Dispute/내용증명",
+  );
   assert.throws(
     () =>
       deriveMatterCode({
         client_short_name: "A".repeat(112),
         matter_type_english: "LIT",
+        matter_litigation_axis: "CIV",
         matter_detail_type_korean: "계약분쟁",
       }),
     /120 characters/,
@@ -137,6 +149,7 @@ test("Matter canonical identity upsert stores client and tenant-unique matter co
       created_by: actor_id,
       created_at: "2026-06-20T00:00:00.000Z",
       matter_type_english: "LIT",
+      matter_litigation_axis: "CIV",
       matter_detail_type_korean: "계약분쟁",
       permission_envelope_id: "perm-canonical",
       audit_trace_id: "audit-canonical",
@@ -144,7 +157,7 @@ test("Matter canonical identity upsert stores client and tenant-unique matter co
     },
   });
   assert.equal(first.client.client_short_name, "AMIC");
-  assert.equal(first.matter.matter_code, "AMIC/LIT/계약분쟁");
+  assert.equal(first.matter.matter_code, "AMIC/LIT/CIV/계약분쟁");
   assert.equal(first.matter.client_id, "client-amic");
   assert.equal(repository.list({ tenant_id, model_type: "MatterClient" }).length, 1);
   assert.equal(repository.list({ tenant_id, model_type: "Matter" }).length, 1);
@@ -165,6 +178,7 @@ test("Matter canonical identity upsert stores client and tenant-unique matter co
       created_by: actor_id,
       created_at: "2026-06-20T00:00:00.000Z",
       matter_type_english: "LIT",
+      matter_litigation_axis: "CIV",
       matter_detail_type_korean: "계약분쟁",
       permission_envelope_id: "perm-canonical",
       audit_trace_id: "audit-canonical",
@@ -192,6 +206,7 @@ test("Matter canonical identity upsert stores client and tenant-unique matter co
           created_by: actor_id,
           created_at: "2026-06-20T00:00:00.000Z",
           matter_type_english: "LIT",
+          matter_litigation_axis: "CIV",
           matter_detail_type_korean: "계약분쟁",
           permission_envelope_id: "perm-canonical",
           audit_trace_id: "audit-canonical",
@@ -244,10 +259,13 @@ test("Vault approved write contract maps client and matter code into Matter app 
     idempotencyKeyHash: "hash:vault-matter-1",
     clientId: client.clientId,
     clientDisplayName: client.clientDisplayName,
-    matterCode: "Vault 반영/LIT/계약분쟁",
+    matterCode: "Vault 반영/LIT/CIV/계약분쟁",
     matterName: "Vault reflected approved matter",
     matterTypeEnglish: "LIT",
+    matterLitigationAxis: "CIV",
     matterDetailTypeKorean: "계약분쟁",
+    clientCaseRole: "피고",
+    clientCaseRoleConfidence: "test_contract",
     practiceGroup: "litigation",
     responsibleLawyer: "lawyer-ref-1",
     openedAt: "2026-06-24T00:00:00.000Z",
@@ -260,13 +278,15 @@ test("Vault approved write contract maps client and matter code into Matter app 
     request: matterRequest,
     actor_id,
   });
-  assert.equal(matter.matterCode, "Vault 반영/LIT/계약분쟁");
+  assert.equal(matter.matterCode, "Vault 반영/LIT/CIV/계약분쟁");
   assert.equal(matter.clientId, client.clientId);
   assert.equal(matter.sourceRevision, "approval-rev-2");
   assert.equal(matter.action, "created");
   assert.equal(matter.matter.practice_group, "litigation");
   assert.equal(matter.matter.responsible_lawyer, "lawyer-ref-1");
   assert.equal(matter.matter.source_updated_at, "2026-06-24T00:00:00.000Z");
+  assert.equal(matter.matter.client_case_role, "피고");
+  assert.equal(matter.matter.client_case_role_confidence, "test_contract");
 
   const replay = upsertMatterAppMatterFromVaultContract({
     repository,
@@ -298,7 +318,7 @@ test("Vault approved write contract maps client and matter code into Matter app 
         request: {
           ...matterRequest,
           idempotencyKeyHash: "hash:vault-matter-bad-code",
-          matterCode: "Wrong/LIT/계약분쟁",
+          matterCode: "Wrong/LIT/CIV/계약분쟁",
         },
         actor_id,
       }),
@@ -334,6 +354,7 @@ test("Matter opening transaction rolls back when DMS or Billing side effects fai
     matter: matterInput({
       matter_id: "matter-g4-opened",
       matter_type_english: "LIT",
+      matter_litigation_axis: "CIV",
       matter_detail_type_korean: "개시",
       source_revision: "approval-rev-opening",
     }),
@@ -345,7 +366,7 @@ test("Matter opening transaction rolls back when DMS or Billing side effects fai
     billing: { createMatterLedger: ({ matter_id }) => ({ ledger_id: `ledger-${matter_id}` }) },
   });
   assert.equal(result.outcome, "created");
-  assert.equal(result.matter.matter_code, "G4 Client/LIT/개시");
+  assert.equal(result.matter.matter_code, "G4 Client/LIT/CIV/개시");
   assert.equal(repository.list({ tenant_id, model_type: "MatterClient" }).length, 1);
   assert.equal(repository.listAudit({ tenant_id, object_id: "matter-g4-opened" }).length, 1);
 });

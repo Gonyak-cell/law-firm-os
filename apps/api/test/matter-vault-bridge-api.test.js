@@ -68,7 +68,7 @@ function preflightRequest(matterId = "matter_alpha", overrides = {}) {
     action: "upload_preflight",
     selected_matter_ref: `matter:${matterId}`,
     matter_id: matterId,
-    matter_code: "Alpha/LIT/계약분쟁",
+    matter_code: "Alpha/LIT/CIV/계약분쟁",
     source_mode: "matter_app_api",
     runtime_write_ready: true,
     repository_durable: true,
@@ -100,10 +100,13 @@ function matterRequest(client, overrides = {}) {
     clientId: client.clientId,
     clientDisplayName: client.clientDisplayName,
     clientShortName: client.clientShortName,
-    matterCode: "Alpha/LIT/계약분쟁",
-    matterName: "Alpha/LIT/계약분쟁",
+    matterCode: "Alpha/LIT/CIV/계약분쟁",
+    matterName: "Alpha/LIT/CIV/계약분쟁",
     matterTypeEnglish: "LIT",
+    matterLitigationAxis: "CIV",
     matterDetailTypeKorean: "계약분쟁",
+    clientCaseRole: "피고",
+    clientCaseRoleConfidence: "vault_bridge_test",
     approvalRef: "approval-ref-alpha",
     migrationApprovalRef: "approval-ref-alpha",
     supportingEvidenceRefs: ["evidence-ref-alpha"],
@@ -148,7 +151,7 @@ test("Vault bridge rejects missing bearer auth and invalid canonical upsert payl
     const invalidMatter = await json(baseUrl, "/api/matters/vault-bridge/matters/upsert", {
       method: "POST",
       headers: authHeaders(),
-      body: JSON.stringify(matterRequest(client.body, { matterCode: "Alpha/LIT/불일치" })),
+      body: JSON.stringify(matterRequest(client.body, { matterCode: "Alpha/LIT/CIV/불일치" })),
     });
     assert.equal(invalidMatter.status, 400);
     assert.deepEqual(invalidMatter.body.safe_error_codes, ["MATTER_API_VALIDATION_ERROR"]);
@@ -183,8 +186,10 @@ test("Vault bridge upserts Matter app client and matter with idempotent replay",
       body: JSON.stringify(matterRequest(client.body)),
     });
     assert.equal(matter.status, 201);
-    assert.equal(matter.body.matterCode, "Alpha/LIT/계약분쟁");
+    assert.equal(matter.body.matterCode, "Alpha/LIT/CIV/계약분쟁");
     assert.equal(matter.body.clientId, client.body.clientId);
+    assert.equal(matter.body.clientCaseRole, "피고");
+    assert.equal(matter.body.clientCaseRoleConfidence, "vault_bridge_test");
     assert.equal(matter.body.sourceRevision, "approval-ref-alpha");
 
     const replay = await json(baseUrl, "/api/matters/vault-bridge/matters/upsert", {
@@ -236,7 +241,7 @@ test("Vault bridge matter lookup is permission-scoped and rejects UUID-shaped no
     assert.equal(lookup.status, 200);
     assert.equal(lookup.body.outcome, "passed");
     assert.equal(lookup.body.items.length, 1);
-    assert.equal(lookup.body.items[0].matter_code, "Alpha/LIT/계약분쟁");
+    assert.equal(lookup.body.items[0].matter_code, "Alpha/LIT/CIV/계약분쟁");
     assert.equal(lookup.body.items[0].client_display_name, "Alpha Client");
     assert.equal(lookup.body.items[0].selected_ref, `matter:${matter.body.matterAppMatterId}`);
     assert.equal("document_bytes" in lookup.body.items[0], false);

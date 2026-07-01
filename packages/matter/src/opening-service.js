@@ -79,6 +79,7 @@ export function openMatterTransaction({
           matter_code: matter.matter_code,
           client_short_name: canonicalClient?.client_short_name ?? matter.client_short_name,
           matter_type_english: matter.matter_type_english,
+          matter_litigation_axis: matter.matter_litigation_axis,
           matter_detail_type_korean: matter.matter_detail_type_korean,
           idempotency_key: `${idempotency_key}:matter-code`,
         })
@@ -104,7 +105,10 @@ export function openMatterTransaction({
       matter_code: codeReservation?.matter_code ?? record.matter_code ?? null,
       client_display_name: canonicalClient?.client_display_name ?? record.client_display_name ?? null,
       matter_type_english: matter.matter_type_english ?? record.matter_type_english ?? null,
+      matter_litigation_axis: matter.matter_litigation_axis ?? record.matter_litigation_axis ?? null,
       matter_detail_type_korean: matter.matter_detail_type_korean ?? record.matter_detail_type_korean ?? null,
+      client_case_role: matter.client_case_role ?? record.client_case_role ?? null,
+      client_case_role_confidence: matter.client_case_role_confidence ?? record.client_case_role_confidence ?? null,
       source_revision: matter.source_revision ?? record.source_revision ?? null,
       matter_number: numberReservation.matter_number,
       legal_client_party_id: matter.legal_client_party_id ?? record.client_id,

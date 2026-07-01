@@ -140,12 +140,12 @@ test("SF-B-W02R field update patches Matter safely and exposes record action aud
       method: "POST",
       body: JSON.stringify(recordActionBody(MATTER_TENANT, {
         idempotency_key: "sf-b-w02-matter-code-field-update",
-        field_updates: { matter_code: "AMIC/LIT/수정사건" },
+        field_updates: { matter_code: "AMIC/LIT/CIV/수정사건" },
         reason: "record_field_update",
       })),
     });
     assert.equal(codeUpdate.status, 200);
-    assert.equal(codeUpdate.body.item.matter_code, "AMIC/LIT/수정사건");
+    assert.equal(codeUpdate.body.item.matter_code, "AMIC/LIT/CIV/수정사건");
     assert.deepEqual(codeUpdate.body.field_patch.changed_fields, ["matter_code"]);
 
     const replay = await json(baseUrl, "/api/record-actions/matter/matter_rp05_synthetic_opening/field-update", {

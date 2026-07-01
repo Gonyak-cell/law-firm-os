@@ -157,6 +157,8 @@ export function createMatterG4OpeningRecord(input = {}) {
     status: input.status ?? "opening",
     matter_type_english: input.matter_type_english,
     matter_detail_type_korean: input.matter_detail_type_korean,
+    client_case_role: input.client_case_role ?? null,
+    client_case_role_confidence: input.client_case_role_confidence ?? null,
     source_revision: input.source_revision,
     created_by: input.created_by,
     created_at: input.created_at,

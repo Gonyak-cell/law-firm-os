@@ -5,7 +5,7 @@ Source TUW: MDT-P6-W01-T03
 App bundle: `apps/desktop/dist/mac/matter.app`
 App ID: `com.amic.matter.desktop`
 Product name: `matter`
-Version: `0.1.4`
+Version: `0.1.5`
 Channel: `formal`
 
 ## Package Structure
@@ -15,22 +15,22 @@ Channel: `formal`
 - packaged app icon: `apps/desktop/dist/mac/matter.app/Contents/Resources/matter.icns`
 - packaged app source: `apps/desktop/dist/mac/matter.app/Contents/Resources/app`
 - executable: `apps/desktop/dist/mac/matter.app/Contents/MacOS/matter`
-- archive: `apps/desktop/dist/mac/matter-0.1.4-macos.zip`
-- disk image: `apps/desktop/dist/mac/matter-0.1.4-macos.dmg`
+- archive: `apps/desktop/dist/mac/matter-0.1.5-macos.zip`
+- disk image: `apps/desktop/dist/mac/matter-0.1.5-macos.dmg`
 
 ## Signing
 
-- Developer ID signing: not_applied_internal_package
-- requested signing mode: internal
-- resolved signing identity: not_applied_internal_package
-- Developer ID signature: not_distribution_ready: Developer ID authority missing; TeamIdentifier=not set
-- codesign verify: not_distribution_ready: /Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
-- strict codesign verify: not_distribution_ready: /Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
-- gatekeeper assess: not_distribution_ready: /Users/jws/Documents/Codex/Law Firm OS/apps/desktop/dist/mac/matter.app: code has no resources but signature indicates they must be present
+- Developer ID signing: applied
+- requested signing mode: developer-id
+- resolved signing identity: Developer ID Application: Jiwon Suh (LHDXU66NX3)
+- Developer ID signature: pass
+- codesign verify: pass
+- strict codesign verify: pass
+- gatekeeper assess: pass
 - public distribution approval: not claimed
-- notarization requested: false
-- notarization credential source: missing
-- notarization state: not_submitted_internal_only
+- notarization requested: true
+- notarization credential source: present
+- notarization state: submitted_and_accepted_by_notarytool
 
 ## Install Smoke
 

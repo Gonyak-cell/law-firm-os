@@ -19,7 +19,8 @@ export const AMIC_CURRENT_CLIENT_CANDIDATES = Object.freeze(
     "legal_form": null,
     "candidate_type": "organization_candidate",
     "source_lanes": [
-      "1. 민사"
+      "1. 민사",
+      "4. 기업 자문"
     ]
   },
   {
@@ -686,15 +687,6 @@ export const AMIC_CURRENT_CLIENT_CANDIDATES = Object.freeze(
     ]
   },
   {
-    "display_name": "그래비티 유권해석",
-    "canonical_display_name": "그래비티 유권해석",
-    "legal_form": null,
-    "candidate_type": "individual_or_small_org_candidate",
-    "source_lanes": [
-      "4. 기업 자문"
-    ]
-  },
-  {
     "display_name": "코멕스",
     "canonical_display_name": "코멕스",
     "legal_form": null,
@@ -794,26 +786,8 @@ export const AMIC_CURRENT_CLIENT_CANDIDATES = Object.freeze(
     ]
   },
   {
-    "display_name": "홀딩핸즈앤코 외 12명",
-    "canonical_display_name": "홀딩핸즈앤코 외 12명",
-    "legal_form": null,
-    "candidate_type": "organization_candidate",
-    "source_lanes": [
-      "5. 기업 인수&합병"
-    ]
-  },
-  {
     "display_name": "한흥수 외 3명",
     "canonical_display_name": "한흥수 외 3명",
-    "legal_form": null,
-    "candidate_type": "individual_or_small_org_candidate",
-    "source_lanes": [
-      "5. 기업 인수&합병"
-    ]
-  },
-  {
-    "display_name": "노윤현 외 19명",
-    "canonical_display_name": "노윤현 외 19명",
     "legal_form": null,
     "candidate_type": "individual_or_small_org_candidate",
     "source_lanes": [
