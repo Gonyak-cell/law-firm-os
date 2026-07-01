@@ -1,15 +1,117 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 
 const BASE_URL = (process.env.LAWOS_PRODUCTION_BASE_URL ?? "https://d2mthcc8vp3cr2.cloudfront.net").replace(/\/+$/, "");
-const BRIDGE_TOKEN = process.env.LAWOS_VAULT_BRIDGE_TOKEN;
-const COMMIT = process.env.LAWOS_DEPLOYMENT_COMMIT ?? "unknown";
 const ARTIFACT_DIR = "docs/lazycodex/evidence/matter-web/artifacts";
 const JSON_PATH = `${ARTIFACT_DIR}/lcx-vltui-production-smoke-2026-06-29.json`;
 const MD_PATH = `${ARTIFACT_DIR}/lcx-vltui-production-smoke-2026-06-29.md`;
+const AWS_PROFILE = process.env.LAWOS_VAULT_BRIDGE_AWS_PROFILE ?? process.env.AWS_PROFILE ?? "matter-prod-deploy-admin";
+const AWS_REGION = process.env.LAWOS_AWS_REGION ?? process.env.AWS_REGION ?? "ap-northeast-2";
+const API_LAMBDA_FUNCTION = process.env.LAWOS_API_LAMBDA_FUNCTION_NAME ?? "matter-lawos-api-prod";
+const BRIDGE_TOKEN_INFO = resolveBridgeToken();
+const BRIDGE_TOKEN = BRIDGE_TOKEN_INFO.token;
+const COMMIT = process.env.LAWOS_DEPLOYMENT_COMMIT ?? BRIDGE_TOKEN_INFO.deploymentCommit ?? "unknown";
 
 const PERMISSION_HEADER = "x-lawos-permission-context";
+
+function nonEmpty(value) {
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function classifyBridgeTokenResolutionFailure(output = "") {
+  if (/Token has expired|retrieving token from sso|SSO.*expired/i.test(output)) {
+    return {
+      code: "AWS_SSO_SESSION_EXPIRED",
+      reason: `AWS SSO session expired for profile ${AWS_PROFILE}; run aws sso login --profile ${AWS_PROFILE}`,
+      missingRequiredEnv: ["AWS_SSO_SESSION"]
+    };
+  }
+  if (/could not be found|ResourceNotFoundException/i.test(output)) {
+    return {
+      code: "LAWOS_API_LAMBDA_NOT_FOUND",
+      reason: `Could not read ${API_LAMBDA_FUNCTION} to resolve LAWOS_VAULT_BRIDGE_TOKEN`,
+      missingRequiredEnv: ["LAWOS_API_LAMBDA_FUNCTION_NAME"]
+    };
+  }
+  return {
+    code: "LAWOS_VAULT_BRIDGE_TOKEN_UNRESOLVED",
+    reason: "LAWOS_VAULT_BRIDGE_TOKEN is not in the local environment and could not be resolved from the production Lambda environment",
+    missingRequiredEnv: ["LAWOS_VAULT_BRIDGE_TOKEN"]
+  };
+}
+
+function resolveBridgeToken() {
+  const explicitToken = nonEmpty(process.env.LAWOS_VAULT_BRIDGE_TOKEN);
+  if (explicitToken) return { token: explicitToken, source: "process_env" };
+  if (process.env.LAWOS_VAULT_BRIDGE_TOKEN_AUTO_FETCH === "0") {
+    return {
+      token: "",
+      source: "not_configured",
+      code: "LAWOS_VAULT_BRIDGE_TOKEN_REQUIRED",
+      blockedReason: "LAWOS_VAULT_BRIDGE_TOKEN is required because Lambda token auto-fetch is disabled",
+      missingRequiredEnv: ["LAWOS_VAULT_BRIDGE_TOKEN"]
+    };
+  }
+
+  const result = spawnSync("aws", [
+    "lambda",
+    "get-function-configuration",
+    "--function-name",
+    API_LAMBDA_FUNCTION,
+    "--query",
+    "Environment.Variables",
+    "--output",
+    "json"
+  ], {
+    encoding: "utf8",
+    env: { ...process.env, AWS_PROFILE, AWS_REGION },
+    maxBuffer: 1024 * 1024
+  });
+
+  if (result.error) {
+    return {
+      token: "",
+      source: "lambda_environment",
+      code: "AWS_CLI_UNAVAILABLE",
+      blockedReason: `AWS CLI was not available to resolve LAWOS_VAULT_BRIDGE_TOKEN: ${result.error.message}`,
+      missingRequiredEnv: ["LAWOS_VAULT_BRIDGE_TOKEN"]
+    };
+  }
+
+  let lambdaEnv = {};
+  if (result.status === 0) {
+    try {
+      lambdaEnv = JSON.parse(result.stdout || "{}");
+    } catch {
+      lambdaEnv = {};
+    }
+  }
+  const token = nonEmpty(lambdaEnv.LAWOS_VAULT_BRIDGE_TOKEN);
+  if (result.status === 0 && token) {
+    return {
+      token,
+      source: "lambda_environment",
+      awsProfile: AWS_PROFILE,
+      awsRegion: AWS_REGION,
+      lambdaFunctionName: API_LAMBDA_FUNCTION,
+      deploymentCommit: nonEmpty(lambdaEnv.LAWOS_DEPLOYMENT_COMMIT) || null
+    };
+  }
+
+  const failure = classifyBridgeTokenResolutionFailure(`${result.stderr ?? ""}\n${result.stdout ?? ""}`);
+  return {
+    token: "",
+    source: "lambda_environment",
+    awsProfile: AWS_PROFILE,
+    awsRegion: AWS_REGION,
+    lambdaFunctionName: API_LAMBDA_FUNCTION,
+    code: failure.code,
+    blockedReason: failure.reason,
+    missingRequiredEnv: failure.missingRequiredEnv
+  };
+}
 
 function permissionHeaders({ tenant, user = "lcx_vltui_production_smoke", roles = ["matter_runtime_user"], effect = "allow" }) {
   const rules = effect === "allow" ? [{ id: `lcx-vltui-production-${tenant}`, effect: "allow", action: "*" }] : [];
@@ -125,6 +227,9 @@ function renderMarkdown(report) {
     "",
     `Deployment commit: ${report.deployment_commit}`,
     "",
+    `Bridge token source: ${report.bridge_token_resolution?.source ?? "not_configured"}`,
+    "",
+    ...(report.blocked_reason ? [`Blocked reason: ${report.blocked_reason}`, ""] : []),
     "| Check | Passed | Detail |",
     "| --- | --- | --- |"
   ];
@@ -154,8 +259,16 @@ if (!BRIDGE_TOKEN) {
     base_url: BASE_URL,
     deployment_commit: COMMIT,
     verdict: "BLOCKED",
-    blocked_reason: "LAWOS_VAULT_BRIDGE_TOKEN is required for production bridge smoke",
-    missing_required_env: ["LAWOS_VAULT_BRIDGE_TOKEN"],
+    blocked_reason: BRIDGE_TOKEN_INFO.blockedReason ?? "LAWOS_VAULT_BRIDGE_TOKEN is required for production bridge smoke",
+    missing_required_env: BRIDGE_TOKEN_INFO.missingRequiredEnv ?? ["LAWOS_VAULT_BRIDGE_TOKEN"],
+    bridge_token_resolution: {
+      source: BRIDGE_TOKEN_INFO.source ?? "not_configured",
+      code: BRIDGE_TOKEN_INFO.code ?? "LAWOS_VAULT_BRIDGE_TOKEN_REQUIRED",
+      aws_profile: BRIDGE_TOKEN_INFO.awsProfile ?? AWS_PROFILE,
+      aws_region: BRIDGE_TOKEN_INFO.awsRegion ?? AWS_REGION,
+      lambda_function_name: BRIDGE_TOKEN_INFO.lambdaFunctionName ?? API_LAMBDA_FUNCTION,
+      secret_value_recorded: false
+    },
     checks: [],
     boundary: {
       production_web_deployed: false,
@@ -173,6 +286,7 @@ if (!BRIDGE_TOKEN) {
     verdict: report.verdict,
     blocked_reason: report.blocked_reason,
     missing_required_env: report.missing_required_env,
+    bridge_token_resolution: report.bridge_token_resolution,
     artifact_json: JSON_PATH,
     artifact_md: MD_PATH
   }, null, 2));
@@ -287,6 +401,13 @@ const report = {
   base_url: BASE_URL,
   deployment_commit: COMMIT,
   verdict: checks.every((check) => check.passed) ? "PASS" : "FAIL",
+  bridge_token_resolution: {
+    source: BRIDGE_TOKEN_INFO.source,
+    aws_profile: BRIDGE_TOKEN_INFO.awsProfile ?? null,
+    aws_region: BRIDGE_TOKEN_INFO.awsRegion ?? null,
+    lambda_function_name: BRIDGE_TOKEN_INFO.lambdaFunctionName ?? null,
+    secret_value_recorded: false
+  },
   checks,
   boundary: {
     production_web_deployed: true,
@@ -306,6 +427,7 @@ console.log(JSON.stringify({
   verdict: report.verdict,
   base_url: report.base_url,
   deployment_commit: report.deployment_commit,
+  bridge_token_source: report.bridge_token_resolution.source,
   check_count: checks.length,
   artifact_json: JSON_PATH,
   artifact_md: MD_PATH

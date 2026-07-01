@@ -1,9 +1,16 @@
 {
   "schema_version": "lawos.lcx_vltui.production_smoke.v0.1",
-  "generated_at": "2026-07-01T13:57:42.085Z",
+  "generated_at": "2026-07-01T14:03:25.159Z",
   "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
   "deployment_commit": "48dd2da5983203987bb3e065d17d25fbc94ee26f",
   "verdict": "PASS",
+  "bridge_token_resolution": {
+    "source": "lambda_environment",
+    "aws_profile": "matter-prod-deploy-admin",
+    "aws_region": "ap-northeast-2",
+    "lambda_function_name": "matter-lawos-api-prod",
+    "secret_value_recorded": false
+  },
   "checks": [
     {
       "id": "cloudfront-root-new-assets",
