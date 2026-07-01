@@ -23,6 +23,7 @@ const expectedEmails = [
   "smcho@amic.kr",
   "tryoon@amic.kr",
   "yjlee@amic.kr",
+  "matter.desktop.qa@amic.kr",
 ];
 
 const errors = [];
@@ -51,7 +52,7 @@ if (errors.length === 0) {
   assert(seed.schema_version === "law-firm-os.matter-vault-user-registration-seed.v0.1", "seed schema mismatch");
   assert(seed.status === "registered-local-seed", "seed status must be registered-local-seed");
   assert(seed.tenant_id === "tenant_amic_matter_vault", "tenant id mismatch");
-  assert(seed.source?.account_count === 9, "source account count must be 9");
+  assert(seed.source?.account_count === 10, "source account count must be 10");
   assert(seed.source?.phone_numbers_imported === false, "phone numbers must not be imported");
   assert(seed.registration_boundary?.production_idp_account_creation === false, "production IDP creation must remain false");
   assert(seed.registration_boundary?.m365_graph_user_write === false, "M365/Graph user write must remain false");
@@ -100,7 +101,7 @@ if (errors.length === 0) {
 
   const requiredReceiptPhrases = [
     "Status: registered-local-seed",
-    "Registered account count: 9",
+    "Registered account count: 10",
     "jwsuh@amic.kr",
     "system_super_admin",
     "production IDP account creation: false",
@@ -128,6 +129,6 @@ if (errors.length > 0) {
 }
 
 console.log("Matter-Vault user registration seed validation passed.");
-console.log("registered_account_count: 9");
+console.log("registered_account_count: 10");
 console.log("highest_privilege_account: jwsuh@amic.kr");
 console.log("production_idp_account_creation: false");

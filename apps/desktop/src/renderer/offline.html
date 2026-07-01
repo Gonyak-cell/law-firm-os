@@ -24,8 +24,18 @@
       --reference-blue: #5165f6;
       --reference-blue-dark: #4356da;
       --shadow: 0 24px 84px rgba(6, 16, 45, 0.1);
-      --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+      --ease-standard: cubic-bezier(0.2, 0, 0.38, 0.9);
+      --ease-out: cubic-bezier(0, 0, 0.2, 1);
+      --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+      --ease: var(--ease-standard);
       --spring: cubic-bezier(0.16, 1.18, 0.32, 1);
+      --motion-press: 70ms;
+      --motion-hover: 110ms;
+      --motion-menu: 150ms;
+      --motion-content: 180ms;
+      --motion-panel: 240ms;
+      --motion-large: 400ms;
+      --motion-pulse: 900ms;
       font-family: Pretendard, SUIT, Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
       background: #ffffff;
       color: var(--ink);
@@ -65,13 +75,28 @@
       font-size: 14px;
       font-weight: 750;
       line-height: 1;
-      transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease), background 0.18s var(--ease);
+      transition:
+        background-color var(--motion-hover) var(--ease-out),
+        border-color var(--motion-hover) var(--ease-out),
+        color var(--motion-hover) var(--ease-out),
+        transform var(--motion-press) var(--ease-out),
+        box-shadow var(--motion-hover) var(--ease-out);
     }
 
     button:hover {
       background: #0a1738;
       box-shadow: none;
       transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(1px) scale(0.99);
+      transition-duration: var(--motion-press);
+    }
+
+    button:focus-visible {
+      outline: 3px solid rgba(81, 101, 246, 0.22);
+      outline-offset: 2px;
     }
 
     button.secondary {
@@ -105,7 +130,10 @@
       font-size: 15px;
       font-weight: 550;
       outline: none;
-      transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+      transition:
+        border-color var(--motion-hover) var(--ease-out),
+        box-shadow var(--motion-hover) var(--ease-out),
+        outline-color var(--motion-hover) var(--ease-out);
     }
 
     select:focus,
@@ -148,7 +176,9 @@
       white-space: nowrap;
       pointer-events: none;
       opacity: 0.01;
-      transition: opacity 0.28s var(--ease), transform 0.28s var(--ease);
+      transition:
+        opacity var(--motion-panel) var(--ease-out),
+        transform var(--motion-panel) var(--ease-out);
     }
 
     .connection-status:focus-within,
@@ -188,9 +218,9 @@
       opacity: 1;
       visibility: visible;
       transition:
-        opacity 0.46s var(--ease),
-        transform 0.46s var(--ease),
-        filter 0.46s var(--ease),
+        opacity var(--motion-panel) var(--ease-out),
+        transform var(--motion-panel) var(--ease-out),
+        filter var(--motion-panel) var(--ease-out),
         visibility 0s linear 0s;
     }
 
@@ -200,10 +230,10 @@
       transform: translateY(18px);
       visibility: hidden;
       transition:
-        opacity 0.46s var(--ease),
-        transform 0.46s var(--ease),
-        filter 0.46s var(--ease),
-        visibility 0s linear 0.46s;
+        opacity var(--motion-panel) var(--ease-out),
+        transform var(--motion-panel) var(--ease-out),
+        filter var(--motion-panel) var(--ease-out),
+        visibility 0s linear var(--motion-panel);
     }
 
     .auth-stack {
@@ -459,6 +489,10 @@
       gap: clamp(12px, 1.7vh, 18px);
     }
 
+    .auth-mode-panel:not([hidden]) {
+      animation: authPanelIn var(--motion-content) var(--ease-out) both;
+    }
+
     .auth-mode-panel[hidden] {
       display: none;
     }
@@ -506,6 +540,10 @@
       background: #f3f4f6;
       box-shadow: none;
       transform: translateY(-50%);
+    }
+
+    .password-toggle:active {
+      transform: translateY(-50%) scale(0.96);
     }
 
     .eye-icon {
@@ -557,7 +595,7 @@
     .login-actions button:hover {
       background: var(--reference-blue-dark);
       box-shadow: none;
-      transform: none;
+      transform: translateY(-1px);
     }
 
     .reset-copy {
@@ -584,6 +622,9 @@
       padding: 14px 16px;
       background: #fafbfc;
       text-align: left;
+      transition:
+        border-color var(--motion-hover) var(--ease-out),
+        background-color var(--motion-hover) var(--ease-out);
     }
 
     .reset-status-card strong {
@@ -619,7 +660,7 @@
     .reset-actions button.primary-action:hover {
       background: var(--reference-blue-dark);
       box-shadow: none;
-      transform: none;
+      transform: translateY(-1px);
     }
 
     .reset-token-field[hidden],
@@ -648,6 +689,12 @@
       box-shadow: none;
       transform: none;
       text-decoration: underline;
+    }
+
+    .auth-link:active,
+    .auth-text-button:active,
+    .legal-link:active {
+      transform: none;
     }
 
     .auth-link {
@@ -786,7 +833,9 @@
       opacity: 0;
       pointer-events: none;
       transform: translateY(-6px);
-      transition: opacity 0.42s var(--ease) 0.12s, transform 0.42s var(--ease) 0.12s;
+      transition:
+        opacity var(--motion-panel) var(--ease-out) 0.08s,
+        transform var(--motion-panel) var(--ease-out) 0.08s;
     }
 
     body.is-authenticated .app-shell {
@@ -867,6 +916,10 @@
       border: 1px solid var(--soft-line);
       border-radius: 8px;
       background: #ffffff;
+      transition:
+        border-color var(--motion-hover) var(--ease-out),
+        box-shadow var(--motion-hover) var(--ease-out),
+        transform var(--motion-press) var(--ease-out);
     }
 
     .panel-header {
@@ -954,6 +1007,16 @@
       color: var(--ink);
       font-size: 14px;
       font-weight: 720;
+      transition:
+        background-color var(--motion-hover) var(--ease-out),
+        border-color var(--motion-hover) var(--ease-out),
+        transform var(--motion-press) var(--ease-out);
+    }
+
+    .feature:hover {
+      background: #ffffff;
+      border-color: rgba(6, 16, 45, 0.14);
+      transform: translateY(-1px);
     }
 
     .check-result {
@@ -1072,6 +1135,18 @@
     }
 
     @keyframes loginPanelAfterBrand {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes authPanelIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -1274,6 +1349,7 @@
 
       .auth-stage {
         opacity: 1;
+        transform: none !important;
       }
 
       .brand-lockup,

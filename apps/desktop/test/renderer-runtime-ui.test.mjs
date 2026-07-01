@@ -19,6 +19,17 @@ test("packaged renderer presents user-facing connection login and feature checks
   assert.match(source, /claimLogoIntro/);
   assert.match(source, /brandLoginIntro/);
   assert.match(source, /brandLoginIntro 1900ms/);
+  assert.match(source, /--motion-press:\s*70ms/);
+  assert.match(source, /--motion-hover:\s*110ms/);
+  assert.match(source, /--motion-menu:\s*150ms/);
+  assert.match(source, /--motion-content:\s*180ms/);
+  assert.match(source, /--motion-panel:\s*240ms/);
+  assert.match(source, /--ease-standard:\s*cubic-bezier\(0\.2, 0, 0\.38, 0\.9\)/);
+  assert.match(source, /button:active/);
+  assert.match(source, /button:focus-visible/);
+  assert.match(source, /authPanelIn var\(--motion-content\) var\(--ease-out\) both/);
+  assert.match(source, /prefers-reduced-motion: reduce/);
+  assert.match(source, /transform: none !important/);
   assert.match(source, /matterWordLoginReveal/);
   assert.match(source, /body\[data-logo-intro="play"\] \.brand-lockup/);
   assert.doesNotMatch(source, /logo-handoff-active/);
@@ -60,4 +71,25 @@ test("packaged renderer presents user-facing connection login and feature checks
   assert.doesNotMatch(source, /latestResetEmail/);
   assert.doesNotMatch(source, /reset_url|email_message|reset_token\s*[:=]/);
   assert.doesNotMatch(source, /localStorage|sessionStorage|indexedDB/);
+});
+
+test("desktop web renderer uses restrained SaaS motion tokens", async () => {
+  const source = await readFile(new URL("../../web/src/motion.css", import.meta.url), "utf8");
+  const entrypoint = await readFile(new URL("../../web/src/main.jsx", import.meta.url), "utf8");
+
+  assert.match(entrypoint, /import "\.\/motion\.css"/);
+  assert.match(source, /--ui-press:\s*70ms/);
+  assert.match(source, /--ui-hover:\s*110ms/);
+  assert.match(source, /--ui-menu:\s*150ms/);
+  assert.match(source, /--ui-content:\s*180ms/);
+  assert.match(source, /--ui-panel:\s*240ms/);
+  assert.match(source, /--ui-pulse:\s*900ms/);
+  assert.match(source, /--ease-standard:\s*cubic-bezier\(0\.2, 0, 0\.38, 0\.9\)/);
+  assert.match(source, /button:active:not\(:disabled\)/);
+  assert.match(source, /\.top-axis-item,[\s\S]*\.sidebar-item,[\s\S]*var\(--ui-menu\)/);
+  assert.match(source, /\.sidebar-subnav[\s\S]*animation: ui-content-in var\(--ui-panel\) var\(--ease-out\) both/);
+  assert.match(source, /\.surface,[\s\S]*\.builder-surface[\s\S]*animation: ui-content-in var\(--ui-content\) var\(--ease-out\) both/);
+  assert.match(source, /\.live-data-loading[\s\S]*animation: ui-state-pulse var\(--ui-pulse\) var\(--ease-standard\) infinite alternate/);
+  assert.match(source, /@media \(prefers-reduced-motion: reduce\)[\s\S]*transition-duration: 1ms !important/);
+  assert.match(source, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.live-data-loading/);
 });

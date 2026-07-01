@@ -5,6 +5,7 @@ import {
   createMatterVaultAwsRuntimeClient,
   loadMatterVaultRuntimeConfig
 } from "../apps/desktop/src/main/aws-runtime.js";
+import { assertResetAllowed, resetProtectionSummary, selectQaResetAccount } from "./lib/protected-reset-accounts.mjs";
 
 const SUPER_ADMIN_EMAIL = "jwsuh@amic.kr";
 
@@ -16,6 +17,7 @@ function temporaryPassword(label) {
 }
 
 async function resetPasswordFor(email, password) {
+  assertResetAllowed(email, { context: "matter desktop AWS runtime smoke" });
   const request = await client.requestPasswordReset({ email });
   assert.equal(request.ok, true, `${email} reset request must be accepted`);
   assert.equal(request.email_delivery?.token_material_returned, false, "reset request must not return token material");
@@ -47,26 +49,16 @@ const superAdmin = accounts.users.find((user) => user.email === SUPER_ADMIN_EMAI
 assert(superAdmin, `${SUPER_ADMIN_EMAIL} must exist in registered account ledger`);
 assert(superAdmin.role_ids.includes("system_super_admin"), `${SUPER_ADMIN_EMAIL} must have system_super_admin`);
 
-const generalAccount = accounts.users.find(
-  (user) => user.email !== SUPER_ADMIN_EMAIL && !user.role_ids.includes("system_super_admin")
-);
-assert(generalAccount, "a non-system-super-admin account is required for restriction smoke");
+const qaAccount = selectQaResetAccount(accounts.users);
 
-const superAdminPassword = temporaryPassword("matter-super-admin");
-const generalPassword = temporaryPassword("matter-general");
+const qaPassword = temporaryPassword("matter-qa");
 
-await resetPasswordFor(SUPER_ADMIN_EMAIL, superAdminPassword);
-await resetPasswordFor(generalAccount.email, generalPassword);
+await resetPasswordFor(qaAccount.email, qaPassword);
 
-const login = await client.login({ email: SUPER_ADMIN_EMAIL, password: superAdminPassword });
-assert.equal(login.ok, true, `${SUPER_ADMIN_EMAIL} login must pass`);
-assert.equal(login.session.email, SUPER_ADMIN_EMAIL);
-assert(login.session.role_ids.includes("system_super_admin"), `${SUPER_ADMIN_EMAIL} session must include system_super_admin`);
-assert.equal(login.session.token_material_returned, false, "login response must not return token material");
-
-const generalLogin = await client.login({ email: generalAccount.email, password: generalPassword });
-assert.equal(generalLogin.ok, true, `${generalAccount.email} password login must pass`);
-assert.equal(generalLogin.session.email, generalAccount.email);
+const qaLogin = await client.login({ email: qaAccount.email, password: qaPassword });
+assert.equal(qaLogin.ok, true, `${qaAccount.email} password login must pass`);
+assert.equal(qaLogin.session.email, qaAccount.email);
+assert.equal(qaLogin.session.token_material_returned, false, "login response must not return token material");
 
 const superAdminSmoke = await client.smoke({
   email: SUPER_ADMIN_EMAIL,
@@ -76,10 +68,10 @@ assert.equal(superAdminSmoke.ok, true, `${SUPER_ADMIN_EMAIL} admin smoke must pa
 assert.equal(superAdminSmoke.decision, "allow");
 
 const generalAdminSmoke = await client.smoke({
-  email: generalAccount.email,
+  email: qaAccount.email,
   featureId: "matter_vault_admin"
 });
-assert.equal(generalAdminSmoke.ok, false, "general account admin smoke must be denied");
+assert.equal(generalAdminSmoke.ok, false, "QA/general account admin smoke must be denied");
 assert.equal(generalAdminSmoke.decision, "deny");
 assert.equal(generalAdminSmoke.http_status, 403);
 
@@ -88,19 +80,21 @@ const summary = {
   runtime_mode: "aws-temporary-execute-api",
   base_url: config.baseUrl,
   account_count: accounts.users.length,
-  super_admin_login: {
+  reset_protection: resetProtectionSummary(),
+  super_admin_read_only: {
     email: SUPER_ADMIN_EMAIL,
     role: "system_super_admin",
+    password_reset_confirmed: false,
+    password_login_attempted: false,
+    result: "allow"
+  },
+  qa_account_login: {
+    email: qaAccount.email,
     password_reset_confirmed: true,
     result: "allow"
   },
-  general_account_login: {
-    email: generalAccount.email,
-    password_reset_confirmed: true,
-    result: "allow"
-  },
-  general_account_admin_restriction: {
-    email: generalAccount.email,
+  qa_account_admin_restriction: {
+    email: qaAccount.email,
     feature_id: "matter_vault_admin",
     result: "deny",
     http_status: generalAdminSmoke.http_status

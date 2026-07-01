@@ -9,7 +9,7 @@
     "sheet": "연락처",
     "sha256": "cbb61404ac48363373716941e38d46ef96fc0dcda92c8bce9b7f4656e158a6f3",
     "account_rows": "4-12",
-    "account_count": 9,
+    "account_count": 10,
     "phone_numbers_imported": false
   },
   "registration_boundary": {
@@ -320,6 +320,34 @@
           "tenant_id": "tenant_amic_matter_vault",
           "role_ids": ["support_user", "matter_vault_user"],
           "group_ids": ["group_firm_operations", "group_matter_vault_users"],
+          "scopes": ["matter.read", "vault.read"]
+        }
+      ]
+    },
+    {
+      "user_id": "user_amic_matter_desktop_qa",
+      "email": "matter.desktop.qa@amic.kr",
+      "display_name": "Matter Desktop QA",
+      "english_name": "Matter Desktop QA",
+      "source_title": "QA 전용 계정",
+      "status": "active",
+      "registration_state": "registered_seed",
+      "mfa_required": true,
+      "highest_privilege": false,
+      "privilege_rank": 100,
+      "role_ids": ["matter_vault_user"],
+      "group_ids": ["group_matter_vault_users"],
+      "scopes": ["matter.read", "vault.read"],
+      "assurance_level": "mfa",
+      "local_dev": {
+        "synthetic_only": true,
+        "synthetic_token": "local-dev-only:matter.desktop.qa@amic.kr"
+      },
+      "tenant_memberships": [
+        {
+          "tenant_id": "tenant_amic_matter_vault",
+          "role_ids": ["matter_vault_user"],
+          "group_ids": ["group_matter_vault_users"],
           "scopes": ["matter.read", "vault.read"]
         }
       ]

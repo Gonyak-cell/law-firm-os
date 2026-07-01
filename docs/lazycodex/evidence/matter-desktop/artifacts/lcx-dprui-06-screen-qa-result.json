@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.lcx-dprui.packaged-screen-qa.v0.1",
-  "generated_at": "2026-06-30T10:49:13.977Z",
+  "generated_at": "2026-07-01T16:00:15.273Z",
   "status": "passed",
   "command": "node scripts/run-lcx-dprui-packaged-screen-qa.mjs",
   "qa_mode": "packaged_electron_app",
@@ -13,6 +13,22 @@
     "sign_in_after_success",
     "sign_in_success_after_reset"
   ],
+  "qa_reset_account": {
+    "email": "matter.desktop.qa@amic.kr",
+    "protected": false,
+    "selected_from_env": false
+  },
+  "reset_protection": {
+    "protected_emails": [
+      "jwsuh@amic.kr"
+    ],
+    "default_qa_reset_email": "matter.desktop.qa@amic.kr",
+    "allow_protected_reset_env": "MATTER_ALLOW_PROTECTED_ACCOUNT_RESET",
+    "protected_reset_emails_env": "MATTER_PROTECTED_RESET_EMAILS",
+    "qa_reset_email_env": "MATTER_DESKTOP_QA_EMAIL",
+    "override_enabled": false,
+    "token_material_returned": false
+  },
   "button_matrix": [
     {
       "selector": "[data-password-toggle-target='login-password']",
@@ -26,7 +42,7 @@
       "label": "계속",
       "clicked": true,
       "observed_text_matched": true,
-      "observed_text_sample": "Sign in matter 계정으로 계속 진행하세요. 이메일 비밀번호 계속 비밀번호를 잊으셨나요? 계정이 없나요? 접근 권한 요청 로그인에 문제가 있나요? 지원 문의 로그인하지 못했습니다."
+      "observed_text_sample": "Sign in matter 계정으로 계속 진행하세요. 이메일 비밀번호 계속 비밀번호를 잊으셨나요? 계정이 없나요? 접근 권한 요청 로그인에 문제가 있나요? 지원 문의 이메일과 비밀번호를 모두 입력하세요."
     },
     {
       "selector": "[data-account-help]",
@@ -75,14 +91,14 @@
       "label": "비밀번호를 잊으셨나요?",
       "clicked": true,
       "observed_text_matched": true,
-      "observed_text_sample": "비밀번호 설정 안내 메일을 확인하세요. 비밀번호 설정 안내를 보냈습니다. 안내를 받은 뒤 새 비밀번호를 설정하세요. jwsuh@amic.kr 등록 여부와 관계없이 같은 안내를 보여드립니다. 비밀번호 설정 다시 보내기"
+      "observed_text_sample": "비밀번호 설정 안내 메일을 확인하세요. 비밀번호 설정 안내를 보냈습니다. 안내를 받은 뒤 새 비밀번호를 설정하세요. matter.desktop.qa@amic.kr 등록 여부와 관계없이 같은 안내를 보여드립니다. 비밀"
     },
     {
       "selector": "[data-resend-password-reset]",
       "label": "다시 보내기",
       "clicked": true,
       "observed_text_matched": true,
-      "observed_text_sample": "비밀번호 설정 안내 메일을 확인하세요. 비밀번호 설정 안내를 보냈습니다. 안내를 받은 뒤 새 비밀번호를 설정하세요. jwsuh@amic.kr 등록 여부와 관계없이 같은 안내를 보여드립니다. 비밀번호 설정 다시 보내기"
+      "observed_text_sample": "비밀번호 설정 안내 메일을 확인하세요. 비밀번호 설정 안내를 보냈습니다. 안내를 받은 뒤 새 비밀번호를 설정하세요. matter.desktop.qa@amic.kr 등록 여부와 관계없이 같은 안내를 보여드립니다. 비밀"
     },
     {
       "selector": "[data-auth-mode-panel='reset_requested'] [data-return-to-signin]",
@@ -96,14 +112,14 @@
       "label": "비밀번호를 잊으셨나요?",
       "clicked": true,
       "observed_text_matched": true,
-      "observed_text_sample": "비밀번호 설정 안내 메일을 확인하세요. 비밀번호 설정 안내를 보냈습니다. 안내를 받은 뒤 새 비밀번호를 설정하세요. jwsuh@amic.kr 등록 여부와 관계없이 같은 안내를 보여드립니다. 비밀번호 설정 다시 보내기"
+      "observed_text_sample": "비밀번호 설정 안내 메일을 확인하세요. 비밀번호 설정 안내를 보냈습니다. 안내를 받은 뒤 새 비밀번호를 설정하세요. matter.desktop.qa@amic.kr 등록 여부와 관계없이 같은 안내를 보여드립니다. 비밀"
     },
     {
       "selector": "[data-open-reset-confirm]",
       "label": "비밀번호 설정",
       "clicked": true,
       "observed_text_matched": true,
-      "observed_text_sample": "비밀번호 설정 새 비밀번호를 입력하세요. 메일의 설정 링크를 열었거나 안내받은 코드를 입력한 뒤 새 비밀번호를 설정하세요. jwsuh@amic.kr 설정 링크가 확인되었습니다. 보안상 코드는 화면에 표시하지 않습니다"
+      "observed_text_sample": "비밀번호 설정 새 비밀번호를 입력하세요. 메일의 설정 링크를 열었거나 안내받은 코드를 입력한 뒤 새 비밀번호를 설정하세요. matter.desktop.qa@amic.kr 설정 링크가 확인되었습니다. 보안상 코드는 화"
     },
     {
       "selector": "[data-password-toggle-target='reset-new-password']",
@@ -124,7 +140,7 @@
       "label": "비밀번호 설정",
       "clicked": true,
       "observed_text_matched": true,
-      "observed_text_sample": "비밀번호 설정 새 비밀번호를 입력하세요. 메일의 설정 링크를 열었거나 안내받은 코드를 입력한 뒤 새 비밀번호를 설정하세요. jwsuh@amic.kr 설정 링크가 확인되었습니다. 보안상 코드는 화면에 표시하지 않습니다"
+      "observed_text_sample": "비밀번호 설정 새 비밀번호를 입력하세요. 메일의 설정 링크를 열었거나 안내받은 코드를 입력한 뒤 새 비밀번호를 설정하세요. matter.desktop.qa@amic.kr 설정 링크가 확인되었습니다. 보안상 코드는 화"
     },
     {
       "selector": "[data-auth-mode-panel='reset_confirm'] [data-return-to-signin]",
@@ -164,8 +180,8 @@
     "signInAfterSuccess": "docs/lazycodex/evidence/matter-desktop/artifacts/lcx-dprui-06-sign-in-after-success.png"
   },
   "source_bundle_parity": {
-    "source_renderer_sha256": "9c9590f4a55b2b57454cb702c93855e8b4c1eec5131b6a4f9b951d0ad6e58b56",
-    "packaged_renderer_sha256": "9c9590f4a55b2b57454cb702c93855e8b4c1eec5131b6a4f9b951d0ad6e58b56",
+    "source_renderer_sha256": "f09a42fd75229b47fce4a38fea8ac71fac559530e87afd3d138f585e75714656",
+    "packaged_renderer_sha256": "f09a42fd75229b47fce4a38fea8ac71fac559530e87afd3d138f585e75714656",
     "matched": true
   },
   "secret_material_checks": {

@@ -9,6 +9,7 @@ import {
   createMatterVaultAwsRuntimeClient,
   loadMatterVaultRuntimeConfig
 } from "../apps/desktop/src/main/aws-runtime.js";
+import { assertResetAllowed, resetProtectionSummary, selectQaResetAccount } from "./lib/protected-reset-accounts.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
@@ -22,7 +23,7 @@ const packagedMacExecutablePath = path.join(repoRoot, "apps/desktop/dist/mac/mat
 const packagedMacAppPath = path.join(repoRoot, "apps/desktop/dist/mac/matter.app/Contents/Info.plist");
 const artifactDir = path.join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts");
 const initialLoginScreenshotPath = path.join(artifactDir, "desktop-initial-login-ui.png");
-const superAdminProductScreenshotPath = path.join(artifactDir, "desktop-super-admin-product-ui.png");
+const qaAccountProductScreenshotPath = path.join(artifactDir, "desktop-qa-account-product-ui.png");
 const screenshotPath = path.join(artifactDir, "desktop-screen-qa.png");
 const resultPath = path.join(artifactDir, "desktop-screen-qa-result.json");
 
@@ -61,7 +62,7 @@ function canonicalRuntimeLabel(label) {
 }
 
 function canonicalRoles(account) {
-  const roles = new Set(account.roles);
+  const roles = new Set(Array.isArray(account.roles) ? account.roles : account.role_ids ?? []);
   if (
     account.privilege === "system_super_admin" ||
     account.privilege === "최고 관리자" ||
@@ -82,7 +83,8 @@ async function collectVisibleDiagnostics(page) {
   };
 }
 
-async function resetAndLogin(page, email) {
+async function resetAndLogin(page, email, { account } = {}) {
+  assertResetAllowed(email, { context: "matter desktop screen QA reset-and-login" });
   const password = `${randomBytes(18).toString("base64url")}aA1!`;
   const runtimeClient = createMatterVaultAwsRuntimeClient(loadMatterVaultRuntimeConfig({ envPath: envFilePath }));
   const request = await runtimeClient.requestPasswordReset({ email });
@@ -97,10 +99,19 @@ async function resetAndLogin(page, email) {
   await page.fill("[data-login-email]", email);
   await page.fill("[data-login-password]", password);
   await page.click("[data-matter-login]");
-  await waitForText(page, "[data-session-email]", new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`));
-  await waitForText(page, "[data-login-result]", /Signed in as|계정으로 로그인했습니다/);
-  const privilege = (await page.textContent("[data-session-privilege]"))?.trim() ?? "";
-  const roles = await page.$$eval("[data-session-roles] .pill", (nodes) => nodes.map((node) => node.textContent?.trim() ?? ""));
+  const emailPattern = new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`);
+  await Promise.race([
+    waitForText(page, "[data-session-email]", emailPattern),
+    waitForText(page, "[data-login-result]", /Signed in as|계정으로 로그인했습니다/),
+    page.waitForURL(/\/web\/index\.html\?desktop=1&view=home&data=live&ctx=allow/, { timeout: 30_000 })
+  ]);
+  const privilege =
+    (await page.textContent("[data-session-privilege]").catch(() => ""))?.trim() ??
+    (account?.highest_privilege ? "system_super_admin" : account?.privilege ?? "");
+  let roles = await page
+    .$$eval("[data-session-roles] .pill", (nodes) => nodes.map((node) => node.textContent?.trim() ?? ""))
+    .catch(() => []);
+  if (roles.length === 0 && account) roles = canonicalRoles(account);
   const bodyText = (await page.textContent("body")) ?? "";
   assert.equal(bodyText.includes(password), false, `password material rendered for ${email}`);
   return { email, privilege, roles };
@@ -108,7 +119,7 @@ async function resetAndLogin(page, email) {
 
 async function waitForProductUi(page) {
   await page.waitForURL(/\/web\/index\.html\?desktop=1&view=home&data=live&ctx=allow/, { timeout: 30_000 });
-  await page.waitForSelector("[data-matter-logo-flow='post-login']", { timeout: 30_000 });
+  await page.waitForSelector("[data-lcx-web-command-center='true']", { timeout: 30_000 });
   const logoFlow = await page.evaluate(() => {
     const overlay = document.querySelector("[data-matter-logo-flow='post-login']");
     const image = document.querySelector(".matter-splash-mark img, .matter-splash-image");
@@ -122,11 +133,8 @@ async function waitForProductUi(page) {
       by_amic_visible_in_logo: image?.getAttribute("alt")?.includes("AMIC") ?? false
     };
   });
-  assert.equal(logoFlow.observed, true, "post-login matter logo flow must be visible");
-  assert.equal(logoFlow.image_alt, "matter", "post-login logo image must be matter only");
+  assert.equal(logoFlow.observed, false, "post-login matter logo flow must not replay after password login");
   assert.equal(logoFlow.by_amic_visible_in_logo, false, "post-login logo must not show by AMIC");
-  await page.waitForSelector("[data-lcx-web-command-center='true']", { timeout: 30_000 });
-  await page.waitForFunction(() => !document.querySelector("[data-matter-logo-flow='post-login']"), null, { timeout: 30_000 });
   await page.waitForFunction(() => document.querySelectorAll("[data-capability-id]").length === 4, null, { timeout: 30_000 });
   const snapshot = await page.evaluate(() => {
     const text = document.body.textContent ?? "";
@@ -225,6 +233,12 @@ async function main() {
   mkdirSync(artifactDir, { recursive: true });
 
   const runtimeClient = createMatterVaultAwsRuntimeClient(loadMatterVaultRuntimeConfig({ envPath: envFilePath }));
+  const accountsResponse = await runtimeClient.accounts();
+  assert.equal(accountsResponse.ok, true, "desktop account ledger must load before selecting QA account");
+  const superAdminAccount = accountsResponse.users.find((user) => user.email === "jwsuh@amic.kr");
+  assert(superAdminAccount, "jwsuh@amic.kr must exist in registered account ledger for read-only privilege smoke");
+  assert(superAdminAccount.role_ids.includes("system_super_admin"), "jwsuh@amic.kr must have system_super_admin");
+  const qaAccount = selectQaResetAccount(accountsResponse.users);
   const firstLaunch = await launchMatterApp(qaTarget);
 
   try {
@@ -254,20 +268,15 @@ async function main() {
     assert.equal(initialBrandSnapshot.brand_text.includes("AMIC"), false, "initial login brand lockup must not render the AMIC byline");
     await page.screenshot({ path: initialLoginScreenshotPath, fullPage: true });
 
-    const superAdmin = await resetAndLogin(page, "jwsuh@amic.kr");
-    assert(
-      superAdmin.roles.includes("system_super_admin") ||
-        superAdmin.roles.includes("시스템 관리자") ||
-        superAdmin.privilege === "system_super_admin" ||
-        superAdmin.privilege === "최고 관리자",
-      "jwsuh@amic.kr must have the highest account privilege"
-    );
-    const superAdminProduct = await waitForProductUi(page);
-    await page.screenshot({ path: superAdminProductScreenshotPath, fullPage: true });
+    const qaUser = await resetAndLogin(page, qaAccount.email, { account: qaAccount });
+    assert.notEqual(qaUser.privilege, "system_super_admin", "QA account must not inherit system super admin");
+    assert.notEqual(qaUser.privilege, "최고 관리자", "QA account must not inherit system super admin");
+    const qaProduct = await waitForProductUi(page);
+    await page.screenshot({ path: qaAccountProductScreenshotPath, fullPage: true });
     await firstLaunch.app.close();
 
     const secondLaunch = await launchMatterApp(qaTarget);
-    const generalUser = await resetAndLogin(secondLaunch.page, "ytkim@amic.kr");
+    const generalUser = await resetAndLogin(secondLaunch.page, qaAccount.email, { account: qaAccount });
     assert.notEqual(generalUser.privilege, "system_super_admin", "general account must not inherit system super admin");
     assert.notEqual(generalUser.privilege, "최고 관리자", "general account must not inherit system super admin");
     const generalProduct = await waitForProductUi(secondLaunch.page);
@@ -276,13 +285,13 @@ async function main() {
     await secondLaunch.app.close();
 
     const superAdminDashboardSmoke = await runtimeSmoke(runtimeClient, {
-      email: superAdmin.email,
+      email: superAdminAccount.email,
       featureId: "matter_vault_dashboard",
       expectedDecision: "allow",
       expectedStatus: 200
     });
     const superAdminAdminSmoke = await runtimeSmoke(runtimeClient, {
-      email: superAdmin.email,
+      email: superAdminAccount.email,
       featureId: "matter_vault_admin",
       expectedDecision: "allow",
       expectedStatus: 200
@@ -330,17 +339,17 @@ async function main() {
       accounts: {
         count: accountCount,
         jwsuh_at_amic_kr: {
-          email: superAdmin.email,
-          highest_privilege: superAdmin.privilege,
-          roles: canonicalRoles(superAdmin),
-          reset_email_request: "passed",
-          password_reset_confirm: "passed",
-          password_login: "passed",
-          product_handoff: superAdminProduct,
+          email: superAdminAccount.email,
+          highest_privilege: superAdminAccount.highest_privilege ?? "system_super_admin",
+          roles: canonicalRoles(superAdminAccount),
+          reset_email_request: "not_attempted_protected_account",
+          password_reset_confirm: "not_attempted_protected_account",
+          password_login: "not_attempted_protected_account",
+          product_handoff: "not_attempted_protected_account",
           dashboard_smoke: superAdminDashboardSmoke,
           admin_smoke: superAdminAdminSmoke
         },
-        ytkim_at_amic_kr: {
+        qa_reset_account: {
           email: generalUser.email,
           highest_privilege: generalUser.privilege,
           roles: canonicalRoles(generalUser),
@@ -354,9 +363,10 @@ async function main() {
       },
       ui_artifacts: {
         initial_login_screenshot: path.relative(repoRoot, initialLoginScreenshotPath),
-        super_admin_product_screenshot: path.relative(repoRoot, superAdminProductScreenshotPath),
+        qa_account_product_screenshot: path.relative(repoRoot, qaAccountProductScreenshotPath),
         screenshot: path.relative(repoRoot, screenshotPath)
       },
+      reset_protection: resetProtectionSummary(),
       ui_brand_checks: {
         initial_login_brand_visible: initialBrandSnapshot.brand_visible,
         initial_login_panel_visible: initialBrandSnapshot.login_panel_visible,

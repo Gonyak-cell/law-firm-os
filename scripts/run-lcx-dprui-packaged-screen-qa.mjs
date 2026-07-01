@@ -9,6 +9,7 @@ import {
   createMatterVaultAwsRuntimeClient,
   loadMatterVaultRuntimeConfig
 } from "../apps/desktop/src/main/aws-runtime.js";
+import { assertResetAllowed, resetProtectionSummary, selectQaResetAccount } from "./lib/protected-reset-accounts.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
@@ -28,8 +29,6 @@ const screenshots = {
   resetSuccess: path.join(artifactDir, "lcx-dprui-06-reset-success.png"),
   signInAfterSuccess: path.join(artifactDir, "lcx-dprui-06-sign-in-after-success.png")
 };
-
-const QA_EMAIL = "jwsuh@amic.kr";
 
 function sha256(filePath) {
   return createHash("sha256").update(readFileSync(filePath)).digest("hex");
@@ -136,13 +135,14 @@ async function launchMatterApp({ qaTarget, deepLinkUrl } = {}) {
   return { app, page };
 }
 
-async function prepareResetLink(runtimeClient) {
+async function prepareResetLink(runtimeClient, qaEmail) {
+  assertResetAllowed(qaEmail, { context: "LCX-DPRUI packaged screen QA reset-link preparation" });
   const password = temporaryPassword();
-  const request = await runtimeClient.requestPasswordReset({ email: QA_EMAIL });
+  const request = await runtimeClient.requestPasswordReset({ email: qaEmail });
   assert.equal(request.ok || request.accepted, true, "reset request must be accepted for packaged QA");
   assert.equal(JSON.stringify(request).includes("reset_token"), false, "reset request must not expose reset token");
   assert.equal(JSON.stringify(request).includes("reset_url"), false, "reset request must not expose reset URL");
-  const latest = await runtimeClient.latestResetEmail({ email: QA_EMAIL });
+  const latest = await runtimeClient.latestResetEmail({ email: qaEmail });
   assert.equal(latest.ok, true, "synthetic reset email must be available to the QA harness only");
   assert.match(latest.email_message.reset_url, /^matter:\/\/password-reset\/confirm\?token=/);
   return {
@@ -215,15 +215,18 @@ async function loginWithResetPasswordAndRecord(page, matrix, email, password, se
   await page.fill("[data-login-email]", email);
   await page.fill("[data-login-password]", password);
   await page.click("[data-matter-login]");
-  await page.waitForFunction(
-    () => {
-      const passwordCleared = document.querySelector("[data-login-password]")?.value === "";
-      const result = document.querySelector("[data-login-result]")?.textContent ?? "";
-      return passwordCleared && /계정으로 로그인했습니다|워크스페이스를 여는 중입니다/.test(result);
-    },
-    null,
-    { timeout: 20_000 }
-  );
+  await Promise.race([
+    page.waitForFunction(
+      () => {
+        const passwordCleared = document.querySelector("[data-login-password]")?.value === "";
+        const result = document.querySelector("[data-login-result]")?.textContent ?? "";
+        return passwordCleared && /계정으로 로그인했습니다|워크스페이스를 여는 중입니다/.test(result);
+      },
+      null,
+      { timeout: 20_000 }
+    ),
+    page.waitForURL(/\/web\/index\.html\?desktop=1&view=home&data=live&ctx=allow/, { timeout: 20_000 })
+  ]);
   await assertNoSecretRendered(page, secrets, "sign-in success after reset");
   matrix.push({
     selector: "[data-matter-login]",
@@ -247,6 +250,10 @@ async function main() {
   mkdirSync(artifactDir, { recursive: true });
 
   const runtimeClient = createMatterVaultAwsRuntimeClient(loadMatterVaultRuntimeConfig({ envPath: envFilePath }));
+  const accountsResponse = await runtimeClient.accounts();
+  assert.equal(accountsResponse.ok, true, "desktop account ledger must load before selecting packaged QA reset account");
+  const qaAccount = selectQaResetAccount(accountsResponse.users);
+  const qaEmail = qaAccount.email;
   const buttonMatrix = [];
   const firstLaunch = await launchMatterApp({ qaTarget });
   try {
@@ -256,7 +263,7 @@ async function main() {
     await page.screenshot({ path: screenshots.signIn, fullPage: true });
 
     await clickPasswordToggleAndRecord(page, buttonMatrix, "[data-password-toggle-target='login-password']", "[data-login-password]");
-    await clickAndRecord(page, buttonMatrix, "[data-matter-login]", /로그인하지 못했습니다|로그인 요청을 처리하지 못했습니다/);
+    await clickAndRecord(page, buttonMatrix, "[data-matter-login]", /이메일과 비밀번호를 모두 입력하세요|로그인하지 못했습니다|로그인 요청을 처리하지 못했습니다/);
     await clickAndRecord(page, buttonMatrix, "[data-account-help]", /워크스페이스 관리자에게 matter 계정 추가를 요청하세요/);
     await clickAndRecord(page, buttonMatrix, "[data-signin-help]", /등록된 matter 이메일로 로그인하고/);
     await clickAndRecord(page, buttonMatrix, "[data-legal-help='security']", /보안 정보는 워크스페이스 관리자가 확인할 수 있습니다/);
@@ -264,14 +271,14 @@ async function main() {
     await clickAndRecord(page, buttonMatrix, "[data-legal-help='privacy']", /개인정보 안내는 내부 배포 문서에서 확인할 수 있습니다/);
     await clickAndRecord(page, buttonMatrix, "[data-forgot-password]", /이메일 주소를 먼저 입력하세요/);
 
-    await page.fill("[data-login-email]", QA_EMAIL);
+    await page.fill("[data-login-email]", qaEmail);
     await clickAndRecord(page, buttonMatrix, "[data-forgot-password]", /비밀번호 설정 안내를 보냈습니다/);
     await waitForAuthModeReady(page, "reset_requested", "[data-open-reset-confirm]");
     await page.screenshot({ path: screenshots.resetRequested, fullPage: true });
     await clickAndRecord(page, buttonMatrix, "[data-resend-password-reset]", /비밀번호 설정 안내를 다시 보냈습니다/);
     await clickAndRecord(page, buttonMatrix, "[data-auth-mode-panel='reset_requested'] [data-return-to-signin]", /Sign in/);
     await waitForAuthModeReady(page, "sign_in", "[data-matter-login]");
-    await page.fill("[data-login-email]", QA_EMAIL);
+    await page.fill("[data-login-email]", qaEmail);
     await clickAndRecord(page, buttonMatrix, "[data-forgot-password]", /비밀번호 설정 안내를 보냈습니다/);
     await waitForAuthModeReady(page, "reset_requested", "[data-open-reset-confirm]");
     await clickAndRecord(page, buttonMatrix, "[data-open-reset-confirm]", /메일의 설정 링크/);
@@ -286,7 +293,7 @@ async function main() {
     await firstLaunch.app.close().catch(() => {});
   }
 
-  const { resetUrl, resetToken, password } = await prepareResetLink(runtimeClient);
+  const { resetUrl, resetToken, password } = await prepareResetLink(runtimeClient, qaEmail);
   const secondLaunch = await launchMatterApp({ qaTarget, deepLinkUrl: resetUrl });
   try {
     const { page } = secondLaunch;
@@ -310,7 +317,7 @@ async function main() {
     await waitForAuthModeReady(page, "sign_in", "[data-matter-login]");
     await assertNoSecretRendered(page, [resetToken, password, resetUrl], "sign-in after reset success");
     await page.screenshot({ path: screenshots.signInAfterSuccess, fullPage: true });
-    await loginWithResetPasswordAndRecord(page, buttonMatrix, QA_EMAIL, password, [resetToken, password, resetUrl]);
+    await loginWithResetPasswordAndRecord(page, buttonMatrix, qaEmail, password, [resetToken, password, resetUrl]);
   } finally {
     await secondLaunch.app.close().catch(() => {});
   }
@@ -326,6 +333,12 @@ async function main() {
     command: "node scripts/run-lcx-dprui-packaged-screen-qa.mjs",
     qa_mode: qaTarget === "packaged" ? "packaged_electron_app" : "source_electron_app",
     covered_states: ["sign_in", "reset_requested", "reset_confirm_empty", "reset_confirm_deeplink", "reset_success", "sign_in_after_success", "sign_in_success_after_reset"],
+    qa_reset_account: {
+      email: qaEmail,
+      protected: qaAccount.reset_policy.protected,
+      selected_from_env: process.env.MATTER_DESKTOP_QA_EMAIL ? true : false
+    },
+    reset_protection: resetProtectionSummary(),
     button_matrix: buttonMatrix,
     ui_artifacts: Object.fromEntries(
       Object.entries(screenshots).map(([key, filePath]) => [key, path.relative(repoRoot, filePath)])

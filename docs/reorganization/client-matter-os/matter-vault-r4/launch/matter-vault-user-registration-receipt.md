@@ -9,7 +9,7 @@ Source sheet: `연락처`
 
 Source sha256: `cbb61404ac48363373716941e38d46ef96fc0dcda92c8bce9b7f4656e158a6f3`
 
-Registered account count: 9
+Registered account count: 10
 
 Registered accounts:
 - `ytkim@amic.kr`
@@ -21,6 +21,7 @@ Registered accounts:
 - `smcho@amic.kr`
 - `tryoon@amic.kr`
 - `yjlee@amic.kr`
+- `matter.desktop.qa@amic.kr`
 
 Highest privilege account:
 - email: `jwsuh@amic.kr`

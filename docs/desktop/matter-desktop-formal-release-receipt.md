@@ -8,12 +8,12 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 
 | Field | Value |
 | --- | --- |
-| Release ID | `matter-desktop-v0.1.5` |
-| Manifest | `apps/desktop/dist/release/matter-desktop-v0.1.5/release-manifest.json` |
-| Checksums | `apps/desktop/dist/release/matter-desktop-v0.1.5/checksums.sha256` |
+| Release ID | `matter-desktop-v0.1.6` |
+| Manifest | `apps/desktop/dist/release/matter-desktop-v0.1.6/release-manifest.json` |
+| Checksums | `apps/desktop/dist/release/matter-desktop-v0.1.6/checksums.sha256` |
 | Channel | `formal-candidate` |
 | App ID | `com.amic.matter.desktop` |
-| GitHub tag candidate | `matter-desktop-v0.1.5` |
+| GitHub tag candidate | `matter-desktop-v0.1.6` |
 | Custom domain requirement | false |
 
 ## Release Artifacts
@@ -21,16 +21,16 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 | Artifact | Result |
 | --- | --- |
 | macOS app bundle | `apps/desktop/dist/mac/matter.app` |
-| macOS ZIP archive | `apps/desktop/dist/mac/matter-0.1.5-macos.zip` |
-| macOS ZIP SHA-256 | `e93cd4faf7f9643e49d13e4ce2c6a1ee8f1820ff69f10f92abae36e4731b953c` |
-| macOS DMG image | `apps/desktop/dist/mac/matter-0.1.5-macos.dmg` |
-| macOS DMG SHA-256 | `d103edd30c00c0bbe82c6c590975a9175fa8f7a5940f971f3e637ab5049b98db` |
-| Windows formal manifest | `apps/desktop/dist/win/matter-0.1.5-win-installer-manifest.json` |
-| Windows formal manifest SHA-256 | `dcd689cce4a768741f6d0220c1b3e8cb7892215dd1459c75136b2d852d6ea868` |
-| Windows formal installer | `apps/desktop/dist/matter-0.1.5-win-x64.exe` |
-| Windows formal installer SHA-256 | `57915d9332fcef24a4427935c3b227907f7e208bcfe5df1b326f5fc2052c9f5f` |
-| Windows installer blockmap | `apps/desktop/dist/matter-0.1.5-win-x64.exe.blockmap` |
-| Windows installer blockmap SHA-256 | `a9c8adda89ad8593602b7039c8028f44ce58971c7c0b6824bf0b141a1bc4b303` |
+| macOS ZIP archive | `apps/desktop/dist/mac/matter-0.1.6-macos.zip` |
+| macOS ZIP SHA-256 | `cbacf85a2f6655701bf2c7177953de8104f58c3e7d44faadf72646d9c4c32695` |
+| macOS DMG image | `apps/desktop/dist/mac/matter-0.1.6-macos.dmg` |
+| macOS DMG SHA-256 | `b9a0d30349fcdf6e918e7979401f75c3f553c664e5e5b1591f1af0e6b99eb635` |
+| Windows formal manifest | `apps/desktop/dist/win/matter-0.1.6-win-installer-manifest.json` |
+| Windows formal manifest SHA-256 | `358dbb4db79ee544c507453e525e36034ffdccf72b7f536c3c996ad31dbb8175` |
+| Windows formal installer | `apps/desktop/dist/matter-0.1.6-win-x64.exe` |
+| Windows formal installer SHA-256 | `36da5c1f32c2e533dc3359c5eaec610d7d7086749abb4ca9761630177aa79dac` |
+| Windows installer blockmap | `apps/desktop/dist/matter-0.1.6-win-x64.exe.blockmap` |
+| Windows installer blockmap SHA-256 | `d73aa8e00c6589c1ba95b280c009bd6643e2093b70dd9acfd9eb88f5a88ef9be` |
 
 ## macOS Signing and Notarization
 
@@ -51,26 +51,6 @@ This receipt records a non-internal artifact naming and app identity pass for a 
 
 - Windows Authenticode signing: false
 - Windows native install smoke: not_run_on_darwin
-
-## Production Bridge Smoke
-
-- `matter-lawos-api-prod` redeployed to commit `3d7d9da36288549cbb2f90ab4e88b6faa9cfa72c`
-- `LAWOS_VAULT_BRIDGE_TOKEN` restored from the production Lambda environment without recording the secret value
-- AWS SSO auto-login fallback enabled: if the Lambda environment read hits an expired SSO session, the smoke/upsert scripts run `aws sso login --profile amic-vault-staging-admin` once and retry the Lambda read
-- `npm run lcx:vltui:production-smoke`: pass, 15 checks
-- Production smoke writes remain synthetic bridge writes only; Vault document writes, public release, owner final approval, and company-wide go-live are not claimed
-
-## Production Current Client/Matter Bridge Write
-
-- Remote production bridge current inventory write: pass
-- Tenant: `tenant_rp05_synthetic`
-- Client upserts: 99 total, 0 failed
-- Matter upserts: 148 total, 0 failed
-- Production Matter inventory readback: pass, 149 matters returned and required current codes found
-- Write receipt: `docs/lazycodex/evidence/matter-web/artifacts/amic-current-production-bridge-upsert-2026-07-01.json`
-- Readback receipt: `docs/lazycodex/evidence/matter-web/artifacts/lcx-vltui-production-matter-code-verify-2026-07-01.json`
-- Release manifest bridge fields: `production_bridge_write_claim=true`, `production_matter_code_reflection_claim=true`
-- Boundary: no bearer values, AWS secrets, raw document bodies, Vault document writes, public release, owner final approval, or company-wide go-live are claimed
 
 ## Non-Claims
 

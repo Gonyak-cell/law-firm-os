@@ -107,7 +107,7 @@ test("temporary desktop runtime health exposes AWS no-domain synthetic boundary"
   assert.equal(body.password_reset_email_configured, false);
   assert.equal(body.production_ready_completed, false);
   assert.equal(body.public_release_completed, false);
-  assert.equal(body.registered_account_count, 9);
+  assert.equal(body.registered_account_count, 10);
   assert.equal(body.highest_privilege_account, "jwsuh@amic.kr");
 });
 

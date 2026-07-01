@@ -1,0 +1,164 @@
+:root {
+  --ease-standard: cubic-bezier(0.2, 0, 0.38, 0.9);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --ui-press: 70ms;
+  --ui-hover: 110ms;
+  --ui-menu: 150ms;
+  --ui-content: 180ms;
+  --ui-panel: 240ms;
+  --ui-pulse: 900ms;
+}
+
+button {
+  transition:
+    background-color var(--ui-hover) var(--ease-out),
+    border-color var(--ui-hover) var(--ease-out),
+    box-shadow var(--ui-hover) var(--ease-out),
+    color var(--ui-hover) var(--ease-out),
+    opacity var(--ui-hover) var(--ease-out),
+    transform var(--ui-press) var(--ease-out);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid rgba(11, 101, 229, 0.45);
+  outline-offset: 2px;
+}
+
+.top-axis-item,
+.sidebar-item,
+.global-utility-tabs button {
+  transition:
+    background-color var(--ui-menu) var(--ease-out),
+    color var(--ui-menu) var(--ease-out),
+    box-shadow var(--ui-menu) var(--ease-out);
+}
+
+.top-axis-item.active::after {
+  transition:
+    opacity var(--ui-menu) var(--ease-out),
+    transform var(--ui-menu) var(--ease-emphasized);
+}
+
+.icon-button,
+.primary-button,
+.secondary-button,
+.ghost-button,
+.top-link,
+.text-button,
+.sso-button,
+.profile-trigger,
+.workspace-card,
+.sidebar-utility,
+.notification-card,
+.global-utility-card,
+.work-area-row {
+  transition:
+    background-color var(--ui-hover) var(--ease-out),
+    border-color var(--ui-hover) var(--ease-out),
+    box-shadow var(--ui-hover) var(--ease-out),
+    color var(--ui-hover) var(--ease-out),
+    transform var(--ui-press) var(--ease-out);
+}
+
+.sidebar-icon,
+.sidebar-count {
+  transition:
+    background-color var(--ui-menu) var(--ease-out),
+    border-color var(--ui-menu) var(--ease-out),
+    color var(--ui-menu) var(--ease-out);
+}
+
+.sidebar-chevron {
+  transition:
+    color var(--ui-menu) var(--ease-out),
+    transform var(--ui-menu) var(--ease-emphasized);
+}
+
+.surface,
+.builder-surface {
+  animation: ui-content-in var(--ui-content) var(--ease-out) both;
+}
+
+.topbar-help-panel,
+.sidebar-subnav {
+  animation: ui-content-in var(--ui-panel) var(--ease-out) both;
+}
+
+.notification-drawer,
+.people-detail-panel {
+  animation-duration: var(--ui-panel);
+  animation-timing-function: var(--ease-out);
+}
+
+.panel,
+.metric-card,
+.auth-card,
+.search-popover,
+.modal,
+.side-panel,
+.query-block,
+.work-area-list,
+.live-data-state {
+  transition:
+    background-color var(--ui-hover) var(--ease-out),
+    border-color var(--ui-hover) var(--ease-out),
+    box-shadow var(--ui-hover) var(--ease-out),
+    color var(--ui-hover) var(--ease-out),
+    opacity var(--ui-content) var(--ease-out),
+    transform var(--ui-content) var(--ease-out);
+}
+
+.live-data-loading {
+  animation: ui-state-pulse var(--ui-pulse) var(--ease-standard) infinite alternate;
+}
+
+@keyframes ui-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ui-state-pulse {
+  from {
+    opacity: 0.74;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .surface,
+  .builder-surface,
+  .topbar-help-panel,
+  .sidebar-subnav,
+  .notification-drawer,
+  .people-detail-panel,
+  .live-data-loading {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
