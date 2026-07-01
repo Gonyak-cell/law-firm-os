@@ -186,7 +186,7 @@ test("G4 Matter list is repository-backed, permission-trimmed, and count-leak sa
     assert.equal(body.outcome, "passed");
     assert.equal(body.items.length, 25);
     assert.equal(body.items[0].matter_id, "matter_rp05_synthetic_opening");
-    assert.ok(body.items.some((item) => item.matter_code === "고구려푸드/LIT/민사사건"));
+    assert.ok(body.items.some((item) => item.matter_code === "귀한사람들/LIT/민사사건"));
     assert.equal(body.page_info.next_cursor, "25");
     assert.equal(body.page_info.omitted_matter_count, null);
     assert.equal(body.count_leak_prevented, true);

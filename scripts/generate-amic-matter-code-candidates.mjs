@@ -44,7 +44,7 @@ const GROUPED_PROJECT_OVERRIDES = Object.freeze({
       "5. 기업 인수&합병/99_Archives/01_Pjt. Covenant",
     confidence: "verified_contract_party_group",
   }),
-  "한흥수 외 6명|5. 기업 인수&합병": Object.freeze({
+  "한흥수 외 3명|5. 기업 인수&합병": Object.freeze({
     detail: "Jade",
     source_ref:
       "5. 기업 인수&합병/99_Archives/07_Pjt. Jade",
@@ -68,7 +68,7 @@ const GROUPED_PROJECT_OVERRIDES = Object.freeze({
       "5. 기업 인수&합병/99_Archives/01_Pjt. P",
     confidence: "verified_contract_party_group",
   }),
-  "강상도 외 16명|5. 기업 인수&합병": Object.freeze({
+  "강상도|5. 기업 인수&합병": Object.freeze({
     detail: "Phoenix",
     source_ref:
       "5. 기업 인수&합병/99_Archives/Pjt. Phoenix",
@@ -104,7 +104,7 @@ const GROUPED_PROJECT_OVERRIDES = Object.freeze({
       "5. 기업 인수&합병/07_Project Puma",
     confidence: "verified_contract_party_group",
   }),
-  "SMEJ Holdings, INC. 외 1명|1. 민사": Object.freeze({
+  "K Enter Holdings Inc.|1. 민사": Object.freeze({
     detail: "Kingston dispute",
     source_ref:
       "1. 민사/Project Kingston_dispute",
@@ -122,18 +122,54 @@ const GROUPED_PROJECT_OVERRIDES = Object.freeze({
       "5. 기업 인수&합병/12_Pjt. Switch",
     confidence: "verified_mou_party_group",
   }),
-  "오윤록 외 1명|5. 기업 인수&합병": Object.freeze({
+  "오윤록 외 2명|5. 기업 인수&합병": Object.freeze({
     detail: "Titan",
     source_ref:
       "5. 기업 인수&합병/99_Archives/03_Pjt. Titan",
     confidence: "verified_mou_party_group",
   }),
-  "에이치엘엘중앙|5. 기업 인수&합병": Object.freeze({
+  "유진이엔티|5. 기업 인수&합병": Object.freeze({
     detail: "Horizon",
     source_ref:
       "5. 기업 인수&합병/Project Horizon",
     confidence: "verified_mou_party_group",
   }),
+});
+
+const MERGED_CLIENT_LANE_MATTER_OVERRIDES = Object.freeze({
+  "B&M Holdings|5. 기업 인수&합병": Object.freeze([
+    Object.freeze({
+      detail: "TAKE Foundation",
+      source_ref: "5. 기업 인수&합병/14_TAKE Foundation",
+      confidence: "folder_project_name",
+    }),
+  ]),
+  "바이포엠스튜디오|5. 기업 인수&합병": Object.freeze([
+    Object.freeze({
+      detail: "K-PLUS",
+      source_ref: "5. 기업 인수&합병/15_K-PLUS",
+      confidence: "folder_project_name",
+    }),
+  ]),
+  "오윤록 외 2명|4. 기업 자문": Object.freeze([
+    Object.freeze({
+      detail: "retainer",
+      source_ref: "4. 기업 자문/6. Titan",
+      confidence: "rule_retainer",
+    }),
+  ]),
+  "귀한사람들|1. 민사": Object.freeze([
+    Object.freeze({
+      detail: "민사사건",
+      source_ref: "1. 민사/고구려푸드 주식회사",
+      confidence: "absorbed_client_review",
+    }),
+    Object.freeze({
+      detail: "귀한사람들 대응",
+      source_ref: "1. 민사/귀한사람들 대응",
+      confidence: "folder_case_name",
+    }),
+  ]),
 });
 
 const ATU_DEAL_MATTER_OVERRIDES = Object.freeze([
@@ -694,7 +730,9 @@ function detailForLane({ client, lane, sourceRows }) {
 }
 
 function detailResultsForLane({ client, lane, sourceRows }) {
-  if (client.display_name === "ATU" && lane === "5. 기업 인수&합병") {
+  const mergedOverride = MERGED_CLIENT_LANE_MATTER_OVERRIDES[`${client.display_name}|${lane}`];
+  if (mergedOverride) return mergedOverride;
+  if (client.display_name === "ATU Partners" && lane === "5. 기업 인수&합병") {
     return ATU_DEAL_MATTER_OVERRIDES;
   }
   return [detailForLane({ client, lane, sourceRows })];

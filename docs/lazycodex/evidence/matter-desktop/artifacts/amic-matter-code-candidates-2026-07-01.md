@@ -3,16 +3,15 @@
 Generated at: 2026-07-01T00:00:00.000+09:00
 
 - Source revision: `amic_current_onedrive_matter_code_inventory_2026_07_01`
-- Clients: 108
-- Matter codes: 130
-- LIT: 84
+- Clients: 102
+- Matter codes: 127
+- LIT: 82
 - ADV: 10
-- DEAL: 36
+- DEAL: 35
 
 | Client | Axis | Detail | Matter code | Confidence |
 | --- | --- | --- | --- | --- |
-| 고구려푸드 | LIT | 민사사건 | `고구려푸드/LIT/민사사건` | lane_default_review |
-| 고기깡패 | LIT | 공사대금청구 | `고기깡패/LIT/공사대금청구` | court_record_case_title |
+| 귀한사람들 | LIT | 민사사건 | `귀한사람들/LIT/민사사건` | absorbed_client_review |
 | 귀한사람들 | LIT | 귀한사람들 대응 | `귀한사람들/LIT/귀한사람들 대응` | folder_case_name |
 | 그래비티랩스 | LIT | 특허권침해금지 | `그래비티랩스/LIT/특허권침해금지` | court_record_case_title |
 | 그로브 | LIT | 제소전화해 | `그로브/LIT/제소전화해` | court_record_case_title |
@@ -24,7 +23,6 @@ Generated at: 2026-07-01T00:00:00.000+09:00
 | 라이트팜텍 | LIT | 용역대금청구 | `라이트팜텍/LIT/용역대금청구` | legal_document_filename |
 | 매크로머신 | LIT | 손해배상청구 | `매크로머신/LIT/손해배상청구` | legal_document_filename |
 | 박수현 | LIT | 민사사건 | `박수현/LIT/민사사건` | lane_default_review |
-| 부산광역시 | LIT | 손해배상청구 | `부산광역시/LIT/손해배상청구` | court_record_case_title |
 | 삼원페이퍼 | LIT | 민사사건 | `삼원페이퍼/LIT/민사사건` | lane_default_review |
 | 송명숙 | LIT | 소유권이전등기청구 | `송명숙/LIT/소유권이전등기청구` | legal_document_text |
 | 송수연 | LIT | 징계처분취소 | `송수연/LIT/징계처분취소` | legal_document_filename |
@@ -100,44 +98,43 @@ Generated at: 2026-07-01T00:00:00.000+09:00
 | 서울청 | LIT | 세무조사대응 | `서울청/LIT/세무조사대응` | legal_document_filename |
 | AMCR | ADV | retainer | `AMCR/ADV/retainer` | rule_retainer |
 | B&M Holdings | ADV | retainer | `B&M Holdings/ADV/retainer` | rule_retainer |
+| B&M Holdings | DEAL | TAKE Foundation | `B&M Holdings/DEAL/TAKE Foundation` | folder_project_name |
 | EML | ADV | retainer | `EML/ADV/retainer` | rule_retainer |
 | JT | ADV | retainer | `JT/ADV/retainer` | rule_retainer |
-| Titan | ADV | retainer | `Titan/ADV/retainer` | rule_retainer |
 | 그래비티 유권해석 | ADV | retainer | `그래비티 유권해석/ADV/retainer` | rule_retainer |
 | 코멕스 | ADV | retainer | `코멕스/ADV/retainer` | rule_retainer |
 | 회계법인 창천 | ADV | retainer | `회계법인 창천/ADV/retainer` | rule_retainer |
-| ATU | DEAL | IBK-ATU콘텐츠미디어테크PEF 설립 | `ATU/DEAL/IBK-ATU콘텐츠미디어테크PEF 설립` | verified_atu_pef_formation |
-| ATU | DEAL | 에이티유컬쳐테크6호PEF 설립 | `ATU/DEAL/에이티유컬쳐테크6호PEF 설립` | verified_atu_pef_formation |
-| ATU | DEAL | PEF 동업기업과세특례 신청 | `ATU/DEAL/PEF 동업기업과세특례 신청` | verified_atu_pef_tax_election |
-| ATU | DEAL | Kubo | `ATU/DEAL/Kubo` | verified_atu_individual_investment |
-| ATU | DEAL | Day | `ATU/DEAL/Day` | verified_atu_individual_investment |
-| ATU | DEAL | Wonder | `ATU/DEAL/Wonder` | verified_atu_individual_investment |
-| ATU | DEAL | 휴민트 | `ATU/DEAL/휴민트` | verified_atu_individual_investment |
-| ATU | DEAL | AMP 앨범 | `ATU/DEAL/AMP 앨범` | verified_atu_individual_investment |
-| ATU | DEAL | 영화 HOPE 투자 | `ATU/DEAL/영화 HOPE 투자` | verified_atu_individual_investment |
-| K-PLUS | DEAL | K-PLUS | `K-PLUS/DEAL/K-PLUS` | folder_project_name |
+| ATU Partners | DEAL | IBK-ATU콘텐츠미디어테크PEF 설립 | `ATU Partners/DEAL/IBK-ATU콘텐츠미디어테크PEF 설립` | verified_atu_pef_formation |
+| ATU Partners | DEAL | 에이티유컬쳐테크6호PEF 설립 | `ATU Partners/DEAL/에이티유컬쳐테크6호PEF 설립` | verified_atu_pef_formation |
+| ATU Partners | DEAL | PEF 동업기업과세특례 신청 | `ATU Partners/DEAL/PEF 동업기업과세특례 신청` | verified_atu_pef_tax_election |
+| ATU Partners | DEAL | Kubo | `ATU Partners/DEAL/Kubo` | verified_atu_individual_investment |
+| ATU Partners | DEAL | Day | `ATU Partners/DEAL/Day` | verified_atu_individual_investment |
+| ATU Partners | DEAL | Wonder | `ATU Partners/DEAL/Wonder` | verified_atu_individual_investment |
+| ATU Partners | DEAL | 휴민트 | `ATU Partners/DEAL/휴민트` | verified_atu_individual_investment |
+| ATU Partners | DEAL | AMP 앨범 | `ATU Partners/DEAL/AMP 앨범` | verified_atu_individual_investment |
+| ATU Partners | DEAL | 영화 HOPE 투자 | `ATU Partners/DEAL/영화 HOPE 투자` | verified_atu_individual_investment |
+| 바이포엠스튜디오 | DEAL | K-PLUS | `바이포엠스튜디오/DEAL/K-PLUS` | folder_project_name |
 | NEPA | DEAL | NEPA | `NEPA/DEAL/NEPA` | folder_project_name |
 | Peyto | DEAL | Peyto | `Peyto/DEAL/Peyto` | folder_project_name |
 | SLL | DEAL | SLL | `SLL/DEAL/SLL` | folder_project_name |
-| TAKE Foundation | DEAL | TAKE Foundation | `TAKE Foundation/DEAL/TAKE Foundation` | folder_project_name |
 | 벨로크 | DEAL | 벨로크 | `벨로크/DEAL/벨로크` | folder_project_name |
-| 아론 | DEAL | 아론 | `아론/DEAL/아론` | folder_project_name |
 | 언코어 | DEAL | 언코어 | `언코어/DEAL/언코어` | folder_project_name |
 | 한양화스너 | DEAL | 한양화스너 | `한양화스너/DEAL/한양화스너` | folder_project_name |
 | 헬스앤바이오 | DEAL | 헬스앤바이오 | `헬스앤바이오/DEAL/헬스앤바이오` | folder_project_name |
 | 홀딩핸즈앤코 외 12명 | DEAL | Covenant | `홀딩핸즈앤코 외 12명/DEAL/Covenant` | verified_contract_party_group |
-| 한흥수 외 6명 | DEAL | Jade | `한흥수 외 6명/DEAL/Jade` | verified_contract_party_group |
+| 한흥수 외 3명 | DEAL | Jade | `한흥수 외 3명/DEAL/Jade` | verified_contract_party_group |
 | 노윤현 외 19명 | DEAL | Max | `노윤현 외 19명/DEAL/Max` | verified_contract_party_group |
 | 최재헌 외 2명 | DEAL | Next | `최재헌 외 2명/DEAL/Next` | verified_contract_party_group |
 | 이강명 외 1명 | DEAL | Project S | `이강명 외 1명/DEAL/Project S` | verified_contract_party_group |
-| 강상도 외 16명 | DEAL | Phoenix | `강상도 외 16명/DEAL/Phoenix` | verified_contract_party_group |
+| 강상도 | DEAL | Phoenix | `강상도/DEAL/Phoenix` | verified_contract_party_group |
 | 박민규 외 5명 | DEAL | Tempus | `박민규 외 5명/DEAL/Tempus` | verified_contract_party_group |
 | 권도균 외 11명 | DEAL | Washington | `권도균 외 11명/DEAL/Washington` | verified_contract_party_group |
 | 펜타스톤-오라이언-온앤업 신기술투자조합 | DEAL | Wiz | `펜타스톤-오라이언-온앤업 신기술투자조합/DEAL/Wiz` | verified_contract_party_group |
 | 봉경환 외 4명 | DEAL | Fausta | `봉경환 외 4명/DEAL/Fausta` | verified_contract_party_group |
 | 박태오 | DEAL | Puma | `박태오/DEAL/Puma` | verified_contract_party_group |
-| SMEJ Holdings, INC. 외 1명 | LIT | Kingston dispute | `SMEJ Holdings, INC. 외 1명/LIT/Kingston dispute` | verified_contract_party_group |
+| K Enter Holdings Inc. | LIT | Kingston dispute | `K Enter Holdings Inc./LIT/Kingston dispute` | verified_contract_party_group |
 | 롯데에너지머티리얼즈 | DEAL | Lion | `롯데에너지머티리얼즈/DEAL/Lion` | verified_mou_party_group |
 | 김정환 | DEAL | Switch | `김정환/DEAL/Switch` | verified_mou_party_group |
-| 오윤록 외 1명 | DEAL | Titan | `오윤록 외 1명/DEAL/Titan` | verified_mou_party_group |
-| 에이치엘엘중앙 | DEAL | Horizon | `에이치엘엘중앙/DEAL/Horizon` | verified_mou_party_group |
+| 오윤록 외 2명 | DEAL | Titan | `오윤록 외 2명/DEAL/Titan` | verified_mou_party_group |
+| 오윤록 외 2명 | ADV | retainer | `오윤록 외 2명/ADV/retainer` | rule_retainer |
+| 유진이엔티 | DEAL | Horizon | `유진이엔티/DEAL/Horizon` | verified_mou_party_group |

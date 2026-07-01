@@ -5,30 +5,6 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
 [
   {
     "client_id": "client_rp05_amic_current_001",
-    "client_display_name": "고구려푸드",
-    "client_short_name": "고구려푸드",
-    "canonical_display_name": "고구려푸드 주식회사",
-    "legal_form": "주식회사",
-    "candidate_type": "organization_candidate",
-    "source_lanes": [
-      "1. 민사"
-    ],
-    "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
-  },
-  {
-    "client_id": "client_rp05_amic_current_002",
-    "client_display_name": "고기깡패",
-    "client_short_name": "고기깡패",
-    "canonical_display_name": "고기깡패",
-    "legal_form": null,
-    "candidate_type": "individual_or_small_org_candidate",
-    "source_lanes": [
-      "1. 민사"
-    ],
-    "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
-  },
-  {
-    "client_id": "client_rp05_amic_current_003",
     "client_display_name": "귀한사람들",
     "client_short_name": "귀한사람들",
     "canonical_display_name": "귀한사람들",
@@ -40,7 +16,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_004",
+    "client_id": "client_rp05_amic_current_002",
     "client_display_name": "그래비티랩스",
     "client_short_name": "그래비티랩스",
     "canonical_display_name": "그래비티랩스",
@@ -52,7 +28,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_005",
+    "client_id": "client_rp05_amic_current_003",
     "client_display_name": "그로브",
     "client_short_name": "그로브",
     "canonical_display_name": "그로브",
@@ -64,7 +40,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_006",
+    "client_id": "client_rp05_amic_current_004",
     "client_display_name": "금홍",
     "client_short_name": "금홍",
     "canonical_display_name": "금홍",
@@ -76,7 +52,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_007",
+    "client_id": "client_rp05_amic_current_005",
     "client_display_name": "김정",
     "client_short_name": "김정",
     "canonical_display_name": "김정",
@@ -88,7 +64,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_008",
+    "client_id": "client_rp05_amic_current_006",
     "client_display_name": "김지은",
     "client_short_name": "김지은",
     "canonical_display_name": "김지은",
@@ -100,7 +76,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_009",
+    "client_id": "client_rp05_amic_current_007",
     "client_display_name": "동림산업",
     "client_short_name": "동림산업",
     "canonical_display_name": "동림산업",
@@ -112,7 +88,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_010",
+    "client_id": "client_rp05_amic_current_008",
     "client_display_name": "동문시장",
     "client_short_name": "동문시장",
     "canonical_display_name": "동문시장",
@@ -124,7 +100,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_011",
+    "client_id": "client_rp05_amic_current_009",
     "client_display_name": "라이트팜텍",
     "client_short_name": "라이트팜텍",
     "canonical_display_name": "라이트팜텍",
@@ -136,7 +112,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_012",
+    "client_id": "client_rp05_amic_current_010",
     "client_display_name": "매크로머신",
     "client_short_name": "매크로머신",
     "canonical_display_name": "매크로머신",
@@ -148,7 +124,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_013",
+    "client_id": "client_rp05_amic_current_011",
     "client_display_name": "박수현",
     "client_short_name": "박수현",
     "canonical_display_name": "박수현",
@@ -160,19 +136,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_014",
-    "client_display_name": "부산광역시",
-    "client_short_name": "부산광역시",
-    "canonical_display_name": "부산광역시",
-    "legal_form": null,
-    "candidate_type": "individual_or_small_org_candidate",
-    "source_lanes": [
-      "1. 민사"
-    ],
-    "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
-  },
-  {
-    "client_id": "client_rp05_amic_current_015",
+    "client_id": "client_rp05_amic_current_012",
     "client_display_name": "삼원페이퍼",
     "client_short_name": "삼원페이퍼",
     "canonical_display_name": "삼원페이퍼",
@@ -184,7 +148,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_016",
+    "client_id": "client_rp05_amic_current_013",
     "client_display_name": "송명숙",
     "client_short_name": "송명숙",
     "canonical_display_name": "송명숙",
@@ -196,7 +160,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_017",
+    "client_id": "client_rp05_amic_current_014",
     "client_display_name": "송수연",
     "client_short_name": "송수연",
     "canonical_display_name": "송수연",
@@ -208,7 +172,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_018",
+    "client_id": "client_rp05_amic_current_015",
     "client_display_name": "에이치엠건설",
     "client_short_name": "에이치엠건설",
     "canonical_display_name": "에이치엠건설",
@@ -220,7 +184,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_019",
+    "client_id": "client_rp05_amic_current_016",
     "client_display_name": "에이치유알",
     "client_short_name": "에이치유알",
     "canonical_display_name": "에이치유알",
@@ -232,7 +196,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_020",
+    "client_id": "client_rp05_amic_current_017",
     "client_display_name": "원재상",
     "client_short_name": "원재상",
     "canonical_display_name": "원재상",
@@ -244,7 +208,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_021",
+    "client_id": "client_rp05_amic_current_018",
     "client_display_name": "이귀조",
     "client_short_name": "이귀조",
     "canonical_display_name": "이귀조",
@@ -256,7 +220,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_022",
+    "client_id": "client_rp05_amic_current_019",
     "client_display_name": "이유진",
     "client_short_name": "이유진",
     "canonical_display_name": "이유진",
@@ -268,7 +232,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_023",
+    "client_id": "client_rp05_amic_current_020",
     "client_display_name": "이지훈",
     "client_short_name": "이지훈",
     "canonical_display_name": "이지훈",
@@ -280,7 +244,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_024",
+    "client_id": "client_rp05_amic_current_021",
     "client_display_name": "전민서",
     "client_short_name": "전민서",
     "canonical_display_name": "전민서",
@@ -292,7 +256,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_025",
+    "client_id": "client_rp05_amic_current_022",
     "client_display_name": "전수환",
     "client_short_name": "전수환",
     "canonical_display_name": "전수환",
@@ -304,7 +268,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_026",
+    "client_id": "client_rp05_amic_current_023",
     "client_display_name": "제이스타워",
     "client_short_name": "제이스타워",
     "canonical_display_name": "제이스타워",
@@ -316,7 +280,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_027",
+    "client_id": "client_rp05_amic_current_024",
     "client_display_name": "조호바루",
     "client_short_name": "조호바루",
     "canonical_display_name": "조호바루",
@@ -328,7 +292,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_028",
+    "client_id": "client_rp05_amic_current_025",
     "client_display_name": "하이로닉",
     "client_short_name": "하이로닉",
     "canonical_display_name": "주식회사 하이로닉",
@@ -340,7 +304,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_029",
+    "client_id": "client_rp05_amic_current_026",
     "client_display_name": "지승개발",
     "client_short_name": "지승개발",
     "canonical_display_name": "지승개발",
@@ -352,7 +316,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_030",
+    "client_id": "client_rp05_amic_current_027",
     "client_display_name": "지피오",
     "client_short_name": "지피오",
     "canonical_display_name": "지피오",
@@ -364,7 +328,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_031",
+    "client_id": "client_rp05_amic_current_028",
     "client_display_name": "최원준 이상현",
     "client_short_name": "최원준 이상현",
     "canonical_display_name": "최원준 이상현",
@@ -376,7 +340,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_032",
+    "client_id": "client_rp05_amic_current_029",
     "client_display_name": "한수빈",
     "client_short_name": "한수빈",
     "canonical_display_name": "한수빈",
@@ -388,7 +352,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_033",
+    "client_id": "client_rp05_amic_current_030",
     "client_display_name": "한승민",
     "client_short_name": "한승민",
     "canonical_display_name": "한승민",
@@ -400,7 +364,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_034",
+    "client_id": "client_rp05_amic_current_031",
     "client_display_name": "한은혜",
     "client_short_name": "한은혜",
     "canonical_display_name": "한은혜",
@@ -412,7 +376,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_035",
+    "client_id": "client_rp05_amic_current_032",
     "client_display_name": "한흥수",
     "client_short_name": "한흥수",
     "canonical_display_name": "한흥수",
@@ -424,7 +388,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_036",
+    "client_id": "client_rp05_amic_current_033",
     "client_display_name": "허유지",
     "client_short_name": "허유지",
     "canonical_display_name": "허유지",
@@ -436,7 +400,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_037",
+    "client_id": "client_rp05_amic_current_034",
     "client_display_name": "황미혜 김성우",
     "client_short_name": "황미혜 김성우",
     "canonical_display_name": "황미혜 김성우",
@@ -448,7 +412,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_038",
+    "client_id": "client_rp05_amic_current_035",
     "client_display_name": "황효건",
     "client_short_name": "황효건",
     "canonical_display_name": "황효건",
@@ -460,7 +424,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_039",
+    "client_id": "client_rp05_amic_current_036",
     "client_display_name": "김현미",
     "client_short_name": "김현미",
     "canonical_display_name": "김현미",
@@ -473,7 +437,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_040",
+    "client_id": "client_rp05_amic_current_037",
     "client_display_name": "박수진",
     "client_short_name": "박수진",
     "canonical_display_name": "박수진",
@@ -486,7 +450,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_041",
+    "client_id": "client_rp05_amic_current_038",
     "client_display_name": "오영석",
     "client_short_name": "오영석",
     "canonical_display_name": "오영석",
@@ -499,7 +463,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_042",
+    "client_id": "client_rp05_amic_current_039",
     "client_display_name": "원종만",
     "client_short_name": "원종만",
     "canonical_display_name": "원종만",
@@ -512,7 +476,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_043",
+    "client_id": "client_rp05_amic_current_040",
     "client_display_name": "임지원",
     "client_short_name": "임지원",
     "canonical_display_name": "임지원",
@@ -525,7 +489,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_044",
+    "client_id": "client_rp05_amic_current_041",
     "client_display_name": "최태웅",
     "client_short_name": "최태웅",
     "canonical_display_name": "최태웅",
@@ -538,7 +502,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_045",
+    "client_id": "client_rp05_amic_current_042",
     "client_display_name": "장영준",
     "client_short_name": "장영준",
     "canonical_display_name": "장영준",
@@ -551,7 +515,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_046",
+    "client_id": "client_rp05_amic_current_043",
     "client_display_name": "베스트이노베이션",
     "client_short_name": "베스트이노베이션",
     "canonical_display_name": "베스트이노베이션",
@@ -564,7 +528,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_047",
+    "client_id": "client_rp05_amic_current_044",
     "client_display_name": "형제유지",
     "client_short_name": "형제유지",
     "canonical_display_name": "형제유지",
@@ -577,7 +541,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_048",
+    "client_id": "client_rp05_amic_current_045",
     "client_display_name": "마고",
     "client_short_name": "마고",
     "canonical_display_name": "마고",
@@ -589,7 +553,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_049",
+    "client_id": "client_rp05_amic_current_046",
     "client_display_name": "명륜당",
     "client_short_name": "명륜당",
     "canonical_display_name": "명륜당 주식회사",
@@ -601,7 +565,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_050",
+    "client_id": "client_rp05_amic_current_047",
     "client_display_name": "성현석",
     "client_short_name": "성현석",
     "canonical_display_name": "성현석",
@@ -613,7 +577,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_051",
+    "client_id": "client_rp05_amic_current_048",
     "client_display_name": "신원스포츠",
     "client_short_name": "신원스포츠",
     "canonical_display_name": "신원스포츠",
@@ -625,7 +589,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_052",
+    "client_id": "client_rp05_amic_current_049",
     "client_display_name": "안연호",
     "client_short_name": "안연호",
     "canonical_display_name": "안연호",
@@ -637,7 +601,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_053",
+    "client_id": "client_rp05_amic_current_050",
     "client_display_name": "강영권",
     "client_short_name": "강영권",
     "canonical_display_name": "강영권",
@@ -650,7 +614,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_054",
+    "client_id": "client_rp05_amic_current_051",
     "client_display_name": "김충규",
     "client_short_name": "김충규",
     "canonical_display_name": "김충규",
@@ -662,7 +626,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_055",
+    "client_id": "client_rp05_amic_current_052",
     "client_display_name": "비엔엠홀딩스",
     "client_short_name": "비엔엠홀딩스",
     "canonical_display_name": "비엔엠홀딩스",
@@ -674,7 +638,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_056",
+    "client_id": "client_rp05_amic_current_053",
     "client_display_name": "손경수",
     "client_short_name": "손경수",
     "canonical_display_name": "손경수",
@@ -686,7 +650,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_057",
+    "client_id": "client_rp05_amic_current_054",
     "client_display_name": "윤진어패럴",
     "client_short_name": "윤진어패럴",
     "canonical_display_name": "윤진어패럴",
@@ -698,7 +662,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_058",
+    "client_id": "client_rp05_amic_current_055",
     "client_display_name": "더드림병원",
     "client_short_name": "더드림병원",
     "canonical_display_name": "더드림병원",
@@ -710,7 +674,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_059",
+    "client_id": "client_rp05_amic_current_056",
     "client_display_name": "장정도",
     "client_short_name": "장정도",
     "canonical_display_name": "장정도",
@@ -722,7 +686,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_060",
+    "client_id": "client_rp05_amic_current_057",
     "client_display_name": "김홍현",
     "client_short_name": "김홍현",
     "canonical_display_name": "김홍현",
@@ -735,7 +699,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_061",
+    "client_id": "client_rp05_amic_current_058",
     "client_display_name": "류현우",
     "client_short_name": "류현우",
     "canonical_display_name": "류현우",
@@ -748,7 +712,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_062",
+    "client_id": "client_rp05_amic_current_059",
     "client_display_name": "다스버스 박길홍",
     "client_short_name": "다스버스 박길홍",
     "canonical_display_name": "다스버스 박길홍",
@@ -760,7 +724,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_063",
+    "client_id": "client_rp05_amic_current_060",
     "client_display_name": "데브시스터즈",
     "client_short_name": "데브시스터즈",
     "canonical_display_name": "데브시스터즈",
@@ -772,7 +736,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_064",
+    "client_id": "client_rp05_amic_current_061",
     "client_display_name": "박동순",
     "client_short_name": "박동순",
     "canonical_display_name": "박동순",
@@ -784,7 +748,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_065",
+    "client_id": "client_rp05_amic_current_062",
     "client_display_name": "임인홍",
     "client_short_name": "임인홍",
     "canonical_display_name": "임인홍",
@@ -796,7 +760,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_066",
+    "client_id": "client_rp05_amic_current_063",
     "client_display_name": "지오소프트",
     "client_short_name": "지오소프트",
     "canonical_display_name": "주식회사 지오소프트",
@@ -808,7 +772,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_067",
+    "client_id": "client_rp05_amic_current_064",
     "client_display_name": "대흥리츠",
     "client_short_name": "대흥리츠",
     "canonical_display_name": "대흥리츠",
@@ -820,7 +784,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_068",
+    "client_id": "client_rp05_amic_current_065",
     "client_display_name": "스틱인베스트먼트",
     "client_short_name": "스틱인베스트먼트",
     "canonical_display_name": "스틱인베스트먼트",
@@ -832,7 +796,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_069",
+    "client_id": "client_rp05_amic_current_066",
     "client_display_name": "조덕희",
     "client_short_name": "조덕희",
     "canonical_display_name": "조덕희",
@@ -844,7 +808,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_070",
+    "client_id": "client_rp05_amic_current_067",
     "client_display_name": "황진수",
     "client_short_name": "황진수",
     "canonical_display_name": "황진수",
@@ -856,7 +820,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_071",
+    "client_id": "client_rp05_amic_current_068",
     "client_display_name": "휴스틸",
     "client_short_name": "휴스틸",
     "canonical_display_name": "휴스틸",
@@ -868,7 +832,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_072",
+    "client_id": "client_rp05_amic_current_069",
     "client_display_name": "KWM",
     "client_short_name": "KWM",
     "canonical_display_name": "KWM",
@@ -882,7 +846,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_073",
+    "client_id": "client_rp05_amic_current_070",
     "client_display_name": "서울청",
     "client_short_name": "서울청",
     "canonical_display_name": "서울청",
@@ -894,7 +858,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_074",
+    "client_id": "client_rp05_amic_current_071",
     "client_display_name": "AMCR",
     "client_short_name": "AMCR",
     "canonical_display_name": "AMCR",
@@ -906,19 +870,20 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_075",
+    "client_id": "client_rp05_amic_current_072",
     "client_display_name": "B&M Holdings",
     "client_short_name": "B&M Holdings",
     "canonical_display_name": "B&M Holdings",
     "legal_form": null,
     "candidate_type": "organization_candidate",
     "source_lanes": [
-      "4. 기업 자문"
+      "4. 기업 자문",
+      "5. 기업 인수&합병"
     ],
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_076",
+    "client_id": "client_rp05_amic_current_073",
     "client_display_name": "EML",
     "client_short_name": "EML",
     "canonical_display_name": "EML",
@@ -930,7 +895,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_077",
+    "client_id": "client_rp05_amic_current_074",
     "client_display_name": "JT",
     "client_short_name": "JT",
     "canonical_display_name": "JT",
@@ -942,19 +907,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_078",
-    "client_display_name": "Titan",
-    "client_short_name": "Titan",
-    "canonical_display_name": "Titan",
-    "legal_form": null,
-    "candidate_type": "client_candidate",
-    "source_lanes": [
-      "4. 기업 자문"
-    ],
-    "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
-  },
-  {
-    "client_id": "client_rp05_amic_current_079",
+    "client_id": "client_rp05_amic_current_075",
     "client_display_name": "그래비티 유권해석",
     "client_short_name": "그래비티 유권해석",
     "canonical_display_name": "그래비티 유권해석",
@@ -966,7 +919,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_080",
+    "client_id": "client_rp05_amic_current_076",
     "client_display_name": "코멕스",
     "client_short_name": "코멕스",
     "canonical_display_name": "코멕스",
@@ -978,7 +931,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_081",
+    "client_id": "client_rp05_amic_current_077",
     "client_display_name": "회계법인 창천",
     "client_short_name": "회계법인 창천",
     "canonical_display_name": "회계법인 창천",
@@ -990,10 +943,10 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_082",
-    "client_display_name": "ATU",
-    "client_short_name": "ATU",
-    "canonical_display_name": "ATU",
+    "client_id": "client_rp05_amic_current_078",
+    "client_display_name": "ATU Partners",
+    "client_short_name": "ATU Partners",
+    "canonical_display_name": "ATU Partners",
     "legal_form": null,
     "candidate_type": "client_candidate",
     "source_lanes": [
@@ -1002,10 +955,10 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_083",
-    "client_display_name": "K-PLUS",
-    "client_short_name": "K-PLUS",
-    "canonical_display_name": "K-PLUS",
+    "client_id": "client_rp05_amic_current_079",
+    "client_display_name": "바이포엠스튜디오",
+    "client_short_name": "바이포엠스튜디오",
+    "canonical_display_name": "바이포엠스튜디오",
     "legal_form": null,
     "candidate_type": "client_candidate",
     "source_lanes": [
@@ -1014,7 +967,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_084",
+    "client_id": "client_rp05_amic_current_080",
     "client_display_name": "NEPA",
     "client_short_name": "NEPA",
     "canonical_display_name": "NEPA",
@@ -1026,7 +979,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_085",
+    "client_id": "client_rp05_amic_current_081",
     "client_display_name": "Peyto",
     "client_short_name": "Peyto",
     "canonical_display_name": "Peyto",
@@ -1038,7 +991,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_086",
+    "client_id": "client_rp05_amic_current_082",
     "client_display_name": "SLL",
     "client_short_name": "SLL",
     "canonical_display_name": "SLL",
@@ -1050,19 +1003,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_087",
-    "client_display_name": "TAKE Foundation",
-    "client_short_name": "TAKE Foundation",
-    "canonical_display_name": "TAKE Foundation",
-    "legal_form": null,
-    "candidate_type": "organization_candidate",
-    "source_lanes": [
-      "5. 기업 인수&합병"
-    ],
-    "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
-  },
-  {
-    "client_id": "client_rp05_amic_current_088",
+    "client_id": "client_rp05_amic_current_083",
     "client_display_name": "벨로크",
     "client_short_name": "벨로크",
     "canonical_display_name": "벨로크",
@@ -1074,19 +1015,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_089",
-    "client_display_name": "아론",
-    "client_short_name": "아론",
-    "canonical_display_name": "아론",
-    "legal_form": null,
-    "candidate_type": "individual_or_small_org_candidate",
-    "source_lanes": [
-      "5. 기업 인수&합병"
-    ],
-    "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
-  },
-  {
-    "client_id": "client_rp05_amic_current_090",
+    "client_id": "client_rp05_amic_current_084",
     "client_display_name": "언코어",
     "client_short_name": "언코어",
     "canonical_display_name": "언코어",
@@ -1098,7 +1027,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_091",
+    "client_id": "client_rp05_amic_current_085",
     "client_display_name": "한양화스너",
     "client_short_name": "한양화스너",
     "canonical_display_name": "한양화스너",
@@ -1110,7 +1039,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_092",
+    "client_id": "client_rp05_amic_current_086",
     "client_display_name": "헬스앤바이오",
     "client_short_name": "헬스앤바이오",
     "canonical_display_name": "헬스앤바이오",
@@ -1122,7 +1051,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_093",
+    "client_id": "client_rp05_amic_current_087",
     "client_display_name": "홀딩핸즈앤코 외 12명",
     "client_short_name": "홀딩핸즈앤코 외 12명",
     "canonical_display_name": "홀딩핸즈앤코 외 12명",
@@ -1134,10 +1063,10 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_094",
-    "client_display_name": "한흥수 외 6명",
-    "client_short_name": "한흥수 외 6명",
-    "canonical_display_name": "한흥수 외 6명",
+    "client_id": "client_rp05_amic_current_088",
+    "client_display_name": "한흥수 외 3명",
+    "client_short_name": "한흥수 외 3명",
+    "canonical_display_name": "한흥수 외 3명",
     "legal_form": null,
     "candidate_type": "individual_or_small_org_candidate",
     "source_lanes": [
@@ -1146,7 +1075,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_095",
+    "client_id": "client_rp05_amic_current_089",
     "client_display_name": "노윤현 외 19명",
     "client_short_name": "노윤현 외 19명",
     "canonical_display_name": "노윤현 외 19명",
@@ -1158,7 +1087,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_096",
+    "client_id": "client_rp05_amic_current_090",
     "client_display_name": "최재헌 외 2명",
     "client_short_name": "최재헌 외 2명",
     "canonical_display_name": "최재헌 외 2명",
@@ -1170,7 +1099,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_097",
+    "client_id": "client_rp05_amic_current_091",
     "client_display_name": "이강명 외 1명",
     "client_short_name": "이강명 외 1명",
     "canonical_display_name": "이강명 외 1명",
@@ -1182,10 +1111,10 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_098",
-    "client_display_name": "강상도 외 16명",
-    "client_short_name": "강상도 외 16명",
-    "canonical_display_name": "강상도 외 16명",
+    "client_id": "client_rp05_amic_current_092",
+    "client_display_name": "강상도",
+    "client_short_name": "강상도",
+    "canonical_display_name": "강상도",
     "legal_form": null,
     "candidate_type": "individual_or_small_org_candidate",
     "source_lanes": [
@@ -1194,7 +1123,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_099",
+    "client_id": "client_rp05_amic_current_093",
     "client_display_name": "박민규 외 5명",
     "client_short_name": "박민규 외 5명",
     "canonical_display_name": "박민규 외 5명",
@@ -1206,7 +1135,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_100",
+    "client_id": "client_rp05_amic_current_094",
     "client_display_name": "권도균 외 11명",
     "client_short_name": "권도균 외 11명",
     "canonical_display_name": "권도균 외 11명",
@@ -1218,7 +1147,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_101",
+    "client_id": "client_rp05_amic_current_095",
     "client_display_name": "펜타스톤-오라이언-온앤업 신기술투자조합",
     "client_short_name": "펜타스톤-오라이언-온앤업 신기술투자조합",
     "canonical_display_name": "펜타스톤-오라이언-온앤업 신기술투자조합",
@@ -1230,7 +1159,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_102",
+    "client_id": "client_rp05_amic_current_096",
     "client_display_name": "봉경환 외 4명",
     "client_short_name": "봉경환 외 4명",
     "canonical_display_name": "봉경환 외 4명",
@@ -1242,7 +1171,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_103",
+    "client_id": "client_rp05_amic_current_097",
     "client_display_name": "박태오",
     "client_short_name": "박태오",
     "canonical_display_name": "박태오",
@@ -1254,10 +1183,10 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_104",
-    "client_display_name": "SMEJ Holdings, INC. 외 1명",
-    "client_short_name": "SMEJ Holdings, INC. 외 1명",
-    "canonical_display_name": "SMEJ Holdings, INC. 외 1명",
+    "client_id": "client_rp05_amic_current_098",
+    "client_display_name": "K Enter Holdings Inc.",
+    "client_short_name": "K Enter Holdings Inc.",
+    "canonical_display_name": "K Enter Holdings Inc.",
     "legal_form": null,
     "candidate_type": "organization_candidate",
     "source_lanes": [
@@ -1266,7 +1195,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_105",
+    "client_id": "client_rp05_amic_current_099",
     "client_display_name": "롯데에너지머티리얼즈",
     "client_short_name": "롯데에너지머티리얼즈",
     "canonical_display_name": "롯데에너지머티리얼즈 주식회사",
@@ -1278,7 +1207,7 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_106",
+    "client_id": "client_rp05_amic_current_100",
     "client_display_name": "김정환",
     "client_short_name": "김정환",
     "canonical_display_name": "김정환",
@@ -1290,23 +1219,24 @@ export const AMIC_CURRENT_MATTER_CLIENTS = Object.freeze(
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_107",
-    "client_display_name": "오윤록 외 1명",
-    "client_short_name": "오윤록 외 1명",
-    "canonical_display_name": "오윤록 외 1명",
+    "client_id": "client_rp05_amic_current_101",
+    "client_display_name": "오윤록 외 2명",
+    "client_short_name": "오윤록 외 2명",
+    "canonical_display_name": "오윤록 외 2명",
     "legal_form": null,
     "candidate_type": "individual_or_small_org_candidate",
     "source_lanes": [
-      "5. 기업 인수&합병"
+      "5. 기업 인수&합병",
+      "4. 기업 자문"
     ],
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01"
   },
   {
-    "client_id": "client_rp05_amic_current_108",
-    "client_display_name": "에이치엘엘중앙",
-    "client_short_name": "에이치엘엘중앙",
-    "canonical_display_name": "에이치엘엘중앙 주식회사",
-    "legal_form": "주식회사",
+    "client_id": "client_rp05_amic_current_102",
+    "client_display_name": "유진이엔티",
+    "client_short_name": "유진이엔티",
+    "canonical_display_name": "유진이엔티",
+    "legal_form": null,
     "candidate_type": "organization_candidate",
     "source_lanes": [
       "5. 기업 인수&합병"
@@ -1322,12 +1252,12 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "matter_id": "matter_rp05_amic_current_001",
     "tenant_id": "tenant_rp05_synthetic",
     "client_id": "client_rp05_amic_current_001",
-    "client_display_name": "고구려푸드",
-    "client_short_name": "고구려푸드",
-    "matter_code": "고구려푸드/LIT/민사사건",
+    "client_display_name": "귀한사람들",
+    "client_short_name": "귀한사람들",
+    "matter_code": "귀한사람들/LIT/민사사건",
     "matter_number": "AMIC-MC-001",
-    "matter_name": "고구려푸드/LIT/민사사건",
-    "title": "고구려푸드/LIT/민사사건",
+    "matter_name": "귀한사람들/LIT/민사사건",
+    "title": "귀한사람들/LIT/민사사건",
     "matter_axis": "LIT",
     "matter_type_english": "LIT",
     "matter_detail_type_korean": "민사사건",
@@ -1335,37 +1265,17 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "source_ref": "1. 민사-고구려푸드 주식회사",
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
     "status": "opening",
-    "confidence": "lane_default_review",
-    "review_required": true
+    "confidence": "absorbed_client_review",
+    "review_required": false
   },
   {
     "matter_id": "matter_rp05_amic_current_002",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_002",
-    "client_display_name": "고기깡패",
-    "client_short_name": "고기깡패",
-    "matter_code": "고기깡패/LIT/공사대금청구",
-    "matter_number": "AMIC-MC-002",
-    "matter_name": "고기깡패/LIT/공사대금청구",
-    "title": "고기깡패/LIT/공사대금청구",
-    "matter_axis": "LIT",
-    "matter_type_english": "LIT",
-    "matter_detail_type_korean": "공사대금청구",
-    "source_lane": "1. 민사",
-    "source_ref": "1. 민사-0. 종료사건-고기깡패-관련 판례-의정부지방법원 2019. 10. 31. 선고 2018나6199(본소),2019나952(반소) 판결 임대차목적물원상복구공사대금등,임대목적물원상복구공사대금등.pdf",
-    "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
-    "status": "opening",
-    "confidence": "court_record_case_title",
-    "review_required": false
-  },
-  {
-    "matter_id": "matter_rp05_amic_current_003",
-    "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_003",
+    "client_id": "client_rp05_amic_current_001",
     "client_display_name": "귀한사람들",
     "client_short_name": "귀한사람들",
     "matter_code": "귀한사람들/LIT/귀한사람들 대응",
-    "matter_number": "AMIC-MC-003",
+    "matter_number": "AMIC-MC-002",
     "matter_name": "귀한사람들/LIT/귀한사람들 대응",
     "title": "귀한사람들/LIT/귀한사람들 대응",
     "matter_axis": "LIT",
@@ -1379,13 +1289,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_004",
+    "matter_id": "matter_rp05_amic_current_003",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_004",
+    "client_id": "client_rp05_amic_current_002",
     "client_display_name": "그래비티랩스",
     "client_short_name": "그래비티랩스",
     "matter_code": "그래비티랩스/LIT/특허권침해금지",
-    "matter_number": "AMIC-MC-004",
+    "matter_number": "AMIC-MC-003",
     "matter_name": "그래비티랩스/LIT/특허권침해금지",
     "title": "그래비티랩스/LIT/특허권침해금지",
     "matter_axis": "LIT",
@@ -1399,13 +1309,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_005",
+    "matter_id": "matter_rp05_amic_current_004",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_005",
+    "client_id": "client_rp05_amic_current_003",
     "client_display_name": "그로브",
     "client_short_name": "그로브",
     "matter_code": "그로브/LIT/제소전화해",
-    "matter_number": "AMIC-MC-005",
+    "matter_number": "AMIC-MC-004",
     "matter_name": "그로브/LIT/제소전화해",
     "title": "그로브/LIT/제소전화해",
     "matter_axis": "LIT",
@@ -1419,13 +1329,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_006",
+    "matter_id": "matter_rp05_amic_current_005",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_006",
+    "client_id": "client_rp05_amic_current_004",
     "client_display_name": "금홍",
     "client_short_name": "금홍",
     "matter_code": "금홍/LIT/가압류이의",
-    "matter_number": "AMIC-MC-006",
+    "matter_number": "AMIC-MC-005",
     "matter_name": "금홍/LIT/가압류이의",
     "title": "금홍/LIT/가압류이의",
     "matter_axis": "LIT",
@@ -1439,13 +1349,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_007",
+    "matter_id": "matter_rp05_amic_current_006",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_007",
+    "client_id": "client_rp05_amic_current_005",
     "client_display_name": "김정",
     "client_short_name": "김정",
     "matter_code": "김정/LIT/중개보수청구",
-    "matter_number": "AMIC-MC-007",
+    "matter_number": "AMIC-MC-006",
     "matter_name": "김정/LIT/중개보수청구",
     "title": "김정/LIT/중개보수청구",
     "matter_axis": "LIT",
@@ -1459,13 +1369,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_008",
+    "matter_id": "matter_rp05_amic_current_007",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_008",
+    "client_id": "client_rp05_amic_current_006",
     "client_display_name": "김지은",
     "client_short_name": "김지은",
     "matter_code": "김지은/LIT/민사사건",
-    "matter_number": "AMIC-MC-008",
+    "matter_number": "AMIC-MC-007",
     "matter_name": "김지은/LIT/민사사건",
     "title": "김지은/LIT/민사사건",
     "matter_axis": "LIT",
@@ -1479,13 +1389,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_009",
+    "matter_id": "matter_rp05_amic_current_008",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_009",
+    "client_id": "client_rp05_amic_current_007",
     "client_display_name": "동림산업",
     "client_short_name": "동림산업",
     "matter_code": "동림산업/LIT/건물철거청구",
-    "matter_number": "AMIC-MC-009",
+    "matter_number": "AMIC-MC-008",
     "matter_name": "동림산업/LIT/건물철거청구",
     "title": "동림산업/LIT/건물철거청구",
     "matter_axis": "LIT",
@@ -1499,33 +1409,33 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_010",
+    "matter_id": "matter_rp05_amic_current_009",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_010",
+    "client_id": "client_rp05_amic_current_008",
     "client_display_name": "동문시장",
     "client_short_name": "동문시장",
     "matter_code": "동문시장/LIT/제소전화해",
-    "matter_number": "AMIC-MC-010",
+    "matter_number": "AMIC-MC-009",
     "matter_name": "동문시장/LIT/제소전화해",
     "title": "동문시장/LIT/제소전화해",
     "matter_axis": "LIT",
     "matter_type_english": "LIT",
     "matter_detail_type_korean": "제소전화해",
     "source_lane": "1. 민사",
-    "source_ref": "1. 민사-동문시장 분쟁-03 내용증명 초안들-동문시장 제소전화해 대리권흠결 판례검토.docx",
+    "source_ref": "1. 민사-동문시장 분쟁-01 증거정리 PDF-증제3호 제소전화해 화해조서 2025자1486.pdf",
     "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
     "status": "opening",
     "confidence": "legal_document_filename",
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_011",
+    "matter_id": "matter_rp05_amic_current_010",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_011",
+    "client_id": "client_rp05_amic_current_009",
     "client_display_name": "라이트팜텍",
     "client_short_name": "라이트팜텍",
     "matter_code": "라이트팜텍/LIT/용역대금청구",
-    "matter_number": "AMIC-MC-011",
+    "matter_number": "AMIC-MC-010",
     "matter_name": "라이트팜텍/LIT/용역대금청구",
     "title": "라이트팜텍/LIT/용역대금청구",
     "matter_axis": "LIT",
@@ -1539,13 +1449,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_012",
+    "matter_id": "matter_rp05_amic_current_011",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_012",
+    "client_id": "client_rp05_amic_current_010",
     "client_display_name": "매크로머신",
     "client_short_name": "매크로머신",
     "matter_code": "매크로머신/LIT/손해배상청구",
-    "matter_number": "AMIC-MC-012",
+    "matter_number": "AMIC-MC-011",
     "matter_name": "매크로머신/LIT/손해배상청구",
     "title": "매크로머신/LIT/손해배상청구",
     "matter_axis": "LIT",
@@ -1559,13 +1469,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_013",
+    "matter_id": "matter_rp05_amic_current_012",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_013",
+    "client_id": "client_rp05_amic_current_011",
     "client_display_name": "박수현",
     "client_short_name": "박수현",
     "matter_code": "박수현/LIT/민사사건",
-    "matter_number": "AMIC-MC-013",
+    "matter_number": "AMIC-MC-012",
     "matter_name": "박수현/LIT/민사사건",
     "title": "박수현/LIT/민사사건",
     "matter_axis": "LIT",
@@ -1579,33 +1489,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_014",
+    "matter_id": "matter_rp05_amic_current_013",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_014",
-    "client_display_name": "부산광역시",
-    "client_short_name": "부산광역시",
-    "matter_code": "부산광역시/LIT/손해배상청구",
-    "matter_number": "AMIC-MC-014",
-    "matter_name": "부산광역시/LIT/손해배상청구",
-    "title": "부산광역시/LIT/손해배상청구",
-    "matter_axis": "LIT",
-    "matter_type_english": "LIT",
-    "matter_detail_type_korean": "손해배상청구",
-    "source_lane": "1. 민사",
-    "source_ref": "1. 민사-0. 종료사건-부산광역시-대법원 2016. 5. 19. 선고 2009다66549 전원합의체 판결 손해배상(기).pdf",
-    "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
-    "status": "opening",
-    "confidence": "court_record_case_title",
-    "review_required": false
-  },
-  {
-    "matter_id": "matter_rp05_amic_current_015",
-    "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_015",
+    "client_id": "client_rp05_amic_current_012",
     "client_display_name": "삼원페이퍼",
     "client_short_name": "삼원페이퍼",
     "matter_code": "삼원페이퍼/LIT/민사사건",
-    "matter_number": "AMIC-MC-015",
+    "matter_number": "AMIC-MC-013",
     "matter_name": "삼원페이퍼/LIT/민사사건",
     "title": "삼원페이퍼/LIT/민사사건",
     "matter_axis": "LIT",
@@ -1619,13 +1509,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_016",
+    "matter_id": "matter_rp05_amic_current_014",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_016",
+    "client_id": "client_rp05_amic_current_013",
     "client_display_name": "송명숙",
     "client_short_name": "송명숙",
     "matter_code": "송명숙/LIT/소유권이전등기청구",
-    "matter_number": "AMIC-MC-016",
+    "matter_number": "AMIC-MC-014",
     "matter_name": "송명숙/LIT/소유권이전등기청구",
     "title": "송명숙/LIT/소유권이전등기청구",
     "matter_axis": "LIT",
@@ -1639,13 +1529,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_017",
+    "matter_id": "matter_rp05_amic_current_015",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_017",
+    "client_id": "client_rp05_amic_current_014",
     "client_display_name": "송수연",
     "client_short_name": "송수연",
     "matter_code": "송수연/LIT/징계처분취소",
-    "matter_number": "AMIC-MC-017",
+    "matter_number": "AMIC-MC-015",
     "matter_name": "송수연/LIT/징계처분취소",
     "title": "송수연/LIT/징계처분취소",
     "matter_axis": "LIT",
@@ -1659,13 +1549,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_018",
+    "matter_id": "matter_rp05_amic_current_016",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_018",
+    "client_id": "client_rp05_amic_current_015",
     "client_display_name": "에이치엠건설",
     "client_short_name": "에이치엠건설",
     "matter_code": "에이치엠건설/LIT/제소전화해",
-    "matter_number": "AMIC-MC-018",
+    "matter_number": "AMIC-MC-016",
     "matter_name": "에이치엠건설/LIT/제소전화해",
     "title": "에이치엠건설/LIT/제소전화해",
     "matter_axis": "LIT",
@@ -1679,13 +1569,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_019",
+    "matter_id": "matter_rp05_amic_current_017",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_019",
+    "client_id": "client_rp05_amic_current_016",
     "client_display_name": "에이치유알",
     "client_short_name": "에이치유알",
     "matter_code": "에이치유알/LIT/민사사건",
-    "matter_number": "AMIC-MC-019",
+    "matter_number": "AMIC-MC-017",
     "matter_name": "에이치유알/LIT/민사사건",
     "title": "에이치유알/LIT/민사사건",
     "matter_axis": "LIT",
@@ -1699,13 +1589,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_020",
+    "matter_id": "matter_rp05_amic_current_018",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_020",
+    "client_id": "client_rp05_amic_current_017",
     "client_display_name": "원재상",
     "client_short_name": "원재상",
     "matter_code": "원재상/LIT/민사사건",
-    "matter_number": "AMIC-MC-020",
+    "matter_number": "AMIC-MC-018",
     "matter_name": "원재상/LIT/민사사건",
     "title": "원재상/LIT/민사사건",
     "matter_axis": "LIT",
@@ -1719,13 +1609,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_021",
+    "matter_id": "matter_rp05_amic_current_019",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_021",
+    "client_id": "client_rp05_amic_current_018",
     "client_display_name": "이귀조",
     "client_short_name": "이귀조",
     "matter_code": "이귀조/LIT/유류분반환",
-    "matter_number": "AMIC-MC-021",
+    "matter_number": "AMIC-MC-019",
     "matter_name": "이귀조/LIT/유류분반환",
     "title": "이귀조/LIT/유류분반환",
     "matter_axis": "LIT",
@@ -1739,13 +1629,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_022",
+    "matter_id": "matter_rp05_amic_current_020",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_022",
+    "client_id": "client_rp05_amic_current_019",
     "client_display_name": "이유진",
     "client_short_name": "이유진",
     "matter_code": "이유진/LIT/민사사건",
-    "matter_number": "AMIC-MC-022",
+    "matter_number": "AMIC-MC-020",
     "matter_name": "이유진/LIT/민사사건",
     "title": "이유진/LIT/민사사건",
     "matter_axis": "LIT",
@@ -1759,13 +1649,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_023",
+    "matter_id": "matter_rp05_amic_current_021",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_023",
+    "client_id": "client_rp05_amic_current_020",
     "client_display_name": "이지훈",
     "client_short_name": "이지훈",
     "matter_code": "이지훈/LIT/민사사건",
-    "matter_number": "AMIC-MC-023",
+    "matter_number": "AMIC-MC-021",
     "matter_name": "이지훈/LIT/민사사건",
     "title": "이지훈/LIT/민사사건",
     "matter_axis": "LIT",
@@ -1779,13 +1669,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_024",
+    "matter_id": "matter_rp05_amic_current_022",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_024",
+    "client_id": "client_rp05_amic_current_021",
     "client_display_name": "전민서",
     "client_short_name": "전민서",
     "matter_code": "전민서/LIT/가압류",
-    "matter_number": "AMIC-MC-024",
+    "matter_number": "AMIC-MC-022",
     "matter_name": "전민서/LIT/가압류",
     "title": "전민서/LIT/가압류",
     "matter_axis": "LIT",
@@ -1799,13 +1689,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_025",
+    "matter_id": "matter_rp05_amic_current_023",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_025",
+    "client_id": "client_rp05_amic_current_022",
     "client_display_name": "전수환",
     "client_short_name": "전수환",
     "matter_code": "전수환/LIT/민사사건",
-    "matter_number": "AMIC-MC-025",
+    "matter_number": "AMIC-MC-023",
     "matter_name": "전수환/LIT/민사사건",
     "title": "전수환/LIT/민사사건",
     "matter_axis": "LIT",
@@ -1819,13 +1709,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_026",
+    "matter_id": "matter_rp05_amic_current_024",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_026",
+    "client_id": "client_rp05_amic_current_023",
     "client_display_name": "제이스타워",
     "client_short_name": "제이스타워",
     "matter_code": "제이스타워/LIT/제소전화해",
-    "matter_number": "AMIC-MC-026",
+    "matter_number": "AMIC-MC-024",
     "matter_name": "제이스타워/LIT/제소전화해",
     "title": "제이스타워/LIT/제소전화해",
     "matter_axis": "LIT",
@@ -1839,13 +1729,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_027",
+    "matter_id": "matter_rp05_amic_current_025",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_027",
+    "client_id": "client_rp05_amic_current_024",
     "client_display_name": "조호바루",
     "client_short_name": "조호바루",
     "matter_code": "조호바루/LIT/민사사건",
-    "matter_number": "AMIC-MC-027",
+    "matter_number": "AMIC-MC-025",
     "matter_name": "조호바루/LIT/민사사건",
     "title": "조호바루/LIT/민사사건",
     "matter_axis": "LIT",
@@ -1859,13 +1749,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_028",
+    "matter_id": "matter_rp05_amic_current_026",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_028",
+    "client_id": "client_rp05_amic_current_025",
     "client_display_name": "하이로닉",
     "client_short_name": "하이로닉",
     "matter_code": "하이로닉/LIT/가압류",
-    "matter_number": "AMIC-MC-028",
+    "matter_number": "AMIC-MC-026",
     "matter_name": "하이로닉/LIT/가압류",
     "title": "하이로닉/LIT/가압류",
     "matter_axis": "LIT",
@@ -1879,13 +1769,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_029",
+    "matter_id": "matter_rp05_amic_current_027",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_029",
+    "client_id": "client_rp05_amic_current_026",
     "client_display_name": "지승개발",
     "client_short_name": "지승개발",
     "matter_code": "지승개발/LIT/청구이의의소",
-    "matter_number": "AMIC-MC-029",
+    "matter_number": "AMIC-MC-027",
     "matter_name": "지승개발/LIT/청구이의의소",
     "title": "지승개발/LIT/청구이의의소",
     "matter_axis": "LIT",
@@ -1899,13 +1789,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_030",
+    "matter_id": "matter_rp05_amic_current_028",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_030",
+    "client_id": "client_rp05_amic_current_027",
     "client_display_name": "지피오",
     "client_short_name": "지피오",
     "matter_code": "지피오/LIT/민사사건",
-    "matter_number": "AMIC-MC-030",
+    "matter_number": "AMIC-MC-028",
     "matter_name": "지피오/LIT/민사사건",
     "title": "지피오/LIT/민사사건",
     "matter_axis": "LIT",
@@ -1919,13 +1809,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_031",
+    "matter_id": "matter_rp05_amic_current_029",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_031",
+    "client_id": "client_rp05_amic_current_028",
     "client_display_name": "최원준 이상현",
     "client_short_name": "최원준 이상현",
     "matter_code": "최원준 이상현/LIT/소유권이전등기청구",
-    "matter_number": "AMIC-MC-031",
+    "matter_number": "AMIC-MC-029",
     "matter_name": "최원준 이상현/LIT/소유권이전등기청구",
     "title": "최원준 이상현/LIT/소유권이전등기청구",
     "matter_axis": "LIT",
@@ -1939,13 +1829,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_032",
+    "matter_id": "matter_rp05_amic_current_030",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_032",
+    "client_id": "client_rp05_amic_current_029",
     "client_display_name": "한수빈",
     "client_short_name": "한수빈",
     "matter_code": "한수빈/LIT/민사사건",
-    "matter_number": "AMIC-MC-032",
+    "matter_number": "AMIC-MC-030",
     "matter_name": "한수빈/LIT/민사사건",
     "title": "한수빈/LIT/민사사건",
     "matter_axis": "LIT",
@@ -1959,13 +1849,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_033",
+    "matter_id": "matter_rp05_amic_current_031",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_033",
+    "client_id": "client_rp05_amic_current_030",
     "client_display_name": "한승민",
     "client_short_name": "한승민",
     "matter_code": "한승민/LIT/민사사건",
-    "matter_number": "AMIC-MC-033",
+    "matter_number": "AMIC-MC-031",
     "matter_name": "한승민/LIT/민사사건",
     "title": "한승민/LIT/민사사건",
     "matter_axis": "LIT",
@@ -1979,13 +1869,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_034",
+    "matter_id": "matter_rp05_amic_current_032",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_034",
+    "client_id": "client_rp05_amic_current_031",
     "client_display_name": "한은혜",
     "client_short_name": "한은혜",
     "matter_code": "한은혜/LIT/손해배상청구",
-    "matter_number": "AMIC-MC-034",
+    "matter_number": "AMIC-MC-032",
     "matter_name": "한은혜/LIT/손해배상청구",
     "title": "한은혜/LIT/손해배상청구",
     "matter_axis": "LIT",
@@ -1999,13 +1889,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_035",
+    "matter_id": "matter_rp05_amic_current_033",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_035",
+    "client_id": "client_rp05_amic_current_032",
     "client_display_name": "한흥수",
     "client_short_name": "한흥수",
     "matter_code": "한흥수/LIT/소유권이전등기청구",
-    "matter_number": "AMIC-MC-035",
+    "matter_number": "AMIC-MC-033",
     "matter_name": "한흥수/LIT/소유권이전등기청구",
     "title": "한흥수/LIT/소유권이전등기청구",
     "matter_axis": "LIT",
@@ -2019,13 +1909,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_036",
+    "matter_id": "matter_rp05_amic_current_034",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_036",
+    "client_id": "client_rp05_amic_current_033",
     "client_display_name": "허유지",
     "client_short_name": "허유지",
     "matter_code": "허유지/LIT/지급명령",
-    "matter_number": "AMIC-MC-036",
+    "matter_number": "AMIC-MC-034",
     "matter_name": "허유지/LIT/지급명령",
     "title": "허유지/LIT/지급명령",
     "matter_axis": "LIT",
@@ -2039,13 +1929,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_037",
+    "matter_id": "matter_rp05_amic_current_035",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_037",
+    "client_id": "client_rp05_amic_current_034",
     "client_display_name": "황미혜 김성우",
     "client_short_name": "황미혜 김성우",
     "matter_code": "황미혜 김성우/LIT/민사사건",
-    "matter_number": "AMIC-MC-037",
+    "matter_number": "AMIC-MC-035",
     "matter_name": "황미혜 김성우/LIT/민사사건",
     "title": "황미혜 김성우/LIT/민사사건",
     "matter_axis": "LIT",
@@ -2059,13 +1949,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_038",
+    "matter_id": "matter_rp05_amic_current_036",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_038",
+    "client_id": "client_rp05_amic_current_035",
     "client_display_name": "황효건",
     "client_short_name": "황효건",
     "matter_code": "황효건/LIT/사해행위취소",
-    "matter_number": "AMIC-MC-038",
+    "matter_number": "AMIC-MC-036",
     "matter_name": "황효건/LIT/사해행위취소",
     "title": "황효건/LIT/사해행위취소",
     "matter_axis": "LIT",
@@ -2079,13 +1969,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_039",
+    "matter_id": "matter_rp05_amic_current_037",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_039",
+    "client_id": "client_rp05_amic_current_036",
     "client_display_name": "김현미",
     "client_short_name": "김현미",
     "matter_code": "김현미/LIT/손해배상청구",
-    "matter_number": "AMIC-MC-039",
+    "matter_number": "AMIC-MC-037",
     "matter_name": "김현미/LIT/손해배상청구",
     "title": "김현미/LIT/손해배상청구",
     "matter_axis": "LIT",
@@ -2099,13 +1989,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_040",
+    "matter_id": "matter_rp05_amic_current_038",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_039",
+    "client_id": "client_rp05_amic_current_036",
     "client_display_name": "김현미",
     "client_short_name": "김현미",
     "matter_code": "김현미/LIT/명예훼손",
-    "matter_number": "AMIC-MC-040",
+    "matter_number": "AMIC-MC-038",
     "matter_name": "김현미/LIT/명예훼손",
     "title": "김현미/LIT/명예훼손",
     "matter_axis": "LIT",
@@ -2119,13 +2009,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_041",
+    "matter_id": "matter_rp05_amic_current_039",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_040",
+    "client_id": "client_rp05_amic_current_037",
     "client_display_name": "박수진",
     "client_short_name": "박수진",
     "matter_code": "박수진/LIT/중개보수청구",
-    "matter_number": "AMIC-MC-041",
+    "matter_number": "AMIC-MC-039",
     "matter_name": "박수진/LIT/중개보수청구",
     "title": "박수진/LIT/중개보수청구",
     "matter_axis": "LIT",
@@ -2139,13 +2029,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_042",
+    "matter_id": "matter_rp05_amic_current_040",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_040",
+    "client_id": "client_rp05_amic_current_037",
     "client_display_name": "박수진",
     "client_short_name": "박수진",
     "matter_code": "박수진/LIT/횡령",
-    "matter_number": "AMIC-MC-042",
+    "matter_number": "AMIC-MC-040",
     "matter_name": "박수진/LIT/횡령",
     "title": "박수진/LIT/횡령",
     "matter_axis": "LIT",
@@ -2159,13 +2049,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_043",
+    "matter_id": "matter_rp05_amic_current_041",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_041",
+    "client_id": "client_rp05_amic_current_038",
     "client_display_name": "오영석",
     "client_short_name": "오영석",
     "matter_code": "오영석/LIT/민사사건",
-    "matter_number": "AMIC-MC-043",
+    "matter_number": "AMIC-MC-041",
     "matter_name": "오영석/LIT/민사사건",
     "title": "오영석/LIT/민사사건",
     "matter_axis": "LIT",
@@ -2179,13 +2069,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_044",
+    "matter_id": "matter_rp05_amic_current_042",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_041",
+    "client_id": "client_rp05_amic_current_038",
     "client_display_name": "오영석",
     "client_short_name": "오영석",
     "matter_code": "오영석/LIT/형사사건",
-    "matter_number": "AMIC-MC-044",
+    "matter_number": "AMIC-MC-042",
     "matter_name": "오영석/LIT/형사사건",
     "title": "오영석/LIT/형사사건",
     "matter_axis": "LIT",
@@ -2199,13 +2089,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_045",
+    "matter_id": "matter_rp05_amic_current_043",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_042",
+    "client_id": "client_rp05_amic_current_039",
     "client_display_name": "원종만",
     "client_short_name": "원종만",
     "matter_code": "원종만/LIT/지급명령",
-    "matter_number": "AMIC-MC-045",
+    "matter_number": "AMIC-MC-043",
     "matter_name": "원종만/LIT/지급명령",
     "title": "원종만/LIT/지급명령",
     "matter_axis": "LIT",
@@ -2219,13 +2109,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_046",
+    "matter_id": "matter_rp05_amic_current_044",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_042",
+    "client_id": "client_rp05_amic_current_039",
     "client_display_name": "원종만",
     "client_short_name": "원종만",
     "matter_code": "원종만/LIT/형사사건",
-    "matter_number": "AMIC-MC-046",
+    "matter_number": "AMIC-MC-044",
     "matter_name": "원종만/LIT/형사사건",
     "title": "원종만/LIT/형사사건",
     "matter_axis": "LIT",
@@ -2239,13 +2129,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_047",
+    "matter_id": "matter_rp05_amic_current_045",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_043",
+    "client_id": "client_rp05_amic_current_040",
     "client_display_name": "임지원",
     "client_short_name": "임지원",
     "matter_code": "임지원/LIT/민사사건",
-    "matter_number": "AMIC-MC-047",
+    "matter_number": "AMIC-MC-045",
     "matter_name": "임지원/LIT/민사사건",
     "title": "임지원/LIT/민사사건",
     "matter_axis": "LIT",
@@ -2259,13 +2149,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_048",
+    "matter_id": "matter_rp05_amic_current_046",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_043",
+    "client_id": "client_rp05_amic_current_040",
     "client_display_name": "임지원",
     "client_short_name": "임지원",
     "matter_code": "임지원/LIT/형사사건",
-    "matter_number": "AMIC-MC-048",
+    "matter_number": "AMIC-MC-046",
     "matter_name": "임지원/LIT/형사사건",
     "title": "임지원/LIT/형사사건",
     "matter_axis": "LIT",
@@ -2279,13 +2169,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_049",
+    "matter_id": "matter_rp05_amic_current_047",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_044",
+    "client_id": "client_rp05_amic_current_041",
     "client_display_name": "최태웅",
     "client_short_name": "최태웅",
     "matter_code": "최태웅/LIT/민사사건",
-    "matter_number": "AMIC-MC-049",
+    "matter_number": "AMIC-MC-047",
     "matter_name": "최태웅/LIT/민사사건",
     "title": "최태웅/LIT/민사사건",
     "matter_axis": "LIT",
@@ -2299,13 +2189,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_050",
+    "matter_id": "matter_rp05_amic_current_048",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_044",
+    "client_id": "client_rp05_amic_current_041",
     "client_display_name": "최태웅",
     "client_short_name": "최태웅",
     "matter_code": "최태웅/LIT/형사사건",
-    "matter_number": "AMIC-MC-050",
+    "matter_number": "AMIC-MC-048",
     "matter_name": "최태웅/LIT/형사사건",
     "title": "최태웅/LIT/형사사건",
     "matter_axis": "LIT",
@@ -2319,13 +2209,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_051",
+    "matter_id": "matter_rp05_amic_current_049",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_045",
+    "client_id": "client_rp05_amic_current_042",
     "client_display_name": "장영준",
     "client_short_name": "장영준",
     "matter_code": "장영준/LIT/매매대금청구",
-    "matter_number": "AMIC-MC-051",
+    "matter_number": "AMIC-MC-049",
     "matter_name": "장영준/LIT/매매대금청구",
     "title": "장영준/LIT/매매대금청구",
     "matter_axis": "LIT",
@@ -2339,13 +2229,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_052",
+    "matter_id": "matter_rp05_amic_current_050",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_045",
+    "client_id": "client_rp05_amic_current_042",
     "client_display_name": "장영준",
     "client_short_name": "장영준",
     "matter_code": "장영준/LIT/업무상배임",
-    "matter_number": "AMIC-MC-052",
+    "matter_number": "AMIC-MC-050",
     "matter_name": "장영준/LIT/업무상배임",
     "title": "장영준/LIT/업무상배임",
     "matter_axis": "LIT",
@@ -2359,13 +2249,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_053",
+    "matter_id": "matter_rp05_amic_current_051",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_046",
+    "client_id": "client_rp05_amic_current_043",
     "client_display_name": "베스트이노베이션",
     "client_short_name": "베스트이노베이션",
     "matter_code": "베스트이노베이션/LIT/손해배상청구",
-    "matter_number": "AMIC-MC-053",
+    "matter_number": "AMIC-MC-051",
     "matter_name": "베스트이노베이션/LIT/손해배상청구",
     "title": "베스트이노베이션/LIT/손해배상청구",
     "matter_axis": "LIT",
@@ -2379,13 +2269,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_054",
+    "matter_id": "matter_rp05_amic_current_052",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_046",
+    "client_id": "client_rp05_amic_current_043",
     "client_display_name": "베스트이노베이션",
     "client_short_name": "베스트이노베이션",
     "matter_code": "베스트이노베이션/ADV/retainer",
-    "matter_number": "AMIC-MC-054",
+    "matter_number": "AMIC-MC-052",
     "matter_name": "베스트이노베이션/ADV/retainer",
     "title": "베스트이노베이션/ADV/retainer",
     "matter_axis": "ADV",
@@ -2399,13 +2289,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_055",
+    "matter_id": "matter_rp05_amic_current_053",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_047",
+    "client_id": "client_rp05_amic_current_044",
     "client_display_name": "형제유지",
     "client_short_name": "형제유지",
     "matter_code": "형제유지/LIT/민사사건",
-    "matter_number": "AMIC-MC-055",
+    "matter_number": "AMIC-MC-053",
     "matter_name": "형제유지/LIT/민사사건",
     "title": "형제유지/LIT/민사사건",
     "matter_axis": "LIT",
@@ -2419,13 +2309,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_056",
+    "matter_id": "matter_rp05_amic_current_054",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_047",
+    "client_id": "client_rp05_amic_current_044",
     "client_display_name": "형제유지",
     "client_short_name": "형제유지",
     "matter_code": "형제유지/DEAL/형제유지",
-    "matter_number": "AMIC-MC-056",
+    "matter_number": "AMIC-MC-054",
     "matter_name": "형제유지/DEAL/형제유지",
     "title": "형제유지/DEAL/형제유지",
     "matter_axis": "DEAL",
@@ -2439,13 +2329,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_057",
+    "matter_id": "matter_rp05_amic_current_055",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_048",
+    "client_id": "client_rp05_amic_current_045",
     "client_display_name": "마고",
     "client_short_name": "마고",
     "matter_code": "마고/LIT/손해배상청구",
-    "matter_number": "AMIC-MC-057",
+    "matter_number": "AMIC-MC-055",
     "matter_name": "마고/LIT/손해배상청구",
     "title": "마고/LIT/손해배상청구",
     "matter_axis": "LIT",
@@ -2459,13 +2349,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_058",
+    "matter_id": "matter_rp05_amic_current_056",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_049",
+    "client_id": "client_rp05_amic_current_046",
     "client_display_name": "명륜당",
     "client_short_name": "명륜당",
     "matter_code": "명륜당/LIT/부당이득반환청구",
-    "matter_number": "AMIC-MC-058",
+    "matter_number": "AMIC-MC-056",
     "matter_name": "명륜당/LIT/부당이득반환청구",
     "title": "명륜당/LIT/부당이득반환청구",
     "matter_axis": "LIT",
@@ -2479,13 +2369,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_059",
+    "matter_id": "matter_rp05_amic_current_057",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_050",
+    "client_id": "client_rp05_amic_current_047",
     "client_display_name": "성현석",
     "client_short_name": "성현석",
     "matter_code": "성현석/LIT/청구이의의소",
-    "matter_number": "AMIC-MC-059",
+    "matter_number": "AMIC-MC-057",
     "matter_name": "성현석/LIT/청구이의의소",
     "title": "성현석/LIT/청구이의의소",
     "matter_axis": "LIT",
@@ -2499,13 +2389,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_060",
+    "matter_id": "matter_rp05_amic_current_058",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_051",
+    "client_id": "client_rp05_amic_current_048",
     "client_display_name": "신원스포츠",
     "client_short_name": "신원스포츠",
     "matter_code": "신원스포츠/LIT/사해행위취소",
-    "matter_number": "AMIC-MC-060",
+    "matter_number": "AMIC-MC-058",
     "matter_name": "신원스포츠/LIT/사해행위취소",
     "title": "신원스포츠/LIT/사해행위취소",
     "matter_axis": "LIT",
@@ -2519,13 +2409,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_061",
+    "matter_id": "matter_rp05_amic_current_059",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_052",
+    "client_id": "client_rp05_amic_current_049",
     "client_display_name": "안연호",
     "client_short_name": "안연호",
     "matter_code": "안연호/LIT/대여금청구",
-    "matter_number": "AMIC-MC-061",
+    "matter_number": "AMIC-MC-059",
     "matter_name": "안연호/LIT/대여금청구",
     "title": "안연호/LIT/대여금청구",
     "matter_axis": "LIT",
@@ -2539,13 +2429,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_062",
+    "matter_id": "matter_rp05_amic_current_060",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_053",
+    "client_id": "client_rp05_amic_current_050",
     "client_display_name": "강영권",
     "client_short_name": "강영권",
     "matter_code": "강영권/LIT/업무상배임",
-    "matter_number": "AMIC-MC-062",
+    "matter_number": "AMIC-MC-060",
     "matter_name": "강영권/LIT/업무상배임",
     "title": "강영권/LIT/업무상배임",
     "matter_axis": "LIT",
@@ -2559,13 +2449,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_063",
+    "matter_id": "matter_rp05_amic_current_061",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_053",
+    "client_id": "client_rp05_amic_current_050",
     "client_display_name": "강영권",
     "client_short_name": "강영권",
     "matter_code": "강영권/LIT/세무조사대응",
-    "matter_number": "AMIC-MC-063",
+    "matter_number": "AMIC-MC-061",
     "matter_name": "강영권/LIT/세무조사대응",
     "title": "강영권/LIT/세무조사대응",
     "matter_axis": "LIT",
@@ -2579,13 +2469,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_064",
+    "matter_id": "matter_rp05_amic_current_062",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_054",
+    "client_id": "client_rp05_amic_current_051",
     "client_display_name": "김충규",
     "client_short_name": "김충규",
     "matter_code": "김충규/LIT/형사사건",
-    "matter_number": "AMIC-MC-064",
+    "matter_number": "AMIC-MC-062",
     "matter_name": "김충규/LIT/형사사건",
     "title": "김충규/LIT/형사사건",
     "matter_axis": "LIT",
@@ -2599,13 +2489,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_065",
+    "matter_id": "matter_rp05_amic_current_063",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_055",
+    "client_id": "client_rp05_amic_current_052",
     "client_display_name": "비엔엠홀딩스",
     "client_short_name": "비엔엠홀딩스",
     "matter_code": "비엔엠홀딩스/LIT/형사사건",
-    "matter_number": "AMIC-MC-065",
+    "matter_number": "AMIC-MC-063",
     "matter_name": "비엔엠홀딩스/LIT/형사사건",
     "title": "비엔엠홀딩스/LIT/형사사건",
     "matter_axis": "LIT",
@@ -2619,13 +2509,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_066",
+    "matter_id": "matter_rp05_amic_current_064",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_056",
+    "client_id": "client_rp05_amic_current_053",
     "client_display_name": "손경수",
     "client_short_name": "손경수",
     "matter_code": "손경수/LIT/형사사건",
-    "matter_number": "AMIC-MC-066",
+    "matter_number": "AMIC-MC-064",
     "matter_name": "손경수/LIT/형사사건",
     "title": "손경수/LIT/형사사건",
     "matter_axis": "LIT",
@@ -2639,13 +2529,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_067",
+    "matter_id": "matter_rp05_amic_current_065",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_057",
+    "client_id": "client_rp05_amic_current_054",
     "client_display_name": "윤진어패럴",
     "client_short_name": "윤진어패럴",
     "matter_code": "윤진어패럴/LIT/형사사건",
-    "matter_number": "AMIC-MC-067",
+    "matter_number": "AMIC-MC-065",
     "matter_name": "윤진어패럴/LIT/형사사건",
     "title": "윤진어패럴/LIT/형사사건",
     "matter_axis": "LIT",
@@ -2659,13 +2549,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_068",
+    "matter_id": "matter_rp05_amic_current_066",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_058",
+    "client_id": "client_rp05_amic_current_055",
     "client_display_name": "더드림병원",
     "client_short_name": "더드림병원",
     "matter_code": "더드림병원/LIT/업무방해",
-    "matter_number": "AMIC-MC-068",
+    "matter_number": "AMIC-MC-066",
     "matter_name": "더드림병원/LIT/업무방해",
     "title": "더드림병원/LIT/업무방해",
     "matter_axis": "LIT",
@@ -2679,13 +2569,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_069",
+    "matter_id": "matter_rp05_amic_current_067",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_059",
+    "client_id": "client_rp05_amic_current_056",
     "client_display_name": "장정도",
     "client_short_name": "장정도",
     "matter_code": "장정도/LIT/배임수재",
-    "matter_number": "AMIC-MC-069",
+    "matter_number": "AMIC-MC-067",
     "matter_name": "장정도/LIT/배임수재",
     "title": "장정도/LIT/배임수재",
     "matter_axis": "LIT",
@@ -2699,13 +2589,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_070",
+    "matter_id": "matter_rp05_amic_current_068",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_060",
+    "client_id": "client_rp05_amic_current_057",
     "client_display_name": "김홍현",
     "client_short_name": "김홍현",
     "matter_code": "김홍현/LIT/조세범처벌법위반",
-    "matter_number": "AMIC-MC-070",
+    "matter_number": "AMIC-MC-068",
     "matter_name": "김홍현/LIT/조세범처벌법위반",
     "title": "김홍현/LIT/조세범처벌법위반",
     "matter_axis": "LIT",
@@ -2719,13 +2609,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_071",
+    "matter_id": "matter_rp05_amic_current_069",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_060",
+    "client_id": "client_rp05_amic_current_057",
     "client_display_name": "김홍현",
     "client_short_name": "김홍현",
     "matter_code": "김홍현/LIT/탈세제보",
-    "matter_number": "AMIC-MC-071",
+    "matter_number": "AMIC-MC-069",
     "matter_name": "김홍현/LIT/탈세제보",
     "title": "김홍현/LIT/탈세제보",
     "matter_axis": "LIT",
@@ -2739,13 +2629,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_072",
+    "matter_id": "matter_rp05_amic_current_070",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_061",
+    "client_id": "client_rp05_amic_current_058",
     "client_display_name": "류현우",
     "client_short_name": "류현우",
     "matter_code": "류현우/LIT/보험사기",
-    "matter_number": "AMIC-MC-072",
+    "matter_number": "AMIC-MC-070",
     "matter_name": "류현우/LIT/보험사기",
     "title": "류현우/LIT/보험사기",
     "matter_axis": "LIT",
@@ -2759,13 +2649,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_073",
+    "matter_id": "matter_rp05_amic_current_071",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_061",
+    "client_id": "client_rp05_amic_current_058",
     "client_display_name": "류현우",
     "client_short_name": "류현우",
     "matter_code": "류현우/LIT/징계처분취소",
-    "matter_number": "AMIC-MC-073",
+    "matter_number": "AMIC-MC-071",
     "matter_name": "류현우/LIT/징계처분취소",
     "title": "류현우/LIT/징계처분취소",
     "matter_axis": "LIT",
@@ -2779,13 +2669,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_074",
+    "matter_id": "matter_rp05_amic_current_072",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_062",
+    "client_id": "client_rp05_amic_current_059",
     "client_display_name": "다스버스 박길홍",
     "client_short_name": "다스버스 박길홍",
     "matter_code": "다스버스 박길홍/LIT/특정경제범죄가중처벌법위반(사기)",
-    "matter_number": "AMIC-MC-074",
+    "matter_number": "AMIC-MC-072",
     "matter_name": "다스버스 박길홍/LIT/특정경제범죄가중처벌법위반(사기)",
     "title": "다스버스 박길홍/LIT/특정경제범죄가중처벌법위반(사기)",
     "matter_axis": "LIT",
@@ -2799,13 +2689,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_075",
+    "matter_id": "matter_rp05_amic_current_073",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_063",
+    "client_id": "client_rp05_amic_current_060",
     "client_display_name": "데브시스터즈",
     "client_short_name": "데브시스터즈",
     "matter_code": "데브시스터즈/LIT/업무상배임",
-    "matter_number": "AMIC-MC-075",
+    "matter_number": "AMIC-MC-073",
     "matter_name": "데브시스터즈/LIT/업무상배임",
     "title": "데브시스터즈/LIT/업무상배임",
     "matter_axis": "LIT",
@@ -2819,13 +2709,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_076",
+    "matter_id": "matter_rp05_amic_current_074",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_064",
+    "client_id": "client_rp05_amic_current_061",
     "client_display_name": "박동순",
     "client_short_name": "박동순",
     "matter_code": "박동순/LIT/형사사건",
-    "matter_number": "AMIC-MC-076",
+    "matter_number": "AMIC-MC-074",
     "matter_name": "박동순/LIT/형사사건",
     "title": "박동순/LIT/형사사건",
     "matter_axis": "LIT",
@@ -2839,13 +2729,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_077",
+    "matter_id": "matter_rp05_amic_current_075",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_065",
+    "client_id": "client_rp05_amic_current_062",
     "client_display_name": "임인홍",
     "client_short_name": "임인홍",
     "matter_code": "임인홍/LIT/사기",
-    "matter_number": "AMIC-MC-077",
+    "matter_number": "AMIC-MC-075",
     "matter_name": "임인홍/LIT/사기",
     "title": "임인홍/LIT/사기",
     "matter_axis": "LIT",
@@ -2859,13 +2749,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_078",
+    "matter_id": "matter_rp05_amic_current_076",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_066",
+    "client_id": "client_rp05_amic_current_063",
     "client_display_name": "지오소프트",
     "client_short_name": "지오소프트",
     "matter_code": "지오소프트/LIT/형사사건",
-    "matter_number": "AMIC-MC-078",
+    "matter_number": "AMIC-MC-076",
     "matter_name": "지오소프트/LIT/형사사건",
     "title": "지오소프트/LIT/형사사건",
     "matter_axis": "LIT",
@@ -2879,13 +2769,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": true
   },
   {
-    "matter_id": "matter_rp05_amic_current_079",
+    "matter_id": "matter_rp05_amic_current_077",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_067",
+    "client_id": "client_rp05_amic_current_064",
     "client_display_name": "대흥리츠",
     "client_short_name": "대흥리츠",
     "matter_code": "대흥리츠/LIT/처분취소",
-    "matter_number": "AMIC-MC-079",
+    "matter_number": "AMIC-MC-077",
     "matter_name": "대흥리츠/LIT/처분취소",
     "title": "대흥리츠/LIT/처분취소",
     "matter_axis": "LIT",
@@ -2899,13 +2789,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_080",
+    "matter_id": "matter_rp05_amic_current_078",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_068",
+    "client_id": "client_rp05_amic_current_065",
     "client_display_name": "스틱인베스트먼트",
     "client_short_name": "스틱인베스트먼트",
     "matter_code": "스틱인베스트먼트/LIT/처분취소",
-    "matter_number": "AMIC-MC-080",
+    "matter_number": "AMIC-MC-078",
     "matter_name": "스틱인베스트먼트/LIT/처분취소",
     "title": "스틱인베스트먼트/LIT/처분취소",
     "matter_axis": "LIT",
@@ -2919,13 +2809,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_081",
+    "matter_id": "matter_rp05_amic_current_079",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_069",
+    "client_id": "client_rp05_amic_current_066",
     "client_display_name": "조덕희",
     "client_short_name": "조덕희",
     "matter_code": "조덕희/LIT/처분취소",
-    "matter_number": "AMIC-MC-081",
+    "matter_number": "AMIC-MC-079",
     "matter_name": "조덕희/LIT/처분취소",
     "title": "조덕희/LIT/처분취소",
     "matter_axis": "LIT",
@@ -2939,13 +2829,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_082",
+    "matter_id": "matter_rp05_amic_current_080",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_070",
+    "client_id": "client_rp05_amic_current_067",
     "client_display_name": "황진수",
     "client_short_name": "황진수",
     "matter_code": "황진수/LIT/1세대2주택",
-    "matter_number": "AMIC-MC-082",
+    "matter_number": "AMIC-MC-080",
     "matter_name": "황진수/LIT/1세대2주택",
     "title": "황진수/LIT/1세대2주택",
     "matter_axis": "LIT",
@@ -2959,13 +2849,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_083",
+    "matter_id": "matter_rp05_amic_current_081",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_071",
+    "client_id": "client_rp05_amic_current_068",
     "client_display_name": "휴스틸",
     "client_short_name": "휴스틸",
     "matter_code": "휴스틸/LIT/처분취소",
-    "matter_number": "AMIC-MC-083",
+    "matter_number": "AMIC-MC-081",
     "matter_name": "휴스틸/LIT/처분취소",
     "title": "휴스틸/LIT/처분취소",
     "matter_axis": "LIT",
@@ -2979,13 +2869,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_084",
+    "matter_id": "matter_rp05_amic_current_082",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_072",
+    "client_id": "client_rp05_amic_current_069",
     "client_display_name": "KWM",
     "client_short_name": "KWM",
     "matter_code": "KWM/LIT/조세불복",
-    "matter_number": "AMIC-MC-084",
+    "matter_number": "AMIC-MC-082",
     "matter_name": "KWM/LIT/조세불복",
     "title": "KWM/LIT/조세불복",
     "matter_axis": "LIT",
@@ -2999,13 +2889,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_085",
+    "matter_id": "matter_rp05_amic_current_083",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_072",
+    "client_id": "client_rp05_amic_current_069",
     "client_display_name": "KWM",
     "client_short_name": "KWM",
     "matter_code": "KWM/ADV/retainer",
-    "matter_number": "AMIC-MC-085",
+    "matter_number": "AMIC-MC-083",
     "matter_name": "KWM/ADV/retainer",
     "title": "KWM/ADV/retainer",
     "matter_axis": "ADV",
@@ -3019,13 +2909,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_086",
+    "matter_id": "matter_rp05_amic_current_084",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_072",
+    "client_id": "client_rp05_amic_current_069",
     "client_display_name": "KWM",
     "client_short_name": "KWM",
     "matter_code": "KWM/DEAL/KWM",
-    "matter_number": "AMIC-MC-086",
+    "matter_number": "AMIC-MC-084",
     "matter_name": "KWM/DEAL/KWM",
     "title": "KWM/DEAL/KWM",
     "matter_axis": "DEAL",
@@ -3039,13 +2929,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_087",
+    "matter_id": "matter_rp05_amic_current_085",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_073",
+    "client_id": "client_rp05_amic_current_070",
     "client_display_name": "서울청",
     "client_short_name": "서울청",
     "matter_code": "서울청/LIT/세무조사대응",
-    "matter_number": "AMIC-MC-087",
+    "matter_number": "AMIC-MC-085",
     "matter_name": "서울청/LIT/세무조사대응",
     "title": "서울청/LIT/세무조사대응",
     "matter_axis": "LIT",
@@ -3059,13 +2949,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_088",
+    "matter_id": "matter_rp05_amic_current_086",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_074",
+    "client_id": "client_rp05_amic_current_071",
     "client_display_name": "AMCR",
     "client_short_name": "AMCR",
     "matter_code": "AMCR/ADV/retainer",
-    "matter_number": "AMIC-MC-088",
+    "matter_number": "AMIC-MC-086",
     "matter_name": "AMCR/ADV/retainer",
     "title": "AMCR/ADV/retainer",
     "matter_axis": "ADV",
@@ -3079,13 +2969,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_089",
+    "matter_id": "matter_rp05_amic_current_087",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_075",
+    "client_id": "client_rp05_amic_current_072",
     "client_display_name": "B&M Holdings",
     "client_short_name": "B&M Holdings",
     "matter_code": "B&M Holdings/ADV/retainer",
-    "matter_number": "AMIC-MC-089",
+    "matter_number": "AMIC-MC-087",
     "matter_name": "B&M Holdings/ADV/retainer",
     "title": "B&M Holdings/ADV/retainer",
     "matter_axis": "ADV",
@@ -3099,13 +2989,33 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_090",
+    "matter_id": "matter_rp05_amic_current_088",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_076",
+    "client_id": "client_rp05_amic_current_072",
+    "client_display_name": "B&M Holdings",
+    "client_short_name": "B&M Holdings",
+    "matter_code": "B&M Holdings/DEAL/TAKE Foundation",
+    "matter_number": "AMIC-MC-088",
+    "matter_name": "B&M Holdings/DEAL/TAKE Foundation",
+    "title": "B&M Holdings/DEAL/TAKE Foundation",
+    "matter_axis": "DEAL",
+    "matter_type_english": "DEAL",
+    "matter_detail_type_korean": "TAKE Foundation",
+    "source_lane": "5. 기업 인수&합병",
+    "source_ref": "5. 기업 인수&합병-14 TAKE Foundation",
+    "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+    "status": "open",
+    "confidence": "folder_project_name",
+    "review_required": false
+  },
+  {
+    "matter_id": "matter_rp05_amic_current_089",
+    "tenant_id": "tenant_rp05_synthetic",
+    "client_id": "client_rp05_amic_current_073",
     "client_display_name": "EML",
     "client_short_name": "EML",
     "matter_code": "EML/ADV/retainer",
-    "matter_number": "AMIC-MC-090",
+    "matter_number": "AMIC-MC-089",
     "matter_name": "EML/ADV/retainer",
     "title": "EML/ADV/retainer",
     "matter_axis": "ADV",
@@ -3119,13 +3029,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_091",
+    "matter_id": "matter_rp05_amic_current_090",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_077",
+    "client_id": "client_rp05_amic_current_074",
     "client_display_name": "JT",
     "client_short_name": "JT",
     "matter_code": "JT/ADV/retainer",
-    "matter_number": "AMIC-MC-091",
+    "matter_number": "AMIC-MC-090",
     "matter_name": "JT/ADV/retainer",
     "title": "JT/ADV/retainer",
     "matter_axis": "ADV",
@@ -3139,33 +3049,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_092",
+    "matter_id": "matter_rp05_amic_current_091",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_078",
-    "client_display_name": "Titan",
-    "client_short_name": "Titan",
-    "matter_code": "Titan/ADV/retainer",
-    "matter_number": "AMIC-MC-092",
-    "matter_name": "Titan/ADV/retainer",
-    "title": "Titan/ADV/retainer",
-    "matter_axis": "ADV",
-    "matter_type_english": "ADV",
-    "matter_detail_type_korean": "retainer",
-    "source_lane": "4. 기업 자문",
-    "source_ref": "4. 기업 자문-6. Titan",
-    "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
-    "status": "open",
-    "confidence": "rule_retainer",
-    "review_required": false
-  },
-  {
-    "matter_id": "matter_rp05_amic_current_093",
-    "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_079",
+    "client_id": "client_rp05_amic_current_075",
     "client_display_name": "그래비티 유권해석",
     "client_short_name": "그래비티 유권해석",
     "matter_code": "그래비티 유권해석/ADV/retainer",
-    "matter_number": "AMIC-MC-093",
+    "matter_number": "AMIC-MC-091",
     "matter_name": "그래비티 유권해석/ADV/retainer",
     "title": "그래비티 유권해석/ADV/retainer",
     "matter_axis": "ADV",
@@ -3179,13 +3069,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_094",
+    "matter_id": "matter_rp05_amic_current_092",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_080",
+    "client_id": "client_rp05_amic_current_076",
     "client_display_name": "코멕스",
     "client_short_name": "코멕스",
     "matter_code": "코멕스/ADV/retainer",
-    "matter_number": "AMIC-MC-094",
+    "matter_number": "AMIC-MC-092",
     "matter_name": "코멕스/ADV/retainer",
     "title": "코멕스/ADV/retainer",
     "matter_axis": "ADV",
@@ -3199,13 +3089,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_095",
+    "matter_id": "matter_rp05_amic_current_093",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_081",
+    "client_id": "client_rp05_amic_current_077",
     "client_display_name": "회계법인 창천",
     "client_short_name": "회계법인 창천",
     "matter_code": "회계법인 창천/ADV/retainer",
-    "matter_number": "AMIC-MC-095",
+    "matter_number": "AMIC-MC-093",
     "matter_name": "회계법인 창천/ADV/retainer",
     "title": "회계법인 창천/ADV/retainer",
     "matter_axis": "ADV",
@@ -3219,15 +3109,15 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_096",
+    "matter_id": "matter_rp05_amic_current_094",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_082",
-    "client_display_name": "ATU",
-    "client_short_name": "ATU",
-    "matter_code": "ATU/DEAL/IBK-ATU콘텐츠미디어테크PEF 설립",
-    "matter_number": "AMIC-MC-096",
-    "matter_name": "ATU/DEAL/IBK-ATU콘텐츠미디어테크PEF 설립",
-    "title": "ATU/DEAL/IBK-ATU콘텐츠미디어테크PEF 설립",
+    "client_id": "client_rp05_amic_current_078",
+    "client_display_name": "ATU Partners",
+    "client_short_name": "ATU Partners",
+    "matter_code": "ATU Partners/DEAL/IBK-ATU콘텐츠미디어테크PEF 설립",
+    "matter_number": "AMIC-MC-094",
+    "matter_name": "ATU Partners/DEAL/IBK-ATU콘텐츠미디어테크PEF 설립",
+    "title": "ATU Partners/DEAL/IBK-ATU콘텐츠미디어테크PEF 설립",
     "matter_axis": "DEAL",
     "matter_type_english": "DEAL",
     "matter_detail_type_korean": "IBK-ATU콘텐츠미디어테크PEF 설립",
@@ -3239,15 +3129,15 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_097",
+    "matter_id": "matter_rp05_amic_current_095",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_082",
-    "client_display_name": "ATU",
-    "client_short_name": "ATU",
-    "matter_code": "ATU/DEAL/에이티유컬쳐테크6호PEF 설립",
-    "matter_number": "AMIC-MC-097",
-    "matter_name": "ATU/DEAL/에이티유컬쳐테크6호PEF 설립",
-    "title": "ATU/DEAL/에이티유컬쳐테크6호PEF 설립",
+    "client_id": "client_rp05_amic_current_078",
+    "client_display_name": "ATU Partners",
+    "client_short_name": "ATU Partners",
+    "matter_code": "ATU Partners/DEAL/에이티유컬쳐테크6호PEF 설립",
+    "matter_number": "AMIC-MC-095",
+    "matter_name": "ATU Partners/DEAL/에이티유컬쳐테크6호PEF 설립",
+    "title": "ATU Partners/DEAL/에이티유컬쳐테크6호PEF 설립",
     "matter_axis": "DEAL",
     "matter_type_english": "DEAL",
     "matter_detail_type_korean": "에이티유컬쳐테크6호PEF 설립",
@@ -3259,15 +3149,15 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_098",
+    "matter_id": "matter_rp05_amic_current_096",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_082",
-    "client_display_name": "ATU",
-    "client_short_name": "ATU",
-    "matter_code": "ATU/DEAL/PEF 동업기업과세특례 신청",
-    "matter_number": "AMIC-MC-098",
-    "matter_name": "ATU/DEAL/PEF 동업기업과세특례 신청",
-    "title": "ATU/DEAL/PEF 동업기업과세특례 신청",
+    "client_id": "client_rp05_amic_current_078",
+    "client_display_name": "ATU Partners",
+    "client_short_name": "ATU Partners",
+    "matter_code": "ATU Partners/DEAL/PEF 동업기업과세특례 신청",
+    "matter_number": "AMIC-MC-096",
+    "matter_name": "ATU Partners/DEAL/PEF 동업기업과세특례 신청",
+    "title": "ATU Partners/DEAL/PEF 동업기업과세특례 신청",
     "matter_axis": "DEAL",
     "matter_type_english": "DEAL",
     "matter_detail_type_korean": "PEF 동업기업과세특례 신청",
@@ -3279,15 +3169,15 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_099",
+    "matter_id": "matter_rp05_amic_current_097",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_082",
-    "client_display_name": "ATU",
-    "client_short_name": "ATU",
-    "matter_code": "ATU/DEAL/Kubo",
-    "matter_number": "AMIC-MC-099",
-    "matter_name": "ATU/DEAL/Kubo",
-    "title": "ATU/DEAL/Kubo",
+    "client_id": "client_rp05_amic_current_078",
+    "client_display_name": "ATU Partners",
+    "client_short_name": "ATU Partners",
+    "matter_code": "ATU Partners/DEAL/Kubo",
+    "matter_number": "AMIC-MC-097",
+    "matter_name": "ATU Partners/DEAL/Kubo",
+    "title": "ATU Partners/DEAL/Kubo",
     "matter_axis": "DEAL",
     "matter_type_english": "DEAL",
     "matter_detail_type_korean": "Kubo",
@@ -3299,15 +3189,15 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_100",
+    "matter_id": "matter_rp05_amic_current_098",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_082",
-    "client_display_name": "ATU",
-    "client_short_name": "ATU",
-    "matter_code": "ATU/DEAL/Day",
-    "matter_number": "AMIC-MC-100",
-    "matter_name": "ATU/DEAL/Day",
-    "title": "ATU/DEAL/Day",
+    "client_id": "client_rp05_amic_current_078",
+    "client_display_name": "ATU Partners",
+    "client_short_name": "ATU Partners",
+    "matter_code": "ATU Partners/DEAL/Day",
+    "matter_number": "AMIC-MC-098",
+    "matter_name": "ATU Partners/DEAL/Day",
+    "title": "ATU Partners/DEAL/Day",
     "matter_axis": "DEAL",
     "matter_type_english": "DEAL",
     "matter_detail_type_korean": "Day",
@@ -3319,15 +3209,15 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_101",
+    "matter_id": "matter_rp05_amic_current_099",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_082",
-    "client_display_name": "ATU",
-    "client_short_name": "ATU",
-    "matter_code": "ATU/DEAL/Wonder",
-    "matter_number": "AMIC-MC-101",
-    "matter_name": "ATU/DEAL/Wonder",
-    "title": "ATU/DEAL/Wonder",
+    "client_id": "client_rp05_amic_current_078",
+    "client_display_name": "ATU Partners",
+    "client_short_name": "ATU Partners",
+    "matter_code": "ATU Partners/DEAL/Wonder",
+    "matter_number": "AMIC-MC-099",
+    "matter_name": "ATU Partners/DEAL/Wonder",
+    "title": "ATU Partners/DEAL/Wonder",
     "matter_axis": "DEAL",
     "matter_type_english": "DEAL",
     "matter_detail_type_korean": "Wonder",
@@ -3339,15 +3229,15 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_102",
+    "matter_id": "matter_rp05_amic_current_100",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_082",
-    "client_display_name": "ATU",
-    "client_short_name": "ATU",
-    "matter_code": "ATU/DEAL/휴민트",
-    "matter_number": "AMIC-MC-102",
-    "matter_name": "ATU/DEAL/휴민트",
-    "title": "ATU/DEAL/휴민트",
+    "client_id": "client_rp05_amic_current_078",
+    "client_display_name": "ATU Partners",
+    "client_short_name": "ATU Partners",
+    "matter_code": "ATU Partners/DEAL/휴민트",
+    "matter_number": "AMIC-MC-100",
+    "matter_name": "ATU Partners/DEAL/휴민트",
+    "title": "ATU Partners/DEAL/휴민트",
     "matter_axis": "DEAL",
     "matter_type_english": "DEAL",
     "matter_detail_type_korean": "휴민트",
@@ -3359,15 +3249,15 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_103",
+    "matter_id": "matter_rp05_amic_current_101",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_082",
-    "client_display_name": "ATU",
-    "client_short_name": "ATU",
-    "matter_code": "ATU/DEAL/AMP 앨범",
-    "matter_number": "AMIC-MC-103",
-    "matter_name": "ATU/DEAL/AMP 앨범",
-    "title": "ATU/DEAL/AMP 앨범",
+    "client_id": "client_rp05_amic_current_078",
+    "client_display_name": "ATU Partners",
+    "client_short_name": "ATU Partners",
+    "matter_code": "ATU Partners/DEAL/AMP 앨범",
+    "matter_number": "AMIC-MC-101",
+    "matter_name": "ATU Partners/DEAL/AMP 앨범",
+    "title": "ATU Partners/DEAL/AMP 앨범",
     "matter_axis": "DEAL",
     "matter_type_english": "DEAL",
     "matter_detail_type_korean": "AMP 앨범",
@@ -3379,15 +3269,15 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_104",
+    "matter_id": "matter_rp05_amic_current_102",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_082",
-    "client_display_name": "ATU",
-    "client_short_name": "ATU",
-    "matter_code": "ATU/DEAL/영화 HOPE 투자",
-    "matter_number": "AMIC-MC-104",
-    "matter_name": "ATU/DEAL/영화 HOPE 투자",
-    "title": "ATU/DEAL/영화 HOPE 투자",
+    "client_id": "client_rp05_amic_current_078",
+    "client_display_name": "ATU Partners",
+    "client_short_name": "ATU Partners",
+    "matter_code": "ATU Partners/DEAL/영화 HOPE 투자",
+    "matter_number": "AMIC-MC-102",
+    "matter_name": "ATU Partners/DEAL/영화 HOPE 투자",
+    "title": "ATU Partners/DEAL/영화 HOPE 투자",
     "matter_axis": "DEAL",
     "matter_type_english": "DEAL",
     "matter_detail_type_korean": "영화 HOPE 투자",
@@ -3399,15 +3289,15 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_105",
+    "matter_id": "matter_rp05_amic_current_103",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_083",
-    "client_display_name": "K-PLUS",
-    "client_short_name": "K-PLUS",
-    "matter_code": "K-PLUS/DEAL/K-PLUS",
-    "matter_number": "AMIC-MC-105",
-    "matter_name": "K-PLUS/DEAL/K-PLUS",
-    "title": "K-PLUS/DEAL/K-PLUS",
+    "client_id": "client_rp05_amic_current_079",
+    "client_display_name": "바이포엠스튜디오",
+    "client_short_name": "바이포엠스튜디오",
+    "matter_code": "바이포엠스튜디오/DEAL/K-PLUS",
+    "matter_number": "AMIC-MC-103",
+    "matter_name": "바이포엠스튜디오/DEAL/K-PLUS",
+    "title": "바이포엠스튜디오/DEAL/K-PLUS",
     "matter_axis": "DEAL",
     "matter_type_english": "DEAL",
     "matter_detail_type_korean": "K-PLUS",
@@ -3419,13 +3309,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_106",
+    "matter_id": "matter_rp05_amic_current_104",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_084",
+    "client_id": "client_rp05_amic_current_080",
     "client_display_name": "NEPA",
     "client_short_name": "NEPA",
     "matter_code": "NEPA/DEAL/NEPA",
-    "matter_number": "AMIC-MC-106",
+    "matter_number": "AMIC-MC-104",
     "matter_name": "NEPA/DEAL/NEPA",
     "title": "NEPA/DEAL/NEPA",
     "matter_axis": "DEAL",
@@ -3439,13 +3329,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_107",
+    "matter_id": "matter_rp05_amic_current_105",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_085",
+    "client_id": "client_rp05_amic_current_081",
     "client_display_name": "Peyto",
     "client_short_name": "Peyto",
     "matter_code": "Peyto/DEAL/Peyto",
-    "matter_number": "AMIC-MC-107",
+    "matter_number": "AMIC-MC-105",
     "matter_name": "Peyto/DEAL/Peyto",
     "title": "Peyto/DEAL/Peyto",
     "matter_axis": "DEAL",
@@ -3459,13 +3349,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_108",
+    "matter_id": "matter_rp05_amic_current_106",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_086",
+    "client_id": "client_rp05_amic_current_082",
     "client_display_name": "SLL",
     "client_short_name": "SLL",
     "matter_code": "SLL/DEAL/SLL",
-    "matter_number": "AMIC-MC-108",
+    "matter_number": "AMIC-MC-106",
     "matter_name": "SLL/DEAL/SLL",
     "title": "SLL/DEAL/SLL",
     "matter_axis": "DEAL",
@@ -3479,33 +3369,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_109",
+    "matter_id": "matter_rp05_amic_current_107",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_087",
-    "client_display_name": "TAKE Foundation",
-    "client_short_name": "TAKE Foundation",
-    "matter_code": "TAKE Foundation/DEAL/TAKE Foundation",
-    "matter_number": "AMIC-MC-109",
-    "matter_name": "TAKE Foundation/DEAL/TAKE Foundation",
-    "title": "TAKE Foundation/DEAL/TAKE Foundation",
-    "matter_axis": "DEAL",
-    "matter_type_english": "DEAL",
-    "matter_detail_type_korean": "TAKE Foundation",
-    "source_lane": "5. 기업 인수&합병",
-    "source_ref": "5. 기업 인수&합병-14 TAKE Foundation",
-    "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
-    "status": "open",
-    "confidence": "folder_project_name",
-    "review_required": false
-  },
-  {
-    "matter_id": "matter_rp05_amic_current_110",
-    "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_088",
+    "client_id": "client_rp05_amic_current_083",
     "client_display_name": "벨로크",
     "client_short_name": "벨로크",
     "matter_code": "벨로크/DEAL/벨로크",
-    "matter_number": "AMIC-MC-110",
+    "matter_number": "AMIC-MC-107",
     "matter_name": "벨로크/DEAL/벨로크",
     "title": "벨로크/DEAL/벨로크",
     "matter_axis": "DEAL",
@@ -3519,33 +3389,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_111",
+    "matter_id": "matter_rp05_amic_current_108",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_089",
-    "client_display_name": "아론",
-    "client_short_name": "아론",
-    "matter_code": "아론/DEAL/아론",
-    "matter_number": "AMIC-MC-111",
-    "matter_name": "아론/DEAL/아론",
-    "title": "아론/DEAL/아론",
-    "matter_axis": "DEAL",
-    "matter_type_english": "DEAL",
-    "matter_detail_type_korean": "아론",
-    "source_lane": "5. 기업 인수&합병",
-    "source_ref": "5. 기업 인수&합병-10 아론",
-    "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
-    "status": "open",
-    "confidence": "folder_project_name",
-    "review_required": false
-  },
-  {
-    "matter_id": "matter_rp05_amic_current_112",
-    "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_090",
+    "client_id": "client_rp05_amic_current_084",
     "client_display_name": "언코어",
     "client_short_name": "언코어",
     "matter_code": "언코어/DEAL/언코어",
-    "matter_number": "AMIC-MC-112",
+    "matter_number": "AMIC-MC-108",
     "matter_name": "언코어/DEAL/언코어",
     "title": "언코어/DEAL/언코어",
     "matter_axis": "DEAL",
@@ -3559,13 +3409,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_113",
+    "matter_id": "matter_rp05_amic_current_109",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_091",
+    "client_id": "client_rp05_amic_current_085",
     "client_display_name": "한양화스너",
     "client_short_name": "한양화스너",
     "matter_code": "한양화스너/DEAL/한양화스너",
-    "matter_number": "AMIC-MC-113",
+    "matter_number": "AMIC-MC-109",
     "matter_name": "한양화스너/DEAL/한양화스너",
     "title": "한양화스너/DEAL/한양화스너",
     "matter_axis": "DEAL",
@@ -3579,13 +3429,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_114",
+    "matter_id": "matter_rp05_amic_current_110",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_092",
+    "client_id": "client_rp05_amic_current_086",
     "client_display_name": "헬스앤바이오",
     "client_short_name": "헬스앤바이오",
     "matter_code": "헬스앤바이오/DEAL/헬스앤바이오",
-    "matter_number": "AMIC-MC-114",
+    "matter_number": "AMIC-MC-110",
     "matter_name": "헬스앤바이오/DEAL/헬스앤바이오",
     "title": "헬스앤바이오/DEAL/헬스앤바이오",
     "matter_axis": "DEAL",
@@ -3599,13 +3449,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_115",
+    "matter_id": "matter_rp05_amic_current_111",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_093",
+    "client_id": "client_rp05_amic_current_087",
     "client_display_name": "홀딩핸즈앤코 외 12명",
     "client_short_name": "홀딩핸즈앤코 외 12명",
     "matter_code": "홀딩핸즈앤코 외 12명/DEAL/Covenant",
-    "matter_number": "AMIC-MC-115",
+    "matter_number": "AMIC-MC-111",
     "matter_name": "홀딩핸즈앤코 외 12명/DEAL/Covenant",
     "title": "홀딩핸즈앤코 외 12명/DEAL/Covenant",
     "matter_axis": "DEAL",
@@ -3619,15 +3469,15 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_116",
+    "matter_id": "matter_rp05_amic_current_112",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_094",
-    "client_display_name": "한흥수 외 6명",
-    "client_short_name": "한흥수 외 6명",
-    "matter_code": "한흥수 외 6명/DEAL/Jade",
-    "matter_number": "AMIC-MC-116",
-    "matter_name": "한흥수 외 6명/DEAL/Jade",
-    "title": "한흥수 외 6명/DEAL/Jade",
+    "client_id": "client_rp05_amic_current_088",
+    "client_display_name": "한흥수 외 3명",
+    "client_short_name": "한흥수 외 3명",
+    "matter_code": "한흥수 외 3명/DEAL/Jade",
+    "matter_number": "AMIC-MC-112",
+    "matter_name": "한흥수 외 3명/DEAL/Jade",
+    "title": "한흥수 외 3명/DEAL/Jade",
     "matter_axis": "DEAL",
     "matter_type_english": "DEAL",
     "matter_detail_type_korean": "Jade",
@@ -3639,13 +3489,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_117",
+    "matter_id": "matter_rp05_amic_current_113",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_095",
+    "client_id": "client_rp05_amic_current_089",
     "client_display_name": "노윤현 외 19명",
     "client_short_name": "노윤현 외 19명",
     "matter_code": "노윤현 외 19명/DEAL/Max",
-    "matter_number": "AMIC-MC-117",
+    "matter_number": "AMIC-MC-113",
     "matter_name": "노윤현 외 19명/DEAL/Max",
     "title": "노윤현 외 19명/DEAL/Max",
     "matter_axis": "DEAL",
@@ -3659,13 +3509,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_118",
+    "matter_id": "matter_rp05_amic_current_114",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_096",
+    "client_id": "client_rp05_amic_current_090",
     "client_display_name": "최재헌 외 2명",
     "client_short_name": "최재헌 외 2명",
     "matter_code": "최재헌 외 2명/DEAL/Next",
-    "matter_number": "AMIC-MC-118",
+    "matter_number": "AMIC-MC-114",
     "matter_name": "최재헌 외 2명/DEAL/Next",
     "title": "최재헌 외 2명/DEAL/Next",
     "matter_axis": "DEAL",
@@ -3679,13 +3529,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_119",
+    "matter_id": "matter_rp05_amic_current_115",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_097",
+    "client_id": "client_rp05_amic_current_091",
     "client_display_name": "이강명 외 1명",
     "client_short_name": "이강명 외 1명",
     "matter_code": "이강명 외 1명/DEAL/Project S",
-    "matter_number": "AMIC-MC-119",
+    "matter_number": "AMIC-MC-115",
     "matter_name": "이강명 외 1명/DEAL/Project S",
     "title": "이강명 외 1명/DEAL/Project S",
     "matter_axis": "DEAL",
@@ -3699,15 +3549,15 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_120",
+    "matter_id": "matter_rp05_amic_current_116",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_098",
-    "client_display_name": "강상도 외 16명",
-    "client_short_name": "강상도 외 16명",
-    "matter_code": "강상도 외 16명/DEAL/Phoenix",
-    "matter_number": "AMIC-MC-120",
-    "matter_name": "강상도 외 16명/DEAL/Phoenix",
-    "title": "강상도 외 16명/DEAL/Phoenix",
+    "client_id": "client_rp05_amic_current_092",
+    "client_display_name": "강상도",
+    "client_short_name": "강상도",
+    "matter_code": "강상도/DEAL/Phoenix",
+    "matter_number": "AMIC-MC-116",
+    "matter_name": "강상도/DEAL/Phoenix",
+    "title": "강상도/DEAL/Phoenix",
     "matter_axis": "DEAL",
     "matter_type_english": "DEAL",
     "matter_detail_type_korean": "Phoenix",
@@ -3719,13 +3569,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_121",
+    "matter_id": "matter_rp05_amic_current_117",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_099",
+    "client_id": "client_rp05_amic_current_093",
     "client_display_name": "박민규 외 5명",
     "client_short_name": "박민규 외 5명",
     "matter_code": "박민규 외 5명/DEAL/Tempus",
-    "matter_number": "AMIC-MC-121",
+    "matter_number": "AMIC-MC-117",
     "matter_name": "박민규 외 5명/DEAL/Tempus",
     "title": "박민규 외 5명/DEAL/Tempus",
     "matter_axis": "DEAL",
@@ -3739,13 +3589,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_122",
+    "matter_id": "matter_rp05_amic_current_118",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_100",
+    "client_id": "client_rp05_amic_current_094",
     "client_display_name": "권도균 외 11명",
     "client_short_name": "권도균 외 11명",
     "matter_code": "권도균 외 11명/DEAL/Washington",
-    "matter_number": "AMIC-MC-122",
+    "matter_number": "AMIC-MC-118",
     "matter_name": "권도균 외 11명/DEAL/Washington",
     "title": "권도균 외 11명/DEAL/Washington",
     "matter_axis": "DEAL",
@@ -3759,13 +3609,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_123",
+    "matter_id": "matter_rp05_amic_current_119",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_101",
+    "client_id": "client_rp05_amic_current_095",
     "client_display_name": "펜타스톤-오라이언-온앤업 신기술투자조합",
     "client_short_name": "펜타스톤-오라이언-온앤업 신기술투자조합",
     "matter_code": "펜타스톤-오라이언-온앤업 신기술투자조합/DEAL/Wiz",
-    "matter_number": "AMIC-MC-123",
+    "matter_number": "AMIC-MC-119",
     "matter_name": "펜타스톤-오라이언-온앤업 신기술투자조합/DEAL/Wiz",
     "title": "펜타스톤-오라이언-온앤업 신기술투자조합/DEAL/Wiz",
     "matter_axis": "DEAL",
@@ -3779,13 +3629,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_124",
+    "matter_id": "matter_rp05_amic_current_120",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_102",
+    "client_id": "client_rp05_amic_current_096",
     "client_display_name": "봉경환 외 4명",
     "client_short_name": "봉경환 외 4명",
     "matter_code": "봉경환 외 4명/DEAL/Fausta",
-    "matter_number": "AMIC-MC-124",
+    "matter_number": "AMIC-MC-120",
     "matter_name": "봉경환 외 4명/DEAL/Fausta",
     "title": "봉경환 외 4명/DEAL/Fausta",
     "matter_axis": "DEAL",
@@ -3799,13 +3649,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_125",
+    "matter_id": "matter_rp05_amic_current_121",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_103",
+    "client_id": "client_rp05_amic_current_097",
     "client_display_name": "박태오",
     "client_short_name": "박태오",
     "matter_code": "박태오/DEAL/Puma",
-    "matter_number": "AMIC-MC-125",
+    "matter_number": "AMIC-MC-121",
     "matter_name": "박태오/DEAL/Puma",
     "title": "박태오/DEAL/Puma",
     "matter_axis": "DEAL",
@@ -3819,15 +3669,15 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_126",
+    "matter_id": "matter_rp05_amic_current_122",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_104",
-    "client_display_name": "SMEJ Holdings, INC. 외 1명",
-    "client_short_name": "SMEJ Holdings, INC. 외 1명",
-    "matter_code": "SMEJ Holdings, INC. 외 1명/LIT/Kingston dispute",
-    "matter_number": "AMIC-MC-126",
-    "matter_name": "SMEJ Holdings, INC. 외 1명/LIT/Kingston dispute",
-    "title": "SMEJ Holdings, INC. 외 1명/LIT/Kingston dispute",
+    "client_id": "client_rp05_amic_current_098",
+    "client_display_name": "K Enter Holdings Inc.",
+    "client_short_name": "K Enter Holdings Inc.",
+    "matter_code": "K Enter Holdings Inc./LIT/Kingston dispute",
+    "matter_number": "AMIC-MC-122",
+    "matter_name": "K Enter Holdings Inc./LIT/Kingston dispute",
+    "title": "K Enter Holdings Inc./LIT/Kingston dispute",
     "matter_axis": "LIT",
     "matter_type_english": "LIT",
     "matter_detail_type_korean": "Kingston dispute",
@@ -3839,13 +3689,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_127",
+    "matter_id": "matter_rp05_amic_current_123",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_105",
+    "client_id": "client_rp05_amic_current_099",
     "client_display_name": "롯데에너지머티리얼즈",
     "client_short_name": "롯데에너지머티리얼즈",
     "matter_code": "롯데에너지머티리얼즈/DEAL/Lion",
-    "matter_number": "AMIC-MC-127",
+    "matter_number": "AMIC-MC-123",
     "matter_name": "롯데에너지머티리얼즈/DEAL/Lion",
     "title": "롯데에너지머티리얼즈/DEAL/Lion",
     "matter_axis": "DEAL",
@@ -3859,13 +3709,13 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_128",
+    "matter_id": "matter_rp05_amic_current_124",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_106",
+    "client_id": "client_rp05_amic_current_100",
     "client_display_name": "김정환",
     "client_short_name": "김정환",
     "matter_code": "김정환/DEAL/Switch",
-    "matter_number": "AMIC-MC-128",
+    "matter_number": "AMIC-MC-124",
     "matter_name": "김정환/DEAL/Switch",
     "title": "김정환/DEAL/Switch",
     "matter_axis": "DEAL",
@@ -3879,15 +3729,15 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_129",
+    "matter_id": "matter_rp05_amic_current_125",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_107",
-    "client_display_name": "오윤록 외 1명",
-    "client_short_name": "오윤록 외 1명",
-    "matter_code": "오윤록 외 1명/DEAL/Titan",
-    "matter_number": "AMIC-MC-129",
-    "matter_name": "오윤록 외 1명/DEAL/Titan",
-    "title": "오윤록 외 1명/DEAL/Titan",
+    "client_id": "client_rp05_amic_current_101",
+    "client_display_name": "오윤록 외 2명",
+    "client_short_name": "오윤록 외 2명",
+    "matter_code": "오윤록 외 2명/DEAL/Titan",
+    "matter_number": "AMIC-MC-125",
+    "matter_name": "오윤록 외 2명/DEAL/Titan",
+    "title": "오윤록 외 2명/DEAL/Titan",
     "matter_axis": "DEAL",
     "matter_type_english": "DEAL",
     "matter_detail_type_korean": "Titan",
@@ -3899,15 +3749,35 @@ export const AMIC_CURRENT_MATTER_CODE_CANDIDATES = Object.freeze(
     "review_required": false
   },
   {
-    "matter_id": "matter_rp05_amic_current_130",
+    "matter_id": "matter_rp05_amic_current_126",
     "tenant_id": "tenant_rp05_synthetic",
-    "client_id": "client_rp05_amic_current_108",
-    "client_display_name": "에이치엘엘중앙",
-    "client_short_name": "에이치엘엘중앙",
-    "matter_code": "에이치엘엘중앙/DEAL/Horizon",
-    "matter_number": "AMIC-MC-130",
-    "matter_name": "에이치엘엘중앙/DEAL/Horizon",
-    "title": "에이치엘엘중앙/DEAL/Horizon",
+    "client_id": "client_rp05_amic_current_101",
+    "client_display_name": "오윤록 외 2명",
+    "client_short_name": "오윤록 외 2명",
+    "matter_code": "오윤록 외 2명/ADV/retainer",
+    "matter_number": "AMIC-MC-126",
+    "matter_name": "오윤록 외 2명/ADV/retainer",
+    "title": "오윤록 외 2명/ADV/retainer",
+    "matter_axis": "ADV",
+    "matter_type_english": "ADV",
+    "matter_detail_type_korean": "retainer",
+    "source_lane": "4. 기업 자문",
+    "source_ref": "4. 기업 자문-6. Titan",
+    "source_revision": "amic_current_onedrive_matter_code_inventory_2026_07_01",
+    "status": "open",
+    "confidence": "rule_retainer",
+    "review_required": false
+  },
+  {
+    "matter_id": "matter_rp05_amic_current_127",
+    "tenant_id": "tenant_rp05_synthetic",
+    "client_id": "client_rp05_amic_current_102",
+    "client_display_name": "유진이엔티",
+    "client_short_name": "유진이엔티",
+    "matter_code": "유진이엔티/DEAL/Horizon",
+    "matter_number": "AMIC-MC-127",
+    "matter_name": "유진이엔티/DEAL/Horizon",
+    "title": "유진이엔티/DEAL/Horizon",
     "matter_axis": "DEAL",
     "matter_type_english": "DEAL",
     "matter_detail_type_korean": "Horizon",

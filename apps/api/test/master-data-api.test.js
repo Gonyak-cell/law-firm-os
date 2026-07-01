@@ -98,7 +98,8 @@ test("ClientGroup records include current AMIC client names without legacy archi
   const currentClientItems = allItems.filter((item) => item.client_source_ref === "amic_current_onedrive_folder_inventory_2026_07_01");
   assert.equal(currentClientItems.length, AMIC_CURRENT_CLIENT_CANDIDATES.length);
   const names = currentClientItems.map((item) => item.display_name);
-  assert.ok(names.includes("고구려푸드"));
+  assert.ok(names.includes("귀한사람들"));
+  assert.ok(names.includes("ATU Partners"));
   assert.ok(names.includes("하이로닉"));
   assert.equal(names.includes("고구려푸드 주식회사"), false);
   assert.equal(names.some((name) => /선생님|원장님|회장님|교수님|작가|강제집행면탈|조세범|^Pjt\.|^Project\b/.test(name)), false);
@@ -107,39 +108,58 @@ test("ClientGroup records include current AMIC client names without legacy archi
   }
   for (const expectedName of [
     "홀딩핸즈앤코 외 12명",
-    "한흥수 외 6명",
+    "한흥수 외 3명",
     "노윤현 외 19명",
     "최재헌 외 2명",
     "이강명 외 1명",
-    "강상도 외 16명",
+    "강상도",
     "박민규 외 5명",
     "권도균 외 11명",
     "펜타스톤-오라이언-온앤업 신기술투자조합",
     "봉경환 외 4명",
     "박태오",
-    "SMEJ Holdings, INC. 외 1명",
+    "K Enter Holdings Inc.",
     "롯데에너지머티리얼즈",
     "김정환",
-    "오윤록 외 1명",
-    "에이치엘엘중앙",
+    "오윤록 외 2명",
+    "유진이엔티",
+    "B&M Holdings",
+    "바이포엠스튜디오",
   ]) {
     assert.ok(names.includes(expectedName));
   }
-  for (const removedProjectSellerName of ["코오롱글로텍", "강상도", "Katelynn Yun-Yu Owyang", "SMEJ Holdings, INC.", "에스엠스튜디오스"]) {
+  for (const removedProjectSellerName of [
+    "코오롱글로텍",
+    "Katelynn Yun-Yu Owyang",
+    "SMEJ Holdings, INC.",
+    "에스엠스튜디오스",
+    "고구려푸드",
+    "고기깡패",
+    "부산광역시",
+    "아론",
+    "ATU",
+    "K-PLUS",
+    "TAKE Foundation",
+    "Titan",
+    "오윤록 외 1명",
+    "에이치엘엘중앙",
+    "SMEJ Holdings, INC. 외 1명",
+    "한흥수 외 6명",
+    "강상도 외 16명",
+  ]) {
     assert.equal(names.includes(removedProjectSellerName), false);
   }
-  const goguryeo = allItems.find((item) => item.display_name === "고구려푸드");
-  assert.equal(goguryeo.legal_form, "주식회사");
-  assert.equal(goguryeo.canonical_display_name, "고구려푸드 주식회사");
-  assert.equal(goguryeo.client_source_ref, "amic_current_onedrive_folder_inventory_2026_07_01");
-  assert.equal(goguryeo.source_lanes.some((lane) => lane.startsWith("999_")), false);
+  const guihan = allItems.find((item) => item.display_name === "귀한사람들");
+  assert.equal(guihan.canonical_display_name, "귀한사람들");
+  assert.equal(guihan.client_source_ref, "amic_current_onedrive_folder_inventory_2026_07_01");
+  assert.equal(guihan.source_lanes.some((lane) => lane.startsWith("999_")), false);
   const lotteEnergyMaterials = allItems.find((item) => item.display_name === "롯데에너지머티리얼즈");
   assert.equal(lotteEnergyMaterials.legal_form, "주식회사");
   assert.equal(lotteEnergyMaterials.canonical_display_name, "롯데에너지머티리얼즈 주식회사");
-  const hllJoongang = allItems.find((item) => item.display_name === "에이치엘엘중앙");
-  assert.equal(hllJoongang.legal_form, "주식회사");
-  assert.equal(hllJoongang.canonical_display_name, "에이치엘엘중앙 주식회사");
-  assert.equal(AMIC_CURRENT_CLIENT_CANDIDATES.length, 108);
+  const yujinEnt = allItems.find((item) => item.display_name === "유진이엔티");
+  assert.equal(yujinEnt.legal_form, null);
+  assert.equal(yujinEnt.canonical_display_name, "유진이엔티");
+  assert.equal(AMIC_CURRENT_CLIENT_CANDIDATES.length, 102);
 });
 
 test("records model_type filter and cursor pagination are deterministic", async () => {

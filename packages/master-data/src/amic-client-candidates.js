@@ -1,26 +1,9 @@
 // Generated from AMIC current OneDrive folder inventory on 2026-07-01.
 // Excludes 999_이전 자료들, strips honorific/event labels, and replaces project codenames with verified SPA/MOU party groups.
+// Includes owner-reviewed customer-name corrections from 2026-07-01.
 
 export const AMIC_CURRENT_CLIENT_CANDIDATES = Object.freeze(
 [
-  {
-    "display_name": "고구려푸드",
-    "canonical_display_name": "고구려푸드 주식회사",
-    "legal_form": "주식회사",
-    "candidate_type": "organization_candidate",
-    "source_lanes": [
-      "1. 민사"
-    ]
-  },
-  {
-    "display_name": "고기깡패",
-    "canonical_display_name": "고기깡패",
-    "legal_form": null,
-    "candidate_type": "individual_or_small_org_candidate",
-    "source_lanes": [
-      "1. 민사"
-    ]
-  },
   {
     "display_name": "귀한사람들",
     "canonical_display_name": "귀한사람들",
@@ -114,15 +97,6 @@ export const AMIC_CURRENT_CLIENT_CANDIDATES = Object.freeze(
   {
     "display_name": "박수현",
     "canonical_display_name": "박수현",
-    "legal_form": null,
-    "candidate_type": "individual_or_small_org_candidate",
-    "source_lanes": [
-      "1. 민사"
-    ]
-  },
-  {
-    "display_name": "부산광역시",
-    "canonical_display_name": "부산광역시",
     "legal_form": null,
     "candidate_type": "individual_or_small_org_candidate",
     "source_lanes": [
@@ -689,7 +663,8 @@ export const AMIC_CURRENT_CLIENT_CANDIDATES = Object.freeze(
     "legal_form": null,
     "candidate_type": "organization_candidate",
     "source_lanes": [
-      "4. 기업 자문"
+      "4. 기업 자문",
+      "5. 기업 인수&합병"
     ]
   },
   {
@@ -704,15 +679,6 @@ export const AMIC_CURRENT_CLIENT_CANDIDATES = Object.freeze(
   {
     "display_name": "JT",
     "canonical_display_name": "JT",
-    "legal_form": null,
-    "candidate_type": "client_candidate",
-    "source_lanes": [
-      "4. 기업 자문"
-    ]
-  },
-  {
-    "display_name": "Titan",
-    "canonical_display_name": "Titan",
     "legal_form": null,
     "candidate_type": "client_candidate",
     "source_lanes": [
@@ -747,8 +713,8 @@ export const AMIC_CURRENT_CLIENT_CANDIDATES = Object.freeze(
     ]
   },
   {
-    "display_name": "ATU",
-    "canonical_display_name": "ATU",
+    "display_name": "ATU Partners",
+    "canonical_display_name": "ATU Partners",
     "legal_form": null,
     "candidate_type": "client_candidate",
     "source_lanes": [
@@ -756,8 +722,8 @@ export const AMIC_CURRENT_CLIENT_CANDIDATES = Object.freeze(
     ]
   },
   {
-    "display_name": "K-PLUS",
-    "canonical_display_name": "K-PLUS",
+    "display_name": "바이포엠스튜디오",
+    "canonical_display_name": "바이포엠스튜디오",
     "legal_form": null,
     "candidate_type": "client_candidate",
     "source_lanes": [
@@ -792,26 +758,8 @@ export const AMIC_CURRENT_CLIENT_CANDIDATES = Object.freeze(
     ]
   },
   {
-    "display_name": "TAKE Foundation",
-    "canonical_display_name": "TAKE Foundation",
-    "legal_form": null,
-    "candidate_type": "organization_candidate",
-    "source_lanes": [
-      "5. 기업 인수&합병"
-    ]
-  },
-  {
     "display_name": "벨로크",
     "canonical_display_name": "벨로크",
-    "legal_form": null,
-    "candidate_type": "individual_or_small_org_candidate",
-    "source_lanes": [
-      "5. 기업 인수&합병"
-    ]
-  },
-  {
-    "display_name": "아론",
-    "canonical_display_name": "아론",
     "legal_form": null,
     "candidate_type": "individual_or_small_org_candidate",
     "source_lanes": [
@@ -855,8 +803,8 @@ export const AMIC_CURRENT_CLIENT_CANDIDATES = Object.freeze(
     ]
   },
   {
-    "display_name": "한흥수 외 6명",
-    "canonical_display_name": "한흥수 외 6명",
+    "display_name": "한흥수 외 3명",
+    "canonical_display_name": "한흥수 외 3명",
     "legal_form": null,
     "candidate_type": "individual_or_small_org_candidate",
     "source_lanes": [
@@ -891,8 +839,8 @@ export const AMIC_CURRENT_CLIENT_CANDIDATES = Object.freeze(
     ]
   },
   {
-    "display_name": "강상도 외 16명",
-    "canonical_display_name": "강상도 외 16명",
+    "display_name": "강상도",
+    "canonical_display_name": "강상도",
     "legal_form": null,
     "candidate_type": "individual_or_small_org_candidate",
     "source_lanes": [
@@ -945,8 +893,8 @@ export const AMIC_CURRENT_CLIENT_CANDIDATES = Object.freeze(
     ]
   },
   {
-    "display_name": "SMEJ Holdings, INC. 외 1명",
-    "canonical_display_name": "SMEJ Holdings, INC. 외 1명",
+    "display_name": "K Enter Holdings Inc.",
+    "canonical_display_name": "K Enter Holdings Inc.",
     "legal_form": null,
     "candidate_type": "organization_candidate",
     "source_lanes": [
@@ -972,18 +920,19 @@ export const AMIC_CURRENT_CLIENT_CANDIDATES = Object.freeze(
     ]
   },
   {
-    "display_name": "오윤록 외 1명",
-    "canonical_display_name": "오윤록 외 1명",
+    "display_name": "오윤록 외 2명",
+    "canonical_display_name": "오윤록 외 2명",
     "legal_form": null,
     "candidate_type": "individual_or_small_org_candidate",
     "source_lanes": [
-      "5. 기업 인수&합병"
+      "5. 기업 인수&합병",
+      "4. 기업 자문"
     ]
   },
   {
-    "display_name": "에이치엘엘중앙",
-    "canonical_display_name": "에이치엘엘중앙 주식회사",
-    "legal_form": "주식회사",
+    "display_name": "유진이엔티",
+    "canonical_display_name": "유진이엔티",
+    "legal_form": null,
     "candidate_type": "organization_candidate",
     "source_lanes": [
       "5. 기업 인수&합병"
