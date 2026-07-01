@@ -1,0 +1,61 @@
+{
+  "schema_version": "lawos.production_matter_code_inventory_verify.v0.1",
+  "recorded_at": "2026-07-01T14:00:03.220Z",
+  "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
+  "endpoint": "/api/matters",
+  "tenant_id": "tenant_rp05_synthetic",
+  "deployment_commit": "48dd2da5983203987bb3e065d17d25fbc94ee26f",
+  "verdict": "PASS",
+  "item_count": 149,
+  "required_codes": [
+    {
+      "code": "제이에스테크/DEAL/Project Jade",
+      "found": true
+    },
+    {
+      "code": "새빗켐/DEAL/Project Tempus",
+      "found": true
+    },
+    {
+      "code": "성일하이텍/DEAL/Project S",
+      "found": true
+    },
+    {
+      "code": "포이스/DEAL/Project Fausta",
+      "found": true
+    },
+    {
+      "code": "위즈코어/DEAL/Project Wiz",
+      "found": true
+    },
+    {
+      "code": "엠피닉스/DEAL/Project Phoenix",
+      "found": true
+    },
+    {
+      "code": "유진이엔티/DEAL/Project Horizon",
+      "found": true
+    },
+    {
+      "code": "타이탄컴퍼니/DEAL/Project Titan",
+      "found": true
+    },
+    {
+      "code": "성진종합전기/DEAL/Project Switch",
+      "found": true
+    },
+    {
+      "code": "귀한사람들/Advisory/retainer",
+      "found": true
+    }
+  ],
+  "short_axis_count": 0,
+  "secret_values_recorded": false,
+  "boundary": {
+    "read_only_inventory_check": true,
+    "vault_document_write_enabled": false,
+    "real_client_document_content_used": false,
+    "public_release_claim": false,
+    "company_wide_go_live_claim": false
+  }
+}

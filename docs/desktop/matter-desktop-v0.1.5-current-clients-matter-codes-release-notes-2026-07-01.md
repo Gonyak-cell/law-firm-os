@@ -55,4 +55,5 @@ This release candidate packages the current AMIC Client and Matter Code inventor
 - Windows native install smoke: not run on this macOS host
 - Windows Authenticode signing: false
 - Production bridge smoke: pass after sourcing `LAWOS_VAULT_BRIDGE_TOKEN` from the production Lambda environment and redeploying `matter-lawos-api-prod` to commit `48dd2da5983203987bb3e065d17d25fbc94ee26f`
+- Production Matter inventory readback: pass, 149 matters returned and required current codes including `제이에스테크/DEAL/Project Jade`, `새빗켐/DEAL/Project Tempus`, and `유진이엔티/DEAL/Project Horizon` found
 - Public/external release: false
