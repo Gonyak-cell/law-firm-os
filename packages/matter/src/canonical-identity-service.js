@@ -161,8 +161,14 @@ export function mapVaultMatterAppMatterUpsertRequest(request = {}, { actor_id, c
   );
   const matterDetailTypeKorean = requiredString(request, "matterDetailTypeKorean");
   const clientShortName = client?.client_short_name ?? request.clientShortName;
+  const matterCodeClientShortName = compact(
+    request.matterCodeClientShortName
+      ?? request.matter_code_client_short_name
+      ?? request.matterCodePrefix
+      ?? clientShortName
+  );
   const expectedCode = deriveMatterCode({
-    client_short_name: clientShortName,
+    client_short_name: matterCodeClientShortName,
     matter_type_english: matterTypeEnglish,
     matter_litigation_axis: matterLitigationAxis,
     matter_detail_type_korean: matterDetailTypeKorean,
@@ -182,6 +188,7 @@ export function mapVaultMatterAppMatterUpsertRequest(request = {}, { actor_id, c
       client_id: clientId,
       client_display_name: requiredString(request, "clientDisplayName"),
       matter_code: expectedCode,
+      matter_code_client_short_name: matterCodeClientShortName,
       matter_name: requiredString(request, "matterName"),
       title: requiredString(request, "matterName"),
       matter_type_english: matterTypeEnglish,

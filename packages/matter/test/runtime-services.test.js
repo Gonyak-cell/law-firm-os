@@ -298,6 +298,26 @@ test("Vault approved write contract maps client and matter code into Matter app 
   assert.equal(repository.list({ tenant_id, model_type: "MatterClient" }).length, 1);
   assert.equal(repository.list({ tenant_id, model_type: "Matter" }).length, 1);
 
+  const dealMatter = upsertMatterAppMatterFromVaultContract({
+    repository,
+    request: {
+      ...matterRequest,
+      idempotencyKeyHash: "hash:vault-matter-deal-target-prefix",
+      matterAppMatterId: "matter-vault-deal-target-prefix",
+      matterCode: "대상회사/DEAL/Project Jade",
+      matterName: "대상회사/DEAL/Project Jade",
+      matterTypeEnglish: "DEAL",
+      matterLitigationAxis: null,
+      matterDetailTypeKorean: "Project Jade",
+      matterCodeClientShortName: "대상회사",
+    },
+    actor_id,
+  });
+  assert.equal(dealMatter.matterCode, "대상회사/DEAL/Project Jade");
+  assert.equal(dealMatter.clientId, client.clientId);
+  assert.equal(dealMatter.matter.client_display_name, client.clientDisplayName);
+  assert.equal(dealMatter.matter.matter_code_client_short_name, "대상회사");
+
   assert.throws(
     () =>
       upsertMatterAppMatterFromVaultContract({

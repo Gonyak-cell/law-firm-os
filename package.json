@@ -304,6 +304,7 @@
     "lcx:vltui:closeout:proof": "node scripts/run-lcx-vltui-closeout-proof.mjs",
     "lcx:vltui:closeout:validate": "node scripts/validate-lcx-vltui-closeout.mjs",
     "lcx:vltui:production-smoke": "node scripts/run-lcx-vltui-production-smoke.mjs",
+    "lcx:vltui:production-bridge-upsert-current-codes": "node scripts/run-current-matter-codes-production-bridge-upsert.mjs",
     "lcx:full:traceability:validate": "node scripts/validate-lcx-full-traceability.mjs",
     "lcx:full:baseline-browser-proof": "node scripts/run-lcx-full-baseline-browser-proof.mjs",
     "lcx:full:gap-inventory": "node scripts/run-lcx-full-current-gap-inventory.mjs",
