@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.lcx_vltui.production_smoke.v0.1",
-  "generated_at": "2026-07-01T14:03:25.159Z",
+  "generated_at": "2026-07-01T14:04:29.970Z",
   "base_url": "https://d2mthcc8vp3cr2.cloudfront.net",
   "deployment_commit": "48dd2da5983203987bb3e065d17d25fbc94ee26f",
   "verdict": "PASS",
