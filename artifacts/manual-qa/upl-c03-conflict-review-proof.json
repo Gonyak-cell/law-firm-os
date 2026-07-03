@@ -1,0 +1,612 @@
+{
+  "schema_version": "law-firm-os.upl-c03.conflict-review-proof.v0.1",
+  "generated_at": "2026-07-02T23:51:04.230Z",
+  "verdict": "PASS",
+  "api_url": "http://127.0.0.1:49985",
+  "contract_ref": "UPL-C-03",
+  "route_surface": [
+    "POST /api/intake/conflict-checks",
+    "POST /api/intake/conflict-decisions",
+    "POST /api/intake/waivers",
+    "POST /api/intake/engagements",
+    "POST /api/intake/clearance-tokens",
+    "GET /api/intake/audit"
+  ],
+  "checks": [
+    {
+      "id": "hit-generated-for-review",
+      "passed": true
+    },
+    {
+      "id": "premature-clearance-blocked-before-ledger-review",
+      "passed": true
+    },
+    {
+      "id": "decision-records-reviewer-and-clears-hit",
+      "passed": true
+    },
+    {
+      "id": "waiver-route-records-consent-document",
+      "passed": true
+    },
+    {
+      "id": "signed-engagement-enables-clearance",
+      "passed": true
+    },
+    {
+      "id": "idempotency-and-audit-history",
+      "passed": true
+    }
+  ],
+  "observed": {
+    "check": {
+      "status": 201,
+      "item": {
+        "conflict_check_id": "conflict_upl_c03_review",
+        "tenant_id": "tenant_upl_c03_conflict_review",
+        "intake_request_id": "intake_upl_c03_new_client",
+        "party_snapshot": {
+          "party_ids": [
+            "party_upl_c03_new_client"
+          ],
+          "aliases": [
+            "상대방 주식회사"
+          ],
+          "recorded_by": "user_upl_c03_reviewer",
+          "recorded_at": "2026-07-02T23:51:04.214Z"
+        },
+        "snapshot_hash": "snapshot_upl_c03_review",
+        "status": "review_required",
+        "owner_user_id": "user_upl_c03_reviewer",
+        "model_type": "ConflictCheck",
+        "snapshot_recorded_at": "2026-07-02T23:51:04.214Z",
+        "owner_module": "intake",
+        "permission_ref": null,
+        "audit_hint_ref": null,
+        "synthetic_only": true,
+        "no_real_data": true,
+        "writes_product_state": true,
+        "creates_database_rows": false,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": false,
+        "dispatches_intake_runtime": true,
+        "executes_api_handler": false,
+        "creates_matter": false,
+        "g3_runtime_readiness_claim": "open",
+        "party_reference_fields": [
+          "party_snapshot.party_ids"
+        ],
+        "immutable_snapshot": true,
+        "resource_id": "conflict_upl_c03_review",
+        "created_at": "2026-07-02T23:51:04.214Z",
+        "updated_at": "2026-07-02T23:51:04.215Z",
+        "g6_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "direct_matter_reference_included": false,
+        "raw_conflict_memo_included": false
+      },
+      "conflict_search": {
+        "conflict_search_id": "search_upl_c03_review",
+        "tenant_id": "tenant_upl_c03_conflict_review",
+        "conflict_check_id": "conflict_upl_c03_review",
+        "aliases": [
+          "상대방 주식회사"
+        ],
+        "party_ids": [
+          "party_upl_c03_new_client"
+        ],
+        "party_names": [],
+        "relationship_refs": [],
+        "audit_hint_ref": "upl_c03_api_proof",
+        "owner_user_id": "user_upl_c03_reviewer",
+        "hit_count": 1,
+        "model_type": "ConflictSearch",
+        "normalized_terms": [
+          "상대방"
+        ],
+        "generated_hit_ids": [
+          "hit_search_upl_c03_review_MatterParty_party_upl_c03_adverse_0"
+        ],
+        "caller_supplied_hit_count_ignored": true,
+        "raw_query_included": false,
+        "status": "executed",
+        "resource_id": "search_upl_c03_review",
+        "owner_module": "intake",
+        "created_at": "2026-07-02T23:51:04.215Z",
+        "updated_at": "2026-07-02T23:51:04.215Z",
+        "writes_product_state": true,
+        "creates_database_rows": true,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": true,
+        "dispatches_intake_runtime": true,
+        "executes_api_handler": false,
+        "creates_matter": false,
+        "g6_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "direct_matter_reference_included": false,
+        "raw_conflict_memo_included": false
+      },
+      "conflict_hits": [
+        {
+          "model_type": "ConflictHit",
+          "conflict_hit_id": "hit_search_upl_c03_review_MatterParty_party_upl_c03_adverse_0",
+          "tenant_id": "tenant_upl_c03_conflict_review",
+          "conflict_check_id": "conflict_upl_c03_review",
+          "matched_party_id": "party_upl_c03_adverse",
+          "hit_source": "former_matter",
+          "source_record_ref": "MatterParty:party_upl_c03_adverse",
+          "severity": "high",
+          "audit_hint_ref": "upl_c03_api_proof",
+          "status": "review_required",
+          "owner_user_id": "user_upl_c03_reviewer",
+          "matched_display_name": "(주) 상대방",
+          "matched_model_type": "MatterParty",
+          "matched_party_role": "adverse_party",
+          "source_matter_ref_included": false,
+          "match_kind": "exact_normalized",
+          "match_score": 1,
+          "normalized_query": "상대방",
+          "raw_hit_payload_visible": false,
+          "created_by": "user_upl_c03_reviewer",
+          "owner_module": "intake",
+          "permission_ref": null,
+          "synthetic_only": true,
+          "no_real_data": true,
+          "writes_product_state": true,
+          "creates_database_rows": false,
+          "updates_database_rows": false,
+          "deletes_database_rows": false,
+          "evaluates_runtime_permission": true,
+          "writes_audit_event": false,
+          "dispatches_intake_runtime": true,
+          "executes_api_handler": false,
+          "creates_matter": false,
+          "g3_runtime_readiness_claim": "open",
+          "party_reference_fields": [
+            "matched_party_id"
+          ],
+          "hit_summary": null,
+          "hit_source_audit_required": true,
+          "resource_id": "hit_search_upl_c03_review_MatterParty_party_upl_c03_adverse_0",
+          "created_at": "2026-07-02T23:51:04.215Z",
+          "updated_at": "2026-07-02T23:51:04.215Z",
+          "g6_runtime_readiness_claim": "runtime_write_ready",
+          "production_ready_claim": false,
+          "direct_matter_reference_included": false,
+          "raw_conflict_memo_included": false
+        }
+      ]
+    },
+    "premature_token": {
+      "status": 400,
+      "ui_state": "blocked"
+    },
+    "decision": {
+      "status": 201,
+      "item": {
+        "conflict_decision_id": "decision_upl_c03_clear",
+        "tenant_id": "tenant_upl_c03_conflict_review",
+        "conflict_check_id": "conflict_upl_c03_review",
+        "conflict_hit_ids": [
+          "hit_search_upl_c03_review_MatterParty_party_upl_c03_adverse_0"
+        ],
+        "reviewer_id": "user_upl_c03_reviewer",
+        "decision": "clear",
+        "rationale": "reviewer_recorded_clearance_basis",
+        "model_type": "ConflictDecision",
+        "status": "cleared",
+        "decided_at": "2026-07-02T23:51:04.220Z",
+        "resource_id": "decision_upl_c03_clear",
+        "owner_module": "intake",
+        "created_at": "2026-07-02T23:51:04.220Z",
+        "updated_at": "2026-07-02T23:51:04.220Z",
+        "writes_product_state": true,
+        "creates_database_rows": true,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": true,
+        "dispatches_intake_runtime": true,
+        "executes_api_handler": false,
+        "creates_matter": false,
+        "g6_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "direct_matter_reference_included": false,
+        "raw_conflict_memo_included": false
+      },
+      "conflict_check": {
+        "conflict_check_id": "conflict_upl_c03_review",
+        "tenant_id": "tenant_upl_c03_conflict_review",
+        "intake_request_id": "intake_upl_c03_new_client",
+        "party_snapshot": {
+          "party_ids": [
+            "party_upl_c03_new_client"
+          ],
+          "aliases": [
+            "상대방 주식회사"
+          ],
+          "recorded_by": "user_upl_c03_reviewer",
+          "recorded_at": "2026-07-02T23:51:04.214Z"
+        },
+        "snapshot_hash": "snapshot_upl_c03_review",
+        "status": "cleared",
+        "owner_user_id": "user_upl_c03_reviewer",
+        "model_type": "ConflictCheck",
+        "snapshot_recorded_at": "2026-07-02T23:51:04.214Z",
+        "owner_module": "intake",
+        "permission_ref": null,
+        "audit_hint_ref": null,
+        "synthetic_only": true,
+        "no_real_data": true,
+        "writes_product_state": true,
+        "creates_database_rows": false,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": false,
+        "dispatches_intake_runtime": true,
+        "executes_api_handler": false,
+        "creates_matter": false,
+        "g3_runtime_readiness_claim": "open",
+        "party_reference_fields": [
+          "party_snapshot.party_ids"
+        ],
+        "immutable_snapshot": true,
+        "resource_id": "conflict_upl_c03_review",
+        "created_at": "2026-07-02T23:51:04.214Z",
+        "updated_at": "2026-07-02T23:51:04.221Z",
+        "g6_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "reviewer_id": "user_upl_c03_reviewer",
+        "review_decision": "clear",
+        "review_decision_id": "decision_upl_c03_clear",
+        "review_decision_recorded_at": "2026-07-02T23:51:04.220Z",
+        "direct_matter_reference_included": false,
+        "raw_conflict_memo_included": false
+      },
+      "conflict_hits": [
+        {
+          "model_type": "ConflictHit",
+          "conflict_hit_id": "hit_search_upl_c03_review_MatterParty_party_upl_c03_adverse_0",
+          "tenant_id": "tenant_upl_c03_conflict_review",
+          "conflict_check_id": "conflict_upl_c03_review",
+          "matched_party_id": "party_upl_c03_adverse",
+          "hit_source": "former_matter",
+          "source_record_ref": "MatterParty:party_upl_c03_adverse",
+          "severity": "high",
+          "audit_hint_ref": "upl_c03_api_proof",
+          "status": "cleared",
+          "owner_user_id": "user_upl_c03_reviewer",
+          "matched_display_name": "(주) 상대방",
+          "matched_model_type": "MatterParty",
+          "matched_party_role": "adverse_party",
+          "source_matter_ref_included": false,
+          "match_kind": "exact_normalized",
+          "match_score": 1,
+          "normalized_query": "상대방",
+          "raw_hit_payload_visible": false,
+          "created_by": "user_upl_c03_reviewer",
+          "owner_module": "intake",
+          "permission_ref": null,
+          "synthetic_only": true,
+          "no_real_data": true,
+          "writes_product_state": true,
+          "creates_database_rows": false,
+          "updates_database_rows": false,
+          "deletes_database_rows": false,
+          "evaluates_runtime_permission": true,
+          "writes_audit_event": false,
+          "dispatches_intake_runtime": true,
+          "executes_api_handler": false,
+          "creates_matter": false,
+          "g3_runtime_readiness_claim": "open",
+          "party_reference_fields": [
+            "matched_party_id"
+          ],
+          "hit_summary": null,
+          "hit_source_audit_required": true,
+          "resource_id": "hit_search_upl_c03_review_MatterParty_party_upl_c03_adverse_0",
+          "created_at": "2026-07-02T23:51:04.215Z",
+          "updated_at": "2026-07-02T23:51:04.221Z",
+          "g6_runtime_readiness_claim": "runtime_write_ready",
+          "production_ready_claim": false,
+          "reviewer_id": "user_upl_c03_reviewer",
+          "review_decision_id": "decision_upl_c03_clear",
+          "direct_matter_reference_included": false,
+          "raw_conflict_memo_included": false
+        }
+      ],
+      "clearance_link_ready": true
+    },
+    "decision_replay": {
+      "status": 200,
+      "outcome": "idempotent_replay"
+    },
+    "waiver": {
+      "status": 201,
+      "waiver": {
+        "waiver_id": "waiver_upl_c03_consent",
+        "tenant_id": "tenant_upl_c03_conflict_review",
+        "intake_request_id": "intake_upl_c03_new_client",
+        "conflict_check_id": "conflict_upl_c03_review",
+        "conflict_hit_ids": [
+          "hit_search_upl_c03_review_MatterParty_party_upl_c03_adverse_0"
+        ],
+        "consent_document_id": "consent_doc_upl_c03_signed",
+        "approver_id": "user_upl_c03_reviewer",
+        "approval_reason": "reviewer_confirmed_consent_document",
+        "model_type": "Waiver",
+        "status": "approved",
+        "approved_at": "2026-07-02T23:51:04.224Z",
+        "resource_id": "waiver_upl_c03_consent",
+        "owner_module": "intake",
+        "created_at": "2026-07-02T23:51:04.224Z",
+        "updated_at": "2026-07-02T23:51:04.224Z",
+        "writes_product_state": true,
+        "creates_database_rows": true,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": true,
+        "dispatches_intake_runtime": true,
+        "executes_api_handler": false,
+        "creates_matter": false,
+        "g6_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "direct_matter_reference_included": false,
+        "raw_conflict_memo_included": false
+      },
+      "clearance_link_ready": true
+    },
+    "engagement": {
+      "status": 201,
+      "item": {
+        "engagement_id": "engagement_upl_c03_signed",
+        "tenant_id": "tenant_upl_c03_conflict_review",
+        "intake_request_id": "intake_upl_c03_new_client",
+        "template_id": "matter_engagement_letter",
+        "signed_document_id": "signed_doc_upl_c03_engagement",
+        "signature_ref": "signature:signed_doc_upl_c03_engagement",
+        "approver_id": "user_upl_c03_reviewer",
+        "model_type": "Engagement",
+        "template_document_id": "template_doc_upl_c03_engagement",
+        "signed_document_upload_id": "signed_upload_upl_c03_engagement",
+        "signed_document_sha256": "sha256:signed_doc_upl_c03_engagement",
+        "signed_upload_verified": true,
+        "template_document_generated": true,
+        "lx06_upload_verified": true,
+        "status": "approved",
+        "approved_at": "2026-07-02T23:51:04.225Z",
+        "resource_id": "engagement_upl_c03_signed",
+        "owner_module": "intake",
+        "created_at": "2026-07-02T23:51:04.225Z",
+        "updated_at": "2026-07-02T23:51:04.225Z",
+        "writes_product_state": true,
+        "creates_database_rows": true,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": true,
+        "dispatches_intake_runtime": true,
+        "executes_api_handler": false,
+        "creates_matter": false,
+        "g6_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "direct_matter_reference_included": false,
+        "raw_conflict_memo_included": false
+      },
+      "engagement_ready": true
+    },
+    "clearance": {
+      "status": 201,
+      "item": {
+        "clearance_token_id": "clearance_upl_c03_valid",
+        "tenant_id": "tenant_upl_c03_conflict_review",
+        "intake_request_id": "intake_upl_c03_new_client",
+        "conflict_check_id": "conflict_upl_c03_review",
+        "engagement_id": "engagement_upl_c03_signed",
+        "snapshot_hash": "snapshot_upl_c03_review",
+        "expires_at": "2026-07-10T00:00:00.000Z",
+        "model_type": "ClearanceToken",
+        "token_state": "active",
+        "status": "active",
+        "issued_at": "2026-07-02T23:51:04.226Z",
+        "outcome": "cleared",
+        "blocked_claims": [],
+        "conflict_review_state": "clear_decision_recorded",
+        "conflict_decision_id": "decision_upl_c03_clear",
+        "waiver_id": "waiver_upl_c03_consent",
+        "conflict_review_satisfied": true,
+        "engagement_review_state": "approved_engagement_recorded",
+        "engagement_signed_document_id": "signed_doc_upl_c03_engagement",
+        "engagement_signature_ref": "signature:signed_doc_upl_c03_engagement",
+        "engagement_template_document_id": "template_doc_upl_c03_engagement",
+        "engagement_signed_document_upload_id": "signed_upload_upl_c03_engagement",
+        "engagement_signed_document_sha256": "sha256:signed_doc_upl_c03_engagement",
+        "engagement_signed_upload_verified": true,
+        "engagement_review_satisfied": true,
+        "resource_id": "clearance_upl_c03_valid",
+        "owner_module": "intake",
+        "created_at": "2026-07-02T23:51:04.226Z",
+        "updated_at": "2026-07-02T23:51:04.226Z",
+        "writes_product_state": true,
+        "creates_database_rows": true,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": true,
+        "dispatches_intake_runtime": true,
+        "executes_api_handler": false,
+        "creates_matter": false,
+        "g6_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "direct_matter_reference_included": false,
+        "raw_conflict_memo_included": false
+      },
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "token_state": "active",
+        "production_ready_claim": false
+      },
+      "conflict_review": {
+        "review_satisfied": true,
+        "reason": "clear_decision_recorded",
+        "conflict_check_id": "conflict_upl_c03_review",
+        "conflict_check_status": "cleared",
+        "conflict_decision_id": "decision_upl_c03_clear",
+        "waiver_id": "waiver_upl_c03_consent",
+        "hit_count": 1,
+        "snapshot_hash_matches": true,
+        "production_ready_claim": false
+      },
+      "engagement_review": {
+        "engagement_satisfied": true,
+        "reason": "approved_engagement_recorded",
+        "engagement_id": "engagement_upl_c03_signed",
+        "intake_request_id": "intake_upl_c03_new_client",
+        "signed_document_id": "signed_doc_upl_c03_engagement",
+        "signature_ref": "signature:signed_doc_upl_c03_engagement",
+        "template_id": "matter_engagement_letter",
+        "template_document_id": "template_doc_upl_c03_engagement",
+        "signed_document_upload_id": "signed_upload_upl_c03_engagement",
+        "signed_document_sha256": "sha256:signed_doc_upl_c03_engagement",
+        "signed_upload_verified": true,
+        "lx06_upload_verified": true,
+        "production_ready_claim": false
+      }
+    },
+    "clearance_replay": {
+      "status": 200,
+      "outcome": "idempotent_replay"
+    },
+    "audit": {
+      "status": 200,
+      "actions": [
+        "clearance.token.issue",
+        "conflict.check.create",
+        "conflict.decision.record",
+        "conflict.hit.create",
+        "conflict.search.executed",
+        "engagement.approved",
+        "engagement.signed_document.uploaded",
+        "engagement.template.generated",
+        "waiver.approved"
+      ],
+      "history": [
+        {
+          "action": "conflict.check.create",
+          "object_type": "ConflictCheck",
+          "object_id": "conflict_upl_c03_review",
+          "metadata": {
+            "snapshot_hash": "snapshot_upl_c03_review"
+          }
+        },
+        {
+          "action": "conflict.hit.create",
+          "object_type": "ConflictHit",
+          "object_id": "hit_search_upl_c03_review_MatterParty_party_upl_c03_adverse_0",
+          "metadata": {
+            "hit_source": "former_matter",
+            "severity": "high",
+            "match_kind": "exact_normalized"
+          }
+        },
+        {
+          "action": "conflict.search.executed",
+          "object_type": "ConflictSearch",
+          "object_id": "search_upl_c03_review",
+          "metadata": {
+            "alias_count": 1,
+            "relationship_ref_count": 0,
+            "hit_count": 1
+          }
+        },
+        {
+          "action": "conflict.decision.record",
+          "object_type": "ConflictDecision",
+          "object_id": "decision_upl_c03_clear",
+          "metadata": {
+            "decision": "clear",
+            "reviewer_id": "user_upl_c03_reviewer",
+            "conflict_check_id": "conflict_upl_c03_review",
+            "reviewed_hit_count": 1,
+            "clearance_link_ready": true
+          }
+        },
+        {
+          "action": "waiver.approved",
+          "object_type": "Waiver",
+          "object_id": "waiver_upl_c03_consent",
+          "metadata": {
+            "conflict_check_id": "conflict_upl_c03_review",
+            "approved_hit_count": 1,
+            "consent_document_id": "consent_doc_upl_c03_signed",
+            "clearance_link_ready": true
+          }
+        },
+        {
+          "action": "engagement.template.generated",
+          "object_type": "EngagementTemplateDocument",
+          "object_id": "template_doc_upl_c03_engagement",
+          "metadata": {
+            "intake_request_id": "intake_upl_c03_new_client",
+            "engagement_id": "engagement_upl_c03_signed",
+            "template_id": "matter_engagement_letter"
+          }
+        },
+        {
+          "action": "engagement.signed_document.uploaded",
+          "object_type": "EngagementSignedDocumentUpload",
+          "object_id": "signed_upload_upl_c03_engagement",
+          "metadata": {
+            "intake_request_id": "intake_upl_c03_new_client",
+            "engagement_id": "engagement_upl_c03_signed",
+            "signed_document_id": "signed_doc_upl_c03_engagement",
+            "signature_ref": "signature:signed_doc_upl_c03_engagement",
+            "content_sha256": "sha256:signed_doc_upl_c03_engagement",
+            "lx_registry_ref": "LX-06"
+          }
+        },
+        {
+          "action": "engagement.approved",
+          "object_type": "Engagement",
+          "object_id": "engagement_upl_c03_signed",
+          "metadata": {
+            "intake_request_id": "intake_upl_c03_new_client",
+            "signed_document_id": "signed_doc_upl_c03_engagement",
+            "signature_ref": "signature:signed_doc_upl_c03_engagement",
+            "template_id": "matter_engagement_letter",
+            "template_document_id": "template_doc_upl_c03_engagement",
+            "signed_document_upload_id": "signed_upload_upl_c03_engagement",
+            "signed_document_sha256": "sha256:signed_doc_upl_c03_engagement"
+          }
+        },
+        {
+          "action": "clearance.token.issue",
+          "object_type": "ClearanceToken",
+          "object_id": "clearance_upl_c03_valid",
+          "metadata": {
+            "conflict_check_id": "conflict_upl_c03_review",
+            "conflict_review_state": "clear_decision_recorded",
+            "conflict_decision_id": "decision_upl_c03_clear",
+            "waiver_id": "waiver_upl_c03_consent",
+            "hit_count": 1,
+            "engagement_id": "engagement_upl_c03_signed",
+            "engagement_review_state": "approved_engagement_recorded",
+            "engagement_signed_document_id": "signed_doc_upl_c03_engagement",
+            "engagement_signature_ref": "signature:signed_doc_upl_c03_engagement",
+            "engagement_template_document_id": "template_doc_upl_c03_engagement",
+            "engagement_signed_document_upload_id": "signed_upload_upl_c03_engagement",
+            "engagement_signed_document_sha256": "sha256:signed_doc_upl_c03_engagement",
+            "engagement_signed_upload_verified": true
+          }
+        }
+      ]
+    }
+  }
+}

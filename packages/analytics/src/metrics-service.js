@@ -6,6 +6,21 @@ function requiredString(input, field) {
   return value.trim();
 }
 
+function optionalString(input, field) {
+  const value = input?.[field];
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
+}
+
+function clientGroupIdOf(row = {}) {
+  return optionalString(row, "client_group_id") ?? optionalString(row, "billing_client_group_id");
+}
+
+function resolveClientGroupId(explicitClientGroupId, rows = []) {
+  const ids = new Set([explicitClientGroupId, ...rows.map(clientGroupIdOf)].filter(Boolean));
+  if (ids.size > 1) throw new Error("matter profitability requires one client group mapping");
+  return ids.values().next().value ?? null;
+}
+
 function sum(items, field) {
   return (items ?? []).reduce((total, item) => total + Number(item?.[field] ?? 0), 0);
 }
@@ -35,10 +50,11 @@ function writeMetric({ repository, model_type, id_field, record, actor_id, idemp
   });
 }
 
-export function createMatterProfitability({ repository, tenant_id, matter_id, time_entries = [], invoices = [], payments = [], actor_id, idempotency_key } = {}) {
+export function createMatterProfitability({ repository, tenant_id, matter_id, client_group_id = null, time_entries = [], invoices = [], payments = [], actor_id, idempotency_key } = {}) {
   requiredString({ tenant_id }, "tenant_id");
   requiredString({ matter_id }, "matter_id");
   if (time_entries.length === 0 || invoices.length === 0 || payments.length === 0) throw new Error("matter profitability requires time, invoice, and payment evidence");
+  const resolvedClientGroupId = resolveClientGroupId(optionalString({ client_group_id }, "client_group_id"), [...time_entries, ...invoices, ...payments]);
   const standardValue = sum(time_entries, "standard_value") || sum(time_entries, "amount");
   const billedValue = sum(invoices, "amount_due") || sum(invoices, "invoice_total");
   const collectedValue = sum(payments, "amount") || sum(payments, "payment_total");
@@ -50,6 +66,7 @@ export function createMatterProfitability({ repository, tenant_id, matter_id, ti
       matter_profitability_id: `matter-profit:${tenant_id}:${matter_id}`,
       tenant_id,
       matter_id,
+      client_group_id: resolvedClientGroupId,
       standard_value: standardValue,
       billed_value: billedValue,
       collected_value: collectedValue,
@@ -65,7 +82,8 @@ export function createMatterProfitability({ repository, tenant_id, matter_id, ti
 export function createClientProfitability({ repository, tenant_id, client_group_id, matter_rows = [], actor_id, idempotency_key } = {}) {
   requiredString({ tenant_id }, "tenant_id");
   requiredString({ client_group_id }, "client_group_id");
-  if (matter_rows.length === 0) throw new Error("client profitability requires matter rows");
+  const clientRows = matter_rows.filter((row) => clientGroupIdOf(row) === client_group_id);
+  if (clientRows.length === 0) throw new Error("client profitability requires mapped matter rows");
   return writeMetric({
     repository,
     model_type: "ClientProfitability",
@@ -74,8 +92,9 @@ export function createClientProfitability({ repository, tenant_id, client_group_
       client_profitability_id: `client-profit:${tenant_id}:${client_group_id}`,
       tenant_id,
       client_group_id,
-      matter_count: matter_rows.length,
-      profitability_amount: sum(matter_rows, "profitability_amount"),
+      matter_count: clientRows.length,
+      profitability_amount: sum(clientRows, "profitability_amount"),
+      client_group_mapping_source: "matter_profitability.client_group_id",
       created_client_identity: false,
       source_object_mutated: false,
     },

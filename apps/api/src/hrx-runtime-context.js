@@ -1,22 +1,42 @@
 import { randomUUID } from "node:crypto";
 import { createDurableAuditStore } from "../../../packages/audit/src/durable-audit-store.js";
 import { createHrxAuditEventStore } from "../../../packages/audit/src/hrx-event-store.js";
+import { createInMemoryCompensationRecordStore, createSqlCompensationRecordStore } from "../../../packages/hrx/src/compensation.js";
 import { createInMemoryHrxDocumentStore, createSqlHrxDocumentStore } from "../../../packages/hrx/src/documents.js";
 import { createApprovalPolicy, createApprovalRequest, resolveApprovalRequest } from "../../../packages/hrx/src/approval.js";
 import { createApplication, transitionApplicationStage } from "../../../packages/hrx/src/recruiting/application.js";
 import { createCandidateProfile } from "../../../packages/hrx/src/recruiting/candidate.js";
+import { assertCandidateConsentAllowsProcessing, createCandidateConsent } from "../../../packages/hrx/src/recruiting/consent.js";
+import { convertCandidateToEmployee } from "../../../packages/hrx/src/recruiting/convert-to-employee.js";
 import { createInterview } from "../../../packages/hrx/src/recruiting/interview.js";
 import { createJobOpening } from "../../../packages/hrx/src/recruiting/job-opening.js";
-import { createOffer } from "../../../packages/hrx/src/recruiting/offer.js";
+import { createOffer, transitionOffer } from "../../../packages/hrx/src/recruiting/offer.js";
 import { createHrxAiSourceRegistry } from "../../../packages/hrx/src/ai/source-registry.js";
 import { createHrxPermissionAwareRetriever } from "../../../packages/hrx/src/ai/rag.js";
+import { createHrxModelGatewayFromEnv } from "../../../packages/hrx/src/ai/model-provider-registry.js";
 import { createInMemoryHrxAiReviewQueue } from "../../../packages/hrx/src/ai/review-queue.js";
 import { createSqlHrxAiReviewQueue } from "../../../packages/hrx/src/ai/review-queue-sql.js";
+import { createInMemoryHrxAiSourceChunkIndex, ingestHrxAiSourceChunks } from "../../../packages/hrx/src/ai/source-ingestion.js";
+import {
+  HRX_ATTENDANCE_STATUSES,
+  createInMemoryAttendanceStore,
+  createSqlAttendanceStore,
+} from "../../../packages/hrx/src/attendance.js";
 import { createHrxPeopleAnalyticsReadModel } from "../../../packages/hrx/src/analytics.js";
 import { createLeavePolicy } from "../../../packages/hrx/src/rules/leave-policy.js";
 import { createInMemoryLeaveBalanceLedger, createSqlLeaveBalanceLedger } from "../../../packages/hrx/src/leave/balance.js";
 import { createInMemoryLeaveRequestStore, createLeaveRequestService, createSqlLeaveRequestStore } from "../../../packages/hrx/src/leave/request-service.js";
 import { closeOffboardingCase, createOffboardingCase } from "../../../packages/hrx/src/offboarding.js";
+import {
+  createInMemoryOvertimeStore,
+  createSqlOvertimeStore,
+  createWeeklyOvertimeRiskReport,
+} from "../../../packages/hrx/src/overtime.js";
+import {
+  createHrxRiskDailyScan,
+  createHrxRiskDashboard,
+  createInMemoryHrxRiskEventStore,
+} from "../../../packages/hrx/src/risk-event.js";
 import { createOnboardingPlan, updateOnboardingTask } from "../../../packages/hrx/src/onboarding.js";
 import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repository.js";
 import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
@@ -30,7 +50,12 @@ import {
   createLegalPeopleEthicsReadModel,
   createLegalPeopleEthicsSeed,
 } from "../../../packages/hrx/src/legal-people-ethics.js";
+import {
+  createMatterPeopleDocumentGraphSeed,
+  createMatterPeopleDocumentGraphTable,
+} from "../../../packages/hrx/src/matter-people-document-graph.js";
 import { createHrxMatterWorkloadProjection } from "../../../packages/matter/src/hrx-workload-projection.js";
+import { transitionEmployee } from "../../../packages/hrx/src/employee-lifecycle.js";
 import { createHrxAiRoute } from "./routes/hrx/ai.js";
 import { createHrxPayrollRoute } from "./routes/hrx/payroll.js";
 import {
@@ -58,6 +83,11 @@ const MEMBER_ROSTER_BY_USER_ID = new Map(MEMBER_ROSTER.map((member) => [member.u
 const MEMBER_ROSTER_BY_EMPLOYEE_ID = new Map(MEMBER_ROSTER.map((member) => [member.employee_id, member]));
 const MEMBER_ROSTER_BY_DISPLAY_NAME = new Map(MEMBER_ROSTER.map((member) => [member.display_name, member]));
 const KOREAN_DISPLAY_NAME_COLLATOR = new Intl.Collator("ko-KR");
+const HRX_ELEVATED_READ_ROLES = new Set(["security_admin", "hr_admin", "people_ops", "hr_manager", "hr_reviewer", "lawos_admin", "lawos_hr"]);
+function currentDateKey(now = new Date()) {
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60 * 1000);
+  return local.toISOString().slice(0, 10);
+}
 const COMPATIBILITY_PEOPLE = Object.freeze([
   Object.freeze({
     employee_id: "emp-001",
@@ -78,6 +108,98 @@ const COMPATIBILITY_PEOPLE = Object.freeze([
     org_unit_id: "group_litigation",
   }),
 ]);
+const HRX_ORG_UNITS = Object.freeze([
+  Object.freeze({
+    org_unit_id: "org_legal",
+    label: "AMIC Law",
+    department: "Legal",
+    organization_group: "AMIC Law",
+    parent_org_unit_id: null,
+    display_order: 10,
+  }),
+  Object.freeze({
+    org_unit_id: "org_finance",
+    label: "PETRA BRIDGE PARTNERS",
+    department: "Finance",
+    organization_group: "PETRA BRIDGE PARTNERS",
+    parent_org_unit_id: null,
+    display_order: 20,
+  }),
+  Object.freeze({
+    org_unit_id: "org_staff",
+    label: "Staff",
+    department: "Staff",
+    organization_group: "Staff",
+    parent_org_unit_id: "org_legal",
+    display_order: 30,
+  }),
+  Object.freeze({
+    org_unit_id: "group_people_ops",
+    label: "People Operations",
+    department: "People",
+    organization_group: "People Operations",
+    parent_org_unit_id: null,
+    display_order: 40,
+  }),
+  Object.freeze({
+    org_unit_id: "group_litigation",
+    label: "Litigation",
+    department: "Legal",
+    organization_group: "AMIC Law",
+    parent_org_unit_id: "org_legal",
+    display_order: 50,
+  }),
+  Object.freeze({
+    org_unit_id: "group_matter_vault_users",
+    label: "Matter Vault",
+    department: "Operations",
+    organization_group: "Matter Vault",
+    parent_org_unit_id: null,
+    display_order: 60,
+  }),
+  Object.freeze({
+    org_unit_id: "group_firm_leadership",
+    label: "Firm Leadership",
+    department: "Management",
+    organization_group: "AMIC Law",
+    parent_org_unit_id: "org_legal",
+    display_order: 70,
+  }),
+  Object.freeze({
+    org_unit_id: "group_firm_operations",
+    label: "Firm Operations",
+    department: "Operations",
+    organization_group: "AMIC Law",
+    parent_org_unit_id: "org_legal",
+    display_order: 80,
+  }),
+  Object.freeze({
+    org_unit_id: "group_system_admins",
+    label: "System Admins",
+    department: "Admin",
+    organization_group: "Matter Vault",
+    parent_org_unit_id: "group_matter_vault_users",
+    display_order: 90,
+  }),
+  Object.freeze({
+    org_unit_id: "group_matter_vault_admins",
+    label: "Matter Vault Admins",
+    department: "Admin",
+    organization_group: "Matter Vault",
+    parent_org_unit_id: "group_matter_vault_users",
+    display_order: 100,
+  }),
+]);
+const HRX_ORG_UNIT_BY_ID = new Map(HRX_ORG_UNITS.map((unit) => [unit.org_unit_id, unit]));
+const REGISTERED_MANAGER_BY_EMPLOYEE_ID = Object.freeze({
+  emp_amic_wsjo: "emp_amic_ytkim",
+  emp_amic_sypark: "emp_amic_ytkim",
+  emp_amic_tryoon: "emp_amic_jwsuh",
+  emp_amic_yjlee: "emp_amic_tryoon",
+});
+const COMPATIBILITY_MANAGER_BY_EMPLOYEE_ID = Object.freeze({
+  "emp-002": "emp-001",
+});
 
 function accountEmployeeId(account) {
   return `emp_${String(account.user_id).replace(/^user_/, "")}`;
@@ -91,44 +213,52 @@ function employeeIdForRegisteredAccount(account) {
   return memberRosterForAccount(account)?.employee_id ?? accountEmployeeId(account);
 }
 
+function registeredRosterMembers() {
+  return MEMBER_ROSTER.map((member) => {
+    return {
+      member,
+      account: REGISTERED_ACCOUNTS.find((candidate) => candidate.user_id === member.user_id) ?? null,
+    };
+  });
+}
+
 function registeredEmployees(tenantId) {
-  return REGISTERED_ACCOUNTS.map((account) => {
-    const member = memberRosterForAccount(account);
+  return registeredRosterMembers().map(({ member, account }) => {
     return {
       tenant_id: tenantId,
-      employee_id: member?.employee_id ?? accountEmployeeId(account),
-      display_name: member?.display_name ?? account.display_name,
-      legal_name: member?.legal_name || member?.display_name || account.display_name,
-      work_email: member?.work_email ?? account.email,
-      status: member?.status ?? (account.status === "active" ? "active" : "inactive"),
-      source_ref: member?.source_ref ?? SEED_SOURCE_REF,
+      employee_id: member.employee_id,
+      display_name: member.display_name,
+      legal_name: member.legal_name || member.display_name,
+      work_email: member.work_email ?? account?.email,
+      status: member.status ?? (account?.status === "active" ? "active" : "inactive"),
+      source_ref: member.source_ref,
     };
   });
 }
 
 function registeredEmploymentProfiles(tenantId) {
-  return REGISTERED_ACCOUNTS.map((account) => {
-    const member = memberRosterForAccount(account);
+  return registeredRosterMembers().map(({ member, account }) => {
     return {
       tenant_id: tenantId,
-      profile_id: `profile_${account.user_id.replace(/^user_/, "")}`,
-      employee_id: member?.employee_id ?? accountEmployeeId(account),
-      employment_type: member?.employment_type ?? "full_time",
-      status: member?.profile_status ?? (account.status === "active" ? "active" : "terminated"),
-      title: member?.title ?? account.source_title ?? "구성원",
-      org_unit_id: member?.org_unit_id || account.group_ids?.[0] || "group_matter_vault_users",
+      profile_id: `profile_${member.user_id.replace(/^user_/, "")}`,
+      employee_id: member.employee_id,
+      employment_type: member.employment_type ?? "full_time",
+      status: member.profile_status ?? (account?.status === "active" ? "active" : "terminated"),
+      title: member.title ?? account?.source_title ?? "구성원",
+      org_unit_id: member.org_unit_id || account?.group_ids?.[0] || "group_matter_vault_users",
+      manager_employee_id: REGISTERED_MANAGER_BY_EMPLOYEE_ID[member.employee_id] ?? null,
       effective_from: "2026-06-22",
-      source_ref: member?.source_ref ?? SEED_SOURCE_REF,
+      source_ref: member.source_ref,
     };
   });
 }
 
 function registeredEmployeeUserLinks(tenantId) {
-  return REGISTERED_ACCOUNTS.map((account) => ({
+  return MEMBER_ROSTER.map((member) => ({
     tenant_id: tenantId,
-    link_id: `link_${account.user_id.replace(/^user_/, "")}`,
-    employee_id: employeeIdForRegisteredAccount(account),
-    user_id: account.user_id,
+    link_id: `link_${member.user_id.replace(/^user_/, "")}`,
+    employee_id: member.employee_id,
+    user_id: member.user_id,
     purpose: "login_mapping",
     source_ref: HRX_MEMBER_ROSTER_SOURCE_REF,
   }));
@@ -155,6 +285,7 @@ function compatibilityEmploymentProfiles(tenantId) {
     status: "active",
     title: person.title,
     org_unit_id: person.org_unit_id,
+    manager_employee_id: COMPATIBILITY_MANAGER_BY_EMPLOYEE_ID[person.employee_id] ?? null,
     effective_from: "2026-06-20",
     source_ref: COMPATIBILITY_SOURCE_REF,
   }));
@@ -195,28 +326,31 @@ function memberRosterForEmployee(employee) {
   );
 }
 
+function orgUnitForProfile(profile) {
+  return HRX_ORG_UNIT_BY_ID.get(String(profile?.org_unit_id ?? "")) ?? null;
+}
+
 function departmentForDirectoryRow(employee, profile, member) {
   if (member?.department) return member.department;
-  const title = String(profile?.title ?? "");
-  const orgUnitId = String(profile?.org_unit_id ?? "");
-  if (title.includes("변호사") || orgUnitId.includes("attorneys")) return "법무";
-  if (orgUnitId.includes("firm_operations")) return "운영";
-  if (orgUnitId.includes("firm_leadership")) return "경영";
-  if (orgUnitId.includes("system_admins") || orgUnitId.includes("matter_vault_admins")) return "관리";
-  return "Matter Vault";
+  return orgUnitForProfile(profile)?.department ?? "미등록";
 }
 
 function employeeRosterReadFields(employee, profile) {
   const member = memberRosterForEmployee(employee);
+  const orgUnit = orgUnitForProfile(profile);
   const department = departmentForDirectoryRow(employee, profile, member);
   return {
     title: profile?.title,
     employment_type: profile?.employment_type,
-    affiliation: member?.affiliation ?? "AMIC Law",
+    affiliation: member?.affiliation ?? orgUnit?.label ?? "AMIC Law",
     department,
-    organization_group: member?.organization_group ?? department,
+    organization_group: member?.organization_group ?? orgUnit?.organization_group ?? department,
     country: member?.country ?? "대한민국",
     source_ref: member?.source_ref ?? employee.source_ref,
+    employment_profile_id: profile?.profile_id ?? null,
+    org_unit_id: profile?.org_unit_id ?? member?.org_unit_id ?? null,
+    org_unit_label: orgUnit?.label ?? member?.organization_group ?? department,
+    manager_employee_id: profile?.manager_employee_id ?? null,
   };
 }
 
@@ -236,6 +370,295 @@ function employeeDirectoryRows(repository, tenantId) {
     .sort((left, right) => KOREAN_DISPLAY_NAME_COLLATOR.compare(left.display_name, right.display_name));
 }
 
+function currentEmploymentProfile(repository, tenantId, employeeId) {
+  return repository
+    .listEmploymentProfiles({ tenant_id: tenantId, employee_id: employeeId })
+    .find((profile) => profile.status !== "terminated") ?? null;
+}
+
+function safeHrxRuntimeError(status, safe_error_code, message) {
+  const error = new Error(message);
+  error.status = status;
+  error.safe_error_code = safe_error_code;
+  return error;
+}
+
+function normalizeOptionalId(value) {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  const text = String(value).trim();
+  return text ? text : null;
+}
+
+function orgUnitPayload(unit, memberCount = 0) {
+  return {
+    org_unit_id: unit.org_unit_id,
+    label: unit.label,
+    department: unit.department,
+    organization_group: unit.organization_group,
+    parent_org_unit_id: unit.parent_org_unit_id,
+    display_order: unit.display_order,
+    member_count: memberCount,
+  };
+}
+
+function organizationChangeEvents(audit, tenantId) {
+  return audit
+    .list({ tenant_id: tenantId })
+    .filter((event) => event.action === "hrx.organization.update")
+    .slice(-12)
+    .reverse()
+    .map(clone);
+}
+
+function buildHrxOrgChart(context, actorContext, { employeeIds = null } = {}) {
+  const tenantId = actorContext.tenant_id;
+  const allowedEmployeeIds = employeeIds ? new Set(employeeIds) : null;
+  const rows = employeeDirectoryRows(context.repository, tenantId).filter((employee) => employee.status === "active");
+  const visibleRows = allowedEmployeeIds ? rows.filter((employee) => allowedEmployeeIds.has(employee.employee_id)) : rows;
+  const visibleByEmployeeId = new Map(visibleRows.map((employee) => [employee.employee_id, employee]));
+  const directReportCounts = new Map();
+  for (const employee of visibleRows) {
+    if (!employee.manager_employee_id || !visibleByEmployeeId.has(employee.manager_employee_id)) continue;
+    directReportCounts.set(employee.manager_employee_id, (directReportCounts.get(employee.manager_employee_id) ?? 0) + 1);
+  }
+  const memberCountByOrgUnitId = new Map();
+  for (const employee of visibleRows) {
+    const orgUnitId = employee.org_unit_id ?? "unassigned";
+    memberCountByOrgUnitId.set(orgUnitId, (memberCountByOrgUnitId.get(orgUnitId) ?? 0) + 1);
+  }
+  const employees = visibleRows
+    .map((employee) => {
+      const manager = employee.manager_employee_id ? visibleByEmployeeId.get(employee.manager_employee_id) : null;
+      return {
+        employee_id: employee.employee_id,
+        display_name: employee.display_name,
+        title: employee.title ?? "구성원",
+        status: employee.status,
+        work_email: employee.work_email ?? null,
+        employment_profile_id: employee.employment_profile_id ?? null,
+        org_unit_id: employee.org_unit_id ?? null,
+        org_unit_label: employee.org_unit_label ?? "미등록",
+        department: employee.department ?? "미등록",
+        organization_group: employee.organization_group ?? employee.department ?? "미등록",
+        manager_employee_id: manager ? employee.manager_employee_id : null,
+        manager_display_name: manager?.display_name ?? null,
+        direct_report_count: directReportCounts.get(employee.employee_id) ?? 0,
+        reporting_line_state: employee.manager_employee_id ? (manager ? "assigned" : "manager_out_of_scope") : "top_level",
+        source_ref: employee.source_ref ?? null,
+      };
+    })
+    .sort((left, right) => {
+      const leftOrder = HRX_ORG_UNIT_BY_ID.get(left.org_unit_id)?.display_order ?? 999;
+      const rightOrder = HRX_ORG_UNIT_BY_ID.get(right.org_unit_id)?.display_order ?? 999;
+      return leftOrder - rightOrder || KOREAN_DISPLAY_NAME_COLLATOR.compare(left.display_name, right.display_name);
+    });
+  const employeeById = new Map(employees.map((employee) => [employee.employee_id, employee]));
+  const orgUnits = HRX_ORG_UNITS
+    .filter((unit) => memberCountByOrgUnitId.has(unit.org_unit_id))
+    .map((unit) => orgUnitPayload(unit, memberCountByOrgUnitId.get(unit.org_unit_id) ?? 0));
+  return {
+    outcome: "ok",
+    org_units: orgUnits,
+    employees,
+    reporting_lines: employees.map((employee) => ({
+      employee_id: employee.employee_id,
+      manager_employee_id: employee.manager_employee_id,
+      employee_display_name: employee.display_name,
+      manager_display_name: employee.manager_employee_id ? employeeById.get(employee.manager_employee_id)?.display_name ?? null : null,
+      state: employee.reporting_line_state,
+    })),
+    change_events: organizationChangeEvents(context.audit, tenantId),
+    generated_from: "hrx_employment_profiles",
+    claim_boundary: {
+      source_of_truth: "EmploymentProfile.org_unit_id + EmploymentProfile.manager_employee_id",
+      string_heuristics_used: false,
+      self_service_filtered: Boolean(allowedEmployeeIds),
+    },
+  };
+}
+
+function assertReportingLineAcyclic(repository, tenantId, employeeId, managerEmployeeId) {
+  if (!managerEmployeeId) return;
+  if (managerEmployeeId === employeeId) {
+    throw safeHrxRuntimeError(400, "HRX_ORG_MANAGER_SELF_REFERENCE", "manager_employee_id must not equal employee_id");
+  }
+  const profilesByEmployeeId = new Map(
+    repository.listEmploymentProfiles({ tenant_id: tenantId }).map((profile) => [profile.employee_id, profile]),
+  );
+  const currentProfile = profilesByEmployeeId.get(employeeId);
+  profilesByEmployeeId.set(employeeId, {
+    ...currentProfile,
+    employee_id: employeeId,
+    manager_employee_id: managerEmployeeId,
+  });
+  const visited = new Set();
+  let nextEmployeeId = managerEmployeeId;
+  while (nextEmployeeId) {
+    if (nextEmployeeId === employeeId) {
+      throw safeHrxRuntimeError(400, "HRX_ORG_REPORTING_LINE_CYCLE", "reporting line must not contain a cycle");
+    }
+    if (visited.has(nextEmployeeId)) {
+      throw safeHrxRuntimeError(400, "HRX_ORG_REPORTING_LINE_CYCLE", "reporting line must not contain a cycle");
+    }
+    visited.add(nextEmployeeId);
+    nextEmployeeId = profilesByEmployeeId.get(nextEmployeeId)?.manager_employee_id ?? null;
+  }
+}
+
+function updateHrxOrganizationAssignment(context, actorContext, employeeId, body = {}) {
+  const tenantId = actorContext.tenant_id;
+  const employee = context.repository.getEmployee({ tenant_id: tenantId, employee_id: employeeId });
+  if (!employee) throw safeHrxRuntimeError(404, "HRX_EMPLOYEE_NOT_FOUND", "Employee not found");
+  const currentProfile = currentEmploymentProfile(context.repository, tenantId, employeeId);
+  if (!currentProfile) throw safeHrxRuntimeError(404, "HRX_EMPLOYMENT_PROFILE_NOT_FOUND", "EmploymentProfile not found");
+  const orgUnitId = normalizeOptionalId(body.org_unit_id);
+  const managerEmployeeId = normalizeOptionalId(body.manager_employee_id);
+  const patch = {};
+  if (orgUnitId !== undefined) {
+    if (orgUnitId && !HRX_ORG_UNIT_BY_ID.has(orgUnitId)) {
+      throw safeHrxRuntimeError(400, "HRX_ORG_UNIT_NOT_FOUND", "org_unit_id must reference a canonical HRX org unit");
+    }
+    patch.org_unit_id = orgUnitId;
+  }
+  if (managerEmployeeId !== undefined) {
+    if (managerEmployeeId && !context.repository.getEmployee({ tenant_id: tenantId, employee_id: managerEmployeeId })) {
+      throw safeHrxRuntimeError(400, "HRX_ORG_MANAGER_NOT_FOUND", "manager_employee_id must reference an existing Employee");
+    }
+    assertReportingLineAcyclic(context.repository, tenantId, employeeId, managerEmployeeId);
+    patch.manager_employee_id = managerEmployeeId;
+  }
+  if (Object.keys(patch).length === 0) {
+    throw safeHrxRuntimeError(400, "HRX_ORG_ASSIGNMENT_EMPTY", "org_unit_id or manager_employee_id is required");
+  }
+  const updatedProfile = context.repository.updateEmploymentProfile(
+    { tenant_id: tenantId, profile_id: currentProfile.profile_id },
+    patch,
+  );
+  appendRuntimeAudit(context.audit, {
+    ...actorContext,
+    action: "hrx.organization.update",
+    object_type: "EmploymentProfile",
+    object_id: updatedProfile.profile_id,
+    reason: "organization_reporting_line_updated",
+    metadata: {
+      employee_id: employee.employee_id,
+      from_org_unit_id: currentProfile.org_unit_id ?? null,
+      to_org_unit_id: updatedProfile.org_unit_id ?? null,
+      from_manager_employee_id: currentProfile.manager_employee_id ?? null,
+      to_manager_employee_id: updatedProfile.manager_employee_id ?? null,
+    },
+  });
+  return updatedProfile;
+}
+
+function actorRoleSet(actorContext = {}) {
+  return new Set(
+    String(actorContext.actor_role ?? "")
+      .split(",")
+      .map((role) => role.trim())
+      .filter(Boolean),
+  );
+}
+
+function actorHasElevatedHrxRead(actorContext = {}) {
+  for (const role of actorRoleSet(actorContext)) {
+    if (HRX_ELEVATED_READ_ROLES.has(role)) return true;
+  }
+  return false;
+}
+
+function employeeIdsForActor(repository, tenantId, actorId) {
+  return new Set(
+    repository
+      .listEmployeeUserLinks({ tenant_id: tenantId, user_id: actorId })
+      .map((link) => link.employee_id)
+      .filter(Boolean),
+  );
+}
+
+function selfServiceReadGuard({ repository, actorContext, targetEmployeeId, emptyBody = {} }) {
+  if (actorHasElevatedHrxRead(actorContext)) return null;
+  const employeeIds = employeeIdsForActor(repository, actorContext.tenant_id, actorContext.actor_id);
+  const normalizedTarget = typeof targetEmployeeId === "string" ? targetEmployeeId.trim() : "";
+  if (normalizedTarget && employeeIds.has(normalizedTarget)) return null;
+  return response(403, {
+    outcome: "blocked",
+    safe_error_code: normalizedTarget ? "HRX_SELF_SERVICE_SCOPE_DENIED" : "HRX_SELF_SERVICE_EMPLOYEE_REQUIRED",
+    reason: normalizedTarget ? "hrx_self_service_target_not_owned" : "hrx_self_service_employee_id_required",
+    count_leak_prevented: true,
+    fail_closed: true,
+    ...emptyBody,
+    permission_summary: {
+      actor_id: actorContext.actor_id,
+      employee_ids: [...employeeIds],
+      elevated_hrx_read: false,
+    },
+  });
+}
+
+function latestMaskedCompensationRef(compensation, tenantId, employeeId) {
+  const latest = compensation.latest({ tenant_id: tenantId, employee_id: employeeId });
+  return latest?.encrypted_amount_ref ?? null;
+}
+
+function createAttendanceMonthlySummary(records = [], { month = null } = {}) {
+  const correctedAttendanceIds = new Set(records.map((record) => record.correction_of_attendance_id).filter(Boolean));
+  const effectiveRecords = records.filter((record) => !correctedAttendanceIds.has(record.attendance_id));
+  const byStatus = Object.fromEntries(HRX_ATTENDANCE_STATUSES.map((status) => [status, 0]));
+  let totalRecordedHours = 0;
+  for (const record of effectiveRecords) {
+    byStatus[record.status] = (byStatus[record.status] ?? 0) + 1;
+    if (typeof record.recorded_hours === "number") totalRecordedHours += record.recorded_hours;
+  }
+  return Object.freeze({
+    month,
+    record_count: records.length,
+    effective_record_count: effectiveRecords.length,
+    correction_count: records.filter((record) => record.correction_of_attendance_id).length,
+    total_recorded_hours: Number(totalRecordedHours.toFixed(2)),
+    by_status: Object.freeze(byStatus),
+  });
+}
+
+function runHrxDailyRiskScan(context, actorContext, input = {}) {
+  const tenantId = actorContext.tenant_id;
+  const asOf = input.as_of ?? currentDateKey();
+  const month = input.month ?? String(asOf).slice(0, 7);
+  const scan = createHrxRiskDailyScan({
+    tenant_id: tenantId,
+    as_of: asOf,
+    employees: context.repository.listEmployees({ tenant_id: tenantId }),
+    employment_profiles: context.repository.listEmploymentProfiles({ tenant_id: tenantId }),
+    documents: context.documents.list({ tenant_id: tenantId }),
+    leave_balance_entries: context.leaveLedger.list({ tenant_id: tenantId, policy_id: input.leave_policy_id ?? "pto-us" }),
+    statutory_trainings: context.statutoryTrainings.filter((training) => training.tenant_id === tenantId),
+    attendance_records: context.attendance.list({ tenant_id: tenantId, month }),
+    overtime_requests: context.overtime.list({ tenant_id: tenantId, month }),
+    offboarding_cases: context.offboardingCases.filter((item) => item.tenant_id === tenantId),
+    leave_policy_id: input.leave_policy_id ?? "pto-us",
+  });
+  const riskEvents = context.riskEvents.upsertMany(scan.risk_events);
+  const currentEvents = context.riskEvents.list({ tenant_id: tenantId });
+  appendRuntimeAudit(context.audit, {
+    ...actorContext,
+    action: "hrx.risk.scan",
+    object_type: "HRXRiskEvent",
+    object_id: scan.scan_ref,
+    reason: "hrx_daily_legal_risk_scan_completed",
+    metadata: {
+      as_of: scan.as_of,
+      event_count: riskEvents.length,
+      legal_type_count: scan.dashboard.legal_type_count,
+    },
+  });
+  return Object.freeze({
+    ...scan,
+    risk_events: riskEvents,
+    dashboard: createHrxRiskDashboard(currentEvents),
+  });
+}
+
 function seedEmployeeId(tenantId, index) {
   const employees = seedEmployees(tenantId);
   return employees[index]?.employee_id ?? employees[0]?.employee_id ?? `emp-${String(index + 1).padStart(3, "0")}`;
@@ -251,6 +674,26 @@ function resolveSeedTenantIds({ tenant_id, tenant_ids } = {}) {
 }
 
 function documentSeed(tenantId) {
+  const contractCoverage = seedEmployees(tenantId).slice(2).map((employee, index) => ({
+    tenant_id: tenantId,
+    document_id: `doc-contract-${String(index + 4).padStart(3, "0")}`,
+    employee_id: employee.employee_id,
+    document_type: "employment_contract",
+    source_ref: `DMS:employment-contract-${employee.employee_id}`,
+    source_provider: "dms",
+    source_status: "verified",
+    source_verified_at: "2026-06-20T00:00:00.000Z",
+    source_version_ref: `DMS:employment-contract-${employee.employee_id}:v1`,
+    source_metadata: { provider_document_id: `employment-contract-${employee.employee_id}`, etag_present: true },
+    title: "근로계약서",
+    contract_id: `contract-${employee.employee_id}`,
+    profile_id: `profile:${employee.employee_id}`,
+    contract_state: "signed",
+    document_ref: `DMS:employment-contract-${employee.employee_id}`,
+    signature_ref: `DMS:employment-contract-${employee.employee_id}:signed`,
+    signed_at: "2026-06-20T00:00:00.000Z",
+    expires_on: "2027-06-20",
+  }));
   return [
     {
       tenant_id: tenantId,
@@ -277,6 +720,43 @@ function documentSeed(tenantId) {
       source_version_ref: "DMS:leave-notice-002:v1",
       source_metadata: { provider_document_id: "leave-notice-002", etag_present: true },
       title: "Leave notice",
+    },
+    {
+      tenant_id: tenantId,
+      document_id: "doc-003",
+      employee_id: seedEmployeeId(tenantId, 0),
+      document_type: "employment_contract",
+      source_ref: "DMS:employment-contract-003",
+      source_provider: "dms",
+      source_status: "verified",
+      source_verified_at: "2026-06-20T00:00:00.000Z",
+      source_version_ref: "DMS:employment-contract-003:v1",
+      source_metadata: { provider_document_id: "employment-contract-003", etag_present: true },
+      title: "근로계약서",
+      contract_id: "contract-doc-003",
+      profile_id: `profile:${seedEmployeeId(tenantId, 0)}`,
+      contract_state: "signed",
+      document_ref: "DMS:employment-contract-003",
+      signature_ref: "DMS:employment-contract-003:signed",
+      signed_at: "2026-06-20T00:00:00.000Z",
+      expires_on: "2026-07-20",
+    },
+    ...contractCoverage,
+  ];
+}
+
+function compensationSeed(tenantId) {
+  return [
+    {
+      tenant_id: tenantId,
+      compensation_id: "comp-001",
+      employee_id: seedEmployeeId(tenantId, 0),
+      encrypted_amount_ref: `local-kms://hrx/${tenantId}/${seedEmployeeId(tenantId, 0)}/comp-001`,
+      currency_ref: "Currency:KRW",
+      effective_from: "2026-06-20",
+      source_ref: `HRDoc:${seedEmployeeId(tenantId, 0)}:compensation-record`,
+      employment_contract_id: "contract-doc-003",
+      contract_document_ref: "DMS:employment-contract-003",
     },
   ];
 }
@@ -321,6 +801,62 @@ function leaveRequestSeed(tenantId) {
       approver_id: "manager-001",
       decided_at: "2026-06-10T00:00:00.000Z",
     },
+    {
+      tenant_id: tenantId,
+      request_id: "leave-003",
+      employee_id: seedEmployeeId(tenantId, 0),
+      policy_id: "pto-us",
+      leave_type: "pto",
+      amount: 8,
+      start_date: "2026-07-08",
+      end_date: "2026-07-08",
+      state: "submitted",
+    },
+    {
+      tenant_id: tenantId,
+      request_id: "leave-004",
+      employee_id: seedEmployeeId(tenantId, 0),
+      policy_id: "pto-us",
+      leave_type: "pto",
+      amount: 4,
+      start_date: "2026-07-15",
+      end_date: "2026-07-15",
+      state: "submitted",
+    },
+  ];
+}
+
+function attendanceSeed(tenantId) {
+  return [
+    {
+      tenant_id: tenantId,
+      attendance_id: "att-seed-001",
+      employee_id: seedEmployeeId(tenantId, 0),
+      work_date: "2026-07-01",
+      status: "present",
+      recorded_hours: 8,
+      clock_in_at: "2026-07-01T00:00:00.000Z",
+      clock_out_at: "2026-07-01T09:00:00.000Z",
+      source_ref: "TimeClock:seed:att-seed-001",
+    },
+    {
+      tenant_id: tenantId,
+      attendance_id: "att-seed-002",
+      employee_id: seedEmployeeId(tenantId, 1),
+      work_date: "2026-07-01",
+      status: "remote",
+      recorded_hours: 7.5,
+      source_ref: "TimeClock:seed:att-seed-002",
+    },
+    ...["2026-07-06", "2026-07-07", "2026-07-08", "2026-07-09", "2026-07-10"].map((workDate, index) => ({
+      tenant_id: tenantId,
+      attendance_id: `att-d15-overtime-${index + 1}`,
+      employee_id: seedEmployeeId(tenantId, 2),
+      work_date: workDate,
+      status: "present",
+      recorded_hours: index === 4 ? 8 : 12,
+      source_ref: `TimeClock:seed:d15-overtime:${workDate}`,
+    })),
   ];
 }
 
@@ -331,6 +867,25 @@ function approvalSeed(tenantId) {
       approval_id: "approval-leave-002",
       object_type: "LeaveRequest",
       object_id: "leave-002",
+      route: "manager",
+      approver_role: "manager",
+      state: "approved",
+      decided_by: "manager-001",
+      decision_reason: "seed_approved_leave_request",
+    }),
+    createApprovalRequest({
+      tenant_id: tenantId,
+      approval_id: "approval-leave-003",
+      object_type: "LeaveRequest",
+      object_id: "leave-003",
+      route: "manager",
+      approver_role: "manager",
+    }),
+    createApprovalRequest({
+      tenant_id: tenantId,
+      approval_id: "approval-leave-004",
+      object_type: "LeaveRequest",
+      object_id: "leave-004",
       route: "manager",
       approver_role: "manager",
     }),
@@ -439,11 +994,68 @@ function offboardingSeed(tenantId) {
       offboarding_id: "off-001",
       employee_id: seedEmployeeId(tenantId, 0),
       separation_date: "2026-12-31",
-      access_revocations: [{ system_ref: "IdP:core", revoked: true }],
+      access_revocations: [{ system_ref: "IdP:core", revoked: true, confirmation_ref: "LX-11:AccessRevocation:off-001:idp-core" }],
       document_returns: [{ document_ref: "DMS:laptop-001", returned: true }],
       legal_hold_checks: [{ hold_ref: "LegalHold:none", clear: true }],
+      matter_reassignments: [
+        {
+          matter_id: "matter_rp05_synthetic_opening",
+          reassigned_to_employee_id: seedEmployeeId(tenantId, 1),
+          reassigned: true,
+          handover_ref: "MatterHandover:off-001:matter_rp05_synthetic_opening",
+        },
+      ],
+      handover_items: [
+        {
+          item_id: "handover-matter-files",
+          title: "담당 Matter 인수인계",
+          completed: true,
+          evidence_ref: "MatterHandover:off-001:matter_rp05_synthetic_opening",
+        },
+      ],
+    }),
+    createOffboardingCase({
+      tenant_id: tenantId,
+      offboarding_id: "off-002",
+      employee_id: seedEmployeeId(tenantId, 3),
+      separation_date: "2026-07-01",
+      access_revocations: [{ system_ref: "IdP:core", revoked: false }],
+      document_returns: [{ document_ref: "DMS:laptop-002", returned: true }],
+      legal_hold_checks: [{ hold_ref: "LegalHold:none", clear: true }],
+      matter_reassignments: [
+        {
+          matter_id: "matter_d15_access_review",
+          reassigned_to_employee_id: seedEmployeeId(tenantId, 1),
+          reassigned: true,
+          handover_ref: "MatterHandover:off-002:matter_d15_access_review",
+        },
+      ],
+      handover_items: [
+        {
+          item_id: "handover-access-review",
+          title: "권한 회수 확인",
+          completed: true,
+          evidence_ref: "MatterHandover:off-002:access-review",
+        },
+      ],
     }),
   ];
+}
+
+function statutoryTrainingSeed(tenantId) {
+  const missingEmployeeId = seedEmployeeId(tenantId, 1);
+  return seedEmployees(tenantId)
+    .filter((employee) => employee.employee_id !== missingEmployeeId)
+    .map((employee) => Object.freeze({
+      tenant_id: tenantId,
+      training_id: `training-statutory-${employee.employee_id}`,
+      employee_id: employee.employee_id,
+      training_type: "statutory_labor",
+      status: "completed",
+      completed_on: "2026-06-30",
+      expires_on: "2026-12-31",
+      source_ref: `TrainingRecord:statutory_labor:${employee.employee_id}:2026`,
+    }));
 }
 
 function policySeed(tenantId) {
@@ -480,8 +1092,15 @@ function aiSourceSeed(tenantId) {
       tenant_id: tenantId,
       source_ref: "Policy:leave:2026",
       source_type: "policy_document",
-      title: "Leave policy metadata",
-      tags: ["leave", "policy", "pto"],
+      title: "연차휴가 사규 2026",
+      tags: ["leave", "policy", "pto", "연차", "사규"],
+    },
+    {
+      tenant_id: tenantId,
+      source_ref: "Policy:employment-rules:2026",
+      source_type: "policy_document",
+      title: "취업규칙 2026",
+      tags: ["employment", "rules", "취업규칙", "근로시간", "법정교육"],
     },
     {
       tenant_id: tenantId,
@@ -492,12 +1111,41 @@ function aiSourceSeed(tenantId) {
     },
     {
       tenant_id: tenantId,
-      source_ref: `HRDoc:${seedEmployeeId(tenantId, 0)}:salary`,
+      source_ref: `HRDoc:${seedEmployeeId(tenantId, 0)}:compensation-record`,
       source_type: "hr_document",
       title: "Compensation source metadata",
-      tags: ["pay", "salary"],
+      tags: ["pay", "compensation"],
       sensitivity: "compensation",
     },
+  ];
+}
+
+function aiSourceChunkSeed(tenantId) {
+  return [
+    ...ingestHrxAiSourceChunks({
+      tenant_id: tenantId,
+      source_ref: "Policy:leave:2026",
+      source_type: "policy_document",
+      chunks: [
+        {
+          chunk_id: "leave-policy-annual-promotion",
+          text: "연차휴가 사규는 사용 가능한 연차와 연차촉진 통지 절차를 인사 담당자가 확인하도록 정한다.",
+          metadata: { section_ref: "leave.annual.promotion" },
+        },
+      ],
+    }),
+    ...ingestHrxAiSourceChunks({
+      tenant_id: tenantId,
+      source_ref: "Policy:employment-rules:2026",
+      source_type: "policy_document",
+      chunks: [
+        {
+          chunk_id: "employment-rules-working-time",
+          text: "취업규칙은 근로시간 초과근로 법정교육 근로계약 관리 기준을 포함한다.",
+          metadata: { section_ref: "employment.rules.working-time" },
+        },
+      ],
+    }),
   ];
 }
 
@@ -521,6 +1169,73 @@ function matterAssignmentSeed(tenantId) {
   ];
 }
 
+function matterTimeEntrySeed(tenantId) {
+  return [
+    Object.freeze({
+      tenant_id: tenantId,
+      time_entry_id: "hrx-time-entry-001",
+      employee_id: seedEmployeeId(tenantId, 0),
+      actor_id: seedEmployeeId(tenantId, 0),
+      matter_id: "matter-001",
+      role_id: "attorney",
+      work_date: "2026-07-01",
+      duration_minutes: 210,
+      billable: true,
+      narrative: "Opening strategy session",
+      model_type: "TimeEntry",
+    }),
+    Object.freeze({
+      tenant_id: tenantId,
+      time_entry_id: "hrx-time-entry-002",
+      employee_id: seedEmployeeId(tenantId, 0),
+      actor_id: seedEmployeeId(tenantId, 0),
+      matter_id: "matter-002",
+      role_id: "attorney",
+      work_date: "2026-07-02",
+      duration_minutes: 75,
+      billable: false,
+      narrative: "Internal staffing review",
+      model_type: "TimeEntry",
+    }),
+    Object.freeze({
+      tenant_id: tenantId,
+      time_entry_id: "hrx-time-entry-003",
+      employee_id: seedEmployeeId(tenantId, 1),
+      actor_id: seedEmployeeId(tenantId, 1),
+      matter_id: "matter-002",
+      role_id: "staff",
+      work_date: "2026-07-03",
+      duration_minutes: 120,
+      billable: true,
+      narrative: "Document chronology",
+      model_type: "TimeEntry",
+    }),
+  ];
+}
+
+function matterDeadlineSeed(tenantId) {
+  return [
+    Object.freeze({
+      tenant_id: tenantId,
+      deadline_id: "deadline-hrx-workload-001",
+      employee_id: seedEmployeeId(tenantId, 0),
+      matter_id: "matter-001",
+      due_date: "2026-07-15",
+      deadline_type: "filing",
+      source_ref: "MatterDeadline:deadline-hrx-workload-001",
+    }),
+    Object.freeze({
+      tenant_id: tenantId,
+      deadline_id: "deadline-hrx-workload-002",
+      employee_id: seedEmployeeId(tenantId, 1),
+      matter_id: "matter-002",
+      due_date: "2026-07-09",
+      deadline_type: "client_update",
+      source_ref: "MatterDeadline:deadline-hrx-workload-002",
+    }),
+  ];
+}
+
 function legalPeopleRuntimeSeed(tenantIds) {
   const seeds = tenantIds.map((tenantId) => createLegalPeopleApiSeed(tenantId));
   return Object.freeze({
@@ -533,6 +1248,13 @@ function legalPeopleRuntimeSeed(tenantIds) {
       conflict_references: seeds.flatMap((seed) => seed.relationshipSeed.conflict_references),
       ethical_wall_references: seeds.flatMap((seed) => seed.relationshipSeed.ethical_wall_references),
     }),
+  });
+}
+
+function matterPeopleDocumentGraphRuntimeSeed(tenantIds) {
+  return Object.freeze({
+    nodes: tenantIds.flatMap((tenantId) => createMatterPeopleDocumentGraphSeed(tenantId).nodes),
+    relationships: tenantIds.flatMap((tenantId) => createMatterPeopleDocumentGraphSeed(tenantId).relationships),
   });
 }
 
@@ -701,11 +1423,14 @@ function requireTrustedRequestContext(requestContext = {}) {
     tenant_id: tenantId,
     actor_id: actorId,
     actor_role: typeof requestContext.actor_role === "string" && requestContext.actor_role.trim() ? requestContext.actor_role.trim() : "unknown",
+    hrx_scopes: Object.freeze(Array.isArray(requestContext.hrx_scopes) ? requestContext.hrx_scopes : []),
+    session_bound: requestContext.session_bound === true,
   });
 }
 
 function safeError(error) {
-  return response(400, {
+  const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 600 ? error.status : 400;
+  return response(status, {
     request_id: "hrx_request_error",
     outcome: "blocked",
     safe_error_code: error.safe_error_code ?? "HRX_API_VALIDATION_ERROR",
@@ -732,13 +1457,86 @@ function appendRuntimeAudit(audit, { tenant_id, actor_id, action, object_type, o
   });
 }
 
-function createSyntheticAiAuthz() {
+function employmentProfileIdForEmployee(repository, tenantId, employeeId) {
+  return repository.listEmploymentProfiles({ tenant_id: tenantId, employee_id: employeeId })[0]?.profile_id ?? `profile:${employeeId}`;
+}
+
+function documentAuditMetadata(document) {
+  return {
+    employee_id: document.employee_id,
+    document_type: document.document_type,
+    source_ref: document.source_ref,
+    contract_state: document.contract_state ?? null,
+    signature_ref: document.signature_ref ?? null,
+    expires_on: document.expires_on ?? null,
+  };
+}
+
+function requireRecruitingRecord(collection, tenantId, key, id, safeErrorCode) {
+  const row = collection.find((item) => item.tenant_id === tenantId && item[key] === id);
+  if (!row) {
+    const error = new Error(`${key} not found: ${id}`);
+    error.status = 404;
+    error.safe_error_code = safeErrorCode;
+    throw error;
+  }
+  return row;
+}
+
+function createEmployeeThroughRepository(context, actorContext, body = {}) {
+  const employee = context.repository.createEmployee({
+    status: "onboarding",
+    source_ref: "HRX:api:employee-registration",
+    ...body,
+    tenant_id: actorContext.tenant_id,
+  });
+  appendRuntimeAudit(context.audit, {
+    ...actorContext,
+    action: "hrx.employee.create",
+    object_type: "Employee",
+    object_id: employee.employee_id,
+    reason: "employee_registered_through_api",
+    metadata: { status: employee.status },
+  });
+  return employee;
+}
+
+function updateEmployeeThroughRepository(context, actorContext, employeeId, body = {}) {
+  const current = context.repository.getEmployee({ tenant_id: actorContext.tenant_id, employee_id: employeeId });
+  if (!current) return null;
+  const next = transitionEmployee(current, body);
+  const employee = context.repository.updateEmployee(
+    { tenant_id: actorContext.tenant_id, employee_id: employeeId },
+    next,
+  );
+  appendRuntimeAudit(context.audit, {
+    ...actorContext,
+    action: "hrx.employee.update",
+    object_type: "Employee",
+    object_id: employee.employee_id,
+    reason: "employee_updated_through_api",
+    metadata: {
+      from_status: current.status,
+      to_status: employee.status,
+    },
+  });
+  return employee;
+}
+
+function createScopedAiSourceAuthz() {
   return Object.freeze({
     async evaluate(request = {}) {
-      if (request.resource?.sensitivity === "compensation") {
-        return Object.freeze({ effect: "deny", reason: "hrx_compensation_ai_source_scope_required" });
+      const scopes = new Set(Array.isArray(request.actor_scopes) ? request.actor_scopes : []);
+      const sensitivity = request.resource?.sensitivity ?? "document";
+      const requiredScope = sensitivity === "compensation"
+        ? "hrx.compensation.read"
+        : sensitivity === "employee"
+          ? "hrx.employee.read"
+          : "hrx.document.read";
+      if (!scopes.has(requiredScope)) {
+        return Object.freeze({ effect: "deny", reason: `${requiredScope}_required_for_ai_source` });
       }
-      return Object.freeze({ effect: "allow", reason: "hrx_ai_synthetic_allow" });
+      return Object.freeze({ effect: "allow", reason: "hrx_ai_actor_scope_allow" });
     },
   });
 }
@@ -793,8 +1591,10 @@ function reconcileSeedEmploymentProfile(repository, profile) {
 function seedHrxDurableRuntimeTenant(store, tenantId) {
   const repository = createSqlHrxRepository({ store, clock: () => "2026-06-20T00:00:00.000Z" });
   const documents = createSqlHrxDocumentStore({ store });
+  const compensation = createSqlCompensationRecordStore({ store });
   const leaveLedger = createSqlLeaveBalanceLedger({ store });
   const leaveStore = createSqlLeaveRequestStore({ store });
+  const attendance = createSqlAttendanceStore({ store });
 
   const employees = seedEmployees(tenantId);
   const employeeResults = { created: 0, reconciled: 0 };
@@ -826,6 +1626,13 @@ function seedHrxDurableRuntimeTenant(store, tenantId) {
     }
   }
 
+  const compensationRows = compensationSeed(tenantId);
+  for (const record of compensationRows) {
+    if (!hasRow(store, "hrx_compensation_records", { tenant_id: record.tenant_id, compensation_id: record.compensation_id })) {
+      compensation.create(record);
+    }
+  }
+
   const ledgerEntries = leaveLedgerSeed(tenantId);
   for (const entry of ledgerEntries) {
     if (!hasRow(store, "hrx_leave_balance_entries", { tenant_id: entry.tenant_id, entry_id: entry.entry_id })) {
@@ -840,6 +1647,13 @@ function seedHrxDurableRuntimeTenant(store, tenantId) {
     }
   }
 
+  const attendanceRows = attendanceSeed(tenantId);
+  for (const record of attendanceRows) {
+    if (!hasRow(store, "hrx_attendance_records", { tenant_id: record.tenant_id, attendance_id: record.attendance_id })) {
+      attendance.write(record);
+    }
+  }
+
   return Object.freeze({
     tenant_id: tenantId,
     employees: employees.length,
@@ -850,8 +1664,10 @@ function seedHrxDurableRuntimeTenant(store, tenantId) {
     employment_profiles_reconciled: profileResults.reconciled,
     employee_user_links: links.length,
     documents: documentRows.length,
+    compensation_records: compensationRows.length,
     leave_balance_entries: ledgerEntries.length,
     leave_requests: leaveRequests.length,
+    attendance_records: attendanceRows.length,
   });
 }
 
@@ -866,12 +1682,14 @@ export function seedHrxDurableRuntimeStore(store, options = {}) {
     employment_profiles: summaries.reduce((total, summary) => total + summary.employment_profiles, 0),
     employee_user_links: summaries.reduce((total, summary) => total + summary.employee_user_links, 0),
     documents: summaries.reduce((total, summary) => total + summary.documents, 0),
+    compensation_records: summaries.reduce((total, summary) => total + summary.compensation_records, 0),
     leave_balance_entries: summaries.reduce((total, summary) => total + summary.leave_balance_entries, 0),
     leave_requests: summaries.reduce((total, summary) => total + summary.leave_requests, 0),
+    attendance_records: summaries.reduce((total, summary) => total + summary.attendance_records, 0),
   });
 }
 
-export function createHrxRuntimeContext({ repository: providedRepository, store } = {}) {
+export function createHrxRuntimeContext({ repository: providedRepository, store, matterTimeEntries, matterDeadlines, modelGateway } = {}) {
   const seedTenantIds = HRX_DEFAULT_SEED_TENANT_IDS;
   const repository = providedRepository ?? (store ? createSqlHrxRepository({ store }) : createInMemoryHrxRepository({
     employees: seedTenantIds.flatMap(seedEmployees),
@@ -881,31 +1699,46 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
   const documents = store
     ? createSqlHrxDocumentStore({ store })
     : createInMemoryHrxDocumentStore(seedTenantIds.flatMap(documentSeed));
+  const compensation = store
+    ? createSqlCompensationRecordStore({ store })
+    : createInMemoryCompensationRecordStore(seedTenantIds.flatMap(compensationSeed));
   const leaveLedger = store
     ? createSqlLeaveBalanceLedger({ store })
     : createInMemoryLeaveBalanceLedger(seedTenantIds.flatMap(leaveLedgerSeed));
   const leaveStore = store
     ? createSqlLeaveRequestStore({ store })
     : createInMemoryLeaveRequestStore(seedTenantIds.flatMap(leaveRequestSeed));
+  const attendance = store
+    ? createSqlAttendanceStore({ store })
+    : createInMemoryAttendanceStore(seedTenantIds.flatMap(attendanceSeed));
+  const overtime = store ? createSqlOvertimeStore({ store }) : createInMemoryOvertimeStore();
+  const riskEvents = createInMemoryHrxRiskEventStore();
   const audit = store ? createDurableAuditStore({ store }) : createHrxAuditEventStore();
   const leaveService = createLeaveRequestService({ store: leaveStore, balanceLedger: leaveLedger, audit });
 
   const approvals = seedTenantIds.flatMap(approvalSeed);
   const jobOpenings = seedTenantIds.flatMap(jobOpeningSeed);
   const candidates = seedTenantIds.flatMap(candidateSeed);
+  const candidateConsents = [];
   const applications = seedTenantIds.flatMap(applicationSeed);
   const interviews = seedTenantIds.flatMap(interviewSeed);
   const offers = seedTenantIds.flatMap(offerSeed);
   const onboardingPlans = seedTenantIds.flatMap(onboardingSeed);
   const offboardingCases = seedTenantIds.flatMap(offboardingSeed);
+  const statutoryTrainings = seedTenantIds.flatMap(statutoryTrainingSeed);
   const policies = seedTenantIds.flatMap(policySeed);
   const aiSourceRegistry = createHrxAiSourceRegistry(seedTenantIds.flatMap(aiSourceSeed));
-  const aiRetriever = createHrxPermissionAwareRetriever({ registry: aiSourceRegistry, authz: createSyntheticAiAuthz() });
+  const aiSourceChunks = createInMemoryHrxAiSourceChunkIndex(seedTenantIds.flatMap(aiSourceChunkSeed));
+  const aiRetriever = createHrxPermissionAwareRetriever({ registry: aiSourceRegistry, authz: createScopedAiSourceAuthz(), chunkIndex: aiSourceChunks });
   const aiReviewQueue = store ? createSqlHrxAiReviewQueue({ store }) : createInMemoryHrxAiReviewQueue();
-  const aiRoute = createHrxAiRoute({ retriever: aiRetriever, reviewQueue: aiReviewQueue, audit });
+  const resolvedModelGateway = modelGateway ?? createHrxModelGatewayFromEnv();
+  const aiRoute = createHrxAiRoute({ retriever: aiRetriever, reviewQueue: aiReviewQueue, audit, modelGateway: resolvedModelGateway });
   const payrollRoute = createHrxPayrollRoute({ audit });
   const matterAssignments = Object.freeze(seedTenantIds.flatMap(matterAssignmentSeed));
+  const matterTimeEntryRows = Object.freeze(matterTimeEntries ?? seedTenantIds.flatMap(matterTimeEntrySeed));
+  const matterDeadlineRows = Object.freeze(matterDeadlines ?? seedTenantIds.flatMap(matterDeadlineSeed));
   const legalPeopleReadModel = createLegalPeopleReadModel({ seed: legalPeopleRuntimeSeed(seedTenantIds) });
+  const matterPeopleDocumentGraph = createMatterPeopleDocumentGraphTable(matterPeopleDocumentGraphRuntimeSeed(seedTenantIds));
   const legalPeopleEthicsReadModel = createLegalPeopleEthicsReadModel({
     seed: Object.freeze({
       review_queue: seedTenantIds.flatMap((tenantId) => createLegalPeopleEthicsSeed(tenantId).review_queue),
@@ -929,26 +1762,37 @@ export function createHrxRuntimeContext({ repository: providedRepository, store 
   return Object.freeze({
     repository,
     documents,
+    compensation,
     leaveLedger,
     leaveStore,
     leaveService,
+    attendance,
+    overtime,
+    riskEvents,
     audit,
     approvals,
     applications,
     candidates,
+    candidateConsents,
     interviews,
     offers,
     onboardingPlans,
     offboardingCases,
+    statutoryTrainings,
     jobOpenings,
     policies,
     aiSourceRegistry,
+    aiSourceChunks,
     aiRetriever,
     aiReviewQueue,
+    modelGateway: resolvedModelGateway,
     aiRoute,
     payrollRoute,
     matterAssignments,
+    matterTimeEntries: matterTimeEntryRows,
+    matterDeadlines: matterDeadlineRows,
     legalPeopleReadModel,
+    matterPeopleDocumentGraph,
     legalPeopleEthicsReadModel,
   });
 }
@@ -961,7 +1805,31 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
     if (pathname === "/api/hrx/employees" && method === "GET") {
       const guarded = employeeGuardResponse({ permissionContext, actorContext });
       if (guarded) return guarded;
-      return response(200, { outcome: "ok", employees: employeeDirectoryRows(context.repository, tenantId) });
+      const rows = employeeDirectoryRows(context.repository, tenantId);
+      if (actorHasElevatedHrxRead(actorContext)) return response(200, { outcome: "ok", employees: rows });
+      const employeeIds = employeeIdsForActor(context.repository, tenantId, actorContext.actor_id);
+      return response(200, {
+        outcome: "ok",
+        employees: rows.filter((employee) => employeeIds.has(employee.employee_id)),
+        permission_summary: {
+          actor_id: actorContext.actor_id,
+          self_service_filtered: true,
+          count_leak_prevented: true,
+        },
+      });
+    }
+
+    if (pathname === "/api/hrx/org-chart" && method === "GET") {
+      const guarded = employeeGuardResponse({ permissionContext, actorContext });
+      if (guarded) return guarded;
+      if (actorHasElevatedHrxRead(actorContext)) return response(200, buildHrxOrgChart(context, actorContext));
+      const employeeIds = employeeIdsForActor(context.repository, tenantId, actorContext.actor_id);
+      return response(200, buildHrxOrgChart(context, actorContext, { employeeIds }));
+    }
+
+    if (pathname === "/api/hrx/employees" && method === "POST") {
+      const employee = createEmployeeThroughRepository(context, actorContext, body);
+      return response(201, { outcome: "created", employee });
     }
 
     if (pathname === "/api/hrx/employee-user-links" && method === "GET") {
@@ -1060,6 +1928,41 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       return response(200, result);
     }
 
+    if (pathname === "/api/hrx/legal-people/matter-graph/traverse" && method === "GET") {
+      const guarded = legalPeopleGuardResponse({
+        permissionContext,
+        actorContext,
+        action: "hrx.legal_people.graph.read",
+        resourceId: query.matter_id ?? query.start_id ?? "matter-graph",
+        shape: "relationships",
+      });
+      if (guarded) return guarded;
+      const legalPermissionContext = createLegalPeoplePermissionContext(actorContext);
+      const result = context.matterPeopleDocumentGraph.traverse(
+        {
+          tenant_id: tenantId,
+          start_type: query.start_type ?? "matter",
+          start_id: query.start_id ?? query.matter_id,
+          depth: query.depth ?? 2,
+        },
+        legalPermissionContext,
+      );
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.legal_people.graph.read",
+        object_type: "MatterPeopleDocumentGraph",
+        object_id: query.matter_id ?? query.start_id ?? "matter-graph",
+        reason: "matter_people_document_graph_traversed",
+        metadata: {
+          node_count: result.nodes.length,
+          relationship_count: result.relationships.length,
+          path_count: result.traversal_paths.length,
+          sensitive_fields_visible: legalPermissionContext.can_view_sensitive_relationship_details,
+        },
+      });
+      return response(result.outcome === "ok" ? 200 : 404, result);
+    }
+
     if (pathname === "/api/hrx/legal-people/ethics" && method === "GET") {
       const guarded = legalPeopleGuardResponse({
         permissionContext,
@@ -1114,9 +2017,34 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       return response(200, result);
     }
 
+    const orgChartEmployeeMatch = pathname.match(/^\/api\/hrx\/org-chart\/employees\/([^/]+)$/);
+    if (orgChartEmployeeMatch && method === "PATCH") {
+      const employeeId = decodeURIComponent(orgChartEmployeeMatch[1]);
+      const employmentProfile = updateHrxOrganizationAssignment(context, actorContext, employeeId, body);
+      return response(200, {
+        outcome: "updated",
+        employment_profile: employmentProfile,
+        org_chart: buildHrxOrgChart(context, actorContext),
+      });
+    }
+
     const employeeMatch = pathname.match(/^\/api\/hrx\/employees\/([^/]+)$/);
+    if (employeeMatch && method === "PATCH") {
+      const employeeId = decodeURIComponent(employeeMatch[1]);
+      const employee = updateEmployeeThroughRepository(context, actorContext, employeeId, body);
+      if (!employee) return response(404, { outcome: "not_found", safe_error_code: "HRX_EMPLOYEE_NOT_FOUND" });
+      return response(200, { outcome: "updated", employee });
+    }
+
     if (employeeMatch && method === "GET") {
       const employeeId = decodeURIComponent(employeeMatch[1]);
+      const selfGuard = selfServiceReadGuard({
+        repository: context.repository,
+        actorContext,
+        targetEmployeeId: employeeId,
+        emptyBody: { employee: null, employment_profile: null, masked_compensation_ref: null },
+      });
+      if (selfGuard) return selfGuard;
       const employee = context.repository.getEmployee({ tenant_id: tenantId, employee_id: employeeId });
       if (!employee) return response(404, { outcome: "not_found", safe_error_code: "HRX_EMPLOYEE_NOT_FOUND" });
       const [employmentProfile] = context.repository.listEmploymentProfiles({ tenant_id: tenantId, employee_id: employeeId });
@@ -1127,8 +2055,99 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
           ...employeeRosterReadFields(employee, employmentProfile),
         },
         employment_profile: employmentProfile ?? null,
-        masked_compensation_ref: null,
+        masked_compensation_ref: latestMaskedCompensationRef(context.compensation, tenantId, employeeId),
       });
+    }
+
+    if (pathname === "/api/hrx/compensation" && method === "GET") {
+      const employeeId = query.employee_id;
+      const guarded = hrxReadGuardResponse({
+        permissionContext,
+        actorContext,
+        action: "hrx.compensation.read",
+        resourceType: "CompensationRecord",
+        resourceId: employeeId ?? "compensation",
+        schemaVersion: "lawos.hrx.compensation.guarded_response.v0.1",
+        deniedCode: "HRX_COMPENSATION_ACCESS_DENIED",
+        reviewCode: "HRX_COMPENSATION_REVIEW_REQUIRED",
+        claimBoundary: "hrx.compensation.read_guarded",
+        emptyBody: { compensation_records: [], masked_compensation_ref: null },
+        permissionSummary: {
+          compensation_ref_visible: false,
+          raw_amount_included: false,
+          payroll_runtime_opened: false,
+        },
+      });
+      if (guarded) return guarded;
+      const selfGuard = selfServiceReadGuard({
+        repository: context.repository,
+        actorContext,
+        targetEmployeeId: employeeId,
+        emptyBody: { compensation_records: [], masked_compensation_ref: null },
+      });
+      if (selfGuard) return selfGuard;
+      const records = context.compensation.visible({ tenant_id: tenantId, employee_id: employeeId });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.compensation.read",
+        object_type: "CompensationRecord",
+        object_id: employeeId ?? "compensation",
+        reason: "compensation_record_refs_read",
+        metadata: {
+          employee_id: employeeId ?? null,
+          record_count: records.length,
+          raw_amount_included: false,
+        },
+      });
+      return response(200, {
+        outcome: "ok",
+        compensation_records: records,
+        masked_compensation_ref: records[0]?.masked_compensation_ref ?? null,
+        payroll_runtime_opened: false,
+      });
+    }
+
+    if (pathname === "/api/hrx/documents/expiring" && method === "GET") {
+      const guarded = hrxReadGuardResponse({
+        permissionContext,
+        actorContext,
+        action: "hrx.document.read",
+        resourceType: "HrxDocument",
+        resourceId: query.employee_id ?? "documents-expiring",
+        schemaVersion: "lawos.hrx.document.expiring_response.v0.1",
+        deniedCode: "HRX_DOCUMENT_ACCESS_DENIED",
+        reviewCode: "HRX_DOCUMENT_REVIEW_REQUIRED",
+        claimBoundary: "hrx.document.expiring_read_guarded",
+        emptyBody: { documents: [], within_days: Number(query.days ?? 30) },
+        permissionSummary: {
+          document_metadata_visible: false,
+          source_refs_visible: false,
+          provider_payload_included: false,
+        },
+      });
+      if (guarded) return guarded;
+      const selfGuard = selfServiceReadGuard({
+        repository: context.repository,
+        actorContext,
+        targetEmployeeId: query.employee_id,
+        emptyBody: { documents: [], within_days: Number(query.days ?? 30) },
+      });
+      if (selfGuard) return selfGuard;
+      const documents = context.documents.listExpiring({
+        tenant_id: tenantId,
+        employee_id: query.employee_id,
+        as_of: query.as_of ?? currentDateKey(),
+        days: query.days ?? 30,
+      });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.document.expiring.read",
+        object_type: "HRDocument",
+        object_id: query.employee_id ?? "documents-expiring",
+        reason: "hrx_contract_documents_expiring_listed",
+        metadata: { result_count: documents.length, within_days: Number(query.days ?? 30) },
+      });
+      return response(200, { outcome: "ok", documents, within_days: Number(query.days ?? 30) });
     }
 
     if (pathname === "/api/hrx/documents" && method === "GET") {
@@ -1150,10 +2169,312 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         },
       });
       if (guarded) return guarded;
+      const selfGuard = selfServiceReadGuard({
+        repository: context.repository,
+        actorContext,
+        targetEmployeeId: query.employee_id,
+        emptyBody: { documents: [] },
+      });
+      if (selfGuard) return selfGuard;
       return response(200, {
         outcome: "ok",
         documents: context.documents.list({ tenant_id: tenantId, employee_id: query.employee_id }),
       });
+    }
+
+    if (pathname === "/api/hrx/documents" && method === "POST") {
+      const employeeId = body.employee_id;
+      const sourceRef = body.source_ref ?? `DMS:employment-contract:${employeeId}:${Date.now()}`;
+      const document = context.documents.create({
+        document_id: body.document_id ?? `doc-${randomUUID()}`,
+        document_type: "employment_contract",
+        source_ref: sourceRef,
+        source_provider: body.source_provider ?? "dms",
+        source_status: body.source_status ?? "verified",
+        source_verified_at: body.source_verified_at ?? new Date().toISOString(),
+        source_version_ref: body.source_version_ref ?? null,
+        source_metadata: body.source_metadata ?? { generated_by: "hrx_document_lifecycle" },
+        title: body.title ?? "근로계약서",
+        contract_id: body.contract_id ?? `contract-${randomUUID()}`,
+        profile_id: body.profile_id ?? employmentProfileIdForEmployee(context.repository, tenantId, employeeId),
+        contract_state: body.contract_state ?? "draft",
+        document_ref: body.document_ref ?? sourceRef,
+        expires_on: body.expires_on ?? null,
+        tenant_id: tenantId,
+        employee_id: employeeId,
+      });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.document.metadata.create",
+        object_type: "HRDocument",
+        object_id: document.document_id,
+        reason: "hrx_contract_document_created",
+        metadata: documentAuditMetadata(document),
+      });
+      return response(201, { outcome: "created", document });
+    }
+
+    const documentLifecycleMatch = pathname.match(/^\/api\/hrx\/documents\/([^/]+)\/(sign|expire)$/);
+    if (documentLifecycleMatch && method === "POST") {
+      const documentId = decodeURIComponent(documentLifecycleMatch[1]);
+      const action = documentLifecycleMatch[2];
+      const change = action === "sign"
+        ? { state: "signed", signature_ref: body.signature_ref, signed_at: body.signed_at ?? new Date().toISOString() }
+        : { state: "expired", expired_at: body.expired_at ?? new Date().toISOString() };
+      const document = context.documents.transitionContract({ tenant_id: tenantId, document_id: documentId }, change);
+      if (!document) return response(404, { outcome: "not_found", safe_error_code: "HRX_DOCUMENT_NOT_FOUND" });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: action === "sign" ? "hrx.document.contract.sign" : "hrx.document.contract.expire",
+        object_type: "HRDocument",
+        object_id: document.document_id,
+        reason: action === "sign" ? "hrx_contract_document_signed" : "hrx_contract_document_expired",
+        metadata: documentAuditMetadata(document),
+      });
+      return response(200, { outcome: action === "sign" ? "signed" : "expired", document });
+    }
+
+    if (pathname === "/api/hrx/attendance" && method === "GET") {
+      const guarded = hrxReadGuardResponse({
+        permissionContext,
+        actorContext,
+        action: "hrx.attendance.read",
+        resourceType: "HrxAttendanceRecord",
+        resourceId: query.employee_id ?? query.attendance_id ?? "attendance",
+        schemaVersion: "lawos.hrx.attendance.guarded_response.v0.1",
+        deniedCode: "HRX_ATTENDANCE_ACCESS_DENIED",
+        reviewCode: "HRX_ATTENDANCE_REVIEW_REQUIRED",
+        claimBoundary: "hrx.attendance.read_guarded",
+        emptyBody: { attendance: [], monthly_summary: createAttendanceMonthlySummary([], { month: query.month ?? null }) },
+        permissionSummary: {
+          attendance_records_visible: false,
+          source_refs_visible: false,
+          provider_payload_included: false,
+        },
+      });
+      if (guarded) return guarded;
+      const selfGuard = selfServiceReadGuard({
+        repository: context.repository,
+        actorContext,
+        targetEmployeeId: query.employee_id,
+        emptyBody: { attendance: [], monthly_summary: createAttendanceMonthlySummary([], { month: query.month ?? null }) },
+      });
+      if (selfGuard) return selfGuard;
+      const attendance = context.attendance.list({
+        tenant_id: tenantId,
+        employee_id: query.employee_id,
+        attendance_id: query.attendance_id,
+        status: query.status,
+        work_date: query.work_date,
+        month: query.month,
+      });
+      const monthlySummary = createAttendanceMonthlySummary(attendance, { month: query.month ?? null });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.attendance.read",
+        object_type: "AttendanceRecord",
+        object_id: query.employee_id ?? query.attendance_id ?? "attendance",
+        reason: "attendance_records_listed",
+        metadata: { result_count: attendance.length, month: query.month ?? null },
+      });
+      return response(200, { outcome: "ok", attendance, monthly_summary: monthlySummary });
+    }
+
+    if (pathname === "/api/hrx/attendance" && method === "POST") {
+      const attendance = context.attendance.write({ ...body, tenant_id: tenantId });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.attendance.write",
+        object_type: "AttendanceRecord",
+        object_id: attendance.attendance_id,
+        reason: "attendance_record_created",
+        metadata: { employee_id: attendance.employee_id, work_date: attendance.work_date, status: attendance.status },
+      });
+      return response(201, { outcome: "created", attendance });
+    }
+
+    const attendanceCorrectionMatch = pathname.match(/^\/api\/hrx\/attendance\/([^/]+)\/correct$/);
+    if (attendanceCorrectionMatch && method === "POST") {
+      const attendanceId = decodeURIComponent(attendanceCorrectionMatch[1]);
+      const attendance = context.attendance.correct({ tenant_id: tenantId, attendance_id: attendanceId }, body);
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.attendance.correct",
+        object_type: "AttendanceRecord",
+        object_id: attendance.attendance_id,
+        reason: "attendance_record_corrected",
+        metadata: {
+          employee_id: attendance.employee_id,
+          work_date: attendance.work_date,
+          correction_of_attendance_id: attendance.correction_of_attendance_id,
+        },
+      });
+      return response(200, { outcome: "corrected", attendance });
+    }
+
+    if (pathname === "/api/hrx/overtime" && method === "GET") {
+      const overtime = context.overtime.list({
+        tenant_id: tenantId,
+        employee_id: query.employee_id,
+        overtime_id: query.overtime_id,
+        state: query.state,
+        work_date: query.work_date,
+        month: query.month,
+      });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.overtime.read",
+        object_type: "OvertimeRequest",
+        object_id: query.employee_id ?? query.overtime_id ?? "overtime",
+        reason: "overtime_requests_listed",
+        metadata: { result_count: overtime.length, month: query.month ?? null },
+      });
+      return response(200, { outcome: "ok", overtime });
+    }
+
+    if (pathname === "/api/hrx/overtime" && method === "POST") {
+      const overtime = context.overtime.create({ ...body, tenant_id: tenantId });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.overtime.submit",
+        object_type: "OvertimeRequest",
+        object_id: overtime.overtime_id,
+        reason: "overtime_request_submitted",
+        metadata: { employee_id: overtime.employee_id, work_date: overtime.work_date, hours: overtime.hours },
+      });
+      return response(201, { outcome: "submitted", overtime });
+    }
+
+    if (pathname === "/api/hrx/overtime/risks" && method === "GET") {
+      const selfGuard = selfServiceReadGuard({
+        repository: context.repository,
+        actorContext,
+        targetEmployeeId: query.employee_id,
+        emptyBody: { risk_report: null },
+      });
+      if (selfGuard) return selfGuard;
+      const attendance = context.attendance.list({
+        tenant_id: tenantId,
+        employee_id: query.employee_id,
+        month: query.month,
+      });
+      const overtime = context.overtime.list({
+        tenant_id: tenantId,
+        employee_id: query.employee_id,
+        month: query.month,
+      });
+      const riskReport = createWeeklyOvertimeRiskReport({
+        tenant_id: tenantId,
+        employee_id: query.employee_id,
+        attendance_records: attendance,
+        overtime_requests: overtime,
+        weekly_limit_hours: query.weekly_limit_hours ?? 52,
+        standard_daily_hours: query.standard_daily_hours ?? 8,
+      });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.overtime.risk.read",
+        object_type: "OvertimeRiskReport",
+        object_id: query.employee_id,
+        reason: "overtime_risk_report_generated",
+        metadata: { event_count: riskReport.events.length, month: query.month ?? null },
+      });
+      return response(200, { outcome: "ok", risk_report: riskReport });
+    }
+
+    if (pathname === "/api/hrx/risks" && method === "GET") {
+      const guarded = hrxReadGuardResponse({
+        permissionContext,
+        actorContext,
+        action: "hrx.risk.read",
+        resourceType: "HRXRiskEvent",
+        resourceId: query.risk_event_id ?? query.risk_type ?? "risks",
+        schemaVersion: "lawos.hrx.risk.guarded_response.v0.1",
+        deniedCode: "HRX_RISK_ACCESS_DENIED",
+        reviewCode: "HRX_RISK_REVIEW_REQUIRED",
+        claimBoundary: "hrx.risk.read_guarded",
+        emptyBody: { risk_events: [], dashboard: createHrxRiskDashboard([]) },
+        permissionSummary: {
+          risk_events_visible: false,
+          source_refs_visible: false,
+          provider_payload_included: false,
+        },
+      });
+      if (guarded) return guarded;
+      const riskEvents = context.riskEvents.list({
+        tenant_id: tenantId,
+        status: query.status,
+        risk_type: query.risk_type,
+      });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.risk.read",
+        object_type: "HRXRiskEvent",
+        object_id: query.risk_type ?? "list",
+        reason: "hrx_risk_events_listed",
+        metadata: { result_count: riskEvents.length, status: query.status ?? null, risk_type: query.risk_type ?? null },
+      });
+      return response(200, {
+        outcome: "ok",
+        risk_events: riskEvents,
+        dashboard: createHrxRiskDashboard(riskEvents),
+      });
+    }
+
+    if (pathname === "/api/hrx/risks/scan" && method === "POST") {
+      const scan = runHrxDailyRiskScan(context, actorContext, body);
+      return response(200, { outcome: "scanned", ...scan });
+    }
+
+    const riskTransitionMatch = pathname.match(/^\/api\/hrx\/risks\/([^/]+)\/transition$/);
+    if (riskTransitionMatch && method === "POST") {
+      const riskEventId = decodeURIComponent(riskTransitionMatch[1]);
+      const riskEvent = context.riskEvents.transition(
+        { tenant_id: tenantId, risk_event_id: riskEventId },
+        {
+          status: body.status,
+          resolution_ref: body.resolution_ref,
+          changed_by: actorContext.actor_id,
+          reason: body.reason ?? "risk_event_transition_from_api",
+        },
+      );
+      if (!riskEvent) return response(404, { outcome: "not_found", safe_error_code: "HRX_RISK_EVENT_NOT_FOUND" });
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.risk.transition",
+        object_type: "HRXRiskEvent",
+        object_id: riskEvent.risk_event_id,
+        reason: "hrx_risk_event_state_transition_recorded",
+        metadata: { status: riskEvent.status, risk_type: riskEvent.risk_type },
+      });
+      return response(200, {
+        outcome: "updated",
+        risk_event: riskEvent,
+        dashboard: createHrxRiskDashboard(context.riskEvents.list({ tenant_id: tenantId })),
+      });
+    }
+
+    const overtimeDecisionMatch = pathname.match(/^\/api\/hrx\/overtime\/([^/]+)\/(approve|reject)$/);
+    if (overtimeDecisionMatch && method === "POST") {
+      const overtimeId = decodeURIComponent(overtimeDecisionMatch[1]);
+      const decision = overtimeDecisionMatch[2];
+      const overtime = context.overtime.update(
+        { tenant_id: tenantId, overtime_id: overtimeId },
+        {
+          state: decision === "approve" ? "approved" : "rejected",
+          approver_id: decision === "approve" ? body.approver_id ?? actorContext.actor_id : body.approver_id,
+          decision_reason: body.decision_reason ?? `${decision}_from_overtime_queue`,
+        },
+      );
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: `hrx.overtime.${decision}`,
+        object_type: "OvertimeRequest",
+        object_id: overtime.overtime_id,
+        reason: decision === "approve" ? "overtime_request_approved" : "overtime_request_rejected",
+        metadata: { employee_id: overtime.employee_id, work_date: overtime.work_date, hours: overtime.hours },
+      });
+      return response(200, { outcome: decision === "approve" ? "approved" : "rejected", overtime });
     }
 
     if (pathname === "/api/hrx/leave" && method === "GET") {
@@ -1175,6 +2496,13 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         },
       });
       if (guarded) return guarded;
+      const selfGuard = selfServiceReadGuard({
+        repository: context.repository,
+        actorContext,
+        targetEmployeeId: query.employee_id,
+        emptyBody: { balance: null, requests: [] },
+      });
+      if (selfGuard) return selfGuard;
       return response(200, {
         outcome: "ok",
         balance: context.leaveLedger.balance({
@@ -1189,7 +2517,7 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
     if (pathname === "/api/hrx/leave" && method === "POST") {
       return context.leaveService.submit(actorContext, { ...body, tenant_id: tenantId }).then((leaveRequest) =>
         response(201, { outcome: "submitted", leave_request: leaveRequest }),
-      );
+      ).catch(safeError);
     }
 
     if (pathname === "/api/hrx/approvals" && method === "GET") {
@@ -1205,20 +2533,53 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
       const action = approvalMatch[2];
       const index = context.approvals.findIndex((approval) => approval.tenant_id === tenantId && approval.approval_id === approvalId);
       if (index === -1) return response(404, { outcome: "not_found", safe_error_code: "HRX_APPROVAL_NOT_FOUND" });
+      const approval = context.approvals[index];
       const next = resolveApprovalRequest(context.approvals[index], {
         state: action === "approve" ? "approved" : "rejected",
         decided_by: actorContext.actor_id,
         decision_reason: body.decision_reason ?? `${action}_from_manager_queue`,
       });
-      context.approvals[index] = next;
-      appendRuntimeAudit(context.audit, {
-        ...actorContext,
-        action: `hrx.approval.${action}`,
-        object_type: "ApprovalRequest",
-        object_id: next.approval_id,
-        reason: `approval_${action}_recorded`,
-      });
-      return response(200, { outcome: action === "approve" ? "approved" : "rejected", approval: next });
+      const finalize = (extraBody = {}) => {
+        context.approvals[index] = next;
+        appendRuntimeAudit(context.audit, {
+          ...actorContext,
+          action: `hrx.approval.${action}`,
+          object_type: "ApprovalRequest",
+          object_id: next.approval_id,
+          reason: `approval_${action}_recorded`,
+        });
+        return response(200, { outcome: action === "approve" ? "approved" : "rejected", approval: next, ...extraBody });
+      };
+      if (approval.object_type === "LeaveRequest") {
+        if (action === "approve") {
+          const leaveRequest = context.leaveStore.get({ tenant_id: tenantId, request_id: approval.object_id });
+          const applicantActorIds = leaveRequest
+            ? [
+                leaveRequest.employee_id,
+                ...context.repository
+                  .listEmployeeUserLinks({ tenant_id: tenantId, employee_id: leaveRequest.employee_id })
+                  .map((link) => link.user_id),
+              ]
+            : [];
+          return context.leaveService
+            .approve(actorContext, {
+              request_id: approval.object_id,
+              approver_id: actorContext.actor_id,
+              applicant_actor_ids: applicantActorIds,
+              decision_reason: body.decision_reason ?? "approved_from_manager_queue",
+            })
+            .then((leave_request) => finalize({ leave_request }))
+            .catch(safeError);
+        }
+        return context.leaveService
+          .reject(actorContext, {
+            request_id: approval.object_id,
+            decision_reason: body.decision_reason ?? "rejected_from_manager_queue",
+          })
+          .then((leave_request) => finalize({ leave_request }))
+          .catch(safeError);
+      }
+      return finalize();
     }
 
     if (pathname === "/api/hrx/candidate/portal" && method === "GET") {
@@ -1247,12 +2608,99 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         candidates: context.candidates.filter((candidate) => candidate.tenant_id === tenantId).map((candidate) => ({
           candidate_id: candidate.candidate_id,
           legal_name: candidate.legal_name,
+          email: candidate.email,
           source_ref: candidate.source_ref,
         })),
         applications: context.applications.filter((application) => application.tenant_id === tenantId).map(clone),
         interviews: context.interviews.filter((interview) => interview.tenant_id === tenantId).map(clone),
         offers: context.offers.filter((offer) => offer.tenant_id === tenantId).map(clone),
       });
+    }
+
+    if (pathname === "/api/hrx/recruiting/job-openings" && method === "POST") {
+      const jobOpening = createJobOpening({ ...body, tenant_id: tenantId });
+      context.jobOpenings.push(jobOpening);
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.job_opening.create",
+        object_type: "JobOpening",
+        object_id: jobOpening.job_opening_id,
+        reason: "job_opening_created_through_api",
+        metadata: { state: jobOpening.state },
+      });
+      return response(201, { outcome: "created", job_opening: jobOpening });
+    }
+
+    if (pathname === "/api/hrx/recruiting/candidates" && method === "POST") {
+      const consent = createCandidateConsent({
+        ...(body.consent ?? {}),
+        tenant_id: tenantId,
+        candidate_id: body.candidate_id,
+      });
+      context.candidateConsents.push(consent);
+      assertCandidateConsentAllowsProcessing(context.candidateConsents, {
+        tenant_id: tenantId,
+        candidate_id: body.candidate_id,
+      });
+      const candidate = createCandidateProfile({ ...body, tenant_id: tenantId });
+      context.candidates.push(candidate);
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.candidate.create",
+        object_type: "Candidate",
+        object_id: candidate.candidate_id,
+        reason: "candidate_created_with_consent_through_api",
+        metadata: { consent_id: consent.consent_id },
+      });
+      return response(201, { outcome: "created", candidate });
+    }
+
+    if (pathname === "/api/hrx/recruiting/applications" && method === "POST") {
+      requireRecruitingRecord(context.candidates, tenantId, "candidate_id", body.candidate_id, "HRX_CANDIDATE_NOT_FOUND");
+      requireRecruitingRecord(context.jobOpenings, tenantId, "job_opening_id", body.job_opening_id, "HRX_JOB_OPENING_NOT_FOUND");
+      const application = createApplication({ ...body, tenant_id: tenantId });
+      context.applications.push(application);
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.application.create",
+        object_type: "Application",
+        object_id: application.application_id,
+        reason: "application_created_through_api",
+        metadata: { stage: application.stage },
+      });
+      return response(201, { outcome: "created", application });
+    }
+
+    if (pathname === "/api/hrx/recruiting/interviews" && method === "POST") {
+      requireRecruitingRecord(context.applications, tenantId, "application_id", body.application_id, "HRX_APPLICATION_NOT_FOUND");
+      requireRecruitingRecord(context.candidates, tenantId, "candidate_id", body.candidate_id, "HRX_CANDIDATE_NOT_FOUND");
+      const interview = createInterview({ ...body, tenant_id: tenantId });
+      context.interviews.push(interview);
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.interview.create",
+        object_type: "Interview",
+        object_id: interview.interview_id,
+        reason: "interview_created_through_api",
+        metadata: { application_id: interview.application_id, state: interview.state },
+      });
+      return response(201, { outcome: "created", interview });
+    }
+
+    if (pathname === "/api/hrx/recruiting/offers" && method === "POST") {
+      requireRecruitingRecord(context.applications, tenantId, "application_id", body.application_id, "HRX_APPLICATION_NOT_FOUND");
+      requireRecruitingRecord(context.candidates, tenantId, "candidate_id", body.candidate_id, "HRX_CANDIDATE_NOT_FOUND");
+      const offer = createOffer({ ...body, tenant_id: tenantId });
+      context.offers.push(offer);
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.offer.create",
+        object_type: "Offer",
+        object_id: offer.offer_id,
+        reason: "offer_created_through_api",
+        metadata: { application_id: offer.application_id, state: offer.state },
+      });
+      return response(201, { outcome: "created", offer });
     }
 
     const applicationStageMatch = pathname.match(/^\/api\/hrx\/recruiting\/applications\/([^/]+)\/stage$/);
@@ -1274,6 +2722,75 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
         metadata: { stage: next.stage },
       });
       return response(200, { outcome: "updated", application: next });
+    }
+
+    const offerStageMatch = pathname.match(/^\/api\/hrx\/recruiting\/offers\/([^/]+)\/stage$/);
+    if (offerStageMatch && method === "POST") {
+      const offerId = decodeURIComponent(offerStageMatch[1]);
+      const index = context.offers.findIndex((offer) => offer.tenant_id === tenantId && offer.offer_id === offerId);
+      if (index === -1) return response(404, { outcome: "not_found", safe_error_code: "HRX_OFFER_NOT_FOUND" });
+      const next = transitionOffer(context.offers[index], {
+        state: body.state,
+        approval_ref: body.approval_ref ?? context.offers[index].approval_ref,
+      });
+      context.offers[index] = next;
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.offer.stage.update",
+        object_type: "Offer",
+        object_id: next.offer_id,
+        reason: "offer_stage_updated",
+        metadata: { state: next.state },
+      });
+      return response(200, { outcome: "updated", offer: next });
+    }
+
+    const applicationConvertMatch = pathname.match(/^\/api\/hrx\/recruiting\/applications\/([^/]+)\/convert-to-employee$/);
+    if (applicationConvertMatch && method === "POST") {
+      const applicationId = decodeURIComponent(applicationConvertMatch[1]);
+      const application = requireRecruitingRecord(context.applications, tenantId, "application_id", applicationId, "HRX_APPLICATION_NOT_FOUND");
+      const candidate = requireRecruitingRecord(context.candidates, tenantId, "candidate_id", application.candidate_id, "HRX_CANDIDATE_NOT_FOUND");
+      const offer = context.offers.find((item) => item.tenant_id === tenantId && item.application_id === application.application_id && item.candidate_id === candidate.candidate_id);
+      if (!offer) return response(404, { outcome: "not_found", safe_error_code: "HRX_OFFER_NOT_FOUND" });
+      const conversion = convertCandidateToEmployee({
+        candidate,
+        application,
+        offer,
+        approval_ref: body.approval_ref,
+        employee_id: body.employee_id,
+        profile_id: body.profile_id,
+        display_name: body.display_name,
+        work_email: body.work_email ?? candidate.email,
+        employment_type: body.employment_type,
+        title: body.title,
+        org_unit_id: body.org_unit_id,
+        manager_employee_id: body.manager_employee_id,
+        effective_from: body.effective_from,
+      });
+      const employee = context.repository.createEmployee(conversion.employee);
+      const employmentProfile = context.repository.createEmploymentProfile(conversion.employment_profile);
+      appendRuntimeAudit(context.audit, {
+        ...actorContext,
+        action: "hrx.candidate.convert_to_employee",
+        object_type: "Employee",
+        object_id: employee.employee_id,
+        reason: "candidate_converted_to_employee",
+        metadata: {
+          candidate_id: conversion.candidate_id,
+          application_id: conversion.application_id,
+          offer_id: conversion.offer_id,
+          approval_ref: conversion.approval_ref,
+          profile_id: employmentProfile.profile_id,
+        },
+      });
+      return response(201, {
+        outcome: "converted",
+        conversion: {
+          ...conversion,
+          employee,
+          employment_profile: employmentProfile,
+        },
+      });
     }
 
     if (pathname === "/api/hrx/lifecycle/onboarding" && method === "GET") {
@@ -1355,26 +2872,42 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
     }
 
     if (pathname === "/api/hrx/analytics" && method === "GET") {
+      const leaveRequests = context.leaveStore.list({ tenant_id: tenantId });
       const workloadProjection = createHrxMatterWorkloadProjection({
         tenant_id: tenantId,
+        time_entries: context.matterTimeEntries,
+        leave_requests: leaveRequests,
+        deadlines: context.matterDeadlines,
         assignments: context.matterAssignments,
       });
       const analytics = createHrxPeopleAnalyticsReadModel({
         tenant_id: tenantId,
         employees: context.repository.listEmployees({ tenant_id: tenantId }),
-        leave_requests: context.leaveStore.list({ tenant_id: tenantId }),
+        leave_requests: leaveRequests,
         applications: context.applications,
         workload_projection: workloadProjection,
       });
+      const workloadConflicts = workloadProjection.flatMap((row) => row.leave_deadline_conflicts);
       appendRuntimeAudit(context.audit, {
         ...actorContext,
         action: "hrx.analytics.read",
         object_type: "HRXAnalyticsReadModel",
         object_id: "tenant-summary",
         reason: "analytics_read_model_generated",
-        metadata: { row_level_details_included: false },
+        metadata: {
+          row_level_details_included: false,
+          workload_source: workloadProjection.every((row) => row.workload_source === "time_entry_aggregation")
+            ? "time_entry_aggregation"
+            : "mixed",
+          workload_conflict_count: workloadConflicts.length,
+        },
       });
-      return response(200, { outcome: "ok", analytics, workload_projection: workloadProjection });
+      return response(200, {
+        outcome: "ok",
+        analytics,
+        workload_projection: workloadProjection,
+        workload_conflicts: workloadConflicts,
+      });
     }
 
     if (pathname === "/api/hrx/ai/assistant") {

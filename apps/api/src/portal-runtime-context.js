@@ -4,6 +4,14 @@ import { createExternalAcl, createPortalDashboardProjection, createPortalProject
 import { createRfiRequest, createRfiResponse } from "../../../packages/client-portal/src/rfi-service.js";
 import { createClientApproval } from "../../../packages/client-portal/src/approval-service.js";
 import { createSecureLink } from "../../../packages/client-portal/src/secure-link-service.js";
+import {
+  accessExternalSecureLink,
+  consumeMagicLinkInvite,
+  createMagicLinkInvite,
+  revokeMagicLinkInvite,
+  revokeSecureLink,
+  submitExternalRfiResponse,
+} from "../../../packages/client-portal/src/magic-link-service.js";
 import { createDataRoom, syncDataRoomProjection } from "../../../packages/data-room/src/data-room-runtime-service.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
 
@@ -21,6 +29,12 @@ export const PORTAL_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/portal/rfi-responses",
     "POST /api/portal/approvals",
     "POST /api/portal/secure-links",
+    "POST /api/portal/secure-links/:id/revoke",
+    "GET /api/portal/external/secure-links/:id/access",
+    "POST /api/portal/invites",
+    "POST /api/portal/invites/:id/revoke",
+    "POST /api/portal/invites/consume",
+    "POST /api/portal/external/rfi-responses",
     "GET /api/data-room/rooms",
     "POST /api/data-room/rooms",
     "GET /api/data-room/projections",
@@ -44,6 +58,13 @@ export const PORTAL_API_ERROR_CODES = Object.freeze({
   review_required: "PORTAL_REVIEW_REQUIRED",
   approval_required: "PORTAL_APPROVAL_REQUIRED",
   not_found: "PORTAL_NOT_FOUND",
+  magic_link_not_found: "PORTAL_MAGIC_LINK_NOT_FOUND",
+  magic_link_expired: "PORTAL_MAGIC_LINK_EXPIRED",
+  magic_link_already_used: "PORTAL_MAGIC_LINK_ALREADY_USED",
+  magic_link_revoked: "PORTAL_MAGIC_LINK_REVOKED",
+  external_session_inactive: "PORTAL_EXTERNAL_SESSION_INACTIVE",
+  secure_link_expired: "PORTAL_SECURE_LINK_EXPIRED",
+  secure_link_revoked: "PORTAL_SECURE_LINK_REVOKED",
 });
 
 export const PORTAL_RUNTIME_SEED = Object.freeze([
@@ -175,7 +196,7 @@ function routeGate({ context, query, requestId, action, resourceType }) {
 }
 
 function sanitizePortalItem(record) {
-  const { document_bytes, storage_pointer, secret_token, credential_material, raw_payload, source_payload, ...safe } = record;
+  const { document_bytes, storage_pointer, secret_token, token, token_hash, credential_material, raw_payload, source_payload, ...safe } = record;
   return Object.freeze({
     ...safe,
     document_bytes_included: false,
@@ -186,6 +207,26 @@ function sanitizePortalItem(record) {
     source_payload_included: false,
     production_ready_claim: false,
   });
+}
+
+function sanitizePortalAuditEvent(event) {
+  const metadata = event?.metadata && typeof event.metadata === "object" ? sanitizePortalItem(event.metadata) : {};
+  const { secret_token, token, token_hash, credential_material, raw_payload, source_payload, ...safe } = event;
+  return Object.freeze({
+    ...safe,
+    metadata,
+    token_material_included: false,
+    credential_material_included: false,
+    raw_payload_included: false,
+    source_payload_included: false,
+    production_ready_claim: false,
+  });
+}
+
+function pathId(pathname, patternPrefix, patternSuffix) {
+  if (!pathname.startsWith(patternPrefix) || !pathname.endsWith(patternSuffix)) return null;
+  const id = pathname.slice(patternPrefix.length, pathname.length - patternSuffix.length);
+  return id ? decodeURIComponent(id) : null;
 }
 
 function listResponse({ query, context, requestId, runtime, action, resourceType, modelType }) {
@@ -203,6 +244,54 @@ function listResponse({ query, context, requestId, runtime, action, resourceType
       audit_hint_ref: query.audit_hint_ref,
       count_leak_prevented: true,
       production_ready_claim: false,
+    },
+  };
+}
+
+function safeErrorCode(error) {
+  return error?.safe_error_code ?? PORTAL_API_ERROR_CODES.validation_error;
+}
+
+function externalErrorResponse(status, requestId, code) {
+  return {
+    status,
+    body: {
+      request_id: requestId,
+      outcome: "blocked",
+      item: null,
+      safe_error_codes: [code],
+      count_leak_prevented: true,
+      token_material_included: false,
+      document_bytes_included: false,
+      production_ready_claim: false,
+    },
+  };
+}
+
+function statusForExternalError(code) {
+  if (code === PORTAL_API_ERROR_CODES.magic_link_not_found) return 404;
+  if (code === PORTAL_API_ERROR_CODES.magic_link_expired || code === PORTAL_API_ERROR_CODES.secure_link_expired) return 410;
+  if (code === PORTAL_API_ERROR_CODES.magic_link_already_used) return 409;
+  if (code === PORTAL_API_ERROR_CODES.magic_link_revoked || code === PORTAL_API_ERROR_CODES.secure_link_revoked) return 403;
+  if (code === PORTAL_API_ERROR_CODES.external_session_inactive) return 403;
+  if (typeof code === "string" && code.endsWith("_MISMATCH")) return 403;
+  if (typeof code === "string" && code.endsWith("_NOT_FOUND")) return 404;
+  return 400;
+}
+
+function externalSuccessResponse({ status = 200, requestId, outcome, item = null, extra = {} }) {
+  return {
+    status,
+    body: {
+      request_id: requestId,
+      outcome,
+      item,
+      safe_error_codes: [],
+      count_leak_prevented: true,
+      token_material_included: false,
+      document_bytes_included: false,
+      production_ready_claim: false,
+      ...extra,
     },
   };
 }
@@ -230,10 +319,173 @@ function writeResponse({ body, context, requestId, runtime, action, resourceType
   }
 }
 
+function createInviteResponse({ body, context, requestId, runtime }) {
+  const tenantId = body?.invite?.tenant_id ?? body?.tenant_id;
+  const query = { tenant_id: tenantId, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, action: "portal:magic_link_invite:write", resourceType: "portal_magic_link_invite" });
+  if (gated) return gated;
+  try {
+    const result = createMagicLinkInvite({
+      repository: runtime.repository,
+      invite: body.invite,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+      base_url: body.base_url,
+    });
+    return {
+      status: result.idempotent_replay ? 200 : 201,
+      body: {
+        request_id: requestId,
+        outcome: result.idempotent_replay ? "idempotent_replay" : result.outcome,
+        item: sanitizePortalItem(result.invite),
+        invite_delivery: {
+          one_time_url: result.invite_delivery?.one_time_url ?? null,
+          returned_once: result.invite_delivery?.returned_once === true,
+          token_material_persisted: false,
+        },
+        audit_event: sanitizePortalAuditEvent(result.audit_event),
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        token_material_included: false,
+        document_bytes_included: false,
+        production_ready_claim: false,
+      },
+    };
+  } catch {
+    return errorResponse(400, requestId, [PORTAL_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+function revokeInviteResponse({ body, context, requestId, runtime, inviteId }) {
+  const tenantId = body?.tenant_id;
+  const query = { tenant_id: tenantId, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, action: "portal:magic_link_invite:revoke", resourceType: "portal_magic_link_invite" });
+  if (gated) return gated;
+  try {
+    const result = revokeMagicLinkInvite({
+      repository: runtime.repository,
+      tenant_id: tenantId,
+      invite_id: inviteId,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return {
+      status: result.idempotent_replay ? 200 : 201,
+      body: {
+        request_id: requestId,
+        outcome: result.idempotent_replay ? "idempotent_replay" : result.outcome,
+        item: sanitizePortalItem(result.invite),
+        audit_event: sanitizePortalAuditEvent(result.audit_event),
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        token_material_included: false,
+        production_ready_claim: false,
+      },
+    };
+  } catch {
+    return errorResponse(400, requestId, [PORTAL_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+function revokeSecureLinkResponse({ body, context, requestId, runtime, secureLinkId }) {
+  const tenantId = body?.tenant_id;
+  const query = { tenant_id: tenantId, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, action: "portal:secure_link:revoke", resourceType: "secure_link" });
+  if (gated) return gated;
+  try {
+    const result = revokeSecureLink({
+      repository: runtime.repository,
+      tenant_id: tenantId,
+      secure_link_id: secureLinkId,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return {
+      status: result.idempotent_replay ? 200 : 201,
+      body: {
+        request_id: requestId,
+        outcome: result.idempotent_replay ? "idempotent_replay" : result.outcome,
+        item: sanitizePortalItem(result.secure_link),
+        audit_event: sanitizePortalAuditEvent(result.audit_event),
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        token_material_included: false,
+        document_bytes_included: false,
+        production_ready_claim: false,
+      },
+    };
+  } catch {
+    return errorResponse(400, requestId, [PORTAL_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+function consumeInviteResponse({ body, requestId, runtime }) {
+  try {
+    const result = consumeMagicLinkInvite({ repository: runtime.repository, token: body?.token, now: body?.now });
+    return externalSuccessResponse({
+      status: 200,
+      requestId,
+      outcome: result.outcome,
+      item: sanitizePortalItem(result.external_session),
+      extra: {
+        invite: sanitizePortalItem(result.invite),
+        audit_event: sanitizePortalAuditEvent(result.audit_event),
+      },
+    });
+  } catch (error) {
+    const code = safeErrorCode(error);
+    return externalErrorResponse(statusForExternalError(code), requestId, code);
+  }
+}
+
+function externalRfiResponse({ body, requestId, runtime }) {
+  try {
+    const result = submitExternalRfiResponse({
+      repository: runtime.repository,
+      external_session_id: body?.external_session_id,
+      rfi_response: body?.rfi_response,
+      idempotency_key: body?.idempotency_key,
+    });
+    return externalSuccessResponse({
+      status: result.idempotent_replay ? 200 : 201,
+      requestId,
+      outcome: result.idempotent_replay ? "idempotent_replay" : result.outcome,
+      item: sanitizePortalItem(result.rfi_response),
+      extra: {
+        audit_event: sanitizePortalAuditEvent(result.audit_event),
+      },
+    });
+  } catch (error) {
+    const code = safeErrorCode(error);
+    return externalErrorResponse(statusForExternalError(code), requestId, code);
+  }
+}
+
+function externalSecureLinkAccessResponse({ query, requestId, runtime, secureLinkId }) {
+  try {
+    const result = accessExternalSecureLink({
+      repository: runtime.repository,
+      tenant_id: query?.tenant_id,
+      secure_link_id: secureLinkId,
+      external_session_id: query?.external_session_id,
+      now: query?.now,
+    });
+    return externalSuccessResponse({
+      status: 200,
+      requestId,
+      outcome: result.outcome,
+      item: sanitizePortalItem(result.secure_link),
+    });
+  } catch (error) {
+    const code = safeErrorCode(error);
+    return externalErrorResponse(statusForExternalError(code), requestId, code);
+  }
+}
+
 export function handlePortalAudit({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const gated = routeGate({ context, query, requestId, action: "portal:audit:read", resourceType: "portal_audit" });
   if (gated) return gated;
-  return { status: 200, body: { request_id: requestId, outcome: "passed", items: runtime.repository.listAudit({ tenant_id: query.tenant_id }), safe_error_codes: [], audit_hint_ref: query.audit_hint_ref, count_leak_prevented: true, production_ready_claim: false } };
+  return { status: 200, body: { request_id: requestId, outcome: "passed", items: runtime.repository.listAudit({ tenant_id: query.tenant_id }).map(sanitizePortalAuditEvent), safe_error_codes: [], audit_hint_ref: query.audit_hint_ref, count_leak_prevented: true, production_ready_claim: false } };
 }
 
 export async function handlePortalApiRequest({ pathname, method, query, body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
@@ -252,8 +504,17 @@ export async function handlePortalApiRequest({ pathname, method, query, body, co
   if (pathname === "/api/portal/secure-links" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:secure_link:write", resourceType: "secure_link", tenantId: body?.secure_link?.tenant_id ?? body?.tenant_id, itemKey: "secure_link", fn: () => createSecureLink({ repository: runtime.repository, secure_link: body.secure_link, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
   if (pathname === "/api/portal/dashboard" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:dashboard:write", resourceType: "portal_dashboard_projection", tenantId: body?.dashboard_projection?.tenant_id ?? body?.tenant_id, itemKey: "dashboard_projection", fn: () => createPortalDashboardProjection({ repository: runtime.repository, dashboard_projection: body.dashboard_projection, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
   if (pathname === "/api/portal/projections" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "portal:projection:write", resourceType: "portal_projection", tenantId: body?.portal_projection?.tenant_id ?? body?.tenant_id, itemKey: "portal_projection", fn: () => createPortalProjection({ repository: runtime.repository, portal_projection: body.portal_projection, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
+  if (pathname === "/api/portal/invites" && method === "POST") return createInviteResponse({ body, context, requestId, runtime });
+  if (pathname === "/api/portal/invites/consume" && method === "POST") return consumeInviteResponse({ body, requestId, runtime });
+  if (pathname === "/api/portal/external/rfi-responses" && method === "POST") return externalRfiResponse({ body, requestId, runtime });
+  const secureLinkAccessId = pathId(pathname, "/api/portal/external/secure-links/", "/access");
+  if (secureLinkAccessId && method === "GET") return externalSecureLinkAccessResponse({ query, requestId, runtime, secureLinkId: secureLinkAccessId });
+  const secureLinkRevokeId = pathId(pathname, "/api/portal/secure-links/", "/revoke");
+  if (secureLinkRevokeId && method === "POST") return revokeSecureLinkResponse({ body, context, requestId, runtime, secureLinkId: secureLinkRevokeId });
+  const inviteRevokeId = pathId(pathname, "/api/portal/invites/", "/revoke");
+  if (inviteRevokeId && method === "POST") return revokeInviteResponse({ body, context, requestId, runtime, inviteId: inviteRevokeId });
   if (pathname === "/api/data-room/rooms" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "data_room:write", resourceType: "data_room", tenantId: body?.data_room?.tenant_id ?? body?.tenant_id, itemKey: "data_room", fn: () => createDataRoom({ repository: runtime.repository, data_room: body.data_room, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
   if (pathname === "/api/data-room/projections" && method === "POST") return writeResponse({ body, context, requestId, runtime, action: "data_room:projection:write", resourceType: "data_room_projection", tenantId: body?.data_room_projection?.tenant_id ?? body?.tenant_id, itemKey: "data_room_projection", fn: () => syncDataRoomProjection({ repository: runtime.repository, data_room_projection: body.data_room_projection, actor_id: body.actor_id ?? context.principal.user_id, idempotency_key: body.idempotency_key }) });
 
-  return errorResponse(404, requestId, [PORTAL_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref });
+  return errorResponse(404, requestId, [PORTAL_API_ERROR_CODES.not_found], { audit_hint_ref: query?.audit_hint_ref });
 }

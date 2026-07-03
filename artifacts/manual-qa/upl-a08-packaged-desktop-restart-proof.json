@@ -1,0 +1,103 @@
+{
+  "schema_version": "lawos.wave1.upl-a08.packaged-desktop-restart-proof.v1",
+  "generated_at": "2026-07-03T04:14:55.917Z",
+  "row_id": "UPL-A-08",
+  "status": "PASS",
+  "scope": "packaged desktop local API restart receipt for matter and leave persistence",
+  "packaged_desktop_resolution": {
+    "start": "/App/Contents/Resources/app/src/main",
+    "entry": "/App/Contents/Resources/app/runtime/apps/api/src/server.js",
+    "packaged_entry_resolved": true,
+    "local_api_start_count": 2
+  },
+  "restart_boundary": {
+    "user_data_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U",
+    "direct_store_write_from_script": false,
+    "start_api_server_injected_for_repo_test_only": true,
+    "production_ready_claim": false
+  },
+  "checks": {
+    "same_store_paths": true,
+    "matter_survived_restart": true,
+    "leave_survived_restart": true,
+    "first_matter_hash": "21470e641a3e7a2f3d3308cab8fa8a9e253ecf7c1b96b323dc873741c46376e5",
+    "second_matter_hash": "21470e641a3e7a2f3d3308cab8fa8a9e253ecf7c1b96b323dc873741c46376e5"
+  },
+  "first_launch": {
+    "base_url": null,
+    "matter_create_status": 201,
+    "leave_create_status": 201,
+    "matter_read_status": 200,
+    "leave_read_status": 200,
+    "store_paths": {
+      "hrxStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/hrx-store.json",
+      "masterDataStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/master-data-store.json",
+      "matterStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/matter-store.json",
+      "dmsStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/dms-store.json",
+      "crmStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/crm-store.json",
+      "intakeStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/intake-store.json",
+      "crmMasterDataStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/crm-master-data-store.json",
+      "financeStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/finance-store.json",
+      "analyticsStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/analytics-store.json",
+      "aiStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/ai-store.json",
+      "portalStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/portal-store.json",
+      "uiReadinessStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/ui-readiness-store.json",
+      "enterpriseReadinessStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/enterprise-readiness-store.json"
+    },
+    "store_files": {
+      "matterStorePath": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/matter-store.json",
+        "exists": true,
+        "bytes": 451339,
+        "under_runtime_store_dir": false
+      },
+      "hrxStorePath": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/hrx-store.json",
+        "exists": true,
+        "bytes": 50551,
+        "under_runtime_store_dir": false
+      }
+    }
+  },
+  "second_launch": {
+    "base_url": "http://127.0.0.1:52206",
+    "matter_read_status": 200,
+    "leave_read_status": 200,
+    "matter_id": "matter_upl_a08_desktop_restart_001",
+    "matter_code": "UPL-A08/LIT/CIV/계약분쟁",
+    "leave_request_ids": [
+      "leave-003",
+      "leave-004",
+      "leave-upl-a08-desktop-restart-001"
+    ],
+    "store_paths": {
+      "hrxStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/hrx-store.json",
+      "masterDataStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/master-data-store.json",
+      "matterStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/matter-store.json",
+      "dmsStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/dms-store.json",
+      "crmStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/crm-store.json",
+      "intakeStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/intake-store.json",
+      "crmMasterDataStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/crm-master-data-store.json",
+      "financeStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/finance-store.json",
+      "analyticsStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/analytics-store.json",
+      "aiStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/ai-store.json",
+      "portalStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/portal-store.json",
+      "uiReadinessStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/ui-readiness-store.json",
+      "enterpriseReadinessStorePath": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/enterprise-readiness-store.json"
+    },
+    "store_files": {
+      "matterStorePath": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/matter-store.json",
+        "exists": true,
+        "bytes": 451339,
+        "under_runtime_store_dir": false
+      },
+      "hrxStorePath": {
+        "path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/LawFirmOS-A08-KKBd6U/runtime-stores/hrx-store.json",
+        "exists": true,
+        "bytes": 52009,
+        "under_runtime_store_dir": false
+      }
+    }
+  }
+}

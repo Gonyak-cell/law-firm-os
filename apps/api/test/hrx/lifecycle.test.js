@@ -52,6 +52,8 @@ test("lifecycle route creates and closes offboarding only after checks clear", a
       access_revocations: [{ system_ref: "DMS", revoked: true }],
       document_returns: [{ document_ref: "Laptop:asset-001", returned: true }],
       legal_hold_checks: [{ hold_ref: "HoldCheck:001", clear: false }],
+      matter_reassignments: [{ matter_id: "matter-001", reassigned: false }],
+      handover_items: [{ item_id: "handover-001", title: "Matter handover", completed: false }],
     },
   });
   assert.equal(created.status, 201);
@@ -68,7 +70,19 @@ test("lifecycle route creates and closes offboarding only after checks clear", a
     method: "POST",
     context,
     params: { resource: "offboarding_close", offboarding_id: "off-001" },
-    body: { legal_hold_checks: [{ hold_ref: "HoldCheck:001", clear: true }] },
+    body: {
+      access_revocations: [{ system_ref: "DMS", revoked: true, confirmation_ref: "LX-11:AccessRevocation:001" }],
+      legal_hold_checks: [{ hold_ref: "HoldCheck:001", clear: true }],
+      matter_reassignments: [
+        {
+          matter_id: "matter-001",
+          reassigned_to_employee_id: "emp-002",
+          reassigned: true,
+          handover_ref: "Handover:001",
+        },
+      ],
+      handover_items: [{ item_id: "handover-001", title: "Matter handover", completed: true }],
+    },
   });
   assert.equal(closed.status, 200);
   assert.equal(closed.body.offboarding.state, "closed");

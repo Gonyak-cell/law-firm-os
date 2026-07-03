@@ -1,6 +1,7 @@
 export const HRX_LEAVE_POLICY_SCHEMA_VERSION = "law-firm-os.hrx-leave-policy.v0.1";
 
 export const HRX_LEAVE_ACCRUAL_UNITS = Object.freeze(["hours", "days"]);
+export const KOREAN_ANNUAL_PAID_LEAVE_MAX_DAYS = 25;
 
 function requiredString(input, field) {
   const value = input?.[field];
@@ -13,6 +14,18 @@ function requiredNumber(input, field) {
   if (typeof value !== "number" || !Number.isFinite(value)) throw new TypeError(`${field} must be a finite number`);
   if (value < 0) throw new TypeError(`${field} must be greater than or equal to 0`);
   return value;
+}
+
+function optionalNumber(input, field, fallback) {
+  const value = input?.[field] ?? fallback;
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    throw new TypeError(`${field} must be a finite number greater than or equal to 0`);
+  }
+  return value;
+}
+
+function wholeMonths(value) {
+  return Math.max(0, Math.floor(value));
 }
 
 export function createLeavePolicy(input = {}) {
@@ -53,6 +66,46 @@ export function calculateLeaveAccrual(policy, months) {
   return Math.min(accrued, normalizedPolicy.annual_entitlement);
 }
 
+export function calculateKoreanAnnualPaidLeaveEntitlement(input = {}) {
+  const serviceMonths = wholeMonths(optionalNumber(input, "service_months", 0));
+  const yearsOfService = wholeMonths(input.years_of_service ?? Math.floor(serviceMonths / 12));
+  const fullMonthsWithoutAbsence = Math.min(
+    11,
+    wholeMonths(optionalNumber(input, "full_months_without_absence", Math.min(serviceMonths, 11))),
+  );
+  const attendanceRate = optionalNumber(input, "yearly_attendance_rate", 1);
+  const maxDays = optionalNumber(input, "statutory_max_days", KOREAN_ANNUAL_PAID_LEAVE_MAX_DAYS);
+
+  if (serviceMonths < 12 || attendanceRate < 0.8) return Math.min(fullMonthsWithoutAbsence, maxDays);
+
+  const seniorityDays = yearsOfService >= 3 ? Math.floor((yearsOfService - 1) / 2) : 0;
+  return Math.min(15 + seniorityDays, maxDays);
+}
+
+export function createLeaveAccrualLedgerEntry(input = {}) {
+  const policy = createLeavePolicy(input.policy);
+  const tenantId = requiredString(input, "tenant_id");
+  const employeeId = requiredString(input, "employee_id");
+  const occurredOn = requiredString(input, "occurred_on");
+  const amount = input.amount ?? calculateKoreanAnnualPaidLeaveEntitlement(input);
+  if (amount <= 0) throw new TypeError("accrual amount must be greater than 0");
+  return Object.freeze({
+    tenant_id: tenantId,
+    entry_id: input.entry_id ?? `leave_accrual_${employeeId}_${occurredOn}`,
+    employee_id: employeeId,
+    policy_id: policy.policy_id,
+    entry_type: "earned",
+    amount,
+    occurred_on: occurredOn,
+    source_ref: input.source_ref ?? `LeaveAccrual:${policy.policy_id}:${employeeId}:${occurredOn}`,
+    metadata: Object.freeze({
+      policy_version: policy.policy_version,
+      accrual_unit: policy.accrual_unit,
+      statutory_basis: "KR_LSA_ARTICLE_60",
+    }),
+  });
+}
+
 export function applyLeaveCarryover(policy, closingBalance) {
   const normalizedPolicy = createLeavePolicy(policy);
   if (typeof closingBalance !== "number" || !Number.isFinite(closingBalance)) {
@@ -60,6 +113,31 @@ export function applyLeaveCarryover(policy, closingBalance) {
   }
   if (closingBalance <= 0) return 0;
   return Math.min(closingBalance, normalizedPolicy.carryover_limit);
+}
+
+export function createLeaveCarryoverLedgerEntry(input = {}) {
+  const policy = createLeavePolicy(input.policy);
+  const tenantId = requiredString(input, "tenant_id");
+  const employeeId = requiredString(input, "employee_id");
+  const occurredOn = requiredString(input, "occurred_on");
+  const closingBalance = optionalNumber(input, "closing_balance", 0);
+  const amount = applyLeaveCarryover(policy, closingBalance);
+  if (amount <= 0) throw new TypeError("carryover amount must be greater than 0");
+  return Object.freeze({
+    tenant_id: tenantId,
+    entry_id: input.entry_id ?? `leave_carryover_${employeeId}_${occurredOn}`,
+    employee_id: employeeId,
+    policy_id: policy.policy_id,
+    entry_type: "carryover",
+    amount,
+    occurred_on: occurredOn,
+    source_ref: input.source_ref ?? `LeaveCarryover:${policy.policy_id}:${employeeId}:${occurredOn}`,
+    metadata: Object.freeze({
+      policy_version: policy.policy_version,
+      closing_balance: closingBalance,
+      carryover_limit: policy.carryover_limit,
+    }),
+  });
 }
 
 export function evaluateLeaveUsage(policy, currentBalance, requestedAmount) {

@@ -8,3 +8,4 @@ export * from "./ar-service.js";
 export * from "./journal-service.js";
 export * from "./accounting-export-service.js";
 export * from "./tax-export-service.js";
+export * from "./trust-ledger-service.js";

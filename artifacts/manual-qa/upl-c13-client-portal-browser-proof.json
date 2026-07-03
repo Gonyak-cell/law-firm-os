@@ -1,0 +1,128 @@
+{
+  "schema_version": "law-firm-os.manual-qa.upl-c13-client-portal-browser-proof.v1",
+  "generated_at": "2026-07-03T03:24:16.908Z",
+  "tuw_ids": [
+    "UPL-C-13"
+  ],
+  "scope": "Client Portal external browser proof: PortalSurface mount, one-time magic link, metadata-only RFI response UI, expired secure-link denial, audit evidence.",
+  "api_base": "http://127.0.0.1:49840",
+  "web_origin": "http://127.0.0.1:49841",
+  "token_material_rendered": false,
+  "document_bytes_rendered": false,
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "seed": {
+    "secure_link_id": "secure_link_c13_browser_mr4ddaat",
+    "invite_id": "portal_invite_c13_browser_mr4ddaat",
+    "secure_link_status": 201,
+    "invite_status": 201,
+    "invite_url_returned_once": true,
+    "token_material_persisted": false
+  },
+  "screenshots": {
+    "active_session": "artifacts/manual-qa/screenshots/upl-c13-client-portal-external-session.png",
+    "reused_token": "artifacts/manual-qa/screenshots/upl-c13-client-portal-reused-token.png"
+  },
+  "observed": {
+    "requests": [
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:49840/api/portal/invites/consume"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:49840/api/portal/external/rfi-responses"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:49840/api/portal/external/secure-links/secure_link_c13_browser_mr4ddaat/access?tenant_id=tenant_cmp_g10_synthetic&external_session_id=portal_session_8345ebd3be922609&now=2026-07-04T00%3A00%3A00.000Z"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:49840/api/portal/invites/consume"
+      }
+    ],
+    "responses": [
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:49840/api/portal/invites/consume"
+      },
+      {
+        "status": 201,
+        "url": "http://127.0.0.1:49840/api/portal/external/rfi-responses"
+      },
+      {
+        "status": 410,
+        "url": "http://127.0.0.1:49840/api/portal/external/secure-links/secure_link_c13_browser_mr4ddaat/access?tenant_id=tenant_cmp_g10_synthetic&external_session_id=portal_session_8345ebd3be922609&now=2026-07-04T00%3A00%3A00.000Z"
+      },
+      {
+        "status": 409,
+        "url": "http://127.0.0.1:49840/api/portal/invites/consume"
+      }
+    ],
+    "consoleMessages": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 410 (Gone)"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 409 (Conflict)"
+      }
+    ],
+    "pageErrors": []
+  },
+  "audit": {
+    "status": 200,
+    "actions": [
+      "portal.secure_link.create",
+      "portal.magic_link_invite.create",
+      "portal.magic_link_invite.consume",
+      "portal.rfi_response.submit"
+    ],
+    "token_material_included": false
+  },
+  "checks": [
+    {
+      "id": "c13-portal-surface-mounted",
+      "passed": true
+    },
+    {
+      "id": "c13-magic-link-consumed-one-time",
+      "passed": true
+    },
+    {
+      "id": "c13-rfi-response-ui-metadata-only",
+      "passed": true
+    },
+    {
+      "id": "c13-expired-secure-link-denied",
+      "passed": true
+    },
+    {
+      "id": "c13-token-not-rendered",
+      "passed": true
+    },
+    {
+      "id": "c13-api-observed-external-consume",
+      "passed": true
+    },
+    {
+      "id": "c13-api-observed-external-rfi",
+      "passed": true
+    },
+    {
+      "id": "c13-api-observed-expired-secure-link",
+      "passed": true
+    },
+    {
+      "id": "c13-audit-events-present",
+      "passed": true
+    },
+    {
+      "id": "c13-browser-no-page-errors",
+      "passed": true
+    }
+  ],
+  "pass": true
+}

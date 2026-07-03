@@ -1,0 +1,133 @@
+{
+  "schema_version": "law-firm-os.upl-c01.matter-party-proof.v0.1",
+  "generated_at": "2026-07-02T23:13:04.838Z",
+  "verdict": "PASS",
+  "api_url": "http://127.0.0.1:58940",
+  "contract_ref": "UPL-C-01",
+  "route_surface": [
+    "POST /api/matters/:matterId/parties",
+    "GET /api/matters/:matterId/parties",
+    "GET /api/matters/:matterId",
+    "GET /api/matters/:matterId/command-center",
+    "GET /api/matters/audit"
+  ],
+  "checks": [
+    {
+      "id": "adverse-party-registers-retroactive-conflict-subject",
+      "passed": true
+    },
+    {
+      "id": "idempotent-replay-does-not-duplicate-party",
+      "passed": true
+    },
+    {
+      "id": "matter-detail-command-center-show-adverse-party",
+      "passed": true
+    },
+    {
+      "id": "audit-and-safe-output-boundary",
+      "passed": true
+    }
+  ],
+  "observed": {
+    "created": {
+      "status": 201,
+      "item": {
+        "tenant_id": "tenant_upl_c01_matter_party",
+        "resource_id": "matter_party_upl_c01_adverse",
+        "matter_party_id": "matter_party_upl_c01_adverse",
+        "matter_id": "matter_upl_c01",
+        "party_id": "party_upl_c01_adverse",
+        "display_name": "상대방 주식회사",
+        "party_role": "adverse_party",
+        "role_scope": "matter_conflict_subject",
+        "conflict_subject": true,
+        "retroactive_entry": true,
+        "retroactive_source": "manual_retroactive_entry",
+        "status": "active",
+        "registered_at": "2026-07-02T23:13:04.830Z",
+        "raw_contact_values_included": false,
+        "production_ready_claim": false
+      },
+      "adverse_parties": [
+        {
+          "tenant_id": "tenant_upl_c01_matter_party",
+          "resource_id": "matter_party_upl_c01_adverse",
+          "matter_party_id": "matter_party_upl_c01_adverse",
+          "matter_id": "matter_upl_c01",
+          "party_id": "party_upl_c01_adverse",
+          "display_name": "상대방 주식회사",
+          "party_role": "adverse_party",
+          "role_scope": "matter_conflict_subject",
+          "conflict_subject": true,
+          "retroactive_entry": true,
+          "retroactive_source": "manual_retroactive_entry",
+          "status": "active",
+          "registered_at": "2026-07-02T23:13:04.830Z",
+          "raw_contact_values_included": false,
+          "production_ready_claim": false
+        }
+      ]
+    },
+    "replay": {
+      "status": 200,
+      "outcome": "idempotent_replay"
+    },
+    "listed": {
+      "status": 200,
+      "count": 1,
+      "items": [
+        {
+          "tenant_id": "tenant_upl_c01_matter_party",
+          "resource_id": "matter_party_upl_c01_adverse",
+          "matter_party_id": "matter_party_upl_c01_adverse",
+          "matter_id": "matter_upl_c01",
+          "party_id": "party_upl_c01_adverse",
+          "display_name": "상대방 주식회사",
+          "party_role": "adverse_party",
+          "role_scope": "matter_conflict_subject",
+          "conflict_subject": true,
+          "retroactive_entry": true,
+          "retroactive_source": "manual_retroactive_entry",
+          "status": "active",
+          "registered_at": "2026-07-02T23:13:04.830Z",
+          "raw_contact_values_included": false,
+          "production_ready_claim": false
+        }
+      ]
+    },
+    "detail": {
+      "status": 200,
+      "adverse_party_count": 1
+    },
+    "command": {
+      "status": 200,
+      "adverse_parties": [
+        {
+          "tenant_id": "tenant_upl_c01_matter_party",
+          "resource_id": "matter_party_upl_c01_adverse",
+          "matter_party_id": "matter_party_upl_c01_adverse",
+          "matter_id": "matter_upl_c01",
+          "party_id": "party_upl_c01_adverse",
+          "display_name": "상대방 주식회사",
+          "party_role": "adverse_party",
+          "role_scope": "matter_conflict_subject",
+          "conflict_subject": true,
+          "retroactive_entry": true,
+          "retroactive_source": "manual_retroactive_entry",
+          "status": "active",
+          "registered_at": "2026-07-02T23:13:04.830Z",
+          "raw_contact_values_included": false,
+          "production_ready_claim": false
+        }
+      ]
+    },
+    "audit": {
+      "status": 200,
+      "actions": [
+        "matter.command_center.viewed",
+        "matter.party.registered"
+      ]
+    }
+  }
+}

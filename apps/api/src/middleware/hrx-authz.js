@@ -5,6 +5,7 @@ import { resolveHrxRoutePolicy } from "../routes/hrx/route-policy-map.js";
 
 export const HRX_SCOPE_HEADER = "x-lawos-hrx-scopes";
 export const HRX_PURPOSE_HEADER = "x-lawos-hrx-purpose";
+export const HRX_SESSION_BOUND_HEADER = "x-lawos-session-bound";
 
 function headerValue(headers = {}, name) {
   const value = headers[name] ?? headers[name.toLowerCase()];
@@ -66,7 +67,10 @@ export function authorizeHrxApiRequest({ method, pathname, query = {}, headers =
   const actor = parseActorContext(headers);
   if (!actor.ok) return blocked(actor.status, actor.safe_error_code, "hrx_actor_context_required", { fail_closed: true });
 
-  const requestContext = buildHrxRequestContext({ tenant, actor });
+  const requestContext = Object.freeze({
+    ...buildHrxRequestContext({ tenant, actor }),
+    session_bound: headerValue(headers, HRX_SESSION_BOUND_HEADER).trim() === "signed",
+  });
   const principal = buildPrincipal({ headers, requestContext, policy });
   const purpose = headerValue(headers, HRX_PURPOSE_HEADER).trim() || policy.purpose;
   const decision = evaluateHrxPolicy({
@@ -84,11 +88,17 @@ export function authorizeHrxApiRequest({ method, pathname, query = {}, headers =
   });
 
   if (decision.effect !== "allow") {
-    return blocked(403, "HRX_AUTHZ_DENIED", decision.reason, {
-      action: policy.action,
-      required_scope: policy.required_scope,
-      route_policy_id: policy.id,
-      fail_closed: true,
+    return Object.freeze({
+      ...blocked(403, "HRX_AUTHZ_DENIED", decision.reason, {
+        action: policy.action,
+        required_scope: policy.required_scope,
+        route_policy_id: policy.id,
+        fail_closed: true,
+      }),
+      context: requestContext,
+      policy,
+      decision,
+      principal,
     });
   }
 

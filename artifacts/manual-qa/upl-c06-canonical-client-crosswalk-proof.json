@@ -1,0 +1,391 @@
+{
+  "schema_version": "law-firm-os.upl-c06.canonical-client-crosswalk-proof.v0.1",
+  "generated_at": "2026-07-03T00:05:33.639Z",
+  "verdict": "PASS",
+  "api_url": "http://127.0.0.1:51909",
+  "contract_ref": "UPL-C-06",
+  "route_surface": [
+    "POST /api/intake/conflict-checks",
+    "GET /api/intake/audit"
+  ],
+  "source_ref": "amic_current_onedrive_folder_inventory_2026_07_01",
+  "target_display_name": "롯데에너지머티리얼즈",
+  "target_query_name": "롯데에너지머티리얼즈 주식회사",
+  "counts": {
+    "candidate_count": 99,
+    "crosswalk_row_count": 99,
+    "linked_row_count": 99,
+    "entity_record_count": 99,
+    "client_group_record_count": 99
+  },
+  "checks": [
+    {
+      "id": "candidate-list-remains-99-current-clients",
+      "passed": true
+    },
+    {
+      "id": "rp04-entity-to-rp05-client-crosswalk-is-one-to-one",
+      "passed": true
+    },
+    {
+      "id": "single-tenant-current-client-readback-has-no-synthetic-client-groups",
+      "passed": true
+    },
+    {
+      "id": "crm-intake-conflict-search-uses-canonical-client-list",
+      "passed": true
+    },
+    {
+      "id": "caller-hit-count-is-ignored-for-canonical-client-search",
+      "passed": true
+    },
+    {
+      "id": "audit-and-safe-output-boundary",
+      "passed": true
+    }
+  ],
+  "observed": {
+    "sample_crosswalk_rows": [
+      {
+        "display_name": "귀한사람들",
+        "canonical_display_name": "귀한사람들",
+        "entity_id": "entity_rp04_amic_client_001",
+        "client_group_id": "client_group_rp04_amic_client_001",
+        "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:001",
+        "rp05_client_ref": "client_group_rp04_amic_client_001",
+        "tenant_id": "tenant_upl_c06_single_real",
+        "synthetic_only": false,
+        "source_lanes": [
+          "1. 민사"
+        ],
+        "linked": true
+      },
+      {
+        "display_name": "그래비티랩스",
+        "canonical_display_name": "그래비티랩스",
+        "entity_id": "entity_rp04_amic_client_002",
+        "client_group_id": "client_group_rp04_amic_client_002",
+        "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:002",
+        "rp05_client_ref": "client_group_rp04_amic_client_002",
+        "tenant_id": "tenant_upl_c06_single_real",
+        "synthetic_only": false,
+        "source_lanes": [
+          "1. 민사",
+          "4. 기업 자문"
+        ],
+        "linked": true
+      },
+      {
+        "display_name": "그로브",
+        "canonical_display_name": "그로브",
+        "entity_id": "entity_rp04_amic_client_003",
+        "client_group_id": "client_group_rp04_amic_client_003",
+        "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:003",
+        "rp05_client_ref": "client_group_rp04_amic_client_003",
+        "tenant_id": "tenant_upl_c06_single_real",
+        "synthetic_only": false,
+        "source_lanes": [
+          "1. 민사"
+        ],
+        "linked": true
+      },
+      {
+        "display_name": "금홍",
+        "canonical_display_name": "금홍",
+        "entity_id": "entity_rp04_amic_client_004",
+        "client_group_id": "client_group_rp04_amic_client_004",
+        "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:004",
+        "rp05_client_ref": "client_group_rp04_amic_client_004",
+        "tenant_id": "tenant_upl_c06_single_real",
+        "synthetic_only": false,
+        "source_lanes": [
+          "1. 민사"
+        ],
+        "linked": true
+      },
+      {
+        "display_name": "김정",
+        "canonical_display_name": "김정",
+        "entity_id": "entity_rp04_amic_client_005",
+        "client_group_id": "client_group_rp04_amic_client_005",
+        "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:005",
+        "rp05_client_ref": "client_group_rp04_amic_client_005",
+        "tenant_id": "tenant_upl_c06_single_real",
+        "synthetic_only": false,
+        "source_lanes": [
+          "1. 민사"
+        ],
+        "linked": true
+      },
+      {
+        "display_name": "김지은",
+        "canonical_display_name": "김지은",
+        "entity_id": "entity_rp04_amic_client_006",
+        "client_group_id": "client_group_rp04_amic_client_006",
+        "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:006",
+        "rp05_client_ref": "client_group_rp04_amic_client_006",
+        "tenant_id": "tenant_upl_c06_single_real",
+        "synthetic_only": false,
+        "source_lanes": [
+          "1. 민사"
+        ],
+        "linked": true
+      },
+      {
+        "display_name": "동림산업",
+        "canonical_display_name": "동림산업",
+        "entity_id": "entity_rp04_amic_client_007",
+        "client_group_id": "client_group_rp04_amic_client_007",
+        "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:007",
+        "rp05_client_ref": "client_group_rp04_amic_client_007",
+        "tenant_id": "tenant_upl_c06_single_real",
+        "synthetic_only": false,
+        "source_lanes": [
+          "1. 민사"
+        ],
+        "linked": true
+      },
+      {
+        "display_name": "동문시장",
+        "canonical_display_name": "동문시장",
+        "entity_id": "entity_rp04_amic_client_008",
+        "client_group_id": "client_group_rp04_amic_client_008",
+        "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:008",
+        "rp05_client_ref": "client_group_rp04_amic_client_008",
+        "tenant_id": "tenant_upl_c06_single_real",
+        "synthetic_only": false,
+        "source_lanes": [
+          "1. 민사"
+        ],
+        "linked": true
+      },
+      {
+        "display_name": "라이트팜텍",
+        "canonical_display_name": "라이트팜텍",
+        "entity_id": "entity_rp04_amic_client_009",
+        "client_group_id": "client_group_rp04_amic_client_009",
+        "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:009",
+        "rp05_client_ref": "client_group_rp04_amic_client_009",
+        "tenant_id": "tenant_upl_c06_single_real",
+        "synthetic_only": false,
+        "source_lanes": [
+          "1. 민사"
+        ],
+        "linked": true
+      },
+      {
+        "display_name": "매크로머신",
+        "canonical_display_name": "매크로머신",
+        "entity_id": "entity_rp04_amic_client_010",
+        "client_group_id": "client_group_rp04_amic_client_010",
+        "canonical_client_crosswalk_ref": "crosswalk:rp04-rp05:010",
+        "rp05_client_ref": "client_group_rp04_amic_client_010",
+        "tenant_id": "tenant_upl_c06_single_real",
+        "synthetic_only": false,
+        "source_lanes": [
+          "1. 민사"
+        ],
+        "linked": true
+      }
+    ],
+    "target_hits": [
+      {
+        "model_type": "ConflictHit",
+        "conflict_hit_id": "hit_search_upl_c06_real_client_ClientGroup_client_group_rp04_amic_client_096_0",
+        "tenant_id": "tenant_upl_c06_single_real",
+        "conflict_check_id": "conflict_upl_c06_real_client",
+        "matched_party_id": "client_group_rp04_amic_client_096",
+        "hit_source": "party_master",
+        "source_record_ref": "ClientGroup:client_group_rp04_amic_client_096",
+        "severity": "low",
+        "audit_hint_ref": "upl_c06_api_proof",
+        "status": "review_required",
+        "owner_user_id": "user_upl_c06_reviewer",
+        "matched_display_name": "롯데에너지머티리얼즈",
+        "matched_model_type": "ClientGroup",
+        "matched_party_role": null,
+        "source_matter_ref_included": false,
+        "match_kind": "exact_normalized",
+        "match_score": 1,
+        "normalized_query": "롯데에너지머티리얼즈",
+        "raw_hit_payload_visible": false,
+        "created_by": "user_upl_c06_reviewer",
+        "owner_module": "intake",
+        "permission_ref": null,
+        "synthetic_only": true,
+        "no_real_data": true,
+        "writes_product_state": true,
+        "creates_database_rows": false,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": false,
+        "dispatches_intake_runtime": true,
+        "executes_api_handler": false,
+        "creates_matter": false,
+        "g3_runtime_readiness_claim": "open",
+        "party_reference_fields": [
+          "matched_party_id"
+        ],
+        "hit_summary": null,
+        "hit_source_audit_required": true,
+        "resource_id": "hit_search_upl_c06_real_client_ClientGroup_client_group_rp04_amic_client_096_0",
+        "created_at": "2026-07-03T00:05:33.634Z",
+        "updated_at": "2026-07-03T00:05:33.634Z",
+        "g6_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "direct_matter_reference_included": false,
+        "raw_conflict_memo_included": false
+      },
+      {
+        "model_type": "ConflictHit",
+        "conflict_hit_id": "hit_search_upl_c06_real_client_Entity_entity_rp04_amic_client_096_1",
+        "tenant_id": "tenant_upl_c06_single_real",
+        "conflict_check_id": "conflict_upl_c06_real_client",
+        "matched_party_id": "entity_rp04_amic_client_096",
+        "hit_source": "party_master",
+        "source_record_ref": "Entity:entity_rp04_amic_client_096",
+        "severity": "low",
+        "audit_hint_ref": "upl_c06_api_proof",
+        "status": "review_required",
+        "owner_user_id": "user_upl_c06_reviewer",
+        "matched_display_name": "롯데에너지머티리얼즈",
+        "matched_model_type": "Entity",
+        "matched_party_role": null,
+        "source_matter_ref_included": false,
+        "match_kind": "exact_normalized",
+        "match_score": 1,
+        "normalized_query": "롯데에너지머티리얼즈",
+        "raw_hit_payload_visible": false,
+        "created_by": "user_upl_c06_reviewer",
+        "owner_module": "intake",
+        "permission_ref": null,
+        "synthetic_only": true,
+        "no_real_data": true,
+        "writes_product_state": true,
+        "creates_database_rows": false,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": false,
+        "dispatches_intake_runtime": true,
+        "executes_api_handler": false,
+        "creates_matter": false,
+        "g3_runtime_readiness_claim": "open",
+        "party_reference_fields": [
+          "matched_party_id"
+        ],
+        "hit_summary": null,
+        "hit_source_audit_required": true,
+        "resource_id": "hit_search_upl_c06_real_client_Entity_entity_rp04_amic_client_096_1",
+        "created_at": "2026-07-03T00:05:33.634Z",
+        "updated_at": "2026-07-03T00:05:33.634Z",
+        "g6_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "direct_matter_reference_included": false,
+        "raw_conflict_memo_included": false
+      },
+      {
+        "model_type": "ConflictHit",
+        "conflict_hit_id": "hit_search_upl_c06_real_client_Organization_org_rp04_amic_client_096_2",
+        "tenant_id": "tenant_upl_c06_single_real",
+        "conflict_check_id": "conflict_upl_c06_real_client",
+        "matched_party_id": "org_rp04_amic_client_096",
+        "hit_source": "party_master",
+        "source_record_ref": "Organization:org_rp04_amic_client_096",
+        "severity": "low",
+        "audit_hint_ref": "upl_c06_api_proof",
+        "status": "review_required",
+        "owner_user_id": "user_upl_c06_reviewer",
+        "matched_display_name": "롯데에너지머티리얼즈",
+        "matched_model_type": "Organization",
+        "matched_party_role": null,
+        "source_matter_ref_included": false,
+        "match_kind": "exact_normalized",
+        "match_score": 1,
+        "normalized_query": "롯데에너지머티리얼즈",
+        "raw_hit_payload_visible": false,
+        "created_by": "user_upl_c06_reviewer",
+        "owner_module": "intake",
+        "permission_ref": null,
+        "synthetic_only": true,
+        "no_real_data": true,
+        "writes_product_state": true,
+        "creates_database_rows": false,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": false,
+        "dispatches_intake_runtime": true,
+        "executes_api_handler": false,
+        "creates_matter": false,
+        "g3_runtime_readiness_claim": "open",
+        "party_reference_fields": [
+          "matched_party_id"
+        ],
+        "hit_summary": null,
+        "hit_source_audit_required": true,
+        "resource_id": "hit_search_upl_c06_real_client_Organization_org_rp04_amic_client_096_2",
+        "created_at": "2026-07-03T00:05:33.634Z",
+        "updated_at": "2026-07-03T00:05:33.634Z",
+        "g6_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "direct_matter_reference_included": false,
+        "raw_conflict_memo_included": false
+      }
+    ],
+    "conflict_search": {
+      "conflict_search_id": "search_upl_c06_real_client",
+      "tenant_id": "tenant_upl_c06_single_real",
+      "conflict_check_id": "conflict_upl_c06_real_client",
+      "aliases": [
+        "롯데에너지머티리얼즈 주식회사"
+      ],
+      "party_ids": [
+        "party_upl_c06_new_client"
+      ],
+      "party_names": [],
+      "relationship_refs": [],
+      "audit_hint_ref": "upl_c06_api_proof",
+      "owner_user_id": "user_upl_c06_reviewer",
+      "hit_count": 3,
+      "model_type": "ConflictSearch",
+      "normalized_terms": [
+        "롯데에너지머티리얼즈",
+        "신규수임검토법인"
+      ],
+      "generated_hit_ids": [
+        "hit_search_upl_c06_real_client_ClientGroup_client_group_rp04_amic_client_096_0",
+        "hit_search_upl_c06_real_client_Entity_entity_rp04_amic_client_096_1",
+        "hit_search_upl_c06_real_client_Organization_org_rp04_amic_client_096_2"
+      ],
+      "caller_supplied_hit_count_ignored": true,
+      "raw_query_included": false,
+      "status": "executed",
+      "resource_id": "search_upl_c06_real_client",
+      "owner_module": "intake",
+      "created_at": "2026-07-03T00:05:33.634Z",
+      "updated_at": "2026-07-03T00:05:33.634Z",
+      "writes_product_state": true,
+      "creates_database_rows": true,
+      "updates_database_rows": false,
+      "deletes_database_rows": false,
+      "evaluates_runtime_permission": true,
+      "writes_audit_event": true,
+      "dispatches_intake_runtime": true,
+      "executes_api_handler": false,
+      "creates_matter": false,
+      "g6_runtime_readiness_claim": "runtime_write_ready",
+      "production_ready_claim": false,
+      "direct_matter_reference_included": false,
+      "raw_conflict_memo_included": false
+    },
+    "audit_actions": [
+      "conflict.check.create",
+      "conflict.hit.create",
+      "conflict.hit.create",
+      "conflict.hit.create",
+      "conflict.search.executed"
+    ]
+  }
+}

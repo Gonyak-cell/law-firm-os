@@ -6,8 +6,11 @@ import {
   createCrmActivity,
   createCrmContact,
   createCrmMergeProposal,
+  createCrmOpportunity,
   createCrmProposal,
   createIntakeConflictCheck,
+  approveIntakeConflictWaiver,
+  approveIntakeEngagement,
   executeCrmMergeProposal,
   fetchCrmActivities,
   fetchCrmAccountContacts,
@@ -27,12 +30,14 @@ import {
   fetchRecordActionFields,
   handoffCrmOpportunityToIntake,
   issueIntakeClearanceToken,
+  openMatterFromIntakeClearance,
   bulkUpdateRecordActions,
   patchCrmActivity,
   patchCrmAccount,
   patchCrmClientSetting,
   patchCrmContact,
   patchCrmProposal,
+  recordIntakeConflictDecision,
   updateRecordActionField
 } from "../data/apiClient.js";
 import { DataTable, PageHeader, Panel, Property } from "./primitives.jsx";
@@ -113,6 +118,32 @@ function approvalStateLabel(value) {
   return "검토 필요";
 }
 
+function conflictSeverityLabel(value) {
+  if (value === "critical") return "긴급";
+  if (value === "high") return "높음";
+  if (value === "medium") return "중간";
+  if (value === "low") return "낮음";
+  return "확인 필요";
+}
+
+function conflictSourceLabel(value) {
+  if (value === "former_matter") return "과거 Matter";
+  if (value === "party_master") return "당사자 정본";
+  if (value === "relationship_graph") return "관계 이력";
+  if (value === "manual_entry") return "수기 입력";
+  return "외부 출처";
+}
+
+function conflictReviewLabel({ decision, waiver, conflict, decisionReady }) {
+  if (waiver?.status === "approved") return "Waiver 승인";
+  if (decisionReady) return "검토 통과";
+  if (decision?.decision === "clear") return "검토 통과";
+  if (decision?.decision === "block") return "수임 차단";
+  if (decision?.decision === "waiver_required") return "Waiver 필요";
+  if (conflict) return "결정 필요";
+  return "검색 전";
+}
+
 function policyDisplayName(value) {
   if (value === "Client classification policy") return "Client 분류 정책";
   return businessLabel(value, "Client 정책");
@@ -141,6 +172,11 @@ function businessLabel(value, fallback) {
   if (!text) return fallback;
   if (/synthetic|cmp_g|rp0|_[a-z0-9]/i.test(text)) return fallback;
   return text;
+}
+
+function contactValueLabel(item) {
+  const text = String(item?.contact_point_value ?? item?.contactPointValue ?? item?.email ?? item?.phone ?? "").trim();
+  return text || "보호됨";
 }
 
 function linkedLabel(value) {
@@ -174,7 +210,9 @@ function recordFieldLabel(value) {
 function actionMessage(result, successText) {
   if (!result) return null;
   if (result.kind === "error") return "처리하지 못했습니다.";
-  if (result.uiState === "blocked") return "검토가 필요합니다.";
+  if (result.uiState === "blocked" || result.uiState === "denied" || result.statusOutcome === "blocked" || result.outcome === "blocked") {
+    return "처리가 막혔습니다.";
+  }
   return successText;
 }
 
@@ -429,7 +467,7 @@ function ClientRelationshipsPanel({
             item.relationship_type ?? `관계 ${index + 1}`,
             businessLabel(item.contact_display_name, `담당자 ${index + 1}`),
             clientStatus(item.status),
-            item.contact_point_value_included === false ? "보호됨" : "검토 필요"
+            item.contact_point_value_included === true ? contactValueLabel(item) : "보호됨"
           ])}
         />
       )}
@@ -446,22 +484,57 @@ function ClientRelationshipsPanel({
   );
 }
 
-function ClientConflictPanel({ result, auditResult, conflictResult, clearanceResult, conflictPending, clearancePending, onConflictCheck, onClearance }) {
+function ClientConflictPanel({
+  result,
+  auditResult,
+  activeIntake,
+  conflictResult,
+  decisionResult,
+  waiverResult,
+  engagementResult,
+  clearanceResult,
+  matterOpeningResult,
+  conflictPending,
+  decisionPending,
+  waiverPending,
+  engagementPending,
+  clearancePending,
+  matterOpeningPending,
+  onConflictCheck,
+  onConflictDecision,
+  onWaiverApprove,
+  onEngagementApprove,
+  onClearance,
+  onMatterOpening
+}) {
   const state = renderLiveState(result, "이해상충 확인");
   if (state) return state;
   const intakes = resultItems(result);
+  const selectedIntake = activeIntake ?? intakes[0] ?? null;
   const auditCount = resultItems(auditResult).length;
   return (
     <div className="clients-live-stack" data-client-conflict-connected="true">
       <IntakeActionPanel
-        intakeRequest={intakes[0]}
+        intakeRequest={selectedIntake}
         auditCount={auditCount}
         conflictResult={conflictResult}
+        decisionResult={decisionResult}
+        waiverResult={waiverResult}
+        engagementResult={engagementResult}
         clearanceResult={clearanceResult}
+        matterOpeningResult={matterOpeningResult}
         conflictPending={conflictPending}
+        decisionPending={decisionPending}
+        waiverPending={waiverPending}
+        engagementPending={engagementPending}
         clearancePending={clearancePending}
+        matterOpeningPending={matterOpeningPending}
         onConflictCheck={onConflictCheck}
+        onConflictDecision={onConflictDecision}
+        onWaiverApprove={onWaiverApprove}
+        onEngagementApprove={onEngagementApprove}
         onClearance={onClearance}
+        onMatterOpening={onMatterOpening}
       />
       <DataTable
         columns={["확인 대상", "상태", "스냅샷", "감사"]}
@@ -814,7 +887,7 @@ function AccountsTable({
             businessLabel(item.contact_display_name, `담당자 ${index + 1}`),
             item.relationship_type ?? "관계",
             clientStatus(item.status),
-            item.contact_point_value_included === false ? "보호됨" : "검토 필요"
+            item.contact_point_value_included === true ? contactValueLabel(item) : "보호됨"
           ])}
         />
       )}
@@ -849,7 +922,7 @@ function ContactsTable({
   const editableContact = contacts.find((item) => item.contact_source === "crm-runtime.Contact");
   return (
     <div className="clients-live-stack" data-crm-contacts-read="true">
-      <div className="record-action-strip" data-crm-contact-create-action="true">
+      <div className="record-action-strip" data-crm-contact-create-action="true" data-upl-c07-contact-raw-value-flow="true">
         <div>
           <strong>담당자 생성</strong>
           <span>새 담당자를 Client 정보에 추가합니다.</span>
@@ -922,7 +995,7 @@ function ContactsTable({
           clientStatus(item.status),
           canonicalSyncLabel(item.canonical_sync_state),
           item.primary_contact_type ?? "미지정",
-          item.contact_point_value_included === false || item.email_value_included === false ? "보호됨" : "검토 필요"
+          item.contact_point_value_included === true ? contactValueLabel(item) : "보호됨"
         ])}
       />
       <div className="record-action-strip legal-people-backlink-strip" data-lcx-ppl-client-backlink="true">
@@ -1082,20 +1155,57 @@ function OpportunityActionPanel({ opportunity, pending, result, onHandoff }) {
   );
 }
 
-function IntakeActionPanel({ intakeRequest, auditCount, conflictResult, clearanceResult, conflictPending, clearancePending, onConflictCheck, onClearance }) {
+function IntakeActionPanel({
+  intakeRequest,
+  auditCount,
+  conflictResult,
+  decisionResult,
+  waiverResult,
+  engagementResult,
+  clearanceResult,
+  matterOpeningResult,
+  conflictPending,
+  decisionPending,
+  waiverPending,
+  engagementPending,
+  clearancePending,
+  matterOpeningPending,
+  onConflictCheck,
+  onConflictDecision,
+  onWaiverApprove,
+  onEngagementApprove,
+  onClearance,
+  onMatterOpening
+}) {
   const conflict = conflictResult?.kind === "data" ? conflictResult.item : null;
+  const conflictHits = conflictResult?.kind === "data" ? conflictResult.conflictHits : [];
+  const decision = decisionResult?.kind === "data" ? decisionResult.conflictDecision ?? decisionResult.item : null;
+  const waiver = waiverResult?.kind === "data" ? waiverResult.waiver ?? waiverResult.item : null;
+  const engagement = engagementResult?.kind === "data" ? engagementResult.engagement ?? engagementResult.item : null;
+  const decisionReady =
+    decisionResult?.clearanceLinkReady === true ||
+    (decisionResult?.kind === "data" && decisionResult.uiState !== "blocked" && decision?.decision !== "block");
+  const reviewReady = decisionReady || waiverResult?.clearanceLinkReady === true || decision?.decision === "clear" || waiver?.status === "approved";
+  const engagementReady = engagementResult?.engagementReady === true || engagement?.status === "approved";
   const clearance = clearanceResult?.kind === "data" ? clearanceResult.validation : null;
+  const openedMatter = matterOpeningResult?.kind === "data" ? matterOpeningResult.item : null;
   return (
-    <div className="record-action-grid" data-intake-clearance-action="true">
+    <div
+      className="record-action-grid"
+      data-intake-clearance-action="true"
+      data-intake-conflict-review-flow="true"
+      data-intake-engagement-approval-flow="true"
+      data-intake-matter-opening-flow="true"
+    >
       <div className="record-action-strip">
         <div>
           <strong>{intakeRequest ? "상담·문의 1" : "상담·문의"}</strong>
-          <span>{auditCount > 0 ? "감사 기록 있음" : "검토 대기"}</span>
+          <span>{conflictResult?.hitCount !== null && conflictResult?.hitCount !== undefined ? `Hit ${conflictResult.hitCount}건` : auditCount > 0 ? "감사 기록 있음" : "검토 대기"}</span>
           <ActionNotice
             pending={conflictPending}
             result={conflictResult}
             pendingText="이해상충 검토 중입니다."
-            successText="이해상충 스냅샷이 기록되었습니다."
+            successText="이해상충 검색 결과가 기록되었습니다."
           />
         </div>
         <button className="secondary-button" type="button" disabled={!intakeRequest || conflictPending} onClick={onConflictCheck}>
@@ -1104,8 +1214,40 @@ function IntakeActionPanel({ intakeRequest, auditCount, conflictResult, clearanc
       </div>
       <div className="record-action-strip">
         <div>
+          <strong>{conflictReviewLabel({ decision, waiver, conflict, decisionReady })}</strong>
+          <span>{conflict ? "승인자 기록 필요" : "검색 결과 필요"}</span>
+          <ActionNotice
+            pending={decisionPending}
+            result={decisionResult}
+            pendingText="검토 결정을 기록 중입니다."
+            successText="검토 결정이 기록되었습니다."
+          />
+          <ActionNotice
+            pending={waiverPending}
+            result={waiverResult}
+            pendingText="Waiver를 승인 중입니다."
+            successText="Waiver 승인 기록이 남았습니다."
+          />
+        </div>
+        <div className="record-action-button-group">
+          <button className="secondary-button" type="button" disabled={!conflict || decisionPending} onClick={onConflictDecision}>
+            검토 결정
+          </button>
+          <button className="secondary-button" type="button" disabled={!conflict || waiverPending} onClick={onWaiverApprove}>
+            Waiver 승인
+          </button>
+        </div>
+      </div>
+      <div className="record-action-strip">
+        <div>
           <strong>{clearance?.valid ? "통과" : "통과 검토"}</strong>
-          <span>{conflict ? "스냅샷 확인됨" : "스냅샷 필요"}</span>
+          <span>{reviewReady && engagementReady ? "결정·수임 원장 확인됨" : engagementReady ? "결정 필요" : "수임 승인 필요"}</span>
+          <ActionNotice
+            pending={engagementPending}
+            result={engagementResult}
+            pendingText="수임 승인 기록 중입니다."
+            successText="수임 승인 완료."
+          />
           <ActionNotice
             pending={clearancePending}
             result={clearanceResult}
@@ -1113,9 +1255,41 @@ function IntakeActionPanel({ intakeRequest, auditCount, conflictResult, clearanc
             successText="통과 처리되었습니다."
           />
         </div>
-        <button className="secondary-button" type="button" disabled={!intakeRequest || !conflict || clearancePending} onClick={onClearance}>
-          통과 처리
+        <div className="record-action-button-group">
+          <button className="secondary-button" type="button" disabled={!intakeRequest || !reviewReady || engagementPending} onClick={onEngagementApprove}>
+            수임 승인
+          </button>
+          <button className="secondary-button" type="button" disabled={!intakeRequest || !conflict || !reviewReady || !engagementReady || clearancePending} onClick={onClearance}>
+            통과 처리
+          </button>
+        </div>
+      </div>
+      <div className="record-action-strip">
+        <div>
+          <strong>{openedMatter ? "Matter 개설됨" : "Matter 개설"}</strong>
+          <span>{clearance?.valid ? "통과 기록으로 개설 가능" : "통과 처리 필요"}</span>
+          <ActionNotice
+            pending={matterOpeningPending}
+            result={matterOpeningResult}
+            pendingText="Matter 개설 중입니다."
+            successText="Matter가 개설되었습니다."
+          />
+        </div>
+        <button className="secondary-button" type="button" disabled={!clearance?.valid || matterOpeningPending || Boolean(openedMatter)} onClick={onMatterOpening}>
+          <Plus size={15} />
+          Matter 개설
         </button>
+      </div>
+      <div className="record-action-table" data-intake-conflict-hit-list="true">
+        <DataTable
+          columns={["Hit", "출처", "심각도", "상태"]}
+          rows={(conflictHits.length > 0 ? conflictHits : [{ matched_display_name: "검색 후 표시", hit_source: null, severity: null, status: conflict ? "히트 없음" : "대기" }]).map((hit, index) => [
+            businessLabel(hit.matched_display_name, `Hit ${index + 1}`),
+            hit.hit_source ? conflictSourceLabel(hit.hit_source) : "검색 대기",
+            hit.severity ? conflictSeverityLabel(hit.severity) : "해당 없음",
+            pipelineStatus(hit.status)
+          ])}
+        />
       </div>
     </div>
   );
@@ -1149,27 +1323,101 @@ function OpportunitiesTable({ result, pending, handoffResult, onHandoff }) {
   );
 }
 
-function IntakeTable({ result, auditResult, conflictResult, clearanceResult, conflictPending, clearancePending, onConflictCheck, onClearance }) {
-  const state = renderLiveState(result, "상담·문의");
+export function IntakeSurface({
+  result,
+  auditResult,
+  activeIntake,
+  createResult,
+  conflictResult,
+  decisionResult,
+  waiverResult,
+  engagementResult,
+  clearanceResult,
+  matterOpeningResult,
+  conflictPending,
+  createPending,
+  decisionPending,
+  waiverPending,
+  engagementPending,
+  clearancePending,
+  matterOpeningPending,
+  onCreateIntake,
+  onConflictCheck,
+  onConflictDecision,
+  onWaiverApprove,
+  onEngagementApprove,
+  onClearance,
+  onMatterOpening
+}) {
+  const state =
+    result === null ||
+    result?.kind === "error" ||
+    result?.uiState === "denied" ||
+    result?.uiState === "review_required" ||
+    result?.outcome === "review_required"
+      ? renderLiveState(result, "인테이크")
+      : null;
   if (state) return state;
   const intakes = resultItems(result);
+  const selectedIntake = activeIntake ?? intakes[0] ?? null;
+  const intakeRows = selectedIntake
+    ? [selectedIntake, ...intakes.filter((item) => item.intake_request_id !== selectedIntake.intake_request_id)]
+    : intakes;
   const auditCount = resultItems(auditResult).length;
   return (
-    <div className="clients-live-stack">
+    <div className="clients-live-stack intake-completion-surface" data-upl-c08-intake-completion-surface="true">
+      <div
+        className="record-action-strip"
+        data-upl-c08-new-inquiry-intake="true"
+        data-upl-c08-intake-pipeline="consultation-conflict-opening"
+      >
+        <div>
+          <strong>신규 의뢰 접수</strong>
+          <span>상담에서 인테이크로 넘긴 뒤 이해상충 검토와 Matter 개설까지 같은 흐름에서 처리합니다.</span>
+          <ActionNotice
+            pending={createPending}
+            result={createResult}
+            pendingText="신규 의뢰를 인테이크로 접수 중입니다."
+            successText="신규 의뢰가 인테이크로 접수되었습니다."
+          />
+        </div>
+        <button className="secondary-button" type="button" disabled={createPending} onClick={onCreateIntake}>
+          <Plus size={15} />
+          의뢰 접수
+        </button>
+      </div>
+      {createResult?.kind === "data" && createResult.item && (
+        <div className="record-boundary-note" data-upl-c08-intake-handoff-result="true">
+          <ShieldCheck size={15} />
+          <span>신규 의뢰가 인테이크 요청으로 연결되었습니다.</span>
+        </div>
+      )}
       <IntakeActionPanel
-        intakeRequest={intakes[0]}
+        intakeRequest={selectedIntake}
         auditCount={auditCount}
         conflictResult={conflictResult}
+        decisionResult={decisionResult}
+        waiverResult={waiverResult}
+        engagementResult={engagementResult}
         clearanceResult={clearanceResult}
+        matterOpeningResult={matterOpeningResult}
         conflictPending={conflictPending}
+        decisionPending={decisionPending}
+        waiverPending={waiverPending}
+        engagementPending={engagementPending}
         clearancePending={clearancePending}
+        matterOpeningPending={matterOpeningPending}
         onConflictCheck={onConflictCheck}
+        onConflictDecision={onConflictDecision}
+        onWaiverApprove={onWaiverApprove}
+        onEngagementApprove={onEngagementApprove}
         onClearance={onClearance}
+        onMatterOpening={onMatterOpening}
       />
       <DataTable
-        columns={["상담·문의", "상태", "Opportunity", "범위"]}
-        rows={intakes.map((item, index) => [
-          `상담·문의 ${index + 1}`,
+        columns={["인테이크", "상태", "Opportunity", "범위"]}
+        rows={intakeRows.map((item, index) => [
+          `인테이크 ${index + 1}`,
           pipelineStatus(item.status),
           linkedLabel(item.opportunity_id),
           businessLabel(item.requested_scope_summary, "범위 미지정")
@@ -1194,9 +1442,14 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   const [opportunitiesResult, setOpportunitiesResult] = useState(null);
   const [intakeResult, setIntakeResult] = useState(null);
   const [intakeAuditResult, setIntakeAuditResult] = useState(null);
+  const [intakeCreateResult, setIntakeCreateResult] = useState(null);
   const [handoffResult, setHandoffResult] = useState(null);
   const [conflictResult, setConflictResult] = useState(null);
+  const [decisionResult, setDecisionResult] = useState(null);
+  const [waiverResult, setWaiverResult] = useState(null);
+  const [engagementResult, setEngagementResult] = useState(null);
   const [clearanceResult, setClearanceResult] = useState(null);
+  const [matterOpeningResult, setMatterOpeningResult] = useState(null);
   const [accountCreateResult, setAccountCreateResult] = useState(null);
   const [contactCreateResult, setContactCreateResult] = useState(null);
   const [mergeCreateResult, setMergeCreateResult] = useState(null);
@@ -1216,9 +1469,14 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   const [contactRecordActionResult, setContactRecordActionResult] = useState(null);
   const [legalPeopleClientResult, setLegalPeopleClientResult] = useState(null);
   const [clientRecordEditValue, setClientRecordEditValue] = useState("");
+  const [intakeCreatePending, setIntakeCreatePending] = useState(false);
   const [handoffPending, setHandoffPending] = useState(false);
   const [conflictPending, setConflictPending] = useState(false);
+  const [decisionPending, setDecisionPending] = useState(false);
+  const [waiverPending, setWaiverPending] = useState(false);
+  const [engagementPending, setEngagementPending] = useState(false);
   const [clearancePending, setClearancePending] = useState(false);
+  const [matterOpeningPending, setMatterOpeningPending] = useState(false);
   const [accountCreatePending, setAccountCreatePending] = useState(false);
   const [contactCreatePending, setContactCreatePending] = useState(false);
   const [mergeCreatePending, setMergeCreatePending] = useState(false);
@@ -1304,6 +1562,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     setClientSettingPatchResult(null);
     setAccountPatchResult(null);
     setContactPatchResult(null);
+    setIntakeCreateResult(null);
     setAccountRecordActionResult(null);
     setContactRecordActionResult(null);
     const guardedResult = guardedResultForContext(liveCtx);
@@ -1387,7 +1646,14 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   const selectedOpportunity = opportunities[0] ?? null;
   const selectedIntake = intakes[0] ?? null;
   const selectedAccount = resultItems(accountsResult)[0] ?? null;
-  const selectedClientPartyId = selectedClient?.primary_party_id ?? selectedClient?.primary_entity_id ?? selectedAccount?.party_id ?? selectedOpportunity?.party_id ?? "party_cmp_g6_client_001";
+  const activeOpportunity =
+    (handoffResult?.kind === "data" && handoffResult.opportunity?.opportunity_id ? handoffResult.opportunity : null) ??
+    (intakeCreateResult?.kind === "data" && intakeCreateResult.opportunity?.opportunity_id ? intakeCreateResult.opportunity : null) ??
+    selectedOpportunity;
+  const activeIntake =
+    (handoffResult?.kind === "data" && handoffResult.item?.intake_request_id ? handoffResult.item : null) ??
+    selectedIntake;
+  const selectedClientPartyId = selectedClient?.primary_party_id ?? selectedClient?.primary_entity_id ?? selectedAccount?.party_id ?? activeOpportunity?.party_id ?? "party_cmp_g6_client_001";
   const leadCount = resultItems(leadsResult).length;
   const opportunityCount = opportunities.length;
   const intakeCount = intakes.length;
@@ -1426,6 +1692,51 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
     };
   }, [clientGuardedState, liveCtx, refreshToken, selectedClientId]);
 
+  function resetIntakePipelineResults() {
+    setConflictResult(null);
+    setDecisionResult(null);
+    setWaiverResult(null);
+    setEngagementResult(null);
+    setClearanceResult(null);
+    setMatterOpeningResult(null);
+  }
+
+  async function handleCreateIntakePipeline() {
+    const requestedScopeSummary = "신규 의뢰 수임 검토";
+    setIntakeCreatePending(true);
+    setIntakeCreateResult(null);
+    setHandoffResult(null);
+    resetIntakePipelineResults();
+    const createdOpportunity = await createCrmOpportunity({
+      partyId: selectedClientPartyId,
+      displayName: "신규 의뢰",
+      requestedScopeSummary,
+      ctx: liveCtx
+    });
+    if (createdOpportunity.kind !== "data" || !createdOpportunity.item?.opportunity_id) {
+      setIntakeCreateResult(createdOpportunity);
+      setIntakeCreatePending(false);
+      return;
+    }
+    setOpportunitiesResult((current) => upsertResultItem(current, createdOpportunity.item, "opportunity_id"));
+    const next = await handoffCrmOpportunityToIntake({
+      opportunityId: createdOpportunity.item.opportunity_id,
+      requestedScopeSummary,
+      ctx: liveCtx
+    });
+    setHandoffResult(next);
+    setIntakeCreateResult(
+      next.kind === "data"
+        ? { ...next, opportunity: next.opportunity ?? createdOpportunity.item }
+        : next
+    );
+    setIntakeCreatePending(false);
+    if (next.kind === "data") {
+      setOpportunitiesResult((current) => upsertResultItem(current, next.opportunity ?? createdOpportunity.item, "opportunity_id"));
+      setIntakeResult((current) => upsertResultItem(current, next.item, "intake_request_id"));
+    }
+  }
+
   async function handleOpportunityHandoff() {
     if (!selectedOpportunity?.opportunity_id) return;
     setHandoffPending(true);
@@ -1443,22 +1754,82 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
   }
 
   async function handleConflictCheck() {
-    if (!selectedIntake?.intake_request_id) return;
+    if (!activeIntake?.intake_request_id) return;
+    setDecisionResult(null);
+    setWaiverResult(null);
+    setEngagementResult(null);
+    setClearanceResult(null);
+    setMatterOpeningResult(null);
     setConflictPending(true);
-    const next = await createIntakeConflictCheck({ intakeRequest: selectedIntake, ctx: liveCtx });
+    const next = await createIntakeConflictCheck({ intakeRequest: activeIntake, ctx: liveCtx });
     setConflictResult(next);
     setConflictPending(false);
     if (next.kind === "data") setRefreshToken((value) => value + 1);
   }
 
+  async function handleConflictDecision() {
+    const conflictCheck = conflictResult?.kind === "data" ? conflictResult.item : null;
+    const conflictHits = conflictResult?.kind === "data" ? conflictResult.conflictHits : [];
+    if (!conflictCheck?.conflict_check_id) return;
+    setDecisionPending(true);
+    const next = await recordIntakeConflictDecision({ conflictCheck, conflictHits, decision: "clear", ctx: liveCtx });
+    setDecisionResult(next);
+    setEngagementResult(null);
+    setClearanceResult(null);
+    setMatterOpeningResult(null);
+    setDecisionPending(false);
+    if (next.kind === "data") setConflictResult((current) => current?.kind === "data" ? { ...current, item: next.conflictCheck ?? current.item, conflictHits: next.conflictHits ?? current.conflictHits } : current);
+  }
+
+  async function handleWaiverApprove() {
+    const conflictCheck = conflictResult?.kind === "data" ? conflictResult.item : null;
+    const conflictHits = conflictResult?.kind === "data" ? conflictResult.conflictHits : [];
+    if (!activeIntake?.intake_request_id || !conflictCheck?.conflict_check_id) return;
+    setWaiverPending(true);
+    const next = await approveIntakeConflictWaiver({ intakeRequest: activeIntake, conflictCheck, conflictHits, ctx: liveCtx });
+    setWaiverResult(next);
+    setEngagementResult(null);
+    setClearanceResult(null);
+    setMatterOpeningResult(null);
+    setWaiverPending(false);
+    if (next.kind === "data") setConflictResult((current) => current?.kind === "data" ? { ...current, item: next.conflictCheck ?? current.item } : current);
+  }
+
+  async function handleEngagementApprove() {
+    if (!activeIntake?.intake_request_id) return;
+    setEngagementPending(true);
+    const next = await approveIntakeEngagement({ intakeRequest: activeIntake, ctx: liveCtx });
+    setEngagementResult(next);
+    setClearanceResult(null);
+    setMatterOpeningResult(null);
+    setEngagementPending(false);
+  }
+
   async function handleClearance() {
     const conflictCheck = conflictResult?.kind === "data" ? conflictResult.item : null;
-    if (!selectedIntake?.intake_request_id || !conflictCheck?.snapshot_hash) return;
+    const engagement = engagementResult?.kind === "data" ? engagementResult.engagement ?? engagementResult.item : null;
+    if (!activeIntake?.intake_request_id || !conflictCheck?.snapshot_hash) return;
     setClearancePending(true);
-    const next = await issueIntakeClearanceToken({ intakeRequest: selectedIntake, conflictCheck, ctx: liveCtx });
+    const next = await issueIntakeClearanceToken({ intakeRequest: activeIntake, conflictCheck, engagement, ctx: liveCtx });
     setClearanceResult(next);
+    setMatterOpeningResult(null);
     setClearancePending(false);
     if (next.kind === "data") setRefreshToken((value) => value + 1);
+  }
+
+  async function handleMatterOpening() {
+    const clearanceToken = clearanceResult?.kind === "data" && clearanceResult.validation?.valid ? clearanceResult.item : null;
+    if (!activeIntake?.intake_request_id || !clearanceToken?.clearance_token_id) return;
+    setMatterOpeningPending(true);
+    const next = await openMatterFromIntakeClearance({
+      intakeRequest: activeIntake,
+      clearanceToken,
+      clientPartyId: selectedClientPartyId,
+      title: businessLabel(activeIntake.requested_scope_summary, "인테이크 Matter"),
+      ctx: liveCtx
+    });
+    setMatterOpeningResult(next);
+    setMatterOpeningPending(false);
   }
 
   async function handleCreateAccount() {
@@ -1514,7 +1885,9 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
                 relationship_type: "crm_runtime_contact",
                 status: next.item.status,
                 contact_display_name: next.item.display_name,
-                contact_point_value_included: false,
+                primary_contact_type: next.item.primary_contact_type ?? null,
+                contact_point_value: next.item.contact_point_value ?? null,
+                contact_point_value_included: next.item.contact_point_value_included === true,
                 production_ready_claim: false
               },
               ...currentItems
@@ -1699,7 +2072,14 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
           outcome: current?.outcome ?? "passed",
           items: resultItems(current).map((item) =>
             item.contact_id === next.item.contact_id
-              ? { ...item, status: next.item.status, contact_display_name: next.item.display_name }
+              ? {
+                  ...item,
+                  status: next.item.status,
+                  contact_display_name: next.item.display_name,
+                  primary_contact_type: next.item.primary_contact_type ?? item.primary_contact_type,
+                  contact_point_value: next.item.contact_point_value ?? item.contact_point_value,
+                  contact_point_value_included: next.item.contact_point_value_included === true
+                }
               : item,
           ),
           safeErrorCodes: current?.safeErrorCodes ?? [],
@@ -1860,16 +2240,32 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
           </Panel>
         )}
         {currentSection === "client-intake" && (
-          <Panel id="client-intake" className="record-list-panel" title="상담·문의" meta="수임 전 검토">
-            <IntakeTable
+          <Panel id="client-intake" className="record-list-panel" title="인테이크" meta="수임 전 검토">
+            <IntakeSurface
               result={intakeResult}
               auditResult={intakeAuditResult}
+              activeIntake={activeIntake}
+              createResult={intakeCreateResult}
               conflictResult={conflictResult}
+              decisionResult={decisionResult}
+              waiverResult={waiverResult}
+              engagementResult={engagementResult}
               clearanceResult={clearanceResult}
+              matterOpeningResult={matterOpeningResult}
+              createPending={intakeCreatePending}
               conflictPending={conflictPending}
+              decisionPending={decisionPending}
+              waiverPending={waiverPending}
+              engagementPending={engagementPending}
               clearancePending={clearancePending}
+              matterOpeningPending={matterOpeningPending}
+              onCreateIntake={handleCreateIntakePipeline}
               onConflictCheck={handleConflictCheck}
+              onConflictDecision={handleConflictDecision}
+              onWaiverApprove={handleWaiverApprove}
+              onEngagementApprove={handleEngagementApprove}
               onClearance={handleClearance}
+              onMatterOpening={handleMatterOpening}
             />
           </Panel>
         )}
@@ -1959,12 +2355,25 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "" }
             <ClientConflictPanel
               result={intakeResult}
               auditResult={intakeAuditResult}
+              activeIntake={activeIntake}
               conflictResult={conflictResult}
+              decisionResult={decisionResult}
+              waiverResult={waiverResult}
+              engagementResult={engagementResult}
               clearanceResult={clearanceResult}
+              matterOpeningResult={matterOpeningResult}
               conflictPending={conflictPending}
+              decisionPending={decisionPending}
+              waiverPending={waiverPending}
+              engagementPending={engagementPending}
               clearancePending={clearancePending}
+              matterOpeningPending={matterOpeningPending}
               onConflictCheck={handleConflictCheck}
+              onConflictDecision={handleConflictDecision}
+              onWaiverApprove={handleWaiverApprove}
+              onEngagementApprove={handleEngagementApprove}
               onClearance={handleClearance}
+              onMatterOpening={handleMatterOpening}
             />
           </Panel>
         )}

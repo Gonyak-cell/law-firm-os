@@ -1,24 +1,62 @@
+/// <reference path="../../react-jsx.d.ts" />
 import React from "react";
 import { useEffect, useState } from "react";
 import { ClipboardCheck, Power, RefreshCw } from "lucide-react";
 import { DataTable, Panel } from "../../components/primitives.jsx";
 import { closeHrxOffboardingCase, fetchHrxLifecycleBoard, updateHrxOnboardingTask } from "../hrxApiClient.ts";
 
-function readinessLabel(caseItem) {
-  const accessReady = caseItem.access_revocations?.every((item) => item.revoked === true) ?? false;
+type LifecycleTask = {
+  task_id: string;
+  title?: string;
+  owner_role?: string;
+  status?: string;
+};
+type OnboardingPlan = {
+  onboarding_id: string;
+  start_date?: string;
+  document_refs?: string[];
+  tasks: LifecycleTask[];
+};
+type OffboardingCase = {
+  offboarding_id: string;
+  separation_date?: string;
+  state?: string;
+  access_revocations?: { revoked?: boolean; confirmation_ref?: string | null }[];
+  document_returns?: { returned?: boolean }[];
+  legal_hold_checks?: { clear?: boolean }[];
+  matter_reassignments?: { reassigned?: boolean; reassigned_to_employee_id?: string | null }[];
+  handover_items?: { completed?: boolean }[];
+};
+type LifecycleResult = { kind: "data"; onboarding: OnboardingPlan[]; offboarding: OffboardingCase[] } | { kind: "error" } | null;
+
+function readinessLabel(caseItem: OffboardingCase) {
+  const accessReady = caseItem.access_revocations?.every((item) => item.revoked === true && Boolean(item.confirmation_ref)) ?? false;
   const documentsReady = caseItem.document_returns?.every((item) => item.returned === true) ?? false;
   const holdsReady = caseItem.legal_hold_checks?.every((item) => item.clear === true) ?? false;
-  return accessReady && documentsReady && holdsReady ? "종료 가능" : "확인 필요";
+  const reassignmentReady = caseItem.matter_reassignments?.every((item) => item.reassigned === true && Boolean(item.reassigned_to_employee_id)) ?? true;
+  const handoverReady = caseItem.handover_items?.every((item) => item.completed === true) ?? true;
+  return accessReady && documentsReady && holdsReady && reassignmentReady && handoverReady ? "종료 가능" : "확인 필요";
 }
 
-function taskStatusLabel(value) {
+function offboardingChecklistSummary(caseItem: OffboardingCase) {
+  const accessReady = caseItem.access_revocations?.every((item) => item.revoked === true && Boolean(item.confirmation_ref)) ?? false;
+  const reassignmentReady = caseItem.matter_reassignments?.every((item) => item.reassigned === true && Boolean(item.reassigned_to_employee_id)) ?? true;
+  const handoverReady = caseItem.handover_items?.every((item) => item.completed === true) ?? true;
+  return [
+    accessReady ? "회수 확인 완료" : "회수 확인 필요",
+    reassignmentReady ? "Matter 재배정 완료" : "Matter 재배정 필요",
+    handoverReady ? "인수인계 완료" : "인수인계 필요"
+  ].join(" / ");
+}
+
+function taskStatusLabel(value?: string) {
   if (value === "completed") return "완료";
   if (value === "closed") return "종료";
   if (value === "in_progress") return "진행 중";
   return "대기";
 }
 
-function ownerRoleLabel(value) {
+function ownerRoleLabel(value?: string) {
   if (value === "manager") return "관리자";
   if (value === "hr") return "인사 담당";
   if (value === "people_ops") return "인사 담당";
@@ -28,30 +66,31 @@ function ownerRoleLabel(value) {
   return "담당자";
 }
 
-function taskTitleLabel(task) {
+function taskTitleLabel(task: LifecycleTask) {
   if (task.task_id === "policy-ack") return "정책 확인";
   if (task.task_id === "access-provision") return "기본 접근 권한 설정";
   if (task.task_id === "task-001") return "입사 서류 확인";
   return /[가-힣]/.test(task.title ?? "") ? task.title : "업무 확인";
 }
 
-function onboardingLabel(index) {
+function onboardingLabel(index: number) {
   return index === 0 ? "입사 준비" : `입사 준비 ${index + 1}`;
 }
 
-function offboardingLabel(index) {
+function offboardingLabel(index: number) {
   return index === 0 ? "퇴사 정리" : `퇴사 정리 ${index + 1}`;
 }
 
-function documentSummary(refs = []) {
+function documentSummary(refs: string[] = []) {
   if (refs.length === 0) return "없음";
   if (refs.length === 1) return "정책 문서";
   return `문서 ${refs.length}건`;
 }
 
 export function LifecycleBoard() {
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<LifecycleResult>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [actionStatus, setActionStatus] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,19 +103,21 @@ export function LifecycleBoard() {
     };
   }, [refreshKey]);
 
-  async function completeTask(plan, task) {
+  async function completeTask(plan: OnboardingPlan, task: LifecycleTask) {
+    setActionStatus(null);
     const updated = await updateHrxOnboardingTask(plan.onboarding_id, task.task_id, "completed");
     if (updated.kind === "data") setRefreshKey((key) => key + 1);
     else setResult({ kind: "error" });
   }
 
-  async function closeCase(caseItem) {
+  async function closeCase(caseItem: OffboardingCase) {
+    setActionStatus(null);
     const closed = await closeHrxOffboardingCase(caseItem.offboarding_id);
     if (closed.kind === "data") setRefreshKey((key) => key + 1);
-    else setResult({ kind: "error" });
+    else setActionStatus(closed.reason === "HRX_OFFBOARDING_CLOSE_BLOCKED" ? "퇴사 정리 항목을 완료한 뒤 종료할 수 있습니다" : "퇴사 정리 종료를 처리하지 못했습니다");
   }
 
-  let body;
+  let body: unknown;
   if (result === null) {
     body = <div className="live-data-state live-data-loading">입퇴사 관리 업무를 불러오는 중입니다</div>;
   } else if (result.kind === "error") {
@@ -125,6 +166,7 @@ export function LifecycleBoard() {
                 <div>
                   <strong>{offboardingLabel(index)}</strong>
                   <span>퇴사 예정 구성원 / {caseItem.separation_date}</span>
+                  <small>{offboardingChecklistSummary(caseItem)}</small>
                 </div>
                 <em>{taskStatusLabel(caseItem.state)} / {readinessLabel(caseItem)}</em>
                 <button className="secondary-button" disabled={caseItem.state === "closed"} onClick={() => closeCase(caseItem)}>
@@ -143,7 +185,7 @@ export function LifecycleBoard() {
     <Panel id="people-lifecycle" className="people-panel span-2" title="입퇴사 관리" meta="입사 준비 / 퇴사 정리">
       <div className="people-panel-kicker">
         <RefreshCw size={13} />
-        입퇴사 관리 업무를 확인합니다
+        {actionStatus ?? "입퇴사 관리 업무를 확인합니다"}
       </div>
       {body}
     </Panel>

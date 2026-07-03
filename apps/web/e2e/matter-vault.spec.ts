@@ -6,7 +6,7 @@ import test from "node:test";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-async function readWebFile(path) {
+async function readWebFile(path: string) {
   return readFile(resolve(root, path), "utf8");
 }
 
@@ -21,7 +21,12 @@ test("Matter Vault panel is routed, API-backed, and exposes hardened state surfa
 
   assert.match(vaultSurface, /data-cmp-g5-vault-surface="true"/);
   assert.match(vaultSurface, /fetchVaultDocuments/);
+  assert.match(vaultSurface, /fetchVaultSearch/);
+  assert.match(vaultSurface, /data-upl-e01-vault-search="true"/);
+  assert.match(vaultSurface, /aria-label="Vault 본문 검색"/);
+  assert.match(vaultSurface, /return "OCR"/);
   assert.match(vaultApiClient, /fetchMatterVaultSummary/);
+  assert.match(vaultApiClient, /fetchVaultSearch/);
   assert.match(vaultApiClient, /fetchMatterTimeline/);
   assert.match(breadcrumb, /aria-label="Matter Vault 위치"/);
   assert.match(table, /data-mv-vault-document-table="true"/);

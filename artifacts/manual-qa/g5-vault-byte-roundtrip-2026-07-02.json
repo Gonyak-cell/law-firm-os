@@ -1,0 +1,15 @@
+{
+  "outcome": "passed",
+  "checked_at": "2026-07-02T11:38:06.663Z",
+  "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-manual-g5-vault-xd5lDF/dms-store.json",
+  "document_id": "doc_manual_g5_byte_roundtrip_001",
+  "uploaded_sha256": "cd602b800954df0ddb395eaa254123bab549b1aedae038ffb16ab6d95855bc56",
+  "first_download_sha256": "cd602b800954df0ddb395eaa254123bab549b1aedae038ffb16ab6d95855bc56",
+  "restarted_download_sha256": "cd602b800954df0ddb395eaa254123bab549b1aedae038ffb16ab6d95855bc56",
+  "restarted_download_matches_upload": true,
+  "decoded_content_matches": true,
+  "raw_path_exposed": false,
+  "storage_pointer_ref_included": false,
+  "audit_action": "dms.document.download",
+  "production_ready_claim": false
+}

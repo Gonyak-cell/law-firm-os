@@ -128,7 +128,7 @@ export async function startElectronApp() {
   await app.whenReady();
   configureDesktopAppIcon(app);
   configureDesktopProtocol(app);
-  const localApi = await startDesktopLocalApiServer();
+  const localApi = await startDesktopLocalApiServer({ userDataPath: app.getPath("userData") });
   if (localApi?.baseUrl) process.env.MATTER_DESKTOP_API_BASE_URL = localApi.baseUrl;
   app.on("before-quit", () => stopDesktopLocalApiServer(localApi));
   const runtimeClient = runtimeClientFromEnv();

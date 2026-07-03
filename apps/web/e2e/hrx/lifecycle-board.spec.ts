@@ -6,7 +6,7 @@ import test from "node:test";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
-async function readWebFile(path) {
+async function readWebFile(path: string) {
   return readFile(resolve(root, path), "utf8");
 }
 
@@ -22,6 +22,11 @@ test("Lifecycle board reads onboarding and offboarding state through HRX APIs", 
   assert.match(component, /closeHrxOffboardingCase/);
   assert.match(component, /taskTitleLabel/);
   assert.match(component, /documentSummary/);
+  assert.match(component, /offboardingChecklistSummary/);
+  assert.match(component, /회수 확인 필요/);
+  assert.match(component, /Matter 재배정 필요/);
+  assert.match(component, /인수인계 필요/);
+  assert.match(component, /HRX_OFFBOARDING_CLOSE_BLOCKED/);
   assert.match(component, /입퇴사 관리 업무를 불러오지 못했습니다/);
   assert.doesNotMatch(component, /<strong>{task\.title}<\/strong>|plan\.employee_id|plan\.document_refs\?\.join|<strong>{caseItem\.offboarding_id}<\/strong>|caseItem\.employee_id/);
   assert.match(api, /\/api\/hrx\/lifecycle\/onboarding/);

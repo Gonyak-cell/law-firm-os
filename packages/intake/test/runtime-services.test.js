@@ -275,6 +275,23 @@ test("G6 opportunity handoff and conflict workflow produce a valid clearance tok
     actor_id: ACTOR,
     idempotency_key: "search-1",
   });
+  assert.throws(
+    () =>
+      issueClearanceToken({
+        repository: intake,
+        token: {
+          clearance_token_id: "clearance-cmp-g6-premature",
+          tenant_id: TENANT,
+          intake_request_id: "intake-cmp-g6-001",
+          conflict_check_id: check.conflict_check.conflict_check_id,
+          engagement_id: "engagement-premature",
+          snapshot_hash: check.conflict_check.snapshot_hash,
+        },
+        actor_id: ACTOR,
+        idempotency_key: "token-premature",
+      }),
+    /Clearance requires conflict review ledger proof/,
+  );
   decideConflict({
     repository: intake,
     decision: {
@@ -287,6 +304,10 @@ test("G6 opportunity handoff and conflict workflow produce a valid clearance tok
     actor_id: ACTOR,
     idempotency_key: "decision-1",
   });
+  assert.equal(
+    intake.get({ tenant_id: TENANT, model_type: "ConflictHit", conflict_hit_id: "hit-cmp-g6-001" }).status,
+    "cleared",
+  );
   approveWaiver({
     repository: intake,
     waiver: {
@@ -300,6 +321,27 @@ test("G6 opportunity handoff and conflict workflow produce a valid clearance tok
     actor_id: ACTOR,
     idempotency_key: "waiver-1",
   });
+  assert.equal(
+    intake.get({ tenant_id: TENANT, model_type: "ConflictCheck", conflict_check_id: check.conflict_check.conflict_check_id }).status,
+    "cleared",
+  );
+  assert.throws(
+    () =>
+      issueClearanceToken({
+        repository: intake,
+        token: {
+          clearance_token_id: "clearance-cmp-g6-no-engagement",
+          tenant_id: TENANT,
+          intake_request_id: "intake-cmp-g6-001",
+          conflict_check_id: check.conflict_check.conflict_check_id,
+          engagement_id: "engagement-cmp-g6-001",
+          snapshot_hash: check.conflict_check.snapshot_hash,
+        },
+        actor_id: ACTOR,
+        idempotency_key: "token-no-engagement",
+      }),
+    /Clearance requires approved engagement ledger proof/,
+  );
   const engagement = approveEngagement({
     repository: intake,
     engagement: {
@@ -307,10 +349,33 @@ test("G6 opportunity handoff and conflict workflow produce a valid clearance tok
       tenant_id: TENANT,
       intake_request_id: "intake-cmp-g6-001",
       signed_document_id: "doc-engagement-001",
+      signature_ref: "signature:doc-engagement-001",
+      template_document: {
+        template_document_id: "template-doc-engagement-001",
+        template_id: "matter_engagement_letter",
+        document_title: "위임계약서",
+        generation_state: "generated",
+        merge_field_count: 3,
+      },
+      signed_document_upload: {
+        signed_document_upload_id: "signed-upload-engagement-001",
+        document_id: "doc-engagement-001",
+        signed_document_id: "doc-engagement-001",
+        template_document_id: "template-doc-engagement-001",
+        signature_ref: "signature:doc-engagement-001",
+        content_sha256: "sha256:doc-engagement-001",
+        byte_size: 2048,
+        mime_type: "application/pdf",
+        upload_state: "uploaded",
+        lx_registry_ref: "LX-06",
+      },
     },
     actor_id: ACTOR,
     idempotency_key: "engagement-1",
   });
+  assert.equal(engagement.engagement.template_document_id, "template-doc-engagement-001");
+  assert.equal(engagement.engagement.signed_document_upload_id, "signed-upload-engagement-001");
+  assert.equal(engagement.signed_document_upload.content_sha256, "sha256:doc-engagement-001");
   approveFeeTerms({
     repository: intake,
     fee_terms: {
@@ -350,11 +415,101 @@ test("G6 opportunity handoff and conflict workflow produce a valid clearance tok
     idempotency_key: "token-1",
   });
   assert.equal(validateClearanceToken(token.clearance_token, { now: "2026-06-20T00:00:00.000Z" }).valid, true);
+  assert.equal(token.conflict_review.review_satisfied, true);
+  assert.equal(token.engagement_review.engagement_satisfied, true);
+  assert.equal(token.clearance_token.conflict_review_satisfied, true);
+  assert.equal(token.clearance_token.engagement_review_satisfied, true);
+  assert.equal(token.clearance_token.engagement_signed_document_upload_id, "signed-upload-engagement-001");
+  assert.equal(token.clearance_token.engagement_signed_document_sha256, "sha256:doc-engagement-001");
   assert.equal(
     validateClearanceToken({ ...token.clearance_token, snapshot_stale: true }, { now: "2026-06-20T00:00:00.000Z" }).token_state,
     "stale",
   );
   assert.equal(validateClearanceToken(token.clearance_token, { now: "2026-06-28T00:00:00.000Z" }).token_state, "expired");
+});
+
+test("G6 conflict search derives hits from normalized adverse parties and ignores caller hit_count", () => {
+  const intake = intakeRepo();
+  const check = createConflictCheck({
+    repository: intake,
+    conflict_check: conflictCheckFixture({
+      conflict_check_id: "conflict-cmp-g6-normalized",
+      party_snapshot: {
+        party_ids: ["party-new-client"],
+        aliases: ["상대방 주식회사"],
+      },
+    }),
+    actor_id: ACTOR,
+    idempotency_key: "check-normalized",
+  });
+  const matterRepository = {
+    list(query = {}) {
+      if (query.model_type !== "MatterParty" || query.tenant_id !== TENANT) return [];
+      return [
+        {
+          model_type: "MatterParty",
+          tenant_id: TENANT,
+          matter_id: "matter-former-001",
+          matter_party_id: "matter-party-former-adverse",
+          party_id: "party-former-adverse",
+          display_name: "(주) 상대방",
+          party_role: "adverse_party",
+          status: "active",
+        },
+      ];
+    },
+  };
+  const masterDataRepository = {
+    get(query = {}) {
+      if (query.model_type !== "Party" || query.party_id !== "party-new-client" || query.tenant_id !== TENANT) return null;
+      return { party_id: "party-new-client", tenant_id: TENANT, display_name: "상대방 주식회사" };
+    },
+  };
+
+  const result = executeConflictSearch({
+    repository: intake,
+    search: {
+      conflict_search_id: "search-cmp-g6-normalized",
+      tenant_id: TENANT,
+      conflict_check_id: check.conflict_check.conflict_check_id,
+      aliases: ["상대방 주식회사"],
+      hit_count: 0,
+      audit_hint_ref: "audit-normalized-search",
+      owner_user_id: ACTOR,
+    },
+    actor_id: ACTOR,
+    idempotency_key: "search-normalized",
+    matterRepository,
+    masterDataRepository,
+  });
+
+  assert.equal(result.conflict_search.hit_count, 1);
+  assert.equal(result.conflict_search.caller_supplied_hit_count_ignored, true);
+  assert.equal(result.conflict_hits.length, 1);
+  assert.equal(result.conflict_hits[0].hit_source, "former_matter");
+  assert.equal(result.conflict_hits[0].severity, "high");
+  assert.equal(result.conflict_hits[0].match_kind, "exact_normalized");
+  assert.equal(intake.get({ tenant_id: TENANT, model_type: "ConflictCheck", conflict_check_id: check.conflict_check.conflict_check_id }).status, "review_required");
+  assert.equal(intake.list({ tenant_id: TENANT, model_type: "ConflictHit", conflict_check_id: check.conflict_check.conflict_check_id }).length, 1);
+  assert.equal(
+    intake.listAudit({ tenant_id: TENANT }).some((event) => event.action === "conflict.search.executed" && event.metadata.hit_count === 1),
+    true,
+  );
+  assert.equal(
+    executeConflictSearch({
+      repository: intake,
+      search: {
+        conflict_search_id: "search-cmp-g6-normalized",
+        tenant_id: TENANT,
+        conflict_check_id: check.conflict_check.conflict_check_id,
+        aliases: ["상대방 주식회사"],
+      },
+      actor_id: ACTOR,
+      idempotency_key: "search-normalized",
+      matterRepository,
+    }).idempotent_replay,
+    true,
+  );
 });
 
 test("G6 conflict memo ACL omits unauthorized memo body without leaking counts", () => {

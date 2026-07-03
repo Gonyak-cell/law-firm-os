@@ -137,6 +137,34 @@ test("GET /api/hrx/legal-people/relationships supports Matter pivot with redacti
   assert.ok(body.relationships.some((relationship) => relationship.access_state === "restricted"));
 });
 
+test("GET /api/hrx/legal-people/matter-graph/traverse returns matter-people-document graph traversal", async () => {
+  const privileged = await json(
+    "/api/hrx/legal-people/matter-graph/traverse?matter_id=matter_lcx_001&depth=2",
+    PRIVILEGED_HEADERS,
+  );
+  assert.equal(privileged.status, 200);
+  assert.equal(privileged.body.table_kind, "matter_people_document_relationship_table");
+  assert.ok(privileged.body.nodes.some((node) => node.node_type === "matter" && node.node_id === "matter_lcx_001"));
+  assert.ok(privileged.body.nodes.some((node) => node.node_type === "person" && node.node_id === "person_internal_lawyer_001"));
+  assert.ok(privileged.body.nodes.some((node) => node.node_type === "document" && node.node_id === "document_lcx_expert_report_001"));
+  assert.ok(privileged.body.relationships.some((row) => row.relationship_type === "matter_person"));
+  assert.ok(privileged.body.relationships.some((row) => row.relationship_type === "matter_document"));
+  assert.ok(privileged.body.relationships.some((row) => row.relationship_type === "person_document"));
+  assert.ok(
+    privileged.body.traversal_paths.some((path) =>
+      path.to.node_id === "document_lcx_expert_report_001" &&
+      path.relationship_ids.includes("mpd_rel_expert_report"),
+    ),
+  );
+  assert.equal(privileged.body.audit_summary.raw_document_text_included, false);
+  assert.equal(privileged.body.claim_boundary.traversal_api_complete, true);
+
+  const restricted = await json("/api/hrx/legal-people/matter-graph/traverse?matter_id=matter_lcx_001&depth=2");
+  assert.equal(restricted.status, 200);
+  assert.ok(restricted.body.relationships.some((row) => row.access_state === "restricted" && row.to_id === null));
+  assert.equal(JSON.stringify(restricted.body).includes("document_lcx_expert_report_001"), false);
+});
+
 test("GET /api/hrx/legal-people/ethics returns review queue, wall evidence, and reviewer receipt boundary", async () => {
   const restricted = await json("/api/hrx/legal-people/ethics");
   assert.equal(restricted.status, 200);

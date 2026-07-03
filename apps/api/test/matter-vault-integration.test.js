@@ -5,6 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
+import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
 
 const TENANT = "tenant_matter_vault";
 const MATTER_ID = "matter_mv_open_001";
@@ -20,10 +21,24 @@ function permissionContext(effect = "allow") {
 
 async function withServer(callback) {
   const base = mkdtempSync(join(tmpdir(), "lawos-matter-vault-api-"));
+  const clearance = openingPayload().clearance_token;
   const started = await startApiServer({
     port: 0,
     matterStorePath: join(base, "matter-store.json"),
     dmsStorePath: join(base, "dms-store.json"),
+    intakeRepository: createIntakeRuntimeRepository({
+      seedRecords: [
+        {
+          ...clearance,
+          model_type: "ClearanceToken",
+          token_state: "active",
+          status: "active",
+          outcome: "cleared",
+          blocked_claims: [],
+          conflict_review_satisfied: true,
+        },
+      ],
+    }),
   });
   try {
     return await callback(`http://${started.host}:${started.port}`);

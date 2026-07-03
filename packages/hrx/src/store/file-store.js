@@ -8,8 +8,11 @@ const PRIMARY_KEYS = Object.freeze({
   hrx_employment_profiles: ["tenant_id", "profile_id"],
   hrx_employee_user_links: ["tenant_id", "link_id"],
   hrx_documents: ["tenant_id", "document_id"],
+  hrx_compensation_records: ["tenant_id", "compensation_id"],
   hrx_leave_balance_entries: ["tenant_id", "entry_id"],
   hrx_leave_requests: ["tenant_id", "request_id"],
+  hrx_attendance_records: ["tenant_id", "attendance_id"],
+  hrx_overtime_requests: ["tenant_id", "overtime_id"],
   hrx_audit_events: ["tenant_id", "event_id"],
   hrx_ai_review_items: ["tenant_id", "review_id"],
   hrx_ai_source_chunks: ["tenant_id", "source_ref", "chunk_id"],
@@ -65,7 +68,7 @@ function assertPrimaryKey(table, row) {
 }
 
 function assertCoreConstraints(state, table, row) {
-  if (["hrx_documents", "hrx_leave_balance_entries", "hrx_leave_requests"].includes(table)) {
+  if (["hrx_documents", "hrx_compensation_records", "hrx_leave_balance_entries", "hrx_leave_requests", "hrx_attendance_records", "hrx_overtime_requests"].includes(table)) {
     const employeeExists = state.tables.hrx_employees.some(
       (employee) => employee.tenant_id === row.tenant_id && employee.employee_id === row.employee_id,
     );
@@ -98,6 +101,27 @@ function assertCoreConstraints(state, table, row) {
       if (Object.hasOwn(row, blocked)) throw new TypeError(`HR document metadata must not include ${blocked}`);
     }
     if (row.document_body_included !== false) throw new TypeError("HR document body must not be stored");
+  }
+  if (table === "hrx_compensation_records") {
+    for (const blocked of ["amount", "salary", "base_pay", "bonus_amount", "equity_value", "gross_pay", "net_pay"]) {
+      if (Object.hasOwn(row, blocked)) throw new TypeError(`Compensation metadata must not include raw ${blocked}`);
+    }
+    if (row.raw_amount_included !== false) throw new TypeError("Compensation raw amount must not be stored");
+    if (typeof row.encrypted_amount_ref !== "string" || !row.encrypted_amount_ref.trim()) {
+      throw new TypeError("Compensation encrypted_amount_ref is required");
+    }
+    if (typeof row.employment_contract_id !== "string" || !row.employment_contract_id.trim()) {
+      throw new TypeError("Compensation employment_contract_id is required");
+    }
+    if (typeof row.contract_document_ref !== "string" || !row.contract_document_ref.trim()) {
+      throw new TypeError("Compensation contract_document_ref is required");
+    }
+  }
+  if (table === "hrx_attendance_records" && row.correction_of_attendance_id) {
+    const originalExists = state.tables.hrx_attendance_records.some(
+      (record) => record.tenant_id === row.tenant_id && record.attendance_id === row.correction_of_attendance_id,
+    );
+    if (!originalExists) throw new ReferenceError(`Attendance correction source not found: ${row.correction_of_attendance_id}`);
   }
   if (table === "hrx_audit_events") {
     if (typeof row.event_hash !== "string" || row.event_hash.trim() === "") {

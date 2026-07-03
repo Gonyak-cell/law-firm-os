@@ -7,7 +7,7 @@ const CRM_INTAKE_TENANT_ID = runtimeTenant("tenant", "cmp", "g6", "synthetic");
 const FINANCE_TENANT_ID = runtimeTenant("tenant", "cmp", "g7", "synthetic");
 const ANALYTICS_TENANT_ID = runtimeTenant("tenant", "cmp", "g8", "synthetic");
 const AI_TENANT_ID = "matter-runtime-tenant";
-const PORTAL_TENANT_ID = "matter-client-tenant";
+const PORTAL_TENANT_ID = runtimeTenant("tenant", "cmp", "g10", "synthetic");
 const UI_READINESS_TENANT_ID = "matter-runtime-tenant";
 const ENTERPRISE_TENANT_ID = "matter-runtime-tenant";
 const ADMIN_PERMISSION_TENANT_ID = runtimeTenant("tenant", "sf", "b", "w06", "synthetic");
@@ -158,7 +158,7 @@ const VAULT_PRINCIPAL = {
 const CRM_INTAKE_PRINCIPAL = {
   user_id: "matter_client_intake_operator",
   tenant_id: CRM_INTAKE_TENANT_ID,
-  role_ids: ["crm_intake_user", "conflict_reviewer"]
+  role_ids: ["crm_intake_user", "conflict_reviewer", "crm_contact_value_reader"]
 };
 
 const FINANCE_PRINCIPAL = {
@@ -455,6 +455,18 @@ const FINANCE_PERMISSION_CONTEXTS = {
     object_acl: []
   }
 };
+
+function financePermissionContext(ctx = "allow", roleIds = null) {
+  const base = FINANCE_PERMISSION_CONTEXTS[ctx] ?? FINANCE_PERMISSION_CONTEXTS.allow;
+  if (!Array.isArray(roleIds) || roleIds.length === 0) return base;
+  return {
+    ...base,
+    principal: {
+      ...base.principal,
+      role_ids: roleIds
+    }
+  };
+}
 
 const ANALYTICS_PERMISSION_CONTEXTS = {
   allow: {
@@ -875,8 +887,8 @@ export async function fetchMatterRecentlyViewed({
   };
 }
 
-async function writeMatterRuntime({ method = "POST", path, payload, ctx = "allow" } = {}) {
-  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
+async function writeMatterRuntime({ method = "POST", path, payload, ctx = "allow", contextOverride = null } = {}) {
+  const context = contextOverride ?? permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   let body;
   try {
     const response = await apiFetch(path, {
@@ -900,6 +912,8 @@ async function writeMatterRuntime({ method = "POST", path, payload, ctx = "allow
     item: body.item ?? null,
     items: Array.isArray(body.items) ? body.items : [],
     matter: body.matter ?? null,
+    matterParties: body.matter_parties ?? [],
+    adverseParties: body.adverse_parties ?? [],
     ownerAssignment: body.owner_assignment ?? null,
     fieldPatch: body.field_patch ?? null,
     transition: body.transition ?? null,
@@ -914,6 +928,8 @@ async function writeMatterRuntime({ method = "POST", path, payload, ctx = "allow
     preview: body.preview ?? null,
     safeErrorCodes: body.safe_error_codes ?? [],
     auditHintRef: body.audit_hint_ref ?? null,
+    message: body.message ?? null,
+    onboardingGate: body.onboarding_gate ?? null,
     idempotentReplay: body.idempotent_replay === true,
     stateIdempotent: body.state_idempotent === true,
     uiState: body.ui_state ?? null,
@@ -921,8 +937,8 @@ async function writeMatterRuntime({ method = "POST", path, payload, ctx = "allow
   };
 }
 
-function postMatterRuntime({ path, payload, ctx = "allow" } = {}) {
-  return writeMatterRuntime({ method: "POST", path, payload, ctx });
+function postMatterRuntime({ path, payload, ctx = "allow", contextOverride = null } = {}) {
+  return writeMatterRuntime({ method: "POST", path, payload, ctx, contextOverride });
 }
 
 function patchMatterRuntime({ path, payload, ctx = "allow" } = {}) {
@@ -1782,10 +1798,79 @@ export function createMatterOpening({ payload, ctx = "allow" } = {}) {
   return postMatterRuntime({ path: "/api/matters/openings", payload: normalizeMatterOpeningPayload(payload), ctx });
 }
 
+export function openMatterFromIntakeClearance({
+  intakeRequest,
+  clearanceToken,
+  clientPartyId,
+  title = "상담·문의 Matter",
+  ctx = "allow"
+} = {}) {
+  const matterId = uiRuntimeId("matter_intake_ui");
+  const tenantId = clearanceToken?.tenant_id ?? intakeRequest?.tenant_id ?? CRM_INTAKE_TENANT_ID;
+  const actorId = actorRefForDomain("matter", MATTER_PRINCIPAL.user_id);
+  const partyId = clientPartyId ?? intakeRequest?.requesting_party_id ?? "party_cmp_g6_client_001";
+  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
+  return postMatterRuntime({
+    path: "/api/matters/openings",
+    ctx,
+    contextOverride: {
+      ...context,
+      principal: {
+        ...context.principal,
+        tenant_id: tenantId
+      }
+    },
+    payload: {
+      tenant_id: tenantId,
+      permission_ref: "ui_cmp_g6_intake_matter_open",
+      audit_hint_ref: "ui_cmp_g6_intake_matter_open_probe",
+      actor_id: actorId,
+      idempotency_key: `ui:intake:matter-open:${matterId}`,
+      matter_number_seed: "CMP-G6-INTAKE",
+      matter: {
+        matter_id: matterId,
+        tenant_id: tenantId,
+        legal_client_party_id: partyId,
+        billing_client_party_id: partyId,
+        title,
+        status: "opening",
+        created_by: actorId,
+        created_at: "2026-06-20T00:00:00.000Z",
+        permission_envelope_id: `perm:${tenantId}:${matterId}`,
+        audit_trace_id: `audit:${tenantId}:${matterId}`
+      },
+      clearance_token: clearanceToken
+    }
+  });
+}
+
 export function addMatterTeamMember({ matterId, payload, ctx = "allow" } = {}) {
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/team-members`,
     payload: normalizeMatterTeamMemberPayload(payload),
+    ctx
+  });
+}
+
+export function registerMatterParty({ matterId, displayName, partyRole = "adverse_party", retroactiveEntry = true, ctx = "allow" } = {}) {
+  const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const stamp = Date.now();
+  return postMatterRuntime({
+    path: `/api/matters/${encodeURIComponent(matterId)}/parties`,
+    payload: {
+      tenant_id: MATTER_TENANT_ID,
+      permission_ref: "ui_upl_c01_matter_party_write",
+      audit_hint_ref: "ui_upl_c01_matter_party_write_probe",
+      actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
+      idempotency_key: `ui:${safeMatterId}:party:${stamp}`,
+      matter_party: {
+        tenant_id: MATTER_TENANT_ID,
+        matter_id: matterId,
+        display_name: displayName,
+        party_role: partyRole,
+        retroactive_entry: retroactiveEntry
+      }
+    },
     ctx
   });
 }
@@ -2345,6 +2430,8 @@ export async function fetchMatterCommandCenter({
     outcome: body.outcome,
     item: body.item,
     team: body.team ?? [],
+    matterParties: body.matter_parties ?? [],
+    adverseParties: body.adverse_parties ?? [],
     clientReport: body.client_report ?? null,
     vaultSummary: body.vault_summary ?? null,
     vaultLink: body.matter_vault_link ?? null,
@@ -2509,6 +2596,54 @@ export async function fetchVaultDocuments({
       .every((key) => key in body) &&
     Array.isArray(body.items);
   if (!hasVaultShape) return { kind: "error" };
+
+  return {
+    kind: "data",
+    requestId: body.request_id,
+    uiState: body.ui_state,
+    outcome: body.outcome,
+    items: body.items,
+    pageInfo: body.page_info ?? null,
+    safeErrorCodes: body.safe_error_codes,
+    auditHintRef: body.audit_hint_ref,
+    countLeakPrevented: body.count_leak_prevented === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+export async function fetchVaultSearch({
+  query = "",
+  ctx = "allow",
+  permissionRef = DEFAULT_VAULT_PERMISSION_REF,
+  auditHintRef = DEFAULT_VAULT_AUDIT_HINT_REF
+} = {}) {
+  const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
+  const params = new URLSearchParams({
+    tenant_id: VAULT_TENANT_ID,
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+  const normalizedQuery = String(query ?? "").trim();
+  if (normalizedQuery) params.set("q", normalizedQuery);
+
+  let body;
+  try {
+    const response = await apiFetch(`/api/vault/search?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+
+  const hasVaultSearchShape =
+    body !== null &&
+    typeof body === "object" &&
+    !Array.isArray(body) &&
+    ["request_id", "outcome", "items", "safe_error_codes", "audit_hint_ref", "production_ready_claim"]
+      .every((key) => key in body) &&
+    Array.isArray(body.items);
+  if (!hasVaultSearchShape) return { kind: "error" };
 
   return {
     kind: "data",
@@ -2873,6 +3008,17 @@ async function postCrmIntakeRuntime({ path, payload, ctx = "allow" } = {}) {
     statusOutcome: body.outcome,
     uiState: body.ui_state,
     item: body.item ?? null,
+    conflictSearch: body.conflict_search ?? null,
+    conflictHits: body.conflict_hits ?? [],
+    hitCount: body.hit_count ?? body.conflict_search?.hit_count ?? null,
+    conflictDecision: body.conflict_decision ?? null,
+    conflictCheck: body.conflict_check ?? null,
+    waiver: body.waiver ?? null,
+    engagement: body.engagement ?? null,
+    engagementReady: body.engagement_ready === true,
+    clearanceLinkReady: body.clearance_link_ready === true,
+    conflictReview: body.conflict_review ?? null,
+    engagementReview: body.engagement_review ?? null,
     opportunity: body.opportunity ?? null,
     validation: body.validation ?? null,
     mergeCandidates: body.merge_candidates ?? [],
@@ -3116,24 +3262,37 @@ export function patchCrmAccount({
 }
 
 export function fetchCrmContacts(options = {}) {
-  return fetchCrmIntakeCollection({ ...options, path: "/api/crm/contacts" });
+  return fetchCrmIntakeCollection({
+    permissionRef: "ui_upl_c07_contact_value_read",
+    auditHintRef: "ui_upl_c07_contact_value_read_probe",
+    ...options,
+    path: "/api/crm/contacts"
+  });
 }
 
 export function createCrmContact({
   displayName = "신규 연락처",
   contactId,
   accountId,
+  email,
+  phone,
   ctx = "allow"
 } = {}) {
   const stamp = Date.now();
   const safeContactId = contactId ?? `contact_ui_${stamp}`;
+  const contactPhone = typeof phone === "string" && phone.trim() ? phone.trim() : null;
+  const contactEmail = typeof email === "string" && email.trim()
+    ? email.trim()
+    : contactPhone
+      ? null
+      : `contact.${stamp.toString(36)}@example.invalid`;
   return postCrmIntakeRuntime({
     path: "/api/crm/contacts",
     ctx,
     payload: {
       tenant_id: CRM_INTAKE_TENANT_ID,
-      permission_ref: "ui_sf_b_w01_contact_write",
-      audit_hint_ref: "ui_sf_b_w01_contact_write_probe",
+      permission_ref: "ui_upl_c07_contact_value_write",
+      audit_hint_ref: "ui_upl_c07_contact_value_write_probe",
       actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
       idempotency_key: `ui:crm:contact:${safeContactId}:${stamp}`,
       reason: "contact_created",
@@ -3143,6 +3302,8 @@ export function createCrmContact({
         account_id: accountId ?? null,
         display_name: displayName,
         status: "active",
+        ...(contactEmail ? { email: contactEmail } : {}),
+        ...(contactPhone ? { phone: contactPhone } : {}),
         primary_contact_fingerprint: `ui-contact-fingerprint-${safeContactId}`
       }
     }
@@ -3161,8 +3322,8 @@ export function patchCrmContact({
     ctx,
     payload: {
       tenant_id: CRM_INTAKE_TENANT_ID,
-      permission_ref: "ui_sf_b_w01_contact_patch",
-      audit_hint_ref: "ui_sf_b_w01_contact_patch_probe",
+      permission_ref: "ui_upl_c07_contact_value_patch",
+      audit_hint_ref: "ui_upl_c07_contact_value_patch_probe",
       actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
       idempotency_key: `ui:crm:contact:${safeContactId}:patch:${stamp}`,
       reason: "contact_inline_patch",
@@ -3175,7 +3336,12 @@ export function fetchCrmAccountContacts({ accountId, ...options } = {}) {
   if (!accountId) {
     return Promise.resolve({ kind: "data", uiState: "empty", outcome: "passed", items: [], safeErrorCodes: [] });
   }
-  return fetchCrmIntakeCollection({ ...options, path: `/api/crm/accounts/${encodeURIComponent(accountId)}/contacts` });
+  return fetchCrmIntakeCollection({
+    permissionRef: "ui_upl_c07_contact_value_read",
+    auditHintRef: "ui_upl_c07_contact_value_read_probe",
+    ...options,
+    path: `/api/crm/accounts/${encodeURIComponent(accountId)}/contacts`
+  });
 }
 
 export function fetchCrmMergeProposals(options = {}) {
@@ -3279,6 +3445,39 @@ export function fetchIntakeAudit(options = {}) {
   return fetchCrmIntakeCollection({ ...options, path: "/api/intake/audit" });
 }
 
+export function createCrmOpportunity({
+  opportunityId,
+  partyId,
+  displayName = "신규 의뢰",
+  requestedScopeSummary = "신규 의뢰 수임 검토",
+  ctx = "allow"
+} = {}) {
+  const stamp = Date.now();
+  const safeOpportunityId = opportunityId ?? `opp_ui_${stamp}`;
+  return postCrmIntakeRuntime({
+    path: "/api/crm/opportunities",
+    ctx,
+    payload: {
+      tenant_id: CRM_INTAKE_TENANT_ID,
+      permission_ref: "ui_upl_c08_intake_completion_write",
+      audit_hint_ref: "ui_upl_c08_intake_completion_probe",
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
+      idempotency_key: `ui:crm:opportunity:${safeOpportunityId}:${stamp}`,
+      reason: "intake_pipeline_opportunity_created",
+      opportunity: {
+        opportunity_id: safeOpportunityId,
+        tenant_id: CRM_INTAKE_TENANT_ID,
+        party_id: partyId ?? "party_cmp_g6_client_001",
+        display_name: displayName,
+        requested_scope_summary: requestedScopeSummary,
+        stage: "new",
+        status: "active",
+        owner_user_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id)
+      }
+    }
+  });
+}
+
 export function handoffCrmOpportunityToIntake({
   opportunityId,
   requestedScopeSummary = "Client 상담·문의 요청",
@@ -3326,7 +3525,108 @@ export function createIntakeConflictCheck({ intakeRequest, ctx = "allow" } = {})
   });
 }
 
-export function issueIntakeClearanceToken({ intakeRequest, conflictCheck, ctx = "allow" } = {}) {
+export function recordIntakeConflictDecision({ conflictCheck, conflictHits = [], decision = "clear", ctx = "allow" } = {}) {
+  const decisionId = uiRuntimeId("decision_ui");
+  const conflictHitIds = conflictHits.map((hit) => hit?.conflict_hit_id).filter(Boolean);
+  return postCrmIntakeRuntime({
+    path: "/api/intake/conflict-decisions",
+    ctx,
+    payload: {
+      tenant_id: CRM_INTAKE_TENANT_ID,
+      permission_ref: DEFAULT_CRM_INTAKE_PERMISSION_REF,
+      audit_hint_ref: DEFAULT_CRM_INTAKE_AUDIT_HINT_REF,
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
+      idempotency_key: `decision:${decisionId}`,
+      conflict_decision: {
+        conflict_decision_id: decisionId,
+        tenant_id: CRM_INTAKE_TENANT_ID,
+        conflict_check_id: conflictCheck?.conflict_check_id,
+        conflict_hit_ids: conflictHitIds,
+        reviewer_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
+        decision,
+        rationale: "ui_conflict_review"
+      }
+    }
+  });
+}
+
+export function approveIntakeConflictWaiver({ intakeRequest, conflictCheck, conflictHits = [], ctx = "allow" } = {}) {
+  const waiverId = uiRuntimeId("waiver_ui");
+  const conflictHitIds = conflictHits.map((hit) => hit?.conflict_hit_id).filter(Boolean);
+  return postCrmIntakeRuntime({
+    path: "/api/intake/waivers",
+    ctx,
+    payload: {
+      tenant_id: CRM_INTAKE_TENANT_ID,
+      permission_ref: DEFAULT_CRM_INTAKE_PERMISSION_REF,
+      audit_hint_ref: DEFAULT_CRM_INTAKE_AUDIT_HINT_REF,
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
+      idempotency_key: `waiver:${waiverId}`,
+      waiver: {
+        waiver_id: waiverId,
+        tenant_id: CRM_INTAKE_TENANT_ID,
+        intake_request_id: intakeRequest?.intake_request_id,
+        conflict_check_id: conflictCheck?.conflict_check_id,
+        conflict_hit_ids: conflictHitIds,
+        consent_document_id: `consent:${waiverId}`,
+        approver_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
+        approval_reason: "ui_conflict_waiver"
+      }
+    }
+  });
+}
+
+export function approveIntakeEngagement({ intakeRequest, ctx = "allow" } = {}) {
+  const engagementId = uiRuntimeId("engagement_ui");
+  const signedDocumentId = `signed_doc:${engagementId}`;
+  const templateDocumentId = `template_doc:${engagementId}`;
+  const signatureRef = `signature:${signedDocumentId}`;
+  return postCrmIntakeRuntime({
+    path: "/api/intake/engagements",
+    ctx,
+    payload: {
+      tenant_id: CRM_INTAKE_TENANT_ID,
+      permission_ref: DEFAULT_CRM_INTAKE_PERMISSION_REF,
+      audit_hint_ref: DEFAULT_CRM_INTAKE_AUDIT_HINT_REF,
+      actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
+      idempotency_key: `engagement:${engagementId}`,
+      engagement: {
+        engagement_id: engagementId,
+        tenant_id: CRM_INTAKE_TENANT_ID,
+        intake_request_id: intakeRequest?.intake_request_id,
+        template_id: "matter_engagement_letter",
+        signed_document_id: signedDocumentId,
+        signature_ref: signatureRef,
+        template_document: {
+          template_document_id: templateDocumentId,
+          template_id: "matter_engagement_letter",
+          document_title: "위임계약서",
+          generation_state: "generated",
+          merge_field_count: 3,
+          document_payload_included: false,
+          template_payload_included: false
+        },
+        signed_document_upload: {
+          signed_document_upload_id: `signed_upload:${engagementId}`,
+          document_id: signedDocumentId,
+          signed_document_id: signedDocumentId,
+          template_document_id: templateDocumentId,
+          signature_ref: signatureRef,
+          content_sha256: `sha256:${signedDocumentId}`,
+          byte_size: 2048,
+          mime_type: "application/pdf",
+          upload_state: "uploaded",
+          lx_registry_ref: "LX-06",
+          bytes_included: false,
+          storage_pointer_ref_included: false
+        },
+        approver_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id)
+      }
+    }
+  });
+}
+
+export function issueIntakeClearanceToken({ intakeRequest, conflictCheck, engagement, ctx = "allow" } = {}) {
   const clearanceId = uiRuntimeId("clearance_ui");
   return postCrmIntakeRuntime({
     path: "/api/intake/clearance-tokens",
@@ -3343,7 +3643,7 @@ export function issueIntakeClearanceToken({ intakeRequest, conflictCheck, ctx = 
         tenant_id: CRM_INTAKE_TENANT_ID,
         intake_request_id: intakeRequest?.intake_request_id,
         conflict_check_id: conflictCheck?.conflict_check_id,
-        engagement_id: `engagement:${clearanceId}`,
+        engagement_id: engagement?.engagement_id,
         snapshot_hash: conflictCheck?.snapshot_hash,
         expires_at: "2026-06-27T00:00:00.000Z"
       }
@@ -3397,8 +3697,8 @@ async function fetchFinanceCollection({
   };
 }
 
-async function postFinanceRuntime({ path, payload, ctx = "allow" } = {}) {
-  const context = FINANCE_PERMISSION_CONTEXTS[ctx] ?? FINANCE_PERMISSION_CONTEXTS.allow;
+async function postFinanceRuntime({ path, payload, ctx = "allow", roleIds = null } = {}) {
+  const context = financePermissionContext(ctx, roleIds);
   let body;
   try {
     const response = await apiFetch(path, {
@@ -3422,6 +3722,8 @@ async function postFinanceRuntime({ path, payload, ctx = "allow" } = {}) {
     uiState: body.ui_state,
     item: body.item ?? null,
     items: Array.isArray(body.items) ? body.items : [],
+    invoice: body.invoice ?? null,
+    payment: body.payment ?? null,
     auditEvent: body.audit_event ?? null,
     safeErrorCodes: body.safe_error_codes ?? [],
     auditHintRef: body.audit_hint_ref ?? null,
@@ -3446,15 +3748,56 @@ export function fetchFinanceAudit(options = {}) {
   return fetchFinanceCollection({ ...options, path: "/api/finance/audit" });
 }
 
+export async function fetchFinanceAccountingExport({
+  fromDate = "2026-07-01",
+  toDate = "2026-07-31",
+  ctx = "allow",
+  permissionRef = DEFAULT_FINANCE_PERMISSION_REF,
+  auditHintRef = DEFAULT_FINANCE_AUDIT_HINT_REF
+} = {}) {
+  const context = FINANCE_PERMISSION_CONTEXTS[ctx] ?? FINANCE_PERMISSION_CONTEXTS.allow;
+  const params = new URLSearchParams({
+    tenant_id: FINANCE_TENANT_ID,
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef,
+    from_date: fromDate,
+    to_date: toDate,
+    idempotency_key: `ui-accounting-export:${fromDate}:${toDate}`,
+    accounting_export_id: uiStableId("accounting_export_ui", `${fromDate}_${toDate}`)
+  });
+  let body;
+  try {
+    const response = await apiFetch(`/api/finance/accounting-export.csv?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body) || !("outcome" in body)) return { kind: "error" };
+  return {
+    kind: "data",
+    outcome: body.outcome,
+    uiState: body.ui_state,
+    item: body.item ?? null,
+    auditEvent: body.audit_event ?? null,
+    safeErrorCodes: body.safe_error_codes ?? [],
+    auditHintRef: body.audit_hint_ref ?? null,
+    idempotentReplay: body.outcome === "idempotent_replay",
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
 export function createFinanceTimeEntry({
   matterId,
   durationMinutes = 30,
   roleId = "partner",
   workDate = "2026-06-20",
   narrative = "Matter billing time",
+  billable = true,
   ctx = "allow"
 } = {}) {
-  const timeEntryId = uiStableId("time_ui", matterId);
+  const timeEntryId = uiRuntimeId("time_ui");
   return postFinanceRuntime({
     path: "/api/finance/time-entries",
     ctx,
@@ -3463,7 +3806,7 @@ export function createFinanceTimeEntry({
       permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
       audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
       actor_id: actorRefForDomain("matter", FINANCE_PRINCIPAL.user_id),
-      idempotency_key: `ui-time:${matterId}`,
+      idempotency_key: timeEntryId,
       time_entry: {
         time_entry_id: timeEntryId,
         tenant_id: FINANCE_TENANT_ID,
@@ -3472,7 +3815,69 @@ export function createFinanceTimeEntry({
         work_date: workDate,
         narrative,
         duration_minutes: durationMinutes,
-        billable: true
+        billable
+      }
+    }
+  });
+}
+
+export function createFinanceExpense({
+  matterId,
+  amount = 25000,
+  receiptDocumentId = null,
+  currency = "KRW",
+  ctx = "allow"
+} = {}) {
+  const expenseId = uiRuntimeId("expense_ui");
+  return postFinanceRuntime({
+    path: "/api/finance/expenses",
+    ctx,
+    payload: {
+      tenant_id: FINANCE_TENANT_ID,
+      permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
+      audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
+      actor_id: actorRefForDomain("matter", FINANCE_PRINCIPAL.user_id),
+      idempotency_key: expenseId,
+      expense: {
+        expense_id: expenseId,
+        tenant_id: FINANCE_TENANT_ID,
+        matter_id: matterId,
+        receipt_document_id: receiptDocumentId || uiStableId("receipt_ui", expenseId),
+        amount: Number(amount),
+        currency,
+        billable: true,
+        status: "approved"
+      }
+    }
+  });
+}
+
+export function createFinanceDisbursement({
+  matterId,
+  amount = 15000,
+  vendorRef = null,
+  currency = "KRW",
+  ctx = "allow"
+} = {}) {
+  const disbursementId = uiRuntimeId("disbursement_ui");
+  return postFinanceRuntime({
+    path: "/api/finance/disbursements",
+    ctx,
+    payload: {
+      tenant_id: FINANCE_TENANT_ID,
+      permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
+      audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
+      actor_id: actorRefForDomain("matter", FINANCE_PRINCIPAL.user_id),
+      idempotency_key: disbursementId,
+      disbursement: {
+        disbursement_id: disbursementId,
+        tenant_id: FINANCE_TENANT_ID,
+        matter_id: matterId,
+        vendor_ref: vendorRef || uiStableId("vendor_ui", disbursementId),
+        amount: Number(amount),
+        currency,
+        billable: true,
+        recoverable: true
       }
     }
   });
@@ -3489,6 +3894,88 @@ export function generateFinanceWip({ matterId, ctx = "allow" } = {}) {
       actor_id: actorRefForDomain("matter", FINANCE_PRINCIPAL.user_id),
       idempotency_key: `ui-wip:${matterId}`,
       matter_id: matterId
+    }
+  });
+}
+
+export function lockFinanceWipSnapshot({ matterId, wipItems = [], ctx = "allow" } = {}) {
+  const wipItemIds = wipItems.map((item) => item?.wip_item_id).filter(Boolean);
+  if (!matterId || wipItemIds.length === 0) return Promise.resolve({ kind: "error" });
+  return postFinanceRuntime({
+    path: "/api/finance/wip-snapshots",
+    ctx,
+    payload: {
+      tenant_id: FINANCE_TENANT_ID,
+      permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
+      audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
+      actor_id: actorRefForDomain("matter", FINANCE_PRINCIPAL.user_id),
+      idempotency_key: `ui-wip-snapshot:${matterId}`,
+      matter_id: matterId,
+      wip_snapshot_id: uiStableId("wip_snapshot_ui", matterId),
+      wip_item_ids: wipItemIds
+    }
+  });
+}
+
+export function createFinancePreBill({ matterId, wipSnapshotId, ctx = "allow" } = {}) {
+  if (!matterId || !wipSnapshotId) return Promise.resolve({ kind: "error" });
+  return postFinanceRuntime({
+    path: "/api/finance/prebills",
+    ctx,
+    payload: {
+      tenant_id: FINANCE_TENANT_ID,
+      permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
+      audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
+      actor_id: actorRefForDomain("matter", FINANCE_PRINCIPAL.user_id),
+      idempotency_key: `ui-prebill:${matterId}`,
+      prebill: {
+        prebill_id: uiStableId("prebill_ui", matterId),
+        tenant_id: FINANCE_TENANT_ID,
+        matter_id: matterId,
+        wip_snapshot_id: wipSnapshotId,
+        partner_reviewer_id: "matter_finance_partner",
+        currency: "KRW"
+      }
+    }
+  });
+}
+
+export function approveFinancePreBill({ prebillId, ctx = "allow" } = {}) {
+  if (!prebillId) return Promise.resolve({ kind: "error" });
+  return postFinanceRuntime({
+    path: "/api/finance/prebills/approve",
+    ctx,
+    roleIds: ["partner"],
+    payload: {
+      tenant_id: FINANCE_TENANT_ID,
+      permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
+      audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
+      actor_id: "matter_finance_partner",
+      idempotency_key: `ui-prebill-approve:${prebillId}`,
+      prebill_id: prebillId
+    }
+  });
+}
+
+export function issueFinanceInvoice({ matterId, prebillId, billingClientPartyId = "party_cmp_g6_client_001", ctx = "allow" } = {}) {
+  if (!matterId || !prebillId) return Promise.resolve({ kind: "error" });
+  return postFinanceRuntime({
+    path: "/api/finance/invoices",
+    ctx,
+    payload: {
+      tenant_id: FINANCE_TENANT_ID,
+      permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
+      audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
+      actor_id: actorRefForDomain("matter", FINANCE_PRINCIPAL.user_id),
+      idempotency_key: `ui-invoice:${matterId}`,
+      invoice: {
+        invoice_id: uiStableId("invoice_ui", matterId),
+        tenant_id: FINANCE_TENANT_ID,
+        matter_id: matterId,
+        prebill_id: prebillId,
+        billing_client_party_id: billingClientPartyId,
+        currency: "KRW"
+      }
     }
   });
 }
@@ -3516,12 +4003,36 @@ export function importFinancePayment({ matterId, amount = 100000, currency = "KR
   });
 }
 
+export function matchFinancePayment({ paymentId, invoiceId, amount, ctx = "allow" } = {}) {
+  if (!paymentId || !invoiceId || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
+    return Promise.resolve({ kind: "error" });
+  }
+  return postFinanceRuntime({
+    path: "/api/finance/payment-matches",
+    ctx,
+    payload: {
+      tenant_id: FINANCE_TENANT_ID,
+      permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
+      audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
+      actor_id: actorRefForDomain("matter", FINANCE_PRINCIPAL.user_id),
+      idempotency_key: `ui-payment-match:${paymentId}:${invoiceId}`,
+      match: {
+        payment_match_id: uiStableId("payment_match_ui", `${paymentId}_${invoiceId}`),
+        tenant_id: FINANCE_TENANT_ID,
+        payment_id: paymentId,
+        invoice_id: invoiceId,
+        amount: Number(amount)
+      }
+    }
+  });
+}
+
 export async function fetchAnalyticsDashboards({
   ctx = "allow",
   permissionRef = DEFAULT_ANALYTICS_PERMISSION_REF,
   auditHintRef = DEFAULT_ANALYTICS_AUDIT_HINT_REF
 } = {}) {
-  const context = ANALYTICS_PERMISSION_CONTEXTS[ctx] ?? ANALYTICS_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, ANALYTICS_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
     tenant_id: ANALYTICS_TENANT_ID,
     permission_ref: permissionRef,
@@ -3585,7 +4096,7 @@ function normalizeAnalyticsCollectionBody(body) {
 }
 
 async function postAnalyticsRuntime({ path, payload, ctx = "allow" } = {}) {
-  const context = ANALYTICS_PERMISSION_CONTEXTS[ctx] ?? ANALYTICS_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, ANALYTICS_PERMISSION_CONTEXTS, "matter");
   let body;
   try {
     const response = await apiFetch(path, {
@@ -3621,7 +4132,7 @@ export async function fetchAnalyticsClientProfitability({
   permissionRef = DEFAULT_ANALYTICS_PERMISSION_REF,
   auditHintRef = DEFAULT_ANALYTICS_AUDIT_HINT_REF
 } = {}) {
-  const context = ANALYTICS_PERMISSION_CONTEXTS[ctx] ?? ANALYTICS_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, ANALYTICS_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
     tenant_id: ANALYTICS_TENANT_ID,
     permission_ref: permissionRef,
@@ -3644,7 +4155,7 @@ export async function fetchAnalyticsMatterProfitability({
   permissionRef = DEFAULT_ANALYTICS_PERMISSION_REF,
   auditHintRef = DEFAULT_ANALYTICS_AUDIT_HINT_REF
 } = {}) {
-  const context = ANALYTICS_PERMISSION_CONTEXTS[ctx] ?? ANALYTICS_PERMISSION_CONTEXTS.allow;
+  const context = permissionContextFor(ctx, ANALYTICS_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
     tenant_id: ANALYTICS_TENANT_ID,
     permission_ref: permissionRef,
@@ -3681,6 +4192,52 @@ export async function fetchAnalyticsMatterProfitability({
   };
 }
 
+export async function fetchAnalyticsRealization({
+  ctx = "allow",
+  permissionRef = DEFAULT_ANALYTICS_PERMISSION_REF,
+  auditHintRef = DEFAULT_ANALYTICS_AUDIT_HINT_REF
+} = {}) {
+  const context = permissionContextFor(ctx, ANALYTICS_PERMISSION_CONTEXTS, "matter");
+  const params = new URLSearchParams({
+    tenant_id: ANALYTICS_TENANT_ID,
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+  let body;
+  try {
+    const response = await apiFetch(`/api/analytics/realization?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+  return normalizeAnalyticsCollectionBody(body);
+}
+
+export async function fetchAnalyticsUtilization({
+  ctx = "allow",
+  permissionRef = DEFAULT_ANALYTICS_PERMISSION_REF,
+  auditHintRef = DEFAULT_ANALYTICS_AUDIT_HINT_REF
+} = {}) {
+  const context = permissionContextFor(ctx, ANALYTICS_PERMISSION_CONTEXTS, "matter");
+  const params = new URLSearchParams({
+    tenant_id: ANALYTICS_TENANT_ID,
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+  let body;
+  try {
+    const response = await apiFetch(`/api/analytics/utilization?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error" };
+  }
+  return normalizeAnalyticsCollectionBody(body);
+}
+
 export function refreshAnalyticsDashboards({ ctx = "allow" } = {}) {
   return postAnalyticsRuntime({
     path: "/api/analytics/refresh",
@@ -3689,7 +4246,7 @@ export function refreshAnalyticsDashboards({ ctx = "allow" } = {}) {
       tenant_id: ANALYTICS_TENANT_ID,
       permission_ref: DEFAULT_ANALYTICS_PERMISSION_REF,
       audit_hint_ref: DEFAULT_ANALYTICS_AUDIT_HINT_REF,
-      actor_id: ANALYTICS_PRINCIPAL.user_id,
+      actor_id: actorRefForDomain("matter", ANALYTICS_PRINCIPAL.user_id),
       idempotency_key: "ui-analytics-refresh"
     }
   });
@@ -3980,6 +4537,65 @@ export function fetchPortalRfi(options = {}) {
 
 export function fetchDataRoomProjections(options = {}) {
   return fetchPortalCollection({ ...options, path: "/api/data-room/projections" });
+}
+
+async function portalExternalJson(path, options = {}) {
+  let body;
+  try {
+    const response = await apiFetch(path, {
+      ...options,
+      headers: {
+        "content-type": "application/json",
+        ...(options.headers ?? {})
+      }
+    });
+    body = await response.json();
+    if (!response.ok) {
+      return {
+        kind: "error",
+        status: response.status,
+        safeErrorCodes: Array.isArray(body?.safe_error_codes) ? body.safe_error_codes : [],
+        body
+      };
+    }
+  } catch {
+    return { kind: "error", status: 0, safeErrorCodes: [] };
+  }
+  return { kind: "data", status: 200, body };
+}
+
+export function consumePortalInvite({ token, now } = {}) {
+  return portalExternalJson("/api/portal/invites/consume", {
+    method: "POST",
+    body: JSON.stringify({ token, now })
+  });
+}
+
+export function submitPortalExternalRfiResponse({ externalSessionId, tenantId, rfiRequestId, responseId, uploadName, idempotencyKey } = {}) {
+  return portalExternalJson("/api/portal/external/rfi-responses", {
+    method: "POST",
+    body: JSON.stringify({
+      external_session_id: externalSessionId,
+      idempotency_key: idempotencyKey,
+      rfi_response: {
+        rfi_response_id: responseId,
+        tenant_id: tenantId,
+        rfi_request_id: rfiRequestId,
+        dms_acl_inherited: true,
+        malware_scan_passed: true,
+        upload_name: uploadName
+      }
+    })
+  });
+}
+
+export function accessPortalExternalSecureLink({ tenantId, secureLinkId, externalSessionId, now } = {}) {
+  const params = new URLSearchParams({
+    tenant_id: tenantId,
+    external_session_id: externalSessionId
+  });
+  if (now) params.set("now", now);
+  return portalExternalJson(`/api/portal/external/secure-links/${encodeURIComponent(secureLinkId)}/access?${params.toString()}`);
 }
 
 export async function fetchUiReadinessChecks({

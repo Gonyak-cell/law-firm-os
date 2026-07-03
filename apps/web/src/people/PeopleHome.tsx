@@ -18,6 +18,7 @@ import { HRAIAssistant } from "./ai/HRAIAssistant.tsx";
 import { PayrollBoundaryPanel } from "./payroll/PayrollBoundaryPanel.tsx";
 import { PermissionAdminPanel } from "./admin/PermissionAdminPanel.jsx";
 import { LegalPeopleWorkspace } from "./legal/LegalPeopleWorkspace.tsx";
+import { HrxRiskDashboard } from "./security/HrxRiskDashboard.tsx";
 import { PEOPLE_SECTION_IDS, getPeopleFeatureBySection } from "./peopleFeatureCatalog.js";
 
 const LEGACY_LEGAL_PEOPLE_SECTIONS = [
@@ -43,6 +44,7 @@ const HANDLED_PEOPLE_SECTIONS = new Set([
   "people-policy",
   "people-audit",
   "people-analytics",
+  "people-risk",
   "people-ai",
   "people-payroll",
   "people-admin"
@@ -58,7 +60,26 @@ const EXTERNAL_SCHEDULE_TYPES = [
   { place: "관청", work: "인허가, 민원, 자료 제출", fields: "기관명, 업무 유형, 접수번호" }
 ];
 
-function PeopleFeatureStatePanel({ feature }) {
+type PeopleFeature = {
+  section: string;
+  groupLabel: string;
+  label: string;
+  summary: string;
+  state: string;
+  stateMeta: {
+    label: string;
+    description: string;
+  };
+  capabilities: string[];
+};
+
+type PeopleOverviewState = {
+  kind?: string;
+  metrics?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
+function PeopleFeatureStatePanel({ feature }: { feature: PeopleFeature }) {
   const stateMeta = feature.stateMeta;
   const isExternalSchedule = feature.section === "people-work-schedule-external";
 
@@ -77,7 +98,7 @@ function PeopleFeatureStatePanel({ feature }) {
         <div className="people-feature-section">
           <h3>반영할 기능</h3>
           <ul>
-            {feature.capabilities.map((capability) => (
+            {feature.capabilities.map((capability: string) => (
               <li key={capability}>{capability}</li>
             ))}
           </ul>
@@ -107,7 +128,7 @@ function PeopleFeatureStatePanel({ feature }) {
   );
 }
 
-function peopleGuardState(liveCtx) {
+function peopleGuardState(liveCtx: string) {
   if (liveCtx === "denied") {
     return {
       className: "live-data-denied",
@@ -125,8 +146,8 @@ function peopleGuardState(liveCtx) {
   return null;
 }
 
-export function PeopleHome({ activeSection = "", liveCtx = "allow" }) {
-  const [overview, setOverview] = useState(null);
+export function PeopleHome({ activeSection = "", liveCtx = "allow" }: { activeSection?: string; liveCtx?: string }) {
+  const [overview, setOverview] = useState<PeopleOverviewState | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const currentSection = PEOPLE_SECTIONS.has(activeSection) ? activeSection : "people-members";
@@ -235,7 +256,7 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }) {
         {!guardedState && currentSection === "people-recruiting" && (
           <div className="people-runtime-grid">
             <RecruitingPipeline key={`recruiting-${refreshKey}`} />
-            <CandidatePortal key={`candidate-${refreshKey}`} />
+            <CandidatePortal candidateId={null} />
           </div>
         )}
 
@@ -261,6 +282,12 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow" }) {
         {!guardedState && currentSection === "people-analytics" && (
           <div className="people-runtime-grid">
             <HRAnalytics key={refreshKey} />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-risk" && (
+          <div className="people-runtime-grid">
+            <HrxRiskDashboard />
           </div>
         )}
 

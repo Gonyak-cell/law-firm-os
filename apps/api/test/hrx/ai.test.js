@@ -9,7 +9,7 @@ const HRX_AUTH_HEADERS = Object.freeze({
   "x-lawos-tenant-id": "tenant-a",
   "x-lawos-actor-id": "hr-001",
   "x-lawos-actor-role": "people_ops",
-  "x-lawos-hrx-scopes": "hrx.ai.assistant,hrx.ai.review.read,hrx.analytics.read",
+  "x-lawos-hrx-scopes": "hrx.ai.assistant,hrx.ai.review.read,hrx.analytics.read,hrx.document.read",
 });
 
 async function json(path, options = {}) {
@@ -39,7 +39,45 @@ test("POST /api/hrx/ai/assistant returns cited advisory answer for allowed sourc
   assert.equal(status, 200);
   assert.equal(body.outcome, "answered");
   assert.equal(body.answer.status, "answered");
-  assert.deepEqual(body.source_refs, ["Policy:leave:2026"]);
+  assert.equal(body.source_refs.includes("Policy:leave:2026"), true);
+  assert.equal(body.source_refs.includes("Policy:employment-rules:2026"), true);
+  assert.equal(body.retrieval.context_payload_policy, "metadata_only");
+  assert.equal(body.answer.answer.includes("Grounded HRX advisory response"), false);
+});
+
+test("POST /api/hrx/ai/assistant bounds RAG citations to actor-visible source scopes", async () => {
+  const missingDocumentScope = await json("/api/hrx/ai/assistant", {
+    method: "POST",
+    headers: { ...HRX_AUTH_HEADERS, "x-lawos-hrx-scopes": "hrx.ai.assistant,hrx.ai.review.read" },
+    body: JSON.stringify({
+      interaction_id: "ai-api-scope-denied",
+      question: "Summarize leave policy guidance",
+      decision_mode: "advisory",
+    }),
+  });
+
+  assert.equal(missingDocumentScope.status, 202);
+  assert.equal(missingDocumentScope.body.outcome, "review_required");
+  assert.equal(missingDocumentScope.body.answer_status, "insufficient_sources");
+  assert.deepEqual(missingDocumentScope.body.citations, []);
+  assert.deepEqual(missingDocumentScope.body.source_refs, []);
+  assert.equal(missingDocumentScope.body.retrieval.denied_source_refs.includes("Policy:leave:2026"), true);
+
+  const compensationDenied = await json("/api/hrx/ai/assistant", {
+    method: "POST",
+    body: JSON.stringify({
+      interaction_id: "ai-api-comp-denied",
+      question: "compensation source metadata",
+      decision_mode: "advisory",
+    }),
+  });
+
+  assert.equal(compensationDenied.status, 202);
+  assert.equal(compensationDenied.body.outcome, "review_required");
+  assert.equal(compensationDenied.body.answer_status, "insufficient_sources");
+  assert.deepEqual(compensationDenied.body.citations, []);
+  assert.equal(compensationDenied.body.retrieval.denied_source_refs.some((sourceRef) => sourceRef.includes(":compensation-record")), true);
+  assert.equal(JSON.stringify(compensationDenied.body).includes("compensation source metadata"), false);
 });
 
 test("POST /api/hrx/ai/assistant routes blocked final people decisions to review queue", async () => {
@@ -70,6 +108,8 @@ test("GET /api/hrx/analytics returns tenant-scoped aggregate read model", async 
   assert.equal(body.analytics.tenant_id, "tenant-a");
   assert.equal(body.analytics.row_level_details_included, false);
   assert.ok(body.analytics.headcount.total >= 2);
+  assert.ok(body.workload_projection.every((row) => row.workload_source === "time_entry_aggregation"));
+  assert.ok(body.workload_conflicts.some((conflict) => conflict.conflict_type === "leave_deadline_overlap"));
   assert.equal(JSON.stringify(body.analytics).includes("emp-001"), false);
   assert.equal(JSON.stringify(body.workload_projection).includes("matter-001"), false);
 });

@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, FileCheck2, FileWarning, Link2, LockKeyhole, RefreshCw, Search, ShieldCheck, UploadCloud } from "lucide-react";
-import { fetchVaultBridgeStatus, fetchVaultDocuments, fetchVaultMatterLookup, fetchVaultUploadPreflight } from "../data/apiClient.js";
+import { fetchVaultBridgeStatus, fetchVaultDocuments, fetchVaultMatterLookup, fetchVaultSearch, fetchVaultUploadPreflight } from "../data/apiClient.js";
 import { DataTable, PageHeader, Panel } from "./primitives.jsx";
 import { DesktopDeniedState } from "./DesktopDeniedState.jsx";
 import { EmailFilingView } from "./EmailFilingView.jsx";
@@ -633,9 +633,96 @@ function VaultActionBoundaryPanel({ bridgeResult, selectedMatter, uploadPrefligh
   );
 }
 
+function searchMatchLabel(fields = []) {
+  if (!Array.isArray(fields) || fields.length === 0) return "색인";
+  const labels = fields.map((field) => {
+    if (field === "body_text") return "본문";
+    if (field === "ocr_text") return "OCR";
+    if (field === "title") return "제목";
+    if (field === "matter_id") return "Matter";
+    if (field === "version_id") return "버전";
+    return "색인";
+  });
+  return [...new Set(labels)].join(", ");
+}
+
+function vaultSearchRows(result) {
+  if (result?.kind !== "data") return [];
+  return result.items.map((item, index) => [
+    item.title ?? item.document_id ?? `결과 ${index + 1}`,
+    searchMatchLabel(item.match_fields),
+    item.version_id ?? "버전 확인",
+    item.raw_text_included === false && item.storage_pointer_ref_included === false ? "본문 비노출" : "검토 필요"
+  ]);
+}
+
+function VaultSearchPanel({ query, setQuery, result, pending, submittedQuery, onSubmit }) {
+  const rows = vaultSearchRows(result);
+  const state = pending ? "loading" : result?.kind ?? (submittedQuery ? "ready" : "idle");
+  const rawTextIncluded = result?.kind === "data" && result.items.some((item) => item.raw_text_included === true);
+  return (
+    <Panel id="vault-fulltext-search" className="vault-panel vault-search-panel" title="전문검색" meta="권한 필터">
+      <div
+        className="vault-search"
+        data-upl-e01-vault-search="true"
+        data-vault-search-state={state}
+        data-vault-search-query={submittedQuery}
+        data-vault-search-result-count={rows.length}
+        data-vault-search-raw-text-included={rawTextIncluded ? "true" : "false"}
+      >
+        <form className="vault-search-form" onSubmit={onSubmit}>
+          <label className="vault-lookup-field">
+            <span>
+              <Search size={14} />
+              본문 검색
+            </span>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              aria-label="Vault 본문 검색"
+              placeholder="문서 제목 또는 본문 키워드"
+            />
+          </label>
+          <button type="submit" className="secondary-button vault-search-action" disabled={!query.trim() || pending}>
+            <Search size={15} />
+            검색
+          </button>
+        </form>
+        {!submittedQuery && (
+          <div className="live-data-state live-data-empty">
+            <strong>검색어를 입력하세요</strong>
+          </div>
+        )}
+        {pending && (
+          <div className="live-data-state live-data-loading">
+            <strong>검색 중입니다</strong>
+          </div>
+        )}
+        {!pending && result?.kind === "error" && (
+          <div className="live-data-state live-data-error">
+            <strong>검색 결과를 불러오지 못했습니다</strong>
+          </div>
+        )}
+        {!pending && result?.kind === "data" && rows.length === 0 && (
+          <div className="live-data-state live-data-empty">
+            <strong>검색 결과가 없습니다</strong>
+          </div>
+        )}
+        {!pending && rows.length > 0 && (
+          <DataTable columns={["문서", "일치", "버전", "보안"]} rows={rows} />
+        )}
+      </div>
+    </Panel>
+  );
+}
+
 export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) {
   const [result, setResult] = useState(null);
   const [bridgeResult, setBridgeResult] = useState(null);
+  const [vaultSearchQuery, setVaultSearchQuery] = useState("");
+  const [vaultSearchSubmittedQuery, setVaultSearchSubmittedQuery] = useState("");
+  const [vaultSearchResult, setVaultSearchResult] = useState(null);
+  const [vaultSearchPending, setVaultSearchPending] = useState(false);
   const [matterLookupQuery, setMatterLookupQuery] = useState(DEFAULT_MATTER_LOOKUP_QUERY);
   const [matterLookupResult, setMatterLookupResult] = useState(null);
   const [selectedMatter, setSelectedMatter] = useState(null);
@@ -664,6 +751,33 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
       cancelled = true;
     };
   }, [liveCtx, refreshToken]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const query = vaultSearchSubmittedQuery.trim();
+    if (!query) {
+      setVaultSearchResult(null);
+      setVaultSearchPending(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+    setVaultSearchPending(true);
+    fetchVaultSearch({
+      ctx: liveCtx,
+      query,
+      permissionRef: VAULT_PERMISSION_REF,
+      auditHintRef: VAULT_AUDIT_HINT_REF
+    }).then((next) => {
+      if (!cancelled) {
+        setVaultSearchResult(next);
+        setVaultSearchPending(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [liveCtx, vaultSearchSubmittedQuery, refreshToken]);
 
   useEffect(() => {
     let cancelled = false;
@@ -698,6 +812,13 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
     });
     setUploadPreflightResult(next);
     setUploadPreflightPending(false);
+  };
+
+  const handleVaultSearch = (event) => {
+    event.preventDefault();
+    const query = vaultSearchQuery.trim();
+    setVaultSearchSubmittedQuery(query);
+    if (!query) setVaultSearchResult(null);
   };
 
   const documents = result?.kind === "data" ? result.items : [];
@@ -760,9 +881,19 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
       <div className="vault-runtime-grid">
         {currentSection === "vault-documents" && (
           <>
-            <Panel id="vault-documents" className="vault-panel" title="Vault 문서함" meta="권한 기준 적용">
-              {body}
-            </Panel>
+            <div className="vault-main-stack">
+              <VaultSearchPanel
+                query={vaultSearchQuery}
+                setQuery={setVaultSearchQuery}
+                result={vaultSearchResult}
+                pending={vaultSearchPending}
+                submittedQuery={vaultSearchSubmittedQuery}
+                onSubmit={handleVaultSearch}
+              />
+              <Panel id="vault-documents" className="vault-panel" title="Vault 문서함" meta="권한 기준 적용">
+                {body}
+              </Panel>
+            </div>
             <div className="vault-side-stack">
               <VaultBridgeStatusPanel result={bridgeResult} />
               <VaultMatterLookupPanel

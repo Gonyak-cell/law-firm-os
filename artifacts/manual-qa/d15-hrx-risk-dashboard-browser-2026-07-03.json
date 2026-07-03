@@ -1,0 +1,140 @@
+{
+  "schema_version": "law-firm-os.wave1.upl_d15.hrx_risk_dashboard.browser_receipt.v0.1",
+  "generated_at": "2026-07-02T16:54:14.565Z",
+  "passed": true,
+  "route": "people#people-risk",
+  "scope": {
+    "local_browser_runtime": true,
+    "legal_five_rules": [
+      "employment_contract_missing",
+      "annual_leave_promotion_target",
+      "statutory_training_missing",
+      "overtime_risk",
+      "offboarded_access_not_revoked"
+    ],
+    "api_write_claim": true,
+    "production_ready_claim": false,
+    "go_live_claim": false
+  },
+  "snapshot": {
+    "url": "http://127.0.0.1:5175/?locale=ko&view=people&data=live&ctx=allow&desktop=1&desktop_actor_ref=user_amic_jwsuh&desktop_tenant_ref=tenant_amic_matter_vault&desktop_role_ref=hr_admin&desktop_expires_at=2026-07-03T23%3A59%3A59.000Z&desktop_role_ref=people_ops&desktop_scope_ref=hrx.employee.read&desktop_scope_ref=hrx.document.read&desktop_scope_ref=hrx.attendance.read&desktop_scope_ref=hrx.overtime.read&desktop_scope_ref=hrx.risk.read&desktop_scope_ref=hrx.risk.write&desktop_scope_ref=hrx.audit.read#people-risk",
+    "before_scan_text": "HR 리스크 법적 5종 근로계약, 연차촉진, 법정교육, 초과근로, 퇴사자 권한 회수를 점검합니다. 스캔 실행 전체 이벤트 5 스캔 결과 열린 이벤트 5 확인 필요 감지 규칙 5 법적 5종 근로계약 미체결 1 연차촉진 대상 1 법정교육 미이수 1 초과근로 위험 1 퇴사자 권한 미회수 1 연차촉진 대상 emp_amic_ytkim 주의 열림 2026-07-03 확인 퇴사자 권한 미회수 emp_amic_bj_park 긴급 열림 2026-07-03 확인 초과근로 위험 emp_amic_sypark 높음 열림 2026-07-03 확인 법정교육 미이수 emp_amic_wsjo 높음 열림 2026-07-03 확인 근로계약 미체결 emp_amic_wsjo 긴급 확인 2026-07-03 확인",
+    "after_scan_text": "HR 리스크 법적 5종 근로계약, 연차촉진, 법정교육, 초과근로, 퇴사자 권한 회수를 점검합니다. 스캔 실행 상태 변경 완료 전체 이벤트 5 스캔 결과 열린 이벤트 5 확인 필요 감지 규칙 5 법적 5종 근로계약 미체결 1 연차촉진 대상 1 법정교육 미이수 1 초과근로 위험 1 퇴사자 권한 미회수 1 퇴사자 권한 미회수 emp_amic_bj_park 긴급 열림 2026-07-03 확인 초과근로 위험 emp_amic_sypark 높음 열림 2026-07-03 확인 법정교육 미이수 emp_amic_wsjo 높음 열림 2026-07-03 확인 연차촉진 대상 emp_amic_ytkim 주의 확인 2026-07-03 확인 근로계약 미체결 emp_amic_wsjo 긴급 확인 2026-07-03 확인",
+    "acknowledge_mode": "clicked",
+    "visible_risk_types": [
+      "employment_contract_missing",
+      "annual_leave_promotion_target",
+      "statutory_training_missing",
+      "overtime_risk",
+      "offboarded_access_not_revoked"
+    ],
+    "event_rows": [
+      {
+        "risk_event_id": "hrx-risk:offboarded_access_not_revoked:emp_amic_bj_park:off-002",
+        "risk_type": "offboarded_access_not_revoked",
+        "text": "퇴사자 권한 미회수emp_amic_bj_park긴급열림2026-07-03확인"
+      },
+      {
+        "risk_event_id": "hrx-risk:overtime_risk:emp_amic_sypark:2026-07-03",
+        "risk_type": "overtime_risk",
+        "text": "초과근로 위험emp_amic_sypark높음열림2026-07-03확인"
+      },
+      {
+        "risk_event_id": "hrx-risk:statutory_training_missing:emp_amic_wsjo:2026",
+        "risk_type": "statutory_training_missing",
+        "text": "법정교육 미이수emp_amic_wsjo높음열림2026-07-03확인"
+      },
+      {
+        "risk_event_id": "hrx-risk:annual_leave_promotion_target:emp_amic_ytkim:2026",
+        "risk_type": "annual_leave_promotion_target",
+        "text": "연차촉진 대상emp_amic_ytkim주의확인2026-07-03확인"
+      },
+      {
+        "risk_event_id": "hrx-risk:employment_contract_missing:emp_amic_wsjo:current",
+        "risk_type": "employment_contract_missing",
+        "text": "근로계약 미체결emp_amic_wsjo긴급확인2026-07-03확인"
+      }
+    ],
+    "screenshot": "artifacts/manual-qa/screenshots/d15-hrx-risk-dashboard-browser-2026-07-03.png"
+  },
+  "checks": [
+    {
+      "id": "risk-dashboard-mounted",
+      "passed": true
+    },
+    {
+      "id": "scan-post-observed",
+      "passed": true
+    },
+    {
+      "id": "legal-five-visible",
+      "passed": true
+    },
+    {
+      "id": "risk-event-rows-created",
+      "passed": true
+    },
+    {
+      "id": "acknowledge-transition-observed",
+      "passed": true
+    },
+    {
+      "id": "risk-api-list-response-observed",
+      "passed": true
+    },
+    {
+      "id": "browser-had-no-page-errors",
+      "passed": true
+    },
+    {
+      "id": "browser-had-no-unexpected-console-errors",
+      "passed": true
+    }
+  ],
+  "hrxRequests": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5175/api/hrx/risks"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5175/api/hrx/employees"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5175/api/hrx/risks/scan"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5175/api/hrx/risks/hrx-risk%3Aannual_leave_promotion_target%3Aemp_amic_ytkim%3A2026/transition"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5175/api/hrx/risks"
+    }
+  ],
+  "hrxResponses": [
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5175/api/hrx/risks"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5175/api/hrx/employees"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5175/api/hrx/risks/scan"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5175/api/hrx/risks/hrx-risk%3Aannual_leave_promotion_target%3Aemp_amic_ytkim%3A2026/transition"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5175/api/hrx/risks"
+    }
+  ],
+  "consoleMessages": [],
+  "pageErrors": []
+}

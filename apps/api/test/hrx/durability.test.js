@@ -5,9 +5,11 @@ import { join } from "node:path";
 import test from "node:test";
 import { createSqlHrxAuditEventStore } from "../../../../packages/audit/src/hrx-event-store-sql.js";
 import { verifyHrxAuditHashChain } from "../../../../packages/audit/src/hrx-hash-chain.js";
+import { createSqlAttendanceStore } from "../../../../packages/hrx/src/attendance.js";
 import { createSqlHrxDocumentStore } from "../../../../packages/hrx/src/documents.js";
 import { createSqlLeaveBalanceLedger } from "../../../../packages/hrx/src/leave/balance.js";
 import { createSqlLeaveRequestStore } from "../../../../packages/hrx/src/leave/request-service.js";
+import { createSqlOvertimeStore } from "../../../../packages/hrx/src/overtime.js";
 import { createHrxRuntimeContext } from "../../src/hrx-runtime-context.js";
 import { createSqlHrxRepository } from "../../../../packages/hrx/src/repository-sql.js";
 import { createFileHrxStore } from "../../../../packages/hrx/src/store/file-store.js";
@@ -59,6 +61,23 @@ test("HRX runtime repository write survives store reopen", () => {
     start_date: "2026-06-24",
     end_date: "2026-06-24",
   });
+  context.attendance.write({
+    tenant_id: "tenant-a",
+    attendance_id: "att-durable",
+    employee_id: "emp-durable",
+    work_date: "2026-06-24",
+    status: "present",
+    recorded_hours: 8,
+    source_ref: "TimeClock:durability",
+  });
+  context.overtime.create({
+    tenant_id: "tenant-a",
+    overtime_id: "ot-durable",
+    employee_id: "emp-durable",
+    work_date: "2026-06-24",
+    hours: 2,
+    reason: "durability test",
+  });
   context.audit.append({
     tenant_id: "tenant-a",
     event_id: "evt-durable",
@@ -77,6 +96,8 @@ test("HRX runtime repository write survives store reopen", () => {
   const reopenedDocuments = createSqlHrxDocumentStore({ store: reopenedStore });
   const reopenedLeaveLedger = createSqlLeaveBalanceLedger({ store: reopenedStore });
   const reopenedLeaveStore = createSqlLeaveRequestStore({ store: reopenedStore });
+  const reopenedAttendance = createSqlAttendanceStore({ store: reopenedStore });
+  const reopenedOvertime = createSqlOvertimeStore({ store: reopenedStore });
   const reopenedAudit = createSqlHrxAuditEventStore({ store: reopenedStore });
   assert.equal(
     reopenedRepository.getEmployee({ tenant_id: "tenant-a", employee_id: "emp-durable" }).display_name,
@@ -86,6 +107,8 @@ test("HRX runtime repository write survives store reopen", () => {
   assert.equal(reopenedDocuments.list({ tenant_id: "tenant-a", employee_id: "emp-durable" }).length, 1);
   assert.equal(reopenedLeaveLedger.list({ tenant_id: "tenant-a", employee_id: "emp-durable" }).length, 1);
   assert.equal(reopenedLeaveStore.list({ tenant_id: "tenant-a", employee_id: "emp-durable" }).length, 1);
+  assert.equal(reopenedAttendance.list({ tenant_id: "tenant-a", employee_id: "emp-durable" }).length, 1);
+  assert.equal(reopenedOvertime.list({ tenant_id: "tenant-a", employee_id: "emp-durable" }).length, 1);
   assert.equal(verifyHrxAuditHashChain(reopenedAudit.list({ tenant_id: "tenant-a" })), true);
   reopenedStore.close();
 });

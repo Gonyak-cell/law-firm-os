@@ -38,7 +38,7 @@ test("Master Data API reads repository state after durable runtime restart", asy
   const storePath = join(mkdtempSync(join(tmpdir(), "master-data-api-runtime-")), "store.json");
 
   await withServer(storePath, async (baseUrl) => {
-    const first = await getJson(baseUrl, `/master-data/records?${BASE_QUERY}&model_type=Entity`);
+    const first = await getJson(baseUrl, `/master-data/records?${BASE_QUERY}&model_type=Entity&limit=100`);
     assert.equal(first.status, 200);
     assert.ok(first.body.items.some((item) => item.entity_id === "entity_rp04_org_amic"));
   });
@@ -51,7 +51,7 @@ test("Master Data API reads repository state after durable runtime restart", asy
   repository.close();
 
   await withServer(storePath, async (baseUrl) => {
-    const reopened = await getJson(baseUrl, `/master-data/records?${BASE_QUERY}&model_type=Entity`);
+    const reopened = await getJson(baseUrl, `/master-data/records?${BASE_QUERY}&model_type=Entity&limit=100`);
     assert.equal(reopened.status, 200);
     const entity = reopened.body.items.find((item) => item.entity_id === "entity_rp04_org_amic");
     assert.equal(entity.display_name, "AMIC Runtime Client");

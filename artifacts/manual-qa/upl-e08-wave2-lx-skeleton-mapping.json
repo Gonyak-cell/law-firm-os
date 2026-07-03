@@ -1,0 +1,370 @@
+{
+  "schema_version": "lawos.wave2.lx-skeleton-mapping.v1",
+  "generated_at": "2026-07-03T00:00:00+09:00",
+  "tuw_ids": ["UPL-E-08"],
+  "pass": true,
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "source_register": "workbook/wave1-internal-uplift-tuw-backlog-2026-07-02.md",
+  "strict_scope": "Planning artifact only. This proves LX-01..LX-12 Wave-2 TUW skeleton coverage; it does not claim external vendor, Outlook, model, tax-invoice, SES, or production security receipts.",
+  "coverage_claims": {
+    "lx_ids_expected": [
+      "LX-01",
+      "LX-02",
+      "LX-03",
+      "LX-04",
+      "LX-05",
+      "LX-06",
+      "LX-07",
+      "LX-08",
+      "LX-09",
+      "LX-10",
+      "LX-11",
+      "LX-12"
+    ],
+    "keywords_required_by_upl_e08": {
+      "SSO": ["LX-01"],
+      "SCIM": ["LX-01", "LX-11"],
+      "DLP": ["LX-04"],
+      "monthly_screening": ["LX-03"],
+      "multi_tenancy": ["LX-02"],
+      "pentest": ["W2-XC-PENTEST-01"]
+    }
+  },
+  "cross_cutting_external_leadtime": [
+    {
+      "id": "W2-XC-PENTEST-01",
+      "topic": "pentest",
+      "applies_to": ["LX-01", "LX-02", "LX-03", "LX-04", "LX-07", "LX-10", "LX-12"],
+      "objective": "Prepare external penetration-test scope before Wave-2 commercial or multi-tenant exposure.",
+      "minimum_scope": [
+        "authorization bypass",
+        "tenant isolation",
+        "authentication session",
+        "prompt injection",
+        "portal token replay",
+        "DLP and retention bypass"
+      ],
+      "entry_gate": "Owner chooses external assessor and signs rules of engagement.",
+      "acceptance_evidence": [
+        "signed rules of engagement",
+        "staging account issue log",
+        "final pentest report",
+        "finding adjudication with P0/P1 zero state",
+        "retest evidence map"
+      ],
+      "production_ready_claim": false
+    }
+  ],
+  "mappings": [
+    {
+      "lx_id": "LX-01",
+      "area": "auth",
+      "enterprise_original": "Entra OIDC SSO + SCIM",
+      "wave1_internal_profile": "Signed first-party session authentication; IdP connector deferred while server-side authentication remains mandatory.",
+      "wave2_reinforcement_path": "Replace the first-party login entry with an Entra OIDC adapter while preserving the signed session layer; add SCIM user lifecycle sync.",
+      "owner_decision_gate": "Entra tenant, app registration owner, redirect URI, admin consent, and security reviewer assigned.",
+      "planned_not_wave1_execution": true,
+      "production_ready_claim": false,
+      "wave2_tuw_skeletons": [
+        {
+          "tuw_id": "W2-LX-01-T01",
+          "title": "Entra OIDC SSO adapter cutover",
+          "objective": "Authenticate users through Entra OIDC and issue the existing signed Law OS session from verified provider claims.",
+          "entry_gate": ["Entra app registration exists", "admin consent granted", "test users provisioned"],
+          "implementation_slices": ["OIDC callback route", "claim-to-role mapping", "step-up continuity", "session-forgery regression"],
+          "acceptance_evidence": ["real Entra login receipt", "negative forged-claim test", "session audit event"],
+          "dependencies": ["UPL-A-01", "UPL-A-04", "UPL-C-09"],
+          "external_receipts_required": ["Entra provider login receipt"],
+          "not_wave1_exit_gate": true
+        },
+        {
+          "tuw_id": "W2-LX-01-T02",
+          "title": "SCIM user provisioning sync",
+          "objective": "Create, update, suspend, and deprovision Law OS users from Entra SCIM events without bypassing local authz.",
+          "entry_gate": ["SCIM secret storage approved", "identity ownership policy approved"],
+          "implementation_slices": ["SCIM endpoint", "idempotent user upsert", "deprovision deny checks", "audit ledger"],
+          "acceptance_evidence": ["SCIM create/update/deactivate receipt", "post-deprovision access denial test"],
+          "dependencies": ["LX-11"],
+          "external_receipts_required": ["Entra SCIM provisioning receipt"],
+          "not_wave1_exit_gate": true
+        }
+      ]
+    },
+    {
+      "lx_id": "LX-02",
+      "area": "multi-tenancy",
+      "enterprise_original": "Multi-tenant isolation",
+      "wave1_internal_profile": "Single real tenant is fixed; cross-tenant deny logic remains, tenant provisioning is deferred.",
+      "wave2_reinforcement_path": "Open tenant provisioning and run isolation tests across at least two real tenants.",
+      "owner_decision_gate": "Owner approves commercial multi-tenancy posture, tenant naming, data-retention split, and support boundary.",
+      "planned_not_wave1_execution": true,
+      "production_ready_claim": false,
+      "wave2_tuw_skeletons": [
+        {
+          "tuw_id": "W2-LX-02-T01",
+          "title": "Tenant provisioning and isolation roundtrip",
+          "objective": "Provision two durable tenants, write domain data in each, and prove reads, search, billing, HRX, and portal cannot cross boundaries.",
+          "entry_gate": ["owner multi-tenancy decision", "durable database target selected", "tenant seed data approved"],
+          "implementation_slices": ["tenant create route", "tenant-scoped migrations", "cross-domain tenant filters", "negative cross-tenant E2E"],
+          "acceptance_evidence": ["two-tenant migration receipt", "synthetic residue zero report", "cross-tenant deny browser receipt"],
+          "dependencies": ["UPL-A-05", "UPL-A-06"],
+          "external_receipts_required": [],
+          "not_wave1_exit_gate": true
+        }
+      ]
+    },
+    {
+      "lx_id": "LX-03",
+      "area": "ethical-wall",
+      "enterprise_original": "User-level screening and monthly membership model",
+      "wave1_internal_profile": "Matter-team visibility replaces monthly membership; conflict screening remains mandatory.",
+      "wave2_reinforcement_path": "Add monthly screening and membership snapshots for user-by-user ethical-wall enforcement.",
+      "owner_decision_gate": "Ethics owner approves membership model, screening cadence, exception policy, and audit retention.",
+      "planned_not_wave1_execution": true,
+      "production_ready_claim": false,
+      "wave2_tuw_skeletons": [
+        {
+          "tuw_id": "W2-LX-03-T01",
+          "title": "Monthly ethical-wall screening",
+          "objective": "Snapshot matter membership monthly and run user-specific screening against adverse parties, confidential matters, and waiver exceptions.",
+          "entry_gate": ["ethics reviewer assigned", "monthly screening policy approved"],
+          "implementation_slices": ["membership snapshot table", "monthly screening job", "exception adjudication queue", "lawyer review receipt"],
+          "acceptance_evidence": ["monthly screening run receipt", "denied non-member visibility test", "exception approval audit"],
+          "dependencies": ["UPL-C-01", "UPL-C-02", "UPL-C-03"],
+          "external_receipts_required": [],
+          "not_wave1_exit_gate": true
+        }
+      ]
+    },
+    {
+      "lx_id": "LX-04",
+      "area": "dlp-retention",
+      "enterprise_original": "Automatic DLP scanner and automatic disposal enforcement",
+      "wave1_internal_profile": "Warning display, manual operating procedure, and retention-due list only.",
+      "wave2_reinforcement_path": "Enable DLP scanner and retention enforcement jobs with lawyer override and audit trail.",
+      "owner_decision_gate": "Records owner approves DLP pattern set, disposal hold policy, and manual override authority.",
+      "planned_not_wave1_execution": true,
+      "production_ready_claim": false,
+      "wave2_tuw_skeletons": [
+        {
+          "tuw_id": "W2-LX-04-T01",
+          "title": "DLP scanner and retention enforcement job",
+          "objective": "Scan stored documents for sensitive patterns, block unsafe sharing, and enforce retention disposal only after hold checks.",
+          "entry_gate": ["DLP pattern set approved", "retention schedule approved", "legal hold policy approved"],
+          "implementation_slices": ["scanner job", "share-blocking rule", "retention disposal queue", "legal-hold override"],
+          "acceptance_evidence": ["DLP hit blocks portal share", "retention job skips held document", "override audit receipt"],
+          "dependencies": ["UPL-A-10", "UPL-E-01", "UPL-E-02"],
+          "external_receipts_required": [],
+          "not_wave1_exit_gate": true
+        }
+      ]
+    },
+    {
+      "lx_id": "LX-05",
+      "area": "hr-approval",
+      "enterprise_original": "Manager to HR two-step approval",
+      "wave1_internal_profile": "One-step approval with applicant not equal approver enforced and optional HR confirmation flag.",
+      "wave2_reinforcement_path": "Enable multi-step approval lines with manager, HR, and delegated approver policies.",
+      "owner_decision_gate": "HR owner approves approval-line policy, delegation rules, and emergency override process.",
+      "planned_not_wave1_execution": true,
+      "production_ready_claim": false,
+      "wave2_tuw_skeletons": [
+        {
+          "tuw_id": "W2-LX-05-T01",
+          "title": "Multi-step HR approval lines",
+          "objective": "Route leave, lifecycle, compensation, and HR document approvals through ordered manager and HR steps.",
+          "entry_gate": ["HR approval policy approved", "manager roster source selected"],
+          "implementation_slices": ["approval-line table", "ordered transition engine", "delegation checks", "skip/override audit"],
+          "acceptance_evidence": ["manager then HR approval receipt", "out-of-order approval rejection", "self-approval denial retained"],
+          "dependencies": ["UPL-D-01", "UPL-D-02", "UPL-D-07"],
+          "external_receipts_required": [],
+          "not_wave1_exit_gate": true
+        }
+      ]
+    },
+    {
+      "lx_id": "LX-06",
+      "area": "e-sign",
+      "enterprise_original": "E-sign vendor integration",
+      "wave1_internal_profile": "Signed scan upload with signature_ref verification.",
+      "wave2_reinforcement_path": "Integrate approved e-sign vendor and map vendor envelope state to engagement and HR document gates.",
+      "owner_decision_gate": "Owner selects e-sign vendor, signer identity policy, retention policy, and legal review boundary.",
+      "planned_not_wave1_execution": true,
+      "production_ready_claim": false,
+      "wave2_tuw_skeletons": [
+        {
+          "tuw_id": "W2-LX-06-T01",
+          "title": "E-sign envelope adapter",
+          "objective": "Create envelopes, receive signed callbacks, store signed artifacts in DMS, and preserve signature_ref lineage.",
+          "entry_gate": ["vendor selected", "sandbox credentials issued", "template IDs approved"],
+          "implementation_slices": ["envelope create route", "callback verifier", "DMS signed artifact write", "engagement gate integration"],
+          "acceptance_evidence": ["vendor sandbox envelope completion receipt", "callback signature verification test", "DMS hash readback"],
+          "dependencies": ["UPL-C-05", "UPL-A-10"],
+          "external_receipts_required": ["e-sign vendor sandbox receipt"],
+          "not_wave1_exit_gate": true
+        }
+      ]
+    },
+    {
+      "lx_id": "LX-07",
+      "area": "external-portal-auth",
+      "enterprise_original": "Entra External ID or B2C",
+      "wave1_internal_profile": "Expiring one-time audited magic link for external portal access.",
+      "wave2_reinforcement_path": "Replace magic-link-only access with External ID while retaining token expiry, audit, and byte-safe portal rules.",
+      "owner_decision_gate": "Owner approves external identity provider, guest lifecycle, and client support process.",
+      "planned_not_wave1_execution": true,
+      "production_ready_claim": false,
+      "wave2_tuw_skeletons": [
+        {
+          "tuw_id": "W2-LX-07-T01",
+          "title": "External ID portal authentication",
+          "objective": "Authenticate client portal users through External ID and map provider identity to invite, RFI, and secure-link permissions.",
+          "entry_gate": ["External ID tenant configured", "client guest policy approved"],
+          "implementation_slices": ["external OIDC callback", "invite-to-guest binding", "secure-link authz", "token replay regression"],
+          "acceptance_evidence": ["real external provider login receipt", "expired link denial retained", "token non-rendering retained"],
+          "dependencies": ["UPL-C-13", "UPL-E-06"],
+          "external_receipts_required": ["External ID provider receipt"],
+          "not_wave1_exit_gate": true
+        }
+      ]
+    },
+    {
+      "lx_id": "LX-08",
+      "area": "accounting-integration",
+      "enterprise_original": "Douzone or Wehago API automation",
+      "wave1_internal_profile": "Journal and transaction CSV export for manual import; legal tax-invoice issue integration remains external.",
+      "wave2_reinforcement_path": "Add approved accounting API connector and reconcile exported ledger IDs against provider acknowledgements.",
+      "owner_decision_gate": "Finance owner selects vendor, sandbox access, account mapping, and tax-invoice issuance boundary.",
+      "planned_not_wave1_execution": true,
+      "production_ready_claim": false,
+      "wave2_tuw_skeletons": [
+        {
+          "tuw_id": "W2-LX-08-T01",
+          "title": "Accounting API connector",
+          "objective": "Send balanced journal and transaction rows to the selected accounting provider and store acknowledgement IDs.",
+          "entry_gate": ["provider selected", "sandbox credentials issued", "chart-of-accounts mapping approved"],
+          "implementation_slices": ["provider adapter", "idempotent submit", "acknowledgement ledger", "reconciliation report"],
+          "acceptance_evidence": ["provider sandbox roundtrip", "debit-credit balance preserved", "duplicate submit rejection"],
+          "dependencies": ["UPL-B-13", "UPL-B-17"],
+          "external_receipts_required": ["accounting provider sandbox receipt"],
+          "not_wave1_exit_gate": true
+        }
+      ]
+    },
+    {
+      "lx_id": "LX-09",
+      "area": "excluded-scope",
+      "enterprise_original": "External Expert Portal, HR Data Room, LEDES/UTBMS, multi-currency, KYC/AML screening, and ATS external applicant channels",
+      "wave1_internal_profile": "Excluded from Wave-1.",
+      "wave2_reinforcement_path": "Split excluded scope into explicit Wave-2 backlog items with owner decision gates before any implementation.",
+      "owner_decision_gate": "Owner selects which excluded scope becomes Wave-2 committed work and records non-goals.",
+      "planned_not_wave1_execution": true,
+      "production_ready_claim": false,
+      "wave2_tuw_skeletons": [
+        {
+          "tuw_id": "W2-LX-09-T01",
+          "title": "Excluded-scope decomposition register",
+          "objective": "Create separate decision packets for expert portal, HR data room, LEDES/UTBMS, multi-currency, KYC/AML, and ATS external channels.",
+          "entry_gate": ["commercial scope decision", "data-owner assignment", "compliance reviewer assignment"],
+          "implementation_slices": ["decision packet", "risk classification", "dependency map", "acceptance receipt template"],
+          "acceptance_evidence": ["owner-signed inclusion/exclusion matrix", "no hidden Wave-1 route claim", "dependency owners assigned"],
+          "dependencies": ["UPL-E-10"],
+          "external_receipts_required": [],
+          "not_wave1_exit_gate": true
+        }
+      ]
+    },
+    {
+      "lx_id": "LX-10",
+      "area": "observability-notifications",
+      "enterprise_original": "APM, central logs, and SLO",
+      "wave1_internal_profile": "Error log file, health-check alert mail, and minimal in-app plus email notifications.",
+      "wave2_reinforcement_path": "Adopt APM, central log retention, service-level objectives, alert routing, and incident evidence packets.",
+      "owner_decision_gate": "Operations owner selects APM/log provider, retention period, SLO targets, and alert escalation channel.",
+      "planned_not_wave1_execution": true,
+      "production_ready_claim": false,
+      "wave2_tuw_skeletons": [
+        {
+          "tuw_id": "W2-LX-10-T01",
+          "title": "APM and SLO observability layer",
+          "objective": "Record request traces, error rates, queue failures, notification sends, and SLO burn alerts in a central provider.",
+          "entry_gate": ["APM provider selected", "SLO targets approved", "incident owner assigned"],
+          "implementation_slices": ["trace instrumentation", "central log shipper", "SLO dashboard", "alert receipt archive"],
+          "acceptance_evidence": ["APM dashboard receipt", "synthetic failure alert receipt", "log-retention readback"],
+          "dependencies": ["UPL-E-06"],
+          "external_receipts_required": ["APM/provider receipt if external provider is selected"],
+          "not_wave1_exit_gate": true
+        }
+      ]
+    },
+    {
+      "lx_id": "LX-11",
+      "area": "account-revocation",
+      "enterprise_original": "IdP or SCIM automatic deprovisioning",
+      "wave1_internal_profile": "Manual offboarding checklist with mandatory revocation confirmation records.",
+      "wave2_reinforcement_path": "Wire SCIM deprovisioning and IdP revocation callbacks into offboarding close gates.",
+      "owner_decision_gate": "Security owner approves source-of-truth IdP, revocation SLA, break-glass handling, and evidence retention.",
+      "planned_not_wave1_execution": true,
+      "production_ready_claim": false,
+      "wave2_tuw_skeletons": [
+        {
+          "tuw_id": "W2-LX-11-T01",
+          "title": "SCIM deprovisioning close gate",
+          "objective": "Automatically revoke access after offboarding and block employee close until IdP/SCIM revocation receipts are stored.",
+          "entry_gate": ["SCIM connector selected", "revocation SLA approved", "break-glass policy approved"],
+          "implementation_slices": ["deprovision event handler", "revocation evidence table", "offboarding gate integration", "post-revocation deny test"],
+          "acceptance_evidence": ["SCIM deactivate receipt", "offboarding close gate receipt", "deactivated user access denial"],
+          "dependencies": ["UPL-D-14", "LX-01"],
+          "external_receipts_required": ["SCIM deprovisioning receipt"],
+          "not_wave1_exit_gate": true
+        }
+      ]
+    },
+    {
+      "lx_id": "LX-12",
+      "area": "performance-scale",
+      "enterprise_original": "Horizontal scaling and multi-instance lock",
+      "wave1_internal_profile": "Single instance is explicit; concurrent writes are protected by database transactions.",
+      "wave2_reinforcement_path": "Design and prove multi-instance locking, queue idempotency, migration safety, and scale/load budgets.",
+      "owner_decision_gate": "Technical owner approves scale target, hosting topology, DB lock strategy, and load-test budget.",
+      "planned_not_wave1_execution": true,
+      "production_ready_claim": false,
+      "wave2_tuw_skeletons": [
+        {
+          "tuw_id": "W2-LX-12-T01",
+          "title": "Multi-instance scale and lock proof",
+          "objective": "Run two application instances against one durable database and prove idempotent writes, lock behavior, and restart-safe queues.",
+          "entry_gate": ["scale target approved", "hosting topology selected", "load-test window approved"],
+          "implementation_slices": ["distributed lock adapter", "idempotency audit", "migration lock", "load-test runner"],
+          "acceptance_evidence": ["two-instance concurrency receipt", "load-test summary", "migration lock regression"],
+          "dependencies": ["UPL-A-06", "UPL-A-08", "UPL-E-09"],
+          "external_receipts_required": [],
+          "not_wave1_exit_gate": true
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": "e08-lx-01-12-complete",
+      "passed": true,
+      "evidence": "mappings contains exactly LX-01 through LX-12."
+    },
+    {
+      "id": "e08-required-keywords-covered",
+      "passed": true,
+      "evidence": "SSO, SCIM, DLP, monthly screening, multi-tenancy, and pentest are mapped."
+    },
+    {
+      "id": "e08-each-lx-has-wave2-tuw-skeleton",
+      "passed": true,
+      "evidence": "Every LX row has at least one Wave-2 TUW skeleton with objective, entry gate, slices, acceptance evidence, and dependency fields."
+    },
+    {
+      "id": "e08-no-production-ready-claim",
+      "passed": true,
+      "evidence": "Artifact is planning-only and production_ready_claim is false globally and per mapping."
+    }
+  ]
+}

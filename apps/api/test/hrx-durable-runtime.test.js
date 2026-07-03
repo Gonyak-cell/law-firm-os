@@ -4,17 +4,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { startApiServer } from "../src/server.js";
+import { signedStepUpHeader } from "./hrx-step-up-test-helper.js";
 
 const HRX_AUTH_HEADERS = Object.freeze({
   "x-lawos-tenant-id": "tenant-a",
   "x-lawos-actor-id": "hrx-test-user",
   "x-lawos-actor-role": "people_ops",
-  "x-lawos-hrx-step-up": JSON.stringify({
+  "x-lawos-hrx-step-up": signedStepUpHeader({
     tenant_id: "tenant-a",
     actor_id: "hrx-test-user",
-    mfa: true,
-    assurance_level: 2,
-    expires_at: "2999-01-01T00:00:00.000Z",
   }),
   "x-lawos-hrx-scopes": [
     "hrx.employee.read",
@@ -59,6 +57,12 @@ test("HRX API write state and audit evidence survive durable runtime restart", a
     assert.equal(submitted.status, 201);
     assert.equal(submitted.body.leave_request.request_id, "leave-durable-001");
     assert.equal(submitted.body.leave_request.state, "submitted");
+
+    const denied = await json(baseUrl, "/api/hrx/documents?employee_id=emp-001", {
+      headers: { "x-lawos-hrx-scopes": "hrx.employee.read" },
+    });
+    assert.equal(denied.status, 403);
+    assert.equal(denied.body.reason, "hrx_scope_required");
   });
 
   await withServer(storePath, async (baseUrl) => {
@@ -71,6 +75,15 @@ test("HRX API write state and audit evidence survive durable runtime restart", a
     assert.ok(
       audit.body.events.some(
         (event) => event.action === "hrx.leave.submit" && event.object_id === "leave-durable-001",
+      ),
+    );
+    assert.ok(
+      audit.body.events.some(
+        (event) =>
+          event.action === "hrx.document.read" &&
+          event.decision === "deny" &&
+          event.reason === "hrx_scope_required" &&
+          event.source === "/api/hrx/documents",
       ),
     );
   });

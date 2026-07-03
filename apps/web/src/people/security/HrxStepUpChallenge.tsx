@@ -1,7 +1,11 @@
 import React from "react";
 import { KeyRound, RefreshCw, ShieldCheck } from "lucide-react";
 
-export function HrxStepUpChallenge({ onRetry }) {
+type HrxStepUpChallengeProps = {
+  onRetry?: () => void;
+};
+
+export function HrxStepUpChallenge({ onRetry }: HrxStepUpChallengeProps) {
   return (
     <div className="hrx-step-up-challenge" data-hrx-step-up-challenge="true">
       <div className="hrx-step-up-icon">

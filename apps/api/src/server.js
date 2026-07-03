@@ -16,6 +16,7 @@ import { HRX_DURABLE_CORE_TABLES, HRX_DURABLE_WORKFLOW_TABLES } from "../../../p
 import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
+import { createFileStorageAdapter } from "../../../packages/dms/src/storage/file-storage-adapter.js";
 import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
@@ -33,7 +34,8 @@ import {
   handleRecordsSearch,
   handleRelationshipLookup,
 } from "./master-data-context.js";
-import { authorizeHrxApiRequest } from "./middleware/hrx-authz.js";
+import { HRX_SESSION_BOUND_HEADER, authorizeHrxApiRequest } from "./middleware/hrx-authz.js";
+import { appendHrxRouteAudit } from "./middleware/hrx-audit-write.js";
 import { authorizeHrxStepUpRequest } from "./middleware/hrx-step-up-context.js";
 import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, evaluateRouteDecision, parsePermissionContext } from "./permission-gate.js";
 import { createHrxRuntimeContext, handleHrxApiRequest, seedHrxDurableRuntimeStore } from "./hrx-runtime-context.js";
@@ -113,6 +115,16 @@ import {
   REPORTS_BOUNDED_CONTEXT,
   handleReportsApiRequest,
 } from "./reports-runtime-context.js";
+import {
+  API_AUTH_BOUNDED_CONTEXT,
+  AUTHORIZATION_HEADER,
+  createApiSessionAuth,
+} from "./session-auth.js";
+import { createHrxStepUpAuthority } from "./hrx-step-up-token.js";
+import {
+  OUTLOOK_ADDIN_BOUNDED_CONTEXT,
+  handleOutlookAddinApiRequest,
+} from "./outlook-addin-runtime-context.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
@@ -169,7 +181,7 @@ function createEphemeralEnterpriseReadinessStorePath() {
   return join(mkdtempSync(join(tmpdir(), "lawos-enterprise-readiness-runtime-")), "enterprise-readiness-store.json");
 }
 
-export function createDefaultHrxRuntime({ store, storePath = process.env.LAWOS_HRX_STORE_PATH } = {}) {
+export function createDefaultHrxRuntime({ store, storePath = process.env.LAWOS_HRX_STORE_PATH, modelGateway } = {}) {
   const hrxStore = store ?? createFileHrxStore({ filePath: storePath || createEphemeralHrxStorePath() });
   runHrxMigrations(hrxStore);
   assertRuntimePersistenceStore(hrxStore, {
@@ -177,7 +189,7 @@ export function createDefaultHrxRuntime({ store, storePath = process.env.LAWOS_H
     requiredTables: [...HRX_DURABLE_CORE_TABLES, ...HRX_DURABLE_WORKFLOW_TABLES],
   });
   seedHrxDurableRuntimeStore(hrxStore);
-  return createHrxRuntimeContext({ store: hrxStore });
+  return createHrxRuntimeContext({ store: hrxStore, modelGateway });
 }
 
 export function createDefaultMasterDataRuntime({
@@ -197,6 +209,8 @@ export function createDefaultMatterRuntime({
   repository,
   storePath = process.env.LAWOS_MATTER_STORE_PATH,
   dmsRuntime = null,
+  hrxRuntime = null,
+  clearanceRepository = null,
 } = {}) {
   const matterRepository =
     repository ??
@@ -204,26 +218,36 @@ export function createDefaultMatterRuntime({
       filePath: storePath || createEphemeralMatterStorePath(),
       seedRecords: MATTER_RUNTIME_SEED.records,
     });
-  return createMatterRuntimeContext({ repository: matterRepository, dmsRuntime });
+  return createMatterRuntimeContext({ repository: matterRepository, dmsRuntime, hrxRuntime, clearanceRepository });
 }
 
 export function createDefaultDmsRuntime({
   repository,
   storePath = process.env.LAWOS_DMS_STORE_PATH,
+  storage,
+  storageRootPath = process.env.LAWOS_DMS_OBJECT_STORE_PATH,
 } = {}) {
+  const resolvedStorePath = storePath || createEphemeralDmsStorePath();
   const dmsRepository =
     repository ??
     createDmsRepository({
-      filePath: storePath || createEphemeralDmsStorePath(),
+      filePath: resolvedStorePath,
       seedRecords: VAULT_DMS_RUNTIME_SEED,
     });
-  return createVaultDmsRuntimeContext({ repository: dmsRepository });
+  const dmsStorage =
+    storage ??
+    createFileStorageAdapter({
+      adapter_id: "vault-api-file",
+      rootPath: storageRootPath || `${resolvedStorePath}.objects`,
+    });
+  return createVaultDmsRuntimeContext({ repository: dmsRepository, storage: dmsStorage });
 }
 
 export function createDefaultCrmIntakeRuntime({
   crmRepository,
   intakeRepository,
   crmMasterDataRepository,
+  matterRepository,
   crmStorePath = process.env.LAWOS_CRM_STORE_PATH,
   intakeStorePath = process.env.LAWOS_INTAKE_STORE_PATH,
   crmMasterDataStorePath = process.env.LAWOS_CRM_MASTER_DATA_STORE_PATH,
@@ -250,6 +274,7 @@ export function createDefaultCrmIntakeRuntime({
     crmRepository: crmRepo,
     intakeRepository: intakeRepo,
     masterDataRepository: masterDataRepo,
+    matterRepository,
   });
 }
 
@@ -269,6 +294,7 @@ export function createDefaultFinanceRuntime({
 export function createDefaultAnalyticsRuntime({
   repository,
   storePath = process.env.LAWOS_ANALYTICS_STORE_PATH,
+  financeRepository = null,
 } = {}) {
   const analyticsRepository =
     repository ??
@@ -276,7 +302,7 @@ export function createDefaultAnalyticsRuntime({
       filePath: storePath || createEphemeralAnalyticsStorePath(),
       seedRecords: ANALYTICS_RUNTIME_SEED,
     });
-  return createAnalyticsRuntimeContext({ repository: analyticsRepository });
+  return createAnalyticsRuntimeContext({ repository: analyticsRepository, financeRepository });
 }
 
 export function createDefaultAiRuntime({
@@ -348,6 +374,7 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
   version: "0.1.0",
   bounded_contexts: Object.freeze([
     MASTER_DATA_BOUNDED_CONTEXT,
+    API_AUTH_BOUNDED_CONTEXT,
     PROFILE_BOUNDED_CONTEXT,
     MATTER_BOUNDED_CONTEXT,
     VAULT_DMS_BOUNDED_CONTEXT,
@@ -361,6 +388,7 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
     ANALYTICS_BOUNDED_CONTEXT,
     AI_BOUNDED_CONTEXT,
     PORTAL_BOUNDED_CONTEXT,
+    OUTLOOK_ADDIN_BOUNDED_CONTEXT,
     UI_READINESS_BOUNDED_CONTEXT,
     ENTERPRISE_READINESS_BOUNDED_CONTEXT,
   ]),
@@ -381,10 +409,11 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
   uses_real_client_data: true,
 });
 
-const CORS_HEADERS = Object.freeze({
-  "access-control-allow-origin": "*",
+const DEFAULT_CORS_ALLOWED_ORIGINS = Object.freeze(["null", "http://127.0.0.1:5173", "http://127.0.0.1:5186"]);
+const CORS_BASE_HEADERS = Object.freeze({
   "access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS",
   "access-control-allow-headers": [
+    AUTHORIZATION_HEADER,
     "content-type",
     PERMISSION_CONTEXT_HEADER,
     "x-lawos-tenant-id",
@@ -395,19 +424,37 @@ const CORS_HEADERS = Object.freeze({
   ].join(", ")
 });
 
-function sendJson(res, status, body) {
+export function configuredCorsAllowedOrigins({ env = process.env } = {}) {
+  const configured = (env.LAWOS_API_ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  return Object.freeze([...new Set([...DEFAULT_CORS_ALLOWED_ORIGINS, ...configured])]);
+}
+
+export function corsHeadersForRequest(req, { env = process.env } = {}) {
+  const origin = req?.headers?.origin;
+  if (!origin) return CORS_BASE_HEADERS;
+  const headers = { ...CORS_BASE_HEADERS, vary: "origin" };
+  if (configuredCorsAllowedOrigins({ env }).includes(origin)) {
+    headers["access-control-allow-origin"] = origin;
+  }
+  return headers;
+}
+
+function sendJson(req, res, status, body) {
   res.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
     "cache-control": "no-store",
-    ...CORS_HEADERS,
+    ...corsHeadersForRequest(req),
   });
   res.end(JSON.stringify(body));
 }
 
-function sendOptions(res) {
+function sendOptions(req, res) {
   res.writeHead(204, {
     "cache-control": "no-store",
-    ...CORS_HEADERS,
+    ...corsHeadersForRequest(req),
   });
   res.end();
 }
@@ -429,6 +476,30 @@ async function readRequestBody(req) {
 
 function hasJsonRequestBody(method) {
   return method === "POST" || method === "PATCH" || method === "DELETE";
+}
+
+function hrxAuditEffect(decision = {}) {
+  return ["allow", "deny", "review_required", "approval_required"].includes(decision.effect)
+    ? decision.effect
+    : "deny";
+}
+
+async function appendHrxDeniedRouteAudit({ runtime, context, route, policy, decision } = {}) {
+  if (!runtime?.audit || !context?.tenant_id || !context?.actor_id) return null;
+  return appendHrxRouteAudit({
+    store: runtime.audit,
+    context,
+    route,
+    action: policy?.action ?? decision?.action ?? "hrx.route",
+    object: {
+      object_type: policy?.resource_type ?? "HRXRoute",
+      object_id: policy?.resource_id ?? route ?? "unknown",
+    },
+    decision: {
+      effect: hrxAuditEffect(decision),
+      reason: decision?.reason ?? "hrx_route_denied",
+    },
+  });
 }
 
 function handleProfileApiRequest({ pathname, method, query, context, requestId } = {}) {
@@ -543,18 +614,19 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId }
   };
 }
 
-async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, enterpriseReadinessRuntime } = {}) {
+async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
   const requestId = query.request_id || `req_${randomUUID()}`;
 
   if (req.method === "OPTIONS") {
-    sendOptions(res);
+    sendOptions(req, res);
     return;
   }
 
   const clientGroupMatch = pathname.match(/^\/master-data\/client-groups\/([^/]+)$/);
+  const isAuthPath = pathname.startsWith("/api/auth");
   const isHrxPath = pathname.startsWith("/api/hrx");
   const isProfilePath = pathname.startsWith("/api/profile");
   const isMatterPath = pathname.startsWith("/api/matters");
@@ -569,10 +641,12 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
   const isAnalyticsPath = pathname.startsWith("/api/analytics");
   const isAiPath = pathname.startsWith("/api/ai");
   const isPortalPath = pathname.startsWith("/api/portal") || pathname.startsWith("/api/data-room");
+  const isOutlookPath = pathname.startsWith("/api/outlook");
   const isUiReadinessPath = pathname.startsWith("/api/ui");
   const isEnterpriseReadinessPath = pathname.startsWith("/api/enterprise");
   const knownPath =
     pathname === "/api/health" ||
+    isAuthPath ||
     pathname === "/master-data/records" ||
     pathname === "/master-data/relationships" ||
     clientGroupMatch !== null ||
@@ -590,58 +664,110 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
     isAnalyticsPath ||
     isAiPath ||
     isPortalPath ||
+    isOutlookPath ||
     isUiReadinessPath ||
     isEnterpriseReadinessPath;
 
   if (!knownPath) {
-    sendJson(res, 404, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "not_found" });
+    sendJson(req, res, 404, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "not_found" });
     return;
   }
-  if (!isHrxPath && !isProfilePath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isUiReadinessPath && !isEnterpriseReadinessPath && req.method !== "GET") {
-    sendJson(res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
+  if (!isAuthPath && !isHrxPath && !isProfilePath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isOutlookPath && !isUiReadinessPath && !isEnterpriseReadinessPath && req.method !== "GET") {
+    sendJson(req, res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
 
   if (pathname === "/api/health") {
-    sendJson(res, 200, { status: "ok", time: new Date().toISOString(), ...SERVICE_DESCRIPTOR });
+    sendJson(req, res, 200, { status: "ok", time: new Date().toISOString(), ...SERVICE_DESCRIPTOR });
     return;
   }
 
+  if (isAuthPath) {
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const result = sessionAuth.handleAuthApiRequest({ pathname, method: req.method, body, headers: req.headers, requestId });
+    sendJson(req, res, result.status, result.body);
+    return;
+  }
+
+  const sessionContext = sessionAuth.resolvePermissionContextFromHeaders(req.headers, { requestId });
+  if (sessionContext.authorization_present && !sessionContext.ok) {
+    sendJson(req, res, sessionContext.status ?? 401, sessionContext.body);
+    return;
+  }
+  const requestPermissionContext = () =>
+    sessionContext.ok ? sessionContext.context : parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+  const requestHeaders = () => {
+    if (!sessionContext.ok) {
+      const headers = { ...req.headers };
+      delete headers[HRX_SESSION_BOUND_HEADER];
+      return headers;
+    }
+    const principal = sessionContext.principal;
+    return {
+      ...req.headers,
+      "x-lawos-tenant-id": principal.tenant_id,
+      "x-lawos-actor-id": principal.user_id,
+      "x-lawos-actor-role": (principal.role_ids ?? []).join(","),
+      "x-lawos-hrx-scopes": (principal.scopes ?? []).join(","),
+      [HRX_SESSION_BOUND_HEADER]: "signed",
+    };
+  };
+
   if (isHrxPath) {
-    const hrxAuthz = authorizeHrxApiRequest({ method: req.method, pathname, query, headers: req.headers });
+    const hrxAuthz = authorizeHrxApiRequest({ method: req.method, pathname, query, headers: requestHeaders() });
     if (!hrxAuthz.ok) {
-      sendJson(res, hrxAuthz.status, { request_id: requestId, ...hrxAuthz.body });
+      await appendHrxDeniedRouteAudit({
+        runtime: hrxRuntime,
+        context: hrxAuthz.context,
+        route: pathname,
+        policy: hrxAuthz.policy,
+        decision: hrxAuthz.decision ?? { effect: "deny", reason: hrxAuthz.body?.reason },
+      });
+      sendJson(req, res, hrxAuthz.status, { request_id: requestId, ...hrxAuthz.body });
       return;
     }
-    const hrxStepUp = authorizeHrxStepUpRequest({ action: hrxAuthz.policy.action, context: hrxAuthz.context, headers: req.headers });
+    const hrxStepUp = authorizeHrxStepUpRequest({
+      action: hrxAuthz.policy.action,
+      context: hrxAuthz.context,
+      headers: req.headers,
+      verifier: stepUpAuthority,
+      requestId,
+    });
     if (!hrxStepUp.ok) {
-      sendJson(res, hrxStepUp.status, { request_id: requestId, ...hrxStepUp.body });
+      await appendHrxDeniedRouteAudit({
+        runtime: hrxRuntime,
+        context: hrxAuthz.context,
+        route: pathname,
+        policy: hrxAuthz.policy,
+        decision: hrxStepUp.decision ?? { effect: "deny", reason: hrxStepUp.body?.reason, action: hrxAuthz.policy.action },
+      });
+      sendJson(req, res, hrxStepUp.status, { request_id: requestId, ...hrxStepUp.body });
       return;
     }
-    const body = req.method === "POST" ? await readRequestBody(req) : {};
-    const permissionContext = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const permissionContext = requestPermissionContext();
     const result = await handleHrxApiRequest({
       pathname,
       method: req.method,
       query,
       body,
       context: hrxRuntime,
-      requestContext: hrxAuthz.context,
+      requestContext: { ...hrxAuthz.context, hrx_scopes: hrxAuthz.principal?.hrx_scopes ?? [] },
       permissionContext,
     });
-    sendJson(res, result.status, { request_id: requestId, ...result.body });
+    sendJson(req, res, result.status, { request_id: requestId, ...result.body });
     return;
   }
 
   if (isProfilePath) {
-    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const context = requestPermissionContext();
     const result = handleProfileApiRequest({ pathname, method: req.method, query, context, requestId });
-    sendJson(res, result.status, result.body);
+    sendJson(req, res, result.status, result.body);
     return;
   }
 
   if (isMatterPath) {
-    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const context = requestPermissionContext();
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = await handleMatterApiRequest({
       pathname,
@@ -653,12 +779,12 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       requestId,
       runtime: matterRuntime,
     });
-    sendJson(res, result.status, result.body);
+    sendJson(req, res, result.status, result.body);
     return;
   }
 
   if (isVaultPath) {
-    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const context = requestPermissionContext();
     const body = req.method === "POST" ? await readRequestBody(req) : {};
     const result = await handleVaultDmsApiRequest({
       pathname,
@@ -669,12 +795,12 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       requestId,
       runtime: dmsRuntime,
     });
-    sendJson(res, result.status, result.body);
+    sendJson(req, res, result.status, result.body);
     return;
   }
 
   if (isCrmIntakePath) {
-    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const context = requestPermissionContext();
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = await handleCrmIntakeApiRequest({
       pathname,
@@ -685,12 +811,12 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       requestId,
       runtime: crmIntakeRuntime,
     });
-    sendJson(res, result.status, result.body);
+    sendJson(req, res, result.status, result.body);
     return;
   }
 
   if (isRecordActionsPath) {
-    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const context = requestPermissionContext();
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = await handleRecordActionsApiRequest({
       pathname,
@@ -701,12 +827,12 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       requestId,
       runtime: { matterRuntime, crmIntakeRuntime, masterDataRuntime },
     });
-    sendJson(res, result.status, result.body);
+    sendJson(req, res, result.status, result.body);
     return;
   }
 
   if (isImportDataMappingPath) {
-    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const context = requestPermissionContext();
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = await handleImportDataMappingApiRequest({
       pathname,
@@ -717,12 +843,12 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       requestId,
       runtime: { matterRuntime, crmIntakeRuntime, masterDataRuntime, financeRuntime },
     });
-    sendJson(res, result.status, result.body);
+    sendJson(req, res, result.status, result.body);
     return;
   }
 
   if (isAdminPermissionPath) {
-    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const context = requestPermissionContext();
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = await handleAdminPermissionApiRequest({
       pathname,
@@ -733,12 +859,12 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       requestId,
       runtime: { matterRuntime },
     });
-    sendJson(res, result.status, result.body);
+    sendJson(req, res, result.status, result.body);
     return;
   }
 
   if (isDataCloudPath) {
-    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const context = requestPermissionContext();
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = await handleDataCloudApiRequest({
       pathname,
@@ -749,12 +875,12 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       requestId,
       runtime: { matterRuntime },
     });
-    sendJson(res, result.status, result.body);
+    sendJson(req, res, result.status, result.body);
     return;
   }
 
   if (isReportsPath) {
-    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const context = requestPermissionContext();
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = await handleReportsApiRequest({
       pathname,
@@ -765,12 +891,12 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       requestId,
       runtime: { analyticsRuntime },
     });
-    sendJson(res, result.status, result.body);
+    sendJson(req, res, result.status, result.body);
     return;
   }
 
   if (isFinancePath) {
-    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const context = requestPermissionContext();
     const body = req.method === "POST" ? await readRequestBody(req) : {};
     const result = await handleFinanceApiRequest({
       pathname,
@@ -781,12 +907,12 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       requestId,
       runtime: financeRuntime,
     });
-    sendJson(res, result.status, result.body);
+    sendJson(req, res, result.status, result.body);
     return;
   }
 
   if (isAnalyticsPath) {
-    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const context = requestPermissionContext();
     const body = req.method === "POST" ? await readRequestBody(req) : {};
     const result = await handleAnalyticsApiRequest({
       pathname,
@@ -797,44 +923,59 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       requestId,
       runtime: analyticsRuntime,
     });
-    sendJson(res, result.status, result.body);
+    sendJson(req, res, result.status, result.body);
     return;
   }
 
   if (isAiPath) {
-    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const context = requestPermissionContext();
     const body = req.method === "POST" ? await readRequestBody(req) : {};
     const result = await handleAiApiRequest({ pathname, method: req.method, query, body, context, requestId, runtime: aiRuntime });
-    sendJson(res, result.status, result.body);
+    sendJson(req, res, result.status, result.body);
     return;
   }
 
   if (isPortalPath) {
-    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const context = requestPermissionContext();
     const body = req.method === "POST" ? await readRequestBody(req) : {};
     const result = await handlePortalApiRequest({ pathname, method: req.method, query, body, context, requestId, runtime: portalRuntime });
-    sendJson(res, result.status, result.body);
+    sendJson(req, res, result.status, result.body);
+    return;
+  }
+
+  if (isOutlookPath) {
+    const context = requestPermissionContext();
+    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const result = await handleOutlookAddinApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      context,
+      requestId,
+      runtime: { matterRuntime, dmsRuntime },
+    });
+    sendJson(req, res, result.status, result.body);
     return;
   }
 
   if (isUiReadinessPath) {
-    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const context = requestPermissionContext();
     const body = req.method === "POST" ? await readRequestBody(req) : {};
     const result = await handleUiReadinessApiRequest({ pathname, method: req.method, query, body, context, requestId, runtime: uiReadinessRuntime });
-    sendJson(res, result.status, result.body);
+    sendJson(req, res, result.status, result.body);
     return;
   }
 
   if (isEnterpriseReadinessPath) {
-    const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+    const context = requestPermissionContext();
     const body = req.method === "POST" ? await readRequestBody(req) : {};
     const result = await handleEnterpriseReadinessApiRequest({ pathname, method: req.method, query, body, context, requestId, runtime: enterpriseReadinessRuntime });
-    sendJson(res, result.status, result.body);
+    sendJson(req, res, result.status, result.body);
     return;
   }
 
-  // Fail-closed gate input: absent/malformed header parses to null and the gate denies.
-  const context = parsePermissionContext(req.headers[PERMISSION_CONTEXT_HEADER]);
+  const context = requestPermissionContext();
 
   let result;
   if (pathname === "/master-data/records") {
@@ -850,27 +991,33 @@ async function handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, 
       runtime: masterDataRuntime,
     });
   }
-  sendJson(res, result.status, result.body);
+  sendJson(req, res, result.status, result.body);
 }
 
 export function createApiServer({
   hrxRuntime = createDefaultHrxRuntime(),
   masterDataRuntime = createDefaultMasterDataRuntime(),
-  matterRuntime = createDefaultMatterRuntime(),
+  matterRuntime = createDefaultMatterRuntime({ hrxRuntime }),
   dmsRuntime = createDefaultDmsRuntime(),
   crmIntakeRuntime = createDefaultCrmIntakeRuntime(),
   financeRuntime = createDefaultFinanceRuntime(),
-  analyticsRuntime = createDefaultAnalyticsRuntime(),
+  analyticsRuntime = createDefaultAnalyticsRuntime({ financeRepository: financeRuntime?.repository }),
   aiRuntime = createDefaultAiRuntime(),
   portalRuntime = createDefaultPortalRuntime(),
   uiReadinessRuntime = createDefaultUiReadinessRuntime(),
   enterpriseReadinessRuntime = createDefaultEnterpriseReadinessRuntime(),
+  stepUpAuthority = createHrxStepUpAuthority(),
+  sessionAuth = createApiSessionAuth({ stepUpAuthority }),
 } = {}) {
   return http.createServer(async (req, res) => {
     try {
-      await handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, enterpriseReadinessRuntime });
+      const matterRuntimeWithClearanceLedger =
+        matterRuntime?.clearanceRepository || !crmIntakeRuntime?.intakeRepository
+          ? matterRuntime
+          : Object.freeze({ ...matterRuntime, clearanceRepository: crmIntakeRuntime.intakeRepository });
+      await handle(req, res, { hrxRuntime, masterDataRuntime, matterRuntime: matterRuntimeWithClearanceLedger, dmsRuntime, crmIntakeRuntime, financeRuntime, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority });
     } catch (error) {
-      sendJson(res, 500, { outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "internal_error", message: error.message });
+      sendJson(req, res, 500, { outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "internal_error", message: error.message });
     }
   });
 }
@@ -889,7 +1036,7 @@ export function startApiServer({
   dmsRuntime,
   dmsRepository,
   dmsStorePath,
-  crmIntakeRuntime,
+  crmIntakeRuntime: providedCrmIntakeRuntime,
   crmRepository,
   intakeRepository,
   crmMasterDataRepository,
@@ -902,6 +1049,7 @@ export function startApiServer({
   analyticsRuntime,
   analyticsRepository,
   analyticsStorePath,
+  analyticsFinanceRepository,
   aiRuntime,
   aiRepository,
   aiStorePath,
@@ -914,6 +1062,8 @@ export function startApiServer({
   enterpriseReadinessRuntime,
   enterpriseReadinessRepository,
   enterpriseReadinessStorePath,
+  sessionAuth,
+  stepUpAuthority,
 } = {}) {
   const runtime = hrxRuntime ?? createDefaultHrxRuntime({ store: hrxStore, storePath: hrxStorePath });
   const masterRuntime =
@@ -922,11 +1072,15 @@ export function startApiServer({
   const dmsRuntimeContext =
     dmsRuntime ??
     createDefaultDmsRuntime({ repository: dmsRepository, storePath: dmsStorePath });
-  const matterRuntimeContext =
-    matterRuntime ??
-    createDefaultMatterRuntime({ repository: matterRepository, storePath: matterStorePath, dmsRuntime: dmsRuntimeContext });
-  const crmIntakeRuntimeContext =
-    crmIntakeRuntime ??
+  const resolvedMatterRepository =
+    matterRuntime?.repository ??
+    matterRepository ??
+    createMatterRepository({
+      filePath: matterStorePath || createEphemeralMatterStorePath(),
+      seedRecords: MATTER_RUNTIME_SEED.records,
+    });
+  const crmIntakeRuntime =
+    providedCrmIntakeRuntime ??
     createDefaultCrmIntakeRuntime({
       crmRepository,
       intakeRepository,
@@ -934,13 +1088,26 @@ export function startApiServer({
       crmStorePath,
       intakeStorePath,
       crmMasterDataStorePath,
+      matterRepository: resolvedMatterRepository,
+    });
+  const matterRuntimeContext =
+    matterRuntime ??
+    createDefaultMatterRuntime({
+      repository: resolvedMatterRepository,
+      dmsRuntime: dmsRuntimeContext,
+      hrxRuntime: runtime,
+      clearanceRepository: crmIntakeRuntime.intakeRepository,
     });
   const financeRuntimeContext =
     financeRuntime ??
     createDefaultFinanceRuntime({ repository: financeRepository, storePath: financeStorePath });
   const analyticsRuntimeContext =
     analyticsRuntime ??
-    createDefaultAnalyticsRuntime({ repository: analyticsRepository, storePath: analyticsStorePath });
+    createDefaultAnalyticsRuntime({
+      repository: analyticsRepository,
+      storePath: analyticsStorePath,
+      financeRepository: analyticsFinanceRepository ?? financeRuntimeContext.repository,
+    });
   const aiRuntimeContext =
     aiRuntime ??
     createDefaultAiRuntime({ repository: aiRepository, storePath: aiStorePath });
@@ -953,18 +1120,22 @@ export function startApiServer({
   const enterpriseReadinessRuntimeContext =
     enterpriseReadinessRuntime ??
     createDefaultEnterpriseReadinessRuntime({ repository: enterpriseReadinessRepository, storePath: enterpriseReadinessStorePath });
+  const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority();
+  const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({ stepUpAuthority: resolvedStepUpAuthority });
   const server = createApiServer({
     hrxRuntime: runtime,
     masterDataRuntime: masterRuntime,
     matterRuntime: matterRuntimeContext,
     dmsRuntime: dmsRuntimeContext,
-    crmIntakeRuntime: crmIntakeRuntimeContext,
+    crmIntakeRuntime,
     financeRuntime: financeRuntimeContext,
     analyticsRuntime: analyticsRuntimeContext,
     aiRuntime: aiRuntimeContext,
     portalRuntime: portalRuntimeContext,
     uiReadinessRuntime: uiReadinessRuntimeContext,
     enterpriseReadinessRuntime: enterpriseReadinessRuntimeContext,
+    stepUpAuthority: resolvedStepUpAuthority,
+    sessionAuth: resolvedSessionAuth,
   });
   return new Promise((resolve, reject) => {
     server.once("error", reject);

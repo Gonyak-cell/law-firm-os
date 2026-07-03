@@ -1,0 +1,247 @@
+{
+  "schema_version": "lawos.wave1.upl-e06.notification-firing-proof.v1",
+  "generated_at": "2026-07-03T04:14:55.065Z",
+  "row_id": "UPL-E-06",
+  "status": "PASS",
+  "scope": "lightweight SES-shaped email plus in-app event firing receipt",
+  "boundary": {
+    "aws_ses_provider_shape": true,
+    "external_aws_ses_network_call_made": false,
+    "production_ready_claim": false,
+    "credential_material_included": false
+  },
+  "required_event_classes": [
+    "approval_pending",
+    "deadline_approaching",
+    "contract_expiring",
+    "risk_detected"
+  ],
+  "checks": [
+    {
+      "id": "required-event-classes-fired",
+      "passed": true
+    },
+    {
+      "id": "in-app-deliveries-recorded",
+      "passed": true
+    },
+    {
+      "id": "ses-send-records-recorded",
+      "passed": true
+    },
+    {
+      "id": "single-event-produces-both-channels",
+      "passed": true
+    },
+    {
+      "id": "no-secret-or-body-material-in-records",
+      "passed": true
+    }
+  ],
+  "receipts": [
+    {
+      "outcome": "fired",
+      "event": {
+        "event_id": "upl-e06-approval_pending",
+        "event_class": "approval_pending",
+        "tenant_id": "tenant_upl_e06_notifications",
+        "actor_id": "system_upl_e06",
+        "recipient_user_id": "user_lawyer_upl_e06",
+        "recipient_email": "lawyer-upl-e06@example.invalid",
+        "title": "결재 대기",
+        "body_hash": "0b612f221e25f9b995c5e5d82ccbfee01e004f62f31247cabac1479a9fe9b47d",
+        "resource_ref": "approval:approval_upl_e06_001",
+        "occurred_at": "2026-07-03T00:00:00.000+09:00",
+        "payload_body_included": false,
+        "production_ready_claim": false
+      },
+      "in_app_delivery": {
+        "delivery_id": "inapp:upl-e06-approval_pending:user_lawyer_upl_e06",
+        "event_id": "upl-e06-approval_pending",
+        "event_class": "approval_pending",
+        "tenant_id": "tenant_upl_e06_notifications",
+        "recipient_user_id": "user_lawyer_upl_e06",
+        "title": "결재 대기",
+        "resource_ref": "approval:approval_upl_e06_001",
+        "state": "delivered",
+        "fired_at": "2026-07-03T00:00:00.000+09:00",
+        "payload_body_included": false
+      },
+      "ses_send_record": {
+        "send_record_id": "ses:upl-e06-approval_pending:1",
+        "provider": "aws-ses",
+        "transport": "local-ses-send-recorder",
+        "tenant_id": "tenant_upl_e06_notifications",
+        "event_id": "upl-e06-approval_pending",
+        "event_class": "approval_pending",
+        "destination": "lawyer-upl-e06@example.invalid",
+        "from_email": "notifications@lawos.example.invalid",
+        "subject": "결재 대기",
+        "body_hash": "0b612f221e25f9b995c5e5d82ccbfee01e004f62f31247cabac1479a9fe9b47d",
+        "message_id": "ses-local-1",
+        "request_id": "ses-request-local-1",
+        "state": "accepted",
+        "sent_at": "2026-07-03T04:14:55.064Z",
+        "external_network_call_made": false,
+        "credential_material_included": false,
+        "payload_body_included": false,
+        "production_ready_claim": false
+      },
+      "all_channels_recorded": true,
+      "production_ready_claim": false
+    },
+    {
+      "outcome": "fired",
+      "event": {
+        "event_id": "upl-e06-deadline_approaching",
+        "event_class": "deadline_approaching",
+        "tenant_id": "tenant_upl_e06_notifications",
+        "actor_id": "system_upl_e06",
+        "recipient_user_id": "user_lawyer_upl_e06",
+        "recipient_email": "lawyer-upl-e06@example.invalid",
+        "title": "기한 임박",
+        "body_hash": "89af6ceb622a6dc8c9060e110473edaf7db064fe8b3f40925a970d581acd6544",
+        "resource_ref": "deadline:deadline_upl_e06_001",
+        "occurred_at": "2026-07-03T00:00:00.000+09:00",
+        "payload_body_included": false,
+        "production_ready_claim": false
+      },
+      "in_app_delivery": {
+        "delivery_id": "inapp:upl-e06-deadline_approaching:user_lawyer_upl_e06",
+        "event_id": "upl-e06-deadline_approaching",
+        "event_class": "deadline_approaching",
+        "tenant_id": "tenant_upl_e06_notifications",
+        "recipient_user_id": "user_lawyer_upl_e06",
+        "title": "기한 임박",
+        "resource_ref": "deadline:deadline_upl_e06_001",
+        "state": "delivered",
+        "fired_at": "2026-07-03T00:00:00.000+09:00",
+        "payload_body_included": false
+      },
+      "ses_send_record": {
+        "send_record_id": "ses:upl-e06-deadline_approaching:2",
+        "provider": "aws-ses",
+        "transport": "local-ses-send-recorder",
+        "tenant_id": "tenant_upl_e06_notifications",
+        "event_id": "upl-e06-deadline_approaching",
+        "event_class": "deadline_approaching",
+        "destination": "lawyer-upl-e06@example.invalid",
+        "from_email": "notifications@lawos.example.invalid",
+        "subject": "기한 임박",
+        "body_hash": "89af6ceb622a6dc8c9060e110473edaf7db064fe8b3f40925a970d581acd6544",
+        "message_id": "ses-local-2",
+        "request_id": "ses-request-local-2",
+        "state": "accepted",
+        "sent_at": "2026-07-03T04:14:55.064Z",
+        "external_network_call_made": false,
+        "credential_material_included": false,
+        "payload_body_included": false,
+        "production_ready_claim": false
+      },
+      "all_channels_recorded": true,
+      "production_ready_claim": false
+    },
+    {
+      "outcome": "fired",
+      "event": {
+        "event_id": "upl-e06-contract_expiring",
+        "event_class": "contract_expiring",
+        "tenant_id": "tenant_upl_e06_notifications",
+        "actor_id": "system_upl_e06",
+        "recipient_user_id": "user_lawyer_upl_e06",
+        "recipient_email": "lawyer-upl-e06@example.invalid",
+        "title": "계약 만료 예정",
+        "body_hash": "baf05fdf66bcdc89081185f8f496d901cc33f468c161734f16b22caa06e8d80e",
+        "resource_ref": "hrx-document:contract_upl_e06_001",
+        "occurred_at": "2026-07-03T00:00:00.000+09:00",
+        "payload_body_included": false,
+        "production_ready_claim": false
+      },
+      "in_app_delivery": {
+        "delivery_id": "inapp:upl-e06-contract_expiring:user_lawyer_upl_e06",
+        "event_id": "upl-e06-contract_expiring",
+        "event_class": "contract_expiring",
+        "tenant_id": "tenant_upl_e06_notifications",
+        "recipient_user_id": "user_lawyer_upl_e06",
+        "title": "계약 만료 예정",
+        "resource_ref": "hrx-document:contract_upl_e06_001",
+        "state": "delivered",
+        "fired_at": "2026-07-03T00:00:00.000+09:00",
+        "payload_body_included": false
+      },
+      "ses_send_record": {
+        "send_record_id": "ses:upl-e06-contract_expiring:3",
+        "provider": "aws-ses",
+        "transport": "local-ses-send-recorder",
+        "tenant_id": "tenant_upl_e06_notifications",
+        "event_id": "upl-e06-contract_expiring",
+        "event_class": "contract_expiring",
+        "destination": "lawyer-upl-e06@example.invalid",
+        "from_email": "notifications@lawos.example.invalid",
+        "subject": "계약 만료 예정",
+        "body_hash": "baf05fdf66bcdc89081185f8f496d901cc33f468c161734f16b22caa06e8d80e",
+        "message_id": "ses-local-3",
+        "request_id": "ses-request-local-3",
+        "state": "accepted",
+        "sent_at": "2026-07-03T04:14:55.064Z",
+        "external_network_call_made": false,
+        "credential_material_included": false,
+        "payload_body_included": false,
+        "production_ready_claim": false
+      },
+      "all_channels_recorded": true,
+      "production_ready_claim": false
+    },
+    {
+      "outcome": "fired",
+      "event": {
+        "event_id": "upl-e06-risk_detected",
+        "event_class": "risk_detected",
+        "tenant_id": "tenant_upl_e06_notifications",
+        "actor_id": "system_upl_e06",
+        "recipient_user_id": "user_lawyer_upl_e06",
+        "recipient_email": "lawyer-upl-e06@example.invalid",
+        "title": "리스크 발생",
+        "body_hash": "4e229124cfcadda786aad74bcccc164d64d3afb43eddb2c9bad3de57082afce5",
+        "resource_ref": "risk:risk_upl_e06_001",
+        "occurred_at": "2026-07-03T00:00:00.000+09:00",
+        "payload_body_included": false,
+        "production_ready_claim": false
+      },
+      "in_app_delivery": {
+        "delivery_id": "inapp:upl-e06-risk_detected:user_lawyer_upl_e06",
+        "event_id": "upl-e06-risk_detected",
+        "event_class": "risk_detected",
+        "tenant_id": "tenant_upl_e06_notifications",
+        "recipient_user_id": "user_lawyer_upl_e06",
+        "title": "리스크 발생",
+        "resource_ref": "risk:risk_upl_e06_001",
+        "state": "delivered",
+        "fired_at": "2026-07-03T00:00:00.000+09:00",
+        "payload_body_included": false
+      },
+      "ses_send_record": {
+        "send_record_id": "ses:upl-e06-risk_detected:4",
+        "provider": "aws-ses",
+        "transport": "local-ses-send-recorder",
+        "tenant_id": "tenant_upl_e06_notifications",
+        "event_id": "upl-e06-risk_detected",
+        "event_class": "risk_detected",
+        "destination": "lawyer-upl-e06@example.invalid",
+        "from_email": "notifications@lawos.example.invalid",
+        "subject": "리스크 발생",
+        "body_hash": "4e229124cfcadda786aad74bcccc164d64d3afb43eddb2c9bad3de57082afce5",
+        "message_id": "ses-local-4",
+        "request_id": "ses-request-local-4",
+        "state": "accepted",
+        "sent_at": "2026-07-03T04:14:55.064Z",
+        "external_network_call_made": false,
+        "credential_material_included": false,
+        "payload_body_included": false,
+        "production_ready_claim": false
+      },
+      "all_channels_recorded": true,
+      "production_ready_claim": false
+    }
+  ]
+}

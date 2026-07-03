@@ -24,17 +24,16 @@ async function listWebSourceFiles(relativeDir) {
   return files.flat();
 }
 
-test("post-login product UI routes only Client, Matter, People, and Vault", async () => {
+test("post-login product UI routes only Client, Matter, People, Vault, and Portal", async () => {
   const navSource = await readWebFile("src/data/nav.js");
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
   const peopleCatalogSource = await readWebFile("src/people/peopleFeatureCatalog.js");
   const peopleNavigationSource = `${shellSource}\n${peopleCatalogSource}`;
-  const canonicalViews = ["clients", "matters", "people", "vault"];
+  const canonicalViews = ["clients", "matters", "people", "vault", "portal"];
   const removedViews = [
     "content",
-    "portal",
     "readiness",
     "ops",
     "intake",
@@ -53,7 +52,7 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
     assert.match(appSource, new RegExp(`view === "${view}"`));
   }
   assert.match(navSource, /id: "people", label: "People"/);
-  assert.match(shellSource, /aria-label="Home Client Matter People Vault"/);
+  assert.match(shellSource, /aria-label="Home Client Matter People Vault Portal"/);
   assert.match(appSource, /view === "home"/);
   assert.match(appSource, /view === "auth"/);
   for (const view of removedViews) {
@@ -101,6 +100,7 @@ test("post-login product UI routes only Client, Matter, People, and Vault", asyn
   assert.match(peopleNavigationSource, /people-lifecycle/);
   assert.match(peopleNavigationSource, /people-policy/);
   assert.match(peopleNavigationSource, /people-audit/);
+  assert.match(peopleNavigationSource, /people-risk/);
   assert.match(peopleNavigationSource, /people-admin/);
   assert.match(peopleNavigationSource, /people-work-schedule-external/);
   assert.doesNotMatch(appSource, /MatterModal|initialVariant|initialDataMode|setModal|mockData/);
@@ -225,7 +225,8 @@ test("topbar notifications open a right drawer with global dim and stacked alert
   assert.match(shellSource, /aria-modal="true"/);
   assert.match(shellSource, /className="notification-scrim"/);
   assert.match(shellSource, /data-notification-card="stacked"/);
-  assert.match(shellSource, /알림 <span>3<\/span>/);
+  assert.match(shellSource, /const notificationUnreadCount = notificationItems\.length;/);
+  assert.match(shellSource, /알림 <span>\{notificationUnreadCount\}<\/span>/);
   assert.match(shellSource, /모두 읽음 처리/);
   assert.match(shellSource, /알림 설정/);
   assert.doesNotMatch(shellSource, />Notifications|Mark All as Read|>Settings<|status: "Conflict check"|status: "Approval"/);
@@ -456,7 +457,13 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /fetchFinanceArAging/);
   assert.match(clientsSource, /handoffCrmOpportunityToIntake/);
   assert.match(clientsSource, /createIntakeConflictCheck/);
+  assert.match(clientsSource, /recordIntakeConflictDecision/);
+  assert.match(clientsSource, /approveIntakeConflictWaiver/);
+  assert.match(clientsSource, /approveIntakeEngagement/);
   assert.match(clientsSource, /issueIntakeClearanceToken/);
+  assert.match(clientsSource, /openMatterFromIntakeClearance/);
+  assert.match(apiClientSource, /openMatterFromIntakeClearance/);
+  assert.match(apiClientSource, /ui_cmp_g6_intake_matter_open/);
   assert.match(clientsSource, /data-crm-handoff-action="true"/);
   assert.match(clientsSource, /data-crm-handoff-refresh-result="true"/);
   assert.match(clientsSource, /upsertResultItem/);
@@ -468,9 +475,11 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /data-crm-account-patch-action="true"/);
   assert.match(clientsSource, /data-crm-account-patch-result="true"/);
   assert.match(clientsSource, /data-crm-contact-create-action="true"/);
+  assert.match(clientsSource, /data-upl-c07-contact-raw-value-flow="true"/);
   assert.match(clientsSource, /data-crm-contact-create-result="true"/);
   assert.match(clientsSource, /data-crm-contact-patch-action="true"/);
   assert.match(clientsSource, /data-crm-contact-patch-result="true"/);
+  assert.match(clientsSource, /contact_point_value_included === true/);
   assert.match(clientsSource, /data-sf-b-w01r-account-canonical-sync="true"/);
   assert.match(clientsSource, /data-sf-b-w01r-contact-canonical-sync="true"/);
   assert.match(clientsSource, /data-sf-b-w01r-merge-review="true"/);
@@ -542,6 +551,11 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /data-client-contracts-connected="true"/);
   assert.match(clientsSource, /data-client-relationships-connected="true"/);
   assert.match(clientsSource, /data-client-conflict-connected="true"/);
+  assert.match(clientsSource, /data-intake-conflict-review-flow="true"/);
+  assert.match(clientsSource, /data-intake-conflict-hit-list="true"/);
+  assert.match(clientsSource, /data-intake-engagement-approval-flow="true"/);
+  assert.match(clientsSource, /data-intake-matter-opening-flow="true"/);
+  assert.match(clientsSource, /Matter 개설/);
   assert.match(clientsSource, /data-client-billing-connected="true"/);
   assert.match(clientsSource, /data-client-settings-connected="true"/);
   assert.match(clientsSource, /data-client-contract-esign-provider-blocked="true"/);
@@ -610,6 +624,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(mattersSource, /fetchMatterAudit/);
   assert.match(mattersSource, /markMatterRecentlyViewed/);
   assert.match(mattersSource, /completeMatterStatus/);
+  assert.match(mattersSource, /registerMatterParty/);
   assert.match(mattersSource, /fetchFinanceTimeEntries/);
   assert.match(mattersSource, /fetchFinanceInvoices/);
   assert.match(mattersSource, /fetchFinanceArAging/);
@@ -626,10 +641,17 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(mattersSource, /matter-import/);
   assert.match(mattersSource, /data-matter-billing-actions="true"/);
   assert.match(mattersSource, /data-matter-time-entry-action="true"/);
+  assert.match(mattersSource, /data-matter-time-entry-form="true"/);
+  assert.match(mattersSource, /data-matter-time-entry-timer-action="true"/);
+  assert.match(mattersSource, /handleTimeEntryFormChange/);
+  assert.match(mattersSource, /handleToggleTimeTimer/);
   assert.match(mattersSource, /data-matter-analytics-actions="true"/);
   assert.match(mattersSource, /data-matter-analytics-export-action="true"/);
   assert.match(mattersSource, /data-matter-analytics-export-safe-state="true"/);
   assert.match(mattersSource, /data-matter-status-transition-action="true"/);
+  assert.match(mattersSource, /data-matter-adverse-party-action="true"/);
+  assert.match(mattersSource, /data-matter-adverse-party-form="true"/);
+  assert.match(mattersSource, /data-matter-adverse-party-list="true"/);
   assert.match(mattersSource, /data-matter-recently-viewed="true"/);
   assert.match(mattersSource, /data-matter-activity-timeline="true"/);
   assert.match(mattersSource, /data-matter-activity-filters="true"/);
@@ -791,6 +813,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(rosterSource, /data-matter-owner-assignment-action="true"/);
   assert.match(rosterSource, /data-matter-owner-assignment-result="true"/);
   assert.match(rosterSource, /책임자 지정/);
+  assert.match(rosterSource, /MATTER_ONBOARDING_GATE_REQUIRED|온보딩 완료 후 배정 가능/);
   assert.doesNotMatch(openingSource, /tenant_rp|matter_ui_|M-UI|party_rp|user_rp/);
   assert.doesNotMatch(rosterSource, /tenant_rp|member_ui|emp-002|user_rp/);
   assert.match(vaultSource, /data-cmp-g5-vault-surface="true"/);
@@ -868,6 +891,9 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /method:\s*"PATCH"/);
   assert.match(apiClientSource, /\/api\/crm\/contacts/);
   assert.match(apiClientSource, /createCrmContact/);
+  assert.match(apiClientSource, /crm_contact_value_reader/);
+  assert.match(apiClientSource, /ui_upl_c07_contact_value_read/);
+  assert.match(apiClientSource, /ui_upl_c07_contact_value_write/);
   assert.match(apiClientSource, /path:\s*"\/api\/crm\/contacts"/);
   assert.match(apiClientSource, /patchCrmContact/);
   assert.match(apiClientSource, /\/api\/crm\/accounts\/\$\{encodeURIComponent\(accountId\)\}\/contacts/);
@@ -880,9 +906,21 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /owner_change/);
   assert.match(apiClientSource, /\/api\/crm\/opportunities\/\$\{encodeURIComponent\(opportunityId\)\}\/handoff/);
   assert.match(apiClientSource, /\/api\/intake\/conflict-checks/);
+  assert.match(apiClientSource, /\/api\/intake\/conflict-decisions/);
+  assert.match(apiClientSource, /\/api\/intake\/waivers/);
+  assert.match(apiClientSource, /\/api\/intake\/engagements/);
+  assert.match(apiClientSource, /conflictHits/);
+  assert.match(apiClientSource, /hitCount/);
+  assert.match(apiClientSource, /conflictReview/);
+  assert.match(apiClientSource, /engagementReady/);
+  assert.match(apiClientSource, /engagementReview/);
+  assert.match(apiClientSource, /clearanceLinkReady/);
   assert.match(apiClientSource, /\/api\/intake\/clearance-tokens/);
+  assert.doesNotMatch(apiClientSource, /engagement:\$\{clearanceId\}/);
   assert.match(apiClientSource, /\/api\/intake\/audit/);
   assert.match(apiClientSource, /\/api\/matters\/\$\{encodeURIComponent\(matterId\)\}\/command-center/);
+  assert.match(apiClientSource, /registerMatterParty/);
+  assert.match(apiClientSource, /\/api\/matters\/\$\{encodeURIComponent\(matterId\)\}\/parties/);
   assert.match(apiClientSource, /normalizeMatterOpeningPayload/);
   assert.match(apiClientSource, /createMatterDocumentFacade/);
   assert.match(apiClientSource, /\/api\/matters\/\$\{encodeURIComponent\(matterId\)\}\/documents/);
@@ -946,6 +984,10 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /\/api\/vault\/search/);
   assert.match(apiClientSource, /\/api\/vault\/audit/);
   assert.match(apiClientSource, /path:\s*"\/api\/finance\/time-entries"/);
+  assert.match(apiClientSource, /const timeEntryId = uiRuntimeId\("time_ui"\)/);
+  assert.match(apiClientSource, /idempotency_key: timeEntryId/);
+  assert.match(apiClientSource, /billable/);
+  assert.doesNotMatch(apiClientSource, /idempotency_key:\s*`ui-time:\$\{matterId\}`/);
   assert.match(apiClientSource, /\/api\/finance\/audit/);
   assert.match(apiClientSource, /\/api\/finance\/wip/);
   assert.match(apiClientSource, /\/api\/finance\/payments/);
@@ -1015,7 +1057,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.doesNotMatch(peopleApiSource, /mock/i);
 });
 
-test("secondary runtime capabilities are represented by four-axis coverage, not separate product routes", async () => {
+test("secondary runtime capabilities are represented by four-axis coverage, with C13 Portal mounted as a product route", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const capabilityMap = await readWebFile("src/data/capabilityMap.js");
 
@@ -1023,7 +1065,6 @@ test("secondary runtime capabilities are represented by four-axis coverage, not 
     "FinanceSurface",
     "AnalyticsSurface",
     "AskSurface",
-    "PortalSurface",
     "ReadinessSurface",
     "OpsSurface",
     "IntakeSurface",
@@ -1031,6 +1072,7 @@ test("secondary runtime capabilities are represented by four-axis coverage, not 
   ]) {
     assert.doesNotMatch(appSource, new RegExp(surface));
   }
+  assert.match(appSource, /PortalSurface/);
   for (const endpoint of [
     "/api/finance/time-entries",
     "/api/analytics/dashboards",
@@ -1140,7 +1182,12 @@ test("HRX audit UI preserves server-owned step-up and no local fallback", async 
   assert.doesNotMatch(challengeSource, /Trusted session only|Additional verification required|protected activity/);
   assert.doesNotMatch(challengeSource, /x-lawos-hrx-step-up|tenant-a|actor_id|mfa: true/);
   assert.match(peopleApiSource, /tenant_amic_matter_vault/);
-  assert.match(peopleApiSource, /user_amic_jwsuh/);
+  assert.match(peopleApiSource, /lawos\.session\.envelope/);
+  assert.match(peopleApiSource, /sessionHrxRuntimeHeaders/);
+  assert.match(peopleApiSource, /user_amic_yjlee/);
+  assert.match(peopleApiSource, /lawos_staff/);
+  assert.doesNotMatch(peopleApiSource, /security_admin,hr_admin,people_ops/);
+  assert.doesNotMatch(peopleApiSource, /const HRX_USER_REF = "user_amic_jwsuh"/);
   assert.match(peopleApiSource, /x-lawos-tenant-id/);
   assert.match(peopleApiSource, /x-lawos-hrx-scopes/);
   assert.match(peopleApiSource, /x-lawos-hrx-step-up/);
@@ -1158,9 +1205,39 @@ test("HRX lifecycle board stays API-backed from People runtime", async () => {
   assert.match(lifecycleSource, /closeHrxOffboardingCase/);
   assert.match(lifecycleSource, /taskTitleLabel/);
   assert.match(lifecycleSource, /documentSummary/);
+  assert.match(lifecycleSource, /offboardingChecklistSummary/);
+  assert.match(lifecycleSource, /회수 확인 필요/);
+  assert.match(lifecycleSource, /Matter 재배정 필요/);
+  assert.match(lifecycleSource, /인수인계 필요/);
+  assert.match(lifecycleSource, /HRX_OFFBOARDING_CLOSE_BLOCKED/);
   assert.match(lifecycleSource, /입퇴사 관리 업무를 불러오지 못했습니다/);
   assert.doesNotMatch(lifecycleSource, /<strong>{task\.title}<\/strong>|plan\.employee_id|plan\.document_refs\?\.join|<strong>{caseItem\.offboarding_id}<\/strong>|caseItem\.employee_id/);
   assert.match(peopleApiSource, /\/api\/hrx\/lifecycle\/onboarding/);
   assert.match(peopleApiSource, /\/api\/hrx\/lifecycle\/offboarding/);
   assert.doesNotMatch(lifecycleSource, /mockData|profileRows|matters/);
+});
+
+test("HRX risk dashboard runs legal-five scan through HRX APIs", async () => {
+  const riskSource = await readWebFile("src/people/security/HrxRiskDashboard.tsx");
+  const peopleHomeSource = await readWebFile("src/people/PeopleHome.tsx");
+  const peopleCatalogSource = await readWebFile("src/people/peopleFeatureCatalog.js");
+  const peopleApiSource = await readWebFile("src/people/hrxApiClient.ts");
+
+  assert.match(peopleHomeSource, /people-risk/);
+  assert.match(peopleHomeSource, /HrxRiskDashboard/);
+  assert.match(peopleCatalogSource, /section: "people-risk"/);
+  assert.match(peopleCatalogSource, /label: "HR 리스크"/);
+  assert.match(peopleApiSource, /fetchHrxRiskEvents/);
+  assert.match(peopleApiSource, /scanHrxRiskEvents/);
+  assert.match(peopleApiSource, /transitionHrxRiskEvent/);
+  assert.match(peopleApiSource, /\/api\/hrx\/risks/);
+  assert.match(peopleApiSource, /\/api\/hrx\/risks\/scan/);
+  for (const label of ["근로계약 미체결", "연차촉진 대상", "법정교육 미이수", "초과근로 위험", "퇴사자 권한 미회수"]) {
+    assert.match(riskSource, new RegExp(label));
+  }
+  assert.match(riskSource, /data-hrx-risk-dashboard="true"/);
+  assert.match(riskSource, /data-hrx-risk-scan="true"/);
+  assert.match(riskSource, /data-hrx-risk-event-list="true"/);
+  assert.match(riskSource, /acknowledged/);
+  assert.doesNotMatch(riskSource, /mockData|staticRisk|sampleRisk|faker|hardcodedEvents/);
 });

@@ -38,6 +38,21 @@ function requireSubmitted(request, action) {
   }
 }
 
+function guardedError(message, safeErrorCode, status = 400) {
+  const error = new TypeError(message);
+  error.safe_error_code = safeErrorCode;
+  error.status = status;
+  return error;
+}
+
+function approverIdsForGuard(existing, ref, context) {
+  return new Set(
+    [existing.employee_id, ...(Array.isArray(ref.applicant_actor_ids) ? ref.applicant_actor_ids : [])]
+      .map((value) => (typeof value === "string" ? value.trim() : ""))
+      .filter(Boolean),
+  );
+}
+
 async function appendAudit(audit, context, event) {
   if (!audit || typeof audit.append !== "function") return undefined;
   return audit.append({
@@ -209,11 +224,25 @@ export function createLeaveRequestService({ store = createInMemoryLeaveRequestSt
       const existing = store.get({ tenant_id: context.tenant_id, request_id: ref.request_id });
       if (!existing) throw new Error(`Leave request not found: ${ref.request_id}`);
       requireSubmitted(existing, "approve");
+      const approver_id = ref.approver_id ?? context.actor_id;
+      if (approverIdsForGuard(existing, ref, context).has(approver_id)) {
+        throw guardedError("Leave request cannot be approved by its applicant", "HRX_LEAVE_SELF_APPROVAL_FORBIDDEN", 403);
+      }
+      if (balanceLedger && typeof balanceLedger.balance === "function") {
+        const balance = balanceLedger.balance({
+          tenant_id: context.tenant_id,
+          employee_id: existing.employee_id,
+          policy_id: existing.policy_id,
+        });
+        if (balance.available_balance < existing.amount) {
+          throw guardedError("Leave request amount exceeds available leave balance", "HRX_LEAVE_BALANCE_INSUFFICIENT", 409);
+        }
+      }
       const request = store.update(
         { tenant_id: context.tenant_id, request_id: ref.request_id },
         {
           state: "approved",
-          approver_id: ref.approver_id ?? context.actor_id,
+          approver_id,
           decision_reason: ref.decision_reason ?? null,
         },
       );

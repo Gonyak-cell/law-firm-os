@@ -1,8 +1,22 @@
+import { randomUUID } from "node:crypto";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
-import { createTimeEntry } from "../../../packages/time-expense/src/time-entry-service.js";
-import { generateWipFromApprovedItems } from "../../../packages/billing/src/wip-service.js";
+import { approveTimeEntryForWip, createTimeEntry } from "../../../packages/time-expense/src/time-entry-service.js";
+import { createFeeArrangement, findFeeArrangementForMatter } from "../../../packages/time-expense/src/fee-arrangement-service.js";
+import { createExpense } from "../../../packages/time-expense/src/expense-service.js";
+import { createDisbursement } from "../../../packages/time-expense/src/disbursement-service.js";
+import { generateWipFromApprovedItems, lockWipSnapshot } from "../../../packages/billing/src/wip-service.js";
+import { approvePreBillWithoutAdjustment, createPreBill, rejectPreBill } from "../../../packages/billing/src/prebill-service.js";
+import { createInvoiceFromPreBill } from "../../../packages/billing/src/invoice-service.js";
 import { importPayment } from "../../../packages/payments/src/payment-service.js";
+import { matchPaymentToInvoice } from "../../../packages/payments/src/matching-service.js";
 import { createArAgingSnapshot } from "../../../packages/payments/src/ar-service.js";
+import { createAccountingCsvExport } from "../../../packages/payments/src/accounting-export-service.js";
+import {
+  drawdownTrustToInvoice,
+  getTrustBalanceReport,
+  receiveTrustDeposit,
+  recordTrustRefundLiability,
+} from "../../../packages/payments/src/trust-ledger-service.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
 
 export const FINANCE_BOUNDED_CONTEXT = Object.freeze({
@@ -12,10 +26,29 @@ export const FINANCE_BOUNDED_CONTEXT = Object.freeze({
   endpoints: Object.freeze([
     "GET /api/finance/time-entries",
     "POST /api/finance/time-entries",
+    "POST /api/finance/time-entries/approve",
+    "GET /api/finance/expenses",
+    "POST /api/finance/expenses",
+    "GET /api/finance/disbursements",
+    "POST /api/finance/disbursements",
+    "GET /api/finance/fee-arrangements",
+    "POST /api/finance/fee-arrangements",
     "POST /api/finance/wip",
+    "POST /api/finance/wip-snapshots",
+    "GET /api/finance/prebills",
+    "POST /api/finance/prebills",
+    "POST /api/finance/prebills/approve",
+    "POST /api/finance/prebills/reject",
     "GET /api/finance/invoices",
+    "POST /api/finance/invoices",
     "POST /api/finance/payments",
+    "POST /api/finance/payment-matches",
     "GET /api/finance/ar-aging",
+    "GET /api/finance/accounting-export.csv",
+    "GET /api/finance/trust-balances",
+    "POST /api/finance/trust-deposits",
+    "POST /api/finance/trust-drawdowns",
+    "POST /api/finance/trust-refunds",
     "GET /api/finance/audit",
   ]),
   data_source: "finance_runtime_repository",
@@ -71,6 +104,8 @@ export const FINANCE_RUNTIME_SEED = Object.freeze([
     amount_due: 400000,
     amount_paid: 0,
     currency: "KRW",
+    issued_at: "2026-04-10T00:00:00.000Z",
+    due_date: "2026-05-10",
     status: "issued",
   }),
   Object.freeze({
@@ -80,6 +115,7 @@ export const FINANCE_RUNTIME_SEED = Object.freeze([
     matter_id: "matter_rp05_synthetic_opening",
     invoice_id: "invoice_cmp_g7_seed",
     billing_client_party_id: "party_cmp_g6_client_001",
+    due_date: "2026-05-10",
     balance: 400000,
     status: "open",
   }),
@@ -141,7 +177,57 @@ function gateDecisionResponse(decision, requestId, auditHintRef) {
   });
 }
 
-function routeGate({ context, query, requestId, action, resourceType }) {
+function appendFinanceRouteAudit({ repository, context, query, action, resourceType, decision } = {}) {
+  if (!repository || typeof repository.appendAudit !== "function") return null;
+  if (!query?.tenant_id || decision?.effect === "allow") return null;
+  return repository.appendAudit({
+    event_id: `finance_route_${randomUUID()}`,
+    tenant_id: query.tenant_id,
+    actor_id: context?.principal?.user_id ?? context?.principal?.actor_id ?? "unknown_actor",
+    action,
+    object_type: resourceType,
+    object_id: resourceType,
+    decision: ["review_required", "approval_required"].includes(decision?.effect) ? decision.effect : "deny",
+    reason: decision?.reason ?? "finance_route_denied",
+    occurred_at: new Date().toISOString(),
+    metadata: {
+      permission_ref: query.permission_ref ?? null,
+      audit_hint_ref: query.audit_hint_ref ?? null,
+      fail_closed: Boolean(decision?.fail_closed),
+      denied_route_audit: true,
+      raw_payload_included: false,
+      credential_material_included: false,
+    },
+  });
+}
+
+function appendFinanceSensitiveReadAudit({ repository, context, query, action, resourceType, returnedCount = null, metadata = {} } = {}) {
+  if (!repository || typeof repository.appendAudit !== "function" || !query?.tenant_id) return null;
+  return repository.appendAudit({
+    event_id: `finance_sensitive_read_${randomUUID()}`,
+    tenant_id: query.tenant_id,
+    actor_id: context?.principal?.user_id ?? context?.principal?.actor_id ?? "unknown_actor",
+    action,
+    object_type: resourceType,
+    object_id: resourceType,
+    decision: "allow",
+    reason: "finance_sensitive_read_allowed_after_permission_gate",
+    occurred_at: new Date().toISOString(),
+    metadata: {
+      ...metadata,
+      permission_ref: query.permission_ref ?? null,
+      audit_hint_ref: query.audit_hint_ref ?? null,
+      returned_count: returnedCount,
+      sensitive_read_audit_required: true,
+      raw_payload_included: false,
+      credential_material_included: false,
+      bank_reference_included: false,
+      journal_lines_included: false,
+    },
+  });
+}
+
+function routeGate({ context, query, requestId, action, resourceType, repository }) {
   const invalid = validateCommon(query, requestId);
   if (invalid) return invalid;
   const decision = evaluateRouteDecision({
@@ -149,7 +235,30 @@ function routeGate({ context, query, requestId, action, resourceType }) {
     resource: { tenant_id: query.tenant_id, resource_type: resourceType },
     action,
   });
-  return gateDecisionResponse(decision, requestId, query.audit_hint_ref);
+  const response = gateDecisionResponse(decision, requestId, query.audit_hint_ref);
+  if (response) appendFinanceRouteAudit({ repository, context, query, action, resourceType, decision });
+  return response;
+}
+
+function principalHasRole(context, allowedRoles = []) {
+  const roles = context?.principal?.role_ids;
+  return Array.isArray(roles) && roles.some((role) => allowedRoles.includes(role));
+}
+
+function partnerApprovalGate({ context, query, requestId, runtime, action, resourceType }) {
+  if (principalHasRole(context, ["partner", "finance_partner", "admin", "administrator"])) return null;
+  appendFinanceRouteAudit({
+    repository: runtime.repository,
+    context,
+    query,
+    action,
+    resourceType,
+    decision: { effect: "deny", reason: "finance_partner_role_required", fail_closed: true },
+  });
+  return errorResponse(403, requestId, [FINANCE_API_ERROR_CODES.unauthorized_omission], {
+    audit_hint_ref: query.audit_hint_ref,
+    ui_state: "denied",
+  });
 }
 
 function sanitizeFinanceItem(record) {
@@ -164,10 +273,11 @@ function sanitizeFinanceItem(record) {
 }
 
 function listResponse({ query, context, requestId, runtime, action, resourceType, modelType }) {
-  const gated = routeGate({ context, query, requestId, action, resourceType });
+  const gated = routeGate({ context, query, requestId, action, resourceType, repository: runtime.repository });
   if (gated) return gated;
   const items = runtime.repository.list({ tenant_id: query.tenant_id, model_type: modelType }).map(sanitizeFinanceItem);
   const { allowed } = trimItemsByPermission({ context, items, action, resourceType });
+  appendFinanceSensitiveReadAudit({ repository: runtime.repository, context, query, action, resourceType, returnedCount: allowed.length });
   return {
     status: 200,
     body: {
@@ -202,7 +312,7 @@ function itemResponse({ requestId, auditHintRef, outcome, item, auditEvent, stat
 
 export function handleFinanceTimeEntryCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const query = { tenant_id: body?.time_entry?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
-  const gated = routeGate({ context, query, requestId, action: "finance:time:write", resourceType: "time_entry" });
+  const gated = routeGate({ context, query, requestId, action: "finance:time:write", resourceType: "time_entry", repository: runtime.repository });
   if (gated) return gated;
   try {
     const result = createTimeEntry({
@@ -225,17 +335,135 @@ export function handleFinanceTimeEntryCreate({ body, context, requestId, runtime
   }
 }
 
+export function handleFinanceTimeEntryApprove({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = { tenant_id: body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const action = "finance:time:approve";
+  const resourceType = "time_entry";
+  const gated = routeGate({ context, query, requestId, action, resourceType, repository: runtime.repository });
+  if (gated) return gated;
+  const roleDenied = partnerApprovalGate({ context, query, requestId, runtime, action, resourceType });
+  if (roleDenied) return roleDenied;
+  try {
+    const result = approveTimeEntryForWip({
+      repository: runtime.repository,
+      tenant_id: body.tenant_id,
+      time_entry_id: body.time_entry_id,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : result.outcome,
+      item: result.time_entry,
+      auditEvent: result.audit_event,
+      status: 200,
+      extra: { idempotent_replay: result.idempotent_replay },
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleFinanceExpenseCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = { tenant_id: body?.expense?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, action: "finance:expense:write", resourceType: "expense", repository: runtime.repository });
+  if (gated) return gated;
+  try {
+    const result = createExpense({
+      repository: runtime.repository,
+      expense: body.expense,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "created",
+      item: result.expense,
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: { idempotent_replay: result.idempotent_replay },
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleFinanceDisbursementCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = { tenant_id: body?.disbursement?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, action: "finance:disbursement:write", resourceType: "disbursement", repository: runtime.repository });
+  if (gated) return gated;
+  try {
+    const result = createDisbursement({
+      repository: runtime.repository,
+      disbursement: body.disbursement,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "created",
+      item: result.disbursement,
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: { idempotent_replay: result.idempotent_replay },
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleFinanceFeeArrangementCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = { tenant_id: body?.fee_arrangement?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, action: "finance:fee_arrangement:write", resourceType: "fee_arrangement", repository: runtime.repository });
+  if (gated) return gated;
+  try {
+    const rateCard = body.rate_card ?? runtime.repository.get({
+      tenant_id: body.fee_arrangement.tenant_id,
+      model_type: "RateCard",
+      rate_card_id: body.fee_arrangement.rate_card_id,
+    });
+    const result = createFeeArrangement({
+      repository: runtime.repository,
+      fee_arrangement: body.fee_arrangement,
+      rate_card: rateCard,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "created",
+      item: result.fee_arrangement,
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: { idempotent_replay: result.idempotent_replay },
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
 export function handleFinanceWipGenerate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const query = { tenant_id: body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
-  const gated = routeGate({ context, query, requestId, action: "finance:wip:write", resourceType: "wip_item" });
+  const gated = routeGate({ context, query, requestId, action: "finance:wip:write", resourceType: "wip_item", repository: runtime.repository });
   if (gated) return gated;
   try {
     const rateCard = runtime.repository.get({ tenant_id: body.tenant_id, model_type: "RateCard", rate_card_id: body.rate_card_id ?? "rate_cmp_g7_seed" });
+    const feeArrangement = body.fee_arrangement ?? findFeeArrangementForMatter({
+      repository: runtime.repository,
+      tenant_id: body.tenant_id,
+      matter_id: body.matter_id,
+      fee_arrangement_id: body.fee_arrangement_id,
+    });
     const result = generateWipFromApprovedItems({
       repository: runtime.repository,
       tenant_id: body.tenant_id,
       matter_id: body.matter_id,
       rate_card: rateCard,
+      fee_arrangement: feeArrangement,
       actor_id: body.actor_id ?? context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
@@ -253,9 +481,148 @@ export function handleFinanceWipGenerate({ body, context, requestId, runtime = D
   }
 }
 
+export function handleFinanceWipSnapshotLock({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = { tenant_id: body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, action: "finance:wip_snapshot:write", resourceType: "wip_snapshot", repository: runtime.repository });
+  if (gated) return gated;
+  try {
+    const result = lockWipSnapshot({
+      repository: runtime.repository,
+      tenant_id: body.tenant_id,
+      matter_id: body.matter_id,
+      wip_item_ids: body.wip_item_ids,
+      wip_snapshot_id: body.wip_snapshot_id,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "created",
+      item: result.wip_snapshot,
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: { idempotent_replay: result.idempotent_replay },
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleFinancePreBillCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = { tenant_id: body?.prebill?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, action: "finance:prebill:write", resourceType: "prebill", repository: runtime.repository });
+  if (gated) return gated;
+  try {
+    const result = createPreBill({
+      repository: runtime.repository,
+      prebill: body.prebill,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "created",
+      item: result.prebill,
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: { idempotent_replay: result.idempotent_replay },
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleFinancePreBillApprove({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = { tenant_id: body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const action = "finance:prebill:approve";
+  const resourceType = "prebill";
+  const gated = routeGate({ context, query, requestId, action, resourceType, repository: runtime.repository });
+  if (gated) return gated;
+  const roleDenied = partnerApprovalGate({ context, query, requestId, runtime, action, resourceType });
+  if (roleDenied) return roleDenied;
+  try {
+    const result = approvePreBillWithoutAdjustment({
+      repository: runtime.repository,
+      tenant_id: body.tenant_id,
+      prebill_id: body.prebill_id,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : result.outcome,
+      item: result.prebill,
+      auditEvent: result.audit_event,
+      status: 200,
+      extra: { idempotent_replay: result.idempotent_replay },
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleFinancePreBillReject({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = { tenant_id: body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const action = "finance:prebill:reject";
+  const resourceType = "prebill";
+  const gated = routeGate({ context, query, requestId, action, resourceType, repository: runtime.repository });
+  if (gated) return gated;
+  const roleDenied = partnerApprovalGate({ context, query, requestId, runtime, action, resourceType });
+  if (roleDenied) return roleDenied;
+  try {
+    const result = rejectPreBill({
+      repository: runtime.repository,
+      tenant_id: body.tenant_id,
+      prebill_id: body.prebill_id,
+      reason_code: body.reason_code,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : result.outcome,
+      item: result.prebill,
+      auditEvent: result.audit_event,
+      status: 200,
+      extra: { idempotent_replay: result.idempotent_replay },
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleFinanceInvoiceIssue({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = { tenant_id: body?.invoice?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, action: "finance:invoice:write", resourceType: "invoice", repository: runtime.repository });
+  if (gated) return gated;
+  try {
+    const result = createInvoiceFromPreBill({
+      repository: runtime.repository,
+      invoice: body.invoice,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "created",
+      item: result.invoice,
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: { invoice_lines: result.invoice_lines.map(sanitizeFinanceItem), idempotent_replay: result.idempotent_replay },
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
 export function handleFinancePaymentImport({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const query = { tenant_id: body?.payment?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
-  const gated = routeGate({ context, query, requestId, action: "finance:payment:write", resourceType: "payment" });
+  const gated = routeGate({ context, query, requestId, action: "finance:payment:write", resourceType: "payment", repository: runtime.repository });
   if (gated) return gated;
   try {
     const result = importPayment({
@@ -278,20 +645,182 @@ export function handleFinancePaymentImport({ body, context, requestId, runtime =
   }
 }
 
+export function handleFinancePaymentMatchCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = { tenant_id: body?.match?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, action: "finance:payment_match:write", resourceType: "payment_match", repository: runtime.repository });
+  if (gated) return gated;
+  try {
+    const result = matchPaymentToInvoice({
+      repository: runtime.repository,
+      match: body.match,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "created",
+      item: result.payment_match,
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: {
+        invoice: sanitizeFinanceItem(result.invoice),
+        payment: sanitizeFinanceItem(result.payment),
+        idempotent_replay: result.idempotent_replay,
+      },
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleFinanceTrustDepositCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = { tenant_id: body?.deposit?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, action: "finance:trust_ledger:write", resourceType: "trust_ledger", repository: runtime.repository });
+  if (gated) return gated;
+  try {
+    const result = receiveTrustDeposit({
+      repository: runtime.repository,
+      deposit: body.deposit,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "created",
+      item: result.trust_ledger_entry,
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: { trust_balance: sanitizeFinanceItem(result.trust_balance), idempotent_replay: result.idempotent_replay },
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleFinanceTrustDrawdownCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = { tenant_id: body?.drawdown?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, action: "finance:trust_ledger:write", resourceType: "trust_ledger", repository: runtime.repository });
+  if (gated) return gated;
+  try {
+    const result = drawdownTrustToInvoice({
+      repository: runtime.repository,
+      drawdown: body.drawdown,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "created",
+      item: result.trust_ledger_entry,
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: {
+        invoice: sanitizeFinanceItem(result.invoice),
+        trust_balance: sanitizeFinanceItem(result.trust_balance),
+        idempotent_replay: result.idempotent_replay,
+      },
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleFinanceTrustRefundCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = { tenant_id: body?.refund?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, action: "finance:trust_ledger:write", resourceType: "trust_ledger", repository: runtime.repository });
+  if (gated) return gated;
+  try {
+    const result = recordTrustRefundLiability({
+      repository: runtime.repository,
+      refund: body.refund,
+      actor_id: body.actor_id ?? context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "created",
+      item: result.trust_ledger_entry,
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: { trust_balance: sanitizeFinanceItem(result.trust_balance), idempotent_replay: result.idempotent_replay },
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleFinanceTrustBalances({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const gated = routeGate({ context, query, requestId, action: "finance:trust_ledger:read", resourceType: "trust_balance", repository: runtime.repository });
+  if (gated) return gated;
+  const report = getTrustBalanceReport({
+    repository: runtime.repository,
+    tenant_id: query.tenant_id,
+    matter_id: query.matter_id,
+    currency: query.currency,
+  });
+  const { allowed } = trimItemsByPermission({ context, items: report.items.map(sanitizeFinanceItem), action: "finance:trust_ledger:read", resourceType: "trust_balance" });
+  appendFinanceSensitiveReadAudit({
+    repository: runtime.repository,
+    context,
+    query,
+    action: "finance:trust_ledger:read",
+    resourceType: "trust_balance",
+    returnedCount: allowed.length,
+  });
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      items: allowed,
+      summary: report.summary,
+      page_info: { returned_count: allowed.length, omitted_item_count: null },
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
 export function handleFinanceArAging({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
-  const gated = routeGate({ context, query, requestId, action: "finance:ar:read", resourceType: "ar_aging" });
+  const gated = routeGate({ context, query, requestId, action: "finance:ar:read", resourceType: "ar_aging", repository: runtime.repository });
   if (gated) return gated;
   let snapshots = runtime.repository.list({ tenant_id: query.tenant_id, model_type: "ARAgingSnapshot" });
+  if (query.as_of_date) snapshots = snapshots.filter((snapshot) => snapshot.as_of_date === query.as_of_date);
+  let generatedSnapshot = false;
   if (snapshots.length === 0) {
-    const created = createArAgingSnapshot({
-      repository: runtime.repository,
-      tenant_id: query.tenant_id,
-      actor_id: context.principal.user_id,
-      idempotency_key: `api-ar-aging:${query.tenant_id}`,
-      ar_aging_snapshot_id: `ar_aging_api_${query.tenant_id}`,
-    });
-    snapshots = [created.ar_aging_snapshot];
+    try {
+      const created = createArAgingSnapshot({
+        repository: runtime.repository,
+        tenant_id: query.tenant_id,
+        actor_id: context.principal.user_id,
+        idempotency_key: `api-ar-aging:${query.tenant_id}:${query.as_of_date ?? "latest"}`,
+        ar_aging_snapshot_id: `ar_aging_api_${query.tenant_id}_${query.as_of_date ?? "latest"}`,
+        as_of_date: query.as_of_date,
+      });
+      snapshots = [created.ar_aging_snapshot];
+      generatedSnapshot = true;
+    } catch {
+      return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: "blocked",
+      });
+    }
   }
+  appendFinanceSensitiveReadAudit({
+    repository: runtime.repository,
+    context,
+    query,
+    action: "finance:ar:read",
+    resourceType: "ar_aging",
+    returnedCount: snapshots.length,
+    metadata: { generated_snapshot_when_missing: generatedSnapshot },
+  });
   return {
     status: 200,
     body: {
@@ -306,8 +835,65 @@ export function handleFinanceArAging({ query, context, requestId, runtime = DEFA
   };
 }
 
+export function handleFinanceAccountingExportCsv({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const gated = routeGate({ context, query, requestId, action: "finance:accounting_export:read", resourceType: "accounting_export", repository: runtime.repository });
+  if (gated) return gated;
+  try {
+    const result = createAccountingCsvExport({
+      repository: runtime.repository,
+      tenant_id: query.tenant_id,
+      from_date: query.from_date,
+      to_date: query.to_date,
+      actor_id: context.principal.user_id,
+      idempotency_key: query.idempotency_key ?? `api-accounting-export:${query.tenant_id}:${query.from_date ?? "start"}:${query.to_date ?? "end"}`,
+      accounting_export_id: query.accounting_export_id,
+    });
+    const item = result.accounting_export;
+    appendFinanceSensitiveReadAudit({
+      repository: runtime.repository,
+      context,
+      query,
+      action: "finance:accounting_export:read",
+      resourceType: "accounting_export",
+      returnedCount: 1,
+      metadata: { export_content_included_in_audit: false },
+    });
+    return {
+      status: result.idempotent_replay ? 200 : 201,
+      body: {
+        request_id: requestId,
+        outcome: result.idempotent_replay ? "idempotent_replay" : "created",
+        item: {
+          accounting_export_id: item.accounting_export_id,
+          tenant_id: item.tenant_id,
+          export_format: item.export_format,
+          status: item.status,
+          from_date: item.from_date,
+          to_date: item.to_date,
+          csv_text: item.csv_text,
+          csv_sha256: item.csv_sha256,
+          row_count: item.row_count,
+          debit_total: item.debit_total,
+          credit_total: item.credit_total,
+          balanced: item.balanced,
+          bank_reference_included: false,
+          credential_material_included: false,
+          raw_journal_payload_included: false,
+          production_ready_claim: false,
+        },
+        audit_event: result.audit_event,
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        production_ready_claim: false,
+      },
+    };
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
 export function handleFinanceAudit({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
-  const gated = routeGate({ context, query, requestId, action: "finance:audit:read", resourceType: "finance_audit" });
+  const gated = routeGate({ context, query, requestId, action: "finance:audit:read", resourceType: "finance_audit", repository: runtime.repository });
   if (gated) return gated;
   return {
     status: 200,
@@ -328,12 +914,39 @@ export async function handleFinanceApiRequest({ pathname, method, query, body, c
     return listResponse({ query, context, requestId, runtime, action: "finance:time:read", resourceType: "time_entry", modelType: "TimeEntry" });
   }
   if (pathname === "/api/finance/time-entries" && method === "POST") return handleFinanceTimeEntryCreate({ body, context, requestId, runtime });
+  if (pathname === "/api/finance/time-entries/approve" && method === "POST") return handleFinanceTimeEntryApprove({ body, context, requestId, runtime });
+  if (pathname === "/api/finance/expenses" && method === "GET") {
+    return listResponse({ query, context, requestId, runtime, action: "finance:expense:read", resourceType: "expense", modelType: "Expense" });
+  }
+  if (pathname === "/api/finance/expenses" && method === "POST") return handleFinanceExpenseCreate({ body, context, requestId, runtime });
+  if (pathname === "/api/finance/disbursements" && method === "GET") {
+    return listResponse({ query, context, requestId, runtime, action: "finance:disbursement:read", resourceType: "disbursement", modelType: "Disbursement" });
+  }
+  if (pathname === "/api/finance/disbursements" && method === "POST") return handleFinanceDisbursementCreate({ body, context, requestId, runtime });
+  if (pathname === "/api/finance/fee-arrangements" && method === "GET") {
+    return listResponse({ query, context, requestId, runtime, action: "finance:fee_arrangement:read", resourceType: "fee_arrangement", modelType: "FeeArrangement" });
+  }
+  if (pathname === "/api/finance/fee-arrangements" && method === "POST") return handleFinanceFeeArrangementCreate({ body, context, requestId, runtime });
   if (pathname === "/api/finance/wip" && method === "POST") return handleFinanceWipGenerate({ body, context, requestId, runtime });
+  if (pathname === "/api/finance/wip-snapshots" && method === "POST") return handleFinanceWipSnapshotLock({ body, context, requestId, runtime });
+  if (pathname === "/api/finance/prebills" && method === "GET") {
+    return listResponse({ query, context, requestId, runtime, action: "finance:prebill:read", resourceType: "prebill", modelType: "PreBill" });
+  }
+  if (pathname === "/api/finance/prebills" && method === "POST") return handleFinancePreBillCreate({ body, context, requestId, runtime });
+  if (pathname === "/api/finance/prebills/approve" && method === "POST") return handleFinancePreBillApprove({ body, context, requestId, runtime });
+  if (pathname === "/api/finance/prebills/reject" && method === "POST") return handleFinancePreBillReject({ body, context, requestId, runtime });
   if (pathname === "/api/finance/invoices" && method === "GET") {
     return listResponse({ query, context, requestId, runtime, action: "finance:invoice:read", resourceType: "invoice", modelType: "Invoice" });
   }
+  if (pathname === "/api/finance/invoices" && method === "POST") return handleFinanceInvoiceIssue({ body, context, requestId, runtime });
   if (pathname === "/api/finance/payments" && method === "POST") return handleFinancePaymentImport({ body, context, requestId, runtime });
+  if (pathname === "/api/finance/payment-matches" && method === "POST") return handleFinancePaymentMatchCreate({ body, context, requestId, runtime });
   if (pathname === "/api/finance/ar-aging" && method === "GET") return handleFinanceArAging({ query, context, requestId, runtime });
+  if (pathname === "/api/finance/accounting-export.csv" && method === "GET") return handleFinanceAccountingExportCsv({ query, context, requestId, runtime });
+  if (pathname === "/api/finance/trust-balances" && method === "GET") return handleFinanceTrustBalances({ query, context, requestId, runtime });
+  if (pathname === "/api/finance/trust-deposits" && method === "POST") return handleFinanceTrustDepositCreate({ body, context, requestId, runtime });
+  if (pathname === "/api/finance/trust-drawdowns" && method === "POST") return handleFinanceTrustDrawdownCreate({ body, context, requestId, runtime });
+  if (pathname === "/api/finance/trust-refunds" && method === "POST") return handleFinanceTrustRefundCreate({ body, context, requestId, runtime });
   if (pathname === "/api/finance/audit" && method === "GET") return handleFinanceAudit({ query, context, requestId, runtime });
   return errorResponse(404, requestId, [FINANCE_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref });
 }

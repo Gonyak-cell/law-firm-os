@@ -41,6 +41,10 @@ function ownerAssignmentLabel(value) {
   return text;
 }
 
+function onboardingGateBlocked(result) {
+  return result?.uiState === "onboarding_blocked" || result?.safeErrorCodes?.includes("MATTER_ONBOARDING_GATE_REQUIRED");
+}
+
 export function MatterTeamRoster({ matters = [], liveCtx = "allow", onMatterUpdated }) {
   const activeMatter = matters[0] ?? null;
   const [form, setForm] = useState({
@@ -89,7 +93,9 @@ export function MatterTeamRoster({ matters = [], liveCtx = "allow", onMatterUpda
 
   const stateText =
     result?.kind === "data"
-      ? result.safeErrorCodes?.length
+      ? onboardingGateBlocked(result)
+        ? "온보딩 완료 후 배정 가능"
+        : result.safeErrorCodes?.length
         ? "검토 필요"
         : result.ownerAssignment
           ? "책임자가 지정되었습니다"

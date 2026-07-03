@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-07-02T12:07:38.059Z",
+  "scope": "UPL-D-01/UPL-D-02/UPL-D-03 HRX leave approval workflow",
+  "surface": "HTTP /api/hrx/approvals/:approval_id/:decision",
+  "result": "pass",
+  "observations": {
+    "before_balance": 80,
+    "self_approval": {
+      "status": 403,
+      "safe_error_code": "HRX_LEAVE_SELF_APPROVAL_FORBIDDEN"
+    },
+    "approval": {
+      "status": 200,
+      "approval_id": "approval-leave-003",
+      "approval_state": "approved",
+      "leave_request_id": "leave-003",
+      "leave_state": "approved"
+    },
+    "after_approval_balance": 72,
+    "rejection": {
+      "status": 200,
+      "approval_id": "approval-leave-004",
+      "approval_state": "rejected",
+      "leave_request_id": "leave-004",
+      "leave_state": "rejected"
+    },
+    "after_rejection_balance": 72,
+    "audit_actions_present": {
+      "approval_approve": true,
+      "leave_approve": true,
+      "approval_reject": true,
+      "leave_reject": true
+    }
+  },
+  "verification": [
+    "node --check apps/api/src/hrx-runtime-context.js && node --check packages/hrx/src/leave/request-service.js && node --check apps/api/src/routes/hrx/leave.js && node --check scripts/validate-hrx-workflows.mjs && node --check apps/api/test/hrx-runtime-api.test.js && node --check apps/api/test/hrx/leave.test.js",
+    "node --test apps/api/test/hrx/leave.test.js packages/hrx/test/leave-sql.test.js apps/api/test/hrx/workflow-audit.test.js",
+    "node --test apps/api/test/hrx-runtime-api.test.js apps/api/test/hrx-durable-runtime.test.js",
+    "node scripts/validate-hrx-workflows.mjs",
+    "node scripts/validate-hrx-runtime-readiness.mjs",
+    "node scripts/validate-hrx-route-authz.mjs"
+  ]
+}

@@ -18,6 +18,14 @@ export const HRX_CORE_MIGRATIONS = Object.freeze([
     id: "003_hrx_ai_analytics",
     filename: "003_hrx_ai_analytics.sql",
   }),
+  Object.freeze({
+    id: "004_hrx_attendance",
+    filename: "004_hrx_attendance.sql",
+  }),
+  Object.freeze({
+    id: "005_hrx_overtime",
+    filename: "005_hrx_overtime.sql",
+  }),
 ]);
 
 const UNSAFE_SQL_PATTERNS = Object.freeze([

@@ -1,0 +1,62 @@
+{
+  "schema_version": "law-firm-os.upl-e01.vault-fulltext-search.browser-proof.v0.1",
+  "generated_at": "2026-07-02T17:18:13.247Z",
+  "verdict": "PASS",
+  "web_url": "http://127.0.0.1:5178",
+  "api_url": "http://127.0.0.1:4191",
+  "document_id": "doc_upl_e01_browser_1783012691799",
+  "query": "차임증액",
+  "upload": {
+    "status": 201,
+    "outcome": "created",
+    "search_index": {
+      "index_id": "idx:doc_upl_e01_browser_1783012691799",
+      "body_text_indexed": true,
+      "search_backend": "sqlite_fts5_ready",
+      "raw_text_included": false,
+      "storage_pointer_ref_included": false
+    }
+  },
+  "direct_search": {
+    "status": 200,
+    "returned_count": 1,
+    "matching_document_returned": true
+  },
+  "snapshot": {
+    "marker_present": true,
+    "state": "data",
+    "query": "차임증액",
+    "result_count": 1,
+    "raw_text_included": "false",
+    "body_match_label_visible": true,
+    "hidden_body_term_visible": false,
+    "document_title_visible": true
+  },
+  "checks": [
+    {
+      "id": "api-upload-created-index",
+      "passed": true
+    },
+    {
+      "id": "api-body-keyword-hit",
+      "passed": true
+    },
+    {
+      "id": "ui-search-rendered-hit",
+      "passed": true
+    },
+    {
+      "id": "ui-match-field-body-visible",
+      "passed": true
+    },
+    {
+      "id": "ui-does-not-render-hidden-body-term",
+      "passed": true
+    },
+    {
+      "id": "ui-raw-text-flag-false",
+      "passed": true
+    }
+  ],
+  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/manual-qa/upl-e01-vault-fulltext-search-browser-proof.png"
+}

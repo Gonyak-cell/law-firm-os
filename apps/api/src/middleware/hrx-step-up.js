@@ -6,6 +6,15 @@ export const HRX_STEP_UP_REQUIRED_ACTION_PREFIXES = Object.freeze([
   "hrx.ai.final_decision",
 ]);
 
+export const HRX_STEP_UP_PURPOSES = Object.freeze({
+  fallback: "hrx_sensitive_action",
+  compensation: "compensation_access",
+  evaluation: "evaluation_review",
+  payroll: "payroll_export_review",
+  audit: "security_audit",
+  aiFinalDecision: "people_ai_final_decision",
+});
+
 function clean(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -15,6 +24,16 @@ function requiresStepUp(action) {
   return HRX_STEP_UP_REQUIRED_ACTION_PREFIXES.some((prefix) => value.startsWith(prefix));
 }
 
+export function requiredPurposeForAction(action) {
+  const value = clean(action);
+  if (value.startsWith("hrx.compensation.")) return HRX_STEP_UP_PURPOSES.compensation;
+  if (value.startsWith("hrx.evaluation.")) return HRX_STEP_UP_PURPOSES.evaluation;
+  if (value.startsWith("hrx.payroll.")) return HRX_STEP_UP_PURPOSES.payroll;
+  if (value.startsWith("hrx.audit.")) return HRX_STEP_UP_PURPOSES.audit;
+  if (value.startsWith("hrx.ai.final_decision")) return HRX_STEP_UP_PURPOSES.aiFinalDecision;
+  return null;
+}
+
 function tokenMatchesContext(token = {}, context = {}) {
   return token.tenant_id === context.tenant_id && token.actor_id === context.actor_id;
 }
@@ -22,6 +41,12 @@ function tokenMatchesContext(token = {}, context = {}) {
 function tokenFresh(token = {}, now = new Date().toISOString()) {
   if (!token.expires_at) return false;
   return Date.parse(token.expires_at) > Date.parse(now);
+}
+
+function tokenPurposeMatchesAction(token = {}, action) {
+  const purpose = clean(token.purpose);
+  const requiredPurpose = requiredPurposeForAction(action);
+  return Boolean(purpose && (purpose === HRX_STEP_UP_PURPOSES.fallback || purpose === requiredPurpose));
 }
 
 export function evaluateHrxStepUp({ action, context = {}, token = null, now } = {}) {
@@ -38,12 +63,24 @@ export function evaluateHrxStepUp({ action, context = {}, token = null, now } = 
       fail_closed: true,
     });
   }
+  if (!tokenPurposeMatchesAction(token, action)) {
+    return Object.freeze({
+      effect: "challenge",
+      status: 403,
+      safe_error_code: "HRX_STEP_UP_REQUIRED",
+      reason: "hrx_step_up_purpose_mismatch",
+      step_up_required: true,
+      fail_closed: true,
+      required_purpose: requiredPurposeForAction(action),
+    });
+  }
   return Object.freeze({
     effect: "allow",
     reason: "hrx_step_up_satisfied",
     step_up_required: true,
     assurance_level: Number(token.assurance_level),
     expires_at: token.expires_at,
+    purpose: token.purpose,
   });
 }
 

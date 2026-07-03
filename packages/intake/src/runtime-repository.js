@@ -12,6 +12,8 @@ const PRIMARY_ID_FIELDS = Object.freeze({
   ConflictDecision: "conflict_decision_id",
   Waiver: "waiver_id",
   Engagement: "engagement_id",
+  EngagementTemplateDocument: "template_document_id",
+  EngagementSignedDocumentUpload: "signed_document_upload_id",
   FeeTerms: "fee_terms_id",
   RiskApproval: "risk_approval_id",
   ClearanceToken: "clearance_token_id",

@@ -1,0 +1,94 @@
+{
+  "artifact_id": "d07-hrx-employee-lifecycle-2026-07-02",
+  "created_at": "2026-07-02T00:00:00.000+09:00",
+  "scope": "UPL-D-07 employee canonicalization backend surface",
+  "source_plan": "workbook/wave1-internal-uplift-tuw-backlog-2026-07-02.md#UPL-D-07",
+  "surface_driven": "HTTP API",
+  "routes": [
+    "POST /api/hrx/employees",
+    "PATCH /api/hrx/employees/:employee_id",
+    "GET /api/hrx/employees/:employee_id"
+  ],
+  "observed_behavior": {
+    "registration": {
+      "employee_id": "emp_api_lifecycle_001",
+      "status": 201,
+      "created_status": "onboarding",
+      "audit_action": "hrx.employee.create"
+    },
+    "valid_transitions": [
+      { "from": "onboarding", "to": "probation", "status": 200 },
+      { "from": "probation", "to": "active", "status": 200 }
+    ],
+    "invalid_status_patch": {
+      "to": "paused",
+      "status": 400,
+      "safe_error_code": "HRX_API_VALIDATION_ERROR"
+    },
+    "invalid_transition": {
+      "from": "active",
+      "to": "onboarding",
+      "status": 400,
+      "safe_error_code": "HRX_API_VALIDATION_ERROR"
+    },
+    "restart_survival": {
+      "employee_id": "emp_api_restart_001",
+      "created_status": "onboarding",
+      "updated_status": "probation",
+      "status_after_server_restart": "probation",
+      "store": "createFileHrxStore"
+    },
+    "authz": {
+      "post_without_hrx_employee_write": 403,
+      "patch_without_hrx_employee_write": 403,
+      "required_scope": "hrx.employee.write"
+    }
+  },
+  "verification": [
+    {
+      "command": "node --check apps/api/src/server.js && node --check apps/api/src/hrx-runtime-context.js && node --check packages/hrx/src/employee-lifecycle.js && node --check packages/hrx/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test apps/api/test/hrx-runtime-api.test.js apps/api/test/hrx/route-authz.test.js apps/api/test/hrx/employees.test.js packages/hrx/test/employee-lifecycle.test.js packages/hrx/test/schema.test.js packages/hrx/test/service.test.js packages/hrx/test/repository.test.js packages/hrx/test/repository-sql.test.js",
+      "exit_code": 0,
+      "tests": 50,
+      "pass": 50,
+      "fail": 0
+    },
+    {
+      "command": "node --test packages/hrx/test/*.test.js apps/api/test/hrx/*.test.js apps/api/test/hrx-runtime-api.test.js",
+      "exit_code": 0,
+      "tests": 422,
+      "pass": 422,
+      "fail": 0
+    },
+    {
+      "command": "node scripts/validate-hrx-route-authz.mjs && node scripts/validate-hrx-workflows.mjs && node scripts/validate-hrx-runtime-readiness.mjs",
+      "exit_code": 0,
+      "route_policy_count": 32
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "tests": 4101,
+      "pass": 4101,
+      "fail": 0
+    },
+    {
+      "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+      "exit_code": 0,
+      "new_d07_findings": 0,
+      "pre_existing_unrelated_findings": 37
+    }
+  ],
+  "claim_boundary": {
+    "ui_input_surface_included": false,
+    "hrx_attendance_included": false,
+    "production_ready_claim": false
+  }
+}

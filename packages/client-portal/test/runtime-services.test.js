@@ -8,11 +8,17 @@ import {
   createClientPortalRepository,
   createExternalAcl,
   createExternalUser,
+  accessExternalSecureLink,
+  consumeMagicLinkInvite,
+  createMagicLinkInvite,
   createPortalDashboardProjection,
   createPortalProjection,
   createRfiRequest,
   createRfiResponse,
   createSecureLink,
+  revokeMagicLinkInvite,
+  revokeSecureLink,
+  submitExternalRfiResponse,
 } from "../src/index.js";
 import { createDataRoom, syncDataRoomProjection } from "../../data-room/src/index.js";
 
@@ -223,4 +229,124 @@ test("G10 external portal blocks unsafe uploads, secure links, and ACL drift", (
       }),
     /watermark/,
   );
+});
+
+test("C13 magic-link invite is one-time, auditable, revocable, and metadata-only", () => {
+  const repository = createClientPortalRepository();
+  createPortalChain(repository);
+
+  const secureLink = createSecureLink({
+    repository,
+    secure_link: {
+      secure_link_id: "secure-link-c13-001",
+      tenant_id: TENANT,
+      matter_id: MATTER,
+      target_object_id: "doc-g10-001",
+      expires_at: "2999-01-01T00:00:00.000Z",
+      dms_acl_inherited: true,
+      watermark_enabled: true,
+      external_share_boundary_checked: true,
+    },
+    actor_id: ACTOR,
+    idempotency_key: "c13-secure-link-1",
+  });
+
+  const invite = createMagicLinkInvite({
+    repository,
+    invite: {
+      tenant_id: TENANT,
+      external_user_id: EXTERNAL_USER,
+      matter_id: MATTER,
+      rfi_request_id: "rfi-g10-001",
+      secure_link_id: secureLink.secure_link.secure_link_id,
+      expires_at: "2999-01-02T00:00:00.000Z",
+    },
+    actor_id: ACTOR,
+    idempotency_key: "c13-invite-1",
+    base_url: "https://portal.example.invalid/client",
+  });
+
+  assert.equal(invite.invite.token_material_included, false);
+  assert.equal(invite.invite_delivery.returned_once, true);
+  assert.match(invite.invite_delivery.one_time_url, /portal_invite=/);
+  const token = new URL(invite.invite_delivery.one_time_url).searchParams.get("portal_invite");
+  assert.ok(token);
+  assert.equal(repository.getIdempotency({ tenant_id: TENANT, idempotency_key: "c13-invite-1" }).response.invite_delivery.one_time_url, null);
+
+  const consumed = consumeMagicLinkInvite({ repository, token, now: "2026-07-03T00:00:00.000Z" });
+  assert.equal(consumed.external_session.status, "active");
+  assert.equal(consumed.external_session.token_material_included, false);
+  assert.throws(() => consumeMagicLinkInvite({ repository, token, now: "2026-07-03T00:00:01.000Z" }), /already used/);
+
+  const response = submitExternalRfiResponse({
+    repository,
+    external_session_id: consumed.external_session.external_session_id,
+    rfi_response: {
+      rfi_response_id: "rfi-response-c13-001",
+      tenant_id: TENANT,
+      rfi_request_id: "rfi-g10-001",
+      dms_acl_inherited: true,
+      malware_scan_passed: true,
+      upload_name: "external-response.pdf",
+    },
+    idempotency_key: "c13-external-rfi-1",
+  });
+  assert.equal(response.rfi_response.upload_metadata_only, true);
+  assert.equal(response.rfi_response.external_session_id, consumed.external_session.external_session_id);
+
+  const access = accessExternalSecureLink({
+    repository,
+    tenant_id: TENANT,
+    secure_link_id: secureLink.secure_link.secure_link_id,
+    external_session_id: consumed.external_session.external_session_id,
+    now: "2026-07-03T00:00:00.000Z",
+  });
+  assert.equal(access.secure_link.document_bytes_included, false);
+  assert.equal(access.secure_link.token_material_included, false);
+
+  const revokedLink = revokeSecureLink({
+    repository,
+    tenant_id: TENANT,
+    secure_link_id: secureLink.secure_link.secure_link_id,
+    actor_id: ACTOR,
+    idempotency_key: "c13-secure-link-revoke-1",
+  });
+  assert.equal(revokedLink.secure_link.status, "revoked");
+  assert.throws(
+    () =>
+      accessExternalSecureLink({
+        repository,
+        tenant_id: TENANT,
+        secure_link_id: secureLink.secure_link.secure_link_id,
+        external_session_id: consumed.external_session.external_session_id,
+        now: "2026-07-03T00:00:00.000Z",
+      }),
+    /not active/,
+  );
+
+  const revocable = createMagicLinkInvite({
+    repository,
+    invite: {
+      invite_id: "portal-invite-c13-revocable",
+      tenant_id: TENANT,
+      external_user_id: EXTERNAL_USER,
+      matter_id: MATTER,
+      rfi_request_id: "rfi-g10-001",
+      secure_link_id: secureLink.secure_link.secure_link_id,
+      expires_at: "2999-01-02T00:00:00.000Z",
+    },
+    actor_id: ACTOR,
+    idempotency_key: "c13-invite-revocable",
+  });
+  const revokedInvite = revokeMagicLinkInvite({
+    repository,
+    tenant_id: TENANT,
+    invite_id: revocable.invite.invite_id,
+    actor_id: ACTOR,
+    idempotency_key: "c13-invite-revoke-1",
+  });
+  assert.equal(revokedInvite.invite.status, "revoked");
+  assert.equal(repository.listAudit({ tenant_id: TENANT }).some((event) => event.action === "portal.magic_link_invite.create"), true);
+  assert.equal(repository.listAudit({ tenant_id: TENANT }).some((event) => event.action === "portal.magic_link_invite.consume"), true);
+  assert.equal(repository.listAudit({ tenant_id: TENANT }).some((event) => event.action === "portal.secure_link.access"), true);
 });

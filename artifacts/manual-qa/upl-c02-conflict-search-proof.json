@@ -1,0 +1,181 @@
+{
+  "schema_version": "law-firm-os.upl-c02.conflict-search-proof.v0.1",
+  "generated_at": "2026-07-02T23:20:11.999Z",
+  "verdict": "PASS",
+  "api_url": "http://127.0.0.1:61944",
+  "contract_ref": "UPL-C-02",
+  "route_surface": [
+    "POST /api/intake/conflict-checks",
+    "GET /api/intake/audit"
+  ],
+  "checks": [
+    {
+      "id": "normalized-adverse-party-generates-former-matter-hit",
+      "passed": true
+    },
+    {
+      "id": "caller-hit-count-is-ignored",
+      "passed": true
+    },
+    {
+      "id": "idempotent-replay-does-not-duplicate-hits",
+      "passed": true
+    },
+    {
+      "id": "audit-and-safe-output-boundary",
+      "passed": true
+    }
+  ],
+  "observed": {
+    "conflict_check": {
+      "status": 201,
+      "item": {
+        "conflict_check_id": "conflict_upl_c02_normalized",
+        "tenant_id": "tenant_upl_c02_conflict_search",
+        "intake_request_id": "intake_upl_c02_new_client",
+        "party_snapshot": {
+          "party_ids": [
+            "party_upl_c02_new_client"
+          ],
+          "recorded_by": "user_upl_c02_conflict_reviewer",
+          "recorded_at": "2026-07-02T23:20:11.992Z"
+        },
+        "snapshot_hash": "snapshot_upl_c02_new_client",
+        "status": "review_required",
+        "owner_user_id": "user_upl_c02_conflict_reviewer",
+        "model_type": "ConflictCheck",
+        "snapshot_recorded_at": "2026-07-02T23:20:11.992Z",
+        "owner_module": "intake",
+        "permission_ref": null,
+        "audit_hint_ref": null,
+        "synthetic_only": true,
+        "no_real_data": true,
+        "writes_product_state": true,
+        "creates_database_rows": false,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": false,
+        "dispatches_intake_runtime": true,
+        "executes_api_handler": false,
+        "creates_matter": false,
+        "g3_runtime_readiness_claim": "open",
+        "party_reference_fields": [
+          "party_snapshot.party_ids"
+        ],
+        "immutable_snapshot": true,
+        "resource_id": "conflict_upl_c02_normalized",
+        "created_at": "2026-07-02T23:20:11.992Z",
+        "updated_at": "2026-07-02T23:20:11.993Z",
+        "g6_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "direct_matter_reference_included": false,
+        "raw_conflict_memo_included": false
+      }
+    },
+    "conflict_search": {
+      "conflict_search_id": "search_upl_c02_normalized",
+      "tenant_id": "tenant_upl_c02_conflict_search",
+      "conflict_check_id": "conflict_upl_c02_normalized",
+      "aliases": [],
+      "party_ids": [
+        "party_upl_c02_new_client"
+      ],
+      "party_names": [],
+      "relationship_refs": [],
+      "audit_hint_ref": "upl_c02_api_proof",
+      "owner_user_id": "user_upl_c02_conflict_reviewer",
+      "hit_count": 1,
+      "model_type": "ConflictSearch",
+      "normalized_terms": [
+        "상대방테크"
+      ],
+      "generated_hit_ids": [
+        "hit_search_upl_c02_normalized_MatterParty_party_upl_c02_adverse_0"
+      ],
+      "caller_supplied_hit_count_ignored": true,
+      "raw_query_included": false,
+      "status": "executed",
+      "resource_id": "search_upl_c02_normalized",
+      "owner_module": "intake",
+      "created_at": "2026-07-02T23:20:11.993Z",
+      "updated_at": "2026-07-02T23:20:11.993Z",
+      "writes_product_state": true,
+      "creates_database_rows": true,
+      "updates_database_rows": false,
+      "deletes_database_rows": false,
+      "evaluates_runtime_permission": true,
+      "writes_audit_event": true,
+      "dispatches_intake_runtime": true,
+      "executes_api_handler": false,
+      "creates_matter": false,
+      "g6_runtime_readiness_claim": "runtime_write_ready",
+      "production_ready_claim": false,
+      "direct_matter_reference_included": false,
+      "raw_conflict_memo_included": false
+    },
+    "conflict_hits": [
+      {
+        "model_type": "ConflictHit",
+        "conflict_hit_id": "hit_search_upl_c02_normalized_MatterParty_party_upl_c02_adverse_0",
+        "tenant_id": "tenant_upl_c02_conflict_search",
+        "conflict_check_id": "conflict_upl_c02_normalized",
+        "matched_party_id": "party_upl_c02_adverse",
+        "hit_source": "former_matter",
+        "source_record_ref": "MatterParty:party_upl_c02_adverse",
+        "severity": "high",
+        "audit_hint_ref": "upl_c02_api_proof",
+        "status": "review_required",
+        "owner_user_id": "user_upl_c02_conflict_reviewer",
+        "matched_display_name": "상대방 테크 주식회사",
+        "matched_model_type": "MatterParty",
+        "matched_party_role": "adverse_party",
+        "source_matter_ref_included": false,
+        "match_kind": "exact_normalized",
+        "match_score": 1,
+        "normalized_query": "상대방테크",
+        "raw_hit_payload_visible": false,
+        "created_by": "user_upl_c02_conflict_reviewer",
+        "owner_module": "intake",
+        "permission_ref": null,
+        "synthetic_only": true,
+        "no_real_data": true,
+        "writes_product_state": true,
+        "creates_database_rows": false,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": false,
+        "dispatches_intake_runtime": true,
+        "executes_api_handler": false,
+        "creates_matter": false,
+        "g3_runtime_readiness_claim": "open",
+        "party_reference_fields": [
+          "matched_party_id"
+        ],
+        "hit_summary": null,
+        "hit_source_audit_required": true,
+        "resource_id": "hit_search_upl_c02_normalized_MatterParty_party_upl_c02_adverse_0",
+        "created_at": "2026-07-02T23:20:11.993Z",
+        "updated_at": "2026-07-02T23:20:11.993Z",
+        "g6_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false,
+        "direct_matter_reference_included": false,
+        "raw_conflict_memo_included": false
+      }
+    ],
+    "replay": {
+      "status": 200,
+      "outcome": "idempotent_replay",
+      "hit_count": 1
+    },
+    "audit": {
+      "status": 200,
+      "actions": [
+        "conflict.check.create",
+        "conflict.hit.create",
+        "conflict.search.executed"
+      ]
+    }
+  }
+}

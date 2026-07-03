@@ -4,7 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
-import { startApiServer } from "../src/server.js";
+import { createDefaultHrxRuntime, startApiServer } from "../src/server.js";
+import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
+import { createMatterRepository } from "../../../packages/matter/src/index.js";
+import { createOnboardingPlan } from "../../../packages/hrx/src/onboarding.js";
 
 const TENANT = "tenant_rp05_synthetic";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_rp05_read&audit_hint_ref=audit_hint_rp05_read`;
@@ -15,6 +18,15 @@ function permissionContext(effect = "allow") {
     rules: [{ id: `rule_matter_${effect}`, effect, action: "*" }],
     object_acl: [],
   });
+}
+
+function hrxHeaders(tenantId = TENANT) {
+  return {
+    "x-lawos-tenant-id": tenantId,
+    "x-lawos-actor-id": "user_rp05_owner",
+    "x-lawos-actor-role": "people_ops,hr_admin",
+    "x-lawos-hrx-scopes": "hrx.employee.read,hrx.employee.write,hrx.lifecycle.read,hrx.lifecycle.write",
+  };
 }
 
 async function withServer(callback, options = {}) {
@@ -84,6 +96,24 @@ function openingPayload(overrides = {}) {
   };
 }
 
+function issuedClearanceRecord(token = openingPayload().clearance_token) {
+  return {
+    ...token,
+    model_type: "ClearanceToken",
+    token_state: "active",
+    status: "active",
+    outcome: "cleared",
+    blocked_claims: [],
+    conflict_review_satisfied: true,
+  };
+}
+
+function intakeRepositoryWithClearances(tokens = [openingPayload().clearance_token]) {
+  return createIntakeRuntimeRepository({
+    seedRecords: tokens.map((token) => issuedClearanceRecord(token)),
+  });
+}
+
 function statusTransitionPayload(overrides = {}) {
   return {
     tenant_id: TENANT,
@@ -151,6 +181,26 @@ function ownerChangePayload(overrides = {}) {
     },
     reason: "record_owner_changed",
     assigned_at: "2026-06-20T14:45:00.000Z",
+    ...overrides,
+  };
+}
+
+function adversePartyPayload(overrides = {}) {
+  return {
+    tenant_id: TENANT,
+    permission_ref: "perm_ref_rp05_party",
+    audit_hint_ref: "audit_hint_rp05_party",
+    actor_id: "user_rp05_owner",
+    idempotency_key: "matter-api-adverse-party-c01",
+    matter_party: {
+      tenant_id: TENANT,
+      matter_id: "matter_rp05_synthetic_opening",
+      matter_party_id: "matter_party_api_c01_adverse",
+      party_id: "party_api_c01_adverse",
+      display_name: "상대방 주식회사",
+      party_role: "adverse_party",
+      retroactive_entry: true,
+    },
     ...overrides,
   };
 }
@@ -241,7 +291,7 @@ test("G4 Matter opening write persists, audits, and replays idempotently across 
     assert.equal(replay.status, 200);
     assert.equal(replay.body.outcome, "idempotent_replay");
     assert.equal(replay.body.idempotent_replay, true);
-  }, { matterStorePath: storePath });
+  }, { matterStorePath: storePath, intakeRepository: intakeRepositoryWithClearances() });
 
   await withServer(async (baseUrl) => {
     const detail = await json(baseUrl, `/api/matters/matter_api_open_001?${BASE_QUERY}`);
@@ -328,6 +378,136 @@ test("G4 Matter team write requires employee-backed staffing and records audit",
     assert.equal(detail.status, 200);
     assert.equal(detail.body.item.owner_employee_id, "emp-001");
     assert.equal(detail.body.item.owner_user_id, "user_rp05_owner");
+  });
+});
+
+test("G4 Matter team write blocks onboarding employees until HRX security tasks are complete", async () => {
+  const hrxRuntime = createDefaultHrxRuntime();
+  hrxRuntime.repository.createEmployee({
+    tenant_id: TENANT,
+    employee_id: "emp_api_d13_onboarding",
+    display_name: "D13 온보딩 구성원",
+    work_email: "d13.onboarding@example.test",
+    status: "onboarding",
+    source_ref: "UPL-D-13",
+  });
+  hrxRuntime.onboardingPlans.push(
+    createOnboardingPlan({
+      tenant_id: TENANT,
+      onboarding_id: "onb-api-d13",
+      employee_id: "emp_api_d13_onboarding",
+      start_date: "2026-07-03",
+      tasks: [
+        { task_id: "security-training", title: "Security training", owner_role: "people_ops", status: "completed" },
+        { task_id: "security-pledge", title: "Security pledge", owner_role: "people_ops", status: "pending" },
+      ],
+    }),
+  );
+  const matterRepository = createMatterRepository({
+    seedRecords: [
+      {
+        model_type: "Matter",
+        matter_id: "matter_api_d13_onboarding_gate",
+        tenant_id: TENANT,
+        client_id: "client_api_d13",
+        legal_client_party_id: "party_api_d13",
+        title: "D13 onboarding gated matter",
+        status: "open",
+        created_by: "user_rp05_owner",
+        created_at: "2026-07-03T00:00:00.000Z",
+        permission_envelope_id: "perm_api_d13",
+        audit_trace_id: "audit_api_d13",
+      },
+    ],
+  });
+
+  await withServer(async (baseUrl) => {
+    const payload = {
+      tenant_id: TENANT,
+      permission_ref: "perm_ref_rp05_team",
+      audit_hint_ref: "audit_hint_rp05_team",
+      actor_id: "user_rp05_owner",
+      member: {
+        member_id: "member_api_d13_onboarding",
+        tenant_id: TENANT,
+        employee_id: "emp_api_d13_onboarding",
+        user_id: "user_api_d13_onboarding",
+        role: "associate",
+        status: "active",
+      },
+    };
+
+    const blocked = await json(baseUrl, "/api/matters/matter_api_d13_onboarding_gate/team-members", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    assert.equal(blocked.status, 409);
+    assert.deepEqual(blocked.body.safe_error_codes, ["MATTER_ONBOARDING_GATE_REQUIRED"]);
+    assert.equal(blocked.body.ui_state, "onboarding_blocked");
+    assert.deepEqual(blocked.body.onboarding_gate.missing_task_ids, ["security-pledge"]);
+
+    const pledge = await json(baseUrl, "/api/hrx/lifecycle/onboarding/onb-api-d13/tasks/security-pledge", {
+      method: "POST",
+      headers: hrxHeaders(),
+      body: JSON.stringify({ status: "completed" }),
+    });
+    assert.equal(pledge.status, 200);
+    assert.equal(pledge.body.onboarding.tasks.find((task) => task.task_id === "security-pledge").status, "completed");
+
+    const created = await json(baseUrl, "/api/matters/matter_api_d13_onboarding_gate/team-members", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    assert.equal(created.status, 201);
+    assert.equal(created.body.item.employee_id, "emp_api_d13_onboarding");
+  }, { hrxRuntime, matterRepository });
+});
+
+test("G4 Matter adverse party registration is idempotent and visible on detail", async () => {
+  await withServer(async (baseUrl) => {
+    const created = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/parties", {
+      method: "POST",
+      body: JSON.stringify(adversePartyPayload()),
+    });
+    assert.equal(created.status, 201);
+    assert.equal(created.body.outcome, "created");
+    assert.equal(created.body.item.matter_party_id, "matter_party_api_c01_adverse");
+    assert.equal(created.body.item.party_role, "adverse_party");
+    assert.equal(created.body.item.conflict_subject, true);
+    assert.equal(created.body.item.retroactive_entry, true);
+    assert.equal(created.body.item.raw_contact_values_included, false);
+    assert.equal(created.body.item.production_ready_claim, false);
+    assert.equal(created.body.matter.adverse_party_count, 1);
+    assert.equal(created.body.audit_event.action, "matter.party.registered");
+    assert.equal(created.body.state_idempotent, true);
+
+    const replay = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/parties", {
+      method: "POST",
+      body: JSON.stringify(adversePartyPayload()),
+    });
+    assert.equal(replay.status, 200);
+    assert.equal(replay.body.outcome, "idempotent_replay");
+    assert.equal(replay.body.idempotent_replay, true);
+
+    const parties = await json(baseUrl, `/api/matters/matter_rp05_synthetic_opening/parties?${BASE_QUERY}&party_role=adverse_party`);
+    assert.equal(parties.status, 200);
+    assert.equal(parties.body.items.length, 1);
+    assert.equal(parties.body.items[0].display_name, "상대방 주식회사");
+    assert.equal(parties.body.adverse_parties.length, 1);
+
+    const detail = await json(baseUrl, `/api/matters/matter_rp05_synthetic_opening?${BASE_QUERY}`);
+    assert.equal(detail.status, 200);
+    assert.equal(detail.body.item.adverse_party_count, 1);
+    assert.equal(detail.body.matter_parties.length, 1);
+    assert.equal(detail.body.adverse_parties[0].matter_party_id, "matter_party_api_c01_adverse");
+
+    const command = await json(baseUrl, `/api/matters/matter_rp05_synthetic_opening/command-center?${BASE_QUERY}`);
+    assert.equal(command.status, 200);
+    assert.equal(command.body.adverse_parties[0].display_name, "상대방 주식회사");
+
+    const audit = await json(baseUrl, `/api/matters/audit?${BASE_QUERY}`);
+    assert.equal(audit.status, 200);
+    assert.ok(audit.body.items.some((event) => event.action === "matter.party.registered"));
   });
 });
 
@@ -500,29 +680,30 @@ test("G4 Matter saved list views are owner scoped, audited, and persisted", asyn
 
 test("G4 Matter bulk status transition is permission gated, audited, and persisted", async () => {
   const storePath = join(mkdtempSync(join(tmpdir(), "lawos-matter-bulk-status-g4-")), "matter-store.json");
+  const bulkOpeningPayload = openingPayload({
+    idempotency_key: "matter-api-bulk-open-001",
+    matter_number_seed: "API-BULK-001",
+    matter: {
+      ...openingPayload().matter,
+      matter_id: "matter_api_bulk_open_001",
+      title: "API bulk opened matter",
+      matter_number: "M-TENANT-RP05-API-BULK-001",
+      permission_envelope_id: "perm_matter_api_bulk_open_001",
+      audit_trace_id: "audit_matter_api_bulk_open_001",
+    },
+    clearance_token: {
+      ...openingPayload().clearance_token,
+      clearance_token_id: "clearance_api_bulk_open_001",
+      intake_request_id: "intake_api_bulk_open_001",
+      conflict_check_id: "conflict_api_bulk_open_001",
+      engagement_id: "engagement_api_bulk_open_001",
+      snapshot_hash: "sha256:clearance-api-bulk-open-001",
+    },
+  });
   await withServer(async (baseUrl) => {
     const created = await json(baseUrl, "/api/matters/openings", {
       method: "POST",
-      body: JSON.stringify(openingPayload({
-        idempotency_key: "matter-api-bulk-open-001",
-        matter_number_seed: "API-BULK-001",
-        matter: {
-          ...openingPayload().matter,
-          matter_id: "matter_api_bulk_open_001",
-          title: "API bulk opened matter",
-          matter_number: "M-TENANT-RP05-API-BULK-001",
-          permission_envelope_id: "perm_matter_api_bulk_open_001",
-          audit_trace_id: "audit_matter_api_bulk_open_001",
-        },
-        clearance_token: {
-          ...openingPayload().clearance_token,
-          clearance_token_id: "clearance_api_bulk_open_001",
-          intake_request_id: "intake_api_bulk_open_001",
-          conflict_check_id: "conflict_api_bulk_open_001",
-          engagement_id: "engagement_api_bulk_open_001",
-          snapshot_hash: "sha256:clearance-api-bulk-open-001",
-        },
-      })),
+      body: JSON.stringify(bulkOpeningPayload),
     });
     assert.equal(created.status, 201);
 
@@ -553,7 +734,7 @@ test("G4 Matter bulk status transition is permission gated, audited, and persist
     assert.equal(audit.status, 200);
     assert.ok(audit.body.items.some((event) => event.action === "matter.bulk.status_transition"));
     assert.ok(audit.body.items.some((event) => event.action === "matter.status.bulk_transitioned"));
-  }, { matterStorePath: storePath });
+  }, { matterStorePath: storePath, intakeRepository: intakeRepositoryWithClearances([bulkOpeningPayload.clearance_token]) });
 
   await withServer(async (baseUrl) => {
     const detail = await json(baseUrl, `/api/matters/matter_api_bulk_open_001?${BASE_QUERY}`);

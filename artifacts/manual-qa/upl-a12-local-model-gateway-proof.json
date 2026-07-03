@@ -1,0 +1,128 @@
+{
+  "schema_version": "lawos.wave1.upl-a12.local-model-gateway-proof.v1",
+  "generated_at": "2026-07-03T04:14:57.521Z",
+  "row_ids": [
+    "UPL-A-12",
+    "UPL-D-16"
+  ],
+  "status": "PASS",
+  "strict_boundary": {
+    "approved_local_model_gateway": true,
+    "provider": "ollama",
+    "model": "gemma4:12b",
+    "external_cloud_call": false,
+    "production_ready_claim": false,
+    "prompt_response_text_stored": false
+  },
+  "model_manifest": {
+    "name": "gemma4:12b",
+    "digest": "4eb23ef187e2c5462566d6a1d3bbbc2f1346d0b4327cbb66d58fffbcc9b2b05c",
+    "size": 7556508396,
+    "parameter_size": "11.9B",
+    "quantization_level": "Q4_K_M",
+    "context_length": 262144
+  },
+  "provider_receipt": {
+    "provider": "ollama",
+    "model": "gemma4:12b",
+    "endpoint_hash": "b26993598dffd1f14aed97def57ef67f753518a9b773d8a12033c82b4fa545ca",
+    "request_hash": "d7121c704b28f3d06bbbbcec33b01f536925d740d4ce153490cf914ddeca96bd",
+    "response_hash": "058b99f74cf75edcf5d131ea9f0edc7e5b1153d5017088c15ed9c3f5503ec67a",
+    "provider_request_id_hash": null,
+    "external_call_made": true
+  },
+  "route_receipt": {
+    "status": 202,
+    "outcome": "review_required",
+    "answer_status": "review_required",
+    "source_refs": [
+      "Policy:leave:2026",
+      "Policy:employment-rules:2026"
+    ],
+    "allowed_source_refs": [
+      "Policy:leave:2026",
+      "Policy:employment-rules:2026"
+    ],
+    "denied_source_refs": [
+      "Case:leave:emp-002"
+    ],
+    "context_payload_policy": "metadata_only"
+  },
+  "review_queue_receipt": {
+    "review_id": "review-upl-a12-local-model-e9ad43ead570",
+    "interaction_id": "upl-a12-local-model-e9ad43ead570",
+    "state": "pending_review",
+    "risk_level": "high",
+    "answer_status": "review_required",
+    "source_refs": [
+      "Policy:leave:2026",
+      "Policy:employment-rules:2026"
+    ]
+  },
+  "audit_receipt": {
+    "event_id": "hrx_ai_evt_8911633c-3b55-48be-8dd8-204392aee1f8",
+    "action": "hrx.ai.interaction",
+    "object_id": "upl-a12-local-model-e9ad43ead570",
+    "decision": "review_required",
+    "prompt_hash": "4401157965c59df93734df4ce733155e5126860ca34dc6bf43ca2d9d82ff9d47",
+    "output_hash": "bb99a42648cd0047fa4ddf831dcab4854b48ed36b9e7c02975327f536ba90c22",
+    "output_status": "review_required",
+    "citation_count": 2,
+    "payload_policy": "metadata_only"
+  },
+  "blocked_field_checks": [
+    {
+      "field": "employee_salary",
+      "passed": true,
+      "safe_error": "HRX model gateway request must not include employee_salary"
+    },
+    {
+      "field": "document_body",
+      "passed": true,
+      "safe_error": "HRX model gateway request must not include document_body"
+    },
+    {
+      "field": "client_secret",
+      "passed": true,
+      "safe_error": "HRX model gateway request must not include client_secret"
+    }
+  ],
+  "checks": [
+    {
+      "id": "ollama-model-installed",
+      "passed": true
+    },
+    {
+      "id": "route-used-real-model",
+      "passed": true
+    },
+    {
+      "id": "model-request-hash-present",
+      "passed": true
+    },
+    {
+      "id": "model-response-hash-present",
+      "passed": true
+    },
+    {
+      "id": "review-queue-item-created",
+      "passed": true
+    },
+    {
+      "id": "audit-event-created",
+      "passed": true
+    },
+    {
+      "id": "audit-payload-policy-metadata-only",
+      "passed": true
+    },
+    {
+      "id": "blocked-raw-fields-rejected",
+      "passed": true
+    },
+    {
+      "id": "artifact-omits-prompt-and-response-text",
+      "passed": true
+    }
+  ]
+}

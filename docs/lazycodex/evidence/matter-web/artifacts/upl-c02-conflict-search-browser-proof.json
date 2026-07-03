@@ -1,0 +1,51 @@
+{
+  "schema_version": "law-firm-os.upl-c02.browser-proof.v0.1",
+  "generated_at": "2026-07-02T23:24:01.680Z",
+  "verdict": "PASS",
+  "contract_ref": "UPL-C-02",
+  "url": "http://127.0.0.1:5173/?locale=ko&view=clients&data=live&ctx=allow#client-conflict",
+  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-web/artifacts/upl-c02-screenshots/upl-c02-conflict-search-hit-list.png",
+  "checks": [
+    {
+      "id": "client-conflict-surface-visible",
+      "passed": true
+    },
+    {
+      "id": "conflict-check-write-sent-from-ui",
+      "passed": true
+    },
+    {
+      "id": "browser-proof-clean",
+      "passed": true
+    }
+  ],
+  "observed": {
+    "writes": [
+      {
+        "url": "http://127.0.0.1:5173/api/intake/conflict-checks",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "matter_client_intake_operator",
+          "idempotency_key": "conflict:conflict_ui_mr44seji_wxvqvk",
+          "conflict_check": {
+            "conflict_check_id": "conflict_ui_mr44seji_wxvqvk",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "intake_request_id": "intake_upl_c02_ui",
+            "party_snapshot": {
+              "party_ids": [
+                "party_upl_c02_new_client"
+              ]
+            },
+            "status": "snapshot_recorded",
+            "owner_user_id": "matter_client_intake_operator"
+          }
+        }
+      }
+    ],
+    "hit_list_text": "Hit\t출처\t심각도\t상태\n상대방 테크 주식회사\t과거 Matter\t높음\t계약 검토",
+    "console_events": [],
+    "failed_requests": []
+  }
+}

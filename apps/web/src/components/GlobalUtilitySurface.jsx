@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { ArrowRight, Link2, ShieldCheck } from "lucide-react";
 import { conditionalGlobalItems, getGlobalUtilityByView, globalUtilityItems } from "../data/globalUtilities.js";
 import { GuardedStateNotice } from "./GuardedState.js";
 import { PageHeader, Panel } from "./primitives.jsx";
+import { EmployeeList } from "../people/employees/EmployeeList.tsx";
+import { HRDocumentWorkspace } from "../people/documents/HRDocumentWorkspace.tsx";
 
 function sectionStateLabel(section, utility) {
   if (section.state === "audit_required") return "감사 필요";
@@ -11,6 +13,7 @@ function sectionStateLabel(section, utility) {
 }
 
 function sectionDescription(section, utility) {
+  if (section.description) return section.description;
   if (utility.status === "decision-required") return utility.decision;
   if (section.legacyRoutes?.length > 0) {
     const domains = Array.from(new Set(section.legacyRoutes.map((route) => route.view))).join(", ");
@@ -113,6 +116,8 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView }) {
   const utility = getGlobalUtilityByView(view) ?? globalUtilityItems[0];
   const activeId = utility.sections.some((section) => section.id === activeSection) ? activeSection : utility.defaultSection;
   const active = utility.sections.find((section) => section.id === activeId) ?? utility.sections[0];
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
+  const liveEmploymentContracts = utility.id === "policies" && active.id === "policies-employment-contracts";
 
   function openSection(sectionId) {
     setView(utility.id, sectionId);
@@ -146,7 +151,14 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView }) {
               <UtilitySectionCard key={section.id} section={section} utility={utility} active={section.id === activeId} onOpen={openSection} />
             ))}
           </div>
-          <UtilityDetail section={active} utility={utility} />
+          {liveEmploymentContracts ? (
+            <div className="global-utility-live-detail" data-global-live-hr-documents="employment-contracts">
+              <EmployeeList selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} refreshKey={activeId} />
+              <HRDocumentWorkspace employeeId={selectedEmployeeId} refreshKey={activeId} mode="contracts" />
+            </div>
+          ) : (
+            <UtilityDetail section={active} utility={utility} />
+          )}
         </div>
         {utility.id === "settings" && (
           <div className="global-utility-related" data-global-conditional-preview="true">

@@ -1,0 +1,72 @@
+{
+  "schema_version": "law-firm-os.upl-e02.vault-ocr-search.browser-proof.v0.1",
+  "generated_at": "2026-07-02T19:31:56.812Z",
+  "verdict": "PASS",
+  "web_url": "http://127.0.0.1:5175",
+  "api_url": "http://127.0.0.1:4193",
+  "document_id": "doc_upl_e02_ocr_1783020715290",
+  "query": "OCR키워드",
+  "upload": {
+    "status": 201,
+    "outcome": "created",
+    "search_index": {
+      "index_id": "idx:doc_upl_e02_ocr_1783020715290",
+      "body_text_indexed": true,
+      "ocr_text_indexed": true,
+      "ocr_runtime_executed": true,
+      "ocr_provider": "lawos_sidecar_ocr_v1",
+      "search_backend": "sqlite_fts5_ready",
+      "raw_text_included": false,
+      "storage_pointer_ref_included": false
+    }
+  },
+  "direct_search": {
+    "status": 200,
+    "returned_count": 1,
+    "matching_document_returned": true,
+    "matching_fields": [
+      "ocr_text"
+    ]
+  },
+  "snapshot": {
+    "marker_present": true,
+    "state": "data",
+    "query": "OCR키워드",
+    "result_count": 1,
+    "raw_text_included": "false",
+    "ocr_match_label_visible": true,
+    "hidden_ocr_term_visible": false,
+    "document_title_visible": true
+  },
+  "checks": [
+    {
+      "id": "api-upload-created-ocr-index",
+      "passed": true
+    },
+    {
+      "id": "api-ocr-keyword-hit",
+      "passed": true
+    },
+    {
+      "id": "api-does-not-return-ocr-term",
+      "passed": true
+    },
+    {
+      "id": "ui-search-rendered-hit",
+      "passed": true
+    },
+    {
+      "id": "ui-match-field-ocr-visible",
+      "passed": true
+    },
+    {
+      "id": "ui-does-not-render-ocr-term",
+      "passed": true
+    },
+    {
+      "id": "ui-raw-text-flag-false",
+      "passed": true
+    }
+  ],
+  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/artifacts/manual-qa/upl-e02-vault-ocr-search-browser-proof.png"
+}

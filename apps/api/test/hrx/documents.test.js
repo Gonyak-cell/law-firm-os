@@ -79,3 +79,66 @@ test("HRX documents route rejects unverified source refs", async () => {
   assert.equal(response.body.safe_error_code, "HRX_DOCUMENT_SOURCE_UNVERIFIED");
   assert.match(response.body.reason, /not verified/);
 });
+
+test("HRX documents route signs and expires employment contracts without storing bodies", async () => {
+  const audit = createHrxAuditEventStore();
+  const route = createHrxDocumentsRoute({ audit, sourceAdapter: sourceAdapter() });
+  const context = { tenant_id: "tenant-a", actor_id: "user-a" };
+
+  const created = await route.handle({
+    method: "POST",
+    context,
+    body: {
+      document_id: "doc-001",
+      employee_id: "emp-001",
+      document_type: "employment_contract",
+      source_ref: "dms://doc-001",
+      title: "Employment Contract",
+      contract_id: "contract-001",
+      profile_id: "profile-001",
+      expires_on: "2026-07-20",
+    },
+  });
+  assert.equal(created.status, 201);
+  assert.equal(created.body.document.contract_state, "draft");
+
+  const missingSignature = await route.handle({
+    method: "POST",
+    context,
+    params: { document_id: "doc-001", lifecycle_action: "sign" },
+    body: {},
+  });
+  assert.equal(missingSignature.status, 400);
+  assert.match(missingSignature.body.reason, /signature_ref is required/);
+
+  const signed = await route.handle({
+    method: "POST",
+    context,
+    params: { document_id: "doc-001", lifecycle_action: "sign" },
+    body: { signature_ref: "signature:doc-001", signed_at: "2026-07-02T00:00:00.000Z" },
+  });
+  assert.equal(signed.status, 200);
+  assert.equal(signed.body.document.contract_state, "signed");
+  assert.equal(signed.body.document.signature_ref, "signature:doc-001");
+  assert.equal(Object.hasOwn(signed.body.document, "body"), false);
+
+  const expiring = await route.handle({
+    method: "GET",
+    context,
+    params: { expiring: true },
+    query: { as_of: "2026-07-02", days: 30 },
+  });
+  assert.equal(expiring.status, 200);
+  assert.deepEqual(expiring.body.documents.map((document) => document.document_id), ["doc-001"]);
+
+  const expired = await route.handle({
+    method: "POST",
+    context,
+    params: { document_id: "doc-001", lifecycle_action: "expire" },
+    body: { expired_at: "2026-07-21T00:00:00.000Z" },
+  });
+  assert.equal(expired.status, 200);
+  assert.equal(expired.body.document.contract_state, "expired");
+  assert.ok(audit.list({ tenant_id: "tenant-a" }).some((event) => event.action === "hrx.document.contract.sign"));
+  assert.ok(audit.list({ tenant_id: "tenant-a" }).some((event) => event.action === "hrx.document.contract.expire"));
+});

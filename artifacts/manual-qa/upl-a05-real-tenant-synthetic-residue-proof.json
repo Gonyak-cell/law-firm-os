@@ -1,0 +1,183 @@
+{
+  "schema_version": "lawos.upl_a05.real_tenant_synthetic_residue_proof.v1",
+  "generated_at": "2026-07-03T02:17:41.780Z",
+  "tuw_ids": [
+    "UPL-A-05"
+  ],
+  "pass": true,
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "api_base_url": "http://127.0.0.1:62168",
+  "tenant_id": "tenant_amic_matter_vault",
+  "source_ref": "amic_current_onedrive_folder_inventory_2026_07_01",
+  "readback": {
+    "current_client_group_count": 99,
+    "all_client_group_count": 99,
+    "wrong_tenant_count": 0,
+    "synthetic_only_true_count": 0,
+    "display_residue_count": 0,
+    "removed_name_hit_count": 0,
+    "known_names_present": [
+      "귀한사람들",
+      "ATU Partners",
+      "하이로닉",
+      "롯데에너지머티리얼즈",
+      "바이포엠스튜디오"
+    ],
+    "sample_current_client_groups": [
+      {
+        "client_group_id": "client_group_rp04_amic_client_001",
+        "display_name": "귀한사람들",
+        "canonical_display_name": "귀한사람들",
+        "tenant_id": "tenant_amic_matter_vault",
+        "synthetic_only": false,
+        "rp05_client_ref": "client_group_rp04_amic_client_001"
+      },
+      {
+        "client_group_id": "client_group_rp04_amic_client_002",
+        "display_name": "그래비티랩스",
+        "canonical_display_name": "그래비티랩스",
+        "tenant_id": "tenant_amic_matter_vault",
+        "synthetic_only": false,
+        "rp05_client_ref": "client_group_rp04_amic_client_002"
+      },
+      {
+        "client_group_id": "client_group_rp04_amic_client_003",
+        "display_name": "그로브",
+        "canonical_display_name": "그로브",
+        "tenant_id": "tenant_amic_matter_vault",
+        "synthetic_only": false,
+        "rp05_client_ref": "client_group_rp04_amic_client_003"
+      },
+      {
+        "client_group_id": "client_group_rp04_amic_client_004",
+        "display_name": "금홍",
+        "canonical_display_name": "금홍",
+        "tenant_id": "tenant_amic_matter_vault",
+        "synthetic_only": false,
+        "rp05_client_ref": "client_group_rp04_amic_client_004"
+      },
+      {
+        "client_group_id": "client_group_rp04_amic_client_005",
+        "display_name": "김정",
+        "canonical_display_name": "김정",
+        "tenant_id": "tenant_amic_matter_vault",
+        "synthetic_only": false,
+        "rp05_client_ref": "client_group_rp04_amic_client_005"
+      },
+      {
+        "client_group_id": "client_group_rp04_amic_client_006",
+        "display_name": "김지은",
+        "canonical_display_name": "김지은",
+        "tenant_id": "tenant_amic_matter_vault",
+        "synthetic_only": false,
+        "rp05_client_ref": "client_group_rp04_amic_client_006"
+      },
+      {
+        "client_group_id": "client_group_rp04_amic_client_007",
+        "display_name": "동림산업",
+        "canonical_display_name": "동림산업",
+        "tenant_id": "tenant_amic_matter_vault",
+        "synthetic_only": false,
+        "rp05_client_ref": "client_group_rp04_amic_client_007"
+      },
+      {
+        "client_group_id": "client_group_rp04_amic_client_008",
+        "display_name": "동문시장",
+        "canonical_display_name": "동문시장",
+        "tenant_id": "tenant_amic_matter_vault",
+        "synthetic_only": false,
+        "rp05_client_ref": "client_group_rp04_amic_client_008"
+      },
+      {
+        "client_group_id": "client_group_rp04_amic_client_009",
+        "display_name": "라이트팜텍",
+        "canonical_display_name": "라이트팜텍",
+        "tenant_id": "tenant_amic_matter_vault",
+        "synthetic_only": false,
+        "rp05_client_ref": "client_group_rp04_amic_client_009"
+      },
+      {
+        "client_group_id": "client_group_rp04_amic_client_010",
+        "display_name": "매크로머신",
+        "canonical_display_name": "매크로머신",
+        "tenant_id": "tenant_amic_matter_vault",
+        "synthetic_only": false,
+        "rp05_client_ref": "client_group_rp04_amic_client_010"
+      }
+    ]
+  },
+  "residue_scan": {
+    "pattern": "synthetic|mock|placeholder|dummy|fixture|^Pjt\\.|^Project\\b|선생님|원장님|회장님|교수님|작가|강제집행면탈|조세범",
+    "residue_rows": [],
+    "removed_name_hits": []
+  },
+  "checks": [
+    {
+      "id": "a05-api-readback-uses-registered-tenant",
+      "passed": true,
+      "evidence": {
+        "tenant_id": "tenant_amic_matter_vault",
+        "current_client_group_count": 99,
+        "wrong_tenant_count": 0
+      }
+    },
+    {
+      "id": "a05-current-client-count-99",
+      "passed": true,
+      "evidence": {
+        "candidate_count": 99,
+        "readback_count": 99
+      }
+    },
+    {
+      "id": "a05-synthetic-only-zero",
+      "passed": true,
+      "evidence": {
+        "synthetic_only_true_count": 0
+      }
+    },
+    {
+      "id": "a05-display-residue-zero",
+      "passed": true,
+      "evidence": {
+        "residue_count": 0,
+        "residue_rows": []
+      }
+    },
+    {
+      "id": "a05-current-client-known-names-present",
+      "passed": true,
+      "evidence": {
+        "sample_names": [
+          "귀한사람들",
+          "그래비티랩스",
+          "그로브",
+          "금홍",
+          "김정",
+          "김지은",
+          "동림산업",
+          "동문시장",
+          "라이트팜텍",
+          "매크로머신",
+          "박수현",
+          "삼원페이퍼"
+        ]
+      }
+    },
+    {
+      "id": "a05-removed-project-seller-names-absent",
+      "passed": true,
+      "evidence": {
+        "removed_name_hits": []
+      }
+    },
+    {
+      "id": "a05-crosswalk-real-tenant-links-present",
+      "passed": true,
+      "evidence": {
+        "linked_count": 99
+      }
+    }
+  ]
+}

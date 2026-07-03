@@ -16,8 +16,10 @@ import {
   createMatterStatusHistoryStore,
   deriveMatterCode,
   filterVisibleMatters,
+  listMatterParties,
   matterOpeningDependencyDecision,
   openMatterTransaction,
+  registerMatterParty,
   upsertCanonicalMatterIdentity,
   upsertMatterAppClientFromVaultContract,
   upsertMatterAppMatterFromVaultContract,
@@ -25,6 +27,7 @@ import {
   reserveMatterNumber,
   transitionMatterTask,
 } from "../src/index.js";
+import { MATTER_ONBOARDING_GATE_ERROR_CODE } from "../src/staffing-service.js";
 
 const tenant_id = "tenant-g4-runtime";
 const actor_id = "user-g4-owner";
@@ -453,6 +456,103 @@ test("MatterTeam runtime blocks user_id-only and unavailable employees", () => {
     },
   });
   assert.equal(member.employee_id, "emp-active");
+});
+
+test("MatterTeam runtime blocks matter staffing until onboarding security tasks are complete", () => {
+  const repository = createMatterRepository({ seedRecords: [matterInput()] });
+  const employees = [{ tenant_id, employee_id: "emp-onboarding", status: "onboarding", availability: "available" }];
+  const onboardingPlan = {
+    tenant_id,
+    employee_id: "emp-onboarding",
+    onboarding_id: "onb-matter-gate",
+    tasks: [
+      { task_id: "security-training", title: "Security training", status: "completed" },
+      { task_id: "security-pledge", title: "Security pledge", status: "pending" },
+    ],
+  };
+  const onboardingGate = {
+    getMatterAssignmentReadiness: () => ({
+      outcome: "blocked",
+      reason: "onboarding_gate_incomplete",
+      onboarding_id: onboardingPlan.onboarding_id,
+      employee_id: onboardingPlan.employee_id,
+      missing_task_ids: ["security-pledge"],
+    }),
+  };
+
+  assert.throws(
+    () =>
+      addMatterTeamMember({
+        repository,
+        employeeDirectory: employees,
+        onboardingGate,
+        matter: matterInput(),
+        actor_id,
+        member: {
+          model_type: "MatterMember",
+          tenant_id,
+          matter_id: "matter-g4",
+          member_id: "member-onboarding-blocked",
+          employee_id: "emp-onboarding",
+          user_id: "user-onboarding",
+          role: "associate",
+          status: "active",
+        },
+      }),
+    (error) => error.code === MATTER_ONBOARDING_GATE_ERROR_CODE,
+  );
+
+  const completedGate = {
+    getMatterAssignmentReadiness: () => ({ outcome: "allow", reason: "onboarding_gate_completed" }),
+  };
+  const member = addMatterTeamMember({
+    repository,
+    employeeDirectory: employees,
+    onboardingGate: completedGate,
+    matter: matterInput(),
+    actor_id,
+    member: {
+      model_type: "MatterMember",
+      tenant_id,
+      matter_id: "matter-g4",
+      member_id: "member-onboarding-cleared",
+      employee_id: "emp-onboarding",
+      user_id: "user-onboarding",
+      role: "associate",
+      status: "active",
+    },
+  });
+  assert.equal(member.employee_id, "emp-onboarding");
+});
+
+test("MatterParty runtime stores adverse parties with model_type filter visibility", () => {
+  const repository = createMatterRepository({ seedRecords: [matterInput({ status: "closed" })] });
+  const audit = { append: (event) => repository.appendAudit({ ...event, event_id: `${event.action}:${event.object_id}` }) };
+
+  const party = registerMatterParty({
+    repository,
+    matter: matterInput({ status: "closed" }),
+    actor_id,
+    audit,
+    party: {
+      tenant_id,
+      matter_id: "matter-g4",
+      matter_party_id: "matter-party-adverse-g4",
+      party_id: "party-adverse-g4",
+      display_name: "상대방 주식회사",
+      party_role: "adverse",
+      retroactive_entry: true,
+    },
+  });
+
+  assert.equal(party.party_role, "adverse_party");
+  assert.equal(party.conflict_subject, true);
+  assert.equal(party.retroactive_entry, true);
+  assert.equal(party.raw_contact_values_included, false);
+  assert.equal(party.production_ready_claim, false);
+  assert.equal(repository.list({ tenant_id, model_type: "MatterParty", matter_id: "matter-g4" }).length, 1);
+  assert.equal(listMatterParties({ repository, tenant_id, matter_id: "matter-g4", party_role: "adverse_party" }).length, 1);
+  assert.equal(repository.listAudit({ tenant_id, object_id: "matter-party-adverse-g4" }).length, 1);
 });
 
 test("Matter task, deadline, status history, report, close, and visibility runtime guards hold", () => {

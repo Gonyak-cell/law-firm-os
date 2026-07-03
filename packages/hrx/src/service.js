@@ -1,3 +1,6 @@
+import { randomUUID } from "node:crypto";
+import { transitionEmployee } from "./employee-lifecycle.js";
+
 function requirePort(port, name, methods) {
   if (!port || typeof port !== "object") throw new TypeError(`HRX service requires ${name} port`);
   for (const method of methods) {
@@ -68,7 +71,7 @@ export function createHrxService({ repository, authz, audit: auditPort } = {}) {
         resource_type: "hrx.employee",
         resource_id: input?.employee_id ?? null,
       });
-      const employee = repository.createEmployee({ ...input, tenant_id: context.tenant_id });
+      const employee = repository.createEmployee({ status: "onboarding", ...input, tenant_id: context.tenant_id });
       await audit(auditPort, context, {
         event_type: "hrx.employee.created",
         action: "hrx.employee.create",
@@ -102,7 +105,15 @@ export function createHrxService({ repository, authz, audit: auditPort } = {}) {
         resource_type: "hrx.employee",
         resource_id: ref?.employee_id ?? null,
       });
-      const employee = repository.updateEmployee({ ...ref, tenant_id: context.tenant_id }, patch);
+      const current = repository.getEmployee({ ...ref, tenant_id: context.tenant_id });
+      if (!current) {
+        const error = new ReferenceError(`Employee not found: ${ref?.employee_id}`);
+        error.safe_error_code = "HRX_EMPLOYEE_NOT_FOUND";
+        error.status = 404;
+        throw error;
+      }
+      const next = transitionEmployee(current, patch);
+      const employee = repository.updateEmployee({ ...ref, tenant_id: context.tenant_id }, next);
       await audit(auditPort, context, {
         event_type: "hrx.employee.updated",
         action: "hrx.employee.update",
@@ -194,4 +205,3 @@ export function createHrxService({ repository, authz, audit: auditPort } = {}) {
     },
   });
 }
-import { randomUUID } from "node:crypto";

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import test from "node:test";
 import { APPROVED_DEV_RENDERER_URL } from "../src/main/origin-policy.js";
 import {
@@ -16,8 +17,10 @@ import {
   startDesktopShell
 } from "../src/main/main.js";
 import {
+  desktopRuntimeStorePaths,
   desktopApiServerEntryCandidates,
-  resolveDesktopApiServerEntry
+  resolveDesktopApiServerEntry,
+  startDesktopLocalApiServer
 } from "../src/main/local-api.js";
 
 class FakeBrowserWindow {
@@ -97,6 +100,83 @@ test("desktop shell can resolve bundled or repo-local API server for web rendere
     }),
     packagedEntry
   );
+});
+
+test("desktop local API maps runtime stores under Electron userData", () => {
+  const userDataPath = join("/Users/test/Library/Application Support", "matter");
+  const madeDirs = [];
+  const stores = desktopRuntimeStorePaths({
+    env: {},
+    userDataPath,
+    mkdirSyncImpl: (dir, options) => {
+      madeDirs.push({ dir, options });
+    }
+  });
+  const storeDir = join(userDataPath, "runtime-stores");
+
+  assert.deepEqual(madeDirs, [{ dir: storeDir, options: { recursive: true } }]);
+  assert.equal(stores.hrxStorePath, join(storeDir, "hrx-store.json"));
+  assert.equal(stores.masterDataStorePath, join(storeDir, "master-data-store.json"));
+  assert.equal(stores.matterStorePath, join(storeDir, "matter-store.json"));
+  assert.equal(stores.dmsStorePath, join(storeDir, "dms-store.json"));
+  assert.equal(stores.crmStorePath, join(storeDir, "crm-store.json"));
+  assert.equal(stores.intakeStorePath, join(storeDir, "intake-store.json"));
+  assert.equal(stores.crmMasterDataStorePath, join(storeDir, "crm-master-data-store.json"));
+  assert.equal(stores.financeStorePath, join(storeDir, "finance-store.json"));
+  assert.equal(stores.analyticsStorePath, join(storeDir, "analytics-store.json"));
+  assert.equal(stores.aiStorePath, join(storeDir, "ai-store.json"));
+  assert.equal(stores.portalStorePath, join(storeDir, "portal-store.json"));
+  assert.equal(stores.uiReadinessStorePath, join(storeDir, "ui-readiness-store.json"));
+  assert.equal(stores.enterpriseReadinessStorePath, join(storeDir, "enterprise-readiness-store.json"));
+});
+
+test("desktop local API preserves explicit store overrides", () => {
+  const storeDir = "/tmp/lawos-desktop-stores";
+  const madeDirs = [];
+  const stores = desktopRuntimeStorePaths({
+    env: {
+      MATTER_DESKTOP_RUNTIME_STORE_DIR: storeDir,
+      LAWOS_MATTER_STORE_PATH: "/tmp/matter-override.json"
+    },
+    userDataPath: "/ignored/user-data",
+    mkdirSyncImpl: (dir, options) => {
+      madeDirs.push({ dir, options });
+    }
+  });
+
+  assert.deepEqual(madeDirs, [{ dir: storeDir, options: { recursive: true } }]);
+  assert.equal(stores.matterStorePath, "/tmp/matter-override.json");
+  assert.equal(stores.hrxStorePath, join(storeDir, "hrx-store.json"));
+});
+
+test("desktop local API starts bundled API with userData-backed stores", async () => {
+  const packagedStart = "/App/Contents/Resources/app/src/main";
+  const packagedEntry = "/App/Contents/Resources/app/runtime/apps/api/src/server.js";
+  const userDataPath = join("/Users/test/Library/Application Support", "matter");
+  const storeDir = join(userDataPath, "runtime-stores");
+  let apiOptions = null;
+  const localApi = await startDesktopLocalApiServer({
+    env: {},
+    start: packagedStart,
+    userDataPath,
+    existsSyncImpl: (candidate) => candidate === packagedEntry,
+    mkdirSyncImpl: () => {},
+    startApiServerImpl: async (options) => {
+      apiOptions = options;
+      return {
+        server: { close() {} },
+        host: "127.0.0.1",
+        port: 4812
+      };
+    }
+  });
+
+  assert.equal(apiOptions.port, 0);
+  assert.equal(apiOptions.matterStorePath, join(storeDir, "matter-store.json"));
+  assert.equal(apiOptions.hrxStorePath, join(storeDir, "hrx-store.json"));
+  assert.equal(localApi.entry, packagedEntry);
+  assert.equal(localApi.baseUrl, "http://127.0.0.1:4812");
+  assert.equal(localApi.storePaths.matterStorePath, apiOptions.matterStorePath);
 });
 
 test("desktop shell hands password reset deep link intent to renderer without exposing it in return value", async () => {

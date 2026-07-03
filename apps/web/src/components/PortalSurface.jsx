@@ -1,7 +1,14 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { RefreshCw, ShieldCheck, Share2 } from "lucide-react";
-import { fetchDataRoomProjections, fetchPortalDashboard, fetchPortalRfi } from "../data/apiClient.js";
+import { AlertTriangle, FileText, RefreshCw, ShieldCheck, Share2 } from "lucide-react";
+import {
+  accessPortalExternalSecureLink,
+  consumePortalInvite,
+  fetchDataRoomProjections,
+  fetchPortalDashboard,
+  fetchPortalRfi,
+  submitPortalExternalRfiResponse
+} from "../data/apiClient.js";
 import { CompactTable, PageHeader, Panel } from "./primitives.jsx";
 
 const PORTAL_PERMISSION_REF = "ui_cmp_g10_portal_live";
@@ -23,13 +30,33 @@ function requestStatusLabel(value) {
   return "확인 필요";
 }
 
+function portalQueryValue(key) {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get(key) ?? "";
+}
+
+function externalSessionState(result, session) {
+  if (session) return "active";
+  if (result === null) return "loading";
+  return "blocked";
+}
+
 export function PortalSurface({ labels, liveCtx = "allow" }) {
+  const [inviteToken] = useState(() => portalQueryValue("portal_invite"));
+  const [inviteNow] = useState(() => portalQueryValue("portal_invite_now") || undefined);
+  const [accessNow] = useState(() => portalQueryValue("portal_access_now") || undefined);
   const [dashboard, setDashboard] = useState(null);
   const [rfi, setRfi] = useState(null);
   const [dataRoom, setDataRoom] = useState(null);
   const [refreshToken, setRefreshToken] = useState(0);
+  const [externalInviteResult, setExternalInviteResult] = useState(inviteToken ? null : { kind: "idle" });
+  const [externalSession, setExternalSession] = useState(null);
+  const [externalRfiResult, setExternalRfiResult] = useState(null);
+  const [externalLinkResult, setExternalLinkResult] = useState(null);
+  const [externalBusy, setExternalBusy] = useState("");
 
   useEffect(() => {
+    if (inviteToken) return undefined;
     let cancelled = false;
     setDashboard(null);
     setRfi(null);
@@ -48,26 +75,128 @@ export function PortalSurface({ labels, liveCtx = "allow" }) {
     return () => {
       cancelled = true;
     };
-  }, [liveCtx, refreshToken]);
+  }, [inviteToken, liveCtx, refreshToken]);
+
+  useEffect(() => {
+    if (!inviteToken) return undefined;
+    let cancelled = false;
+    setExternalInviteResult(null);
+    setExternalSession(null);
+    consumePortalInvite({ token: inviteToken, now: inviteNow }).then((result) => {
+      if (cancelled) return;
+      setExternalInviteResult(result);
+      if (result.kind === "data") setExternalSession(result.body.item);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [inviteNow, inviteToken]);
 
   const dashboardItems = dashboard?.kind === "data" ? dashboard.items : [];
   const rfiItems = rfi?.kind === "data" ? rfi.items : [];
   const projectionItems = dataRoom?.kind === "data" ? dataRoom.items : [];
-  const blocking = <LiveState result={dashboard ?? rfi ?? dataRoom} label="공유 포털" />;
+  const blocking = inviteToken ? null : <LiveState result={dashboard ?? rfi ?? dataRoom} label="공유 포털" />;
+  const externalState = externalSessionState(externalInviteResult, externalSession);
+  const externalLinkDeniedExpired = externalLinkResult?.safeErrorCodes?.includes("PORTAL_SECURE_LINK_EXPIRED") === true;
+  const externalLinkDeniedRevoked = externalLinkResult?.safeErrorCodes?.includes("PORTAL_SECURE_LINK_REVOKED") === true;
+  const externalLinkAccessState = externalLinkDeniedExpired
+    ? "expired-denied"
+    : externalLinkDeniedRevoked
+      ? "revoked-denied"
+      : externalLinkResult?.kind === "data"
+        ? "allowed-no-bytes"
+        : "idle";
+  const externalRfiState = externalRfiResult?.body?.item?.upload_metadata_only === true ? "metadata-only" : externalRfiResult?.kind ?? "idle";
+
+  async function submitExternalRfi() {
+    if (!externalSession) return;
+    setExternalBusy("rfi");
+    const suffix = externalSession.external_session_id.slice(-8);
+    const result = await submitPortalExternalRfiResponse({
+      externalSessionId: externalSession.external_session_id,
+      tenantId: externalSession.tenant_id,
+      rfiRequestId: externalSession.rfi_request_id,
+      responseId: `rfi_response_ui_c13_${suffix}`,
+      uploadName: "client-response-metadata.pdf",
+      idempotencyKey: `ui-c13-rfi-${externalSession.external_session_id}`
+    });
+    setExternalRfiResult(result);
+    setExternalBusy("");
+  }
+
+  async function accessExternalLink() {
+    if (!externalSession) return;
+    setExternalBusy("link");
+    const result = await accessPortalExternalSecureLink({
+      tenantId: externalSession.tenant_id,
+      secureLinkId: externalSession.secure_link_id,
+      externalSessionId: externalSession.external_session_id,
+      now: accessNow
+    });
+    setExternalLinkResult(result);
+    setExternalBusy("");
+  }
 
   return (
-    <section className="surface stack portal-surface" data-cmp-g10-portal-runtime="true">
+    <section
+      className="surface stack portal-surface"
+      data-cmp-g10-portal-runtime="true"
+      data-c13-portal-mounted="true"
+      data-c13-external-session={externalState}
+      data-c13-rfi-response={externalRfiState}
+      data-c13-secure-link-access={externalLinkAccessState}
+    >
       <PageHeader
         eyebrow="공유 포털"
         title={labels.portalTitle}
-        subtitle="의뢰인에게 공유할 Matter 정보와 문서 요청을 한곳에서 확인합니다."
-        actions={
+        subtitle={inviteToken ? "외부 세션 범위 안에서 요청 응답과 공유 링크 상태를 확인합니다." : "의뢰인에게 공유할 Matter 정보와 문서 요청을 한곳에서 확인합니다."}
+        actions={!inviteToken && (
           <button className="secondary-button" onClick={() => setRefreshToken((value) => value + 1)}>
             <RefreshCw size={15} />
             새로고침
           </button>
-        }
+        )}
       />
+      {inviteToken && (
+        <div className="portal-runtime-grid">
+          <Panel className="span-2 portal-panel" title="외부 세션" meta={externalSession ? "초대 확인됨" : "초대 확인 중"}>
+            {externalSession ? (
+              <div className="portal-safe-strip">
+                <ShieldCheck size={15} />
+                <span>이 세션은 요청 응답과 지정된 공유 링크에만 사용할 수 있습니다.</span>
+              </div>
+            ) : (
+              <div className={externalInviteResult?.kind === "error" ? "live-data-state live-data-error" : "live-data-state live-data-loading"}>
+                <strong>{externalInviteResult?.kind === "error" ? "초대를 열 수 없습니다" : "초대 확인 중"}</strong>
+                {externalInviteResult?.kind === "error" ? externalInviteResult.safeErrorCodes.join(", ") : "외부 세션을 준비하고 있습니다."}
+              </div>
+            )}
+          </Panel>
+          <Panel title="요청 응답" meta="메타데이터 업로드">
+            <div className="matter-boundary-card" data-c13-rfi-response-panel="true">
+              <FileText size={20} />
+              <strong>{externalRfiState === "metadata-only" ? "응답 접수됨" : "응답 대기"}</strong>
+              <span>{externalRfiState === "metadata-only" ? "문서 본문 없이 파일명과 검사 상태만 기록되었습니다." : "답변 파일의 메타데이터만 접수합니다."}</span>
+              <button type="button" className="secondary-button" disabled={!externalSession || externalBusy === "rfi"} onClick={submitExternalRfi} data-c13-submit-rfi="true">
+                <FileText size={15} />
+                요청 응답 제출
+              </button>
+            </div>
+          </Panel>
+          <Panel title="공유 링크" meta={externalLinkAccessState === "expired-denied" ? "만료 차단" : "본문 비공개"}>
+            <div className="matter-boundary-card" data-c13-secure-link-panel="true">
+              {externalLinkAccessState === "expired-denied" ? <AlertTriangle size={20} /> : <Share2 size={20} />}
+              <strong>{externalLinkAccessState === "expired-denied" ? "만료 링크 차단됨" : externalLinkAccessState === "allowed-no-bytes" ? "링크 확인됨" : "링크 확인 대기"}</strong>
+              <span>{externalLinkAccessState === "allowed-no-bytes" ? "접근은 기록되었고 문서 본문은 노출되지 않았습니다." : externalLinkAccessState === "revoked-denied" ? "회수된 링크는 열 수 없습니다." : "만료되었거나 회수된 링크는 열 수 없습니다."}</span>
+              <button type="button" className="secondary-button" disabled={!externalSession || externalBusy === "link"} onClick={accessExternalLink} data-c13-access-link="true">
+                <Share2 size={15} />
+                공유 링크 확인
+              </button>
+            </div>
+          </Panel>
+        </div>
+      )}
+      {!inviteToken && (
       <div className="portal-runtime-grid">
         <Panel className="span-2 portal-panel" title="공유 범위" meta="권한 기준 적용">
           {blocking ?? (
@@ -103,6 +232,7 @@ export function PortalSurface({ labels, liveCtx = "allow" }) {
           </div>
         </Panel>
       </div>
+      )}
     </section>
   );
 }

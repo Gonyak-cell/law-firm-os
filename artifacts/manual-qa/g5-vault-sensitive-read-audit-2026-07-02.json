@@ -1,0 +1,15 @@
+{
+  "outcome": "passed",
+  "checked_at": "2026-07-02T11:41:43.300Z",
+  "store_path": "/var/folders/ty/q6d5d6xx255fhnmrbs7l3gtw0000gn/T/lawos-manual-g5-sensitive-read-agjpzD/dms-store.json",
+  "actor_id": "user_amic_jwsuh",
+  "document_read_audit_persisted_after_restart": true,
+  "search_read_audit_persisted_after_restart": true,
+  "document_read_action": "dms:document:read",
+  "search_read_action": "dms:search",
+  "document_read_sensitive_read_audit_required": true,
+  "search_read_sensitive_read_audit_required": true,
+  "document_bytes_included": false,
+  "search_raw_text_included": false,
+  "raw_payload_included": false
+}

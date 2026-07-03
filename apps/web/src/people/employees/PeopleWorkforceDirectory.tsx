@@ -16,7 +16,7 @@ import {
   UserPlus,
   UsersRound
 } from "lucide-react";
-import { fetchHrxEmployees, fetchHrxLifecycleBoard } from "../hrxApiClient.ts";
+import { fetchHrxEmployees, fetchHrxLifecycleBoard, fetchHrxOrgChart, updateHrxReportingLine } from "../hrxApiClient.ts";
 
 const STATUS_TABS = [
   { id: "active", label: "현재 재직" },
@@ -29,6 +29,10 @@ const STATUS_TABS = [
 type HrxRecord = Record<string, unknown>;
 type EmployeeResult = { kind: "data"; employees: HrxRecord[] } | { kind: "error" } | null;
 type LifecycleResult = { kind: "data"; onboarding: HrxRecord[]; offboarding: HrxRecord[] } | { kind: "error" } | null;
+type OrgChartResult =
+  | { kind: "data"; org_units: HrxRecord[]; employees: HrxRecord[]; reporting_lines: HrxRecord[]; change_events: HrxRecord[]; claim_boundary?: HrxRecord | null }
+  | { kind: "error" }
+  | null;
 type ViewMode = "table" | "org";
 type WorkforceRow = {
   key: string;
@@ -55,11 +59,43 @@ type LocalAction = {
   title: string;
   body: string;
 };
+type IconComponent = (props: { size?: number }) => unknown;
+type FormSubmitEvent = { preventDefault(): void };
+type SelectChangeEvent = { target: { value: string } };
+type OrgUnit = {
+  id: string;
+  label: string;
+  department: string;
+  parentOrgUnitId: string;
+  memberCount: number;
+};
+type OrgEmployee = {
+  key: string;
+  employeeId: string;
+  name: string;
+  title: string;
+  orgUnitId: string;
+  orgUnitLabel: string;
+  department: string;
+  managerEmployeeId: string;
+  managerName: string;
+  directReportCount: number;
+};
 
 function stringField(record: HrxRecord, key: string) {
   const value = record[key];
   if (typeof value === "string" || typeof value === "number") return String(value);
   return "";
+}
+
+function numberField(record: HrxRecord, key: string) {
+  const value = record[key];
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 0;
 }
 
 function roleLabel(value: unknown) {
@@ -139,7 +175,7 @@ function sourceIcon(source: string) {
   return source === "미등록" || source === "확인 필요" ? <LockKeyhole size={15} /> : <Building2 size={15} />;
 }
 
-function HeaderCell({ icon: Icon, children }: { icon: React.ComponentType<{ size?: number }>; children: React.ReactNode }) {
+function HeaderCell({ icon: Icon, children }: { icon: IconComponent; children: unknown }) {
   return (
     <span className="hr-roster-header-cell">
       <Icon size={15} />
@@ -221,14 +257,6 @@ function statusForTab(activeTab: string, employeeResult: EmployeeResult, lifecyc
   return null;
 }
 
-function groupByOrganization(rows: WorkforceRow[]) {
-  return rows.reduce((groups, row) => {
-    const key = row.organizationGroup || row.department || "미등록";
-    groups.set(key, [...(groups.get(key) ?? []), row]);
-    return groups;
-  }, new Map<string, WorkforceRow[]>());
-}
-
 function organizationGroupLabel(department: string) {
   if (department === "Legal") return "AMIC Law";
   if (department === "Finance") return "PETRA BRIDGE PARTNERS";
@@ -238,10 +266,15 @@ function organizationGroupLabel(department: string) {
 export function PeopleWorkforceDirectory({ initialTab = "active", initialView = "table", refreshKey = 0, selectedEmployeeId = null, onSelectEmployee, compact = false }: WorkforceDirectoryProps) {
   const [employeeResult, setEmployeeResult] = useState<EmployeeResult>(null);
   const [lifecycleResult, setLifecycleResult] = useState<LifecycleResult>(null);
+  const [orgChartResult, setOrgChartResult] = useState<OrgChartResult>(null);
   const [activeTab, setActiveTab] = useState(initialTab);
   const [viewMode, setViewMode] = useState<ViewMode>(initialView);
   const [query, setQuery] = useState("");
   const [localAction, setLocalAction] = useState<LocalAction | null>(null);
+  const [orgEditEmployeeId, setOrgEditEmployeeId] = useState("");
+  const [orgEditManagerId, setOrgEditManagerId] = useState("");
+  const [orgEditOrgUnitId, setOrgEditOrgUnitId] = useState("");
+  const [orgSaving, setOrgSaving] = useState(false);
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -273,6 +306,17 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
     };
   }, [refreshKey]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setOrgChartResult(null);
+    fetchHrxOrgChart().then((next) => {
+      if (!cancelled) setOrgChartResult(next as OrgChartResult);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshKey]);
+
   const allRows = useMemo(() => rowsForTab(activeTab, employeeResult, lifecycleResult), [activeTab, employeeResult, lifecycleResult]);
   const visibleRows = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -283,9 +327,72 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
       )
     );
   }, [allRows, query]);
+  const rowsByOrganization = useMemo(() => {
+    return visibleRows.reduce((groups, row) => {
+      const key = row.organizationGroup || row.department || "미등록";
+      groups.set(key, [...(groups.get(key) ?? []), row]);
+      return groups;
+    }, new Map<string, WorkforceRow[]>());
+  }, [visibleRows]);
   const status = statusForTab(activeTab, employeeResult, lifecycleResult);
-  const orgStatus = statusForTab("active", employeeResult, lifecycleResult);
-  const orgGroups = groupByOrganization(rowsForTab("active", employeeResult, lifecycleResult));
+  const orgStatus =
+    orgChartResult === null
+      ? { kind: "loading", message: "조직 정보를 불러오는 중입니다" }
+      : orgChartResult.kind === "error"
+        ? { kind: "error", message: "조직 정보를 불러오지 못했습니다.", detail: "로컬 런타임 또는 권한 컨텍스트를 확인하세요." }
+        : null;
+  const orgUnits = useMemo<OrgUnit[]>(() => {
+    const units = orgChartResult?.kind === "data" ? orgChartResult.org_units : [];
+    return units.map((unit) => ({
+      id: stringField(unit, "org_unit_id"),
+      label: stringField(unit, "label") || "미등록",
+      department: stringField(unit, "department") || "미등록",
+      parentOrgUnitId: stringField(unit, "parent_org_unit_id"),
+      memberCount: numberField(unit, "member_count")
+    }));
+  }, [orgChartResult]);
+  const orgEmployees = useMemo<OrgEmployee[]>(() => {
+    const employees = orgChartResult?.kind === "data" ? orgChartResult.employees : [];
+    return employees.map((employee, index) => ({
+      key: stringField(employee, "employee_id") || `org-employee-${index}`,
+      employeeId: stringField(employee, "employee_id"),
+      name: stringField(employee, "display_name") || `구성원 ${index + 1}`,
+      title: roleLabel(stringField(employee, "title")),
+      orgUnitId: stringField(employee, "org_unit_id") || "unassigned",
+      orgUnitLabel: stringField(employee, "org_unit_label") || "미등록",
+      department: stringField(employee, "department") || "미등록",
+      managerEmployeeId: stringField(employee, "manager_employee_id"),
+      managerName: stringField(employee, "manager_display_name"),
+      directReportCount: numberField(employee, "direct_report_count")
+    }));
+  }, [orgChartResult]);
+  const orgVisibleEmployees = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return orgEmployees;
+    return orgEmployees.filter((employee) =>
+      [employee.name, employee.title, employee.orgUnitLabel, employee.department, employee.managerName].some((value) =>
+        value.toLowerCase().includes(normalizedQuery)
+      )
+    );
+  }, [orgEmployees, query]);
+  const orgEmployeesByUnit = useMemo(() => {
+    return orgVisibleEmployees.reduce((groups, employee) => {
+      const key = employee.orgUnitId || "unassigned";
+      groups.set(key, [...(groups.get(key) ?? []), employee]);
+      return groups;
+    }, new Map<string, OrgEmployee[]>());
+  }, [orgVisibleEmployees]);
+  const orgUnitLabelById = useMemo(() => new Map(orgUnits.map((unit) => [unit.id, unit.label])), [orgUnits]);
+  const orgEmployeeById = useMemo(() => new Map(orgVisibleEmployees.map((employee) => [employee.employeeId, employee])), [orgVisibleEmployees]);
+  const orgChildrenByManager = useMemo(() => {
+    return orgVisibleEmployees.reduce((groups, employee) => {
+      if (!employee.managerEmployeeId || !orgEmployeeById.has(employee.managerEmployeeId)) return groups;
+      groups.set(employee.managerEmployeeId, [...(groups.get(employee.managerEmployeeId) ?? []), employee]);
+      return groups;
+    }, new Map<string, OrgEmployee[]>());
+  }, [orgEmployeeById, orgVisibleEmployees]);
+  const orgChangeEvents = orgChartResult?.kind === "data" ? orgChartResult.change_events : [];
+  const selectedOrgEmployee = orgEmployees.find((employee) => employee.employeeId === orgEditEmployeeId) ?? null;
   const showLocalAction = (title: string, body: string) => setLocalAction({ title, body });
   const handleRowSelect = (row: WorkforceRow) => {
     if (row.employeeId) {
@@ -294,6 +401,60 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
       return;
     }
     showLocalAction(`${row.name} 선택됨`, `${row.jobTitle} 항목은 아래 입퇴사 관리 보드에서 확인합니다.`);
+  };
+  useEffect(() => {
+    if (orgEmployees.length === 0) {
+      setOrgEditEmployeeId("");
+      return;
+    }
+    if (!orgEmployees.some((employee) => employee.employeeId === orgEditEmployeeId)) {
+      setOrgEditEmployeeId(orgEmployees[0].employeeId);
+    }
+  }, [orgEditEmployeeId, orgEmployees]);
+
+  useEffect(() => {
+    if (!selectedOrgEmployee) {
+      setOrgEditManagerId("");
+      setOrgEditOrgUnitId("");
+      return;
+    }
+    setOrgEditManagerId(selectedOrgEmployee.managerEmployeeId);
+    setOrgEditOrgUnitId(selectedOrgEmployee.orgUnitId === "unassigned" ? "" : selectedOrgEmployee.orgUnitId);
+  }, [selectedOrgEmployee]);
+
+  const handleOrgAssignmentSubmit = async (event: FormSubmitEvent) => {
+    event.preventDefault();
+    if (!orgEditEmployeeId) return;
+    setOrgSaving(true);
+    const result = await updateHrxReportingLine(orgEditEmployeeId, {
+      org_unit_id: orgEditOrgUnitId || null,
+      manager_employee_id: orgEditManagerId || null
+    });
+    setOrgSaving(false);
+    if (result.kind === "data" && result.org_chart) {
+      setOrgChartResult({ kind: "data", ...result.org_chart } as OrgChartResult);
+      showLocalAction("조직 변경", "변경 이력이 기록되었습니다.");
+      return;
+    }
+    showLocalAction("조직 변경 실패", "저장 권한과 리포팅 라인을 확인하세요.");
+  };
+
+  const renderOrgEmployee = (employee: OrgEmployee, depth = 0): unknown => {
+    const childRows = (orgChildrenByManager.get(employee.employeeId) ?? []).filter((child) => child.orgUnitId === employee.orgUnitId);
+    return [
+        <div key={`${employee.key}-self`} className="hr-org-person" style={{ paddingLeft: `${8 + depth * 16}px` }}>
+          <span className="hr-roster-avatar">{initials(employee.name)}</span>
+          <div>
+            <strong>{employee.name}</strong>
+            <small>
+              {employee.title}
+              {employee.managerName ? ` / 상위 ${employee.managerName}` : " / 최상위"}
+              {employee.directReportCount > 0 ? ` / 직속 ${employee.directReportCount}명` : ""}
+            </small>
+          </div>
+        </div>,
+      ...childRows.map((child) => renderOrgEmployee(child, depth + 1))
+    ];
   };
 
   return (
@@ -375,7 +536,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
           )}
           <label className="hr-roster-search">
             <Search size={16} />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="검색" aria-label="구성원 검색" />
+            <input value={query} onChange={(event: SelectChangeEvent) => setQuery(event.target.value)} placeholder="검색" aria-label="구성원 검색" />
           </label>
           {!compact && (
             <button
@@ -434,36 +595,44 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                     </td>
                   </tr>
                 )}
-                {!status && visibleRows.map((row) => {
-                  const isSelected = Boolean(row.employeeId && row.employeeId === selectedEmployeeId);
-                  return (
-                    <tr key={row.key} className={[row.muted ? "muted" : "", isSelected ? "selected" : ""].filter(Boolean).join(" ")}>
-                      <td>
-                        <button type="button" className="hr-roster-person" aria-pressed={isSelected ? "true" : "false"} onClick={() => handleRowSelect(row)}>
-                          <FileText className="hr-roster-page-icon" size={17} />
-                          <span>
-                            <strong>{row.name}</strong>
-                            {compact && <small>{row.workerType} / {row.affiliation}</small>}
+                {!status && Array.from(rowsByOrganization.entries()).flatMap(([organization, rows]) => [
+                  <tr key={`${organization}-group`} className="hr-roster-organization-row">
+                    <td colSpan={5}>
+                      <strong>{organization}</strong>
+                      <span>{rows.length}명</span>
+                    </td>
+                  </tr>,
+                  ...rows.map((row) => {
+                    const isSelected = Boolean(row.employeeId && row.employeeId === selectedEmployeeId);
+                    return (
+                      <tr key={row.key} className={[row.muted ? "muted" : "", isSelected ? "selected" : ""].filter(Boolean).join(" ")}>
+                        <td>
+                          <button type="button" className="hr-roster-person" aria-pressed={isSelected ? "true" : "false"} onClick={() => handleRowSelect(row)}>
+                            <FileText className="hr-roster-page-icon" size={17} />
+                            <span>
+                              <strong>{row.name}</strong>
+                              {compact && <small>{row.workerType} / {row.affiliation}</small>}
+                            </span>
+                          </button>
+                        </td>
+                        <td>{row.jobTitle}</td>
+                        <td>
+                          <span className="hr-roster-owner">
+                            <span className="hr-roster-avatar">{initials(row.affiliation)}</span>
+                            {row.affiliation}
                           </span>
-                        </button>
-                      </td>
-                      <td>{row.jobTitle}</td>
-                      <td>
-                        <span className="hr-roster-owner">
-                          <span className="hr-roster-avatar">{initials(row.affiliation)}</span>
-                          {row.affiliation}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="hr-roster-source">
-                          {sourceIcon(row.department)}
-                          {row.department}
-                        </span>
-                      </td>
-                      <td>{row.email}</td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                        <td>
+                          <span className="hr-roster-source">
+                            {sourceIcon(row.department)}
+                            {row.department}
+                          </span>
+                        </td>
+                        <td>{row.email}</td>
+                      </tr>
+                    );
+                  })
+                ])}
               </tbody>
             </table>
           </div>
@@ -473,7 +642,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
           <div className="hr-org-root">
             <GitBranch size={18} />
             <strong>조직</strong>
-            <span>재직 구성원을 소속 기준으로 표시합니다.</span>
+            <span>근로정보 기준 리포팅 라인</span>
           </div>
           {orgStatus ? (
             <div className={`live-data-state ${orgStatus.kind === "error" ? "live-data-error" : "live-data-loading"}`}>
@@ -481,30 +650,100 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
               {orgStatus.detail && <span>{orgStatus.detail}</span>}
             </div>
           ) : (
-            <div className="hr-org-grid">
-              {[...orgGroups.entries()].map(([organization, rows]) => (
-                <article key={organization} className="hr-org-group">
-                  <header>
-                    <strong>{organization}</strong>
-                    <span>{rows.length}명</span>
-                  </header>
-                  {rows.map((row) => (
-                    <div key={row.key} className="hr-org-person">
-                      <span className="hr-roster-avatar">{initials(row.name)}</span>
-                      <div>
-                        <strong>{row.name}</strong>
-                        <small>{row.jobTitle}</small>
-                      </div>
-                    </div>
-                  ))}
-                </article>
-              ))}
-              {orgGroups.size === 0 && (
-                <div className="live-data-state live-data-empty">
-                  <strong>조직에 표시할 구성원이 없습니다.</strong>
-                </div>
+            <>
+              {!compact && orgEmployees.length > 0 && (
+                <form className="hr-org-editor" data-hr-org-editor="true" onSubmit={handleOrgAssignmentSubmit}>
+                  <label>
+                    <span>구성원</span>
+                    <select value={orgEditEmployeeId} onChange={(event: SelectChangeEvent) => setOrgEditEmployeeId(event.target.value)}>
+                      {orgEmployees.map((employee) => (
+                        <option key={employee.employeeId} value={employee.employeeId}>{employee.name}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>상위자</span>
+                    <select value={orgEditManagerId} onChange={(event: SelectChangeEvent) => setOrgEditManagerId(event.target.value)}>
+                      <option value="">최상위</option>
+                      {orgEmployees
+                        .filter((employee) => employee.employeeId !== orgEditEmployeeId)
+                        .map((employee) => (
+                          <option key={employee.employeeId} value={employee.employeeId}>{employee.name}</option>
+                        ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>조직</span>
+                    <select value={orgEditOrgUnitId} onChange={(event: SelectChangeEvent) => setOrgEditOrgUnitId(event.target.value)}>
+                      {orgUnits.map((unit) => (
+                        <option key={unit.id} value={unit.id}>{unit.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <button type="submit" className="primary-button" disabled={orgSaving || !orgEditEmployeeId || !orgEditOrgUnitId}>
+                    <GitBranch size={15} />
+                    {orgSaving ? "저장 중" : "저장"}
+                  </button>
+                </form>
               )}
-            </div>
+              <div className="hr-org-grid">
+                {orgUnits
+                  .filter((unit) => (orgEmployeesByUnit.get(unit.id) ?? []).length > 0)
+                  .map((unit) => {
+                    const rows = orgEmployeesByUnit.get(unit.id) ?? [];
+                    const roots = rows.filter((row) => !row.managerEmployeeId || !rows.some((candidate) => candidate.employeeId === row.managerEmployeeId));
+                    return (
+                      <article key={unit.id} className="hr-org-group">
+                        <header>
+                          <span>
+                            <strong>{unit.label}</strong>
+                            <small>{unit.department}{unit.parentOrgUnitId ? ` / 상위 ${orgUnitLabelById.get(unit.parentOrgUnitId) ?? unit.parentOrgUnitId}` : ""}</small>
+                          </span>
+                          <span>{rows.length}명</span>
+                        </header>
+                        {roots.map((employee) => renderOrgEmployee(employee))}
+                      </article>
+                    );
+                  })}
+                {orgVisibleEmployees.length === 0 && (
+                  <div className="live-data-state live-data-empty">
+                    <strong>조직에 표시할 구성원이 없습니다.</strong>
+                  </div>
+                )}
+              </div>
+              <div className="hr-org-history" data-hr-org-change-history="true">
+                <header>
+                  <strong>조직 변경 이력</strong>
+                  <span>{orgChangeEvents.length}건</span>
+                </header>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>대상</th>
+                      <th>조직</th>
+                      <th>상위자</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orgChangeEvents.slice(0, 5).map((event) => {
+                      const metadata = (event.metadata && typeof event.metadata === "object" ? event.metadata : {}) as HrxRecord;
+                      return (
+                        <tr key={stringField(event, "event_id")}>
+                          <td>{orgEmployeeById.get(stringField(metadata, "employee_id"))?.name ?? stringField(metadata, "employee_id") ?? stringField(event, "object_id")}</td>
+                          <td>{orgUnitLabelById.get(stringField(metadata, "to_org_unit_id")) ?? stringField(metadata, "to_org_unit_id") ?? "미등록"}</td>
+                          <td>{orgEmployeeById.get(stringField(metadata, "to_manager_employee_id"))?.name ?? "최상위"}</td>
+                        </tr>
+                      );
+                    })}
+                    {orgChangeEvents.length === 0 && (
+                      <tr>
+                        <td colSpan={3}>기록 없음</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       )}

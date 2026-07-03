@@ -1045,7 +1045,26 @@ test("CP00-156 coverage, Hermes packet, Claude packet, and handoff remain produc
   assert.equal(fixture.synthetic_only, false);
   assert.equal(fixture.uses_real_client_data, true);
   assert.equal(fixture.records.length, AMIC_CURRENT_CLIENT_CANDIDATES.length * 3 + 8);
-  assert.equal(AMIC_CURRENT_CLIENT_CANDIDATES.length, 102);
+  assert.equal(AMIC_CURRENT_CLIENT_CANDIDATES.length, 99);
+  const currentClientEntities = fixture.records.filter(
+    (record) => record.model_type === "Entity" && record.client_source_ref === "amic_current_onedrive_folder_inventory_2026_07_01",
+  );
+  const currentClientGroups = fixture.records.filter(
+    (record) => record.model_type === "ClientGroup" && record.client_source_ref === "amic_current_onedrive_folder_inventory_2026_07_01",
+  );
+  assert.equal(currentClientEntities.length, 99);
+  assert.equal(currentClientGroups.length, 99);
+  assert.equal(currentClientGroups.filter((record) => record.synthetic_only === false).length, 99);
+  assert.equal(new Set(currentClientGroups.map((record) => record.canonical_client_crosswalk_ref)).size, 99);
+  for (const clientGroup of currentClientGroups) {
+    const entity = currentClientEntities.find((record) => record.entity_id === clientGroup.rp04_entity_id);
+    assert.ok(entity, `missing Entity for ${clientGroup.client_group_id}`);
+    assert.equal(entity.canonical_client_group_id, clientGroup.client_group_id);
+    assert.equal(entity.rp05_client_ref, clientGroup.rp05_client_ref);
+    assert.equal(entity.canonical_client_crosswalk_ref, clientGroup.canonical_client_crosswalk_ref);
+    assert.equal(entity.single_tenant_migration_state, "canonical_crosswalk_ready");
+    assert.deepEqual(clientGroup.member_entity_ids, [entity.entity_id]);
+  }
   assert.equal(AMIC_CURRENT_CLIENT_CANDIDATES.some((candidate) => candidate.source_lanes.some((lane) => lane.startsWith("999_"))), false);
   const candidateNames = AMIC_CURRENT_CLIENT_CANDIDATES.map((candidate) => candidate.display_name);
   assert.equal(candidateNames.some((name) => /선생님|원장님|회장님|교수님|작가|강제집행면탈|조세범|^Pjt\.|^Project\b/.test(name)), false);
@@ -1053,9 +1072,7 @@ test("CP00-156 coverage, Hermes packet, Claude packet, and handoff remain produc
     assert.ok(candidateNames.includes(expectedName));
   }
   for (const expectedName of [
-    "홀딩핸즈앤코 외 12명",
     "한흥수 외 3명",
-    "노윤현 외 19명",
     "최재헌 외 2명",
     "이강명 외 1명",
     "강상도",

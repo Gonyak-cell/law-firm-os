@@ -1,0 +1,96 @@
+{
+  "id": "d09-hrx-document-lifecycle-2026-07-03",
+  "tuw": "UPL-D-09",
+  "scope": "HR 문서 수명주기: 근로계약서 생성, 서명본 참조 등록, 만료 감시, 만료 처리",
+  "source_plan": "workbook/wave1-internal-uplift-tuw-backlog-2026-07-02.md#UPL-D-09",
+  "browser_surface": {
+    "url": "http://127.0.0.1:5176/?view=policies&ctx=allow#policies-employment-contracts",
+    "result": "pass",
+    "steps": [
+      "전역 유틸리티 policies-employment-contracts 화면에서 live HR 문서 surface 확인",
+      "근로계약서, 계약 생성, 30일 내 만료 summary 표시 확인",
+      "만료일 2026-07-25 입력 후 계약 생성",
+      "생성된 draft 계약에 서명 등록",
+      "signed 계약을 만료 처리",
+      "DMS source_ref 및 signature_ref 표시, document body 미표시 확인"
+    ],
+    "assertions": {
+      "contract_surface_visible": true,
+      "placeholder_removed": true,
+      "after_sign_has_signed_state": true,
+      "after_expire_has_expired_state": true,
+      "source_ref_visible": true,
+      "signature_ref_visible": true,
+      "document_body_leak": false,
+      "console_errors_or_warnings": 0,
+      "failed_requests": 0
+    },
+    "screenshots": [
+      "artifacts/manual-qa/d09-hrx-document-lifecycle-before-2026-07-03.png",
+      "artifacts/manual-qa/d09-hrx-document-lifecycle-after-2026-07-03.png",
+      "artifacts/manual-qa/d09-hrx-document-lifecycle-final-2026-07-03.png"
+    ]
+  },
+  "api_surface": {
+    "result": "pass",
+    "document_id": "doc-api-d09-default-1783005630232",
+    "assertions": {
+      "create_status": 201,
+      "create_state": "draft",
+      "missing_signature_status": 400,
+      "missing_signature_reason": "signature_ref is required for signed contract",
+      "sign_status": 200,
+      "sign_state": "signed",
+      "expiring_default_date_status": 200,
+      "expiring_default_date_contains_created_contract": true,
+      "expire_status": 200,
+      "expire_state": "expired",
+      "expiring_after_expire_status": 200,
+      "expiring_after_expire_contains_created_contract": false
+    }
+  },
+  "lazyweb": {
+    "result": "pass",
+    "job_id": "3bb469c6-5c79-4df5-a10d-6fff48d74f9b",
+    "report_id": "0f167b3c-afe2-4c1a-ae9f-61ee30aeacd8",
+    "report_url": "https://www.lazyweb.com/report/lazyweb/0f167b3c-afe2-4c1a-ae9f-61ee30aeacd8/?source=create",
+    "degraded": false,
+    "failures": [],
+    "image_upload": "pass",
+    "image_key": "paywall-synthesis/uploads/8a6a18b8-596d-45df-a5a0-7acd5751d696.png",
+    "note": "Report opened in the default browser after lazyweb_get_report returned done."
+  },
+  "verification": {
+    "targeted_node_tests": {
+      "command": "node --test packages/hrx/test/documents-sql.test.js apps/api/test/hrx/documents.test.js apps/api/test/hrx/route-authz.test.js apps/api/test/hrx-runtime-api.test.js",
+      "result": "pass",
+      "tests": 43
+    },
+    "root_tests": {
+      "command": "npm test",
+      "result": "pass",
+      "tests": 4107
+    },
+    "web_build": {
+      "command": "npm --workspace apps/web run build",
+      "result": "pass",
+      "warning": "Vite reported a pre-existing chunk-size warning over 500 kB."
+    },
+    "hrx_ui_validator": {
+      "command": "npm run hrx:ui:validate",
+      "result": "pass",
+      "scope": "portal_api_hardening"
+    },
+    "typescript_touched_files": {
+      "command": "npx tsc --noEmit --allowImportingTsExtensions --moduleResolution bundler --module esnext --target es2022 --jsx react-jsx --skipLibCheck --strict apps/web/src/react-jsx.d.ts apps/web/src/people/hrxApiClient.ts apps/web/src/people/documents/HRDocumentWorkspace.tsx",
+      "result": "pass"
+    },
+    "ai_slop_review": {
+      "command": "python3 /Users/jws/Applications/ai-slop-taxonomy/scripts/sloplint.py --repo \"$PWD\" --changed",
+      "result": "completed_with_existing_changed-tree_findings",
+      "exit_code": 0,
+      "finding_count": 37,
+      "note": "Findings were in unrelated changed test/artifact files and legacy/global CSS glow, mesh, dark-mode, and motion patterns; the D-09 HR contract surface copy did not introduce a new strong slop flag."
+    }
+  }
+}

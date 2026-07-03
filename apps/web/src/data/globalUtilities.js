@@ -59,8 +59,7 @@ export const globalUtilityItems = [
         id: "messages-matter-channel",
         label: "Matter 대화",
         source: "Matter",
-        icon: FileText,
-        badge: "2"
+        icon: FileText
       }
     ]
   },
@@ -76,8 +75,7 @@ export const globalUtilityItems = [
         id: "notifications-center",
         label: "알림 센터",
         source: "Topbar",
-        icon: Bell,
-        badge: "3"
+        icon: Bell
       },
       {
         id: "notifications-attendance-missing",
@@ -108,7 +106,6 @@ export const globalUtilityItems = [
         label: "요청 관리",
         source: "People",
         icon: ShieldCheck,
-        badge: "5",
         legacyRoutes: [legacy("people", "people-approvals")]
       },
       {
@@ -116,7 +113,6 @@ export const globalUtilityItems = [
         label: "승인 대기함",
         source: "Home",
         icon: ClipboardList,
-        badge: "3",
         legacyRoutes: [legacy("home", "home-review")]
       },
       {
@@ -461,6 +457,8 @@ export const conditionalGlobalItems = [
         label: "근로계약서",
         source: "Vault",
         icon: FileText,
+        state: "active",
+        description: "Vault 원본과 HRX 계약 상태를 함께 확인합니다.",
         legacyRoutes: [legacy("people", "people-employment-contracts")]
       },
       {

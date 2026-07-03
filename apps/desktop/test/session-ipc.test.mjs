@@ -118,3 +118,30 @@ test("session IPC exposes account login and smoke without renderer token materia
   registration.dispose();
   assert.equal(ipcMain.handlers.size, 0);
 });
+
+test("session IPC preserves login lockout state without signing the renderer in", async () => {
+  const ipcMain = new FakeIpcMain();
+  const coordinator = new MainProcessAuthCoordinator({
+    runtimeClient: {
+      login: async () => ({
+        ok: false,
+        reason: "auth_login_locked",
+        safe_error_codes: ["AUTH_LOGIN_LOCKED"],
+        locked_until: "2026-07-02T00:15:00.000Z",
+        token_material_returned: false
+      })
+    }
+  });
+  const registration = registerSessionIpcHandlers({ ipcMain, coordinator });
+
+  const locked = await ipcMain.invoke(SESSION_CHANNELS.login, { email: "jwsuh@amic.kr", password: "bad-password" });
+  assert.equal(locked.ok, false);
+  assert.deepEqual(locked.safe_error_codes, ["AUTH_LOGIN_LOCKED"]);
+  assert.equal(locked.locked_until, "2026-07-02T00:15:00.000Z");
+  assert.equal(locked.session.state, "signed_out");
+  assert.equal(locked.session.reason, "auth_login_locked");
+  assert.equal(locked.token_material_returned, false);
+  assert.equal(JSON.stringify(locked).includes("bad-password"), false);
+
+  registration.dispose();
+});

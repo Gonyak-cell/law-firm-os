@@ -10,29 +10,64 @@ function response(status, body) {
 }
 
 export function createHrxDocumentsRoute({ store = createInMemoryHrxDocumentStore(), sourceAdapter = createInMemoryHrxDocumentSourceAdapter(), audit } = {}) {
+  async function appendAudit(request, { action, document, reason }) {
+    await audit?.append?.({
+      event_id: `hrx_doc_evt_${randomUUID()}`,
+      tenant_id: request.context.tenant_id,
+      actor_id: request.context.actor_id,
+      action,
+      object_type: "HRDocument",
+      object_id: document.document_id,
+      decision: "allow",
+      reason,
+      metadata: {
+        employee_id: document.employee_id,
+        source_ref: document.source_ref,
+        source_provider: document.source_provider,
+        source_status: document.source_status,
+        source_version_ref: document.source_version_ref,
+        contract_state: document.contract_state ?? null,
+        signature_ref: document.signature_ref ?? null,
+        expires_on: document.expires_on ?? null,
+      },
+    });
+  }
+
   return Object.freeze({
     async handle(request = {}) {
       try {
+        if (request.method === "GET" && request.params?.expiring === true) {
+          const documents = store.listExpiring({
+            tenant_id: request.context?.tenant_id,
+            employee_id: request.query?.employee_id,
+            as_of: request.query?.as_of,
+            days: request.query?.days ?? 30,
+          });
+          return response(200, { outcome: "ok", documents, within_days: Number(request.query?.days ?? 30) });
+        }
+        if (request.method === "POST" && request.params?.document_id && request.params?.lifecycle_action === "sign") {
+          const document = store.transitionContract(
+            { tenant_id: request.context?.tenant_id, document_id: request.params.document_id },
+            { state: "signed", signature_ref: request.body?.signature_ref, signed_at: request.body?.signed_at ?? new Date().toISOString() },
+          );
+          if (!document) return response(404, { outcome: "not_found" });
+          await appendAudit(request, { action: "hrx.document.contract.sign", document, reason: "hrx_contract_document_signed" });
+          return response(200, { outcome: "signed", document });
+        }
+        if (request.method === "POST" && request.params?.document_id && request.params?.lifecycle_action === "expire") {
+          const document = store.transitionContract(
+            { tenant_id: request.context?.tenant_id, document_id: request.params.document_id },
+            { state: "expired", expired_at: request.body?.expired_at ?? new Date().toISOString() },
+          );
+          if (!document) return response(404, { outcome: "not_found" });
+          await appendAudit(request, { action: "hrx.document.contract.expire", document, reason: "hrx_contract_document_expired" });
+          return response(200, { outcome: "expired", document });
+        }
         if (request.method === "POST") {
           const candidate = { ...request.body, tenant_id: request.context?.tenant_id };
           const verification = await sourceAdapter.verify({ tenant_id: candidate.tenant_id, source_ref: candidate.source_ref });
           const document = store.create(mergeHrxDocumentSourceVerification(candidate, verification));
-          await audit?.append?.({
-            event_id: `hrx_doc_evt_${randomUUID()}`,
-            tenant_id: request.context.tenant_id,
-            actor_id: request.context.actor_id,
-            action: "hrx.document.metadata.create",
-            object_type: "HRDocument",
-            object_id: document.document_id,
-            decision: "allow",
-            reason: "hrx_document_metadata_created",
-            metadata: {
-              source_ref: document.source_ref,
-              source_provider: document.source_provider,
-              source_status: document.source_status,
-              source_version_ref: document.source_version_ref,
-            },
-          });
+          await appendAudit(request, { action: "hrx.document.metadata.create", document, reason: "hrx_document_metadata_created" });
           return response(201, { outcome: "created", document });
         }
         if (request.method === "GET") {

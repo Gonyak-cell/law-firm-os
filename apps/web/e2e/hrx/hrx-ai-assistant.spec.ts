@@ -6,7 +6,7 @@ import test from "node:test";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
-async function readWebFile(path) {
+async function readWebFile(path: string) {
   return readFile(resolve(root, path), "utf8");
 }
 
@@ -25,6 +25,9 @@ test("People inquiry panel uses API routes and reviewed guidance without local f
   assert.doesNotMatch(component, /People 문의/);
   assert.match(component, /참고 자료 .*건 확인|검토 대기/);
   assert.match(component, /검토 상태:/);
+  assert.match(component, /data-hrx-ai-source-scope/);
+  assert.match(component, /권한 범위 내 근거 없음/);
   assert.match(component, /답변을 준비할 수 없습니다/);
+  assert.doesNotMatch(component, /Grounded HRX advisory response/);
   assert.doesNotMatch(component, /mockData|profileRows|matters/);
 });

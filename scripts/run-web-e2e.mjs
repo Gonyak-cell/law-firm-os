@@ -11,6 +11,7 @@ const hrxCases = new Map([
   ["candidate-portal", "apps/web/e2e/hrx/candidate-portal.spec.ts"],
   ["recruiting-pipeline", "apps/web/e2e/hrx/recruiting-pipeline.spec.ts"],
   ["lifecycle-board", "apps/web/e2e/hrx/lifecycle-board.spec.ts"],
+  ["risk-dashboard", "apps/web/e2e/hrx/risk-dashboard.spec.ts"],
   ["hrx-policy-console", "apps/web/e2e/hrx/hrx-policy-console.spec.ts"],
   ["hrx-audit-viewer", "apps/web/e2e/hrx/hrx-audit-viewer.spec.ts"],
   ["hrx-step-up-challenge", "apps/web/e2e/hrx/hrx-step-up-challenge.spec.ts"],
@@ -21,6 +22,7 @@ const hrxCases = new Map([
 
 const cases = new Map([
   ["matter-vault", "apps/web/e2e/matter-vault.spec.ts"],
+  ["wave1-five-flow", "apps/web/e2e/wave1-five-flow.spec.ts"],
   ...hrxCases,
 ]);
 

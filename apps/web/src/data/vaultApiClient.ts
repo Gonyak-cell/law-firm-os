@@ -1,1 +1,1 @@
-export { fetchVaultDocuments, fetchMatterVaultSummary, fetchMatterTimeline } from './apiClient.js';
+export { fetchVaultDocuments, fetchVaultSearch, fetchMatterVaultSummary, fetchMatterTimeline } from './apiClient.js';

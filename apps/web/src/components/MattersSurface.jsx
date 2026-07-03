@@ -6,14 +6,19 @@ import {
   changeMatterOwner,
   completeMatterStatus,
   createAnalyticsExport,
+  createFinanceDisbursement,
+  createFinanceExpense,
   createFinanceTimeEntry,
   createMatterActivity,
   createMatterCalendarEvent,
   createMatterChannelMessage,
   fetchAnalyticsDashboards,
   fetchAnalyticsMatterProfitability,
+  fetchAnalyticsRealization,
+  fetchAnalyticsUtilization,
   fetchFinanceAudit,
   fetchFinanceArAging,
+  fetchFinanceAccountingExport,
   fetchFinanceInvoices,
   fetchFinanceTimeEntries,
   fetchMatterActivities,
@@ -28,13 +33,19 @@ import {
   fetchMatterTimeline,
   fetchRecordActionAudit,
   fetchRecordActionFields,
+  approveFinancePreBill,
+  createFinancePreBill,
   generateFinanceWip,
+  issueFinanceInvoice,
   importFinancePayment,
+  lockFinanceWipSnapshot,
+  matchFinancePayment,
   markMatterRecentlyViewed,
   patchMatterActivity,
   patchMatterCalendarEvent,
   refreshAnalyticsDashboards,
   refreshMatterProfitability,
+  registerMatterParty,
   saveMatterListView,
   syncMatterChannelProvider,
   confirmMatterDeadlineChange,
@@ -297,10 +308,81 @@ function matterStatus(value) {
 function billingStatus(value) {
   if (value === "not_started") return "시작 전";
   if (value === "review_required") return "검토 필요";
+  if (value === "partner_review_required") return "Partner 검토 필요";
+  if (value === "partner_approved" || value === "approved") return "승인됨";
+  if (value === "issued") return "발행됨";
+  if (value === "partially_paid") return "부분 수납";
+  if (value === "paid") return "수납 완료";
+  if (value === "rejected") return "반려";
   if (value === "completed") return "완료";
   if (value === "ethical_wall") return "제한";
   if (value === "opening_wip_clear") return "청구 준비 가능";
   return "진행 중";
+}
+
+function todayWorkDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function defaultTimeEntryForm() {
+  return {
+    workDate: todayWorkDate(),
+    durationMinutes: "30",
+    narrative: "Matter 작업",
+    roleId: "partner",
+    billable: true
+  };
+}
+
+function defaultExpenseForm() {
+  return {
+    amount: "25000",
+    receiptDocumentId: "receipt_matter_expense",
+    currency: "KRW"
+  };
+}
+
+function defaultDisbursementForm() {
+  return {
+    amount: "15000",
+    vendorRef: "vendor_matter_disbursement",
+    currency: "KRW"
+  };
+}
+
+function defaultAccountingExportForm() {
+  return {
+    fromDate: "2026-07-01",
+    toDate: "2026-07-31"
+  };
+}
+
+function normalizeDurationMinutes(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return 1;
+  return Math.max(1, Math.round(parsed));
+}
+
+function normalizeMoneyAmount(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return 1;
+  return Math.round(parsed * 100) / 100;
+}
+
+function addElapsedTimerMinutes(form, startedAt, now = Date.now()) {
+  if (!startedAt) return form;
+  const elapsedMinutes = Math.max(1, Math.ceil(Math.max(0, now - startedAt) / 60000));
+  return {
+    ...form,
+    durationMinutes: String(normalizeDurationMinutes(form.durationMinutes) + elapsedMinutes)
+  };
+}
+
+function timerSecondsLabel(seconds) {
+  const safeSeconds = Math.max(0, Number(seconds) || 0);
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainder = safeSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
 }
 
 function activityStatusLabel(value) {
@@ -657,6 +739,15 @@ function riskLabel(value) {
   return value ?? "미지정";
 }
 
+function matterPartyRoleLabel(value) {
+  if (value === "adverse_party") return "상대방";
+  if (value === "counterparty") return "거래 상대방";
+  if (value === "opposing_counsel") return "상대 대리인";
+  if (value === "related_party") return "관련자";
+  if (value === "client") return "고객";
+  return "기타";
+}
+
 function clientReportSectionLabel(section, index = 0) {
   const text = String(section?.title ?? section?.section_id ?? "").trim();
   if (text === "Status" || text === "status") return "상태";
@@ -680,6 +771,8 @@ function dashboardTypeLabel(value) {
   if (value === "ar_aging") return "미수금 현황";
   if (value === "client_health") return "Client 상태";
   if (value === "practice_pnl") return "업무 손익";
+  if (value === "realization") return "실현율";
+  if (value === "employee_utilization") return "가동률";
   return "대시보드";
 }
 
@@ -691,8 +784,16 @@ function dashboardStatusLabel(value) {
 
 function dashboardMetricLabel(item) {
   if (item.dashboard_type === "ar_aging") return moneyLabel(item.metric_value, "KRW");
-  if (item.dashboard_type === "client_health") return `${item.metric_value ?? 0}%`;
+  if (item.dashboard_type === "client_health" || item.metric_unit === "percent" || ["realization", "employee_utilization"].includes(item.dashboard_type)) {
+    return `${item.metric_value ?? 0}%`;
+  }
   return String(item.metric_value ?? "미지정");
+}
+
+function percentLabel(value) {
+  const number = Number(value ?? 0);
+  if (!Number.isFinite(number)) return "미지정";
+  return `${Number((number * 100).toFixed(2)).toLocaleString("ko-KR")}%`;
 }
 
 function actionMessage(result, successText) {
@@ -1235,11 +1336,32 @@ function MattersTable({
   );
 }
 
-function CommandPanel({ result, matter, statusResult, statusPending, onCompleteStatus }) {
+function CommandPanel({
+  result,
+  matter,
+  statusResult,
+  statusPending,
+  onCompleteStatus,
+  partyRegisterResult,
+  partyRegisterPending,
+  onRegisterAdverseParty
+}) {
+  const [adversePartyName, setAdversePartyName] = useState("");
+  const [retroactiveEntry, setRetroactiveEntry] = useState(true);
   const state = renderCommandState(result, matter);
   if (state) return state;
   const item = result.item ?? matter;
   const completed = item?.status === "closed";
+  const matterParties = Array.isArray(result.adverseParties)
+    ? result.adverseParties
+    : [];
+  function handleAdversePartySubmit(event) {
+    event.preventDefault();
+    const displayName = adversePartyName.trim();
+    if (!displayName || partyRegisterPending) return;
+    onRegisterAdverseParty(displayName, retroactiveEntry);
+    setAdversePartyName("");
+  }
   return (
     <div className="record-detail-stack">
       <MatterPath matter={item} />
@@ -1259,11 +1381,57 @@ function CommandPanel({ result, matter, statusResult, statusPending, onCompleteS
           완료
         </button>
       </div>
+      <div className="record-action-strip" data-matter-adverse-party-action="true">
+        <div>
+          <strong>상대방</strong>
+          <span>{matterParties.length > 0 ? `${matterParties.length}건 등록` : "미등록"}</span>
+          <ActionNotice
+            pending={partyRegisterPending}
+            result={partyRegisterResult}
+            pendingText="등록 중입니다."
+            successText="상대방이 등록되었습니다."
+          />
+        </div>
+        <form className="record-action-edit-form" data-matter-adverse-party-form="true" onSubmit={handleAdversePartySubmit}>
+          <label className="form-field">
+            상대방
+            <input
+              value={adversePartyName}
+              onChange={(event) => setAdversePartyName(event.target.value)}
+              placeholder="상대방 이름"
+              disabled={partyRegisterPending}
+            />
+          </label>
+          <label className="checkbox-field">
+            <input
+              type="checkbox"
+              checked={retroactiveEntry}
+              onChange={(event) => setRetroactiveEntry(event.target.checked)}
+              disabled={partyRegisterPending}
+            />
+            소급 입력
+          </label>
+          <button className="secondary-button" type="submit" disabled={!matter || !adversePartyName.trim() || partyRegisterPending}>
+            <UserCheck size={15} />
+            등록
+          </button>
+        </form>
+      </div>
       <div className="record-summary-grid">
         <Property label="제목" value={matterTitleLabel(item.title)} />
         <Property label="Client" value={item.legal_client_party_id || item.client_id ? "연결됨" : "미지정"} />
         <Property label="위험도" value={riskLabel(item.risk_level)} />
         <Property label="Vault" value={result.vaultLink?.vault_workspace_id || item.vault_workspace_id ? "연결됨" : "미연결"} />
+      </div>
+      <div data-matter-adverse-party-list="true">
+        <DataTable
+          columns={["상대방", "역할", "상태"]}
+          rows={matterParties.map((party) => [
+            party.display_name ?? "이름 미등록",
+            matterPartyRoleLabel(party.party_role),
+            party.retroactive_entry ? "소급" : "신규"
+          ])}
+        />
       </div>
       <DataTable
         columns={["구분", "값", "표시"]}
@@ -1689,30 +1857,214 @@ function ActionNotice({ pending, result, pendingText, successText }) {
 
 function BillingActionPanel({
   matter,
+  invoiceRows,
   timeEntryResult,
+  expenseResult,
+  disbursementResult,
   wipResult,
+  prebillResult,
+  invoiceIssueResult,
   paymentResult,
+  paymentMatchResult,
+  accountingExportResult,
+  timeEntryForm,
+  expenseForm,
+  disbursementForm,
+  accountingExportForm,
+  timeTimerRunning,
+  timeTimerSeconds,
   timeEntryPending,
+  expensePending,
+  disbursementPending,
   wipPending,
+  prebillPending,
+  invoiceIssuePending,
   paymentPending,
+  paymentMatchPending,
+  accountingExportPending,
+  onTimeEntryFormChange,
+  onExpenseFormChange,
+  onDisbursementFormChange,
+  onAccountingExportFormChange,
+  onToggleTimeTimer,
   onCreateTimeEntry,
+  onCreateExpense,
+  onCreateDisbursement,
   onGenerateWip,
-  onImportPayment
+  onCreatePreBill,
+  onIssueInvoice,
+  onImportPayment,
+  onMatchPayment,
+  onCreateAccountingExport
 }) {
   const timeEntry = timeEntryResult?.kind === "data" ? timeEntryResult.item : null;
+  const expense = expenseResult?.kind === "data" ? expenseResult.item : null;
+  const disbursement = disbursementResult?.kind === "data" ? disbursementResult.item : null;
   const wipItems = wipResult?.kind === "data" ? wipResult.items : [];
+  const wipTotal = wipItems.reduce((total, item) => total + Number(item.amount ?? 0), 0);
+  const prebill = prebillResult?.kind === "data" ? prebillResult.item : null;
+  const issuedInvoice = invoiceIssueResult?.kind === "data" ? invoiceIssueResult.item : null;
+  const activeInvoice = issuedInvoice ?? invoiceRows[0] ?? null;
   const payment = paymentResult?.kind === "data" ? paymentResult.item : null;
+  const paymentMatch = paymentMatchResult?.kind === "data" ? paymentMatchResult.item : null;
+  const accountingExport = accountingExportResult?.kind === "data" ? accountingExportResult.item : null;
+  const invoiceOutstanding = activeInvoice
+    ? Math.max(0, Number(activeInvoice.amount_due ?? 0) - Number(activeInvoice.amount_paid ?? 0))
+    : 0;
+  const unappliedPayment = payment
+    ? Number(payment.unapplied_amount ?? payment.amount ?? 0)
+    : 0;
   return (
     <div className="record-action-grid" data-matter-billing-actions="true">
-      <div className="record-action-strip" data-matter-time-entry-action="true">
+      <div className="record-action-strip record-action-time-entry-strip" data-matter-time-entry-action="true">
         <div>
           <strong>{timeEntry ? `${timeEntry.duration_minutes ?? 0}분` : "시간"}</strong>
-          <span>{timeEntry ? "시간 기록됨" : "Matter 작업"}</span>
+          <span>{timeEntry ? timeEntry.narrative ?? "시간 기록됨" : "Matter 작업"}</span>
           <ActionNotice pending={timeEntryPending} result={timeEntryResult} pendingText="시간 기록 중입니다." successText="시간이 기록되었습니다." />
         </div>
-        <button className="secondary-button" type="button" disabled={!matter || timeEntryPending} onClick={onCreateTimeEntry}>
-          시간 기록
-        </button>
+        <form className="record-action-edit-form time-entry-form" data-matter-time-entry-form="true" data-upl-b01-time-entry-form="true" onSubmit={onCreateTimeEntry}>
+          <label>
+            일자
+            <input
+              type="date"
+              data-upl-b01-time-entry-work-date="true"
+              value={timeEntryForm.workDate}
+              onChange={(event) => onTimeEntryFormChange("workDate", event.target.value)}
+            />
+          </label>
+          <label>
+            분
+            <input
+              type="number"
+              min="1"
+              step="1"
+              data-upl-b01-time-entry-duration="true"
+              value={timeEntryForm.durationMinutes}
+              onChange={(event) => onTimeEntryFormChange("durationMinutes", event.target.value)}
+            />
+          </label>
+          <label className="time-entry-narrative-field">
+            내용
+            <input
+              data-upl-b01-time-entry-narrative="true"
+              value={timeEntryForm.narrative}
+              onChange={(event) => onTimeEntryFormChange("narrative", event.target.value)}
+            />
+          </label>
+          <label>
+            담당
+            <select data-upl-b01-time-entry-role="true" value={timeEntryForm.roleId} onChange={(event) => onTimeEntryFormChange("roleId", event.target.value)}>
+              <option value="partner">Partner</option>
+              <option value="attorney">변호사</option>
+              <option value="staff">Staff</option>
+            </select>
+          </label>
+          <label>
+            청구
+            <select
+              data-upl-b01-time-entry-billable="true"
+              value={timeEntryForm.billable ? "billable" : "non_billable"}
+              onChange={(event) => onTimeEntryFormChange("billable", event.target.value === "billable")}
+            >
+              <option value="billable">청구</option>
+              <option value="non_billable">비청구</option>
+            </select>
+          </label>
+          <button
+            className="secondary-button"
+            type="button"
+            data-matter-time-entry-timer-action="true"
+            disabled={!matter || timeEntryPending}
+            onClick={onToggleTimeTimer}
+          >
+            {timeTimerRunning ? `정지 ${timerSecondsLabel(timeTimerSeconds)}` : "시작"}
+          </button>
+          <button className="secondary-button" type="submit" data-upl-b01-time-entry-submit="true" disabled={!matter || timeEntryPending || !timeEntryForm.narrative.trim()}>
+            저장
+          </button>
+        </form>
+      </div>
+      <div className="record-action-strip record-action-time-entry-strip" data-matter-expense-action="true">
+        <div>
+          <strong>{expense ? moneyLabel(expense.amount, expense.currency ?? "KRW") : "경비"}</strong>
+          <span>{expense ? "WIP 반영 가능" : "영수증 기준"}</span>
+          <ActionNotice pending={expensePending} result={expenseResult} pendingText="경비 기록 중입니다." successText="경비가 기록되었습니다." />
+        </div>
+        <form className="record-action-edit-form time-entry-form" data-matter-expense-form="true" onSubmit={onCreateExpense}>
+          <label>
+            금액
+            <input
+              type="number"
+              min="1"
+              step="100"
+              value={expenseForm.amount}
+              onChange={(event) => onExpenseFormChange("amount", event.target.value)}
+            />
+          </label>
+          <label className="time-entry-narrative-field">
+            영수증
+            <input
+              value={expenseForm.receiptDocumentId}
+              onChange={(event) => onExpenseFormChange("receiptDocumentId", event.target.value)}
+            />
+          </label>
+          <label>
+            통화
+            <select value={expenseForm.currency} onChange={(event) => onExpenseFormChange("currency", event.target.value)}>
+              <option value="KRW">KRW</option>
+              <option value="USD">USD</option>
+            </select>
+          </label>
+          <button
+            className="secondary-button"
+            type="button"
+            disabled={!matter || expensePending || !expenseForm.receiptDocumentId.trim()}
+            onClick={onCreateExpense}
+          >
+            경비 기록
+          </button>
+        </form>
+      </div>
+      <div className="record-action-strip record-action-time-entry-strip" data-matter-disbursement-action="true">
+        <div>
+          <strong>{disbursement ? moneyLabel(disbursement.amount, disbursement.currency ?? "KRW") : "대납"}</strong>
+          <span>{disbursement ? "회수 가능" : "거래처 기준"}</span>
+          <ActionNotice pending={disbursementPending} result={disbursementResult} pendingText="대납 기록 중입니다." successText="대납이 기록되었습니다." />
+        </div>
+        <form className="record-action-edit-form time-entry-form" data-matter-disbursement-form="true" onSubmit={onCreateDisbursement}>
+          <label>
+            금액
+            <input
+              type="number"
+              min="1"
+              step="100"
+              value={disbursementForm.amount}
+              onChange={(event) => onDisbursementFormChange("amount", event.target.value)}
+            />
+          </label>
+          <label className="time-entry-narrative-field">
+            거래처
+            <input
+              value={disbursementForm.vendorRef}
+              onChange={(event) => onDisbursementFormChange("vendorRef", event.target.value)}
+            />
+          </label>
+          <label>
+            통화
+            <select value={disbursementForm.currency} onChange={(event) => onDisbursementFormChange("currency", event.target.value)}>
+              <option value="KRW">KRW</option>
+              <option value="USD">USD</option>
+            </select>
+          </label>
+          <button
+            className="secondary-button"
+            type="button"
+            disabled={!matter || disbursementPending || !disbursementForm.vendorRef.trim()}
+            onClick={onCreateDisbursement}
+          >
+            대납 기록
+          </button>
+        </form>
       </div>
       <div className="record-action-strip">
         <div>
@@ -1724,15 +2076,83 @@ function BillingActionPanel({
           청구 준비
         </button>
       </div>
+      <div className="record-action-strip" data-matter-prebill-review-action="true">
+        <div>
+          <strong>{prebill ? billingStatus(prebill.status) : "검토"}</strong>
+          <span>{prebill ? "PreBill 승인됨" : wipTotal > 0 ? moneyLabel(wipTotal, "KRW") : "WIP 필요"}</span>
+          <ActionNotice pending={prebillPending} result={prebillResult} pendingText="검토 승인 중입니다." successText="PreBill이 승인되었습니다." />
+        </div>
+        <button className="secondary-button" type="button" disabled={!matter || wipItems.length === 0 || prebillPending} onClick={onCreatePreBill}>
+          검토 승인
+        </button>
+      </div>
+      <div className="record-action-strip" data-matter-invoice-issue-action="true">
+        <div>
+          <strong>{activeInvoice?.invoice_number ?? "발행"}</strong>
+          <span>{activeInvoice ? moneyLabel(activeInvoice.amount_due, activeInvoice.currency ?? "KRW") : "승인 PreBill 기준"}</span>
+          <ActionNotice pending={invoiceIssuePending} result={invoiceIssueResult} pendingText="청구서 발행 중입니다." successText="청구서가 발행되었습니다." />
+        </div>
+        <button className="secondary-button" type="button" disabled={!matter || !prebill || invoiceIssuePending} onClick={onIssueInvoice}>
+          발행
+        </button>
+      </div>
       <div className="record-action-strip">
         <div>
           <strong>{payment ? moneyLabel(payment.amount, payment.currency ?? "KRW") : "수납"}</strong>
-          <span>{payment ? "수납 기록됨" : "청구 잔액 기준"}</span>
+          <span>{payment ? "입금 기록됨" : activeInvoice ? "청구 잔액 기준" : "청구서 필요"}</span>
           <ActionNotice pending={paymentPending} result={paymentResult} pendingText="수납 기록 중입니다." successText="수납이 기록되었습니다." />
         </div>
-        <button className="secondary-button" type="button" disabled={!matter || paymentPending} onClick={onImportPayment}>
-          수납 기록
+        <button className="secondary-button" type="button" disabled={!matter || !activeInvoice || invoiceOutstanding <= 0 || paymentPending} onClick={onImportPayment}>
+          입금 기록
         </button>
+      </div>
+      <div className="record-action-strip" data-matter-payment-match-action="true">
+        <div>
+          <strong>{paymentMatch ? moneyLabel(paymentMatch.amount, "KRW") : "배정"}</strong>
+          <span>{payment ? `미배정 ${moneyLabel(unappliedPayment, payment.currency ?? "KRW")}` : "입금 필요"}</span>
+          <ActionNotice pending={paymentMatchPending} result={paymentMatchResult} pendingText="입금 배정 중입니다." successText="입금이 배정되었습니다." />
+        </div>
+        <button className="secondary-button" type="button" disabled={!matter || !activeInvoice || !payment || invoiceOutstanding <= 0 || paymentMatchPending} onClick={onMatchPayment}>
+          배정
+        </button>
+      </div>
+      <div className="record-action-strip record-action-time-entry-strip" data-matter-accounting-export-action="true">
+        <div>
+          <strong>{accountingExport ? `${accountingExport.row_count ?? 0}행` : "회계 CSV"}</strong>
+          <span>{accountingExport?.balanced ? "차대변 일치" : "기간 지정"}</span>
+          <ActionNotice pending={accountingExportPending} result={accountingExportResult} pendingText="회계 내보내기 생성 중입니다." successText="회계 CSV가 생성되었습니다." />
+          {accountingExport && (
+            <small data-matter-accounting-export-summary="true">
+              {moneyLabel(accountingExport.debit_total, "KRW")} / {moneyLabel(accountingExport.credit_total, "KRW")} · {String(accountingExport.csv_sha256 ?? "").slice(0, 12)}
+            </small>
+          )}
+        </div>
+        <form className="record-action-edit-form time-entry-form" data-matter-accounting-export-form="true" onSubmit={onCreateAccountingExport}>
+          <label>
+            시작
+            <input
+              type="date"
+              value={accountingExportForm.fromDate}
+              onChange={(event) => onAccountingExportFormChange("fromDate", event.target.value)}
+            />
+          </label>
+          <label>
+            종료
+            <input
+              type="date"
+              value={accountingExportForm.toDate}
+              onChange={(event) => onAccountingExportFormChange("toDate", event.target.value)}
+            />
+          </label>
+          <button
+            className="secondary-button"
+            type="button"
+            disabled={!matter || accountingExportPending || !accountingExportForm.fromDate || !accountingExportForm.toDate}
+            onClick={onCreateAccountingExport}
+          >
+            CSV 생성
+          </button>
+        </form>
       </div>
     </div>
   );
@@ -1746,14 +2166,43 @@ function BillingPanel({
   matter,
   matterId,
   timeEntryResult,
+  expenseResult,
+  disbursementResult,
   wipResult,
+  prebillResult,
+  invoiceIssueResult,
   paymentResult,
+  paymentMatchResult,
+  accountingExportResult,
+  timeEntryForm,
+  expenseForm,
+  disbursementForm,
+  accountingExportForm,
+  timeTimerRunning,
+  timeTimerSeconds,
   timeEntryPending,
+  expensePending,
+  disbursementPending,
   wipPending,
+  prebillPending,
+  invoiceIssuePending,
   paymentPending,
+  paymentMatchPending,
+  accountingExportPending,
+  onTimeEntryFormChange,
+  onExpenseFormChange,
+  onDisbursementFormChange,
+  onAccountingExportFormChange,
+  onToggleTimeTimer,
   onCreateTimeEntry,
+  onCreateExpense,
+  onCreateDisbursement,
   onGenerateWip,
-  onImportPayment
+  onCreatePreBill,
+  onIssueInvoice,
+  onImportPayment,
+  onMatchPayment,
+  onCreateAccountingExport
 }) {
   const loading = timeResult === null || invoiceResult === null || agingResult === null;
   if (loading) {
@@ -1777,15 +2226,45 @@ function BillingPanel({
   const actionPanel = (
       <BillingActionPanel
         matter={matter}
+        invoiceRows={invoiceRows}
         timeEntryResult={timeEntryResult}
+        expenseResult={expenseResult}
+        disbursementResult={disbursementResult}
         wipResult={wipResult}
+        prebillResult={prebillResult}
+        invoiceIssueResult={invoiceIssueResult}
         paymentResult={paymentResult}
+        paymentMatchResult={paymentMatchResult}
+        accountingExportResult={accountingExportResult}
+        timeEntryForm={timeEntryForm}
+        expenseForm={expenseForm}
+        disbursementForm={disbursementForm}
+        accountingExportForm={accountingExportForm}
+        timeTimerRunning={timeTimerRunning}
+        timeTimerSeconds={timeTimerSeconds}
         timeEntryPending={timeEntryPending}
+        expensePending={expensePending}
+        disbursementPending={disbursementPending}
         wipPending={wipPending}
+        prebillPending={prebillPending}
+        invoiceIssuePending={invoiceIssuePending}
         paymentPending={paymentPending}
+        paymentMatchPending={paymentMatchPending}
+        accountingExportPending={accountingExportPending}
+        onTimeEntryFormChange={onTimeEntryFormChange}
+        onExpenseFormChange={onExpenseFormChange}
+        onDisbursementFormChange={onDisbursementFormChange}
+        onAccountingExportFormChange={onAccountingExportFormChange}
+        onToggleTimeTimer={onToggleTimeTimer}
         onCreateTimeEntry={onCreateTimeEntry}
+        onCreateExpense={onCreateExpense}
+        onCreateDisbursement={onCreateDisbursement}
         onGenerateWip={onGenerateWip}
+        onCreatePreBill={onCreatePreBill}
+        onIssueInvoice={onIssueInvoice}
         onImportPayment={onImportPayment}
+        onMatchPayment={onMatchPayment}
+        onCreateAccountingExport={onCreateAccountingExport}
     />
   );
   if (timeRows.length + invoiceRows.length + agingRows.length === 0) {
@@ -1799,12 +2278,12 @@ function BillingPanel({
     );
   }
   return (
-    <div className="workspace-mini-grid">
+    <div className="workspace-mini-grid" data-upl-b01-time-entry-readback-count={timeRows.length}>
       {actionPanel}
       <DataTable
-        columns={["시간", "일자", "상태", "분"]}
+        columns={["내용", "일자", "상태", "분"]}
         rows={timeRows.map((item, index) => [
-          `시간 ${index + 1}`,
+          item.narrative ?? `시간 ${index + 1}`,
           item.work_date ?? "미지정",
           billingStatus(item.status),
           String(item.duration_minutes ?? 0)
@@ -1831,7 +2310,17 @@ function BillingPanel({
       )}
       <AuditTrailPanel
         result={financeAuditResult}
-        events={[timeEntryResult?.auditEvent, wipResult?.auditEvent, paymentResult?.auditEvent].filter(Boolean)}
+        events={[
+          timeEntryResult?.auditEvent,
+          expenseResult?.auditEvent,
+          disbursementResult?.auditEvent,
+          wipResult?.auditEvent,
+          prebillResult?.auditEvent,
+          invoiceIssueResult?.auditEvent,
+          paymentResult?.auditEvent,
+          paymentMatchResult?.auditEvent,
+          accountingExportResult?.auditEvent
+        ].filter(Boolean)}
         marker="matter-finance-audit-trail"
       />
     </div>
@@ -1900,9 +2389,54 @@ function AnalyticsActionPanel({
   );
 }
 
+function dashboardByType(dashboards, dashboardType) {
+  return dashboards.find((item) => item.dashboard_type === dashboardType) ?? null;
+}
+
+function rateAverage(rows, field) {
+  const values = rows
+    .map((item) => Number(item?.[field]))
+    .filter((value) => Number.isFinite(value));
+  if (values.length === 0) return null;
+  return values.reduce((total, value) => total + value, 0) / values.length;
+}
+
+function kpiCardValue({ dashboard, rows, rateField }) {
+  if (dashboard) return dashboardMetricLabel(dashboard);
+  const average = rateAverage(rows, rateField);
+  return average === null ? "미지정" : percentLabel(average);
+}
+
+function KpiDashboardCards({ dashboards, realizationResult, utilizationResult }) {
+  const realizationRows = resultItems(realizationResult);
+  const utilizationRows = resultItems(utilizationResult);
+  const realizationDashboard = dashboardByType(dashboards, "realization");
+  const utilizationDashboard = dashboardByType(dashboards, "employee_utilization");
+  return (
+    <div className="record-action-grid" data-matter-analytics-kpi-cards="true">
+      <div className="record-action-strip" data-matter-analytics-realization-card="true">
+        <div>
+          <strong>{kpiCardValue({ dashboard: realizationDashboard, rows: realizationRows, rateField: "realization_rate" })}</strong>
+          <span>실현율</span>
+          <small>{realizationDashboard ? `${realizationDashboard.metric_record_count ?? realizationRows.length}건 기준` : `${realizationRows.length}건 조회`}</small>
+        </div>
+      </div>
+      <div className="record-action-strip" data-matter-analytics-utilization-card="true">
+        <div>
+          <strong>{kpiCardValue({ dashboard: utilizationDashboard, rows: utilizationRows, rateField: "utilization_rate" })}</strong>
+          <span>가동률</span>
+          <small>{utilizationDashboard ? `${utilizationDashboard.metric_record_count ?? utilizationRows.length}건 기준` : `${utilizationRows.length}건 조회`}</small>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AnalyticsPanel({
   result,
   profitabilityResult,
+  realizationResult,
+  utilizationResult,
   matter,
   invoiceRows,
   wipResult,
@@ -1940,6 +2474,11 @@ function AnalyticsPanel({
         onExport={onExport}
         onProfitability={onProfitability}
       />
+      <KpiDashboardCards
+        dashboards={dashboards}
+        realizationResult={realizationResult}
+        utilizationResult={utilizationResult}
+      />
       <DataTable
         columns={["대시보드", "유형", "지표", "상태"]}
         rows={dashboards.map((item) => [
@@ -1975,13 +2514,22 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [financeAuditResult, setFinanceAuditResult] = useState(null);
   const [analyticsResult, setAnalyticsResult] = useState(null);
   const [profitabilityResult, setProfitabilityResult] = useState(null);
+  const [realizationResult, setRealizationResult] = useState(null);
+  const [utilizationResult, setUtilizationResult] = useState(null);
   const [timeEntryResult, setTimeEntryResult] = useState(null);
+  const [expenseResult, setExpenseResult] = useState(null);
+  const [disbursementResult, setDisbursementResult] = useState(null);
   const [wipResult, setWipResult] = useState(null);
+  const [prebillResult, setPrebillResult] = useState(null);
+  const [invoiceIssueResult, setInvoiceIssueResult] = useState(null);
   const [paymentResult, setPaymentResult] = useState(null);
+  const [paymentMatchResult, setPaymentMatchResult] = useState(null);
+  const [accountingExportResult, setAccountingExportResult] = useState(null);
   const [analyticsRefreshResult, setAnalyticsRefreshResult] = useState(null);
   const [analyticsExportResult, setAnalyticsExportResult] = useState(null);
   const [profitabilityActionResult, setProfitabilityActionResult] = useState(null);
   const [statusTransitionResult, setStatusTransitionResult] = useState(null);
+  const [partyRegisterResult, setPartyRegisterResult] = useState(null);
   const [recentResult, setRecentResult] = useState(null);
   const [listViewResult, setListViewResult] = useState(null);
   const [listViewActionResult, setListViewActionResult] = useState(null);
@@ -2004,13 +2552,26 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [channelMessageResult, setChannelMessageResult] = useState(null);
   const [channelProviderResult, setChannelProviderResult] = useState(null);
   const [legalPeopleMatterResult, setLegalPeopleMatterResult] = useState(null);
+  const [timeEntryForm, setTimeEntryForm] = useState(defaultTimeEntryForm);
+  const [expenseForm, setExpenseForm] = useState(defaultExpenseForm);
+  const [disbursementForm, setDisbursementForm] = useState(defaultDisbursementForm);
+  const [accountingExportForm, setAccountingExportForm] = useState(defaultAccountingExportForm);
+  const [timeTimerStartedAt, setTimeTimerStartedAt] = useState(null);
+  const [timeTimerSeconds, setTimeTimerSeconds] = useState(0);
   const [timeEntryPending, setTimeEntryPending] = useState(false);
+  const [expensePending, setExpensePending] = useState(false);
+  const [disbursementPending, setDisbursementPending] = useState(false);
   const [wipPending, setWipPending] = useState(false);
+  const [prebillPending, setPrebillPending] = useState(false);
+  const [invoiceIssuePending, setInvoiceIssuePending] = useState(false);
   const [paymentPending, setPaymentPending] = useState(false);
+  const [paymentMatchPending, setPaymentMatchPending] = useState(false);
+  const [accountingExportPending, setAccountingExportPending] = useState(false);
   const [analyticsRefreshPending, setAnalyticsRefreshPending] = useState(false);
   const [analyticsExportPending, setAnalyticsExportPending] = useState(false);
   const [profitabilityPending, setProfitabilityPending] = useState(false);
   const [statusTransitionPending, setStatusTransitionPending] = useState(false);
+  const [partyRegisterPending, setPartyRegisterPending] = useState(false);
   const [listViewPending, setListViewPending] = useState(false);
   const [bulkTransitionPending, setBulkTransitionPending] = useState(false);
   const [inlineEditPending, setInlineEditPending] = useState(false);
@@ -2120,6 +2681,23 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   }, [activeMatterId, selectedMatter?.matter_code]);
 
   useEffect(() => {
+    setTimeEntryForm(defaultTimeEntryForm());
+    setExpenseForm(defaultExpenseForm());
+    setDisbursementForm(defaultDisbursementForm());
+    setAccountingExportForm(defaultAccountingExportForm());
+    setTimeTimerStartedAt(null);
+    setTimeTimerSeconds(0);
+  }, [activeMatterId]);
+
+  useEffect(() => {
+    if (!timeTimerStartedAt) return undefined;
+    const intervalId = window.setInterval(() => {
+      setTimeTimerSeconds(Math.floor((Date.now() - timeTimerStartedAt) / 1000));
+    }, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [timeTimerStartedAt]);
+
+  useEffect(() => {
     let cancelled = false;
     setLegalPeopleMatterResult(null);
     fetchLegalPeopleSearch({ matter_id: "matter_lcx_001" }).then((next) => {
@@ -2141,7 +2719,10 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     setFinanceAuditResult(null);
     setAnalyticsResult(null);
     setProfitabilityResult(null);
+    setRealizationResult(null);
+    setUtilizationResult(null);
     setStatusTransitionResult(null);
+    setPartyRegisterResult(null);
     setInlineEditResult(null);
     setOwnerChangeResult(null);
     setActivityResult(null);
@@ -2169,8 +2750,10 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
       fetchMatterAudit({ ctx: liveCtx }),
       fetchFinanceAudit({ ctx: liveCtx }),
       fetchAnalyticsDashboards({ ctx: liveCtx }),
-      fetchAnalyticsMatterProfitability({ ctx: liveCtx })
-    ]).then(([command, timeline, activities, calendar, deadlines, channel, time, invoices, aging, matterAudit, financeAudit, analytics, profitability]) => {
+      fetchAnalyticsMatterProfitability({ ctx: liveCtx }),
+      fetchAnalyticsRealization({ ctx: liveCtx }),
+      fetchAnalyticsUtilization({ ctx: liveCtx })
+    ]).then(([command, timeline, activities, calendar, deadlines, channel, time, invoices, aging, matterAudit, financeAudit, analytics, profitability, realization, utilization]) => {
       if (cancelled) return;
       setCommandResult(command);
       setTimelineResult(timeline);
@@ -2185,6 +2768,8 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
       setFinanceAuditResult(financeAudit);
       setAnalyticsResult(analytics);
       setProfitabilityResult(profitability);
+      setRealizationResult(realization);
+      setUtilizationResult(utilization);
     });
     return () => {
       cancelled = true;
@@ -2209,16 +2794,75 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     resultItems(timeResult).filter((item) => item.matter_id === activeMatterId).length +
     resultItems(invoiceResult).filter((item) => item.matter_id === activeMatterId).length +
     resultItems(agingResult).filter((item) => item.matter_id === activeMatterId).length;
-  const analyticsCount = resultItems(analyticsResult).length;
+  const analyticsCount =
+    resultItems(analyticsResult).length +
+    resultItems(realizationResult).length +
+    resultItems(utilizationResult).length;
   const selectedInvoices = resultItems(invoiceResult).filter((item) => item.matter_id === activeMatterId);
 
-  async function handleCreateTimeEntry() {
+  function upsertFinanceInvoice(nextInvoice) {
+    if (!nextInvoice) return;
+    setInvoiceResult((current) => {
+      const currentItems = resultItems(current).filter((item) => item.invoice_id !== nextInvoice.invoice_id);
+      return {
+        ...(current?.kind === "data" ? current : {}),
+        kind: "data",
+        items: [nextInvoice, ...currentItems]
+      };
+    });
+  }
+
+  function handleTimeEntryFormChange(field, value) {
+    setTimeEntryForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function handleExpenseFormChange(field, value) {
+    setExpenseForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function handleDisbursementFormChange(field, value) {
+    setDisbursementForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function handleAccountingExportFormChange(field, value) {
+    setAccountingExportForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function handleToggleTimeTimer() {
+    if (timeTimerStartedAt) {
+      setTimeEntryForm((current) => addElapsedTimerMinutes(current, timeTimerStartedAt));
+      setTimeTimerStartedAt(null);
+      setTimeTimerSeconds(0);
+      return;
+    }
+    setTimeTimerStartedAt(Date.now());
+    setTimeTimerSeconds(0);
+  }
+
+  async function handleCreateTimeEntry(event) {
+    event?.preventDefault?.();
     if (!activeMatterId) return;
+    const submitForm = addElapsedTimerMinutes(timeEntryForm, timeTimerStartedAt);
+    setTimeTimerStartedAt(null);
+    setTimeTimerSeconds(0);
     setTimeEntryPending(true);
-    const next = await createFinanceTimeEntry({ matterId: activeMatterId, ctx: liveCtx });
+    const next = await createFinanceTimeEntry({
+      matterId: activeMatterId,
+      durationMinutes: normalizeDurationMinutes(submitForm.durationMinutes),
+      roleId: submitForm.roleId || "partner",
+      workDate: submitForm.workDate || todayWorkDate(),
+      narrative: submitForm.narrative.trim() || "Matter 작업",
+      billable: submitForm.billable === true,
+      ctx: liveCtx
+    });
     setTimeEntryResult(next);
     setTimeEntryPending(false);
     if (next.kind === "data" && next.item) {
+      setTimeEntryForm((current) => ({
+        ...current,
+        durationMinutes: "30",
+        narrative: "Matter 작업"
+      }));
       setTimeResult((current) => {
         const currentItems = resultItems(current).filter((item) => item.time_entry_id !== next.item.time_entry_id);
         return {
@@ -2228,6 +2872,62 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
         };
       });
     }
+  }
+
+  async function handleCreateExpense(event) {
+    event?.preventDefault?.();
+    if (!activeMatterId) return;
+    setExpensePending(true);
+    const next = await createFinanceExpense({
+      matterId: activeMatterId,
+      amount: normalizeMoneyAmount(expenseForm.amount),
+      receiptDocumentId: expenseForm.receiptDocumentId.trim(),
+      currency: expenseForm.currency || "KRW",
+      ctx: liveCtx
+    });
+    setExpenseResult(next);
+    setExpensePending(false);
+    if (next.kind === "data" && next.item) {
+      setExpenseForm((current) => ({
+        ...current,
+        amount: "25000",
+        receiptDocumentId: "receipt_matter_expense"
+      }));
+    }
+  }
+
+  async function handleCreateDisbursement(event) {
+    event?.preventDefault?.();
+    if (!activeMatterId) return;
+    setDisbursementPending(true);
+    const next = await createFinanceDisbursement({
+      matterId: activeMatterId,
+      amount: normalizeMoneyAmount(disbursementForm.amount),
+      vendorRef: disbursementForm.vendorRef.trim(),
+      currency: disbursementForm.currency || "KRW",
+      ctx: liveCtx
+    });
+    setDisbursementResult(next);
+    setDisbursementPending(false);
+    if (next.kind === "data" && next.item) {
+      setDisbursementForm((current) => ({
+        ...current,
+        amount: "15000",
+        vendorRef: "vendor_matter_disbursement"
+      }));
+    }
+  }
+
+  async function handleCreateAccountingExport(event) {
+    event?.preventDefault?.();
+    setAccountingExportPending(true);
+    const next = await fetchFinanceAccountingExport({
+      fromDate: accountingExportForm.fromDate,
+      toDate: accountingExportForm.toDate,
+      ctx: liveCtx
+    });
+    setAccountingExportResult(next);
+    setAccountingExportPending(false);
   }
 
   async function handleCompleteStatus() {
@@ -2255,6 +2955,39 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
         kind: "data",
         item: next.item
       }));
+    }
+  }
+
+  async function handleRegisterAdverseParty(displayName, retroactiveEntry = true) {
+    if (!activeMatterId) return;
+    setPartyRegisterPending(true);
+    const next = await registerMatterParty({
+      matterId: activeMatterId,
+      displayName,
+      retroactiveEntry,
+      ctx: liveCtx
+    });
+    setPartyRegisterResult(next);
+    setPartyRegisterPending(false);
+    if (next.kind === "data" && next.item) {
+      if (next.matter) applyMatterUpdate(next.matter);
+      setCommandResult((current) => {
+        if (current?.kind !== "data") return current;
+        const nextParties = Array.isArray(next.matterParties) && next.matterParties.length > 0
+          ? next.matterParties
+          : [
+              next.item,
+              ...(current.matterParties ?? []).filter((party) => party.matter_party_id !== next.item.matter_party_id)
+            ];
+        return {
+          ...current,
+          item: next.matter ?? current.item,
+          matterParties: nextParties,
+          adverseParties: Array.isArray(next.adverseParties) && next.adverseParties.length > 0
+            ? next.adverseParties
+            : nextParties.filter((party) => party.party_role === "adverse_party")
+        };
+      });
     }
   }
 
@@ -2582,14 +3315,74 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     setWipPending(false);
   }
 
+  async function handleCreatePreBillReview() {
+    const wipItems = wipResult?.kind === "data" ? wipResult.items : [];
+    if (!activeMatterId || wipItems.length === 0) return;
+    setPrebillPending(true);
+    const snapshot = await lockFinanceWipSnapshot({ matterId: activeMatterId, wipItems, ctx: liveCtx });
+    if (snapshot.kind !== "data" || !snapshot.item?.wip_snapshot_id) {
+      setPrebillResult(snapshot);
+      setPrebillPending(false);
+      return;
+    }
+    const created = await createFinancePreBill({ matterId: activeMatterId, wipSnapshotId: snapshot.item.wip_snapshot_id, ctx: liveCtx });
+    if (created.kind !== "data" || !created.item?.prebill_id) {
+      setPrebillResult(created);
+      setPrebillPending(false);
+      return;
+    }
+    const approved = await approveFinancePreBill({ prebillId: created.item.prebill_id, ctx: liveCtx });
+    setPrebillResult(approved);
+    setPrebillPending(false);
+  }
+
+  async function handleIssueInvoice() {
+    const prebill = prebillResult?.kind === "data" ? prebillResult.item : null;
+    if (!activeMatterId || !prebill?.prebill_id) return;
+    setInvoiceIssuePending(true);
+    const next = await issueFinanceInvoice({
+      matterId: activeMatterId,
+      prebillId: prebill.prebill_id,
+      billingClientPartyId: selectedMatter?.billing_client_party_id,
+      ctx: liveCtx
+    });
+    setInvoiceIssueResult(next);
+    setInvoiceIssuePending(false);
+    if (next.kind === "data" && next.item) upsertFinanceInvoice(next.item);
+  }
+
   async function handleImportPayment() {
     if (!activeMatterId) return;
+    const issuedInvoice = invoiceIssueResult?.kind === "data" ? invoiceIssueResult.item : null;
+    const invoice = issuedInvoice ?? selectedInvoices[0] ?? null;
+    const amount = invoice ? Math.max(0, Number(invoice.amount_due ?? 0) - Number(invoice.amount_paid ?? 0)) : 0;
+    if (!invoice || amount <= 0) return;
     setPaymentPending(true);
-    const amount = Number(selectedInvoices[0]?.amount_due ?? selectedInvoices[0]?.invoice_total ?? 100000);
-    const currency = selectedInvoices[0]?.currency ?? "KRW";
+    const currency = invoice.currency ?? "KRW";
     const next = await importFinancePayment({ matterId: activeMatterId, amount, currency, ctx: liveCtx });
     setPaymentResult(next);
     setPaymentPending(false);
+  }
+
+  async function handleMatchPayment() {
+    const issuedInvoice = invoiceIssueResult?.kind === "data" ? invoiceIssueResult.item : null;
+    const invoice = issuedInvoice ?? selectedInvoices[0] ?? null;
+    const payment = paymentResult?.kind === "data" ? paymentResult.item : null;
+    const invoiceOutstanding = invoice ? Math.max(0, Number(invoice.amount_due ?? 0) - Number(invoice.amount_paid ?? 0)) : 0;
+    const paymentAvailable = payment ? Number(payment.unapplied_amount ?? payment.amount ?? 0) : 0;
+    const amount = Math.min(invoiceOutstanding, paymentAvailable);
+    if (!invoice?.invoice_id || !payment?.payment_id || amount <= 0) return;
+    setPaymentMatchPending(true);
+    const next = await matchFinancePayment({ paymentId: payment.payment_id, invoiceId: invoice.invoice_id, amount, ctx: liveCtx });
+    setPaymentMatchResult(next);
+    setPaymentMatchPending(false);
+    if (next.kind === "data" && next.invoice) {
+      setInvoiceIssueResult((current) => ({ ...(current?.kind === "data" ? current : {}), kind: "data", item: next.invoice }));
+      upsertFinanceInvoice(next.invoice);
+    }
+    if (next.kind === "data" && next.payment) {
+      setPaymentResult((current) => ({ ...(current?.kind === "data" ? current : {}), kind: "data", item: next.payment }));
+    }
   }
 
   async function handleAnalyticsRefresh() {
@@ -2802,14 +3595,43 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             matter={selectedMatter}
             matterId={activeMatterId}
             timeEntryResult={timeEntryResult}
+            expenseResult={expenseResult}
+            disbursementResult={disbursementResult}
             wipResult={wipResult}
+            prebillResult={prebillResult}
+            invoiceIssueResult={invoiceIssueResult}
             paymentResult={paymentResult}
+            paymentMatchResult={paymentMatchResult}
+            accountingExportResult={accountingExportResult}
+            timeEntryForm={timeEntryForm}
+            expenseForm={expenseForm}
+            disbursementForm={disbursementForm}
+            accountingExportForm={accountingExportForm}
+            timeTimerRunning={Boolean(timeTimerStartedAt)}
+            timeTimerSeconds={timeTimerSeconds}
             timeEntryPending={timeEntryPending}
+            expensePending={expensePending}
+            disbursementPending={disbursementPending}
             wipPending={wipPending}
+            prebillPending={prebillPending}
+            invoiceIssuePending={invoiceIssuePending}
             paymentPending={paymentPending}
+            paymentMatchPending={paymentMatchPending}
+            accountingExportPending={accountingExportPending}
+            onTimeEntryFormChange={handleTimeEntryFormChange}
+            onExpenseFormChange={handleExpenseFormChange}
+            onDisbursementFormChange={handleDisbursementFormChange}
+            onAccountingExportFormChange={handleAccountingExportFormChange}
+            onToggleTimeTimer={handleToggleTimeTimer}
             onCreateTimeEntry={handleCreateTimeEntry}
+            onCreateExpense={handleCreateExpense}
+            onCreateDisbursement={handleCreateDisbursement}
             onGenerateWip={handleGenerateWip}
+            onCreatePreBill={handleCreatePreBillReview}
+            onIssueInvoice={handleIssueInvoice}
             onImportPayment={handleImportPayment}
+            onMatchPayment={handleMatchPayment}
+            onCreateAccountingExport={handleCreateAccountingExport}
           />
           <div className="record-boundary-note" data-lcx-vltui-06-expense-finance-boundary="true">
             <ShieldCheck size={15} />
@@ -2896,6 +3718,9 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
                 statusResult={statusTransitionResult}
                 statusPending={statusTransitionPending}
                 onCompleteStatus={handleCompleteStatus}
+                partyRegisterResult={partyRegisterResult}
+                partyRegisterPending={partyRegisterPending}
+                onRegisterAdverseParty={handleRegisterAdverseParty}
               />
             )}
           </Panel>
@@ -2933,6 +3758,9 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
                   statusResult={statusTransitionResult}
                   statusPending={statusTransitionPending}
                   onCompleteStatus={handleCompleteStatus}
+                  partyRegisterResult={partyRegisterResult}
+                  partyRegisterPending={partyRegisterPending}
+                  onRegisterAdverseParty={handleRegisterAdverseParty}
                 />
                 <AuditTrailPanel
                   result={matterAuditResult}
@@ -3039,14 +3867,43 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
               matter={selectedMatter}
               matterId={activeMatterId}
               timeEntryResult={timeEntryResult}
+              expenseResult={expenseResult}
+              disbursementResult={disbursementResult}
               wipResult={wipResult}
+              prebillResult={prebillResult}
+              invoiceIssueResult={invoiceIssueResult}
               paymentResult={paymentResult}
+              paymentMatchResult={paymentMatchResult}
+              accountingExportResult={accountingExportResult}
+              timeEntryForm={timeEntryForm}
+              expenseForm={expenseForm}
+              disbursementForm={disbursementForm}
+              accountingExportForm={accountingExportForm}
+              timeTimerRunning={Boolean(timeTimerStartedAt)}
+              timeTimerSeconds={timeTimerSeconds}
               timeEntryPending={timeEntryPending}
+              expensePending={expensePending}
+              disbursementPending={disbursementPending}
               wipPending={wipPending}
+              prebillPending={prebillPending}
+              invoiceIssuePending={invoiceIssuePending}
               paymentPending={paymentPending}
+              paymentMatchPending={paymentMatchPending}
+              accountingExportPending={accountingExportPending}
+              onTimeEntryFormChange={handleTimeEntryFormChange}
+              onExpenseFormChange={handleExpenseFormChange}
+              onDisbursementFormChange={handleDisbursementFormChange}
+              onAccountingExportFormChange={handleAccountingExportFormChange}
+              onToggleTimeTimer={handleToggleTimeTimer}
               onCreateTimeEntry={handleCreateTimeEntry}
+              onCreateExpense={handleCreateExpense}
+              onCreateDisbursement={handleCreateDisbursement}
               onGenerateWip={handleGenerateWip}
+              onCreatePreBill={handleCreatePreBillReview}
+              onIssueInvoice={handleIssueInvoice}
               onImportPayment={handleImportPayment}
+              onMatchPayment={handleMatchPayment}
+              onCreateAccountingExport={handleCreateAccountingExport}
             />
           </Panel>
         )}
@@ -3055,6 +3912,8 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             <AnalyticsPanel
               result={analyticsResult}
               profitabilityResult={profitabilityResult}
+              realizationResult={realizationResult}
+              utilizationResult={utilizationResult}
               matter={selectedMatter}
               invoiceRows={selectedInvoices}
               wipResult={wipResult}

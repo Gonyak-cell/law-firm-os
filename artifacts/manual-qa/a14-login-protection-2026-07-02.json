@@ -1,0 +1,103 @@
+{
+  "generated_at": "2026-07-02T11:49:52.250Z",
+  "scope": "UPL-A-14 login protection lockout and post-expiry login QA",
+  "route": "POST /api/auth/login",
+  "max_failed_logins_before_lock": 5,
+  "lock_response_status": 423,
+  "post_expiry_login_procedure": "lock expires after configured loginLockMs; next valid credential succeeds and clears failed-login state",
+  "api_attempts": [
+    {
+      "attempt": 1,
+      "status": 401,
+      "outcome": "blocked",
+      "reason": "auth_credential_invalid",
+      "safe_error_codes": [
+        "AUTH_CREDENTIAL_INVALID"
+      ],
+      "locked_until": null,
+      "ok": false,
+      "token_material_recorded": false
+    },
+    {
+      "attempt": 2,
+      "status": 401,
+      "outcome": "blocked",
+      "reason": "auth_credential_invalid",
+      "safe_error_codes": [
+        "AUTH_CREDENTIAL_INVALID"
+      ],
+      "locked_until": null,
+      "ok": false,
+      "token_material_recorded": false
+    },
+    {
+      "attempt": 3,
+      "status": 401,
+      "outcome": "blocked",
+      "reason": "auth_credential_invalid",
+      "safe_error_codes": [
+        "AUTH_CREDENTIAL_INVALID"
+      ],
+      "locked_until": null,
+      "ok": false,
+      "token_material_recorded": false
+    },
+    {
+      "attempt": 4,
+      "status": 401,
+      "outcome": "blocked",
+      "reason": "auth_credential_invalid",
+      "safe_error_codes": [
+        "AUTH_CREDENTIAL_INVALID"
+      ],
+      "locked_until": null,
+      "ok": false,
+      "token_material_recorded": false
+    },
+    {
+      "attempt": 5,
+      "status": 401,
+      "outcome": "blocked",
+      "reason": "auth_credential_invalid",
+      "safe_error_codes": [
+        "AUTH_CREDENTIAL_INVALID"
+      ],
+      "locked_until": null,
+      "ok": false,
+      "token_material_recorded": false
+    },
+    {
+      "attempt": 6,
+      "status": 423,
+      "outcome": "blocked",
+      "reason": "auth_login_locked",
+      "safe_error_codes": [
+        "AUTH_LOGIN_LOCKED"
+      ],
+      "locked_until": "2026-07-02T00:01:00.000Z",
+      "ok": false,
+      "token_material_recorded": false
+    },
+    {
+      "attempt": "after_lock_expiry",
+      "status": 200,
+      "outcome": "passed",
+      "safe_error_codes": [],
+      "locked_until": null,
+      "ok": true,
+      "token_material_recorded": false
+    }
+  ],
+  "desktop_bridge": {
+    "response_reason": "auth_login_locked",
+    "safe_error_codes": [
+      "AUTH_LOGIN_LOCKED"
+    ],
+    "session_state": "signed_out",
+    "session_reason": "auth_login_locked",
+    "token_material_returned": false
+  },
+  "password_material_recorded": false,
+  "session_token_material_recorded": false,
+  "production_ready_claim": false
+}

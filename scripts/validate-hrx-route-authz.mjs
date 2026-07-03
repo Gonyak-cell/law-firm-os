@@ -40,6 +40,17 @@ for (const route of [
   ["GET", "/api/hrx/employees"],
   ["GET", "/api/hrx/employees/emp-001"],
   ["GET", "/api/hrx/documents"],
+  ["GET", "/api/hrx/attendance"],
+  ["POST", "/api/hrx/attendance"],
+  ["POST", "/api/hrx/attendance/att-001/correct"],
+  ["GET", "/api/hrx/overtime"],
+  ["POST", "/api/hrx/overtime"],
+  ["GET", "/api/hrx/overtime/risks"],
+  ["GET", "/api/hrx/risks"],
+  ["POST", "/api/hrx/risks/scan"],
+  ["POST", "/api/hrx/risks/hrx-risk:employment_contract_missing:emp-001:current/transition"],
+  ["POST", "/api/hrx/overtime/ot-001/approve"],
+  ["GET", "/api/hrx/compensation"],
   ["GET", "/api/hrx/legal-people/search"],
   ["GET", "/api/hrx/legal-people/person_client_contact_001"],
   ["GET", "/api/hrx/legal-people/relationships"],
@@ -48,7 +59,14 @@ for (const route of [
   ["GET", "/api/hrx/approvals"],
   ["POST", "/api/hrx/approvals/approval-leave-002/approve"],
   ["GET", "/api/hrx/candidate/portal"],
+  ["POST", "/api/hrx/recruiting/job-openings"],
+  ["POST", "/api/hrx/recruiting/candidates"],
+  ["POST", "/api/hrx/recruiting/applications"],
+  ["POST", "/api/hrx/recruiting/interviews"],
+  ["POST", "/api/hrx/recruiting/offers"],
   ["POST", "/api/hrx/recruiting/applications/app-001/stage"],
+  ["POST", "/api/hrx/recruiting/offers/offer-001/stage"],
+  ["POST", "/api/hrx/recruiting/applications/app-001/convert-to-employee"],
   ["GET", "/api/hrx/lifecycle/onboarding"],
   ["POST", "/api/hrx/lifecycle/onboarding/onb-001/tasks/task-001"],
   ["GET", "/api/hrx/lifecycle/offboarding"],
@@ -88,6 +106,24 @@ const missingScope = authorizeHrxApiRequest({
   },
 });
 assert(missingScope.ok === false && missingScope.body.safe_error_code === "HRX_AUTHZ_DENIED", "missing HRX scope must deny");
+
+const missingCompensationScope = authorizeHrxApiRequest({
+  method: "GET",
+  pathname: "/api/hrx/compensation",
+  query: {},
+  headers: {
+    "x-lawos-tenant-id": "tenant-a",
+    "x-lawos-actor-id": "validator-user",
+    "x-lawos-actor-role": "people_ops",
+    "x-lawos-hrx-scopes": "hrx.employee.read",
+  },
+});
+assert(
+  missingCompensationScope.ok === false &&
+    missingCompensationScope.body.safe_error_code === "HRX_AUTHZ_DENIED" &&
+    missingCompensationScope.body.required_scope === "hrx.compensation.read",
+  "missing HRX compensation read scope must deny before runtime",
+);
 
 const noPolicy = authorizeHrxApiRequest({
   method: "GET",

@@ -6,10 +6,16 @@ import {
   createMatterRepository,
   AMIC_CURRENT_MATTER_CLIENTS,
   AMIC_CURRENT_MATTER_CODE_CANDIDATES,
+  listMatterParties,
+  registerMatterParty,
   upsertMatterAppClientFromVaultContract,
   upsertMatterAppMatterFromVaultContract,
 } from "../../../packages/matter/src/index.js";
-import { addMatterTeamMember } from "../../../packages/matter/src/staffing-service.js";
+import {
+  MATTER_ONBOARDING_GATE_ERROR_CODE,
+  addMatterTeamMember,
+  evaluateMatterAssignmentOnboardingReadiness,
+} from "../../../packages/matter/src/staffing-service.js";
 import { appendMatterAuditEvent } from "../../../packages/matter/src/audit.js";
 import { openMatterTransaction } from "../../../packages/matter/src/opening-service.js";
 import { openMatterWithVault } from "../../../packages/matter/src/matter-opening-orchestrator.js";
@@ -26,6 +32,7 @@ export const MATTER_API_ERROR_CODES = Object.freeze({
   permission_required: "MATTER_PERMISSION_REQUIRED",
   audit_hint_required: "MATTER_AUDIT_HINT_REQUIRED",
   validation_error: "MATTER_API_VALIDATION_ERROR",
+  onboarding_gate_required: MATTER_ONBOARDING_GATE_ERROR_CODE,
   unauthorized_omission: "MATTER_UNAUTHORIZED_OMISSION",
   review_required: "MATTER_REVIEW_REQUIRED",
   approval_required: "MATTER_APPROVAL_REQUIRED",
@@ -45,6 +52,7 @@ export const MATTER_BOUNDED_CONTEXT = Object.freeze({
   endpoints: Object.freeze([
     "GET /api/matters",
     "GET /api/matters/:matter_id",
+    "GET /api/matters/:matter_id/parties",
     "GET /api/matters/:matter_id/command-center",
     "GET /api/matters/:matter_id/vault-summary",
     "GET /api/matters/:matter_id/timeline",
@@ -82,6 +90,7 @@ export const MATTER_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/matters/bulk/status-transitions",
     "POST /api/matters/:matter_id/documents",
     "POST /api/matters/:matter_id/owner-change",
+    "POST /api/matters/:matter_id/parties",
     "POST /api/matters/:matter_id/team-members",
     "POST /api/matters/:matter_id/status-transitions",
     "POST /api/matters/:matter_id/recently-viewed",
@@ -315,6 +324,27 @@ function defaultEmployeeDirectory(seed = MATTER_EMPLOYEE_DIRECTORY_SEED) {
   });
 }
 
+function createHrxEmployeeDirectory(hrxRuntime, fallbackDirectory = defaultEmployeeDirectory()) {
+  return Object.freeze({
+    get({ tenant_id, employee_id } = {}) {
+      const employee = hrxRuntime?.repository?.getEmployee?.({ tenant_id, employee_id });
+      if (employee) return { ...employee, availability: employee.availability ?? "available" };
+      return fallbackDirectory?.get?.({ tenant_id, employee_id }) ?? null;
+    },
+  });
+}
+
+function createHrxOnboardingGate(hrxRuntime) {
+  return Object.freeze({
+    getMatterAssignmentReadiness({ tenant_id, employee_id } = {}) {
+      const plan = hrxRuntime?.onboardingPlans?.find?.(
+        (candidate) => candidate.tenant_id === tenant_id && candidate.employee_id === employee_id,
+      );
+      return evaluateMatterAssignmentOnboardingReadiness({ plan });
+    },
+  });
+}
+
 function createSideEffectAdapter(prefix) {
   return Object.freeze({
     createWorkspace({ tenant_id, matter_id } = {}) {
@@ -328,17 +358,22 @@ function createSideEffectAdapter(prefix) {
 
 export function createMatterRuntimeContext({
   repository = createMatterRepository({ seedRecords: MATTER_RUNTIME_SEED.records }),
-  employeeDirectory = defaultEmployeeDirectory(),
+  hrxRuntime = null,
+  employeeDirectory = hrxRuntime ? createHrxEmployeeDirectory(hrxRuntime) : defaultEmployeeDirectory(),
+  onboardingGate = hrxRuntime ? createHrxOnboardingGate(hrxRuntime) : null,
   dms = createSideEffectAdapter("matter_dms"),
   dmsRuntime = null,
   billing = createSideEffectAdapter("matter_billing"),
+  clearanceRepository = null,
 } = {}) {
   return Object.freeze({
     repository,
     employeeDirectory,
+    onboardingGate,
     dms,
     dmsRuntime,
     billing,
+    clearanceRepository,
     seed_ref: MATTER_RUNTIME_SEED.fixture_id,
   });
 }
@@ -357,6 +392,8 @@ function errorResponse(status, requestId, codes, extra = {}) {
       ui_state: extra.ui_state ?? null,
       count_leak_prevented: true,
       production_ready_claim: false,
+      ...(extra.safe_message ? { message: extra.safe_message } : {}),
+      ...(extra.onboarding_gate ? { onboarding_gate: extra.onboarding_gate } : {}),
     },
   };
 }
@@ -819,6 +856,10 @@ function serializeMatter(record, runtime) {
     runtime?.repository
       ?.list({ tenant_id: record.tenant_id, model_type: "MatterMember", matter_id: record.matter_id })
       ?.length ?? record.team_member_count ?? 0;
+  const matterParties = runtime?.repository
+    ? listMatterParties({ repository: runtime.repository, tenant_id: record.tenant_id, matter_id: record.matter_id })
+    : [];
+  const adversePartyCount = matterParties.filter((party) => party.party_role === "adverse_party").length;
   const link = runtime?.repository
     ? getMatterVaultLink({ repository: runtime.repository, tenant_id: record.tenant_id, matter_id: record.matter_id })
     : null;
@@ -851,6 +892,8 @@ function serializeMatter(record, runtime) {
     vault_workspace_id: link?.vault_workspace_id ?? record.dms_workspace_id ?? null,
     matter_vault_linked: Boolean(link),
     team_member_count: teamMemberCount,
+    matter_party_count: matterParties.length,
+    adverse_party_count: adversePartyCount,
     wip_status: record.wip_status ?? "not_started",
     risk_level: record.risk_level ?? "standard",
     opened_at: record.opened_at ?? null,
@@ -1181,6 +1224,13 @@ export function handleMatterDetail({ matterId, query, context, requestId, runtim
   const team = runtime.repository
     .list({ tenant_id: query.tenant_id, model_type: "MatterMember", matter_id: matterId })
     .map(serializeMember);
+  const matterParties = listMatterParties({ repository: runtime.repository, tenant_id: query.tenant_id, matter_id: matterId });
+  const { allowed: allowedMatterParties } = trimItemsByPermission({
+    context,
+    items: matterParties,
+    action: "matter:party:read",
+    resourceType: "matter_party",
+  });
   const report = createMatterClientReportProjection({
     tenant_id: query.tenant_id,
     matter_id: matterId,
@@ -1197,6 +1247,8 @@ export function handleMatterDetail({ matterId, query, context, requestId, runtim
       outcome: "passed",
       item: allowed[0],
       team,
+      matter_parties: allowedMatterParties,
+      adverse_parties: allowedMatterParties.filter((party) => party.party_role === "adverse_party"),
       client_report: report,
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,
@@ -1307,6 +1359,7 @@ export function handleMatterOpening({ body, context, requestId, runtime = DEFAUL
           dmsRepository: runtime.dmsRuntime.repository,
           matter: body.matter,
           clearance_token: body.clearance_token,
+          clearance_repository: runtime.clearanceRepository,
           matter_number_seed: body.matter_number_seed,
           idempotency_key: body.idempotency_key,
           client: body.client,
@@ -1318,6 +1371,7 @@ export function handleMatterOpening({ body, context, requestId, runtime = DEFAUL
           repository: runtime.repository,
           matter: body.matter,
           clearance_token: body.clearance_token,
+          clearance_repository: runtime.clearanceRepository,
           matter_number_seed: body.matter_number_seed,
           idempotency_key: body.idempotency_key,
           client: body.client,
@@ -2122,6 +2176,7 @@ export function handleMatterTeamMemberCreate({ matterId, body, context, requestI
     const persisted = addMatterTeamMember({
       repository: runtime.repository,
       employeeDirectory: runtime.employeeDirectory,
+      onboardingGate: runtime.onboardingGate,
       matter,
       member: { ...body.member, matter_id: matterId },
       actor_id: body.actor_id ?? context.principal.user_id,
@@ -2182,6 +2237,153 @@ export function handleMatterTeamMemberCreate({ matterId, body, context, requestI
         production_ready_claim: false,
       },
     };
+  } catch (error) {
+    const onboardingBlocked = error?.code === MATTER_ONBOARDING_GATE_ERROR_CODE;
+    return errorResponse(onboardingBlocked ? 409 : 400, requestId, [onboardingBlocked ? MATTER_API_ERROR_CODES.onboarding_gate_required : MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: onboardingBlocked ? "onboarding_blocked" : "blocked",
+      safe_message: onboardingBlocked ? error.message : null,
+      onboarding_gate: onboardingBlocked ? error.readiness : null,
+    });
+  }
+}
+
+export function handleMatterPartyList({ matterId, query, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:party:read",
+    resource: { resource_type: "matter_party", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const matter = runtime.repository.get({ tenant_id: query.tenant_id, model_type: "Matter", matter_id: matterId });
+  if (!matter || matter.silent === true || matter.hidden_from_actor === true) {
+    return errorResponse(404, requestId, [MATTER_API_ERROR_CODES.not_found], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "empty",
+    });
+  }
+  try {
+    const items = listMatterParties({
+      repository: runtime.repository,
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      party_role: query.party_role,
+    });
+    const { allowed } = trimItemsByPermission({
+      context,
+      items,
+      action: "matter:party:read",
+      resourceType: "matter_party",
+    });
+    return {
+      status: 200,
+      body: {
+        request_id: requestId,
+        outcome: "passed",
+        items: allowed,
+        adverse_parties: allowed.filter((party) => party.party_role === "adverse_party"),
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: allowed.length === 0 ? "empty" : null,
+        count_leak_prevented: true,
+        production_ready_claim: false,
+      },
+    };
+  } catch (error) {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+      message: error.message,
+    });
+  }
+}
+
+export function handleMatterPartyRegister({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const party = body?.matter_party ?? body?.party ?? {};
+  const query = {
+    tenant_id: party?.tenant_id ?? body?.tenant_id,
+    permission_ref: body?.permission_ref,
+    audit_hint_ref: body?.audit_hint_ref,
+  };
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:party:write",
+    resource: { resource_type: "matter_party", resource_id: matterId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  const matter = runtime.repository.get({ tenant_id: query.tenant_id, model_type: "Matter", matter_id: matterId });
+  if (!matter || matter.silent === true || matter.hidden_from_actor === true) {
+    return errorResponse(404, requestId, [MATTER_API_ERROR_CODES.not_found], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "empty",
+    });
+  }
+  const actorId = body?.actor_id ?? context?.principal?.user_id;
+  if (typeof actorId !== "string" || actorId.trim() === "") {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+  const idempotencyKey = body?.idempotency_key ?? party?.idempotency_key ?? `matter-party:${matterId}:${party?.display_name ?? party?.name ?? "party"}`;
+  const replay = runtime.repository.getIdempotency({ tenant_id: query.tenant_id, idempotency_key: idempotencyKey });
+  if (replay?.response) {
+    return {
+      status: 200,
+      body: {
+        ...replay.response,
+        request_id: requestId,
+        outcome: "idempotent_replay",
+        idempotent_replay: true,
+        audit_hint_ref: query.audit_hint_ref,
+        production_ready_claim: false,
+      },
+    };
+  }
+  try {
+    let auditEvent = null;
+    const audit = {
+      append: (event) => {
+        auditEvent = appendAudit(runtime, {
+          ...event,
+          event_id: `matter.party.registered:${query.tenant_id}:${matterId}:${event.object_id}`,
+          metadata: {
+            ...(event.metadata ?? {}),
+            permission_ref: query.permission_ref,
+          },
+        });
+        return auditEvent;
+      },
+    };
+    const item = registerMatterParty({
+      repository: runtime.repository,
+      matter,
+      party: { ...party, tenant_id: query.tenant_id, matter_id: matterId },
+      actor_id: actorId,
+      audit,
+    });
+    const matterParties = listMatterParties({ repository: runtime.repository, tenant_id: query.tenant_id, matter_id: matterId });
+    const response = {
+      request_id: requestId,
+      outcome: "created",
+      item,
+      matter: serializeMatter(matter, runtime),
+      matter_parties: matterParties,
+      adverse_parties: matterParties.filter((entry) => entry.party_role === "adverse_party"),
+      audit_event: auditEvent,
+      idempotent_replay: false,
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      state_idempotent: true,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    };
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_party_register", response);
+    return { status: 201, body: response };
   } catch (error) {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
       audit_hint_ref: query.audit_hint_ref,
@@ -3307,6 +3509,25 @@ export async function handleMatterApiRequest({
   if (documentFacadeMatch && method === "POST") {
     return handleMatterDocumentFacade({
       matterId: decodeURIComponent(documentFacadeMatch[1]),
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const matterPartiesMatch = pathname.match(/^\/api\/matters\/([^/]+)\/parties$/);
+  if (matterPartiesMatch && method === "GET") {
+    return handleMatterPartyList({
+      matterId: decodeURIComponent(matterPartiesMatch[1]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  if (matterPartiesMatch && method === "POST") {
+    return handleMatterPartyRegister({
+      matterId: decodeURIComponent(matterPartiesMatch[1]),
       body,
       context,
       requestId,

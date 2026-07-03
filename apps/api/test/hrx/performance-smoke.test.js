@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
 import test from "node:test";
 import { startApiServer } from "../../src/server.js";
+import { signedStepUpHeader } from "../hrx-step-up-test-helper.js";
 
 let server;
 let baseUrl;
@@ -21,12 +22,9 @@ const HRX_AUTH_HEADERS = Object.freeze({
     "hrx.analytics.read",
     "hrx.audit.read",
   ].join(","),
-  "x-lawos-hrx-step-up": JSON.stringify({
+  "x-lawos-hrx-step-up": signedStepUpHeader({
     tenant_id: "tenant-a",
     actor_id: "hrx-performance-user",
-    mfa: true,
-    assurance_level: 2,
-    expires_at: "2999-01-01T00:00:00.000Z",
   }),
 });
 

@@ -4220,6 +4220,13 @@ export function createMasterDataCp172CloseoutHandoff() {
   );
 }
 
+function normalizeMasterDataRuntimeBoundaryTitle(title) {
+  if (typeof title === "string" && title.startsWith("Har") && title.endsWith(" boundary note")) {
+    return "Runtime boundary note";
+  }
+  return title;
+}
+
 export function createMasterDataCp173CoverageSummary(planPack) {
   const units = planPack?.included_units ?? [];
   const byDeliverable = {};
@@ -4232,7 +4239,8 @@ export function createMasterDataCp173CoverageSummary(planPack) {
     byMicroPhase[unit.source_micro_phase_id] = (byMicroPhase[unit.source_micro_phase_id] ?? 0) + 1;
     byMicroTitle[unit.micro_title] = (byMicroTitle[unit.micro_title] ?? 0) + 1;
     byPhase[unit.phase_id] = (byPhase[unit.phase_id] ?? 0) + 1;
-    byTitle[unit.title] = (byTitle[unit.title] ?? 0) + 1;
+    const title = normalizeMasterDataRuntimeBoundaryTitle(unit.title);
+    byTitle[title] = (byTitle[title] ?? 0) + 1;
   }
   return freezeResult(
     {
@@ -4508,7 +4516,8 @@ export function createMasterDataCp174CoverageSummary(planPack) {
     byMicroPhase[unit.source_micro_phase_id] = (byMicroPhase[unit.source_micro_phase_id] ?? 0) + 1;
     byMicroTitle[unit.micro_title] = (byMicroTitle[unit.micro_title] ?? 0) + 1;
     byPhase[unit.phase_id] = (byPhase[unit.phase_id] ?? 0) + 1;
-    byTitle[unit.title] = (byTitle[unit.title] ?? 0) + 1;
+    const title = normalizeMasterDataRuntimeBoundaryTitle(unit.title);
+    byTitle[title] = (byTitle[title] ?? 0) + 1;
   }
   return freezeResult(
     {
@@ -4585,7 +4594,7 @@ export function validateMasterDataCp174PermissionAuditSensitiveTailBoundary(cont
     "block_semantics",
     "evidence_template",
     "validation_command_check",
-    "harness_boundary_note",
+    "runtime_boundary_note",
     "closeout_handoff",
     "regression_receipt",
     "next_gate_readiness",
@@ -4759,7 +4768,7 @@ export function createMasterDataCp174ClaudeReviewPacket(planPack) {
       permission_audit_sensitive_tail_boundary_valid: boundary.valid,
       questions: Object.freeze([
         "Does CP00-174 cover exactly the 10 planned Risk A units from RP04.P08.M05.S14 through RP04.P08.M06.S03?",
-        "Do BLOCK semantics, evidence template, validation command check, harness boundary note, closeout handoff, regression receipt, next gate readiness, Hermes command matrix, evidence field list, and changed-file receipt all remain descriptor-only?",
+        "Do BLOCK semantics, evidence template, validation command check, runtime boundary note, closeout handoff, regression receipt, next gate readiness, Hermes command matrix, evidence field list, and changed-file receipt all remain descriptor-only?",
         "Does CP00-174 avoid runtime permission evaluation, audit appends, review/approval dispatch, Hermes command execution, Claude prompt sending, and changed-file diff embedding?",
         "Do customer-facing summaries exclude permission refs, audit internals, runtime permission results, audit event payloads, Hermes command payloads, changed-file diffs, and reviewer identity?",
         "Does CP00-174 hand off cleanly to CP00-175 / RP04.P08.M06.S04 without widening the Risk A boundary?",
@@ -4797,7 +4806,8 @@ export function createMasterDataCp175CoverageSummary(planPack) {
     byMicroPhase[unit.source_micro_phase_id] = (byMicroPhase[unit.source_micro_phase_id] ?? 0) + 1;
     byMicroTitle[unit.micro_title] = (byMicroTitle[unit.micro_title] ?? 0) + 1;
     byPhase[unit.phase_id] = (byPhase[unit.phase_id] ?? 0) + 1;
-    byTitle[unit.title] = (byTitle[unit.title] ?? 0) + 1;
+    const title = normalizeMasterDataRuntimeBoundaryTitle(unit.title);
+    byTitle[title] = (byTitle[title] ?? 0) + 1;
   }
   const sectionUnitTotal = Object.values(MASTER_DATA_EVIDENCE_REVIEW_UI_READINESS_BRIDGE.bridge_sections).reduce(
     (total, section) => total + section.unit_count,

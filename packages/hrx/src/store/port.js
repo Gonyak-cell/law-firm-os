@@ -10,8 +10,11 @@ export const HRX_DURABLE_CORE_TABLES = Object.freeze([
 
 export const HRX_DURABLE_WORKFLOW_TABLES = Object.freeze([
   "hrx_documents",
+  "hrx_compensation_records",
   "hrx_leave_balance_entries",
   "hrx_leave_requests",
+  "hrx_attendance_records",
+  "hrx_overtime_requests",
   "hrx_audit_events",
   "hrx_ai_review_items",
   "hrx_ai_source_chunks",

@@ -1,6 +1,17 @@
 import { principalHasHrxScope, requiredScopeForHrxSensitivity } from "./hrx-sensitive-scopes.js";
 
-export const HRX_ALLOWED_POLICY_ROLES = Object.freeze(["hr_admin", "people_ops", "hr_manager", "hr_reviewer", "security_admin"]);
+export const HRX_ALLOWED_POLICY_ROLES = Object.freeze([
+  "hr_admin",
+  "people_ops",
+  "hr_manager",
+  "hr_reviewer",
+  "security_admin",
+  "lawos_admin",
+  "lawos_partner",
+  "lawos_attorney",
+  "lawos_staff",
+  "lawos_hr",
+]);
 
 function decision(effect, reason, input, extra = {}) {
   return Object.freeze({

@@ -3,18 +3,24 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { createMatterRepository } from "../../../packages/matter/src/index.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
 
 const TENANT = "tenant_cmp_g6_synthetic";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_cmp_g6_read&audit_hint_ref=audit_hint_cmp_g6_read`;
+const CONTACT_VALUE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_cmp_g6_contact_value_read&audit_hint_ref=audit_hint_cmp_g6_contact_value_read`;
 
-function permissionContext(effect = "allow") {
+function permissionContext(effect = "allow", roleIds = ["crm_intake_user", "conflict_reviewer"]) {
   return JSON.stringify({
-    principal: { user_id: "user_cmp_g6_owner", tenant_id: TENANT, role_ids: ["crm_intake_user", "conflict_reviewer"] },
+    principal: { user_id: "user_cmp_g6_owner", tenant_id: TENANT, role_ids: roleIds },
     rules: [{ id: `rule_crm_intake_${effect}`, effect, action: "*" }],
     object_acl: [],
   });
+}
+
+function contactValuePermissionContext() {
+  return permissionContext("allow", ["crm_intake_user", "conflict_reviewer", "crm_contact_value_reader"]);
 }
 
 async function withServer(callback, options = {}) {
@@ -145,6 +151,7 @@ test("G6 Client planned sections expose activity proposal and settings routes wi
       "PATCH /api/crm/proposals/:id",
       "GET /api/crm/client-settings",
       "PATCH /api/crm/client-settings/:id",
+      "POST /api/intake/engagements",
     ]) {
       assert.ok(context.endpoints.includes(endpoint), `${endpoint} missing from CRM descriptor`);
     }
@@ -301,6 +308,16 @@ test("G6 CRM Account and Contact read facades are permission gated and safe-sour
     assert.equal(contacts.body.items[0].email_value_included, false);
     assert.equal(contacts.body.items[0].contact_point_value_included, false);
     assert.equal("email" in contacts.body.items[0], false);
+    assert.equal("contact_point_value" in contacts.body.items[0], false);
+
+    const contactValues = await json(baseUrl, `/api/crm/contacts?${CONTACT_VALUE_QUERY}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: contactValuePermissionContext() },
+    });
+    assert.equal(contactValues.status, 200);
+    assert.equal(contactValues.body.items[0].email_value_included, true);
+    assert.equal(contactValues.body.items[0].contact_point_value_included, true);
+    assert.equal(contactValues.body.items[0].email, "contact.cmp-g6@example.com");
+    assert.equal(contactValues.body.items[0].contact_point_value, "contact.cmp-g6@example.com");
 
     const relationships = await json(baseUrl, `/api/crm/accounts/org_cmp_g6_account_001/contacts?${BASE_QUERY}`);
     assert.equal(relationships.status, 200);
@@ -309,6 +326,13 @@ test("G6 CRM Account and Contact read facades are permission gated and safe-sour
     assert.equal(relationships.body.items[0].relationship_type, "primary_contact");
     assert.equal(relationships.body.items[0].contact_id, "person_cmp_g6_contact_001");
     assert.equal(relationships.body.items[0].contact_point_value_included, false);
+
+    const relationshipValues = await json(baseUrl, `/api/crm/accounts/org_cmp_g6_account_001/contacts?${CONTACT_VALUE_QUERY}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: contactValuePermissionContext() },
+    });
+    assert.equal(relationshipValues.status, 200);
+    assert.equal(relationshipValues.body.items[0].contact_point_value_included, true);
+    assert.equal(relationshipValues.body.items[0].contact_point_value, "contact.cmp-g6@example.com");
 
     const review = await json(baseUrl, `/api/crm/accounts?${BASE_QUERY}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("review_required") },
@@ -648,20 +672,55 @@ test("G6 CRM Contact create is route-backed, duplicate-reviewed, audited, idempo
     assert.equal(duplicate.body.item.email_value_included, false);
     assert.equal(duplicate.body.audit_event.action, "crm.contact.duplicate_review_required");
 
-    const rawEmailBlocked = await json(baseUrl, "/api/crm/contacts", {
+    const rawEmailCreated = await json(baseUrl, "/api/crm/contacts", {
       method: "POST",
       body: JSON.stringify(contactPayload({
-        idempotency_key: "api-contact-create-raw-email-blocked-1",
+        permission_ref: "perm_ref_cmp_g6_contact_value_write",
+        audit_hint_ref: "audit_hint_cmp_g6_contact_value_write",
+        idempotency_key: "api-contact-create-raw-email-stored-1",
         contact: {
           contact_id: "contact_cmp_g6_api_raw_email",
           tenant_id: TENANT,
-          display_name: "Raw email blocked",
+          account_id: "org_cmp_g6_account_001",
+          display_name: "Raw email stored",
           email: "raw@example.invalid",
         },
       })),
     });
-    assert.equal(rawEmailBlocked.status, 400);
-    assert.deepEqual(rawEmailBlocked.body.safe_error_codes, ["CRM_INTAKE_API_VALIDATION_ERROR"]);
+    assert.equal(rawEmailCreated.status, 201);
+    assert.equal(rawEmailCreated.body.item.contact_id, "contact_cmp_g6_api_raw_email");
+    assert.equal(rawEmailCreated.body.item.contact_point_value_included, false);
+    assert.equal("contact_point_value" in rawEmailCreated.body.item, false);
+    assert.equal(rawEmailCreated.body.audit_event.metadata.raw_contact_value_stored, true);
+
+    const rawEmailMasked = await json(baseUrl, `/api/crm/contacts?${BASE_QUERY}`);
+    const maskedRawContact = rawEmailMasked.body.items.find((item) => item.contact_id === "contact_cmp_g6_api_raw_email");
+    assert.equal(maskedRawContact.contact_point_value_included, false);
+    assert.equal("contact_point_value" in maskedRawContact, false);
+
+    const rawEmailVisible = await json(baseUrl, `/api/crm/contacts?${CONTACT_VALUE_QUERY}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: contactValuePermissionContext() },
+    });
+    const visibleRawContact = rawEmailVisible.body.items.find((item) => item.contact_id === "contact_cmp_g6_api_raw_email");
+    assert.equal(visibleRawContact.contact_point_value_included, true);
+    assert.equal(visibleRawContact.email_value_included, true);
+    assert.equal(visibleRawContact.email, "raw@example.invalid");
+    assert.equal(visibleRawContact.contact_point_value, "raw@example.invalid");
+
+    const invalidEmailBlocked = await json(baseUrl, "/api/crm/contacts", {
+      method: "POST",
+      body: JSON.stringify(contactPayload({
+        idempotency_key: "api-contact-create-invalid-email-blocked-1",
+        contact: {
+          contact_id: "contact_cmp_g6_api_invalid_email",
+          tenant_id: TENANT,
+          display_name: "Invalid email blocked",
+          email: "invalid-email",
+        },
+      })),
+    });
+    assert.equal(invalidEmailBlocked.status, 400);
+    assert.deepEqual(invalidEmailBlocked.body.safe_error_codes, ["CRM_INTAKE_API_VALIDATION_ERROR"]);
 
     const matterShortcutBlocked = await json(baseUrl, "/api/crm/contacts", {
       method: "POST",
@@ -700,6 +759,23 @@ test("G6 CRM Contact create is route-backed, duplicate-reviewed, audited, idempo
     assert.equal(patched.body.audit_event.action, "crm.contact.patched");
     assert.equal(patched.body.state_idempotent, true);
 
+    const rawPatched = await json(baseUrl, "/api/crm/contacts/contact_cmp_g6_api_001", {
+      method: "PATCH",
+      headers: { [PERMISSION_CONTEXT_HEADER]: contactValuePermissionContext() },
+      body: JSON.stringify(contactPatchPayload({
+        permission_ref: "perm_ref_cmp_g6_contact_value_patch",
+        audit_hint_ref: "audit_hint_cmp_g6_contact_value_patch",
+        idempotency_key: "api-contact-patch-raw-email-allowed",
+        field_updates: { email: "patched@example.invalid", status: "active" },
+      })),
+    });
+    assert.equal(rawPatched.status, 200);
+    assert.equal(rawPatched.body.item.status, "active");
+    assert.equal(rawPatched.body.item.contact_point_value_included, true);
+    assert.equal(rawPatched.body.item.email, "patched@example.invalid");
+    assert.equal(rawPatched.body.item.contact_point_value, "patched@example.invalid");
+    assert.equal(rawPatched.body.audit_event.metadata.raw_contact_value_stored, true);
+
     const patchReplay = await json(baseUrl, "/api/crm/contacts/contact_cmp_g6_api_001", {
       method: "PATCH",
       body: JSON.stringify(contactPatchPayload()),
@@ -717,7 +793,7 @@ test("G6 CRM Contact create is route-backed, duplicate-reviewed, audited, idempo
       method: "PATCH",
       body: JSON.stringify(contactPatchPayload({
         idempotency_key: "api-contact-patch-unsafe-blocked",
-        field_updates: { email: "unsafe@example.invalid", status: "active" },
+        field_updates: { email: "invalid-email", status: "active" },
       })),
     });
     assert.equal(unsafeBlocked.status, 400);
@@ -726,6 +802,12 @@ test("G6 CRM Contact create is route-backed, duplicate-reviewed, audited, idempo
   await withServer(async (baseUrl) => {
     const listed = await json(baseUrl, `/api/crm/contacts?${BASE_QUERY}`);
     assert.ok(listed.body.items.some((item) => item.contact_id === "contact_cmp_g6_api_001"));
+    const visible = await json(baseUrl, `/api/crm/contacts?${CONTACT_VALUE_QUERY}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: contactValuePermissionContext() },
+    });
+    const restartedContact = visible.body.items.find((item) => item.contact_id === "contact_cmp_g6_api_001");
+    assert.equal(restartedContact.contact_point_value, "patched@example.invalid");
+    assert.equal(restartedContact.contact_point_value_included, true);
   }, { crmStorePath });
 });
 
@@ -795,6 +877,21 @@ test("G6 opportunity create blocks direct Matter and handoff persists Intake acr
 });
 
 test("G6 conflict check, clearance token, and audit routes stay safe and tenant scoped", async () => {
+  const matterRepository = createMatterRepository({
+    seedRecords: [
+      {
+        model_type: "MatterParty",
+        resource_id: "matter_party_cmp_g6_former_adverse",
+        tenant_id: TENANT,
+        matter_id: "matter_cmp_g6_former_001",
+        matter_party_id: "matter_party_cmp_g6_former_adverse",
+        party_id: "party_cmp_g6_former_adverse",
+        display_name: "(주) 상대방",
+        party_role: "adverse_party",
+        status: "active",
+      },
+    ],
+  });
   await withServer(async (baseUrl) => {
     const check = await json(baseUrl, "/api/intake/conflict-checks", {
       method: "POST",
@@ -808,15 +905,208 @@ test("G6 conflict check, clearance token, and audit routes stay safe and tenant 
           conflict_check_id: "conflict_cmp_g6_api_001",
           tenant_id: TENANT,
           intake_request_id: "intake_cmp_g6_synthetic_001",
-          party_snapshot: { party_ids: ["party_cmp_g6_client_001"] },
+          party_snapshot: { party_ids: ["party_cmp_g6_client_001"], aliases: ["상대방 주식회사"] },
           status: "snapshot_recorded",
           owner_user_id: "user_cmp_g6_owner",
+        },
+        conflict_search: {
+          conflict_search_id: "search_cmp_g6_api_001",
+          aliases: ["상대방 주식회사"],
+          hit_count: 0,
         },
       }),
     });
     assert.equal(check.status, 201);
     assert.equal(check.body.item.raw_conflict_memo_included, false);
     assert.ok(check.body.item.snapshot_hash);
+    assert.equal(check.body.item.status, "review_required");
+    assert.equal(check.body.conflict_search.hit_count, 1);
+    assert.equal(check.body.conflict_search.caller_supplied_hit_count_ignored, true);
+    assert.equal(check.body.conflict_hits.length, 1);
+    assert.equal(check.body.conflict_hits[0].hit_source, "former_matter");
+    assert.equal(check.body.conflict_hits[0].matched_display_name, "(주) 상대방");
+    assert.equal(check.body.conflict_hits[0].direct_matter_reference_included, false);
+    assert.equal(check.body.conflict_hits[0].raw_hit_payload_visible, false);
+
+    const prematureToken = await json(baseUrl, "/api/intake/clearance-tokens", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_write",
+        audit_hint_ref: "audit_hint_cmp_g6_write",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-clearance-token-premature",
+        now: "2026-06-20T00:00:00.000Z",
+        token: {
+          clearance_token_id: "clearance_cmp_g6_api_premature",
+          tenant_id: TENANT,
+          intake_request_id: "intake_cmp_g6_synthetic_001",
+          conflict_check_id: "conflict_cmp_g6_api_001",
+          snapshot_hash: check.body.item.snapshot_hash,
+          expires_at: "2026-06-27T00:00:00.000Z",
+        },
+      }),
+    });
+    assert.equal(prematureToken.status, 400);
+    assert.equal(prematureToken.body.ui_state, "blocked");
+
+    const decision = await json(baseUrl, "/api/intake/conflict-decisions", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_write",
+        audit_hint_ref: "audit_hint_cmp_g6_write",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-conflict-decision-1",
+        conflict_decision: {
+          conflict_decision_id: "decision_cmp_g6_api_001",
+          tenant_id: TENANT,
+          conflict_check_id: "conflict_cmp_g6_api_001",
+          conflict_hit_ids: [check.body.conflict_hits[0].conflict_hit_id],
+          reviewer_id: "user_cmp_g6_owner",
+          decision: "clear",
+          rationale: "api_conflict_review",
+        },
+      }),
+    });
+    assert.equal(decision.status, 201);
+    assert.equal(decision.body.item.reviewer_id, "user_cmp_g6_owner");
+    assert.equal(decision.body.conflict_check.status, "cleared");
+    assert.equal(decision.body.conflict_hits[0].status, "cleared");
+    assert.equal(decision.body.clearance_link_ready, true);
+
+    const waiver = await json(baseUrl, "/api/intake/waivers", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_write",
+        audit_hint_ref: "audit_hint_cmp_g6_write",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-waiver-1",
+        waiver: {
+          waiver_id: "waiver_cmp_g6_api_001",
+          tenant_id: TENANT,
+          intake_request_id: "intake_cmp_g6_synthetic_001",
+          conflict_check_id: "conflict_cmp_g6_api_001",
+          conflict_hit_ids: [check.body.conflict_hits[0].conflict_hit_id],
+          consent_document_id: "consent_cmp_g6_api_001",
+          approver_id: "user_cmp_g6_owner",
+        },
+      }),
+    });
+    assert.equal(waiver.status, 201);
+    assert.equal(waiver.body.clearance_link_ready, true);
+
+    const unsignedEngagement = await json(baseUrl, "/api/intake/engagements", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_write",
+        audit_hint_ref: "audit_hint_cmp_g6_write",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-engagement-unsigned",
+        engagement: {
+          engagement_id: "engagement_cmp_g6_api_unsigned",
+          tenant_id: TENANT,
+          intake_request_id: "intake_cmp_g6_synthetic_001",
+          template_id: "matter_engagement_letter",
+          signature_ref: "signature:missing-document",
+          approver_id: "user_cmp_g6_owner",
+        },
+      }),
+    });
+    assert.equal(unsignedEngagement.status, 400);
+    assert.equal(unsignedEngagement.body.ui_state, "blocked");
+
+    const noUploadEngagement = await json(baseUrl, "/api/intake/engagements", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_write",
+        audit_hint_ref: "audit_hint_cmp_g6_write",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-engagement-no-upload",
+        engagement: {
+          engagement_id: "engagement_cmp_g6_api_no_upload",
+          tenant_id: TENANT,
+          intake_request_id: "intake_cmp_g6_synthetic_001",
+          template_id: "matter_engagement_letter",
+          signed_document_id: "signed_doc_cmp_g6_api_no_upload",
+          signature_ref: "signature:signed_doc_cmp_g6_api_no_upload",
+          approver_id: "user_cmp_g6_owner",
+        },
+      }),
+    });
+    assert.equal(noUploadEngagement.status, 400);
+    assert.equal(noUploadEngagement.body.ui_state, "blocked");
+
+    const noEngagementToken = await json(baseUrl, "/api/intake/clearance-tokens", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_write",
+        audit_hint_ref: "audit_hint_cmp_g6_write",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-clearance-token-no-engagement",
+        now: "2026-06-20T00:00:00.000Z",
+        token: {
+          clearance_token_id: "clearance_cmp_g6_api_no_engagement",
+          tenant_id: TENANT,
+          intake_request_id: "intake_cmp_g6_synthetic_001",
+          conflict_check_id: "conflict_cmp_g6_api_001",
+          engagement_id: "engagement_cmp_g6_api_001",
+          snapshot_hash: check.body.item.snapshot_hash,
+          expires_at: "2026-06-27T00:00:00.000Z",
+        },
+      }),
+    });
+    assert.equal(noEngagementToken.status, 400);
+    assert.equal(noEngagementToken.body.ui_state, "blocked");
+
+    const engagement = await json(baseUrl, "/api/intake/engagements", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_write",
+        audit_hint_ref: "audit_hint_cmp_g6_write",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-engagement-1",
+        engagement: {
+          engagement_id: "engagement_cmp_g6_api_001",
+          tenant_id: TENANT,
+          intake_request_id: "intake_cmp_g6_synthetic_001",
+          template_id: "matter_engagement_letter",
+          signed_document_id: "signed_doc_cmp_g6_api_001",
+          signature_ref: "signature:signed_doc_cmp_g6_api_001",
+          template_document: {
+            template_document_id: "template_doc_cmp_g6_api_001",
+            template_id: "matter_engagement_letter",
+            document_title: "위임계약서",
+            generation_state: "generated",
+            merge_field_count: 3,
+          },
+          signed_document_upload: {
+            signed_document_upload_id: "signed_upload_cmp_g6_api_001",
+            document_id: "signed_doc_cmp_g6_api_001",
+            signed_document_id: "signed_doc_cmp_g6_api_001",
+            template_document_id: "template_doc_cmp_g6_api_001",
+            signature_ref: "signature:signed_doc_cmp_g6_api_001",
+            content_sha256: "sha256:signed_doc_cmp_g6_api_001",
+            byte_size: 2048,
+            mime_type: "application/pdf",
+            upload_state: "uploaded",
+            lx_registry_ref: "LX-06",
+          },
+          approver_id: "user_cmp_g6_owner",
+        },
+      }),
+    });
+    assert.equal(engagement.status, 201);
+    assert.equal(engagement.body.engagement_ready, true);
+    assert.equal(engagement.body.item.signed_document_id, "signed_doc_cmp_g6_api_001");
+    assert.equal(engagement.body.template_document_id, "template_doc_cmp_g6_api_001");
+    assert.equal(engagement.body.signed_document_upload_id, "signed_upload_cmp_g6_api_001");
+    assert.equal(engagement.body.signed_upload_verified, true);
 
     const token = await json(baseUrl, "/api/intake/clearance-tokens", {
       method: "POST",
@@ -832,7 +1122,7 @@ test("G6 conflict check, clearance token, and audit routes stay safe and tenant 
           tenant_id: TENANT,
           intake_request_id: "intake_cmp_g6_synthetic_001",
           conflict_check_id: "conflict_cmp_g6_api_001",
-          engagement_id: "engagement_cmp_g6_api_001",
+          engagement_id: engagement.body.item.engagement_id,
           snapshot_hash: check.body.item.snapshot_hash,
           expires_at: "2026-06-27T00:00:00.000Z",
         },
@@ -840,10 +1130,80 @@ test("G6 conflict check, clearance token, and audit routes stay safe and tenant 
     });
     assert.equal(token.status, 201);
     assert.equal(token.body.validation.valid, true);
+    assert.equal(token.body.conflict_review.review_satisfied, true);
+    assert.equal(token.body.engagement_review.engagement_satisfied, true);
+    assert.equal(token.body.item.conflict_review_satisfied, true);
+    assert.equal(token.body.item.engagement_review_satisfied, true);
+    assert.equal(token.body.item.engagement_id, "engagement_cmp_g6_api_001");
+    assert.equal(token.body.item.engagement_signed_document_upload_id, "signed_upload_cmp_g6_api_001");
+    assert.equal(token.body.item.engagement_signed_document_sha256, "sha256:signed_doc_cmp_g6_api_001");
     assert.equal(token.body.production_ready_claim, false);
+
+    const matterOpening = {
+      tenant_id: TENANT,
+      permission_ref: "perm_ref_cmp_g6_write",
+      audit_hint_ref: "audit_hint_cmp_g6_write",
+      actor_id: "user_cmp_g6_owner",
+      idempotency_key: "api-matter-open-c04-1",
+      matter_number_seed: "CMP-G6-C04",
+      matter: {
+        matter_id: "matter_cmp_g6_c04_001",
+        tenant_id: TENANT,
+        legal_client_party_id: "party_cmp_g6_client_001",
+        billing_client_party_id: "party_cmp_g6_client_001",
+        title: "C04 ledger-gated matter opening",
+        status: "opening",
+        matter_number: "M-CMP-G6-C04-001",
+        created_by: "user_cmp_g6_owner",
+        created_at: "2026-06-20T00:00:00.000Z",
+        permission_envelope_id: "perm_cmp_g6_c04_001",
+        audit_trace_id: "audit_cmp_g6_c04_001",
+      },
+      clearance_token: token.body.item,
+    };
+    const missingLedgerToken = await json(baseUrl, "/api/matters/openings", {
+      method: "POST",
+      body: JSON.stringify({
+        ...matterOpening,
+        idempotency_key: "api-matter-open-c04-missing",
+        clearance_token: { ...token.body.item, clearance_token_id: "clearance_cmp_g6_missing_ledger" },
+      }),
+    });
+    assert.equal(missingLedgerToken.status, 400);
+    assert.equal(missingLedgerToken.body.ui_state, "blocked");
+
+    const forgedEngagement = await json(baseUrl, "/api/matters/openings", {
+      method: "POST",
+      body: JSON.stringify({
+        ...matterOpening,
+        idempotency_key: "api-matter-open-c04-forged",
+        clearance_token: { ...token.body.item, engagement_id: "engagement:forged-by-client" },
+      }),
+    });
+    assert.equal(forgedEngagement.status, 400);
+    assert.equal(forgedEngagement.body.ui_state, "blocked");
+
+    const opened = await json(baseUrl, "/api/matters/openings", {
+      method: "POST",
+      body: JSON.stringify(matterOpening),
+    });
+    assert.equal(opened.status, 201);
+    assert.equal(opened.body.item.matter_id, "matter_cmp_g6_c04_001");
+    const openedMatterRecord = matterRepository.get({
+      tenant_id: TENANT,
+      model_type: "Matter",
+      matter_id: "matter_cmp_g6_c04_001",
+    });
+    assert.equal(openedMatterRecord.clearance_token_id, "clearance_cmp_g6_api_001");
+    assert.equal(openedMatterRecord.engagement_id, "engagement_cmp_g6_api_001");
 
     const audit = await json(baseUrl, `/api/intake/audit?${BASE_QUERY}`);
     assert.equal(audit.status, 200);
+    assert.ok(audit.body.items.some((event) => event.action === "conflict.search.executed" && event.metadata.hit_count === 1));
+    assert.ok(audit.body.items.some((event) => event.action === "conflict.hit.create"));
+    assert.ok(audit.body.items.some((event) => event.action === "conflict.decision.record"));
+    assert.ok(audit.body.items.some((event) => event.action === "waiver.approved"));
+    assert.ok(audit.body.items.some((event) => event.action === "engagement.approved"));
     assert.ok(audit.body.items.some((event) => event.action === "clearance.token.issue"));
-  });
+  }, { matterRepository });
 });

@@ -22,6 +22,8 @@ const PRIMARY_ID_FIELDS = Object.freeze({
   JournalEntry: "journal_entry_id",
   AccountingExport: "accounting_export_id",
   TaxExport: "tax_export_id",
+  TrustLedgerEntry: "trust_ledger_entry_id",
+  TrustBalance: "trust_balance_id",
   SettlementRun: "settlement_run_id",
   WorkingCredit: "working_credit_id",
 });

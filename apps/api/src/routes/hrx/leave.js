@@ -37,7 +37,12 @@ export function createHrxLeaveRoute({ service = createLeaveRequestService() } = 
         }
         return response(400, { outcome: "blocked", safe_error_code: "HRX_LEAVE_ROUTE_ERROR", reason: `Unsupported action: ${action}` });
       } catch (error) {
-        return response(400, { outcome: "blocked", safe_error_code: "HRX_LEAVE_ROUTE_ERROR", reason: error.message });
+        const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 600 ? error.status : 400;
+        return response(status, {
+          outcome: "blocked",
+          safe_error_code: error.safe_error_code ?? "HRX_LEAVE_ROUTE_ERROR",
+          reason: error.message,
+        });
       }
     },
   });

@@ -1,0 +1,265 @@
+{
+  "schema_version": "law-firm-os.upl-c04.browser-proof.v0.1",
+  "generated_at": "2026-07-02T23:52:53.273Z",
+  "verdict": "PASS",
+  "contract_ref": "UPL-C-04",
+  "url": "http://127.0.0.1:5173/?locale=ko&view=clients&data=live&ctx=allow#client-conflict",
+  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-web/artifacts/upl-c04-screenshots/upl-c04-clearance-ledger-matter-opening.png",
+  "checks": [
+    {
+      "id": "ui-drives-clearance-to-matter-opening-route",
+      "passed": true
+    },
+    {
+      "id": "ui-forwards-issued-clearance-token-to-matter-opening",
+      "passed": true
+    },
+    {
+      "id": "ui-payload-has-no-forged-token-state-or-engagement",
+      "passed": true
+    },
+    {
+      "id": "matter-opening-success-rendered",
+      "passed": true
+    },
+    {
+      "id": "browser-proof-clean",
+      "passed": true
+    }
+  ],
+  "observed": {
+    "writes": [
+      {
+        "kind": "conflict_check",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "matter_client_intake_operator",
+          "idempotency_key": "conflict:conflict_ui_mr45tih1_mqhbzg",
+          "conflict_check": {
+            "conflict_check_id": "conflict_ui_mr45tih1_mqhbzg",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "intake_request_id": "intake_upl_c04_ui",
+            "party_snapshot": {
+              "party_ids": [
+                "party_upl_c04_new_client"
+              ]
+            },
+            "status": "snapshot_recorded",
+            "owner_user_id": "matter_client_intake_operator"
+          }
+        }
+      },
+      {
+        "kind": "decision",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "matter_client_intake_operator",
+          "idempotency_key": "decision:decision_ui_mr45tijb_vxe0ko",
+          "conflict_decision": {
+            "conflict_decision_id": "decision_ui_mr45tijb_vxe0ko",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "conflict_check_id": "conflict_upl_c04_ui",
+            "conflict_hit_ids": [
+              "hit_upl_c04_ui_adverse"
+            ],
+            "reviewer_id": "matter_client_intake_operator",
+            "decision": "clear",
+            "rationale": "ui_conflict_review"
+          }
+        }
+      },
+      {
+        "kind": "waiver",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "matter_client_intake_operator",
+          "idempotency_key": "waiver:waiver_ui_mr45tiko_zlhvyb",
+          "waiver": {
+            "waiver_id": "waiver_ui_mr45tiko_zlhvyb",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "intake_request_id": "intake_upl_c04_ui",
+            "conflict_check_id": "conflict_upl_c04_ui",
+            "conflict_hit_ids": [
+              "hit_upl_c04_ui_adverse"
+            ],
+            "consent_document_id": "consent:waiver_ui_mr45tiko_zlhvyb",
+            "approver_id": "matter_client_intake_operator",
+            "approval_reason": "ui_conflict_waiver"
+          }
+        }
+      },
+      {
+        "kind": "engagement",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "matter_client_intake_operator",
+          "idempotency_key": "engagement:engagement_ui_mr45tilu_ckpbvo",
+          "engagement": {
+            "engagement_id": "engagement_ui_mr45tilu_ckpbvo",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "intake_request_id": "intake_upl_c04_ui",
+            "template_id": "matter_engagement_letter",
+            "signed_document_id": "signed_doc:engagement_ui_mr45tilu_ckpbvo",
+            "signature_ref": "signature:signed_doc:engagement_ui_mr45tilu_ckpbvo",
+            "template_document": {
+              "template_document_id": "template_doc:engagement_ui_mr45tilu_ckpbvo",
+              "template_id": "matter_engagement_letter",
+              "document_title": "위임계약서",
+              "generation_state": "generated",
+              "merge_field_count": 3,
+              "document_payload_included": false,
+              "template_payload_included": false
+            },
+            "signed_document_upload": {
+              "signed_document_upload_id": "signed_upload:engagement_ui_mr45tilu_ckpbvo",
+              "document_id": "signed_doc:engagement_ui_mr45tilu_ckpbvo",
+              "signed_document_id": "signed_doc:engagement_ui_mr45tilu_ckpbvo",
+              "template_document_id": "template_doc:engagement_ui_mr45tilu_ckpbvo",
+              "signature_ref": "signature:signed_doc:engagement_ui_mr45tilu_ckpbvo",
+              "content_sha256": "sha256:signed_doc:engagement_ui_mr45tilu_ckpbvo",
+              "byte_size": 2048,
+              "mime_type": "application/pdf",
+              "upload_state": "uploaded",
+              "lx_registry_ref": "LX-06",
+              "bytes_included": false,
+              "storage_pointer_ref_included": false
+            },
+            "approver_id": "matter_client_intake_operator"
+          }
+        }
+      },
+      {
+        "kind": "clearance",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "matter_client_intake_operator",
+          "idempotency_key": "clearance:clearance_ui_mr45timz_dfc2wl",
+          "now": "2026-06-20T00:00:00.000Z",
+          "token": {
+            "clearance_token_id": "clearance_ui_mr45timz_dfc2wl",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "intake_request_id": "intake_upl_c04_ui",
+            "conflict_check_id": "conflict_upl_c04_ui",
+            "engagement_id": "engagement_upl_c04_ui",
+            "snapshot_hash": "snapshot_upl_c04_ui",
+            "expires_at": "2026-06-27T00:00:00.000Z"
+          }
+        }
+      },
+      {
+        "kind": "matter_opening",
+        "payload": {
+          "tenant_id": "tenant_upl_c04_clearance_ledger",
+          "permission_ref": "ui_cmp_g6_intake_matter_open",
+          "audit_hint_ref": "ui_cmp_g6_intake_matter_open_probe",
+          "actor_id": "matter_matter_operator",
+          "idempotency_key": "ui:intake:matter-open:matter_intake_ui_mr45tio5_65wucf",
+          "matter_number_seed": "CMP-G6-INTAKE",
+          "matter": {
+            "matter_id": "matter_intake_ui_mr45tio5_65wucf",
+            "tenant_id": "tenant_upl_c04_clearance_ledger",
+            "legal_client_party_id": "party_cmp_g6_client_001",
+            "billing_client_party_id": "party_cmp_g6_client_001",
+            "title": "원장 기반 Matter 개설 검증",
+            "status": "opening",
+            "created_by": "matter_matter_operator",
+            "created_at": "2026-06-20T00:00:00.000Z",
+            "permission_envelope_id": "perm:tenant_upl_c04_clearance_ledger:matter_intake_ui_mr45tio5_65wucf",
+            "audit_trace_id": "audit:tenant_upl_c04_clearance_ledger:matter_intake_ui_mr45tio5_65wucf"
+          },
+          "clearance_token": {
+            "clearance_token_id": "clearance_upl_c04_ui_issued",
+            "tenant_id": "tenant_upl_c04_clearance_ledger",
+            "intake_request_id": "intake_upl_c04_ui",
+            "conflict_check_id": "conflict_upl_c04_ui",
+            "engagement_id": "engagement_upl_c04_ui",
+            "snapshot_hash": "snapshot_upl_c04_ui",
+            "token_state": "active",
+            "status": "active",
+            "conflict_review_satisfied": true,
+            "engagement_review_satisfied": true,
+            "production_ready_claim": false
+          }
+        }
+      }
+    ],
+    "panel_text": "상담·문의 1\nHit 1건\n이해상충 검색 결과가 기록되었습니다.\n이해상충 검토\nWaiver 승인\n승인자 기록 필요\n검토 결정이 기록되었습니다.\nWaiver 승인 기록이 남았습니다.\n검토 결정\nWaiver 승인\n통과\n결정·수임 원장 확인됨\n수임 승인 완료.\n통과 처리되었습니다.\n수임 승인\n통과 처리\nMatter 개설됨\n통과 기록으로 개설 가능\nMatter가 개설되었습니다.\nMatter 개설\nHit\t출처\t심각도\t상태\n상대방 주식회사\t과거 Matter\t높음\tcleared",
+    "audit_events": [
+      {
+        "event_id": "audit_upl_c04_search",
+        "action": "conflict.search.executed",
+        "object_type": "ConflictSearch",
+        "object_id": "search_upl_c04_ui",
+        "metadata": {
+          "hit_count": 1
+        }
+      },
+      {
+        "event_id": "audit_upl_c04_hit",
+        "action": "conflict.hit.create",
+        "object_type": "ConflictHit",
+        "object_id": "hit_upl_c04_ui_adverse",
+        "metadata": {
+          "hit_source": "former_matter"
+        }
+      },
+      {
+        "event_id": "audit_upl_c04_decision",
+        "action": "conflict.decision.record",
+        "object_type": "ConflictDecision",
+        "object_id": "decision_upl_c04_ui",
+        "metadata": {
+          "reviewer_id": "user_upl_c04_reviewer"
+        }
+      },
+      {
+        "event_id": "audit_upl_c04_waiver",
+        "action": "waiver.approved",
+        "object_type": "Waiver",
+        "object_id": "waiver_upl_c04_ui",
+        "metadata": {
+          "consent_document_id": "consent_doc_upl_c04_ui"
+        }
+      },
+      {
+        "event_id": "audit_upl_c04_engagement",
+        "action": "engagement.approved",
+        "object_type": "Engagement",
+        "object_id": "engagement_upl_c04_ui",
+        "metadata": {
+          "intake_request_id": "intake_upl_c04_ui"
+        }
+      },
+      {
+        "event_id": "audit_upl_c04_clearance",
+        "action": "clearance.token.issue",
+        "object_type": "ClearanceToken",
+        "object_id": "clearance_upl_c04_ui_issued",
+        "metadata": {
+          "conflict_check_id": "conflict_upl_c04_ui"
+        }
+      },
+      {
+        "event_id": "audit_upl_c04_matter_open",
+        "action": "matter.open",
+        "object_type": "Matter",
+        "object_id": "matter_intake_ui_mr45tio5_65wucf",
+        "metadata": {
+          "clearance_token_id": "clearance_upl_c04_ui_issued"
+        }
+      }
+    ],
+    "console_events": [],
+    "failed_requests": []
+  }
+}

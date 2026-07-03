@@ -1,0 +1,28 @@
+{
+  "tuw_id": "UPL-D-13",
+  "generated_at": "2026-07-02T16:20:54.491Z",
+  "surface": "browser fetch against real API server /api/matters/:matter_id/team-members",
+  "base_url": "http://127.0.0.1:64461",
+  "passed": true,
+  "receipt": {
+    "blocked_status": 409,
+    "blocked_codes": [
+      "MATTER_ONBOARDING_GATE_REQUIRED"
+    ],
+    "blocked_ui_state": "onboarding_blocked",
+    "blocked_missing_tasks": [
+      "security-pledge"
+    ],
+    "lifecycle_update_status": 200,
+    "lifecycle_pledge_status": "completed",
+    "created_status": 201,
+    "created_employee_id": "emp_manual_d13_onboarding",
+    "audit_status": 200,
+    "audit_has_team_add": true
+  },
+  "page_errors": [],
+  "expected_console_errors": [
+    "Failed to load resource: the server responded with a status of 409 (Conflict)"
+  ],
+  "unexpected_console_errors": []
+}

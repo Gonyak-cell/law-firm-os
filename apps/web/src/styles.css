@@ -635,6 +635,18 @@ p {
   min-width: 0;
 }
 
+.global-utility-live-detail {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.28fr);
+  align-items: start;
+  gap: 12px;
+}
+
+.global-utility-live-detail .people-panel {
+  min-width: 0;
+}
+
 .global-utility-detail-header {
   display: flex;
   align-items: flex-start;
@@ -2910,6 +2922,13 @@ html[data-theme="dark"] .public-preview {
 .data-table tr:hover td,
 .compact-table tr:hover td {
   background: var(--am-blue-soft);
+}
+
+#people-leave .data-table th:first-child,
+#people-leave .data-table td:first-child {
+  min-width: 154px;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .profile-card .panel-body {
@@ -5889,6 +5908,10 @@ html[data-theme="dark"] .public-preview {
     grid-template-columns: 1fr;
   }
 
+  .vault-search-form {
+    grid-template-columns: 1fr;
+  }
+
   .vault-action-boundary-meta {
     justify-content: flex-start;
   }
@@ -7499,12 +7522,49 @@ html[data-theme="dark"] .public-preview {
   min-width: 82px;
 }
 
+.record-action-strip > .record-action-button-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.record-action-table {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.record-action-time-entry-strip {
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
 .record-action-edit-form {
   display: grid;
   grid-template-columns: minmax(160px, 240px) auto;
   align-items: end;
   gap: 8px;
   min-width: 0;
+}
+
+.time-entry-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+}
+
+.time-entry-form label {
+  flex: 0 1 120px;
+}
+
+.time-entry-form .time-entry-narrative-field {
+  flex: 1 1 190px;
+}
+
+.time-entry-form button {
+  flex: 0 0 auto;
 }
 
 .record-action-edit-form label {
@@ -7516,7 +7576,8 @@ html[data-theme="dark"] .public-preview {
   font-weight: 700;
 }
 
-.record-action-edit-form input {
+.record-action-edit-form input,
+.record-action-edit-form select {
   width: 100%;
   min-width: 0;
   height: 32px;
@@ -7526,6 +7587,27 @@ html[data-theme="dark"] .public-preview {
   background: var(--am-surface);
   color: var(--am-text);
   font: inherit;
+}
+
+.record-action-edit-form[data-matter-adverse-party-form="true"] {
+  grid-template-columns: minmax(160px, 240px) auto auto;
+}
+
+.record-action-edit-form .checkbox-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  white-space: nowrap;
+}
+
+.record-action-edit-form .checkbox-field input[type="checkbox"] {
+  width: 16px;
+  min-width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--am-blue);
 }
 
 .feature-gap-card {
@@ -7602,6 +7684,12 @@ html[data-theme="dark"] .public-preview {
 .vault-runtime-grid {
   grid-template-columns: minmax(0, 1fr) minmax(280px, 0.44fr);
   align-items: start;
+}
+
+.vault-main-stack {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
 }
 
 .portal-runtime-grid {
@@ -7728,9 +7816,27 @@ html[data-theme="dark"] .public-preview {
 }
 
 .vault-side-stack,
-.vault-matter-picker {
+.vault-matter-picker,
+.vault-search {
   display: grid;
   gap: 12px;
+}
+
+.vault-search-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  align-items: end;
+  gap: 8px;
+}
+
+.vault-search-action {
+  min-height: 36px;
+  justify-content: center;
+}
+
+.vault-search-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
 }
 
 .vault-lookup-field {
@@ -8652,6 +8758,25 @@ html[data-theme="dark"] .public-preview {
   background: var(--am-surface-subtle);
 }
 
+.hr-roster-organization-row td {
+  height: 34px;
+  background: var(--am-surface-subtle);
+  color: var(--am-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.hr-roster-organization-row td {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hr-roster-organization-row strong {
+  color: var(--am-text);
+}
+
 .hr-roster-header-cell,
 .hr-roster-owner,
 .hr-roster-source {
@@ -8874,6 +8999,37 @@ html[data-theme="dark"] .public-preview {
   color: var(--am-text-muted);
 }
 
+.hr-org-editor {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(160px, 1fr)) auto;
+  align-items: end;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+}
+
+.hr-org-editor label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--am-text-muted);
+}
+
+.hr-org-editor select {
+  min-height: 34px;
+  width: 100%;
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text);
+  font: inherit;
+  font-size: 13px;
+}
+
 .hr-org-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(220px, 1fr));
@@ -8897,8 +9053,17 @@ html[data-theme="dark"] .public-preview {
   color: var(--am-text-muted);
 }
 
+.hr-org-group header span:first-child {
+  display: grid;
+  gap: 2px;
+}
+
 .hr-org-group header strong {
   color: var(--am-text);
+}
+
+.hr-org-group header small {
+  font-size: 12px;
 }
 
 .hr-org-person {
@@ -8923,6 +9088,44 @@ html[data-theme="dark"] .public-preview {
 
 .hr-org-person small {
   color: var(--am-text-muted);
+}
+
+.hr-org-history {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+}
+
+.hr-org-history header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--am-text-muted);
+}
+
+.hr-org-history header strong {
+  color: var(--am-text);
+}
+
+.hr-org-history table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.hr-org-history th,
+.hr-org-history td {
+  padding: 8px 6px;
+  border-top: 1px solid var(--am-border-soft);
+  text-align: left;
+}
+
+.hr-org-history th {
+  color: var(--am-text-muted);
+  font-weight: 700;
 }
 
 .legal-people-search {
@@ -9160,9 +9363,55 @@ html[data-theme="dark"] .public-preview {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.people-compensation-section {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--am-border-soft);
+}
+
+.people-compensation-head,
+.people-compensation-row {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.people-compensation-head {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.people-compensation-head strong,
+.people-compensation-row strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.people-compensation-head span,
+.people-compensation-row span,
+.people-compensation-row small {
+  color: var(--am-text-muted);
+  font-size: 11px;
+}
+
+.people-compensation-list {
+  display: grid;
+  gap: 7px;
+}
+
+.people-compensation-row {
+  min-height: 54px;
+  padding: 8px 0;
+  border-top: 1px solid var(--am-border-soft);
+}
+
 .leave-request-form {
   display: grid;
-  grid-template-columns: 88px 1fr 1fr auto;
+  grid-template-columns: 88px minmax(98px, 0.8fr) minmax(116px, 1fr) 1fr 1fr auto;
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -9174,7 +9423,8 @@ html[data-theme="dark"] .public-preview {
   font-size: 11px;
 }
 
-.leave-request-form input {
+.leave-request-form input,
+.leave-request-form select {
   min-width: 0;
   height: var(--am-control-height);
   padding: 0 8px;
@@ -9184,15 +9434,80 @@ html[data-theme="dark"] .public-preview {
   color: var(--am-text);
 }
 
+.hr-document-action-bar {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) auto minmax(72px, auto);
+  align-items: end;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.hr-document-action-bar label {
+  display: grid;
+  gap: 4px;
+  color: var(--am-text-muted);
+  font-size: 11px;
+}
+
+.hr-document-action-bar input {
+  min-width: 0;
+  height: var(--am-control-height);
+  padding: 0 8px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text);
+}
+
+.hr-document-action-status,
+.hr-document-muted {
+  color: var(--am-text-muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.hr-document-lifecycle-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.hr-document-lifecycle-summary span {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 9px;
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface-subtle);
+  color: var(--am-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.hr-document-inline-action {
+  min-height: 28px;
+  padding: 0 8px;
+}
+
 .leave-balance-strip {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 10px;
   padding: 10px 12px;
   border: 1px solid var(--am-border-soft);
   border-radius: var(--am-radius-sm);
   background: var(--am-surface-subtle);
+}
+
+.leave-balance-item {
+  display: grid;
+  gap: 2px;
+  min-width: 74px;
 }
 
 .leave-balance-strip strong {
@@ -9239,6 +9554,60 @@ html[data-theme="dark"] .public-preview {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.recruiting-create-form {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface-subtle);
+}
+
+.recruiting-field-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.recruiting-field-grid label {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.recruiting-field-grid span {
+  color: var(--am-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.recruiting-field-grid input {
+  min-width: 0;
+  height: 34px;
+  border: 1px solid var(--am-border-strong);
+  border-radius: var(--am-radius-sm);
+  padding: 0 9px;
+  background: var(--am-surface);
+  color: var(--am-text);
+  font: inherit;
+}
+
+.recruiting-form-footer {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.recruiting-form-footer span {
+  min-width: 0;
+  color: var(--am-text-muted);
+  font-size: 12px;
 }
 
 .lifecycle-board-grid {
@@ -9281,6 +9650,144 @@ html[data-theme="dark"] .public-preview {
 
 .people-lifecycle-runtime-grid .lifecycle-task-row {
   min-height: 54px;
+}
+
+.hrx-risk-toolbar,
+.hrx-risk-metrics,
+.hrx-risk-type-strip,
+.hrx-risk-list {
+  display: grid;
+  gap: 10px;
+}
+
+.hrx-risk-toolbar {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.hrx-risk-toolbar span {
+  color: var(--am-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.hrx-risk-metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 10px;
+}
+
+.hrx-risk-metric,
+.hrx-risk-type,
+.hrx-risk-row {
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface-subtle);
+}
+
+.hrx-risk-metric,
+.hrx-risk-type {
+  min-height: 74px;
+  padding: 12px;
+}
+
+.hrx-risk-metric span,
+.hrx-risk-metric small,
+.hrx-risk-type span {
+  color: var(--am-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.hrx-risk-metric strong {
+  display: block;
+  margin: 4px 0;
+  font-family: var(--font-heading);
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.hrx-risk-type-strip {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin-bottom: 10px;
+}
+
+.hrx-risk-type {
+  min-width: 0;
+}
+
+.hrx-risk-type span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hrx-risk-type strong {
+  display: block;
+  margin-top: 8px;
+  font-family: var(--font-heading);
+  font-size: 20px;
+}
+
+.hrx-risk-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(58px, auto) minmax(62px, auto) minmax(86px, auto) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 10px;
+}
+
+.hrx-risk-row-main {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.hrx-risk-row-main strong,
+.hrx-risk-row-main span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hrx-risk-row-main span,
+.hrx-risk-date {
+  color: var(--am-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.hrx-risk-severity,
+.hrx-risk-status {
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 9px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.hrx-risk-severity.severity-critical {
+  border-color: #e0a4a4;
+  background: #fff3f3;
+  color: #9b1c1c;
+}
+
+.hrx-risk-severity.severity-high {
+  border-color: #e4cda4;
+  background: #fdf9f0;
+  color: #8a5a12;
+}
+
+.hrx-risk-row-action {
+  min-width: 72px;
 }
 
 .hrx-step-up-challenge {
@@ -9386,25 +9893,33 @@ html[data-theme="dark"] .public-preview {
 
 @media (max-width: 980px) {
   .people-runtime-grid,
+  .global-utility-live-detail,
   .home-ops-layout,
   .home-priority-grid,
   .legal-people-runtime-grid,
   .people-admin-grid,
+  .hr-org-editor,
   .hr-org-grid,
   .clients-runtime-grid,
   .matter-runtime-grid,
   .lifecycle-board-grid,
+  .hrx-risk-metrics,
+  .hrx-risk-type-strip,
+  .hrx-risk-row,
   .hrx-analytics-strip,
   .people-feature-state-grid,
   .people-external-schedule-row,
   .leave-request-form,
+  .recruiting-field-grid,
   .approval-row,
   .record-action-grid,
   .record-summary-grid,
   .matter-list-view-panel,
   .matter-bulk-action-bar,
   .record-action-edit-strip,
+  .record-action-time-entry-strip,
   .record-action-edit-form,
+  .time-entry-form,
   .activity-filter-tabs,
   .matter-selectable-header,
   .matter-selectable-row,

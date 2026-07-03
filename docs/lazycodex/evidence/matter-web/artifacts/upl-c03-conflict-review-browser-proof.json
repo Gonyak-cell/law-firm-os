@@ -1,0 +1,190 @@
+{
+  "schema_version": "law-firm-os.upl-c03.browser-proof.v0.1",
+  "generated_at": "2026-07-02T23:29:30.857Z",
+  "verdict": "PASS",
+  "contract_ref": "UPL-C-03",
+  "url": "http://127.0.0.1:5173/?locale=ko&view=clients&data=live&ctx=allow#client-conflict",
+  "screenshot": "/Users/jws/Documents/Codex/Law Firm OS/docs/lazycodex/evidence/matter-web/artifacts/upl-c03-screenshots/upl-c03-conflict-review-flow.png",
+  "checks": [
+    {
+      "id": "review-flow-buttons-drive-all-routes",
+      "passed": true
+    },
+    {
+      "id": "conflict-review-ui-shows-hit-decision-waiver-clearance",
+      "passed": true
+    },
+    {
+      "id": "browser-proof-clean",
+      "passed": true
+    }
+  ],
+  "observed": {
+    "writes": [
+      {
+        "kind": "conflict_check",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "matter_client_intake_operator",
+          "idempotency_key": "conflict:conflict_ui_mr44zgem_at4fej",
+          "conflict_check": {
+            "conflict_check_id": "conflict_ui_mr44zgem_at4fej",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "intake_request_id": "intake_upl_c03_ui",
+            "party_snapshot": {
+              "party_ids": [
+                "party_upl_c03_new_client"
+              ]
+            },
+            "status": "snapshot_recorded",
+            "owner_user_id": "matter_client_intake_operator"
+          }
+        }
+      },
+      {
+        "kind": "decision",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "matter_client_intake_operator",
+          "idempotency_key": "decision:decision_ui_mr44zggo_2uc2gp",
+          "conflict_decision": {
+            "conflict_decision_id": "decision_ui_mr44zggo_2uc2gp",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "conflict_check_id": "conflict_upl_c03_ui",
+            "conflict_hit_ids": [
+              "hit_upl_c03_ui_adverse"
+            ],
+            "reviewer_id": "matter_client_intake_operator",
+            "decision": "clear",
+            "rationale": "ui_conflict_review"
+          }
+        }
+      },
+      {
+        "kind": "waiver",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "matter_client_intake_operator",
+          "idempotency_key": "waiver:waiver_ui_mr44zgi1_22e7ta",
+          "waiver": {
+            "waiver_id": "waiver_ui_mr44zgi1_22e7ta",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "intake_request_id": "intake_upl_c03_ui",
+            "conflict_check_id": "conflict_upl_c03_ui",
+            "conflict_hit_ids": [
+              "hit_upl_c03_ui_adverse"
+            ],
+            "consent_document_id": "consent:waiver_ui_mr44zgi1_22e7ta",
+            "approver_id": "matter_client_intake_operator",
+            "approval_reason": "ui_conflict_waiver"
+          }
+        }
+      },
+      {
+        "kind": "engagement",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "matter_client_intake_operator",
+          "idempotency_key": "engagement:engagement_ui_mr44zgj7_4u0je6",
+          "engagement": {
+            "engagement_id": "engagement_ui_mr44zgj7_4u0je6",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "intake_request_id": "intake_upl_c03_ui",
+            "template_id": "matter_engagement_letter",
+            "signed_document_id": "signed_doc:engagement_ui_mr44zgj7_4u0je6",
+            "signature_ref": "signature:signed_doc:engagement_ui_mr44zgj7_4u0je6",
+            "approver_id": "matter_client_intake_operator"
+          }
+        }
+      },
+      {
+        "kind": "clearance",
+        "payload": {
+          "tenant_id": "tenant_cmp_g6_synthetic",
+          "permission_ref": "ui_cmp_g6_crm_intake_live",
+          "audit_hint_ref": "ui_cmp_g6_crm_intake_probe",
+          "actor_id": "matter_client_intake_operator",
+          "idempotency_key": "clearance:clearance_ui_mr44zgkd_00yltk",
+          "now": "2026-06-20T00:00:00.000Z",
+          "token": {
+            "clearance_token_id": "clearance_ui_mr44zgkd_00yltk",
+            "tenant_id": "tenant_cmp_g6_synthetic",
+            "intake_request_id": "intake_upl_c03_ui",
+            "conflict_check_id": "conflict_upl_c03_ui",
+            "engagement_id": "engagement_upl_c03_ui",
+            "snapshot_hash": "snapshot_upl_c03_ui",
+            "expires_at": "2026-06-27T00:00:00.000Z"
+          }
+        }
+      }
+    ],
+    "panel_text": "상담·문의 1\nHit 1건\n이해상충 검색 결과가 기록되었습니다.\n이해상충 검토\nWaiver 승인\n승인자 기록 필요\n검토 결정이 기록되었습니다.\nWaiver 승인 기록이 남았습니다.\n검토 결정\nWaiver 승인\n통과\n결정·수임 원장 확인됨\n수임 승인 완료.\n통과 처리되었습니다.\n수임 승인\n통과 처리\nMatter 개설\n통과 기록으로 개설 가능\nMatter 개설\nHit\t출처\t심각도\t상태\n상대방 주식회사\t과거 Matter\t높음\tcleared",
+    "hit_list_text": "Hit\t출처\t심각도\t상태\n상대방 주식회사\t과거 Matter\t높음\tcleared",
+    "audit_events": [
+      {
+        "event_id": "audit_upl_c03_search",
+        "action": "conflict.search.executed",
+        "object_type": "ConflictSearch",
+        "object_id": "search_upl_c03_ui",
+        "metadata": {
+          "hit_count": 1
+        }
+      },
+      {
+        "event_id": "audit_upl_c03_hit",
+        "action": "conflict.hit.create",
+        "object_type": "ConflictHit",
+        "object_id": "hit_upl_c03_ui_adverse",
+        "metadata": {
+          "hit_source": "former_matter"
+        }
+      },
+      {
+        "event_id": "audit_upl_c03_decision",
+        "action": "conflict.decision.record",
+        "object_type": "ConflictDecision",
+        "object_id": "decision_upl_c03_ui",
+        "metadata": {
+          "reviewer_id": "user_upl_c03_reviewer"
+        }
+      },
+      {
+        "event_id": "audit_upl_c03_waiver",
+        "action": "waiver.approved",
+        "object_type": "Waiver",
+        "object_id": "waiver_upl_c03_ui",
+        "metadata": {
+          "consent_document_id": "consent_doc_upl_c03_ui"
+        }
+      },
+      {
+        "event_id": "audit_upl_c03_engagement",
+        "action": "engagement.approved",
+        "object_type": "Engagement",
+        "object_id": "engagement_upl_c03_ui",
+        "metadata": {
+          "intake_request_id": "intake_upl_c03_ui"
+        }
+      },
+      {
+        "event_id": "audit_upl_c03_clearance",
+        "action": "clearance.token.issue",
+        "object_type": "ClearanceToken",
+        "object_id": "clearance_upl_c03_ui",
+        "metadata": {
+          "conflict_check_id": "conflict_upl_c03_ui"
+        }
+      }
+    ],
+    "console_events": [],
+    "failed_requests": []
+  }
+}

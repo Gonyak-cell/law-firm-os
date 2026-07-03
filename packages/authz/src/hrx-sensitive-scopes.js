@@ -1,6 +1,8 @@
 export const HRX_SENSITIVE_SCOPE_GROUPS = Object.freeze({
   employee: Object.freeze(["hrx.employee.read", "hrx.employee.write"]),
   document: Object.freeze(["hrx.document.read", "hrx.document.write"]),
+  attendance: Object.freeze(["hrx.attendance.read", "hrx.attendance.write"]),
+  overtime: Object.freeze(["hrx.overtime.read", "hrx.overtime.write"]),
   compensation: Object.freeze(["hrx.compensation.read", "hrx.compensation.write"]),
   evaluation: Object.freeze(["hrx.evaluation.read", "hrx.evaluation.review", "hrx.evaluation.write"]),
   candidate: Object.freeze(["hrx.candidate.read", "hrx.candidate.write"]),
@@ -16,6 +18,8 @@ export const HRX_SENSITIVE_SCOPES = Object.freeze(Object.values(HRX_SENSITIVE_SC
 export const HRX_SENSITIVITY_REQUIRED_SCOPES = Object.freeze({
   employee: "hrx.employee.read",
   document: "hrx.document.read",
+  attendance: "hrx.attendance.read",
+  overtime: "hrx.overtime.read",
   compensation: "hrx.compensation.read",
   evaluation: "hrx.evaluation.read",
   candidate: "hrx.candidate.read",

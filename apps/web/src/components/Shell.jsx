@@ -13,6 +13,7 @@ import {
   Plus,
   Search,
   Settings,
+  Share2,
   ShieldCheck,
   Tags,
   UserPlus,
@@ -89,7 +90,7 @@ export function LoadingSurface({ labels, locale, theme, setLocale, setTheme, cla
 
 function ProductAxisNav({ view, setView }) {
   return (
-    <nav className="top-axis-nav" aria-label="Home Client Matter People Vault" data-product-axis-nav="top-header">
+    <nav className="top-axis-nav" aria-label="Home Client Matter People Vault Portal" data-product-axis-nav="top-header">
       {navItems.map(({ id, label, icon: Icon }) => (
         <button
           key={id}
@@ -140,6 +141,8 @@ const notificationItems = [
   }
 ];
 
+const notificationUnreadCount = notificationItems.length;
+
 export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQuery, view, setView, onCreate, onInvite, onProfile, notificationsOpen, onToggleNotifications }) {
   const [helpOpen, setHelpOpen] = useState(false);
 
@@ -182,7 +185,7 @@ export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQ
           onClick={onToggleNotifications}
         >
           <Bell size={17} />
-          <span className="notification-badge">3</span>
+          <span className="notification-badge">{notificationUnreadCount}</span>
         </button>
         <button
           className={helpOpen ? "icon-button active" : "icon-button"}
@@ -233,7 +236,7 @@ export function NotificationDrawer({ open, onClose }) {
       <aside className="notification-drawer" id="notification-drawer" role="dialog" aria-modal="true" aria-labelledby="notification-drawer-title">
         <header className="notification-drawer-header">
           <div>
-            <h2 id="notification-drawer-title">알림 <span>3</span></h2>
+            <h2 id="notification-drawer-title">알림 <span>{notificationUnreadCount}</span></h2>
             <p>작업 알림과 검토 신호</p>
           </div>
           <button type="button" className="icon-button" aria-label="알림 닫기" onClick={onClose}>
@@ -279,11 +282,11 @@ const sidebarMeta = {
   home: {
     title: "Home",
     actions: [
-      { label: "최근 작업", view: "home", section: "home-recent", icon: ClipboardList, count: "8" },
+      { label: "최근 작업", view: "home", section: "home-recent", icon: ClipboardList },
       { label: "대시보드", view: "reports", section: "reports-home-dashboard", icon: LayoutDashboard },
-      { label: "Matter 대화", view: "messages", section: "messages-matter-channel", icon: Mail, count: "2" },
+      { label: "Matter 대화", view: "messages", section: "messages-matter-channel", icon: Mail },
       { label: "Client 데이터 가져오기", view: "data-import", section: "data-import-client", icon: Tags },
-      { label: "검토함", view: "requests", section: "requests-review-inbox", icon: ShieldCheck, count: "3" }
+      { label: "검토함", view: "requests", section: "requests-review-inbox", icon: ShieldCheck }
     ],
     utilities: []
   },
@@ -297,10 +300,16 @@ const sidebarMeta = {
   },
   people: {
     title: "구성원",
-    utilities: []
+    utilities: [
+      { label: "급여정산", icon: FileText, view: "people", section: "people-payroll" }
+    ]
   },
   vault: {
     title: "Vault",
+    utilities: []
+  },
+  portal: {
+    title: "공유 포털",
     utilities: []
   },
   profile: {
@@ -341,7 +350,7 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
         icon: ClipboardList,
         children: [
           { label: "Client 홈", view: "clients", section: "clients-home", icon: LayoutDashboard, active: true },
-          { label: "Client 목록", view: "clients", section: "clients-list", icon: ClipboardList, count: "12" },
+          { label: "Client 목록", view: "clients", section: "clients-list", icon: ClipboardList },
           { label: "법인·개인 Client", view: "clients", section: "client-accounts", icon: ShieldCheck },
           { label: "담당자", view: "clients", section: "client-contacts", icon: UserPlus }
         ]
@@ -351,7 +360,7 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
         icon: FileText,
         children: [
           { label: "Opportunity", view: "clients", section: "client-opportunities", icon: ClipboardList },
-          { label: "상담·문의", view: "clients", section: "client-intake", icon: FileText, count: "4" },
+          { label: "상담·문의", view: "clients", section: "client-intake", icon: FileText },
           { label: "접촉 이력", view: "clients", section: "client-activities", icon: ClipboardList },
           { label: "제안·계약", view: "clients", section: "client-contracts", icon: FileText },
           { label: "Client 관계", view: "clients", section: "client-relationships", icon: UserPlus },
@@ -376,7 +385,7 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
         icon: LayoutDashboard,
         children: [
           { label: "홈", view: "matters", section: "matter-home", icon: LayoutDashboard, active: true },
-          { label: "사건 목록", view: "matters", section: "matters-list", icon: ClipboardList, count: "18" },
+          { label: "사건 목록", view: "matters", section: "matters-list", icon: ClipboardList },
           { label: "신규 사건", view: "matters", section: "matter-opening", icon: Plus },
           { label: "수임 진행", view: "matters", section: "matter-intake", icon: ShieldCheck },
           { label: "종결 처리", view: "matters", section: "matter-closeout", icon: ShieldCheck },
@@ -408,7 +417,7 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
         label: "소통·참여",
         icon: Mail,
         children: [
-          { label: "이메일·메시지", view: "matters", section: "matter-channel", icon: Mail, count: "2" },
+          { label: "이메일·메시지", view: "matters", section: "matter-channel", icon: Mail },
           { label: "회의·통화 기록", view: "matters", section: "matter-meetings", icon: ClipboardList },
           { label: "공지·공유", view: "matters", section: "matter-announcements", icon: Bell },
           { label: "담당자·참여자", view: "matters", section: "matter-team", icon: UserPlus },
@@ -441,9 +450,15 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
     ],
     people: peopleSidebarGroups(),
     vault: [
-      { label: "문서함", view: "vault", section: "vault-documents", icon: FileText, count: "24" },
+      { label: "문서함", view: "vault", section: "vault-documents", icon: FileText },
       { label: "문서 상세", view: "vault", section: "vault-detail", icon: ClipboardList },
       { label: "메일 보관함", view: "vault", section: "vault-email", icon: FileText }
+    ],
+    portal: [
+      { label: "공유 홈", view: "portal", section: "portal-home", icon: LayoutDashboard, active: true },
+      { label: "요청 응답", view: "portal", section: "portal-rfi", icon: FileText },
+      { label: "공유 링크", view: "portal", section: "portal-links", icon: Share2 },
+      { label: "감사 상태", view: "portal", section: "portal-audit", icon: ShieldCheck }
     ],
     profile: profileSidebarItems,
     ...globalSubnav

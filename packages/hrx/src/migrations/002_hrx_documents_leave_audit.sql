@@ -11,11 +11,23 @@ CREATE TABLE IF NOT EXISTS hrx_documents (
   source_metadata_json TEXT NOT NULL DEFAULT '{}',
   title TEXT,
   document_body_included INTEGER NOT NULL DEFAULT 0,
+  contract_id TEXT,
+  profile_id TEXT,
+  contract_state TEXT,
+  document_ref TEXT,
+  signature_ref TEXT,
+  signed_at TEXT,
+  expires_on TEXT,
+  expired_at TEXT,
+  renewal_of_contract_id TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (tenant_id, document_id),
   FOREIGN KEY (tenant_id, employee_id) REFERENCES hrx_employees (tenant_id, employee_id),
-  CONSTRAINT hrx_documents_body_blocked_check CHECK (document_body_included = 0)
+  CONSTRAINT hrx_documents_body_blocked_check CHECK (document_body_included = 0),
+  CONSTRAINT hrx_documents_contract_state_check CHECK (
+    contract_state IS NULL OR contract_state IN ('draft', 'approved', 'signed', 'renewed', 'terminated', 'expired')
+  )
 );
 
 CREATE TABLE IF NOT EXISTS hrx_leave_balance_entries (
@@ -59,6 +71,25 @@ CREATE TABLE IF NOT EXISTS hrx_leave_requests (
   CONSTRAINT hrx_leave_requests_amount_check CHECK (amount > 0)
 );
 
+CREATE TABLE IF NOT EXISTS hrx_compensation_records (
+  tenant_id TEXT NOT NULL,
+  compensation_id TEXT NOT NULL,
+  employee_id TEXT NOT NULL,
+  encrypted_amount_ref TEXT NOT NULL,
+  currency_ref TEXT,
+  effective_from TEXT NOT NULL,
+  effective_to TEXT,
+  source_ref TEXT NOT NULL,
+  employment_contract_id TEXT NOT NULL,
+  contract_document_ref TEXT NOT NULL,
+  raw_amount_included INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (tenant_id, compensation_id),
+  FOREIGN KEY (tenant_id, employee_id) REFERENCES hrx_employees (tenant_id, employee_id),
+  CONSTRAINT hrx_compensation_raw_amount_blocked_check CHECK (raw_amount_included = 0)
+);
+
 CREATE TABLE IF NOT EXISTS hrx_audit_events (
   tenant_id TEXT NOT NULL,
   event_id TEXT NOT NULL,
@@ -79,11 +110,17 @@ CREATE TABLE IF NOT EXISTS hrx_audit_events (
 CREATE INDEX IF NOT EXISTS idx_hrx_documents_employee
   ON hrx_documents (tenant_id, employee_id);
 
+CREATE INDEX IF NOT EXISTS idx_hrx_documents_contract_expiry
+  ON hrx_documents (tenant_id, contract_state, expires_on);
+
 CREATE INDEX IF NOT EXISTS idx_hrx_leave_balance_entries_employee
   ON hrx_leave_balance_entries (tenant_id, employee_id, policy_id);
 
 CREATE INDEX IF NOT EXISTS idx_hrx_leave_requests_employee
   ON hrx_leave_requests (tenant_id, employee_id, state);
+
+CREATE INDEX IF NOT EXISTS idx_hrx_compensation_records_employee
+  ON hrx_compensation_records (tenant_id, employee_id, effective_from);
 
 CREATE INDEX IF NOT EXISTS idx_hrx_audit_events_object
   ON hrx_audit_events (tenant_id, object_type, object_id);

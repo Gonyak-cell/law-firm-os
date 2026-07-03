@@ -1,0 +1,129 @@
+{
+  "schema_version": "lawos.upl_b16.invoice_pdf_dms_hash_proof.v1",
+  "generated_at": "2026-07-03T02:02:59.556Z",
+  "tuw_ids": [
+    "UPL-B-16"
+  ],
+  "pass": true,
+  "production_ready_claim": false,
+  "go_live_claim": false,
+  "email_linkage_claim": false,
+  "email_linkage_deferred_to": "UPL-E-06",
+  "external_email_receipt": false,
+  "store_path_kind": "temp_local_dms_store",
+  "routes": {
+    "upload": "POST /api/vault/documents",
+    "download": "GET /api/vault/documents/doc_upl_b16_invoice_pdf_hash_proof/download"
+  },
+  "source_trace": {
+    "pdf_renderer": "packages/billing/src/invoice-pdf-service.js#renderInvoicePdf",
+    "vault_upload": "apps/api/src/vault-dms-runtime-context.js#handleVaultDocumentUpload",
+    "vault_download": "apps/api/src/vault-dms-runtime-context.js#handleVaultDocumentDownload",
+    "dms_download_service": "packages/dms/src/storage/download-service.js#downloadFileObjectWithAudit"
+  },
+  "invoice_pdf": {
+    "invoice_id": "invoice_upl_b16_hash_proof",
+    "invoice_number": "INV-UPL-B16-HASH",
+    "filename": "INV-UPL-B16-HASH.pdf",
+    "mime_type": "application/pdf",
+    "byte_size": 1063,
+    "sha256": "0c503c7bcb7ba5f45520cc9eb3f78b9ab5d8750c4504f5782f24946c36025765"
+  },
+  "upload_receipt": {
+    "status": 201,
+    "outcome": "created",
+    "document_id": "doc_upl_b16_invoice_pdf_hash_proof",
+    "file_object_id": "file:version_doc_upl_b16_invoice_pdf_hash_proof_1",
+    "mime_type": "application/pdf",
+    "byte_size": 1063,
+    "sha256": "0c503c7bcb7ba5f45520cc9eb3f78b9ab5d8750c4504f5782f24946c36025765",
+    "storage_pointer_ref_included": false,
+    "audit_action": "dms.document.upload"
+  },
+  "download_receipt": {
+    "status": 200,
+    "content_sha256": "0c503c7bcb7ba5f45520cc9eb3f78b9ab5d8750c4504f5782f24946c36025765",
+    "recomputed_sha256": "0c503c7bcb7ba5f45520cc9eb3f78b9ab5d8750c4504f5782f24946c36025765",
+    "byte_size": 1063,
+    "mime_type": "application/pdf",
+    "pdf_header": "%PDF-1.4",
+    "raw_path_exposed": false,
+    "storage_pointer_ref_included": false,
+    "document_bytes_included": true,
+    "audit_action": "dms.document.download"
+  },
+  "restart_readback": {
+    "baseUrl": "http://127.0.0.1:60855",
+    "status": 200,
+    "content_sha256": "0c503c7bcb7ba5f45520cc9eb3f78b9ab5d8750c4504f5782f24946c36025765",
+    "recomputed_sha256": "0c503c7bcb7ba5f45520cc9eb3f78b9ab5d8750c4504f5782f24946c36025765",
+    "byte_size": 1063,
+    "mime_type": "application/pdf",
+    "raw_path_exposed": false,
+    "storage_pointer_ref_included": false
+  },
+  "checks": [
+    {
+      "id": "b16-pdf-renderer-emits-pdf-bytes",
+      "passed": true,
+      "evidence": {
+        "invoice_id": "invoice_upl_b16_hash_proof",
+        "invoice_number": "INV-UPL-B16-HASH",
+        "byte_size": 1063,
+        "sha256": "0c503c7bcb7ba5f45520cc9eb3f78b9ab5d8750c4504f5782f24946c36025765"
+      }
+    },
+    {
+      "id": "b16-dms-upload-stores-rendered-sha256",
+      "passed": true,
+      "evidence": {
+        "upload_status": 201,
+        "file_object_id": "file:version_doc_upl_b16_invoice_pdf_hash_proof_1",
+        "stored_sha256": "0c503c7bcb7ba5f45520cc9eb3f78b9ab5d8750c4504f5782f24946c36025765",
+        "stored_byte_size": 1063
+      }
+    },
+    {
+      "id": "b16-download-hash-matches-rendered-pdf",
+      "passed": true,
+      "evidence": {
+        "download_status": 200,
+        "content_sha256": "0c503c7bcb7ba5f45520cc9eb3f78b9ab5d8750c4504f5782f24946c36025765",
+        "recomputed_sha256": "0c503c7bcb7ba5f45520cc9eb3f78b9ab5d8750c4504f5782f24946c36025765",
+        "byte_size": 1063
+      }
+    },
+    {
+      "id": "b16-dms-restart-readback-preserves-pdf-hash",
+      "passed": true,
+      "evidence": {
+        "baseUrl": "http://127.0.0.1:60855",
+        "status": 200,
+        "content_sha256": "0c503c7bcb7ba5f45520cc9eb3f78b9ab5d8750c4504f5782f24946c36025765",
+        "recomputed_sha256": "0c503c7bcb7ba5f45520cc9eb3f78b9ab5d8750c4504f5782f24946c36025765",
+        "byte_size": 1063,
+        "mime_type": "application/pdf",
+        "raw_path_exposed": false,
+        "storage_pointer_ref_included": false
+      }
+    },
+    {
+      "id": "b16-download-safe-boundary",
+      "passed": true,
+      "evidence": {
+        "raw_path_exposed": false,
+        "storage_pointer_ref_included": false,
+        "document_bytes_included": true
+      }
+    },
+    {
+      "id": "b16-email-linkage-not-claimed",
+      "passed": true,
+      "evidence": {
+        "email_linkage_claim": false,
+        "deferred_to_tuw": "UPL-E-06",
+        "external_email_receipt": false
+      }
+    }
+  ]
+}

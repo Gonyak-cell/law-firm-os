@@ -12,6 +12,7 @@ import {
   checkoutDocument,
   checkinDocument,
   createDmsRepository,
+  createFileStorageAdapter,
   createLocalStorageAdapter,
   createRagEvidenceLedger,
   createRedactionMetadata,
@@ -21,10 +22,12 @@ import {
   createSecureLink,
   createSharePointStorageAdapterPlaceholder,
   createVaultObjectId,
+  downloadFileObjectWithAudit,
   exportRedactedDocument,
   filterPrivilegedForSearch,
   filterSearchResultsByAcl,
   serializeFileObjectSafe,
+  searchMatterVault,
   uploadDocument,
   validateSecureLinkAccess,
   verifyHashLineage,
@@ -89,6 +92,13 @@ test("G5 storage adapters hash content and reject credential material", () => {
   const receipt = storage.putObject({ object_id: "object-1", bytes: "hello", content_type: "text/plain" });
   assert.equal(receipt.raw_path_exposed, false);
   assert.equal(storage.statObject({ object_id: "object-1" }).sha256, receipt.sha256);
+  const rootPath = join(mkdtempSync(join(tmpdir(), "dms-file-storage-")), "objects");
+  const fileStorage = createFileStorageAdapter({ adapter_id: "file-test", rootPath });
+  assertStorageAdapter(fileStorage);
+  const fileReceipt = fileStorage.putObject({ object_id: "object-file-1", bytes: "durable", content_type: "text/plain" });
+  const reopened = createFileStorageAdapter({ adapter_id: "file-test", rootPath });
+  assert.equal(reopened.getObject({ object_id: "object-file-1" }).sha256, fileReceipt.sha256);
+  assert.equal(reopened.getObject({ object_id: "object-file-1" }).bytes.toString("utf8"), "durable");
   assert.throws(() => createS3StorageAdapterPlaceholder({ access_key: "secret" }), /credential_ref only/);
   assert.throws(() => createSharePointStorageAdapterPlaceholder({ access_token: "secret" }), /credential_ref only/);
   assert.equal(createM365({ credential_ref: "secretref:m365" }).credential_material_included, false);
@@ -111,6 +121,18 @@ test("G5 document upload writes metadata, rolls back on storage failure, and hid
   assert.equal(serializeFileObjectSafe(uploaded.file_object).storage_pointer_ref_included, false);
   assert.equal(repository.list({ tenant_id: TENANT, model_type: "DmsDocument" }).length, 1);
   assert.equal(repository.listAudit({ tenant_id: TENANT }).some((event) => event.action === "dms.document.upload"), true);
+  const downloaded = downloadFileObjectWithAudit({
+    repository,
+    storage,
+    tenant_id: TENANT,
+    file_object_id: uploaded.file_object.file_object_id,
+    actor_id: "user-dms",
+    permission_decision_id: "decision-download-1",
+  });
+  assert.equal(downloaded.sha256, uploaded.file_object.sha256);
+  assert.equal(downloaded.bytes.toString("utf8"), "hello vault");
+  assert.equal(downloaded.file_object.storage_pointer_ref_included, false);
+  assert.equal(downloaded.audit_event.action, "dms.document.download");
 
   const replay = uploadDocument({
     repository,
@@ -247,4 +269,91 @@ test("G5 search, RAG, email, and HR document vault flows are permission and sour
   });
   assert.equal(hrVault.outcome, "ok");
   assert.equal(hrVault.envelope.document_bytes_included, false);
+});
+
+test("UPL-E-01 DMS search indexes PDF/DOCX body text without exposing raw text", () => {
+  const pdfDocument = documentFixture({
+    document_id: "doc-e01-body-search",
+    current_version_id: "version-doc-e01-body-search-1",
+    title: "전문검색 검증 문서",
+    mime_type: "application/pdf",
+  });
+  const pdfIndex = createSearchIndexEnvelope({
+    document: pdfDocument,
+    version: { version_id: pdfDocument.current_version_id },
+    file_object: { mime_type: "application/pdf" },
+    bytes: "%PDF-1.4\n(차임증액 본문키워드 검증)\n%%EOF",
+  });
+  assert.equal(pdfIndex.body_text_indexed, true);
+  assert.equal(pdfIndex.raw_text_included, false);
+  assert.equal(pdfIndex.storage_pointer_ref_included, false);
+  assert.ok(pdfIndex.indexed_fields.includes("body_text"));
+
+  const docxDocument = documentFixture({
+    document_id: "doc-e01-docx-body-search",
+    current_version_id: "version-doc-e01-docx-body-search-1",
+    title: "DOCX 전문검색 검증 문서",
+    mime_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  });
+  const docxIndex = createSearchIndexEnvelope({
+    document: docxDocument,
+    version: { version_id: docxDocument.current_version_id },
+    file_object: { mime_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+    bytes: "<w:document><w:t>퇴직금 본문키워드 검증</w:t></w:document>",
+  });
+  assert.equal(docxIndex.body_text_indexed, true);
+
+  const search = searchMatterVault({
+    permission_decision_id: "decision-e01-search",
+    query: "차임증액",
+    index_rows: [pdfIndex, docxIndex],
+    allowed_document_ids: [pdfDocument.document_id, docxDocument.document_id],
+  });
+  assert.equal(search.results.length, 1);
+  assert.deepEqual(search.results[0].match_fields, ["body_text"]);
+  assert.equal(search.results[0].raw_text_included, false);
+  assert.equal(search.results[0].storage_pointer_ref_included, false);
+  assert.equal(JSON.stringify(search.results[0]).includes("차임증액"), false);
+
+  const docxSearch = searchMatterVault({
+    permission_decision_id: "decision-e01-docx-search",
+    query: "퇴직금",
+    index_rows: [pdfIndex, docxIndex],
+    allowed_document_ids: [pdfDocument.document_id, docxDocument.document_id],
+  });
+  assert.equal(docxSearch.results[0].document_id, docxDocument.document_id);
+  assert.equal(JSON.stringify(docxSearch.results[0]).includes("퇴직금"), false);
+});
+
+test("UPL-E-02 DMS OCR sidecar indexes scanned PDF text without exposing OCR text", () => {
+  const document = documentFixture({
+    document_id: "doc-e02-scanned-pdf",
+    current_version_id: "version-doc-e02-scanned-pdf-1",
+    title: "스캔 PDF OCR 검증",
+    mime_type: "application/pdf",
+  });
+  const index = createSearchIndexEnvelope({
+    document,
+    version: { version_id: document.current_version_id },
+    file_object: { mime_type: "application/pdf" },
+    bytes: "%PDF-1.4\n/Type /XObject /Subtype /Image\n%%EOF",
+    ocr_text: "토지대장 OCR키워드 검증",
+  });
+  assert.equal(index.ocr_text_indexed, true);
+  assert.equal(index.ocr_runtime_executed, true);
+  assert.equal(index.ocr_provider, "lawos_sidecar_ocr_v1");
+  assert.ok(index.indexed_fields.includes("ocr_text"));
+
+  const search = searchMatterVault({
+    permission_decision_id: "decision-e02-ocr-search",
+    query: "OCR키워드",
+    index_rows: [index],
+    allowed_document_ids: [document.document_id],
+  });
+  assert.equal(search.results.length, 1);
+  assert.deepEqual(search.results[0].match_fields, ["ocr_text"]);
+  assert.equal(search.results[0].ocr_text_indexed, true);
+  assert.equal(search.results[0].raw_text_included, false);
+  assert.equal(search.results[0].storage_pointer_ref_included, false);
+  assert.equal(JSON.stringify(search.results[0]).includes("OCR키워드"), false);
 });

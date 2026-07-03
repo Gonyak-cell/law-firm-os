@@ -31,7 +31,6 @@ export const PEOPLE_FEATURE_GROUPS = [
         section: "people-members",
         icon: "users",
         state: "active",
-        count: "9",
         active: true,
         summary: "구성원 명단과 재직 상태를 확인합니다.",
         capabilities: ["구성원 명단", "재직 상태", "직위", "소속", "부서", "이메일"]
@@ -241,7 +240,6 @@ export const PEOPLE_FEATURE_GROUPS = [
         section: "people-approvals",
         icon: "shield",
         state: "active",
-        count: "5",
         summary: "구성원 요청과 관리자 결재를 처리합니다.",
         capabilities: ["요청 관리", "단일 승인", "순차 승인", "상황별 상세 승인"]
       },
@@ -322,6 +320,22 @@ export const PEOPLE_FEATURE_GROUPS = [
         state: "active",
         summary: "근무, 휴가, 요청 데이터를 리포트로 확인합니다.",
         capabilities: ["실시간 리포트", "조직 필터", "조회 기간별 근무 데이터"]
+      },
+      {
+        label: "HR 리스크",
+        section: "people-risk",
+        icon: "shield",
+        state: "active",
+        summary: "근로계약, 연차촉진, 법정교육, 초과근로, 퇴사자 권한 회수를 점검합니다.",
+        capabilities: ["법적 5종 감지", "일일 스캔", "리스크 이벤트 상태"]
+      },
+      {
+        label: "인사 문의",
+        section: "people-ai",
+        icon: "clipboard",
+        state: "active",
+        summary: "사규와 취업규칙 근거를 권한 범위 안에서 조회합니다.",
+        capabilities: ["사규 근거 조회", "권한 범위 필터", "담당자 검토"]
       },
       {
         label: "리포트 스냅샷",

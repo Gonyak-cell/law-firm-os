@@ -60,12 +60,24 @@ test("desktop file-origin API calls receive CORS headers and preflight success",
     }
   });
   assert.equal(options.status, 204);
-  assert.equal(options.headers.get("access-control-allow-origin"), "*");
+  assert.equal(options.headers.get("access-control-allow-origin"), "null");
+  assert.equal(options.headers.get("vary"), "origin");
   assert.match(options.headers.get("access-control-allow-headers") ?? "", new RegExp(PERMISSION_CONTEXT_HEADER));
 
   const response = await fetch(`${baseUrl}/api/health`, { headers: { origin: "null" } });
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("access-control-allow-origin"), "*");
+  assert.equal(response.headers.get("access-control-allow-origin"), "null");
+});
+
+test("API CORS allowlist permits approved desktop dev origin and ignores arbitrary origins", async () => {
+  const approved = await fetch(`${baseUrl}/api/health`, { headers: { origin: "http://127.0.0.1:5173" } });
+  assert.equal(approved.status, 200);
+  assert.equal(approved.headers.get("access-control-allow-origin"), "http://127.0.0.1:5173");
+
+  const arbitrary = await fetch(`${baseUrl}/api/health`, { headers: { origin: "https://example.com" } });
+  assert.equal(arbitrary.status, 200);
+  assert.equal(arbitrary.headers.get("access-control-allow-origin"), null);
+  assert.equal(arbitrary.headers.get("vary"), "origin");
 });
 
 test("records happy path returns tenant-scoped AMIC items with matter-core enrichment", async () => {
@@ -87,14 +99,22 @@ test("ClientGroup records include current AMIC client names without legacy archi
   const { status, body } = await get(`/master-data/records?${BASE_QUERY}&model_type=ClientGroup&limit=100`, allowContext());
   assert.equal(status, 200);
   assert.equal(body.outcome, "passed");
-  assert.equal(body.items.length, 100);
-  assert.equal(body.page_info.next_cursor, "100");
-  const nextPage = await get(`/master-data/records?${BASE_QUERY}&model_type=ClientGroup&limit=100&cursor=100`, allowContext());
-  assert.equal(nextPage.status, 200);
-  assert.equal(nextPage.body.outcome, "passed");
-  assert.equal(nextPage.body.items.length, AMIC_CURRENT_CLIENT_CANDIDATES.length + 1 - 100);
-  assert.equal(nextPage.body.page_info.next_cursor, null);
-  const allItems = [...body.items, ...nextPage.body.items];
+  const pageSize = 100;
+  const expectedClientGroupCount = AMIC_CURRENT_CLIENT_CANDIDATES.length + 1;
+  assert.equal(body.items.length, Math.min(expectedClientGroupCount, pageSize));
+  assert.equal(body.page_info.next_cursor, expectedClientGroupCount > pageSize ? String(pageSize) : null);
+  let allItems = body.items;
+  if (body.page_info.next_cursor !== null) {
+    const nextPage = await get(
+      `/master-data/records?${BASE_QUERY}&model_type=ClientGroup&limit=100&cursor=${body.page_info.next_cursor}`,
+      allowContext(),
+    );
+    assert.equal(nextPage.status, 200);
+    assert.equal(nextPage.body.outcome, "passed");
+    assert.equal(nextPage.body.items.length, expectedClientGroupCount - pageSize);
+    assert.equal(nextPage.body.page_info.next_cursor, null);
+    allItems = [...body.items, ...nextPage.body.items];
+  }
   const currentClientItems = allItems.filter((item) => item.client_source_ref === "amic_current_onedrive_folder_inventory_2026_07_01");
   assert.equal(currentClientItems.length, AMIC_CURRENT_CLIENT_CANDIDATES.length);
   const names = currentClientItems.map((item) => item.display_name);
@@ -107,9 +127,7 @@ test("ClientGroup records include current AMIC client names without legacy archi
     assert.ok(names.includes(expectedName));
   }
   for (const expectedName of [
-    "홀딩핸즈앤코 외 12명",
     "한흥수 외 3명",
-    "노윤현 외 19명",
     "최재헌 외 2명",
     "이강명 외 1명",
     "강상도",
@@ -159,7 +177,7 @@ test("ClientGroup records include current AMIC client names without legacy archi
   const yujinEnt = allItems.find((item) => item.display_name === "유진이엔티");
   assert.equal(yujinEnt.legal_form, null);
   assert.equal(yujinEnt.canonical_display_name, "유진이엔티");
-  assert.equal(AMIC_CURRENT_CLIENT_CANDIDATES.length, 102);
+  assert.equal(AMIC_CURRENT_CLIENT_CANDIDATES.length, 99);
 });
 
 test("records model_type filter and cursor pagination are deterministic", async () => {

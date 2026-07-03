@@ -10,6 +10,7 @@ import { HomeSurface } from "./components/HomeSurface.jsx";
 import { ClientsSurface } from "./components/ClientsSurface.jsx";
 import { MattersSurface } from "./components/MattersSurface.jsx";
 import { VaultSurface } from "./components/VaultSurface.jsx";
+import { PortalSurface } from "./components/PortalSurface.jsx";
 import { UserProfileSurface } from "./components/UserProfileSurface.jsx";
 import { PeopleHome } from "./people/PeopleHome.tsx";
 
@@ -161,6 +162,7 @@ export function App() {
           {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} onNavigateSection={(section) => navigateToView("matters", section)} />}
           {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} />}
           {view === "vault" && <VaultSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
+          {view === "portal" && <PortalSurface labels={labels} liveCtx={liveCtx} />}
           {view === "profile" && <UserProfileSurface liveCtx={liveCtx} onNavigate={navigateToView} />}
           {isGlobalUtilityView(view) && <GlobalUtilitySurface view={view} activeSection={activeSection} setView={navigateToView} />}
         </main>

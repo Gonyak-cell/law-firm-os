@@ -215,6 +215,8 @@
     "matter-vault:r4:external-receipts:validate": "node scripts/validate-matter-vault-r4-external-receipts.mjs",
     "matter-vault:r4:aws-env-plan:validate": "node scripts/validate-matter-vault-r4-aws-env-plan.mjs",
     "matter-vault:r4:local-secrets:validate": "node scripts/validate-matter-vault-r4-local-secrets.mjs",
+    "matter-vault:r4:backup": "node scripts/drill-matter-vault-backup-restore.mjs backup",
+    "matter-vault:r4:backup-drill": "node scripts/drill-matter-vault-backup-restore.mjs drill",
     "matter-vault:user-registration:validate": "node scripts/validate-matter-vault-user-registration-seed.mjs",
     "matter-desktop:temporary-release:validate": "node scripts/validate-matter-desktop-temporary-release-plan.mjs",
     "matter-desktop:aws-runtime:smoke": "node scripts/smoke-matter-desktop-aws-runtime.mjs",
