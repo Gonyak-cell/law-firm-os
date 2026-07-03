@@ -2,7 +2,9 @@ import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { Building2, Link2, LockKeyhole, Network, Scale, Search, ShieldAlert, UsersRound } from "lucide-react";
 import { Panel, Property } from "../../components/primitives.jsx";
+import { useSkin } from "../../context/SkinContext.jsx";
 import { fetchLegalPeopleEthics, fetchLegalPeopleRelationships, fetchLegalPeopleSearch, fetchLegalPersonDetail } from "../hrxApiClient.ts";
+import { memberPhotoFor } from "../memberPhotos.js";
 
 const TYPE_FILTERS = [
   { id: "", label: "전체", icon: UsersRound },
@@ -90,6 +92,7 @@ function modeFilters(mode) {
 }
 
 export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveCtx = "allow" }) {
+  const skin = useSkin();
   const [query, setQuery] = useState("");
   const [typeId, setTypeId] = useState("");
   const [searchResult, setSearchResult] = useState(null);
@@ -188,21 +191,24 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
         {searchResult?.kind === "data" && people.length === 0 && <div className="live-data-state live-data-empty">조건에 맞는 참여자 기록이 없습니다.</div>}
         {people.length > 0 && (
           <div className="people-row-list legal-people-row-list">
-            {people.map((person) => (
-              <button
-                key={person.person_id}
-                type="button"
-                className={selectedPersonId === person.person_id ? "people-row legal-people-row active" : "people-row legal-people-row"}
-                onClick={() => setSelectedPersonId(person.person_id)}
-              >
-                <span className="people-row-avatar">{person.display_name?.slice(0, 1) ?? "P"}</span>
-                <span>
-                  <strong>{person.display_name}</strong>
-                  <small>{person.korean_label} · {person.organization_label ?? "조직 미등록"}</small>
-                </span>
-                <em>{statusLabel(person.status)}</em>
-              </button>
-            ))}
+            {people.map((person) => {
+              const photo = skin === "forest" ? memberPhotoFor(person.display_name) : undefined;
+              return (
+                <button
+                  key={person.person_id}
+                  type="button"
+                  className={selectedPersonId === person.person_id ? "people-row legal-people-row active" : "people-row legal-people-row"}
+                  onClick={() => setSelectedPersonId(person.person_id)}
+                >
+                  <span className="people-row-avatar">{photo ? <img src={photo} alt="" /> : person.display_name?.slice(0, 1) ?? "P"}</span>
+                  <span>
+                    <strong>{person.display_name}</strong>
+                    <small>{person.korean_label} · {person.organization_label ?? "조직 미등록"}</small>
+                  </span>
+                  <em>{statusLabel(person.status)}</em>
+                </button>
+              );
+            })}
           </div>
         )}
       </Panel>
@@ -218,7 +224,11 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
         {detail && (
           <div className="legal-people-detail-stack">
             <div className="legal-people-identity">
-              <span className="people-row-avatar">{detail.person.display_name?.slice(0, 1) ?? "P"}</span>
+              <span className="people-row-avatar">
+                {skin === "forest" && memberPhotoFor(detail.person.display_name)
+                  ? <img src={memberPhotoFor(detail.person.display_name)} alt="" />
+                  : detail.person.display_name?.slice(0, 1) ?? "P"}
+              </span>
               <div>
                 <strong>{detail.person.display_name}</strong>
                 <small>{detail.person.korean_label} · {detail.person.primary_role ?? "역할 미등록"}</small>

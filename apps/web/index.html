@@ -8,6 +8,24 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400&display=swap" rel="stylesheet" />
+    <script>
+      (() => {
+        const params = new URLSearchParams(window.location.search);
+        const urlSkin = params.get("skin");
+        let storedSkin = null;
+        try {
+          storedSkin = window.localStorage.getItem("matter.skin");
+        } catch {
+          storedSkin = null;
+        }
+        document.documentElement.dataset.skin =
+          urlSkin === "forest" || urlSkin === "matter"
+            ? urlSkin
+            : storedSkin === "forest" || storedSkin === "matter"
+              ? storedSkin
+              : "matter";
+      })();
+    </script>
     <title>matter</title>
   </head>
   <body>

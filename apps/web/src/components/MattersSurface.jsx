@@ -53,6 +53,7 @@ import {
   updateRecordActionField,
   updateMatterInlineFields
 } from "../data/apiClient.js";
+import { ForestHero } from "./ForestHero.jsx";
 import { DataTable, PageHeader, Panel, Property } from "./primitives.jsx";
 import { DesktopDeniedState } from "./DesktopDeniedState.jsx";
 import { MatterOpeningWizard } from "./MatterOpeningWizard.jsx";
@@ -3686,6 +3687,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
 
   return (
     <section id="matters-home" className="surface stack matters-surface" data-cmp-g4-live-matters="true">
+      <ForestHero title={labels.mattersTitle} imageOpacity={0.18} />
       <PageHeader
         title={labels.mattersTitle}
         subtitle="사건 상태, 담당자·참여자, 문서, 일정, 결재·청구 흐름을 확인합니다."

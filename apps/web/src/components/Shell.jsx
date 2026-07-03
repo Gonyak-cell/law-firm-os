@@ -21,16 +21,20 @@ import {
   X
 } from "lucide-react";
 import { navItems } from "../data/nav.js";
+import amicPetraMain from "../assets/logos/AMIC_n_PETRA_Main_Simple.svg";
 import {
   getGlobalUtilityByView,
   globalUtilityCatalog,
   globalUtilityItems,
   isLegacyGlobalRoute
 } from "../data/globalUtilities.js";
+import { readLawosApiSession } from "../data/apiClient.js";
+import { useSkin } from "../context/SkinContext.jsx";
 import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
 import { profileSidebarItems } from "./UserProfileSurface.jsx";
 import { peopleNavigationGroups } from "../people/peopleFeatureCatalog.js";
+import { memberPhotoFor } from "../people/memberPhotos.js";
 
 const peopleIconMap = {
   bell: Bell,
@@ -68,12 +72,13 @@ function peopleSidebarGroups() {
   }).filter(Boolean);
 }
 
-export function LoadingSurface({ labels, locale, theme, setLocale, setTheme, className = "", message = labels.loading }) {
+export function LoadingSurface({ labels, locale, theme, skin, setLocale, setTheme, className = "", message = labels.loading }) {
   useEffect(() => {
     document.documentElement.dataset.locale = locale;
     document.documentElement.dataset.theme = theme;
+    if (skin) document.documentElement.dataset.skin = skin;
     document.documentElement.lang = locale === "ko" ? "ko" : "en";
-  }, [locale, theme]);
+  }, [locale, theme, skin]);
 
   return (
     <main className={["loading-stage", className].filter(Boolean).join(" ")} data-matter-logo-flow={className.includes("post-login-splash") ? "post-login" : "startup"}>
@@ -145,11 +150,13 @@ const notificationUnreadCount = notificationItems.length;
 
 export function Topbar({ labels, locale, setLocale, theme, setTheme, query, setQuery, view, setView, onCreate, onInvite, onProfile, notificationsOpen, onToggleNotifications }) {
   const [helpOpen, setHelpOpen] = useState(false);
+  const skin = useSkin();
+  const isForest = skin === "forest";
 
   return (
     <header className="topbar">
       <div className="topbar-brand" data-logo-dock-target="top-left">
-        <MatterLogo />
+        {isForest ? <img className="forest-header-logo" src={amicPetraMain} alt="" /> : <MatterLogo />}
       </div>
       <ProductAxisNav view={view} setView={setView} />
       <label className="global-search">
@@ -322,8 +329,15 @@ const sidebarMeta = {
 };
 
 export function Sidebar({ labels, view, setView, activeSection = "" }) {
+  const skin = useSkin();
   const [openGroups, setOpenGroups] = useState({});
   const [utilityPanel, setUtilityPanel] = useState(null);
+  const isForest = skin === "forest";
+  const sessionUser = readLawosApiSession()?.session ?? {};
+  const forestUserName = sessionUser.display_name ?? sessionUser.name ?? sessionUser.user_name ?? sessionUser.user_id ?? "";
+  const forestUserRole = sessionUser.title ?? sessionUser.role_label ?? sessionUser.position ?? "";
+  const forestUserPhoto = forestUserName ? memberPhotoFor(forestUserName) : undefined;
+  const forestUserInitial = forestUserName.trim().slice(0, 1) || "서";
   const activeGlobalUtility = getGlobalUtilityByView(view);
   const globalSubnav = Object.fromEntries(
     globalUtilityCatalog.map((utility) => [
@@ -617,6 +631,17 @@ export function Sidebar({ labels, view, setView, activeSection = "" }) {
         <div className="sidebar-utility-panel" role="status" data-sidebar-utility-panel="true">
           <strong>{utilityPanel.label}</strong>
           <span>{utilityPanel.kind === "workspace" ? "작업공간 전환 메뉴를 이 화면에서 확인합니다." : `${utilityPanel.scope} 설정은 현재 세션에서만 열립니다.`}</span>
+        </div>
+      )}
+      {isForest && (
+        <div className="forest-sidebar-user">
+          <span className="forest-sidebar-avatar">
+            {forestUserPhoto ? <img src={forestUserPhoto} alt="" /> : forestUserInitial}
+          </span>
+          <span className="forest-sidebar-user-copy">
+            <strong>{forestUserName || "사용자"}</strong>
+            {forestUserRole && <small>{forestUserRole}</small>}
+          </span>
         </div>
       )}
     </aside>

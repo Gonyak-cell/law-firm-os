@@ -2,6 +2,7 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, FileCheck2, FileWarning, Link2, LockKeyhole, RefreshCw, Search, ShieldCheck, UploadCloud } from "lucide-react";
 import { fetchVaultBridgeStatus, fetchVaultDocuments, fetchVaultMatterLookup, fetchVaultSearch, fetchVaultUploadPreflight, uploadVaultDocumentFile } from "../data/apiClient.js";
+import { ForestHero } from "./ForestHero.jsx";
 import { DataTable, PageHeader, Panel } from "./primitives.jsx";
 import { DesktopDeniedState } from "./DesktopDeniedState.jsx";
 import { EmailFilingView } from "./EmailFilingView.jsx";
@@ -984,6 +985,7 @@ export function VaultSurface({ labels, liveCtx = "allow", activeSection = "" }) 
 
   return (
     <section id="vault-home" className="surface stack vault-surface" data-cmp-g5-vault-surface="true">
+      <ForestHero title={labels.vaultTitle} imageOpacity={0.18} />
       <PageHeader
         title={labels.vaultTitle}
         subtitle="Vault 문서와 권한 상태를 확인합니다. 권한이 없는 본문은 숨깁니다."

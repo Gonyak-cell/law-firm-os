@@ -9,6 +9,7 @@ import {
   fetchPortalRfi,
   submitPortalExternalRfiResponse
 } from "../data/apiClient.js";
+import { ForestHero } from "./ForestHero.jsx";
 import { CompactTable, PageHeader, Panel } from "./primitives.jsx";
 
 const PORTAL_PERMISSION_REF = "ui_cmp_g10_portal_live";
@@ -146,6 +147,7 @@ export function PortalSurface({ labels, liveCtx = "allow" }) {
       data-c13-rfi-response={externalRfiState}
       data-c13-secure-link-access={externalLinkAccessState}
     >
+      <ForestHero title={labels.portalTitle} imageOpacity={0.18} />
       <PageHeader
         eyebrow="공유 포털"
         title={labels.portalTitle}

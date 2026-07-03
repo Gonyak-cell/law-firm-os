@@ -13,13 +13,38 @@ import { VaultSurface } from "./components/VaultSurface.jsx";
 import { PortalSurface } from "./components/PortalSurface.jsx";
 import { UserProfileSurface } from "./components/UserProfileSurface.jsx";
 import { PeopleHome } from "./people/PeopleHome.tsx";
+import { SkinContext } from "./context/SkinContext.jsx";
 import { loginLawosApiSession } from "./data/apiClient.js";
+
+function readStoredSkin() {
+  try {
+    return window.localStorage.getItem("matter.skin");
+  } catch {
+    return null;
+  }
+}
+
+function storeSkin(skin) {
+  try {
+    window.localStorage.setItem("matter.skin", skin);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export function App() {
   const initialParams = new URLSearchParams(window.location.search);
   const routableViews = ["auth", "home", "loading", "profile", ...navItems.map((item) => item.id), ...globalUtilityViewIds];
   const initialLocale = initialParams.get("locale") === "en" ? "en" : "ko";
   const initialTheme = initialParams.get("theme") === "dark" ? "dark" : "light";
+  const initialSkinParam = initialParams.get("skin");
+  const storedSkin = readStoredSkin();
+  const initialSkin = ["forest", "matter"].includes(initialSkinParam)
+    ? initialSkinParam
+    : ["forest", "matter"].includes(storedSkin)
+      ? storedSkin
+      : "matter";
   const rawInitialView = routableViews.includes(initialParams.get("view")) ? initialParams.get("view") : "home";
   const rawInitialSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
   const resolvedInitialRoute = resolveRoute(rawInitialView, rawInitialSection);
@@ -35,6 +60,7 @@ export function App() {
   const initialHandoffSplash = initialParams.get("splash") === "1";
   const [locale, setLocale] = useState(initialLocale);
   const [theme, setTheme] = useState(initialTheme);
+  const [skin, setSkin] = useState(initialSkin);
   const [view, setView] = useState(initialView);
   const [liveCtx, setLiveCtx] = useState(initialLiveCtx);
   const [activeSection, setActiveSection] = useState(initialSection);
@@ -90,8 +116,10 @@ export function App() {
   useEffect(() => {
     document.documentElement.dataset.locale = locale;
     document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.skin = skin;
     document.documentElement.lang = locale === "ko" ? "ko" : "en";
-  }, [locale, theme]);
+    storeSkin(skin);
+  }, [locale, theme, skin]);
 
   useEffect(() => {
     if (!handoffSplashVisible) return undefined;
@@ -111,84 +139,103 @@ export function App() {
   }, []);
 
   if (view === "loading") {
-    return <LoadingSurface labels={labels} locale={locale} theme={theme} setLocale={setLocale} setTheme={setTheme} />;
+    return (
+      <SkinContext.Provider value={skin}>
+        <LoadingSurface labels={labels} locale={locale} theme={theme} skin={skin} setLocale={setLocale} setTheme={setTheme} />
+      </SkinContext.Provider>
+    );
   }
 
   if (view === "auth" && authStep === "login") {
     return (
-      <div className="matter-app auth-only-app">
-        <AuthSurface
-          labels={labels}
-          locale={locale}
-          authStep={authStep}
-          setAuthStep={setAuthStep}
-          authError={authError}
-          onLogin={handleLogin}
-        />
-      </div>
+      <SkinContext.Provider value={skin}>
+        <div className="matter-app auth-only-app">
+          <AuthSurface
+            labels={labels}
+            locale={locale}
+            authStep={authStep}
+            setAuthStep={setAuthStep}
+            authError={authError}
+            onLogin={handleLogin}
+          />
+        </div>
+      </SkinContext.Provider>
     );
   }
 
   return (
-    <div className="matter-app">
-      <Topbar
-        labels={labels}
-        locale={locale}
-        setLocale={setLocale}
-        theme={theme}
-        setTheme={setTheme}
-        query={query}
-        setQuery={setQuery}
-        view={view}
-        setView={navigateToView}
-        onCreate={() => navigateToView("matters", "matter-opening")}
-        onInvite={() => navigateToView("people", "people-members")}
-        onProfile={() => navigateToView("profile")}
-        notificationsOpen={notificationsOpen}
-        onToggleNotifications={() => setNotificationsOpen((open) => !open)}
-      />
-      <div className="app-frame contextual-shell" data-sidebar-state="contextual">
-        <Sidebar labels={labels} view={view} setView={navigateToView} activeSection={activeSection} />
-        <main className="page-canvas">
-          {view === "auth" && (
-            <AuthSurface
-              labels={labels}
-              locale={locale}
-              authStep={authStep}
-              setAuthStep={setAuthStep}
-              authError={authError}
-              onLogin={handleLogin}
-            />
-          )}
-          {view === "home" && (
-            <HomeSurface
-              labels={labels}
-              setView={navigateToView}
-              liveCtx={liveCtx}
-            />
-          )}
-          {view === "clients" && <ClientsSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
-          {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} onNavigateSection={(section) => navigateToView("matters", section)} />}
-          {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} />}
-          {view === "vault" && <VaultSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
-          {view === "portal" && <PortalSurface labels={labels} liveCtx={liveCtx} />}
-          {view === "profile" && <UserProfileSurface liveCtx={liveCtx} onNavigate={navigateToView} />}
-          {isGlobalUtilityView(view) && <GlobalUtilitySurface view={view} activeSection={activeSection} setView={navigateToView} />}
-        </main>
-      </div>
-      {handoffSplashVisible && (
-        <LoadingSurface
+    <SkinContext.Provider value={skin}>
+      <div className="matter-app">
+        <Topbar
           labels={labels}
           locale={locale}
-          theme={theme}
           setLocale={setLocale}
+          theme={theme}
           setTheme={setTheme}
-          className="post-login-splash"
-          message="matter 작업공간을 여는 중"
+          query={query}
+          setQuery={setQuery}
+          view={view}
+          setView={navigateToView}
+          onCreate={() => navigateToView("matters", "matter-opening")}
+          onInvite={() => navigateToView("people", "people-members")}
+          onProfile={() => navigateToView("profile")}
+          notificationsOpen={notificationsOpen}
+          onToggleNotifications={() => setNotificationsOpen((open) => !open)}
         />
-      )}
-      {query && <GlobalSearch labels={labels} query={query} setQuery={setQuery} setView={navigateToView} />}
-      <NotificationDrawer open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
-    </div>
+        <div className="app-frame contextual-shell" data-sidebar-state="contextual">
+          <Sidebar labels={labels} view={view} setView={navigateToView} activeSection={activeSection} />
+          <main className="page-canvas">
+            {view === "auth" && (
+              <AuthSurface
+                labels={labels}
+                locale={locale}
+                authStep={authStep}
+                setAuthStep={setAuthStep}
+                authError={authError}
+                onLogin={handleLogin}
+              />
+            )}
+            {view === "home" && (
+              <HomeSurface
+                labels={labels}
+                setView={navigateToView}
+                liveCtx={liveCtx}
+              />
+            )}
+            {view === "clients" && <ClientsSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
+            {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} onNavigateSection={(section) => navigateToView("matters", section)} />}
+            {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} />}
+            {view === "vault" && <VaultSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} />}
+            {view === "portal" && <PortalSurface labels={labels} liveCtx={liveCtx} />}
+            {view === "profile" && <UserProfileSurface liveCtx={liveCtx} onNavigate={navigateToView} />}
+            {isGlobalUtilityView(view) && (
+              <GlobalUtilitySurface
+                view={view}
+                activeSection={activeSection}
+                setView={navigateToView}
+                theme={theme}
+                setTheme={setTheme}
+                skin={skin}
+                setSkin={setSkin}
+              />
+            )}
+          </main>
+        </div>
+        {handoffSplashVisible && (
+          <LoadingSurface
+            labels={labels}
+            locale={locale}
+            theme={theme}
+            skin={skin}
+            setLocale={setLocale}
+            setTheme={setTheme}
+            className="post-login-splash"
+            message="matter 작업공간을 여는 중"
+          />
+        )}
+        {query && <GlobalSearch labels={labels} query={query} setQuery={setQuery} setView={navigateToView} />}
+        <NotificationDrawer open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+      </div>
+    </SkinContext.Provider>
   );
 }

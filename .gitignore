@@ -15,6 +15,7 @@ popbill/
 !docs/ui-reference/brand/*.png
 !docs/lazycodex/evidence/matter-web/artifacts/*.png
 !docs/lazycodex/evidence/matter-desktop/artifacts/*.png
+!apps/web/src/assets/members/*.png
 .DS_Store
 Law Firm OS UI/
 progress-control-room-live-data.js

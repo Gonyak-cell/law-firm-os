@@ -16,7 +16,9 @@ import {
   UserPlus,
   UsersRound
 } from "lucide-react";
+import { useSkin } from "../../context/SkinContext.jsx";
 import { fetchHrxEmployees, fetchHrxLifecycleBoard, fetchHrxOrgChart, updateHrxReportingLine } from "../hrxApiClient.ts";
+import { memberPhotoFor } from "../memberPhotos.js";
 
 const STATUS_TABS = [
   { id: "active", label: "현재 재직" },
@@ -264,6 +266,7 @@ function organizationGroupLabel(department: string) {
 }
 
 export function PeopleWorkforceDirectory({ initialTab = "active", initialView = "table", refreshKey = 0, selectedEmployeeId = null, onSelectEmployee, compact = false }: WorkforceDirectoryProps) {
+  const skin = useSkin();
   const [employeeResult, setEmployeeResult] = useState<EmployeeResult>(null);
   const [lifecycleResult, setLifecycleResult] = useState<LifecycleResult>(null);
   const [orgChartResult, setOrgChartResult] = useState<OrgChartResult>(null);
@@ -441,9 +444,10 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
 
   const renderOrgEmployee = (employee: OrgEmployee, depth = 0): unknown => {
     const childRows = (orgChildrenByManager.get(employee.employeeId) ?? []).filter((child) => child.orgUnitId === employee.orgUnitId);
+    const photo = skin === "forest" ? memberPhotoFor(employee.name) : undefined;
     return [
         <div key={`${employee.key}-self`} className="hr-org-person" style={{ paddingLeft: `${8 + depth * 16}px` }}>
-          <span className="hr-roster-avatar">{initials(employee.name)}</span>
+          <span className="hr-roster-avatar">{photo ? <img src={photo} alt="" /> : initials(employee.name)}</span>
           <div>
             <strong>{employee.name}</strong>
             <small>

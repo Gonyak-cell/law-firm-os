@@ -8,6 +8,7 @@ import {
   FolderOpen,
   LayoutDashboard,
   Mail,
+  MonitorCog,
   Plus,
   ReceiptText,
   Settings,
@@ -231,6 +232,13 @@ export const globalUtilityItems = [
         source: "People",
         icon: Settings,
         legacyRoutes: [legacy("people", "people-company-general")]
+      },
+      {
+        id: "settings-theme",
+        label: "테마",
+        source: "Workspace",
+        icon: MonitorCog,
+        description: "작업공간 표시 모드를 선택합니다."
       },
       {
         id: "settings-permissions",

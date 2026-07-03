@@ -1,6 +1,7 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, RefreshCw } from "lucide-react";
+import forestCover from "../assets/forest-cover.jpg";
 import { backendCapabilities } from "../data/capabilityMap.js";
 import {
   fetchAiReviewQueue,
@@ -15,10 +16,46 @@ import {
   fetchMatterRecords,
   fetchPortalDashboard,
   fetchPortalRfi,
+  readLawosApiSession,
   fetchVaultDocuments
 } from "../data/apiClient.js";
 import { fetchHrxPeopleOverview } from "../people/hrxApiClient.ts";
+import { ForestHero } from "./ForestHero.jsx";
 import { PageHeader } from "./primitives.jsx";
+
+const heroDateFormatter = new Intl.DateTimeFormat("ko-KR", { dateStyle: "full" });
+
+function sessionText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function sessionDisplayName(session) {
+  return (
+    sessionText(session?.display_name) ||
+    sessionText(session?.name) ||
+    sessionText(session?.user_name) ||
+    sessionText(session?.user_id) ||
+    "사용자"
+  );
+}
+
+function sessionTitleLead(session) {
+  const title = (
+    sessionText(session?.title) ||
+    sessionText(session?.source_title) ||
+    sessionText(session?.primary_role_label) ||
+    sessionText(session?.role_label) ||
+    sessionText(session?.position) ||
+    sessionText(session?.job_title)
+  );
+  return title.split(/[\s/·,]+/).filter(Boolean)[0] ?? "";
+}
+
+function sessionGreeting() {
+  const session = readLawosApiSession()?.session ?? {};
+  const titleLead = sessionTitleLead(session);
+  return `Welcome, ${[sessionDisplayName(session), titleLead].filter(Boolean).join(" ")} 님`;
+}
 
 function normalizeStatus(result) {
   if (!result) return "loading";
@@ -174,9 +211,23 @@ export function HomeSurface({ labels, setView, liveCtx = "allow" }) {
   const vaultCapability = capabilityById.get("vault") ?? capabilities[0];
   const failedCount = capabilities.filter((capability) => capability.status === "unavailable").length;
   const reviewCount = capabilities.filter((capability) => capability.status === "review" || capability.status === "guarded").length;
+  const forestHeroTitle = sessionGreeting();
+  const forestHeroSubtitle = heroDateFormatter.format(new Date());
 
   return (
     <section className="surface stack lcx-web-command-center" data-lcx-web-command-center="true">
+      <ForestHero title={forestHeroTitle} subtitle={forestHeroSubtitle} image={forestCover} imageOpacity={0.4}>
+        <article className="forest-hero-stat">
+          <span>오늘 처리할 Matter</span>
+          <strong>{capabilityCount(matterCapability)}</strong>
+          <small>{capabilityStatusMessage(matterCapability)}</small>
+        </article>
+        <article className="forest-hero-stat">
+          <span>승인 대기</span>
+          <strong>{reviewCount}</strong>
+          <small>{reviewCount > 0 ? "검토가 필요한 항목이 있습니다." : "현재 검토 대기 신호가 없습니다."}</small>
+        </article>
+      </ForestHero>
       <PageHeader
         title="오늘의 운영 대기열"
         subtitle="처리할 Matter, 승인 대기, 최근 문서, 동기화 상태를 먼저 확인합니다."

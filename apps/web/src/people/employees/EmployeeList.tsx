@@ -2,13 +2,16 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { UsersRound } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
+import { useSkin } from "../../context/SkinContext.jsx";
 import { fetchHrxEmployees } from "../hrxApiClient.ts";
+import { memberPhotoFor } from "../memberPhotos.js";
 
 function accountLabel(employee) {
   return employee.work_email ? "등록 계정" : "계정 미등록";
 }
 
 export function EmployeeList({ selectedEmployeeId, onSelectEmployee, refreshKey }) {
+  const skin = useSkin();
   const [result, setResult] = useState(null);
 
   useEffect(() => {
@@ -36,20 +39,23 @@ export function EmployeeList({ selectedEmployeeId, onSelectEmployee, refreshKey 
   } else {
     body = (
       <div className="people-row-list">
-        {result.employees.map((employee) => (
-          <button
-            key={employee.employee_id}
-            className={selectedEmployeeId === employee.employee_id ? "people-row active" : "people-row"}
-            onClick={() => onSelectEmployee(employee.employee_id)}
-          >
-            <span className="people-row-avatar">{employee.display_name?.slice(0, 1) ?? "E"}</span>
-            <span>
-              <strong>{employee.display_name}</strong>
-              <small>{accountLabel(employee)}</small>
-            </span>
-            <em>{employee.status === "active" ? "재직" : employee.status === "on_leave" ? "휴가" : "확인 필요"}</em>
-          </button>
-        ))}
+        {result.employees.map((employee) => {
+          const photo = skin === "forest" ? memberPhotoFor(employee.display_name) : undefined;
+          return (
+            <button
+              key={employee.employee_id}
+              className={selectedEmployeeId === employee.employee_id ? "people-row active" : "people-row"}
+              onClick={() => onSelectEmployee(employee.employee_id)}
+            >
+              <span className="people-row-avatar">{photo ? <img src={photo} alt="" /> : employee.display_name?.slice(0, 1) ?? "E"}</span>
+              <span>
+                <strong>{employee.display_name}</strong>
+                <small>{accountLabel(employee)}</small>
+              </span>
+              <em>{employee.status === "active" ? "재직" : employee.status === "on_leave" ? "휴가" : "확인 필요"}</em>
+            </button>
+          );
+        })}
       </div>
     );
   }
